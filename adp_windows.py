@@ -474,6 +474,7 @@ class AsciiDocEditor(QMainWindow):
         # Editor toolbar
         editor_toolbar = QWidget()
         editor_toolbar.setFixedHeight(30)
+        editor_toolbar.setStyleSheet("background-color: rgba(128, 128, 128, 0.1); border-bottom: 1px solid #888;")
         editor_toolbar_layout = QHBoxLayout(editor_toolbar)
         editor_toolbar_layout.setContentsMargins(5, 2, 5, 2)
 
@@ -486,6 +487,21 @@ class AsciiDocEditor(QMainWindow):
         self.editor_max_btn = QPushButton("⬜")  # Maximize icon
         self.editor_max_btn.setFixedSize(24, 24)
         self.editor_max_btn.setToolTip("Maximize editor")
+        self.editor_max_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: 1px solid #888;
+                border-radius: 3px;
+                padding: 2px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-color: #aaa;
+            }
+            QPushButton:pressed {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+        """)
         self.editor_max_btn.clicked.connect(lambda: self._toggle_pane_maximize('editor'))
         editor_toolbar_layout.addWidget(self.editor_max_btn)
 
@@ -509,6 +525,7 @@ class AsciiDocEditor(QMainWindow):
         # Preview toolbar
         preview_toolbar = QWidget()
         preview_toolbar.setFixedHeight(30)
+        preview_toolbar.setStyleSheet("background-color: rgba(128, 128, 128, 0.1); border-bottom: 1px solid #888;")
         preview_toolbar_layout = QHBoxLayout(preview_toolbar)
         preview_toolbar_layout.setContentsMargins(5, 2, 5, 2)
 
@@ -521,6 +538,21 @@ class AsciiDocEditor(QMainWindow):
         self.preview_max_btn = QPushButton("⬜")  # Maximize icon
         self.preview_max_btn.setFixedSize(24, 24)
         self.preview_max_btn.setToolTip("Maximize preview")
+        self.preview_max_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: 1px solid #888;
+                border-radius: 3px;
+                padding: 2px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-color: #aaa;
+            }
+            QPushButton:pressed {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+        """)
         self.preview_max_btn.clicked.connect(lambda: self._toggle_pane_maximize('preview'))
         preview_toolbar_layout.addWidget(self.preview_max_btn)
 
@@ -1178,14 +1210,18 @@ class AsciiDocEditor(QMainWindow):
         if self._maximized_pane == pane:
             # Restore normal view
             self._restore_panes()
+        elif self._maximized_pane is not None:
+            # Another pane is maximized, switch to this pane
+            self._maximize_pane(pane)
         else:
-            # Maximize the requested pane
+            # No pane is maximized, maximize the requested pane
             self._maximize_pane(pane)
 
     def _maximize_pane(self, pane: str) -> None:
         """Maximize a specific pane."""
-        # Save current splitter sizes
-        self._saved_splitter_sizes = self.splitter.sizes()
+        # Only save splitter sizes if not already maximized
+        if self._maximized_pane is None:
+            self._saved_splitter_sizes = self.splitter.sizes()
 
         if pane == 'editor':
             # Hide preview pane
@@ -1193,6 +1229,9 @@ class AsciiDocEditor(QMainWindow):
             self.editor_max_btn.setText("⬛")  # Restore icon
             self.editor_max_btn.setToolTip("Restore editor")
             self.preview_max_btn.setEnabled(False)
+            # Reset preview button if it was maximized
+            self.preview_max_btn.setText("⬜")
+            self.preview_max_btn.setToolTip("Maximize preview")
             self.statusBar().showMessage("Editor maximized", 3000)
         else:  # preview
             # Hide editor pane
@@ -1200,14 +1239,24 @@ class AsciiDocEditor(QMainWindow):
             self.preview_max_btn.setText("⬛")  # Restore icon
             self.preview_max_btn.setToolTip("Restore preview")
             self.editor_max_btn.setEnabled(False)
+            # Reset editor button if it was maximized
+            self.editor_max_btn.setText("⬜")
+            self.editor_max_btn.setToolTip("Maximize editor")
             self.statusBar().showMessage("Preview maximized", 3000)
 
         self._maximized_pane = pane
 
     def _restore_panes(self) -> None:
         """Restore panes to their previous sizes."""
-        if self._saved_splitter_sizes:
-            self.splitter.setSizes(self._saved_splitter_sizes)
+        if self._saved_splitter_sizes and len(self._saved_splitter_sizes) == 2:
+            # Ensure the saved sizes are valid
+            total = sum(self._saved_splitter_sizes)
+            if total > 0:
+                self.splitter.setSizes(self._saved_splitter_sizes)
+            else:
+                # Fallback to equal sizes
+                width = self.splitter.width()
+                self.splitter.setSizes([width // 2, width // 2])
         else:
             # Default to equal sizes
             width = self.splitter.width()
