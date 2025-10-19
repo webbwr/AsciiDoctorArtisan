@@ -38,6 +38,11 @@ from PySide6.QtWidgets import (
     QStatusBar,
     QTextBrowser,
     QInputDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QWidget,
+    QPushButton,
+    QLabel,
 )
 from PySide6.QtGui import (
     QAction,
@@ -457,25 +462,85 @@ class AsciiDocEditor(QMainWindow):
         self.setMinimumSize(800, 600)
 
         # Create central splitter
-        splitter = QSplitter(Qt.Orientation.Horizontal, self)
-        self.setCentralWidget(splitter)
+        self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
+        self.setCentralWidget(self.splitter)
+
+        # Create editor container with maximize button
+        editor_container = QWidget()
+        editor_layout = QVBoxLayout(editor_container)
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_layout.setSpacing(0)
+
+        # Editor toolbar
+        editor_toolbar = QWidget()
+        editor_toolbar.setFixedHeight(30)
+        editor_toolbar_layout = QHBoxLayout(editor_toolbar)
+        editor_toolbar_layout.setContentsMargins(5, 2, 5, 2)
+
+        editor_label = QLabel("Editor")
+        editor_label.setStyleSheet("font-weight: bold;")
+        editor_toolbar_layout.addWidget(editor_label)
+        editor_toolbar_layout.addStretch()
+
+        # Editor maximize/restore button
+        self.editor_max_btn = QPushButton("⬜")  # Maximize icon
+        self.editor_max_btn.setFixedSize(24, 24)
+        self.editor_max_btn.setToolTip("Maximize editor")
+        self.editor_max_btn.clicked.connect(lambda: self._toggle_pane_maximize('editor'))
+        editor_toolbar_layout.addWidget(self.editor_max_btn)
+
+        editor_layout.addWidget(editor_toolbar)
 
         # Create editor
         self.editor = QPlainTextEdit(self)
         font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
         self.editor.setFont(font)
         self.editor.textChanged.connect(self._start_preview_timer)
-        splitter.addWidget(self.editor)
+        editor_layout.addWidget(self.editor)
+
+        self.splitter.addWidget(editor_container)
+
+        # Create preview container with maximize button
+        preview_container = QWidget()
+        preview_layout = QVBoxLayout(preview_container)
+        preview_layout.setContentsMargins(0, 0, 0, 0)
+        preview_layout.setSpacing(0)
+
+        # Preview toolbar
+        preview_toolbar = QWidget()
+        preview_toolbar.setFixedHeight(30)
+        preview_toolbar_layout = QHBoxLayout(preview_toolbar)
+        preview_toolbar_layout.setContentsMargins(5, 2, 5, 2)
+
+        preview_label = QLabel("Preview")
+        preview_label.setStyleSheet("font-weight: bold;")
+        preview_toolbar_layout.addWidget(preview_label)
+        preview_toolbar_layout.addStretch()
+
+        # Preview maximize/restore button
+        self.preview_max_btn = QPushButton("⬜")  # Maximize icon
+        self.preview_max_btn.setFixedSize(24, 24)
+        self.preview_max_btn.setToolTip("Maximize preview")
+        self.preview_max_btn.clicked.connect(lambda: self._toggle_pane_maximize('preview'))
+        preview_toolbar_layout.addWidget(self.preview_max_btn)
+
+        preview_layout.addWidget(preview_toolbar)
 
         # Create preview
         self.preview = QTextBrowser(self)
         self.preview.setReadOnly(True)
         self.preview.setOpenExternalLinks(True)
-        splitter.addWidget(self.preview)
+        preview_layout.addWidget(self.preview)
+
+        self.splitter.addWidget(preview_container)
 
         # Set equal sizes
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 1)
+        self.splitter.setStretchFactor(0, 1)
+        self.splitter.setStretchFactor(1, 1)
+
+        # Track maximized state
+        self._maximized_pane = None
+        self._saved_splitter_sizes = None
 
         # Set up synchronized scrolling
         self._setup_synchronized_scrolling()
@@ -655,6 +720,19 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._toggle_sync_scrolling
         )
 
+        # Pane maximize actions
+        self.maximize_editor_act = QAction("Maximize &Editor", self,
+            shortcut="Ctrl+Shift+E",
+            statusTip="Toggle maximize editor pane",
+            triggered=lambda: self._toggle_pane_maximize('editor')
+        )
+
+        self.maximize_preview_act = QAction("Maximize &Preview", self,
+            shortcut="Ctrl+Shift+R",
+            statusTip="Toggle maximize preview pane",
+            triggered=lambda: self._toggle_pane_maximize('preview')
+        )
+
         # Git actions
         self.set_repo_act = QAction("Set &Repository...", self,
             statusTip="Select Git repository",
@@ -721,6 +799,9 @@ class AsciiDocEditor(QMainWindow):
         view_menu.addSeparator()
         view_menu.addAction(self.dark_mode_act)
         view_menu.addAction(self.sync_scrolling_act)
+        view_menu.addSeparator()
+        view_menu.addAction(self.maximize_editor_act)
+        view_menu.addAction(self.maximize_preview_act)
 
         # Git menu
         git_menu = menubar.addMenu("&Git")
@@ -1091,6 +1172,57 @@ class AsciiDocEditor(QMainWindow):
             f"Synchronized scrolling {'enabled' if self._sync_scrolling else 'disabled'}",
             5000
         )
+
+    def _toggle_pane_maximize(self, pane: str) -> None:
+        """Toggle maximize/restore for a specific pane."""
+        if self._maximized_pane == pane:
+            # Restore normal view
+            self._restore_panes()
+        else:
+            # Maximize the requested pane
+            self._maximize_pane(pane)
+
+    def _maximize_pane(self, pane: str) -> None:
+        """Maximize a specific pane."""
+        # Save current splitter sizes
+        self._saved_splitter_sizes = self.splitter.sizes()
+
+        if pane == 'editor':
+            # Hide preview pane
+            self.splitter.setSizes([self.splitter.width(), 0])
+            self.editor_max_btn.setText("⬛")  # Restore icon
+            self.editor_max_btn.setToolTip("Restore editor")
+            self.preview_max_btn.setEnabled(False)
+            self.statusBar().showMessage("Editor maximized", 3000)
+        else:  # preview
+            # Hide editor pane
+            self.splitter.setSizes([0, self.splitter.width()])
+            self.preview_max_btn.setText("⬛")  # Restore icon
+            self.preview_max_btn.setToolTip("Restore preview")
+            self.editor_max_btn.setEnabled(False)
+            self.statusBar().showMessage("Preview maximized", 3000)
+
+        self._maximized_pane = pane
+
+    def _restore_panes(self) -> None:
+        """Restore panes to their previous sizes."""
+        if self._saved_splitter_sizes:
+            self.splitter.setSizes(self._saved_splitter_sizes)
+        else:
+            # Default to equal sizes
+            width = self.splitter.width()
+            self.splitter.setSizes([width // 2, width // 2])
+
+        # Reset buttons
+        self.editor_max_btn.setText("⬜")  # Maximize icon
+        self.editor_max_btn.setToolTip("Maximize editor")
+        self.editor_max_btn.setEnabled(True)
+        self.preview_max_btn.setText("⬜")  # Maximize icon
+        self.preview_max_btn.setToolTip("Maximize preview")
+        self.preview_max_btn.setEnabled(True)
+
+        self._maximized_pane = None
+        self.statusBar().showMessage("View restored", 3000)
 
     def convert_and_paste_from_clipboard(self) -> None:
         if not self._check_pandoc_availability("Clipboard Conversion"):
