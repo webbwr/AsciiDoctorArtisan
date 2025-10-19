@@ -23,7 +23,7 @@ import platform
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -1207,19 +1207,14 @@ class AsciiDocEditor(QMainWindow):
 
     def _toggle_pane_maximize(self, pane: str) -> None:
         """Toggle maximize/restore for a specific pane."""
-        logger.debug(f"Toggle pane maximize called for: {pane}, current maximized: {self._maximized_pane}")
-
         if self._maximized_pane == pane:
             # Restore normal view
-            logger.debug("Restoring panes to normal view")
             self._restore_panes()
         elif self._maximized_pane is not None:
             # Another pane is maximized, switch to this pane
-            logger.debug(f"Switching from {self._maximized_pane} to {pane}")
             self._maximize_pane(pane)
         else:
             # No pane is maximized, maximize the requested pane
-            logger.debug(f"Maximizing {pane}")
             self._maximize_pane(pane)
 
     def _maximize_pane(self, pane: str) -> None:
@@ -1227,7 +1222,6 @@ class AsciiDocEditor(QMainWindow):
         # Only save splitter sizes if not already maximized
         if self._maximized_pane is None:
             self._saved_splitter_sizes = self.splitter.sizes()
-            logger.debug(f"Saved splitter sizes: {self._saved_splitter_sizes}")
 
         if pane == 'editor':
             # Hide preview pane
@@ -1253,28 +1247,22 @@ class AsciiDocEditor(QMainWindow):
             self.statusBar().showMessage("Preview maximized", 3000)
 
         self._maximized_pane = pane
-        logger.debug(f"Pane maximized: {pane}")
 
     def _restore_panes(self) -> None:
         """Restore panes to their previous sizes."""
-        logger.debug(f"Restoring panes, saved sizes: {self._saved_splitter_sizes}")
-
         if self._saved_splitter_sizes and len(self._saved_splitter_sizes) == 2:
             # Ensure the saved sizes are valid
             total = sum(self._saved_splitter_sizes)
             if total > 0:
                 self.splitter.setSizes(self._saved_splitter_sizes)
-                logger.debug("Restored to saved sizes")
             else:
                 # Fallback to equal sizes
                 width = self.splitter.width()
                 self.splitter.setSizes([width // 2, width // 2])
-                logger.debug("Restored to equal sizes (saved sizes invalid)")
         else:
             # Default to equal sizes
             width = self.splitter.width()
             self.splitter.setSizes([width // 2, width // 2])
-            logger.debug("Restored to equal sizes (no saved sizes)")
 
         # Reset buttons
         self.editor_max_btn.setText("⬜")  # Maximize icon
@@ -1285,7 +1273,6 @@ class AsciiDocEditor(QMainWindow):
         self.preview_max_btn.setEnabled(True)
 
         self._maximized_pane = None
-        logger.debug("Panes restored, maximized_pane set to None")
         self.statusBar().showMessage("View restored", 3000)
 
     def convert_and_paste_from_clipboard(self) -> None:
