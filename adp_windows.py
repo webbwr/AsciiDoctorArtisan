@@ -1240,10 +1240,24 @@ class AsciiDocEditor(QMainWindow):
         # For other formats, use pandoc conversion in background
         self.statusBar.showMessage(f"Saving as {format_type.upper()}...")
 
-        # Create temporary AsciiDoc file for conversion
-        temp_adoc = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.adoc"
+        # Convert AsciiDoc to HTML first (pandoc doesn't support AsciiDoc input)
         try:
-            temp_adoc.write_text(content, encoding='utf-8')
+            # Use asciidoc3api to convert to HTML
+            html_content = self._asciidoc_api.convert(
+                content,
+                backend='html5',
+                header_footer=True,
+                safe='unsafe'
+            )
+        except Exception as e:
+            logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
+            self._show_message("critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}")
+            return False
+
+        # Create temporary HTML file for conversion
+        temp_html = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
+        try:
+            temp_html.write_text(html_content, encoding='utf-8')
         except Exception as e:
             self._show_message("critical", "Save Error", f"Failed to create temporary file:\n{e}")
             return False
@@ -1254,20 +1268,20 @@ class AsciiDocEditor(QMainWindow):
 
         # For PDF and DOCX, pass the output file directly
         if format_type in ['pdf', 'docx']:
-            logger.info(f"Emitting pandoc conversion request for {format_type} - temp_adoc: {temp_adoc}, output: {file_path}")
+            logger.info(f"Emitting pandoc conversion request for {format_type} - temp_html: {temp_html}, output: {file_path}")
             self.request_pandoc_conversion.emit(
-                temp_adoc,
+                temp_html,
                 format_type,  # to_format (target)
-                'asciidoc',   # from_format (source)
+                'html',       # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 file_path
             )
         else:
             # For text formats, get the result and save it
             self.request_pandoc_conversion.emit(
-                temp_adoc,
+                temp_html,
                 format_type,  # to_format (target)
-                'asciidoc',   # from_format (source)
+                'html',       # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 None
             )
@@ -1343,10 +1357,24 @@ class AsciiDocEditor(QMainWindow):
         # For other formats, use pandoc conversion in background
         self.statusBar.showMessage(f"Exporting to {format_type.upper()}...")
 
-        # Create temporary AsciiDoc file for conversion
-        temp_adoc = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.adoc"
+        # Convert AsciiDoc to HTML first (pandoc doesn't support AsciiDoc input)
         try:
-            temp_adoc.write_text(content, encoding='utf-8')
+            # Use asciidoc3api to convert to HTML
+            html_content = self._asciidoc_api.convert(
+                content,
+                backend='html5',
+                header_footer=True,
+                safe='unsafe'
+            )
+        except Exception as e:
+            logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
+            self._show_message("critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}")
+            return False
+
+        # Create temporary HTML file for conversion
+        temp_html = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
+        try:
+            temp_html.write_text(html_content, encoding='utf-8')
         except Exception as e:
             self._show_message("critical", "Export Error", f"Failed to create temporary file:\n{e}")
             return False
@@ -1358,9 +1386,9 @@ class AsciiDocEditor(QMainWindow):
         # For PDF and DOCX, pass the output file directly
         if format_type in ['pdf', 'docx']:
             self.request_pandoc_conversion.emit(
-                temp_adoc,
+                temp_html,
                 format_type,  # to_format (target)
-                'asciidoc',   # from_format (source)
+                'html',       # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 file_path
             )
@@ -1369,9 +1397,9 @@ class AsciiDocEditor(QMainWindow):
         else:
             # For text formats, get the result and save it
             self.request_pandoc_conversion.emit(
-                temp_adoc,
+                temp_html,
                 format_type,  # to_format (target)
-                'asciidoc',   # from_format (source)
+                'html',       # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 None
             )
