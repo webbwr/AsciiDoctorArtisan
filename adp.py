@@ -1030,10 +1030,11 @@ def _apply_dark_palette(app: QApplication) -> None:
     app.setPalette(dark_palette)
 
 def main() -> None:
-    try: QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
-    except AttributeError: print("INFO: AA_EnableHighDpiScaling not available.")
-    try: QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
-    except AttributeError: print("INFO: AA_UseHighDpiPixmaps not available.")
+    # Note: HiDPI scaling attributes are deprecated in Qt6/PySide6
+    # HiDPI is now handled automatically by Qt6
+
+    # Suppress SyntaxWarnings from asciidoc3 library (invalid escape sequences in regex)
+    warnings.filterwarnings('ignore', category=SyntaxWarning)
 
     app = QApplication(sys.argv)
     original_palette = app.palette()
