@@ -737,7 +737,11 @@ class AsciiDocEditor(QMainWindow):
                 self._is_processing_pandoc = True
                 self._pending_file_path = file_path
                 self._update_ui_state()
-                self.statusBar.showMessage(f"Converting '{file_path.name}'...")
+
+                # Clear editor and show conversion message
+                self.editor.setPlainText(f"// Converting {file_path.name} to AsciiDoc...\n// Please wait...")
+                self.preview.setHtml("<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>")
+                self.statusBar.showMessage(f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc...")
 
                 # Determine the input format for pandoc
                 format_map = {
@@ -760,6 +764,9 @@ class AsciiDocEditor(QMainWindow):
                 else:
                     file_content = file_path.read_text(encoding='utf-8')
 
+                # Log the conversion start
+                logger.info(f"Starting conversion of {file_path.name} from {input_format} to asciidoc")
+
                 self.request_pandoc_conversion.emit(
                     file_content, 'asciidoc', input_format, f"converting '{file_path.name}'"
                 )
@@ -775,12 +782,23 @@ class AsciiDocEditor(QMainWindow):
     def _load_content_into_editor(self, content: str, file_path: Path) -> None:
         self._is_opening_file = True
         try:
+            # Set the raw AsciiDoc markup in the editor
             self.editor.setPlainText(content)
             self._current_file_path = file_path
             self._unsaved_changes = False
             self._update_window_title()
-            self.statusBar.showMessage(f"Opened: {file_path}")
+
+            # Update status with file type info
+            if file_path.suffix.lower() in ['.md', '.markdown', '.docx', '.html', '.htm', '.tex', '.rst', '.org', '.textile']:
+                self.statusBar.showMessage(f"Converted and opened: {file_path} → AsciiDoc")
+            else:
+                self.statusBar.showMessage(f"Opened: {file_path}")
+
+            # Ensure preview updates with the rendered content
             self.update_preview()
+
+            # Log the operation
+            logger.info(f"Loaded content into editor: {file_path}")
         finally:
             self._is_opening_file = False
 
@@ -1028,15 +1046,34 @@ class AsciiDocEditor(QMainWindow):
             self.editor.insertPlainText(result)
             self.statusBar.showMessage("Pasted converted content")
         elif self._pending_file_path:
+            # Load the raw AsciiDoc markup into the editor
             self._load_content_into_editor(result, self._pending_file_path)
             self._pending_file_path = None
+
+            # Log successful conversion
+            logger.info(f"Successfully converted {context}")
+
+            # Force immediate preview update
+            QTimer.singleShot(100, self.update_preview)
 
     @Slot(str, str)
     def _handle_pandoc_error_result(self, error: str, context: str) -> None:
         self._is_processing_pandoc = False
+        file_path = self._pending_file_path
         self._pending_file_path = None
         self._update_ui_state()
-        self._show_message("critical", "Conversion Error", error)
+        self.statusBar.showMessage(f"Conversion failed: {context}")
+
+        # Clear the editor and preview
+        self.editor.clear()
+        self.preview.setHtml("<h3>Conversion Failed</h3><p>Unable to convert the document.</p>")
+
+        # Show detailed error
+        error_msg = f"{context} failed:\n\n{error}"
+        if file_path:
+            error_msg += f"\n\nFile: {file_path}"
+
+        self._show_message("critical", "Conversion Error", error_msg)
 
     def _update_ui_state(self) -> None:
         # File operations
