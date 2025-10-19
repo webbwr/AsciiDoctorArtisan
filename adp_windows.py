@@ -1142,6 +1142,7 @@ class AsciiDocEditor(QMainWindow):
                 return False
 
             file_path = Path(file_path)
+            logger.info(f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}")
 
             # Determine format based on selected filter or file extension
             format_type = 'adoc'  # default
@@ -1175,6 +1176,7 @@ class AsciiDocEditor(QMainWindow):
 
             # If saving as non-AsciiDoc format, use export functionality
             if format_type != 'adoc':
+                logger.info(f"Calling _save_as_format_internal with file_path={file_path}, format_type={format_type}")
                 return self._save_as_format_internal(file_path, format_type)
 
         else:
@@ -1206,6 +1208,7 @@ class AsciiDocEditor(QMainWindow):
 
     def _save_as_format_internal(self, file_path: Path, format_type: str) -> bool:
         """Internal method to save file in specified format without showing dialog."""
+        logger.info(f"_save_as_format_internal called - file_path: {file_path}, format_type: {format_type}")
         # Get current content
         content = self.editor.toPlainText()
 
@@ -1240,10 +1243,12 @@ class AsciiDocEditor(QMainWindow):
             return False
 
         # Show conversion in progress
-        self._show_conversion_progress(f"Saving as {format_type.upper()}")
+        # self._show_conversion_progress(f"Saving as {format_type.upper()}")
+        self.statusBar.showMessage(f"Saving as {format_type.upper()}...")
 
         # For PDF and DOCX, pass the output file directly
         if format_type in ['pdf', 'docx']:
+            logger.info(f"Emitting pandoc conversion request for {format_type} - temp_adoc: {temp_adoc}, output: {file_path}")
             self.request_pandoc_conversion.emit(
                 temp_adoc,
                 'asciidoc',
@@ -1341,7 +1346,8 @@ class AsciiDocEditor(QMainWindow):
             return False
 
         # Show conversion in progress
-        self._show_conversion_progress(f"Exporting to {format_type.upper()}")
+        # self._show_conversion_progress(f"Exporting to {format_type.upper()}")
+        self.statusBar.showMessage(f"Exporting to {format_type.upper()}...")
 
         # For PDF and DOCX, pass the output file directly
         if format_type in ['pdf', 'docx']:
