@@ -126,7 +126,7 @@ COMMON_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm"
 ALL_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm *.tex *.rst *.org *.textile"
 
 SUPPORTED_OPEN_FILTER = f"Common Formats ({COMMON_FORMATS});;All Supported ({ALL_FORMATS});;{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{LATEX_FILTER};;{RST_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
-SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
+SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
 
 
 class GitResult(NamedTuple):
@@ -782,6 +782,11 @@ class AsciiDocEditor(QMainWindow):
             triggered=lambda: self.save_file_as_format('docx')
         )
 
+        self.save_as_html_act = QAction("HTML Web Page (*.html)", self,
+            statusTip="Export to HTML format (can print to PDF from browser)",
+            triggered=lambda: self.save_file_as_format('html')
+        )
+
         self.save_as_pdf_act = QAction("Adobe PDF (*.pdf)", self,
             statusTip="Export to Adobe Acrobat PDF format",
             triggered=lambda: self.save_file_as_format('pdf')
@@ -921,6 +926,7 @@ class AsciiDocEditor(QMainWindow):
         export_menu.addAction(self.save_as_adoc_act)
         export_menu.addAction(self.save_as_md_act)
         export_menu.addAction(self.save_as_docx_act)
+        export_menu.addAction(self.save_as_html_act)
         export_menu.addAction(self.save_as_pdf_act)
 
         file_menu.addSeparator()
@@ -1183,6 +1189,8 @@ class AsciiDocEditor(QMainWindow):
                 format_type = 'md'
             elif DOCX_FILTER in selected_filter:
                 format_type = 'docx'
+            elif HTML_FILTER in selected_filter:
+                format_type = 'html'
             elif PDF_FILTER in selected_filter:
                 format_type = 'pdf'
             elif file_path.suffix:
@@ -1192,6 +1200,8 @@ class AsciiDocEditor(QMainWindow):
                     format_type = 'md'
                 elif ext == '.docx':
                     format_type = 'docx'
+                elif ext in ['.html', '.htm']:
+                    format_type = 'html'
                 elif ext == '.pdf':
                     format_type = 'pdf'
 
@@ -1200,6 +1210,8 @@ class AsciiDocEditor(QMainWindow):
                 file_path = file_path.with_suffix('.md')
             elif format_type == 'docx' and not file_path.suffix:
                 file_path = file_path.with_suffix('.docx')
+            elif format_type == 'html' and not file_path.suffix:
+                file_path = file_path.with_suffix('.html')
             elif format_type == 'pdf' and not file_path.suffix:
                 file_path = file_path.with_suffix('.pdf')
             elif format_type == 'adoc' and not file_path.suffix:
@@ -1256,6 +1268,26 @@ class AsciiDocEditor(QMainWindow):
             except Exception as e:
                 logger.exception(f"Failed to save AsciiDoc file: {file_path}")
                 self._show_message("critical", "Save Error", f"Failed to save AsciiDoc file:\n{e}")
+                return False
+
+        # For HTML format, convert directly without pandoc
+        if format_type == 'html':
+            self.statusBar.showMessage(f"Saving as HTML...")
+            try:
+                # Use asciidoc3api to convert to HTML
+                infile = io.StringIO(content)
+                outfile = io.StringIO()
+                self._asciidoc_api.execute(infile, outfile, backend="html5")
+                html_content = outfile.getvalue()
+
+                # Save HTML directly
+                file_path.write_text(html_content, encoding='utf-8')
+                self.statusBar.showMessage(f"Saved as HTML: {file_path}")
+                logger.info(f"Successfully saved as HTML: {file_path}")
+                return True
+            except Exception as e:
+                logger.exception(f"Failed to save HTML file: {e}")
+                self._show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
                 return False
 
         # Check pandoc availability for other formats
@@ -1328,6 +1360,7 @@ class AsciiDocEditor(QMainWindow):
             'adoc': (ADOC_FILTER, '.adoc'),
             'md': (MD_FILTER, '.md'),
             'docx': (DOCX_FILTER, '.docx'),
+            'html': (HTML_FILTER, '.html'),
             'pdf': (PDF_FILTER, '.pdf')
         }
 
@@ -1375,6 +1408,26 @@ class AsciiDocEditor(QMainWindow):
             except Exception as e:
                 logger.exception(f"Failed to save AsciiDoc file: {file_path}")
                 self._show_message("critical", "Export Error", f"Failed to save AsciiDoc file:\n{e}")
+                return False
+
+        # For HTML format, convert directly without pandoc
+        if format_type == 'html':
+            self.statusBar.showMessage(f"Exporting to HTML...")
+            try:
+                # Use asciidoc3api to convert to HTML
+                infile = io.StringIO(content)
+                outfile = io.StringIO()
+                self._asciidoc_api.execute(infile, outfile, backend="html5")
+                html_content = outfile.getvalue()
+
+                # Save HTML directly
+                file_path.write_text(html_content, encoding='utf-8')
+                self.statusBar.showMessage(f"Exported to HTML: {file_path}")
+                logger.info(f"Successfully exported to HTML: {file_path}")
+                return True
+            except Exception as e:
+                logger.exception(f"Failed to export HTML file: {e}")
+                self._show_message("critical", "Export Error", f"Failed to export HTML file:\n{e}")
                 return False
 
         # For other formats, use pandoc conversion in background
@@ -1832,6 +1885,7 @@ class AsciiDocEditor(QMainWindow):
         self.save_as_adoc_act.setEnabled(export_enabled)
         self.save_as_md_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
         self.save_as_docx_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.save_as_html_act.setEnabled(export_enabled)  # HTML doesn't need pandoc
         self.save_as_pdf_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
 
         # Git operations
