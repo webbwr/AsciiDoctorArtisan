@@ -283,8 +283,14 @@ class PandocWorker(QObject):
                 result_text = f"File saved to: {output_file}"
             else:
                 # Convert to text for text formats or when no output file specified
+                # If source is a Path, read its content first
+                if isinstance(source, Path):
+                    source_content = source.read_text(encoding='utf-8')
+                else:
+                    source_content = source
+
                 result_text = pypandoc.convert_text(
-                    source=source,
+                    source=source_content,
                     to=to_format,
                     format=from_format,
                     extra_args=extra_args
