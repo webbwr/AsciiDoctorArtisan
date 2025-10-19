@@ -62,14 +62,24 @@ from PySide6.QtCore import (
     QSize,
 )
 
-# Optional dependencies
+# Optional dependencies and enhanced pandoc integration
 try:
     import pypandoc
     PANDOC_AVAILABLE = True
 except ImportError:
-    logger.warning("pypandoc not found. DOCX conversion disabled.")
+    logger.warning("pypandoc not found. Document conversion limited.")
     pypandoc = None
     PANDOC_AVAILABLE = False
+
+# Import enhanced pandoc integration
+try:
+    from pandoc_integration import pandoc, ensure_pandoc_available
+    ENHANCED_PANDOC = True
+except ImportError:
+    logger.warning("Enhanced pandoc integration not available")
+    pandoc = None
+    ensure_pandoc_available = None
+    ENHANCED_PANDOC = False
 
 try:
     from asciidoc3 import asciidoc3
@@ -96,9 +106,20 @@ ADOC_FILTER = "AsciiDoc Files (*.adoc *.asciidoc)"
 DOCX_FILTER = "Word Documents (*.docx)"
 PDF_FILTER = "PDF Files (*.pdf)"
 MD_FILTER = "Markdown Files (*.md *.markdown)"
+HTML_FILTER = "HTML Files (*.html *.htm)"
+LATEX_FILTER = "LaTeX Files (*.tex)"
+RST_FILTER = "reStructuredText Files (*.rst)"
+ORG_FILTER = "Org Mode Files (*.org)"
+TEXTILE_FILTER = "Textile Files (*.textile)"
 ALL_FILES_FILTER = "All Files (*)"
-SUPPORTED_OPEN_FILTER = f"All Supported Files (*.adoc *.asciidoc *.docx *.pdf *.md *.markdown);;{ADOC_FILTER};;{DOCX_FILTER};;{PDF_FILTER};;{MD_FILTER};;{ALL_FILES_FILTER}"
-SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{ALL_FILES_FILTER}"
+
+# Common formats for quick access
+COMMON_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm"
+# All supported formats
+ALL_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm *.tex *.rst *.org *.textile"
+
+SUPPORTED_OPEN_FILTER = f"Common Formats ({COMMON_FORMATS});;All Supported ({ALL_FORMATS});;{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{LATEX_FILTER};;{RST_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
+SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{MD_FILTER};;{HTML_FILTER};;{ALL_FILES_FILTER}"
 
 
 class GitResult(NamedTuple):
@@ -534,6 +555,17 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._trigger_git_push
         )
 
+        # Tools menu actions
+        self.pandoc_status_act = QAction("&Pandoc Status", self,
+            statusTip="Check Pandoc installation status",
+            triggered=self._show_pandoc_status
+        )
+
+        self.pandoc_formats_act = QAction("Supported &Formats", self,
+            statusTip="Show supported conversion formats",
+            triggered=self._show_supported_formats
+        )
+
     def _create_menus(self) -> None:
         menubar = self.menuBar()
 
@@ -572,6 +604,11 @@ class AsciiDocEditor(QMainWindow):
         git_menu.addAction(self.git_commit_act)
         git_menu.addAction(self.git_pull_act)
         git_menu.addAction(self.git_push_act)
+
+        # Tools menu
+        tools_menu = menubar.addMenu("&Tools")
+        tools_menu.addAction(self.pandoc_status_act)
+        tools_menu.addAction(self.pandoc_formats_act)
 
     def _setup_workers_and_threads(self) -> None:
         logger.info("Setting up worker threads...")
@@ -692,7 +729,7 @@ class AsciiDocEditor(QMainWindow):
                     "Full PDF support is planned for a future release."
                 )
                 return
-            elif suffix in ['.docx', '.md', '.markdown']:
+            elif suffix in ['.docx', '.md', '.markdown', '.html', '.htm', '.tex', '.rst', '.org', '.textile']:
                 # Convert using Pandoc
                 if not self._check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
                     return
@@ -703,12 +740,24 @@ class AsciiDocEditor(QMainWindow):
                 self.statusBar.showMessage(f"Converting '{file_path.name}'...")
 
                 # Determine the input format for pandoc
-                if suffix == '.docx':
-                    input_format = 'docx'
+                format_map = {
+                    '.docx': ('docx', 'binary'),
+                    '.md': ('markdown', 'text'),
+                    '.markdown': ('markdown', 'text'),
+                    '.html': ('html', 'text'),
+                    '.htm': ('html', 'text'),
+                    '.tex': ('latex', 'text'),
+                    '.rst': ('rst', 'text'),
+                    '.org': ('org', 'text'),
+                    '.textile': ('textile', 'text')
+                }
+
+                input_format, file_type = format_map.get(suffix, ('markdown', 'text'))
+
+                # Read file content based on type
+                if file_type == 'binary':
                     file_content = file_path.read_bytes()
-                elif suffix in ['.md', '.markdown']:
-                    input_format = 'markdown'
-                    # For markdown, we send the text content
+                else:
                     file_content = file_path.read_text(encoding='utf-8')
 
                 self.request_pandoc_conversion.emit(
@@ -1005,12 +1054,91 @@ class AsciiDocEditor(QMainWindow):
         self.convert_paste_act.setEnabled(PANDOC_AVAILABLE and not self._is_processing_pandoc)
 
     def _check_pandoc_availability(self, context: str) -> bool:
-        if not PANDOC_AVAILABLE:
+        if ENHANCED_PANDOC and ensure_pandoc_available:
+            # Use enhanced pandoc integration
+            is_available, message = ensure_pandoc_available()
+            if not is_available:
+                self._show_message(
+                    "critical",
+                    "Pandoc Setup Required",
+                    f"{context} requires Pandoc.\n\n{message}"
+                )
+                return False
+            return True
+        elif not PANDOC_AVAILABLE:
+            # Fallback to basic check
             self._show_message("critical", "Pandoc Not Available",
                              f"{context} requires Pandoc and pypandoc.\n"
-                             "Please install them first.")
+                             "Please install them first:\n\n"
+                             "1. Install pandoc from https://pandoc.org\n"
+                             "2. Run: pip install pypandoc")
             return False
         return True
+
+    def _show_pandoc_status(self) -> None:
+        """Show detailed pandoc installation status."""
+        if ENHANCED_PANDOC and pandoc:
+            # Get detailed status from enhanced integration
+            is_available, status = ensure_pandoc_available()
+
+            details = f"Pandoc Status:\n\n"
+            details += f"Binary found: {'Yes' if pandoc.pandoc_path else 'No'}\n"
+            if pandoc.pandoc_path:
+                details += f"Location: {pandoc.pandoc_path}\n"
+            details += f"Version: {pandoc.pandoc_version or 'Unknown'}\n"
+            details += f"pypandoc: {'Available' if pandoc.pypandoc_available else 'Not installed'}\n\n"
+            details += f"Status: {status}"
+
+            self._show_message("info", "Pandoc Status", details)
+        else:
+            # Basic status
+            status = "Pandoc Status:\n\n"
+            status += f"PANDOC_AVAILABLE: {PANDOC_AVAILABLE}\n"
+            status += f"pypandoc module: {'Imported' if pypandoc else 'Not found'}\n\n"
+
+            if not PANDOC_AVAILABLE:
+                status += "To enable document conversion:\n"
+                status += "1. Install pandoc from https://pandoc.org\n"
+                status += "2. Run: pip install pypandoc"
+
+            self._show_message("info", "Pandoc Status", status)
+
+    def _show_supported_formats(self) -> None:
+        """Show supported input and output formats."""
+        if ENHANCED_PANDOC and pandoc and pandoc.pypandoc_available:
+            # Get formats from enhanced integration
+            message = "Supported Conversion Formats:\n\n"
+
+            # Key input formats for this application
+            key_inputs = ['markdown', 'docx', 'html', 'latex', 'rst', 'org']
+            available_inputs = [f for f in key_inputs if pandoc.is_format_supported(f, 'input')]
+
+            message += "INPUT FORMATS:\n"
+            for fmt in available_inputs:
+                desc = pandoc.get_format_info(fmt)
+                message += f"  • {fmt}: {desc}\n"
+
+            message += f"\nTotal input formats: {len(pandoc.supported_formats['input'])}\n"
+
+            message += "\nOUTPUT FORMATS:\n"
+            message += f"  • asciidoc: {pandoc.get_format_info('asciidoc')}\n"
+            message += f"  • markdown: {pandoc.get_format_info('markdown')}\n"
+            message += f"  • html: {pandoc.get_format_info('html')}\n"
+
+            message += f"\nTotal output formats: {len(pandoc.supported_formats['output'])}"
+
+            self._show_message("info", "Supported Formats", message)
+        else:
+            self._show_message(
+                "warning",
+                "Format Information Unavailable",
+                "Pandoc is not properly configured.\n\n"
+                "When configured, you can convert between many formats including:\n"
+                "• Markdown to AsciiDoc\n"
+                "• DOCX to AsciiDoc\n"
+                "• HTML to AsciiDoc\n"
+                "• And many more..."
+            )
 
     def _show_message(self, level: str, title: str, text: str) -> None:
         icon_map = {
