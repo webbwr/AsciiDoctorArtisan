@@ -143,8 +143,12 @@ The preview pane shows a live HTML rendering of your AsciiDoc:
 
 ## Configuration
 
-Settings are stored in `AsciiDocArtisan.json`:
+Settings are automatically stored in a platform-appropriate location:
+- **Linux/WSL**: `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
+- **Windows**: `%APPDATA%/AsciiDocArtisan/AsciiDocArtisan.json`
+- **macOS**: `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.json`
 
+**Configuration Format:**
 ```json
 {
   "last_directory": "/path/to/documents",
@@ -162,20 +166,24 @@ Settings are stored in `AsciiDocArtisan.json`:
 - `maximized`: Window maximization state
 - `window_geometry`: Window size/position (when not maximized)
 
+**Note:** The configuration file is created automatically on first run.
+
 ## Project Structure
 
 ```
 AsciiDoctorArtisan/
-├── adp.py                           # Main application
-├── AsciiDocArtisan.json             # Configuration file (auto-generated)
-├── AsciiDocArtisanVerify.ps1        # Windows verification script
-├── asciidoc-verification-summary.md # Setup documentation
+├── adp.py                           # Main application (1,045 lines)
 ├── requirements.txt                 # Python dependencies
 ├── setup.sh                         # Linux/WSL setup script
 ├── verify.sh                        # Linux/WSL verification script
-├── scripts/                         # Helper scripts
-├── templates/                       # Document templates
-└── memory/                          # Application memory/cache
+├── AsciiDocArtisanVerify.ps1        # Windows verification script
+├── asciidoc-verification-summary.md # Windows setup documentation
+├── INSTALLATION_COMPLETE.md         # Installation guide
+├── LICENSE                          # MIT License
+├── CHANGELOG.md                     # Version history
+├── README.md                        # This file
+├── ANALYSIS_AND_MVP_PLAN.md         # Code analysis and MVP roadmap
+└── .gitignore                       # Git exclusions
 ```
 
 ## Troubleshooting
@@ -242,7 +250,7 @@ Contributions are welcome! Please:
 
 ## License
 
-[Add your license here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Credits
 

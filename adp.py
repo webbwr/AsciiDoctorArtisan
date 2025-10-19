@@ -249,12 +249,25 @@ class AsciiDocEditor(QMainWindow):
         self._pending_commit_message: Optional[str] = None
 
     def _get_settings_path(self) -> Path:
-        try:
-            script_path = Path(__file__).resolve().parent
-            return script_path / SETTINGS_FILENAME
-        except NameError:
-            print("WARN: Could not determine script path, using home directory for settings.")
+        # Use platform-appropriate configuration directory
+        config_dir_str = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppConfigLocation)
+
+        if not config_dir_str:
+            # Fallback to home directory if config location not available
+            print("WARN: Could not determine config directory, using home directory for settings.")
             return Path.home() / SETTINGS_FILENAME
+
+        config_dir = Path(config_dir_str)
+
+        # Create config directory if it doesn't exist
+        try:
+            config_dir.mkdir(parents=True, exist_ok=True)
+            print(f"INFO: Using config directory: {config_dir}")
+        except Exception as e:
+            print(f"WARN: Could not create config directory {config_dir}: {e}. Using home directory.")
+            return Path.home() / SETTINGS_FILENAME
+
+        return config_dir / SETTINGS_FILENAME
 
     def _load_settings(self) -> None:
         print(f"INFO: Attempting to load settings from: {self._settings_path}")
@@ -676,9 +689,15 @@ class AsciiDocEditor(QMainWindow):
             self._show_message("warning", "Empty Commit Message", "Commit aborted. Please provide a commit message.")
             return
 
+        # Validate commit message (remove null bytes and control characters except newlines/tabs)
+        sanitized_message = commit_message.replace('\0', '').replace('\r', '')
+        if not sanitized_message.strip():
+            self._show_message("warning", "Invalid Commit Message", "Commit message contains only invalid characters.")
+            return
+
         self._is_processing_git = True
         self._last_git_operation = "commit_add"
-        self._pending_commit_message = commit_message
+        self._pending_commit_message = sanitized_message
         self._update_ui_state()
         self.statusBar.showMessage("Attempting Git add...", 0)
         QApplication.processEvents()
