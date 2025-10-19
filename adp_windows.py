@@ -725,7 +725,7 @@ class AsciiDocEditor(QMainWindow):
 
         self.save_act = QAction("&Save", self,
             shortcut=QKeySequence.StandardKey.Save,
-            statusTip="Save the document",
+            statusTip="Save the document as AsciiDoc format (.adoc)",
             triggered=self.save_file
         )
 
@@ -1178,7 +1178,14 @@ class AsciiDocEditor(QMainWindow):
                 return self._save_as_format_internal(file_path, format_type)
 
         else:
+            # For regular save, always use AsciiDoc format
             file_path = self._current_file_path
+
+            # If current file is not an AsciiDoc file, change extension to .adoc
+            if file_path.suffix.lower() not in ['.adoc', '.asciidoc']:
+                # Change extension to .adoc
+                file_path = file_path.with_suffix('.adoc')
+                logger.info(f"Converting save format from {self._current_file_path.suffix} to .adoc")
 
         # Save as AsciiDoc
         try:
@@ -1189,7 +1196,7 @@ class AsciiDocEditor(QMainWindow):
             self._last_directory = str(file_path.parent)
             self._unsaved_changes = False
             self._update_window_title()
-            self.statusBar.showMessage(f"Saved: {file_path}")
+            self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
             return True
 
         except Exception as e:
