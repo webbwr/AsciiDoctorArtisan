@@ -218,7 +218,6 @@ class PandocWorker(QObject):
             extra_args = [
                 '--wrap=preserve',          # Preserve line breaks
                 '--reference-links',        # Use reference-style links
-                '--atx-headers',           # Use = style headers (if supported)
                 '--standalone',            # Produce complete document
                 '--toc-depth=3',          # Include TOC depth info
             ]
