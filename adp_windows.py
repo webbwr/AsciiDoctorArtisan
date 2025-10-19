@@ -110,9 +110,9 @@ SETTINGS_FILENAME = "AsciiDocArtisan.json"
 
 # File filters - Windows-friendly
 ADOC_FILTER = "AsciiDoc Files (*.adoc *.asciidoc)"
-DOCX_FILTER = "Word Documents (*.docx)"
-PDF_FILTER = "PDF Files (*.pdf)"
-MD_FILTER = "Markdown Files (*.md *.markdown)"
+DOCX_FILTER = "Microsoft Word 365 Documents (*.docx)"
+PDF_FILTER = "Adobe Acrobat PDF Files (*.pdf)"
+MD_FILTER = "GitHub Markdown Files (*.md *.markdown)"
 HTML_FILTER = "HTML Files (*.html *.htm)"
 LATEX_FILTER = "LaTeX Files (*.tex)"
 RST_FILTER = "reStructuredText Files (*.rst)"
@@ -126,7 +126,7 @@ COMMON_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm"
 ALL_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm *.tex *.rst *.org *.textile"
 
 SUPPORTED_OPEN_FILTER = f"Common Formats ({COMMON_FORMATS});;All Supported ({ALL_FORMATS});;{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{LATEX_FILTER};;{RST_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
-SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{MD_FILTER};;{HTML_FILTER};;{ALL_FILES_FILTER}"
+SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
 
 
 class GitResult(NamedTuple):
@@ -1130,7 +1130,7 @@ class AsciiDocEditor(QMainWindow):
             suggested_name = self._current_file_path.name if self._current_file_path else DEFAULT_FILENAME
             suggested_path = Path(self._last_directory) / suggested_name
 
-            file_path, _ = QFileDialog.getSaveFileName(
+            file_path, selected_filter = QFileDialog.getSaveFileName(
                 self,
                 "Save File",
                 str(suggested_path),
@@ -1143,12 +1143,44 @@ class AsciiDocEditor(QMainWindow):
 
             file_path = Path(file_path)
 
-            # Ensure .adoc extension
-            if not file_path.suffix:
+            # Determine format based on selected filter or file extension
+            format_type = 'adoc'  # default
+
+            # First check the selected filter
+            if MD_FILTER in selected_filter:
+                format_type = 'md'
+            elif DOCX_FILTER in selected_filter:
+                format_type = 'docx'
+            elif PDF_FILTER in selected_filter:
+                format_type = 'pdf'
+            elif file_path.suffix:
+                # If no specific filter selected, determine by extension
+                ext = file_path.suffix.lower()
+                if ext in ['.md', '.markdown']:
+                    format_type = 'md'
+                elif ext == '.docx':
+                    format_type = 'docx'
+                elif ext == '.pdf':
+                    format_type = 'pdf'
+
+            # Ensure correct extension
+            if format_type == 'md' and not file_path.suffix:
+                file_path = file_path.with_suffix('.md')
+            elif format_type == 'docx' and not file_path.suffix:
+                file_path = file_path.with_suffix('.docx')
+            elif format_type == 'pdf' and not file_path.suffix:
+                file_path = file_path.with_suffix('.pdf')
+            elif format_type == 'adoc' and not file_path.suffix:
                 file_path = file_path.with_suffix('.adoc')
+
+            # If saving as non-AsciiDoc format, use export functionality
+            if format_type != 'adoc':
+                return self._save_as_format_internal(file_path, format_type)
+
         else:
             file_path = self._current_file_path
 
+        # Save as AsciiDoc
         try:
             content = self.editor.toPlainText()
             file_path.write_text(content, encoding='utf-8')
@@ -1164,6 +1196,75 @@ class AsciiDocEditor(QMainWindow):
             logger.exception(f"Failed to save file: {file_path}")
             self._show_message("critical", "Save Error", f"Failed to save file:\n{e}")
             return False
+
+    def _save_as_format_internal(self, file_path: Path, format_type: str) -> bool:
+        """Internal method to save file in specified format without showing dialog."""
+        # Get current content
+        content = self.editor.toPlainText()
+
+        # For native AsciiDoc format, just save directly
+        if format_type == 'adoc':
+            try:
+                file_path.write_text(content, encoding='utf-8')
+                self._current_file_path = file_path
+                self._last_directory = str(file_path.parent)
+                self._unsaved_changes = False
+                self._update_window_title()
+                self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
+                return True
+            except Exception as e:
+                logger.exception(f"Failed to save AsciiDoc file: {file_path}")
+                self._show_message("critical", "Save Error", f"Failed to save AsciiDoc file:\n{e}")
+                return False
+
+        # Check pandoc availability for other formats
+        if not self._check_pandoc_availability(f"Save as {format_type.upper()}"):
+            return False
+
+        # For other formats, use pandoc conversion in background
+        self.statusBar.showMessage(f"Saving as {format_type.upper()}...")
+
+        # Create temporary AsciiDoc file for conversion
+        temp_adoc = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.adoc"
+        try:
+            temp_adoc.write_text(content, encoding='utf-8')
+        except Exception as e:
+            self._show_message("critical", "Save Error", f"Failed to create temporary file:\n{e}")
+            return False
+
+        # Show conversion in progress
+        self._show_conversion_progress(f"Saving as {format_type.upper()}")
+
+        # For PDF and DOCX, pass the output file directly
+        if format_type in ['pdf', 'docx']:
+            self.request_pandoc_conversion.emit(
+                temp_adoc,
+                'asciidoc',
+                format_type,
+                f"Exporting to {format_type.upper()}",
+                file_path
+            )
+        else:
+            # For text formats, get the result and save it
+            self.request_pandoc_conversion.emit(
+                temp_adoc,
+                'asciidoc',
+                format_type,
+                f"Exporting to {format_type.upper()}",
+                None
+            )
+            # Store target path for when conversion completes
+            self._pending_export_path = file_path
+            self._pending_export_format = format_type
+
+        # Update current file path for AsciiDoc files
+        if format_type == 'adoc':
+            self._current_file_path = file_path
+            self._last_directory = str(file_path.parent)
+            self._unsaved_changes = False
+            self._update_window_title()
+
+        return True
 
     def save_file_as_format(self, format_type: str) -> bool:
         """Save/export file in specified format using background conversion."""
@@ -1599,11 +1700,11 @@ class AsciiDocEditor(QMainWindow):
                         self._pending_export_path.write_text(result, encoding='utf-8')
                         self.statusBar.showMessage(f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}")
                 else:
-                    # For text formats (MD, DOCX via XML), write the result
+                    # For text formats (MD), write the result
                     self._pending_export_path.write_text(result, encoding='utf-8')
-                    self.statusBar.showMessage(f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}")
+                    self.statusBar.showMessage(f"Saved as {self._pending_export_format.upper()}: {self._pending_export_path}")
 
-                logger.info(f"Successfully exported to {self._pending_export_format}: {self._pending_export_path}")
+                logger.info(f"Successfully saved as {self._pending_export_format}: {self._pending_export_path}")
             except Exception as e:
                 logger.exception(f"Failed to save export file: {self._pending_export_path}")
                 self._show_message("critical", "Export Error", f"Failed to save exported file:\n{e}")
