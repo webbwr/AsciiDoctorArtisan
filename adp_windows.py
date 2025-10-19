@@ -13,6 +13,8 @@ import io
 import os
 import subprocess
 import shlex
+import uuid
+import tempfile
 from pathlib import Path
 from typing import Optional, Tuple, NamedTuple, List, Union, Any, Dict
 import warnings
@@ -208,8 +210,8 @@ class PandocWorker(QObject):
     conversion_complete = Signal(str, str)
     conversion_error = Signal(str, str)
 
-    @Slot(object, str, str, str)
-    def run_pandoc_conversion(self, source: Union[str, bytes], to_format: str, from_format: str, context: str) -> None:
+    @Slot(object, str, str, str, object)
+    def run_pandoc_conversion(self, source: Union[str, bytes, Path], to_format: str, from_format: str, context: str, output_file: Optional[Path] = None) -> None:
         if not PANDOC_AVAILABLE or not pypandoc:
             err = "Pandoc/pypandoc not available for conversion."
             logger.error(err)
@@ -233,16 +235,64 @@ class PandocWorker(QObject):
                     '--extract-media=.',   # Extract images from DOCX
                 ])
 
-            result_text = pypandoc.convert_text(
-                source=source,
-                to=to_format,
-                format=from_format,
-                extra_args=extra_args
-            )
+            # Add output format-specific options
+            if to_format == 'pdf':
+                # Basic PDF options that work without LaTeX
+                extra_args.extend([
+                    '--variable=geometry:margin=1in',  # Standard margins
+                    '--variable=fontsize=11pt',  # Readable font size
+                    '--highlight-style=tango',  # Code highlighting
+                ])
+                # Try to use available PDF engine
+                try:
+                    import subprocess
+                    # Check for wkhtmltopdf (common on many systems)
+                    subprocess.run(['wkhtmltopdf', '--version'], capture_output=True, check=True)
+                    extra_args.append('--pdf-engine=wkhtmltopdf')
+                except:
+                    # Fallback to default engine
+                    pass
+            elif to_format == 'docx':
+                # DOCX options are simple
+                pass
+            elif to_format == 'markdown':
+                extra_args.extend([
+                    '--wrap=none',  # Don't wrap lines
+                ])
 
-            # Post-process the AsciiDoc to ensure quality
-            if to_format == 'asciidoc':
-                result_text = self._enhance_asciidoc_output(result_text)
+            # For PDF and DOCX, we need to write to file
+            if output_file and to_format in ['pdf', 'docx']:
+                # Convert file to file for binary formats
+                if isinstance(source, Path):
+                    pypandoc.convert_file(
+                        source_file=str(source),
+                        to=to_format,
+                        format=from_format,
+                        outputfile=str(output_file),
+                        extra_args=extra_args
+                    )
+                else:
+                    # Convert text to file
+                    pypandoc.convert_text(
+                        source=source,
+                        to=to_format,
+                        format=from_format,
+                        outputfile=str(output_file),
+                        extra_args=extra_args
+                    )
+                result_text = f"File saved to: {output_file}"
+            else:
+                # Convert to text for text formats or when no output file specified
+                result_text = pypandoc.convert_text(
+                    source=source,
+                    to=to_format,
+                    format=from_format,
+                    extra_args=extra_args
+                )
+
+                # Post-process the AsciiDoc to ensure quality
+                if to_format == 'asciidoc':
+                    result_text = self._enhance_asciidoc_output(result_text)
 
             logger.info(f"Pandoc conversion successful ({context})")
             self.conversion_complete.emit(result_text, context)
@@ -288,7 +338,7 @@ class PandocWorker(QObject):
 
 class AsciiDocEditor(QMainWindow):
     request_git_command = Signal(list, str)
-    request_pandoc_conversion = Signal(object, str, str, str)
+    request_pandoc_conversion = Signal(object, str, str, str, object)
 
     def __init__(self) -> None:
         super().__init__()
@@ -346,6 +396,9 @@ class AsciiDocEditor(QMainWindow):
         self._is_syncing_scroll = False  # Prevent infinite scroll loops
         self._maximized_pane = None  # Track which pane is maximized
         self._saved_splitter_sizes = None  # Save splitter sizes for restore
+        self._pending_export_path: Optional[Path] = None  # For export operations
+        self._pending_export_format: Optional[str] = None  # Format being exported
+        self._temp_dir = tempfile.TemporaryDirectory()  # For temporary files
 
     def _get_settings_path(self) -> Path:
         # Windows-friendly settings location
@@ -682,6 +735,27 @@ class AsciiDocEditor(QMainWindow):
             triggered=lambda: self.save_file(save_as=True)
         )
 
+        # Export format actions
+        self.save_as_adoc_act = QAction("AsciiDoc (*.adoc)", self,
+            statusTip="Save as AsciiDoc file",
+            triggered=lambda: self.save_file_as_format('adoc')
+        )
+
+        self.save_as_md_act = QAction("GitHub Markdown (*.md)", self,
+            statusTip="Export to GitHub Markdown format",
+            triggered=lambda: self.save_file_as_format('md')
+        )
+
+        self.save_as_docx_act = QAction("Microsoft Word (*.docx)", self,
+            statusTip="Export to Microsoft Office 365 Word format",
+            triggered=lambda: self.save_file_as_format('docx')
+        )
+
+        self.save_as_pdf_act = QAction("Adobe PDF (*.pdf)", self,
+            statusTip="Export to Adobe Acrobat PDF format",
+            triggered=lambda: self.save_file_as_format('pdf')
+        )
+
         self.exit_act = QAction("E&xit", self,
             shortcut=QKeySequence.StandardKey.Quit,
             statusTip="Exit the application",
@@ -810,6 +884,14 @@ class AsciiDocEditor(QMainWindow):
         file_menu.addSeparator()
         file_menu.addAction(self.save_act)
         file_menu.addAction(self.save_as_act)
+
+        # Export submenu
+        export_menu = file_menu.addMenu("&Export As")
+        export_menu.addAction(self.save_as_adoc_act)
+        export_menu.addAction(self.save_as_md_act)
+        export_menu.addAction(self.save_as_docx_act)
+        export_menu.addAction(self.save_as_pdf_act)
+
         file_menu.addSeparator()
         file_menu.addAction(self.exit_act)
 
@@ -1006,7 +1088,7 @@ class AsciiDocEditor(QMainWindow):
                 logger.info(f"Starting conversion of {file_path.name} from {input_format} to asciidoc")
 
                 self.request_pandoc_conversion.emit(
-                    file_content, 'asciidoc', input_format, f"converting '{file_path.name}'"
+                    file_content, 'asciidoc', input_format, f"converting '{file_path.name}'", None
                 )
             else:
                 # Open AsciiDoc directly
@@ -1082,6 +1164,102 @@ class AsciiDocEditor(QMainWindow):
             logger.exception(f"Failed to save file: {file_path}")
             self._show_message("critical", "Save Error", f"Failed to save file:\n{e}")
             return False
+
+    def save_file_as_format(self, format_type: str) -> bool:
+        """Save/export file in specified format using background conversion."""
+        # Determine file filter and suggested extension based on format
+        format_filters = {
+            'adoc': (ADOC_FILTER, '.adoc'),
+            'md': (MD_FILTER, '.md'),
+            'docx': (DOCX_FILTER, '.docx'),
+            'pdf': (PDF_FILTER, '.pdf')
+        }
+
+        if format_type not in format_filters:
+            self._show_message("warning", "Export Error", f"Unsupported format: {format_type}")
+            return False
+
+        file_filter, suggested_ext = format_filters[format_type]
+
+        # Prepare suggested filename
+        if self._current_file_path:
+            suggested_name = self._current_file_path.stem + suggested_ext
+        else:
+            suggested_name = "document" + suggested_ext
+
+        suggested_path = Path(self._last_directory) / suggested_name
+
+        # Show save dialog
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            f"Export as {format_type.upper()}",
+            str(suggested_path),
+            file_filter,
+            options=QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option()
+        )
+
+        if not file_path:
+            return False
+
+        file_path = Path(file_path)
+
+        # Ensure correct extension
+        if not file_path.suffix:
+            file_path = file_path.with_suffix(suggested_ext)
+
+        # Get current content
+        content = self.editor.toPlainText()
+
+        # For native AsciiDoc format, just save directly
+        if format_type == 'adoc':
+            try:
+                file_path.write_text(content, encoding='utf-8')
+                self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
+                return True
+            except Exception as e:
+                logger.exception(f"Failed to save AsciiDoc file: {file_path}")
+                self._show_message("critical", "Export Error", f"Failed to save AsciiDoc file:\n{e}")
+                return False
+
+        # For other formats, use pandoc conversion in background
+        self.statusBar.showMessage(f"Exporting to {format_type.upper()}...")
+
+        # Create temporary AsciiDoc file for conversion
+        temp_adoc = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.adoc"
+        try:
+            temp_adoc.write_text(content, encoding='utf-8')
+        except Exception as e:
+            self._show_message("critical", "Export Error", f"Failed to create temporary file:\n{e}")
+            return False
+
+        # Show conversion in progress
+        self._show_conversion_progress(f"Exporting to {format_type.upper()}")
+
+        # For PDF and DOCX, pass the output file directly
+        if format_type in ['pdf', 'docx']:
+            self.request_pandoc_conversion.emit(
+                temp_adoc,
+                'asciidoc',
+                format_type,
+                f"Exporting to {format_type.upper()}",
+                file_path
+            )
+            self._pending_export_path = None  # Don't need to save later
+            self._pending_export_format = None
+        else:
+            # For text formats, get the result and save it
+            self.request_pandoc_conversion.emit(
+                temp_adoc,
+                'asciidoc',
+                format_type,
+                f"Exporting to {format_type.upper()}",
+                None
+            )
+            # Store target path for when conversion completes
+            self._pending_export_path = file_path
+            self._pending_export_format = format_type
+
+        return True
 
     def _auto_save(self) -> None:
         """Auto-save current file if there are unsaved changes."""
@@ -1298,7 +1476,7 @@ class AsciiDocEditor(QMainWindow):
         self._is_processing_pandoc = True
         self._update_ui_state()
         self.statusBar.showMessage("Converting clipboard content...")
-        self.request_pandoc_conversion.emit(source_text, 'asciidoc', source_format, "clipboard conversion")
+        self.request_pandoc_conversion.emit(source_text, 'asciidoc', source_format, "clipboard conversion", None)
 
     def _select_git_repository(self) -> None:
         dir_path = QFileDialog.getExistingDirectory(
@@ -1405,6 +1583,33 @@ class AsciiDocEditor(QMainWindow):
         if context == "clipboard conversion":
             self.editor.insertPlainText(result)
             self.statusBar.showMessage("Pasted converted content")
+        elif "Exporting to" in context and ("File saved to:" in result or self._pending_export_path):
+            # Handle export operation
+            try:
+                if "File saved to:" in result:
+                    # File was saved by pandoc directly (PDF/DOCX)
+                    self.statusBar.showMessage(f"Exported successfully: {result.split(': ', 1)[1]}")
+                elif self._pending_export_format == 'pdf':
+                    # For PDF, result might be binary data, so handle differently
+                    # Pandoc should have created the file directly
+                    if self._pending_export_path.exists():
+                        self.statusBar.showMessage(f"Exported to PDF: {self._pending_export_path}")
+                    else:
+                        # If not, write the result as text (unlikely for PDF)
+                        self._pending_export_path.write_text(result, encoding='utf-8')
+                        self.statusBar.showMessage(f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}")
+                else:
+                    # For text formats (MD, DOCX via XML), write the result
+                    self._pending_export_path.write_text(result, encoding='utf-8')
+                    self.statusBar.showMessage(f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}")
+
+                logger.info(f"Successfully exported to {self._pending_export_format}: {self._pending_export_path}")
+            except Exception as e:
+                logger.exception(f"Failed to save export file: {self._pending_export_path}")
+                self._show_message("critical", "Export Error", f"Failed to save exported file:\n{e}")
+            finally:
+                self._pending_export_path = None
+                self._pending_export_format = None
         elif self._pending_file_path:
             # Load the raw AsciiDoc markup into the editor
             self._load_content_into_editor(result, self._pending_file_path)
@@ -1421,10 +1626,22 @@ class AsciiDocEditor(QMainWindow):
         self._is_processing_pandoc = False
         file_path = self._pending_file_path
         self._pending_file_path = None
+        export_path = self._pending_export_path
+        self._pending_export_path = None
+        self._pending_export_format = None
         self._update_ui_state()
         self.statusBar.showMessage(f"Conversion failed: {context}")
 
-        # Clear the editor and preview
+        # If this was an export operation, don't clear the editor
+        if export_path and "Exporting to" in context:
+            self._show_message(
+                "critical",
+                "Export Error",
+                f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
+            )
+            return
+
+        # Clear the editor and preview for file open operations
         self.editor.clear()
         self.preview.setHtml("<h3>Conversion Failed</h3><p>Unable to convert the document.</p>")
 
@@ -1440,6 +1657,13 @@ class AsciiDocEditor(QMainWindow):
         has_file = self._current_file_path is not None
         self.save_act.setEnabled(has_file and not self._is_processing_pandoc)
         self.save_as_act.setEnabled(not self._is_processing_pandoc)
+
+        # Export operations
+        export_enabled = not self._is_processing_pandoc
+        self.save_as_adoc_act.setEnabled(export_enabled)
+        self.save_as_md_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.save_as_docx_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.save_as_pdf_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
 
         # Git operations
         git_ready = bool(self._git_repo_path) and not self._is_processing_git
@@ -1587,6 +1811,12 @@ class AsciiDocEditor(QMainWindow):
         # Wait briefly for threads
         self.git_thread.wait(1000)
         self.pandoc_thread.wait(1000)
+
+        # Clean up temp directory
+        try:
+            self._temp_dir.cleanup()
+        except:
+            pass  # Ignore errors during cleanup
 
         event.accept()
 
