@@ -213,17 +213,73 @@ class PandocWorker(QObject):
 
         try:
             logger.info(f"Starting Pandoc conversion ({context})")
+
+            # Enhanced pandoc options for better AsciiDoc output
+            extra_args = [
+                '--wrap=preserve',          # Preserve line breaks
+                '--reference-links',        # Use reference-style links
+                '--atx-headers',           # Use = style headers (if supported)
+                '--standalone',            # Produce complete document
+                '--toc-depth=3',          # Include TOC depth info
+            ]
+
+            # Add format-specific options
+            if from_format == 'docx':
+                extra_args.extend([
+                    '--extract-media=.',   # Extract images from DOCX
+                ])
+
             result_text = pypandoc.convert_text(
                 source=source,
                 to=to_format,
-                format=from_format
+                format=from_format,
+                extra_args=extra_args
             )
+
+            # Post-process the AsciiDoc to ensure quality
+            if to_format == 'asciidoc':
+                result_text = self._enhance_asciidoc_output(result_text)
+
             logger.info(f"Pandoc conversion successful ({context})")
             self.conversion_complete.emit(result_text, context)
 
         except Exception as e:
             logger.exception(f"Pandoc conversion failed: {context}")
             self.conversion_error.emit(str(e), context)
+
+    def _enhance_asciidoc_output(self, text: str) -> str:
+        """Post-process AsciiDoc output for better quality."""
+        import re
+
+        # Ensure document has a proper title if missing
+        if not text.strip().startswith('='):
+            lines = text.strip().split('\n')
+            # Try to extract title from first heading
+            for i, line in enumerate(lines):
+                if line.startswith('=='):
+                    title = line[2:].strip()
+                    lines.insert(0, f"= {title}\n")
+                    lines[i + 1] = line  # Adjust the original line
+                    break
+            else:
+                # No heading found, add a generic title
+                lines.insert(0, "= Converted Document\n")
+            text = '\n'.join(lines)
+
+        # Fix common conversion issues
+        # Convert [source] blocks to proper format
+        text = re.sub(r'\[source\](\w+)', r'[source,\1]', text)
+
+        # Ensure proper spacing around headers
+        text = re.sub(r'\n(=+\s+[^\n]+)\n(?!=)', r'\n\n\1\n', text)
+
+        # Fix table formatting
+        text = re.sub(r'\|===\n\n', r'|===\n', text)
+
+        # Ensure admonition blocks have proper formatting
+        text = re.sub(r'(?m)^(NOTE|TIP|IMPORTANT|WARNING|CAUTION):\s*', r'\n\1: ', text)
+
+        return text
 
 
 class AsciiDocEditor(QMainWindow):
@@ -371,8 +427,18 @@ class AsciiDocEditor(QMainWindow):
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
             try:
                 instance = AsciiDoc3API(asciidoc3.__file__)
+                # Enhanced options for better HTML output
                 instance.options("--no-header-footer")
-                logger.info("AsciiDoc3API initialized")
+
+                # Set attributes for better rendering
+                instance.attributes['icons'] = 'font'  # Use font icons
+                instance.attributes['source-highlighter'] = 'highlight.js'  # Syntax highlighting
+                instance.attributes['toc'] = 'left'  # Table of contents
+                instance.attributes['sectanchors'] = ''  # Section anchors
+                instance.attributes['sectnums'] = ''  # Section numbering
+                instance.attributes['imagesdir'] = '.'  # Images directory
+
+                logger.info("AsciiDoc3API initialized with enhanced attributes")
                 return instance
             except Exception as exc:
                 logger.error(f"AsciiDoc3API initialization failed: {exc}")
@@ -886,21 +952,66 @@ class AsciiDocEditor(QMainWindow):
             return f"<div style='color:red'>Render Error: {html.escape(str(exc))}</div>"
 
     def _get_preview_css(self) -> str:
+        # Enhanced CSS for better AsciiDoc WYSIWYG rendering
         if self._dark_mode_enabled:
             return """
-                body { background:#1e1e1e; color:#dcdcdc; font-family: Arial, sans-serif; padding: 20px; }
-                h1,h2,h3,h4,h5,h6 { color:#ececec; }
-                a { color:#80d0ff; }
-                code,pre { background:#2a2a2a; color:#f0f0f0; padding: 2px 4px; }
-                pre { padding: 10px; overflow-x: auto; }
+                body {
+                    background:#1e1e1e; color:#dcdcdc;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    padding: 20px; line-height: 1.6; max-width: 900px; margin: 0 auto;
+                }
+                h1,h2,h3,h4,h5,h6 { color:#ececec; margin-top: 1.5em; margin-bottom: 0.5em; }
+                h1 { font-size: 2.2em; border-bottom: 2px solid #444; padding-bottom: 0.3em; }
+                h2 { font-size: 1.8em; border-bottom: 1px solid #333; padding-bottom: 0.2em; }
+                h3 { font-size: 1.4em; }
+                a { color:#80d0ff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+                code { background:#2a2a2a; color:#f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+                pre { background:#2a2a2a; color:#f0f0f0; padding: 15px; overflow-x: auto; border-radius: 5px; }
+                pre code { background: none; padding: 0; }
+                blockquote { border-left: 4px solid #666; margin: 1em 0; padding-left: 1em; color: #aaa; }
+                table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+                th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+                th { background: #2a2a2a; font-weight: bold; }
+                ul, ol { padding-left: 2em; margin: 1em 0; }
+                .admonitionblock { margin: 1em 0; padding: 1em; border-radius: 5px; }
+                .admonitionblock.note { background: #1e3a5f; border-left: 4px solid #4a90e2; }
+                .admonitionblock.tip { background: #1e4d2b; border-left: 4px solid #5cb85c; }
+                .admonitionblock.warning { background: #5d4037; border-left: 4px solid #ff9800; }
+                .admonitionblock.caution { background: #5d4037; border-left: 4px solid #f44336; }
+                .admonitionblock.important { background: #4a148c; border-left: 4px solid #9c27b0; }
+                .imageblock { text-align: center; margin: 1em 0; }
+                .imageblock img { max-width: 100%; height: auto; }
             """
         else:
             return """
-                body { background:#ffffff; color:#333333; font-family: Arial, sans-serif; padding: 20px; }
-                h1,h2,h3,h4,h5,h6 { color:#111111; }
-                a { color:#007bff; }
-                code,pre { background:#f4f4f4; color:#333; padding: 2px 4px; }
-                pre { padding: 10px; overflow-x: auto; }
+                body {
+                    background:#ffffff; color:#333333;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    padding: 20px; line-height: 1.6; max-width: 900px; margin: 0 auto;
+                }
+                h1,h2,h3,h4,h5,h6 { color:#111111; margin-top: 1.5em; margin-bottom: 0.5em; }
+                h1 { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 0.3em; }
+                h2 { font-size: 1.8em; border-bottom: 1px solid #eee; padding-bottom: 0.2em; }
+                h3 { font-size: 1.4em; }
+                a { color:#007bff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+                code { background:#f8f8f8; color:#333; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; border: 1px solid #e1e4e8; }
+                pre { background:#f8f8f8; color:#333; padding: 15px; overflow-x: auto; border-radius: 5px; border: 1px solid #e1e4e8; }
+                pre code { background: none; padding: 0; border: none; }
+                blockquote { border-left: 4px solid #ddd; margin: 1em 0; padding-left: 1em; color: #666; }
+                table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background: #f8f8f8; font-weight: bold; }
+                ul, ol { padding-left: 2em; margin: 1em 0; }
+                .admonitionblock { margin: 1em 0; padding: 1em; border-radius: 5px; }
+                .admonitionblock.note { background: #e3f2fd; border-left: 4px solid #2196f3; }
+                .admonitionblock.tip { background: #e8f5e9; border-left: 4px solid #4caf50; }
+                .admonitionblock.warning { background: #fff3e0; border-left: 4px solid #ff9800; }
+                .admonitionblock.caution { background: #ffebee; border-left: 4px solid #f44336; }
+                .admonitionblock.important { background: #f3e5f5; border-left: 4px solid #9c27b0; }
+                .imageblock { text-align: center; margin: 1em 0; }
+                .imageblock img { max-width: 100%; height: auto; }
             """
 
     def _zoom(self, delta: int) -> None:

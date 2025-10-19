@@ -1,0 +1,179 @@
+= Advanced AsciiDoc Features Demo
+:author: AsciiDoc Artisan User
+:email: user@example.com
+:revdate: 2024-10-19
+:toc: left
+:icons: font
+:source-highlighter: highlight.js
+
+== Introduction
+
+This document demonstrates the WYSIWYG rendering capabilities of AsciiDoc Artisan with proper AsciiDoc syntax.
+
+=== Purpose
+
+To showcase how various AsciiDoc elements are rendered in the preview pane with full WYSIWYG support.
+
+== Text Formatting
+
+This paragraph contains *bold text*, _italic text_, `monospace code`, and *_bold italic_* text. We also have `+inline code+` and #highlighted text#.
+
+=== Special Characters
+
+* Em dash: --
+* Ellipsis: ...
+* Arrows: -> => <- <=
+* Copyright: (C)
+* Trademark: (TM)
+* Registered: (R)
+
+== Code Examples
+
+[source,python]
+----
+def process_asciidoc(content):
+    """Process AsciiDoc content with syntax highlighting."""
+    api = AsciiDoc3API()
+    html = api.convert(content)
+    return html
+----
+
+[source,javascript,linenums]
+----
+// Line numbers example
+function initEditor() {
+    const editor = new Editor({
+        mode: 'asciidoc',
+        theme: 'dark',
+        lineNumbers: true
+    });
+    return editor;
+}
+----
+
+== Admonition Blocks
+
+NOTE: This is a note admonition with important information for the reader.
+
+TIP: This is a tip that provides helpful advice.
+
+IMPORTANT: This is important information that should not be overlooked.
+
+WARNING: This is a warning about potential issues.
+
+CAUTION: This is a caution for dangerous operations.
+
+== Lists and Definitions
+
+=== Unordered List
+
+* First item
+** Nested item 1
+** Nested item 2
+*** Deep nested item
+* Second item
+* Third item with `code`
+
+=== Ordered List
+
+. First step
+.. Sub-step A
+.. Sub-step B
+. Second step
+. Third step
+
+=== Definition List
+
+API:: Application Programming Interface
+GUI:: Graphical User Interface
+WYSIWYG:: What You See Is What You Get
+
+== Tables
+
+.Sample Data Table
+[cols="1,2,1",options="header"]
+|===
+|Format |Description |Status
+
+|AsciiDoc
+|Native format with full support
+|✓ Complete
+
+|Markdown
+|Converted via pandoc
+|✓ Complete
+
+|DOCX
+|Microsoft Word documents
+|✓ Complete
+
+|PDF
+|Portable Document Format
+|⚠ Limited
+|===
+
+== Block Elements
+
+.Example Block
+====
+This is an example block that contains sample content to demonstrate how example blocks are rendered.
+
+It can contain multiple paragraphs and other elements.
+====
+
+.Sidebar
+****
+This is a sidebar with additional information that complements the main text. Sidebars are useful for tangential content.
+****
+
+[quote, Albert Einstein]
+____
+Imagination is more important than knowledge. Knowledge is limited. Imagination embraces the entire world, stimulating progress, giving birth to evolution.
+____
+
+== Links and Cross References
+
+* https://asciidoc.org[AsciiDoc Homepage]
+* link:manual.html[Local Manual]
+* <<Introduction,Back to Introduction>>
+* mailto:support@example.com[Email Support]
+
+== Images and Media
+
+.AsciiDoc Workflow
+image::workflow.png[AsciiDoc workflow diagram,width=600]
+
+.Video Example
+video::video.mp4[width=640,height=480]
+
+== Includes and Conditionals
+
+// Include example (commented for demo)
+// include::chapter2.adoc[]
+
+ifdef::env-github[]
+This content only appears on GitHub.
+endif::[]
+
+ifndef::env-github[]
+This content appears everywhere except GitHub.
+endif::[]
+
+== Mathematical Expressions
+
+When we have stem:[a != 0], there are two solutions to stem:[ax^2 + bx + c = 0]:
+
+[stem]
+++++
+x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}
+++++
+
+== Document Attributes
+
+* Document version: {revnumber}
+* Last updated: {revdate}
+* Author: {author} ({email})
+
+== Conclusion
+
+This document has demonstrated the comprehensive WYSIWYG rendering capabilities of AsciiDoc Artisan, showing how various AsciiDoc elements are properly displayed in the preview pane.
