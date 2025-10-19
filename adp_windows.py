@@ -94,8 +94,10 @@ SETTINGS_FILENAME = "AsciiDocArtisan.json"
 # File filters - Windows-friendly
 ADOC_FILTER = "AsciiDoc Files (*.adoc *.asciidoc)"
 DOCX_FILTER = "Word Documents (*.docx)"
+PDF_FILTER = "PDF Files (*.pdf)"
+MD_FILTER = "Markdown Files (*.md *.markdown)"
 ALL_FILES_FILTER = "All Files (*)"
-SUPPORTED_OPEN_FILTER = f"All Supported Files (*.adoc *.asciidoc *.docx);;{ADOC_FILTER};;{DOCX_FILTER};;{ALL_FILES_FILTER}"
+SUPPORTED_OPEN_FILTER = f"All Supported Files (*.adoc *.asciidoc *.docx *.pdf *.md *.markdown);;{ADOC_FILTER};;{DOCX_FILTER};;{PDF_FILTER};;{MD_FILTER};;{ALL_FILES_FILTER}"
 SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{ALL_FILES_FILTER}"
 
 
@@ -676,9 +678,23 @@ class AsciiDocEditor(QMainWindow):
         self._last_directory = str(file_path.parent)
 
         try:
-            if file_path.suffix.lower() == '.docx':
-                # Convert DOCX
-                if not self._check_pandoc_availability("Opening DOCX"):
+            suffix = file_path.suffix.lower()
+            if suffix == '.pdf':
+                # PDF conversion requires special handling
+                self._show_message(
+                    "info",
+                    "PDF Support Limited",
+                    "Direct PDF to AsciiDoc conversion is not yet supported.\n\n"
+                    "To work with PDF content:\n"
+                    "1. Copy text from your PDF viewer\n"
+                    "2. Paste into the editor\n"
+                    "3. Format as AsciiDoc\n\n"
+                    "Full PDF support is planned for a future release."
+                )
+                return
+            elif suffix in ['.docx', '.md', '.markdown']:
+                # Convert using Pandoc
+                if not self._check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
                     return
 
                 self._is_processing_pandoc = True
@@ -686,9 +702,17 @@ class AsciiDocEditor(QMainWindow):
                 self._update_ui_state()
                 self.statusBar.showMessage(f"Converting '{file_path.name}'...")
 
-                docx_bytes = file_path.read_bytes()
+                # Determine the input format for pandoc
+                if suffix == '.docx':
+                    input_format = 'docx'
+                    file_content = file_path.read_bytes()
+                elif suffix in ['.md', '.markdown']:
+                    input_format = 'markdown'
+                    # For markdown, we send the text content
+                    file_content = file_path.read_text(encoding='utf-8')
+
                 self.request_pandoc_conversion.emit(
-                    docx_bytes, 'asciidoc', 'docx', f"converting '{file_path.name}'"
+                    file_content, 'asciidoc', input_format, f"converting '{file_path.name}'"
                 )
             else:
                 # Open AsciiDoc directly
