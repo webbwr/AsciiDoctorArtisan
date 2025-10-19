@@ -1762,8 +1762,8 @@ class AsciiDocEditor(QMainWindow):
 
     def _update_ui_state(self) -> None:
         # File operations
-        has_file = self._current_file_path is not None
-        self.save_act.setEnabled(has_file and not self._is_processing_pandoc)
+        # Enable save even without a file (will trigger save as dialog)
+        self.save_act.setEnabled(not self._is_processing_pandoc)
         self.save_as_act.setEnabled(not self._is_processing_pandoc)
 
         # Export operations

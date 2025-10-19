@@ -1,0 +1,131 @@
+== Export Formats Guide
+
+
+=== Overview
+
+AsciiDoc Artisan now supports exporting your AsciiDoc content to multiple industry-standard formats, with all conversions happening seamlessly in the background.
+
+
+=== Available Export Formats
+
+
+==== 1. AsciiDoc (.adoc)
+
+* *Format*: Native AsciiDoc format
+* *Standard*: AsciiDoc/Asciidoctor specification
+* *Use Case*: Saving your work in the native format
+* *Features*:
+** Direct save without conversion
+** UTF-8 encoding
+** Preserves all AsciiDoc features
+
+
+==== 2. GitHub Markdown (.md)
+
+* *Format*: GitHub Flavored Markdown (GFM)
+* *Standard*: CommonMark + GitHub extensions
+* *Use Case*: README files, GitHub documentation, Jekyll sites
+* *Features*:
+** ATX-style headers (# syntax)
+** Fenced code blocks with syntax highlighting
+** Tables, task lists, and strikethrough support
+** Automatic link references
+
+
+==== 3. Microsoft Word (.docx)
+
+* *Format*: Office Open XML (OOXML)
+* *Standard*: ISO/IEC 29500, Office 365 compatible
+* *Use Case*: Business documents, collaboration with Office users
+* *Features*:
+** Professional document structure
+** Preserves formatting and styles
+** Compatible with Word 2007+
+** Includes table of contents support
+
+
+==== 4. Adobe PDF (.pdf)
+
+* *Format*: Portable Document Format
+* *Standard*: ISO 32000-2:2020 (PDF 2.0)
+* *Use Case*: Final documents, printing, archival
+* *Features*:
+** Professional typography
+** Syntax-highlighted code blocks
+** Configurable margins (1 inch standard)
+** 11pt font size for readability
+
+
+=== How to Export
+
+
+==== Using the Menu
+
+[arabic]
+. Open or create an AsciiDoc document
+. Go to *File → Export As*
+. Choose your desired format:
+* AsciiDoc (*.adoc)
+* GitHub Markdown (*.md)
+* Microsoft Word (*.docx)
+* Adobe PDF (*.pdf)
+
+
+==== Export Process
+
+[arabic]
+. A file dialog appears with the suggested filename
+. Choose your save location
+. The conversion runs in the background
+. Progress is shown in the editor and status bar
+. You’ll see a success message when complete
+
+
+=== Background Processing
+
+* All conversions (except native AsciiDoc) use Pandoc in a background thread
+* The UI remains responsive during conversion
+* You can continue editing while exporting
+* Temporary files are automatically cleaned up
+
+
+=== Requirements
+
+* *Pandoc*: Required for MD, DOCX, and PDF exports
+** The app will notify you if Pandoc is not installed
+** See PANDOC_INTEGRATION.md for installation instructions
+* *PDF Engine* (optional): For enhanced PDF output
+** wkhtmltopdf is automatically detected if available
+** Falls back to Pandoc’s default engine if not
+
+
+=== Format-Specific Notes
+
+
+==== Markdown Export
+
+* Uses reference-style links for cleaner output
+* Code blocks are properly fenced with language tags
+* Tables are converted to GitHub-compatible format
+
+
+==== Word Export
+
+* Creates a standard .docx file compatible with all modern Word versions
+* Formatting may need minor adjustments for complex documents
+* Images are embedded in the document
+
+
+==== PDF Export
+
+* Best results with a PDF engine installed
+* Code syntax highlighting uses the `tango' color scheme
+* Standard US Letter page size with 1-inch margins
+
+
+=== Tips
+
+* Export regularly to ensure compatibility
+* For best PDF results, install wkhtmltopdf
+* Use Export As to create different versions of your document
+* The original AsciiDoc file remains unchanged during export
