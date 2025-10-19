@@ -243,15 +243,40 @@ class PandocWorker(QObject):
                     '--variable=fontsize=11pt',  # Readable font size
                     '--highlight-style=tango',  # Code highlighting
                 ])
-                # Try to use available PDF engine
-                try:
-                    import subprocess
-                    # Check for wkhtmltopdf (common on many systems)
-                    subprocess.run(['wkhtmltopdf', '--version'], capture_output=True, check=True)
-                    extra_args.append('--pdf-engine=wkhtmltopdf')
-                except:
-                    # Fallback to default engine
-                    pass
+                # Try to find an available PDF engine
+                import subprocess
+                pdf_engines = [
+                    'wkhtmltopdf',  # Popular HTML to PDF converter
+                    'weasyprint',   # Python-based engine
+                    'prince',       # Commercial but excellent
+                    'pdflatex',     # LaTeX-based (default)
+                    'xelatex',      # LaTeX variant
+                    'lualatex',     # LaTeX variant
+                ]
+
+                pdf_engine_found = False
+                for engine in pdf_engines:
+                    try:
+                        subprocess.run([engine, '--version'], capture_output=True, check=True)
+                        extra_args.append(f'--pdf-engine={engine}')
+                        logger.info(f"Using PDF engine: {engine}")
+                        pdf_engine_found = True
+                        break
+                    except:
+                        continue
+
+                if not pdf_engine_found:
+                    # No PDF engine found - inform user
+                    logger.warning("No PDF engine found. PDF export may fail.")
+                    error_msg = (
+                        "No PDF engine found on your system.\n\n"
+                        "To export to PDF, please install one of:\n"
+                        "• wkhtmltopdf (recommended)\n"
+                        "• TeX Live (for pdflatex)\n"
+                        "• weasyprint (pip install weasyprint)\n\n"
+                        "Alternatively, export to HTML or DOCX instead."
+                    )
+                    raise Exception(error_msg)
             elif to_format == 'docx':
                 # DOCX options are simple
                 pass
