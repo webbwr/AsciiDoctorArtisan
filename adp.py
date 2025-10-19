@@ -65,10 +65,12 @@ APP_NAME = "AsciiDoc Artisan"
 DEFAULT_FILENAME = "untitled.adoc"
 PREVIEW_UPDATE_INTERVAL_MS = 350
 EDITOR_FONT_FAMILY = "Courier New"
-EDITOR_FONT_SIZE = 13
-MIN_FONT_SIZE = 6
+EDITOR_FONT_SIZE = 18  # Optimized for 5K displays
+MIN_FONT_SIZE = 10     # Larger minimum for high-DPI displays
 ZOOM_STEP = 1
 SETTINGS_FILENAME = "AsciiDocArtisan.json"
+DEFAULT_WINDOW_WIDTH = 4096   # Default width for 5K displays
+DEFAULT_WINDOW_HEIGHT = 2304  # Default height for 5K displays
 
 ADOC_FILTER = "AsciiDoc Files (*.adoc *.asciidoc)"
 DOCX_FILTER = "Word Documents (*.docx)"
@@ -958,7 +960,7 @@ class AsciiDocEditor(QMainWindow):
 class _StyleConstants:
     DARK_MODE_CSS: str = r"""
 <style>
- body { background:#1e1e1e; color:#dcdcdc; margin:0; padding:10px 20px; font-family: sans-serif; line-height: 1.6; }
+ body { background:#1e1e1e; color:#dcdcdc; margin:0; padding:10px 20px; font-family: sans-serif; font-size: 16px; line-height: 1.6; }
  h1,h2,h3,h4,h5,h6 { color:#ececec; border-bottom: 1px solid #4a4a4a; padding-bottom: 0.3em; margin-top: 1.5em; margin-bottom: 1em; font-weight: 600; }
  h1 { font-size: 2.1em; } h2 { font-size: 1.8em; } h3 { font-size: 1.5em; }
  a { color:#80d0ff; text-decoration: none; } a:hover { text-decoration: underline; color: #a0e0ff; }
@@ -979,7 +981,7 @@ class _StyleConstants:
 """
     LIGHT_MODE_CSS: str = r"""
 <style>
- body { background:#ffffff; color:#333333; margin:0; padding:10px 20px; font-family: sans-serif; line-height: 1.6; }
+ body { background:#ffffff; color:#333333; margin:0; padding:10px 20px; font-family: sans-serif; font-size: 16px; line-height: 1.6; }
  h1,h2,h3,h4,h5,h6 { color:#111111; border-bottom: 1px solid #cccccc; padding-bottom: 0.3em; margin-top: 1.5em; margin-bottom: 1em; font-weight: 600; }
  h1 { font-size: 2.1em; } h2 { font-size: 1.8em; } h3 { font-size: 1.5em; }
  a { color:#007bff; text-decoration: none; } a:hover { text-decoration: underline; color: #0056b3; }
@@ -1045,7 +1047,12 @@ def main() -> None:
     app.setStyle("Fusion")
     main_window = AsciiDocEditor(original_palette=original_palette)
 
-    if main_window._start_maximized or not main_window._initial_geometry:
+    # Set default size optimized for 5K displays
+    if not main_window._initial_geometry:
+        print(f"INFO: Setting default window size: {DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
+        main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+        main_window.show()
+    elif main_window._start_maximized:
         print("INFO: Showing window maximized.")
         main_window.showMaximized()
     else:
@@ -1057,11 +1064,13 @@ def main() -> None:
                  main_window.setGeometry(main_window._initial_geometry)
                  main_window.show()
             else:
-                 print(f"WARN: Saved geometry {main_window._initial_geometry} is off-screen, showing maximized.")
-                 main_window.showMaximized()
+                 print(f"WARN: Saved geometry {main_window._initial_geometry} is off-screen, using default size.")
+                 main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+                 main_window.show()
         else:
-             print("WARN: Could not get screen geometry, showing maximized.")
-             main_window.showMaximized()
+             print("WARN: Could not get screen geometry, using default size.")
+             main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+             main_window.show()
 
     main_window.update_preview()
     sys.exit(app.exec())
