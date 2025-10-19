@@ -558,7 +558,7 @@ class AsciiDocEditor(QMainWindow):
         editor_toolbar_layout.setContentsMargins(5, 2, 5, 2)
 
         editor_label = QLabel("Editor")
-        editor_label.setStyleSheet("font-weight: bold;")
+        # Remove custom styling to match app text
         editor_toolbar_layout.addWidget(editor_label)
         editor_toolbar_layout.addStretch()
 
@@ -609,7 +609,7 @@ class AsciiDocEditor(QMainWindow):
         preview_toolbar_layout.setContentsMargins(5, 2, 5, 2)
 
         preview_label = QLabel("Preview")
-        preview_label.setStyleSheet("font-weight: bold;")
+        # Remove custom styling to match app text
         preview_toolbar_layout.addWidget(preview_label)
         preview_toolbar_layout.addStretch()
 
