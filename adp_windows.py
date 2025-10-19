@@ -338,6 +338,8 @@ class AsciiDocEditor(QMainWindow):
         self._pending_file_path: Optional[Path] = None
         self._pending_commit_message: Optional[str] = None
         self._unsaved_changes = False
+        self._sync_scrolling = True  # Enable synchronized scrolling by default
+        self._is_syncing_scroll = False  # Prevent infinite scroll loops
 
     def _get_settings_path(self) -> Path:
         # Windows-friendly settings location
@@ -476,6 +478,9 @@ class AsciiDocEditor(QMainWindow):
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 1)
 
+        # Set up synchronized scrolling
+        self._setup_synchronized_scrolling()
+
         # Create status bar
         self.statusBar = QStatusBar(self)
         self.setStatusBar(self.statusBar)
@@ -507,6 +512,53 @@ class AsciiDocEditor(QMainWindow):
             # Apply maximized state if needed
             if self._start_maximized:
                 self.showMaximized()
+
+    def _setup_synchronized_scrolling(self):
+        """Set up synchronized scrolling between editor and preview."""
+        # Connect scroll signals
+        editor_scrollbar = self.editor.verticalScrollBar()
+        preview_scrollbar = self.preview.verticalScrollBar()
+
+        editor_scrollbar.valueChanged.connect(self._sync_editor_to_preview)
+        preview_scrollbar.valueChanged.connect(self._sync_preview_to_editor)
+
+    def _sync_editor_to_preview(self, value):
+        """Synchronize preview scroll position with editor."""
+        if not self._sync_scrolling or self._is_syncing_scroll:
+            return
+
+        self._is_syncing_scroll = True
+        try:
+            editor_scrollbar = self.editor.verticalScrollBar()
+            preview_scrollbar = self.preview.verticalScrollBar()
+
+            # Calculate scroll percentage
+            editor_max = editor_scrollbar.maximum()
+            if editor_max > 0:
+                scroll_percentage = value / editor_max
+                preview_value = int(preview_scrollbar.maximum() * scroll_percentage)
+                preview_scrollbar.setValue(preview_value)
+        finally:
+            self._is_syncing_scroll = False
+
+    def _sync_preview_to_editor(self, value):
+        """Synchronize editor scroll position with preview."""
+        if not self._sync_scrolling or self._is_syncing_scroll:
+            return
+
+        self._is_syncing_scroll = True
+        try:
+            editor_scrollbar = self.editor.verticalScrollBar()
+            preview_scrollbar = self.preview.verticalScrollBar()
+
+            # Calculate scroll percentage
+            preview_max = preview_scrollbar.maximum()
+            if preview_max > 0:
+                scroll_percentage = value / preview_max
+                editor_value = int(editor_scrollbar.maximum() * scroll_percentage)
+                editor_scrollbar.setValue(editor_value)
+        finally:
+            self._is_syncing_scroll = False
 
     def _create_actions(self) -> None:
         # File actions with shortcuts
@@ -597,6 +649,13 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._toggle_dark_mode
         )
 
+        self.sync_scrolling_act = QAction("&Synchronized Scrolling", self,
+            checkable=True,
+            checked=self._sync_scrolling,
+            statusTip="Toggle synchronized scrolling between editor and preview",
+            triggered=self._toggle_sync_scrolling
+        )
+
         # Git actions
         self.set_repo_act = QAction("Set &Repository...", self,
             statusTip="Select Git repository",
@@ -662,6 +721,7 @@ class AsciiDocEditor(QMainWindow):
         view_menu.addAction(self.zoom_out_act)
         view_menu.addSeparator()
         view_menu.addAction(self.dark_mode_act)
+        view_menu.addAction(self.sync_scrolling_act)
 
         # Git menu
         git_menu = menubar.addMenu("&Git")
@@ -1025,6 +1085,13 @@ class AsciiDocEditor(QMainWindow):
         self._dark_mode_enabled = self.dark_mode_act.isChecked()
         self._apply_theme()
         self.update_preview()
+
+    def _toggle_sync_scrolling(self) -> None:
+        self._sync_scrolling = self.sync_scrolling_act.isChecked()
+        self.statusBar().showMessage(
+            f"Synchronized scrolling {'enabled' if self._sync_scrolling else 'disabled'}",
+            5000
+        )
 
     def convert_and_paste_from_clipboard(self) -> None:
         if not self._check_pandoc_availability("Clipboard Conversion"):
