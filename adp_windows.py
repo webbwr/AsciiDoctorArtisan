@@ -252,6 +252,8 @@ class PandocWorker(QObject):
                     'pdflatex',     # LaTeX-based (default)
                     'xelatex',      # LaTeX variant
                     'lualatex',     # LaTeX variant
+                    'context',      # ConTeXt engine
+                    'pdfroff',      # Groff-based engine
                 ]
 
                 pdf_engine_found = False
@@ -266,17 +268,8 @@ class PandocWorker(QObject):
                         continue
 
                 if not pdf_engine_found:
-                    # No PDF engine found - inform user
-                    logger.warning("No PDF engine found. PDF export may fail.")
-                    error_msg = (
-                        "No PDF engine found on your system.\n\n"
-                        "To export to PDF, please install one of:\n"
-                        "• wkhtmltopdf (recommended)\n"
-                        "• TeX Live (for pdflatex)\n"
-                        "• weasyprint (pip install weasyprint)\n\n"
-                        "Alternatively, export to HTML or DOCX instead."
-                    )
-                    raise Exception(error_msg)
+                    # No PDF engine found - try to use pandoc's HTML output
+                    logger.warning("No PDF engine found. Will use HTML as intermediate format.")
             elif to_format == 'docx':
                 # DOCX options are simple
                 pass
@@ -1323,6 +1316,30 @@ class AsciiDocEditor(QMainWindow):
 
         # For PDF and DOCX, pass the output file directly
         if format_type in ['pdf', 'docx']:
+            # For PDF without engine, save HTML and provide instructions
+            if format_type == 'pdf' and not self._check_pdf_engine_available():
+                # Save as HTML with PDF-like styling
+                try:
+                    # Add print-friendly CSS to HTML
+                    styled_html = self._add_print_css_to_html(html_content)
+                    html_path = file_path.with_suffix('.html')
+                    html_path.write_text(styled_html, encoding='utf-8')
+
+                    self.statusBar.showMessage(f"Saved as HTML (PDF-ready): {html_path}")
+                    self._show_message(
+                        "information",
+                        "PDF Export Alternative",
+                        f"Saved as HTML with print styling: {html_path}\n\n"
+                        f"To create PDF:\n"
+                        f"1. Open this file in your browser\n"
+                        f"2. Press Ctrl+P (or Cmd+P on Mac)\n"
+                        f"3. Select 'Save as PDF'\n\n"
+                        f"The HTML includes print-friendly styling for optimal PDF output."
+                    )
+                    return False
+                except Exception as e:
+                    logger.exception(f"Failed to save HTML for PDF: {e}")
+
             logger.info(f"Emitting pandoc conversion request for {format_type} - temp_html: {temp_html}, output: {file_path}")
             self.request_pandoc_conversion.emit(
                 temp_html,
@@ -1459,6 +1476,30 @@ class AsciiDocEditor(QMainWindow):
 
         # For PDF and DOCX, pass the output file directly
         if format_type in ['pdf', 'docx']:
+            # For PDF without engine, save HTML and provide instructions
+            if format_type == 'pdf' and not self._check_pdf_engine_available():
+                # Save as HTML with PDF-like styling
+                try:
+                    # Add print-friendly CSS to HTML
+                    styled_html = self._add_print_css_to_html(html_content)
+                    html_path = file_path.with_suffix('.html')
+                    html_path.write_text(styled_html, encoding='utf-8')
+
+                    self.statusBar.showMessage(f"Exported as HTML (PDF-ready): {html_path}")
+                    self._show_message(
+                        "information",
+                        "PDF Export Alternative",
+                        f"Exported as HTML with print styling: {html_path}\n\n"
+                        f"To create PDF:\n"
+                        f"1. Open this file in your browser\n"
+                        f"2. Press Ctrl+P (or Cmd+P on Mac)\n"
+                        f"3. Select 'Save as PDF'\n\n"
+                        f"The HTML includes print-friendly styling for optimal PDF output."
+                    )
+                    return True
+                except Exception as e:
+                    logger.exception(f"Failed to save HTML for PDF: {e}")
+
             self.request_pandoc_conversion.emit(
                 temp_html,
                 format_type,  # to_format (target)
@@ -1482,6 +1523,77 @@ class AsciiDocEditor(QMainWindow):
             self._pending_export_format = format_type
 
         return True
+
+    def _check_pdf_engine_available(self) -> bool:
+        """Check if any PDF engine is available."""
+        import subprocess
+        pdf_engines = ['wkhtmltopdf', 'weasyprint', 'pdflatex', 'xelatex', 'lualatex']
+
+        for engine in pdf_engines:
+            try:
+                subprocess.run([engine, '--version'], capture_output=True, check=True)
+                return True
+            except:
+                continue
+
+        return False
+
+    def _add_print_css_to_html(self, html_content: str) -> str:
+        """Add print-friendly CSS to HTML for better PDF output."""
+        print_css = """
+        <style type="text/css" media="print">
+            @page {
+                size: letter;
+                margin: 1in;
+            }
+            body {
+                font-family: Georgia, serif;
+                font-size: 11pt;
+                line-height: 1.6;
+                color: #000;
+            }
+            h1, h2, h3, h4, h5, h6 {
+                page-break-after: avoid;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            pre, code {
+                font-family: Consolas, Monaco, monospace;
+                font-size: 9pt;
+                background-color: #f5f5f5;
+                page-break-inside: avoid;
+            }
+            table {
+                border-collapse: collapse;
+                page-break-inside: avoid;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            @media screen {
+                body {
+                    max-width: 8.5in;
+                    margin: 0 auto;
+                    padding: 1in;
+                }
+            }
+        </style>
+        """
+
+        # Insert CSS before </head> or after <html>
+        if '</head>' in html_content:
+            html_content = html_content.replace('</head>', print_css + '</head>')
+        elif '<html>' in html_content:
+            html_content = html_content.replace('<html>', '<html>' + print_css)
+        else:
+            # Prepend if no head tag
+            html_content = print_css + html_content
+
+        return html_content
 
     def _auto_save(self) -> None:
         """Auto-save current file if there are unsaved changes."""
@@ -1856,10 +1968,24 @@ class AsciiDocEditor(QMainWindow):
 
         # If this was an export operation, don't clear the editor
         if export_path and "Exporting to" in context:
+            # Special handling for PDF export failures
+            if "PDF" in context and ("pdflatex" in error or "pdf-engine" in error or "No such file or directory" in error):
+                error_msg = (
+                    f"Failed to export to PDF:\n\n"
+                    f"Pandoc could not find a PDF engine on your system.\n\n"
+                    f"Solution: Export to HTML instead\n"
+                    f"1. File → Save As → Select 'HTML Files (*.html)'\n"
+                    f"2. Open the HTML file in your browser\n"
+                    f"3. Press Ctrl+P and select 'Save as PDF'\n\n"
+                    f"Technical details:\n{error}"
+                )
+            else:
+                error_msg = f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
+
             self._show_message(
                 "critical",
                 "Export Error",
-                f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
+                error_msg
             )
             return
 
