@@ -1,0 +1,35 @@
+# AsciiDoc Artisan - Production Requirements
+# These are the exact versions tested and verified for production use
+# Last updated: 2025-10-19
+
+# Core GUI Framework
+# PySide6 is the official Qt for Python binding
+PySide6==6.9.0
+PySide6-Addons==6.9.0
+PySide6-Essentials==6.9.0
+
+# AsciiDoc Processing
+# asciidoc3 is the Python 3 port of AsciiDoc
+asciidoc3==3.2.0
+
+# Document Conversion
+# pypandoc provides Python wrapper for Pandoc
+pypandoc==1.11
+# Note: Pandoc itself must be installed separately via system package manager
+
+# Optional but recommended for better performance
+# MarkupSafe provides faster HTML escaping
+MarkupSafe==2.1.3
+
+# For development/testing (optional)
+# pytest==7.4.3
+# pytest-qt==4.2.0
+# pytest-cov==4.1.0
+
+# For building executables (optional)
+# pyinstaller==6.3.0
+
+# For code quality (optional)
+# black==23.12.0
+# ruff==0.1.9
+# mypy==1.8.0
