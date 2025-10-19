@@ -411,8 +411,8 @@ class AsciiDocEditor(QMainWindow):
         mono_font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
         self.editor.setFont(mono_font)
 
-        # Set text cursor to 1 pixel wide (thinner than Qt default)
-        self.editor.setCursorWidth(1)
+        # Note: setCursorWidth() does not work in WSL/X11 environments
+        # Cursor appearance is controlled by the X server/system settings
 
         self.editor.textChanged.connect(self._start_preview_timer)
         splitter.addWidget(self.editor)
