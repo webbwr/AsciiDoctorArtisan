@@ -245,8 +245,8 @@ class AsciiDocEditor(QMainWindow):
         else:
             self._last_directory = str(Path.home())
 
-        self._current_file_path = None
-        self._git_repo_path = None
+        self._current_file_path: Optional[Path] = None
+        self._git_repo_path: Optional[Path] = None
         self._dark_mode_enabled = True
         self._initial_geometry = None
         self._start_maximized = False  # Don't maximize by default
@@ -256,8 +256,8 @@ class AsciiDocEditor(QMainWindow):
         self._is_processing_git = False
         self._is_processing_pandoc = False
         self._last_git_operation = ""
-        self._pending_file_path = None
-        self._pending_commit_message = None
+        self._pending_file_path: Optional[Path] = None
+        self._pending_commit_message: Optional[str] = None
         self._unsaved_changes = False
 
     def _get_settings_path(self) -> Path:
