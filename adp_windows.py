@@ -1257,8 +1257,8 @@ class AsciiDocEditor(QMainWindow):
             logger.info(f"Emitting pandoc conversion request for {format_type} - temp_adoc: {temp_adoc}, output: {file_path}")
             self.request_pandoc_conversion.emit(
                 temp_adoc,
-                'asciidoc',
-                format_type,
+                format_type,  # to_format (target)
+                'asciidoc',   # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 file_path
             )
@@ -1266,8 +1266,8 @@ class AsciiDocEditor(QMainWindow):
             # For text formats, get the result and save it
             self.request_pandoc_conversion.emit(
                 temp_adoc,
-                'asciidoc',
-                format_type,
+                format_type,  # to_format (target)
+                'asciidoc',   # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 None
             )
@@ -1359,8 +1359,8 @@ class AsciiDocEditor(QMainWindow):
         if format_type in ['pdf', 'docx']:
             self.request_pandoc_conversion.emit(
                 temp_adoc,
-                'asciidoc',
-                format_type,
+                format_type,  # to_format (target)
+                'asciidoc',   # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 file_path
             )
@@ -1370,8 +1370,8 @@ class AsciiDocEditor(QMainWindow):
             # For text formats, get the result and save it
             self.request_pandoc_conversion.emit(
                 temp_adoc,
-                'asciidoc',
-                format_type,
+                format_type,  # to_format (target)
+                'asciidoc',   # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 None
             )
