@@ -1243,12 +1243,10 @@ class AsciiDocEditor(QMainWindow):
         # Convert AsciiDoc to HTML first (pandoc doesn't support AsciiDoc input)
         try:
             # Use asciidoc3api to convert to HTML
-            html_content = self._asciidoc_api.convert(
-                content,
-                backend='html5',
-                header_footer=True,
-                safe='unsafe'
-            )
+            infile = io.StringIO(content)
+            outfile = io.StringIO()
+            self._asciidoc_api.execute(infile, outfile, backend="html5")
+            html_content = outfile.getvalue()
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
             self._show_message("critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}")
@@ -1360,12 +1358,10 @@ class AsciiDocEditor(QMainWindow):
         # Convert AsciiDoc to HTML first (pandoc doesn't support AsciiDoc input)
         try:
             # Use asciidoc3api to convert to HTML
-            html_content = self._asciidoc_api.convert(
-                content,
-                backend='html5',
-                header_footer=True,
-                safe='unsafe'
-            )
+            infile = io.StringIO(content)
+            outfile = io.StringIO()
+            self._asciidoc_api.execute(infile, outfile, backend="html5")
+            html_content = outfile.getvalue()
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
             self._show_message("critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}")
