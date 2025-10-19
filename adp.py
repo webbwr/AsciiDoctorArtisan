@@ -410,6 +410,10 @@ class AsciiDocEditor(QMainWindow):
         self.editor = QPlainTextEdit(self)
         mono_font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
         self.editor.setFont(mono_font)
+
+        # Set cursor width to match system cursor (1-2 pixels is standard)
+        self.editor.setCursorWidth(2)
+
         self.editor.textChanged.connect(self._start_preview_timer)
         splitter.addWidget(self.editor)
 
