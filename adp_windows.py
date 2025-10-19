@@ -1200,7 +1200,7 @@ class AsciiDocEditor(QMainWindow):
 
     def _toggle_sync_scrolling(self) -> None:
         self._sync_scrolling = self.sync_scrolling_act.isChecked()
-        self.statusBar().showMessage(
+        self.statusBar.showMessage(
             f"Synchronized scrolling {'enabled' if self._sync_scrolling else 'disabled'}",
             5000
         )
@@ -1233,7 +1233,7 @@ class AsciiDocEditor(QMainWindow):
             # Reset preview button if it was maximized
             self.preview_max_btn.setText("⬜")
             self.preview_max_btn.setToolTip("Maximize preview")
-            self.statusBar().showMessage("Editor maximized", 3000)
+            self.statusBar.showMessage("Editor maximized", 3000)
         else:  # preview
             # Hide editor pane
             self.splitter.setSizes([0, self.splitter.width()])
@@ -1244,7 +1244,7 @@ class AsciiDocEditor(QMainWindow):
             # Reset editor button if it was maximized
             self.editor_max_btn.setText("⬜")
             self.editor_max_btn.setToolTip("Maximize editor")
-            self.statusBar().showMessage("Preview maximized", 3000)
+            self.statusBar.showMessage("Preview maximized", 3000)
 
         self._maximized_pane = pane
 
@@ -1273,7 +1273,7 @@ class AsciiDocEditor(QMainWindow):
         self.preview_max_btn.setEnabled(True)
 
         self._maximized_pane = None
-        self.statusBar().showMessage("View restored", 3000)
+        self.statusBar.showMessage("View restored", 3000)
 
     def convert_and_paste_from_clipboard(self) -> None:
         if not self._check_pandoc_availability("Clipboard Conversion"):
