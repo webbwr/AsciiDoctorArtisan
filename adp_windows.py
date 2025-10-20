@@ -557,9 +557,14 @@ class AsciiDocEditor(QMainWindow):
         editor_toolbar_layout = QHBoxLayout(editor_toolbar)
         editor_toolbar_layout.setContentsMargins(5, 2, 5, 2)
 
-        editor_label = QLabel("Editor")
-        # Remove custom styling to match app text
-        editor_toolbar_layout.addWidget(editor_label)
+        self.editor_label = QLabel("Editor")
+        # Store label as instance variable to update color dynamically
+        # Set initial color based on current theme
+        if self._dark_mode_enabled:
+            self.editor_label.setStyleSheet("color: white;")
+        else:
+            self.editor_label.setStyleSheet("color: black;")
+        editor_toolbar_layout.addWidget(self.editor_label)
         editor_toolbar_layout.addStretch()
 
         # Editor maximize/restore button
@@ -608,9 +613,14 @@ class AsciiDocEditor(QMainWindow):
         preview_toolbar_layout = QHBoxLayout(preview_toolbar)
         preview_toolbar_layout.setContentsMargins(5, 2, 5, 2)
 
-        preview_label = QLabel("Preview")
-        # Remove custom styling to match app text
-        preview_toolbar_layout.addWidget(preview_label)
+        self.preview_label = QLabel("Preview")
+        # Store label as instance variable to update color dynamically
+        # Set initial color based on current theme
+        if self._dark_mode_enabled:
+            self.preview_label.setStyleSheet("color: white;")
+        else:
+            self.preview_label.setStyleSheet("color: black;")
+        preview_toolbar_layout.addWidget(self.preview_label)
         preview_toolbar_layout.addStretch()
 
         # Preview maximize/restore button
@@ -1004,9 +1014,19 @@ class AsciiDocEditor(QMainWindow):
     def _apply_theme(self) -> None:
         if self._dark_mode_enabled:
             self._apply_dark_theme()
+            # Update label colors for dark mode
+            if hasattr(self, 'editor_label'):
+                self.editor_label.setStyleSheet("color: white;")
+            if hasattr(self, 'preview_label'):
+                self.preview_label.setStyleSheet("color: white;")
         else:
             # Light theme (default Windows theme)
             QApplication.setPalette(QApplication.style().standardPalette())
+            # Update label colors for light mode
+            if hasattr(self, 'editor_label'):
+                self.editor_label.setStyleSheet("color: black;")
+            if hasattr(self, 'preview_label'):
+                self.preview_label.setStyleSheet("color: black;")
 
     def _apply_dark_theme(self) -> None:
         palette = QPalette()
