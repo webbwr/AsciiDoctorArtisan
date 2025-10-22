@@ -123,7 +123,7 @@ pip install -r requirements.txt
 sudo apt install pandoc
 
 # Run the application
-python3 adp.py
+python3 adp_windows.py
 ```
 
 ### Windows Installation
@@ -140,7 +140,7 @@ pip install -r requirements.txt
 .\AsciiDocArtisanVerify.ps1
 
 # Run the application
-python adp.py
+python adp_windows.py
 ```
 
 ---
