@@ -1,0 +1,37 @@
+# Ruff configuration for AsciiDoctorArtisan
+# Modern Python linter configuration
+
+# Target Python 3.13
+target-version = "py313"
+
+# Set line length to 120 characters (allow legacy long lines)
+line-length = 120
+
+[lint]
+# Select rules to enforce
+select = [
+    "E",   # pycodestyle errors
+    "F",   # Pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+]
+
+# Ignore specific rules for legacy code
+ignore = [
+    "E501",  # Line too long - legacy code has many long lines
+    "E701",  # Multiple statements on one line (colon) - legacy code style
+    "E702",  # Multiple statements on one line (semicolon) - legacy code style
+    "E722",  # Bare except - legacy error handling pattern
+]
+
+[lint.per-file-ignores]
+# Allow module imports after logger setup in windows version
+"adp_windows.py" = ["E402"]
+# pypandoc is imported to check availability
+"pandoc_integration.py" = ["F401"]
+
+[format]
+# Use Black-compatible formatting
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

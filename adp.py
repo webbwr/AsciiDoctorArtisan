@@ -1,64 +1,71 @@
 # -*- coding: utf-8 -*-
 
-import sys
+import html
 import io
+import json
 import os
 import subprocess
-import shlex
-from pathlib import Path
-from typing import Optional, Tuple, NamedTuple, List, Union, Any, Dict
+import sys
 import warnings
-import html
-import json
+from pathlib import Path
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
-from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QSplitter,
-    QPlainTextEdit,
-    QMessageBox,
-    QFileDialog,
-    QStatusBar,
-    QTextBrowser,
-    QInputDialog,
+from PySide6.QtCore import (
+    QObject,
+    QRect,
+    QStandardPaths,
+    Qt,
+    QThread,
+    QTimer,
+    QtMsgType,
+    Signal,
+    Slot,
+    qInstallMessageHandler,
 )
 from PySide6.QtGui import (
     QAction,
-    QPalette,
     QColor,
     QFont,
-    QKeySequence,
     QGuiApplication,
-    QScreen,
+    QKeySequence,
+    QPalette,
 )
-from PySide6.QtCore import (
-    Qt,
-    QTimer,
-    QUrl,
-    QStandardPaths,
-    QObject,
-    QThread,
-    Signal,
-    Slot,
-    QRect,
+from PySide6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QInputDialog,
+    QMainWindow,
+    QMessageBox,
+    QPlainTextEdit,
+    QSplitter,
+    QStatusBar,
+    QTextBrowser,
 )
 
 try:
     import pypandoc
+
     PANDOC_AVAILABLE = True
 except ImportError:
-    print("WARNING: 'pypandoc' library not found. DOCX/Clipboard conversion disabled.", file=sys.stderr)
+    print(
+        "WARNING: 'pypandoc' library not found. DOCX/Clipboard conversion disabled.",
+        file=sys.stderr,
+    )
     pypandoc = None
     PANDOC_AVAILABLE = False
 
 try:
     from asciidoc3 import asciidoc3
     from asciidoc3.asciidoc3api import AsciiDoc3API
+
     ASCIIDOC3_AVAILABLE = True
 except ImportError:
-    print("WARNING: 'asciidoc3' library not found. Live preview will fallback to plain text.", file=sys.stderr)
+    print(
+        "WARNING: 'asciidoc3' library not found. Live preview will fallback to plain text.",
+        file=sys.stderr,
+    )
     asciidoc3 = None
-    AsciiDoc3API = None # type: ignore
+    AsciiDoc3API = None  # type: ignore
     ASCIIDOC3_AVAILABLE = False
 
 APP_NAME = "AsciiDoc Artisan"
@@ -66,11 +73,11 @@ DEFAULT_FILENAME = "untitled.adoc"
 PREVIEW_UPDATE_INTERVAL_MS = 350
 EDITOR_FONT_FAMILY = "Courier New"
 EDITOR_FONT_SIZE = 18  # Optimized for 5K displays
-MIN_FONT_SIZE = 10     # Larger minimum for high-DPI displays
+MIN_FONT_SIZE = 10  # Larger minimum for high-DPI displays
 ZOOM_STEP = 1
 SETTINGS_FILENAME = "AsciiDocArtisan.json"
-DEFAULT_WINDOW_WIDTH = 4096   # Default width for 5K displays
-DEFAULT_WINDOW_HEIGHT = 2304  # Default height for 5K displays
+DEFAULT_WINDOW_WIDTH = 1400  # Default width for most displays
+DEFAULT_WINDOW_HEIGHT = 900  # Default height for most displays
 
 ADOC_FILTER = "AsciiDoc Files (*.adoc *.asciidoc)"
 DOCX_FILTER = "Word Documents (*.docx)"
@@ -78,12 +85,14 @@ ALL_FILES_FILTER = "All Files (*)"
 SUPPORTED_OPEN_FILTER = f"All Supported Files (*.adoc *.asciidoc *.docx);;{ADOC_FILTER};;{DOCX_FILTER};;{ALL_FILES_FILTER}"
 SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{ALL_FILES_FILTER}"
 
+
 class GitResult(NamedTuple):
     success: bool
     stdout: str
     stderr: str
     exit_code: Optional[int]
     user_message: str
+
 
 class GitWorker(QObject):
     command_complete = Signal(GitResult)
@@ -109,9 +118,9 @@ class GitWorker(QObject):
                 capture_output=True,
                 text=True,
                 check=False,
-                encoding='utf-8',
-                errors='replace',
-                env=env
+                encoding="utf-8",
+                errors="replace",
+                env=env,
             )
 
             exit_code = process.returncode
@@ -124,19 +133,31 @@ class GitWorker(QObject):
                     print(f"WARN (Thread): Git command stderr (exit code 0): {stderr}")
                 result = GitResult(True, stdout, stderr, exit_code, "Git command successful.")
             else:
-                print(f"ERROR (Thread): Git command failed (code {exit_code}): {' '.join(command)}\nStderr: {stderr}\nStdout: {stdout}", file=sys.stderr)
+                print(
+                    f"ERROR (Thread): Git command failed (code {exit_code}): {' '.join(command)}\nStderr: {stderr}\nStdout: {stdout}",
+                    file=sys.stderr,
+                )
                 stderr_lower = stderr.lower()
                 if "authentication failed" in stderr_lower:
-                    user_message = "Git Authentication Failed. Check credentials (SSH key/token/helper)."
+                    user_message = (
+                        "Git Authentication Failed. Check credentials (SSH key/token/helper)."
+                    )
                 elif "not a git repository" in stderr_lower:
                     user_message = f"Directory is not a Git repository: {working_dir}"
                 elif "resolve host" in stderr_lower or "could not resolve hostname" in stderr_lower:
-                    user_message = "Could not connect to Git host. Check internet and repository URL."
+                    user_message = (
+                        "Could not connect to Git host. Check internet and repository URL."
+                    )
                 elif "pull is not possible because you have unmerged files" in stderr_lower:
-                    user_message = "Pull failed: Unmerged files (conflicts). Resolve manually, commit."
+                    user_message = (
+                        "Pull failed: Unmerged files (conflicts). Resolve manually, commit."
+                    )
                 elif "please commit your changes or stash them before you merge" in stderr_lower:
                     user_message = "Pull failed: Uncommitted local changes would be overwritten. Commit or stash first."
-                elif "updates were rejected because the remote contains work that you do" in stderr_lower:
+                elif (
+                    "updates were rejected because the remote contains work that you do"
+                    in stderr_lower
+                ):
                     user_message = "Push rejected: Remote has changes you don't. Pull first, resolve conflicts, then push again."
                 elif "nothing to commit" in stderr_lower:
                     user_message = "Nothing to commit."
@@ -155,14 +176,19 @@ class GitWorker(QObject):
         except Exception as e:
             error_msg = f"Unexpected error running Git command: {e}"
             print(f"ERROR (Thread): {error_msg}", file=sys.stderr)
-            self.command_complete.emit(GitResult(False, stdout, stderr or str(e), exit_code, error_msg))
+            self.command_complete.emit(
+                GitResult(False, stdout, stderr or str(e), exit_code, error_msg)
+            )
+
 
 class PandocWorker(QObject):
     conversion_complete = Signal(str, str)
     conversion_error = Signal(str, str)
 
     @Slot(object, str, str, str)
-    def run_pandoc_conversion(self, source: Union[str, bytes], to_format: str, from_format: str, context: str) -> None:
+    def run_pandoc_conversion(
+        self, source: Union[str, bytes], to_format: str, from_format: str, context: str
+    ) -> None:
         if not PANDOC_AVAILABLE or not pypandoc:
             err = "Pandoc/pypandoc not available for conversion."
             print(f"ERROR (Thread): {err}", file=sys.stderr)
@@ -170,28 +196,29 @@ class PandocWorker(QObject):
             return
 
         extra_args = []
-        is_docx_to_adoc = (from_format == 'docx' and to_format == 'asciidoc')
+        is_docx_to_adoc = from_format == "docx" and to_format == "asciidoc"
 
         if is_docx_to_adoc:
-            extra_args.append('--number-sections')
+            extra_args.append("--number-sections")
             print(f"INFO (Thread): Using extra args for DOCX->ADOC: {extra_args}")
 
         try:
             print(f"INFO (Thread): Starting Pandoc conversion ({context}) from {from_format}...")
             result_text = pypandoc.convert_text(
-                source=source,
-                to=to_format,
-                format=from_format,
-                extra_args=extra_args
+                source=source, to=to_format, format=from_format, extra_args=extra_args
             )
             print(f"INFO (Thread): Pandoc conversion successful ({context}).")
 
             if is_docx_to_adoc:
                 print("INFO (Thread): Prepending AsciiDoc TOC directives.")
                 toc_directives = ":toc:\n:toc-title: Table of Contents\n\n"
-                lines = result_text.split('\n', 1)
-                if len(lines) > 0 and lines[0].startswith('= '):
-                    result_text = f"{lines[0]}\n{toc_directives}{lines[1]}" if len(lines) > 1 else f"{lines[0]}\n{toc_directives}"
+                lines = result_text.split("\n", 1)
+                if len(lines) > 0 and lines[0].startswith("= "):
+                    result_text = (
+                        f"{lines[0]}\n{toc_directives}{lines[1]}"
+                        if len(lines) > 1
+                        else f"{lines[0]}\n{toc_directives}"
+                    )
                 else:
                     result_text = toc_directives + result_text
 
@@ -199,15 +226,18 @@ class PandocWorker(QObject):
 
         except Exception as e:
             error_type = type(e).__name__
-            print(f"ERROR (Thread): Pandoc failed during {context}: {error_type}: {e}", file=sys.stderr)
+            print(
+                f"ERROR (Thread): Pandoc failed during {context}: {error_type}: {e}",
+                file=sys.stderr,
+            )
             title = "Pandoc Error"
             message = f"An error occurred during {context} using Pandoc.\n\n"
             if isinstance(e, (OSError, FileNotFoundError)) or "pandoc wasn't found" in str(e):
                 message += "Ensure Pandoc is installed and in system PATH.\n\n"
                 title = "Pandoc Not Found / Execution Error"
             elif isinstance(e, RuntimeError) and "pandoc exited with code" in str(e):
-                 message += "Pandoc reported an error during conversion.\n\n"
-                 title = "Pandoc Conversion Error"
+                message += "Pandoc reported an error during conversion.\n\n"
+                title = "Pandoc Conversion Error"
             message += f"Details ({error_type}): {e}"
             self.conversion_error.emit(f"{title}: {message}", context)
 
@@ -230,12 +260,14 @@ class AsciiDocEditor(QMainWindow):
         self._setup_workers_and_threads()
         self._update_ui_state()
         if not self._git_repo_path:
-             self.statusBar.showMessage("Ready. Set Git repository via Git menu.")
+            self.statusBar.showMessage("Ready. Set Git repository via Git menu.")
         elif "Git repository set" not in self.statusBar.currentMessage():
-             self.statusBar.showMessage(f"Git repository: {self._git_repo_path}", 5000)
+            self.statusBar.showMessage(f"Git repository: {self._git_repo_path}", 5000)
 
     def _set_default_settings(self) -> None:
-        self._last_directory: str = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DocumentsLocation) or str(Path.home())
+        self._last_directory: str = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.DocumentsLocation
+        ) or str(Path.home())
         self._current_file_path: Optional[Path] = None
         self._git_repo_path: Optional[str] = None
         self._dark_mode_enabled: bool = True
@@ -252,7 +284,9 @@ class AsciiDocEditor(QMainWindow):
 
     def _get_settings_path(self) -> Path:
         # Use platform-appropriate configuration directory
-        config_dir_str = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppConfigLocation)
+        config_dir_str = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.AppConfigLocation
+        )
 
         if not config_dir_str:
             # Fallback to home directory if config location not available
@@ -266,7 +300,9 @@ class AsciiDocEditor(QMainWindow):
             config_dir.mkdir(parents=True, exist_ok=True)
             print(f"INFO: Using config directory: {config_dir}")
         except Exception as e:
-            print(f"WARN: Could not create config directory {config_dir}: {e}. Using home directory.")
+            print(
+                f"WARN: Could not create config directory {config_dir}: {e}. Using home directory."
+            )
             return Path.home() / SETTINGS_FILENAME
 
         return config_dir / SETTINGS_FILENAME
@@ -279,18 +315,20 @@ class AsciiDocEditor(QMainWindow):
             return
 
         try:
-            with open(self._settings_path, 'r', encoding='utf-8') as f:
+            with open(self._settings_path, "r", encoding="utf-8") as f:
                 settings: Dict[str, Any] = json.load(f)
 
             loaded_last_dir = settings.get("last_directory")
             if isinstance(loaded_last_dir, str) and Path(loaded_last_dir).is_dir():
                 self._last_directory = loaded_last_dir
             else:
-                print(f"WARN: Invalid 'last_directory' in settings, using default: {self._last_directory}")
+                print(
+                    f"WARN: Invalid 'last_directory' in settings, using default: {self._last_directory}"
+                )
 
             loaded_git_repo = settings.get("git_repo_path")
             if isinstance(loaded_git_repo, str) and loaded_git_repo:
-                 self._git_repo_path = loaded_git_repo
+                self._git_repo_path = loaded_git_repo
 
             loaded_dark_mode = settings.get("dark_mode")
             if isinstance(loaded_dark_mode, bool):
@@ -318,34 +356,43 @@ class AsciiDocEditor(QMainWindow):
                 self._start_maximized = False
                 print(f"INFO: Loaded window geometry: {self._initial_geometry}")
             else:
-                 self._initial_geometry = None
-                 self._start_maximized = True
-                 if geom_dict is not None:
-                     print("WARN: Using default/maximized state due to invalid geometry.")
+                self._initial_geometry = None
+                self._start_maximized = True
+                if geom_dict is not None:
+                    print("WARN: Using default/maximized state due to invalid geometry.")
 
             print("INFO: Settings loaded successfully.")
 
         except json.JSONDecodeError as e:
-            print(f"ERROR: Failed to parse settings file {self._settings_path}: {e}", file=sys.stderr)
+            print(
+                f"ERROR: Failed to parse settings file {self._settings_path}: {e}", file=sys.stderr
+            )
             error_message = f"Could not parse settings file '{self._settings_path}'.\nUsing default settings.\n\nError: {e}"
             self._set_default_settings()
-            if hasattr(self, 'statusBar'):
-                 self._show_message("warning", "Settings Load Error", error_message)
+            if hasattr(self, "statusBar"):
+                self._show_message("warning", "Settings Load Error", error_message)
             else:
-                 QMessageBox.warning(None, f"{APP_NAME} - Settings Load Error", error_message)
+                QMessageBox.warning(None, f"{APP_NAME} - Settings Load Error", error_message)
         except IOError as e:
-            print(f"ERROR: Failed to read settings file {self._settings_path}: {e}", file=sys.stderr)
+            print(
+                f"ERROR: Failed to read settings file {self._settings_path}: {e}", file=sys.stderr
+            )
             error_message = f"Could not read settings file '{self._settings_path}'.\nUsing default settings.\n\nError: {e}"
             self._set_default_settings()
-            if hasattr(self, 'statusBar'):
+            if hasattr(self, "statusBar"):
                 self._show_message("warning", "Settings Load Error", error_message)
             else:
                 QMessageBox.warning(None, f"{APP_NAME} - Settings Load Error", error_message)
         except Exception as e:
-            print(f"ERROR: Unexpected error loading settings from {self._settings_path}: {e}", file=sys.stderr)
-            error_message = f"Unexpected error loading settings.\nUsing default settings.\n\nError: {e}"
+            print(
+                f"ERROR: Unexpected error loading settings from {self._settings_path}: {e}",
+                file=sys.stderr,
+            )
+            error_message = (
+                f"Unexpected error loading settings.\nUsing default settings.\n\nError: {e}"
+            )
             self._set_default_settings()
-            if hasattr(self, 'statusBar'):
+            if hasattr(self, "statusBar"):
                 self._show_message("warning", "Settings Load Error", error_message)
             else:
                 QMessageBox.warning(None, f"{APP_NAME} - Settings Load Error", error_message)
@@ -353,34 +400,43 @@ class AsciiDocEditor(QMainWindow):
     def _apply_loaded_theme_setting(self) -> None:
         self.dark_mode_act.setChecked(self._dark_mode_enabled)
         app = QApplication.instance()
-        if not app: return
+        if not app:
+            return
 
         if self._dark_mode_enabled:
             _apply_dark_palette(app)
         else:
             if self._original_palette:
-                 app.setPalette(self._original_palette)
+                app.setPalette(self._original_palette)
             else:
-                 print("WARN: Original palette instance variable not found. Cannot restore light theme.", file=sys.stderr)
+                print(
+                    "WARN: Original palette instance variable not found. Cannot restore light theme.",
+                    file=sys.stderr,
+                )
 
     def _save_settings(self) -> None:
         is_maximized = self.isMaximized()
         geometry_dict = None
         if not is_maximized:
             geom: QRect = self.geometry()
-            geometry_dict = {"x": geom.x(), "y": geom.y(), "width": geom.width(), "height": geom.height()}
+            geometry_dict = {
+                "x": geom.x(),
+                "y": geom.y(),
+                "width": geom.width(),
+                "height": geom.height(),
+            }
 
         settings: Dict[str, Any] = {
             "last_directory": str(self._last_directory),
             "git_repo_path": self._git_repo_path,
             "dark_mode": self.dark_mode_act.isChecked(),
             "maximized": is_maximized,
-            "window_geometry": geometry_dict
+            "window_geometry": geometry_dict,
         }
 
         print(f"INFO: Saving settings to: {self._settings_path}")
         try:
-            with open(self._settings_path, 'w', encoding='utf-8') as f:
+            with open(self._settings_path, "w", encoding="utf-8") as f:
                 json.dump(settings, f, indent=2)
             print("INFO: Settings saved successfully.")
         except (IOError, TypeError, Exception) as e:
@@ -412,6 +468,7 @@ class AsciiDocEditor(QMainWindow):
         self.editor = QPlainTextEdit(self)
         mono_font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
         self.editor.setFont(mono_font)
+        self.editor.setMinimumWidth(200)  # Ensure editor is always visible
 
         # Note: setCursorWidth() does not work in WSL/X11 environments
         # Cursor appearance is controlled by the X server/system settings
@@ -422,30 +479,103 @@ class AsciiDocEditor(QMainWindow):
         self.preview = QTextBrowser(self)
         self.preview.setReadOnly(True)
         self.preview.setOpenExternalLinks(True)
+        self.preview.setMinimumWidth(200)  # Ensure preview is always visible
         splitter.addWidget(self.preview)
 
+        # Set equal sizes for both panes
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 1)
+        splitter.setChildrenCollapsible(False)  # Prevent panes from being collapsed
 
         self.statusBar = QStatusBar(self)
         self.setStatusBar(self.statusBar)
 
     def _create_actions(self) -> None:
-        self.open_act = QAction("Open…", self, shortcut=QKeySequence.StandardKey.Open, toolTip="Open AsciiDoc (*.adoc, *.asciidoc) or Convert Word (*.docx)", triggered=self.open_file)
-        self.save_act = QAction("Save", self, shortcut=QKeySequence.StandardKey.Save, toolTip="Save the current document", triggered=self.save_file)
-        self.save_as_act = QAction("Save As…", self, shortcut=QKeySequence.StandardKey.SaveAs, toolTip="Save the current document to a new AsciiDoc file", triggered=lambda: self.save_file(save_as=True))
-        self.exit_act = QAction("Exit", self, shortcut=QKeySequence.StandardKey.Quit, toolTip="Exit the application", triggered=self.close)
+        self.open_act = QAction(
+            "Open…",
+            self,
+            shortcut=QKeySequence.StandardKey.Open,
+            toolTip="Open AsciiDoc (*.adoc, *.asciidoc) or Convert Word (*.docx)",
+            triggered=self.open_file,
+        )
+        self.save_act = QAction(
+            "Save",
+            self,
+            shortcut=QKeySequence.StandardKey.Save,
+            toolTip="Save the current document",
+            triggered=self.save_file,
+        )
+        self.save_as_act = QAction(
+            "Save As…",
+            self,
+            shortcut=QKeySequence.StandardKey.SaveAs,
+            toolTip="Save the current document to a new AsciiDoc file",
+            triggered=lambda: self.save_file(save_as=True),
+        )
+        self.exit_act = QAction(
+            "Exit",
+            self,
+            shortcut=QKeySequence.StandardKey.Quit,
+            toolTip="Exit the application",
+            triggered=self.close,
+        )
 
-        self.convert_paste_act = QAction("Convert Clipboard (Word) & Paste", self, toolTip="Convert HTML/Text from clipboard to AsciiDoc and paste", triggered=self.convert_and_paste_from_clipboard)
+        self.convert_paste_act = QAction(
+            "Convert Clipboard (Word) & Paste",
+            self,
+            toolTip="Convert HTML/Text from clipboard to AsciiDoc and paste",
+            triggered=self.convert_and_paste_from_clipboard,
+        )
 
-        self.zoom_in_act = QAction("Zoom In", self, shortcut=QKeySequence.StandardKey.ZoomIn, toolTip="Increase text size", triggered=lambda: self._zoom(1))
-        self.zoom_out_act = QAction("Zoom Out", self, shortcut=QKeySequence.StandardKey.ZoomOut, toolTip="Decrease text size", triggered=lambda: self._zoom(-1))
-        self.dark_mode_act = QAction("Toggle Dark Mode", self, toolTip="Switch UI theme", checkable=True, triggered=self._toggle_dark_mode)
+        self.zoom_in_act = QAction(
+            "Zoom In",
+            self,
+            shortcut=QKeySequence.StandardKey.ZoomIn,
+            toolTip="Increase text size",
+            triggered=lambda: self._zoom(1),
+        )
+        self.zoom_out_act = QAction(
+            "Zoom Out",
+            self,
+            shortcut=QKeySequence.StandardKey.ZoomOut,
+            toolTip="Decrease text size",
+            triggered=lambda: self._zoom(-1),
+        )
+        self.dark_mode_act = QAction(
+            "Toggle Dark Mode",
+            self,
+            toolTip="Switch UI theme",
+            checkable=True,
+            triggered=self._toggle_dark_mode,
+        )
 
-        self.set_repo_act = QAction("Set Repository…", self, toolTip="Select local Git repository directory", triggered=self._select_git_repository)
-        self.git_commit_act = QAction("&Commit…", self, shortcut="Ctrl+Shift+C", toolTip="Stage all changes and commit with message", triggered=self._trigger_git_commit)
-        self.git_pull_act = QAction("&Pull", self, shortcut="Ctrl+Shift+P", toolTip="Pull changes from remote (git pull)", triggered=self._trigger_git_pull)
-        self.git_push_act = QAction("P&ush", self, shortcut="Ctrl+Shift+U", toolTip="Push committed changes to remote (git push)", triggered=self._trigger_git_push)
+        self.set_repo_act = QAction(
+            "Set Repository…",
+            self,
+            toolTip="Select local Git repository directory",
+            triggered=self._select_git_repository,
+        )
+        self.git_commit_act = QAction(
+            "&Commit…",
+            self,
+            shortcut="Ctrl+Shift+C",
+            toolTip="Stage all changes and commit with message",
+            triggered=self._trigger_git_commit,
+        )
+        self.git_pull_act = QAction(
+            "&Pull",
+            self,
+            shortcut="Ctrl+Shift+P",
+            toolTip="Pull changes from remote (git pull)",
+            triggered=self._trigger_git_pull,
+        )
+        self.git_push_act = QAction(
+            "P&ush",
+            self,
+            shortcut="Ctrl+Shift+U",
+            toolTip="Push committed changes to remote (git push)",
+            triggered=self._trigger_git_push,
+        )
 
     def _create_menus(self) -> None:
         menu_bar = self.menuBar()
@@ -498,7 +628,8 @@ class AsciiDocEditor(QMainWindow):
         print("INFO: Git and Pandoc worker threads started.")
 
     def _start_preview_timer(self) -> None:
-        if self._is_opening_file: return
+        if self._is_opening_file:
+            return
         if self._current_file_path and not self.windowTitle().endswith("*"):
             self.setWindowTitle(f"{self.windowTitle()}*")
         self._preview_timer.start()
@@ -512,7 +643,11 @@ class AsciiDocEditor(QMainWindow):
             self._is_processing_git = False
             self._update_ui_state()
             if result.success:
-                self._show_message("info", "Git Pull Successful", f"Pulled changes from remote.\n\nOutput:\n{result.stdout}")
+                self._show_message(
+                    "info",
+                    "Git Pull Successful",
+                    f"Pulled changes from remote.\n\nOutput:\n{result.stdout}",
+                )
                 self.statusBar.showMessage("Git pull successful.", 5000)
                 self._reload_current_file_if_in_repo()
             else:
@@ -523,17 +658,29 @@ class AsciiDocEditor(QMainWindow):
 
         if current_operation == "commit_add":
             if not result.success:
-                self._is_processing_git = False; self._last_git_operation = ""; self._pending_commit_message = None; self._update_ui_state()
-                self._show_message("critical", "Git Add Failed (Commit)", result.user_message); self.statusBar.showMessage("Git add failed.", 5000); return
+                self._is_processing_git = False
+                self._last_git_operation = ""
+                self._pending_commit_message = None
+                self._update_ui_state()
+                self._show_message("critical", "Git Add Failed (Commit)", result.user_message)
+                self.statusBar.showMessage("Git add failed.", 5000)
+                return
 
             if self._pending_commit_message:
                 self._last_git_operation = "commit_commit"
                 self.statusBar.showMessage("Attempting Git commit...", 0)
                 QApplication.processEvents()
-                self.request_git_command.emit(["git", "commit", "-m", self._pending_commit_message], self._git_repo_path) # type: ignore
+                self.request_git_command.emit(
+                    ["git", "commit", "-m", self._pending_commit_message], self._git_repo_path
+                )  # type: ignore
             else:
-                print("ERROR: Commit sequence reached commit step without a message.", file=sys.stderr)
-                self._is_processing_git = False; self._last_git_operation = ""; self._pending_commit_message = None; self._update_ui_state()
+                print(
+                    "ERROR: Commit sequence reached commit step without a message.", file=sys.stderr
+                )
+                self._is_processing_git = False
+                self._last_git_operation = ""
+                self._pending_commit_message = None
+                self._update_ui_state()
                 self.statusBar.showMessage("Commit failed: internal error.", 5000)
 
         elif current_operation == "commit_commit":
@@ -542,15 +689,21 @@ class AsciiDocEditor(QMainWindow):
             self._pending_commit_message = None
             self._update_ui_state()
             if result.success or "nothing to commit" in result.stderr.lower():
-                 if "nothing to commit" in result.stderr.lower():
-                     self._show_message("info", "Nothing to Commit", "No changes were staged to commit.")
-                     self.statusBar.showMessage("Nothing to commit.", 5000)
-                 else:
-                     self._show_message("info", "Commit Successful", f"Changes committed locally.\n\nOutput:\n{result.stdout}")
-                     self.statusBar.showMessage("Commit successful.", 5000)
+                if "nothing to commit" in result.stderr.lower():
+                    self._show_message(
+                        "info", "Nothing to Commit", "No changes were staged to commit."
+                    )
+                    self.statusBar.showMessage("Nothing to commit.", 5000)
+                else:
+                    self._show_message(
+                        "info",
+                        "Commit Successful",
+                        f"Changes committed locally.\n\nOutput:\n{result.stdout}",
+                    )
+                    self.statusBar.showMessage("Commit successful.", 5000)
             else:
-                 self._show_message("critical", "Git Commit Failed", result.user_message)
-                 self.statusBar.showMessage("Commit failed.", 5000)
+                self._show_message("critical", "Git Commit Failed", result.user_message)
+                self.statusBar.showMessage("Commit failed.", 5000)
             return
 
         if current_operation == "push_direct":
@@ -558,7 +711,11 @@ class AsciiDocEditor(QMainWindow):
             self._last_git_operation = ""
             self._update_ui_state()
             if result.success:
-                self._show_message("info", "Git Push Successful", f"Pushed changes to remote.\n\nOutput:\n{result.stdout}")
+                self._show_message(
+                    "info",
+                    "Git Push Successful",
+                    f"Pushed changes to remote.\n\nOutput:\n{result.stdout}",
+                )
                 self.statusBar.showMessage("Git push successful.", 5000)
             else:
                 self._show_message("critical", "Git Push Failed", result.user_message)
@@ -566,8 +723,10 @@ class AsciiDocEditor(QMainWindow):
             return
 
         if self._is_processing_git:
-             print(f"WARN: Unhandled Git result context: {current_operation}", file=sys.stderr)
-             self._is_processing_git = False; self._last_git_operation = ""; self._update_ui_state()
+            print(f"WARN: Unhandled Git result context: {current_operation}", file=sys.stderr)
+            self._is_processing_git = False
+            self._last_git_operation = ""
+            self._update_ui_state()
 
     @Slot(str, str)
     def _handle_pandoc_result(self, result_text: str, context: str) -> None:
@@ -587,7 +746,10 @@ class AsciiDocEditor(QMainWindow):
                 self._load_content_into_editor(result_text, pending_path, "Converted DOCX")
                 self._pending_file_path = None
             else:
-                print(f"ERROR: Pandoc result received for {file_name}, but no pending file path found.", file=sys.stderr)
+                print(
+                    f"ERROR: Pandoc result received for {file_name}, but no pending file path found.",
+                    file=sys.stderr,
+                )
                 self.statusBar.showMessage(f"Error loading converted {file_name}.", 5000)
         else:
             print(f"WARN: Unknown Pandoc context result: {context}", file=sys.stderr)
@@ -597,7 +759,9 @@ class AsciiDocEditor(QMainWindow):
     def _handle_pandoc_error_result(self, error_message: str, context: str) -> None:
         self._is_processing_pandoc = False
         self._update_ui_state()
-        print(f"ERROR: Pandoc Worker reported error for '{context}': {error_message}", file=sys.stderr)
+        print(
+            f"ERROR: Pandoc Worker reported error for '{context}': {error_message}", file=sys.stderr
+        )
         self._show_message("critical", f"Pandoc Error ({context})", error_message)
         self.statusBar.showMessage(f"Pandoc {context} failed.", 5000)
         if context.startswith("converting ") and self._pending_file_path:
@@ -606,6 +770,11 @@ class AsciiDocEditor(QMainWindow):
     @Slot()
     def update_preview(self) -> None:
         source_text = self.editor.toPlainText()
+        if not source_text.strip():
+            # Set minimal HTML for empty editor to avoid QTextCursor errors
+            welcome_html = f"""<!doctype html><html><head><meta charset='utf-8'>{self._get_preview_css()}</head><body><p style='color: #888; font-style: italic;'>Start typing AsciiDoc content to see the preview...</p></body></html>"""
+            self.preview.setHtml(welcome_html)
+            return
         html_body = self._convert_asciidoc_to_html_body(source_text)
         full_html = f"""<!doctype html><html><head><meta charset='utf-8'>{self._get_preview_css()}</head><body>{html_body}</body></html>"""
         self.preview.setHtml(full_html)
@@ -633,57 +802,71 @@ class AsciiDocEditor(QMainWindow):
 
         source_text_str = str(source_text) if source_text is not None else ""
         if not source_text or not source_text_str.strip():
-            self._show_message("warning", "Clipboard Empty", "Clipboard contains no usable text or HTML.")
+            self._show_message(
+                "warning", "Clipboard Empty", "Clipboard contains no usable text or HTML."
+            )
             return
 
         self._is_processing_pandoc = True
         self._update_ui_state()
         self.statusBar.showMessage("Converting clipboard content...", 0)
-        self.request_pandoc_conversion.emit(source_text, 'asciidoc', source_format, "clipboard conversion")
+        self.request_pandoc_conversion.emit(
+            source_text, "asciidoc", source_format, "clipboard conversion"
+        )
 
     def open_file(self) -> None:
         if self._is_processing_pandoc:
             self._show_message("warning", "Busy", "Already processing a file conversion.")
             return
         if self._has_unsaved_changes():
-            if not self._prompt_save_before_action("open a new file"): return
+            if not self._prompt_save_before_action("open a new file"):
+                return
 
         path_str, _ = QFileDialog.getOpenFileName(
             self, "Open File", self._last_directory, SUPPORTED_OPEN_FILTER
         )
-        if not path_str: return
+        if not path_str:
+            return
 
         file_path = Path(path_str)
         try:
-            if file_path.suffix.lower() == '.docx':
-                if not self._check_pandoc_availability(f"Opening '{file_path.name}'"): return
+            if file_path.suffix.lower() == ".docx":
+                if not self._check_pandoc_availability(f"Opening '{file_path.name}'"):
+                    return
                 self._is_processing_pandoc = True
                 self._pending_file_path = file_path
                 self._update_ui_state()
                 self.statusBar.showMessage(f"Converting '{file_path.name}'...", 0)
                 docx_bytes = file_path.read_bytes()
-                self.request_pandoc_conversion.emit(docx_bytes, 'asciidoc', 'docx', f"converting '{file_path.name}'")
-            elif file_path.suffix.lower() in ['.adoc', '.asciidoc']:
+                self.request_pandoc_conversion.emit(
+                    docx_bytes, "asciidoc", "docx", f"converting '{file_path.name}'"
+                )
+            elif file_path.suffix.lower() in [".adoc", ".asciidoc"]:
                 content, opened_as = self._read_adoc_content(file_path)
                 self._load_content_into_editor(content, file_path, opened_as)
             else:
-                self._show_message("warning", "Unsupported File Type", f"Cannot open file type: {file_path.suffix}")
+                self._show_message(
+                    "warning", "Unsupported File Type", f"Cannot open file type: {file_path.suffix}"
+                )
         except Exception as exc:
             self._handle_file_operation_error(exc, file_path, "opening")
             if self._is_processing_pandoc:
-                self._is_processing_pandoc = False; self._pending_file_path = None; self._update_ui_state()
+                self._is_processing_pandoc = False
+                self._pending_file_path = None
+                self._update_ui_state()
 
     def _trigger_git_commit(self) -> None:
         if self._is_processing_git:
             self._show_message("warning", "Busy", "Already running a Git operation.")
             return
-        if not self._ensure_git_repo_set(): return
+        if not self._ensure_git_repo_set():
+            return
 
         if self._current_file_path and self._has_unsaved_changes():
-             print(f"INFO: Saving current file before Git commit: {self._current_file_path}")
-             if not self.save_file(save_as=False):
-                 self.statusBar.showMessage("Save failed or cancelled. Commit aborted.", 5000)
-                 return
+            print(f"INFO: Saving current file before Git commit: {self._current_file_path}")
+            if not self.save_file(save_as=False):
+                self.statusBar.showMessage("Save failed or cancelled. Commit aborted.", 5000)
+                return
 
         commit_message, ok = QInputDialog.getMultiLineText(
             self, "Commit Changes", "Enter commit message:", ""
@@ -692,13 +875,21 @@ class AsciiDocEditor(QMainWindow):
             self.statusBar.showMessage("Commit cancelled.", 3000)
             return
         if not commit_message.strip():
-            self._show_message("warning", "Empty Commit Message", "Commit aborted. Please provide a commit message.")
+            self._show_message(
+                "warning",
+                "Empty Commit Message",
+                "Commit aborted. Please provide a commit message.",
+            )
             return
 
         # Validate commit message (remove null bytes and control characters except newlines/tabs)
-        sanitized_message = commit_message.replace('\0', '').replace('\r', '')
+        sanitized_message = commit_message.replace("\0", "").replace("\r", "")
         if not sanitized_message.strip():
-            self._show_message("warning", "Invalid Commit Message", "Commit message contains only invalid characters.")
+            self._show_message(
+                "warning",
+                "Invalid Commit Message",
+                "Commit message contains only invalid characters.",
+            )
             return
 
         self._is_processing_git = True
@@ -707,29 +898,40 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
         self.statusBar.showMessage("Attempting Git add...", 0)
         QApplication.processEvents()
-        self.request_git_command.emit(["git", "add", "."], self._git_repo_path) # type: ignore
+        self.request_git_command.emit(["git", "add", "."], self._git_repo_path)  # type: ignore
 
     def _trigger_git_pull(self) -> None:
         if self._is_processing_git:
             self._show_message("warning", "Busy", "Already running a Git operation.")
             return
-        if not self._ensure_git_repo_set(): return
+        if not self._ensure_git_repo_set():
+            return
         if self._has_unsaved_changes():
-            if not self._prompt_save_before_action("pull changes (local changes might be overwritten)"): return
+            if not self._prompt_save_before_action(
+                "pull changes (local changes might be overwritten)"
+            ):
+                return
 
-        self._is_processing_git = True; self._last_git_operation = "pull"; self._update_ui_state()
-        self.statusBar.showMessage("Attempting Git pull...", 0); QApplication.processEvents()
-        self.request_git_command.emit(["git", "pull"], self._git_repo_path) # type: ignore
+        self._is_processing_git = True
+        self._last_git_operation = "pull"
+        self._update_ui_state()
+        self.statusBar.showMessage("Attempting Git pull...", 0)
+        QApplication.processEvents()
+        self.request_git_command.emit(["git", "pull"], self._git_repo_path)  # type: ignore
 
     def _trigger_git_push(self) -> None:
         if self._is_processing_git:
             self._show_message("warning", "Busy", "Already running a Git operation.")
             return
-        if not self._ensure_git_repo_set(): return
+        if not self._ensure_git_repo_set():
+            return
 
-        self._is_processing_git = True; self._last_git_operation = "push_direct"; self._update_ui_state()
-        self.statusBar.showMessage("Attempting Git push...", 0); QApplication.processEvents()
-        self.request_git_command.emit(["git", "push"], self._git_repo_path) # type: ignore
+        self._is_processing_git = True
+        self._last_git_operation = "push_direct"
+        self._update_ui_state()
+        self.statusBar.showMessage("Attempting Git push...", 0)
+        QApplication.processEvents()
+        self.request_git_command.emit(["git", "push"], self._git_repo_path)  # type: ignore
 
     def _convert_asciidoc_to_html_body(self, source_text: str) -> str:
         if self._asciidoc_api is None:
@@ -743,8 +945,10 @@ class AsciiDocEditor(QMainWindow):
         except Exception as exc:
             print(f"ERROR: AsciiDoc3 rendering failed: {exc}", file=sys.stderr)
             error_style = "color:#FF6B6B; background:#401A1A; border: 1px solid #F07474; padding: 10px; font-family: sans-serif;"
-            return (f"<div style='{error_style}'><strong>AsciiDoc Render Error:</strong><br>"
-                    f"<pre style='white-space: pre-wrap; color: #FFCDCD;'>{html.escape(str(exc))}</pre></div>")
+            return (
+                f"<div style='{error_style}'><strong>AsciiDoc Render Error:</strong><br>"
+                f"<pre style='white-space: pre-wrap; color: #FFCDCD;'>{html.escape(str(exc))}</pre></div>"
+            )
 
     def _read_adoc_content(self, file_path: Path) -> Tuple[str, str]:
         print(f"INFO: Reading AsciiDoc file: {file_path}")
@@ -775,7 +979,7 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             current_text = self.editor.toPlainText()
-            path_to_save.write_text(current_text, encoding='utf-8')
+            path_to_save.write_text(current_text, encoding="utf-8")
 
             self._current_file_path = path_to_save
             self._last_directory = str(path_to_save.parent)
@@ -806,50 +1010,69 @@ class AsciiDocEditor(QMainWindow):
         path_str, _ = QFileDialog.getSaveFileName(
             self, "Save As AsciiDoc", str(suggested_path), SUPPORTED_SAVE_FILTER
         )
-        if not path_str: return None
+        if not path_str:
+            return None
 
         path = Path(path_str)
-        if path.suffix.lower() not in ['.adoc', '.asciidoc']:
+        if path.suffix.lower() not in [".adoc", ".asciidoc"]:
             print(f"INFO: Adding default '.adoc' extension to '{path.name}'")
-            path = path.with_suffix('.adoc')
+            path = path.with_suffix(".adoc")
         return path
 
     def _zoom(self, delta: int) -> None:
         editor_font = self.editor.font()
         new_size = max(editor_font.pointSize() + delta, MIN_FONT_SIZE)
         if new_size != editor_font.pointSize():
-            editor_font.setPointSize(new_size); self.editor.setFont(editor_font)
+            editor_font.setPointSize(new_size)
+            self.editor.setFont(editor_font)
         self.preview.zoomIn(delta * ZOOM_STEP)
 
     def _toggle_dark_mode(self) -> None:
         app = QApplication.instance()
-        if not app: return
+        if not app:
+            return
         self._dark_mode_enabled = self.dark_mode_act.isChecked()
         if self._dark_mode_enabled:
-            _apply_dark_palette(app); print("INFO: Switched to Dark Mode.")
+            _apply_dark_palette(app)
+            print("INFO: Switched to Dark Mode.")
         else:
             if self._original_palette:
-                app.setPalette(self._original_palette); print("INFO: Switched to Light Mode.")
+                app.setPalette(self._original_palette)
+                print("INFO: Switched to Light Mode.")
             else:
                 print("WARN: Original palette instance variable not found.", file=sys.stderr)
         self.update_preview()
 
     def _get_preview_css(self) -> str:
-        return _StyleConstants.DARK_MODE_CSS if self.dark_mode_act.isChecked() else _StyleConstants.LIGHT_MODE_CSS
+        return (
+            _StyleConstants.DARK_MODE_CSS
+            if self.dark_mode_act.isChecked()
+            else _StyleConstants.LIGHT_MODE_CSS
+        )
 
     def _check_pandoc_availability(self, context: str) -> bool:
         if not PANDOC_AVAILABLE:
-            self._show_message("critical", "Dependency Missing: Pandoc", f"{context} requires 'pypandoc' and a system Pandoc installation.")
+            self._show_message(
+                "critical",
+                "Dependency Missing: Pandoc",
+                f"{context} requires 'pypandoc' and a system Pandoc installation.",
+            )
             return False
         return True
 
-    def _handle_file_operation_error(self, error: Exception, file_path: Optional[Path], operation: str):
+    def _handle_file_operation_error(
+        self, error: Exception, file_path: Optional[Path], operation: str
+    ):
         path_str = str(file_path) if file_path else "[Unknown Path]"
         print(f"ERROR: Failed {operation} file {path_str}: {error}", file=sys.stderr)
         if operation == "opening":
             self._current_file_path = None
             self.setWindowTitle(f"{APP_NAME} · Basic Preview")
-        self._show_message("critical", f"File {operation.capitalize()} Error", f"Could not {operation} the file:\n{path_str}\n\nError: {error}")
+        self._show_message(
+            "critical",
+            f"File {operation.capitalize()} Error",
+            f"Could not {operation} the file:\n{path_str}\n\nError: {error}",
+        )
 
     def _show_message(self, level: str, title: str, text: str) -> None:
         msg_box = QMessageBox(self)
@@ -867,10 +1090,13 @@ class AsciiDocEditor(QMainWindow):
     def _select_git_repository(self) -> None:
         start_dir = self._git_repo_path or self._last_directory
         dir_path = QFileDialog.getExistingDirectory(
-            self, "Select Git Repository Directory", start_dir,
-            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks
+            self,
+            "Select Git Repository Directory",
+            start_dir,
+            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
-        if not dir_path: return
+        if not dir_path:
+            return
 
         git_meta_dir = Path(dir_path) / ".git"
         if git_meta_dir.is_dir():
@@ -878,7 +1104,11 @@ class AsciiDocEditor(QMainWindow):
             self.statusBar.showMessage(f"Git repository set: {self._git_repo_path}", 5000)
             print(f"INFO: Git repository path set to: {self._git_repo_path}")
         else:
-            self._show_message("warning", "Not a Git Repository", f"Selected directory does not appear to be a Git repository (missing .git folder):\n{dir_path}")
+            self._show_message(
+                "warning",
+                "Not a Git Repository",
+                f"Selected directory does not appear to be a Git repository (missing .git folder):\n{dir_path}",
+            )
         self._update_ui_state()
 
     def _update_ui_state(self) -> None:
@@ -895,11 +1125,15 @@ class AsciiDocEditor(QMainWindow):
 
         if not repo_set and not self._is_processing_git and not self._is_processing_pandoc:
             if "Git repository set" not in self.statusBar.currentMessage():
-                 self.statusBar.showMessage("Ready. Set Git repository via Git menu.")
+                self.statusBar.showMessage("Ready. Set Git repository via Git menu.")
 
     def _ensure_git_repo_set(self) -> bool:
         if not self._git_repo_path:
-            self._show_message("warning", "Git Repository Not Set", "Please set the Git repository path first using the Git menu.")
+            self._show_message(
+                "warning",
+                "Git Repository Not Set",
+                "Please set the Git repository path first using the Git menu.",
+            )
             return False
         return True
 
@@ -910,14 +1144,16 @@ class AsciiDocEditor(QMainWindow):
         if not self._has_unsaved_changes():
             return True
 
-        message = f"You have unsaved changes.\n\nDo you want to save them before {action_description}?"
+        message = (
+            f"You have unsaved changes.\n\nDo you want to save them before {action_description}?"
+        )
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle(f"{APP_NAME} - Unsaved Changes")
         msg_box.setText(message)
         msg_box.setIcon(QMessageBox.Icon.Warning)
         save_button = msg_box.addButton("Save", QMessageBox.ButtonRole.AcceptRole)
         discard_button = msg_box.addButton("Discard", QMessageBox.ButtonRole.DestructiveRole)
-        cancel_button = msg_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        msg_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
         msg_box.setDefaultButton(save_button)
         msg_box.exec()
 
@@ -932,7 +1168,11 @@ class AsciiDocEditor(QMainWindow):
             return False
 
     def _reload_current_file_if_in_repo(self) -> None:
-        if not self._current_file_path or not self._git_repo_path or not self._current_file_path.exists():
+        if (
+            not self._current_file_path
+            or not self._git_repo_path
+            or not self._current_file_path.exists()
+        ):
             return
         try:
             self._current_file_path.relative_to(self._git_repo_path)
@@ -940,9 +1180,9 @@ class AsciiDocEditor(QMainWindow):
             content, opened_as = self._read_adoc_content(self._current_file_path)
             self._load_content_into_editor(content, self._current_file_path, opened_as)
         except ValueError:
-             pass
+            pass
         except Exception as e:
-             self._handle_file_operation_error(e, self._current_file_path, "reloading after pull")
+            self._handle_file_operation_error(e, self._current_file_path, "reloading after pull")
 
     def closeEvent(self, event) -> None:
         self._save_settings()
@@ -950,12 +1190,15 @@ class AsciiDocEditor(QMainWindow):
             print("INFO: Quitting worker threads...")
             self.git_thread.quit()
             self.pandoc_thread.quit()
-            if not self.git_thread.wait(500): print("WARN: Git thread did not finish quitting gracefully.")
-            if not self.pandoc_thread.wait(500): print("WARN: Pandoc thread did not finish quitting gracefully.")
+            if not self.git_thread.wait(500):
+                print("WARN: Git thread did not finish quitting gracefully.")
+            if not self.pandoc_thread.wait(500):
+                print("WARN: Pandoc thread did not finish quitting gracefully.")
             print("INFO: Threads cleanup finished.")
             event.accept()
         else:
             event.ignore()
+
 
 class _StyleConstants:
     DARK_MODE_CSS: str = r"""
@@ -1001,6 +1244,7 @@ class _StyleConstants:
 </style>
 """
 
+
 def _apply_dark_palette(app: QApplication) -> None:
     dark_palette = QPalette()
     dark_grey = QColor(53, 53, 53)
@@ -1026,31 +1270,79 @@ def _apply_dark_palette(app: QApplication) -> None:
     dark_palette.setColor(QPalette.ColorRole.HighlightedText, QColor(Qt.GlobalColor.black))
 
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, disabled_text)
-    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, disabled_text)
-    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, disabled_text)
+    dark_palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, disabled_text
+    )
+    dark_palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, disabled_text
+    )
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, disabled_button)
     dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Base, darker_grey)
-    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Highlight, disabled_button)
-    dark_palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.HighlightedText, disabled_text)
+    dark_palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.Highlight, disabled_button
+    )
+    dark_palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.HighlightedText, disabled_text
+    )
 
     app.setPalette(dark_palette)
+
+
+def qt_message_handler(msg_type: QtMsgType, context, message: str) -> None:
+    """Custom Qt message handler to filter out harmless warnings"""
+    # Suppress harmless QTextCursor warnings from HTML rendering
+    if "QTextCursor::setPosition" in message and "out of range" in message:
+        return
+    # Suppress font family warning on macOS
+    if "Populating font family aliases" in message:
+        return
+    # Print other messages normally
+    if msg_type == QtMsgType.QtDebugMsg:
+        print(f"Qt Debug: {message}", file=sys.stderr)
+    elif msg_type == QtMsgType.QtWarningMsg:
+        print(f"Qt Warning: {message}", file=sys.stderr)
+    elif msg_type == QtMsgType.QtCriticalMsg:
+        print(f"Qt Critical: {message}", file=sys.stderr)
+    elif msg_type == QtMsgType.QtFatalMsg:
+        print(f"Qt Fatal: {message}", file=sys.stderr)
+
 
 def main() -> None:
     # Note: HiDPI scaling attributes are deprecated in Qt6/PySide6
     # HiDPI is now handled automatically by Qt6
 
     # Suppress SyntaxWarnings from asciidoc3 library (invalid escape sequences in regex)
-    warnings.filterwarnings('ignore', category=SyntaxWarning)
+    warnings.filterwarnings("ignore", category=SyntaxWarning)
+
+    # Install custom Qt message handler to suppress harmless warnings
+    qInstallMessageHandler(qt_message_handler)
 
     app = QApplication(sys.argv)
     original_palette = app.palette()
     app.setStyle("Fusion")
     main_window = AsciiDocEditor(original_palette=original_palette)
 
-    # Set default size optimized for 5K displays
+    # Set default size with screen-aware sizing
     if not main_window._initial_geometry:
-        print(f"INFO: Setting default window size: {DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
-        main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+        screen = QGuiApplication.primaryScreen()
+        if screen:
+            screen_geom = screen.availableGeometry()
+            # Use 80% of screen width and height, but cap at defaults
+            width = min(int(screen_geom.width() * 0.8), DEFAULT_WINDOW_WIDTH)
+            height = min(int(screen_geom.height() * 0.8), DEFAULT_WINDOW_HEIGHT)
+            print(
+                f"INFO: Setting window size: {width}x{height} (screen: {screen_geom.width()}x{screen_geom.height()})"
+            )
+            main_window.resize(width, height)
+            # Center the window on screen
+            x = screen_geom.x() + (screen_geom.width() - width) // 2
+            y = screen_geom.y() + (screen_geom.height() - height) // 2
+            main_window.move(x, y)
+        else:
+            print(
+                f"INFO: Setting default window size: {DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}"
+            )
+            main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
         main_window.show()
     elif main_window._start_maximized:
         print("INFO: Showing window maximized.")
@@ -1060,20 +1352,23 @@ def main() -> None:
         if screen:
             available_geom = screen.availableGeometry()
             if available_geom.intersects(main_window._initial_geometry):
-                 print(f"INFO: Restoring window geometry: {main_window._initial_geometry}")
-                 main_window.setGeometry(main_window._initial_geometry)
-                 main_window.show()
+                print(f"INFO: Restoring window geometry: {main_window._initial_geometry}")
+                main_window.setGeometry(main_window._initial_geometry)
+                main_window.show()
             else:
-                 print(f"WARN: Saved geometry {main_window._initial_geometry} is off-screen, using default size.")
-                 main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
-                 main_window.show()
+                print(
+                    f"WARN: Saved geometry {main_window._initial_geometry} is off-screen, using default size."
+                )
+                main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+                main_window.show()
         else:
-             print("WARN: Could not get screen geometry, using default size.")
-             main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
-             main_window.show()
+            print("WARN: Could not get screen geometry, using default size.")
+            main_window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+            main_window.show()
 
     main_window.update_preview()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

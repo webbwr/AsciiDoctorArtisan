@@ -8,13 +8,13 @@ This module provides enhanced pandoc integration with automatic installation
 detection, better error handling, and support for multiple conversion formats.
 """
 
-import subprocess
-import sys
+import logging
 import platform
 import shutil
-from typing import Optional, Tuple, Dict, List
+import subprocess
+import sys
 from pathlib import Path
-import logging
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +26,7 @@ class PandocIntegration:
         self.pandoc_path: Optional[str] = None
         self.pypandoc_available: bool = False
         self.pandoc_version: Optional[str] = None
-        self.supported_formats: Dict[str, List[str]] = {
-            'input': [],
-            'output': []
-        }
+        self.supported_formats: Dict[str, List[str]] = {"input": [], "output": []}
         self.check_installation()
 
     def check_installation(self) -> Tuple[bool, str]:
@@ -40,20 +37,17 @@ class PandocIntegration:
             Tuple of (is_available, status_message)
         """
         # Check pandoc binary
-        self.pandoc_path = shutil.which('pandoc')
+        self.pandoc_path = shutil.which("pandoc")
         if not self.pandoc_path:
             return False, "Pandoc binary not found. Please install pandoc."
 
         # Get pandoc version
         try:
             result = subprocess.run(
-                ['pandoc', '--version'],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["pandoc", "--version"], capture_output=True, text=True, timeout=5
             )
             if result.returncode == 0:
-                self.pandoc_version = result.stdout.split('\n')[0]
+                self.pandoc_version = result.stdout.split("\n")[0]
                 logger.info(f"Found {self.pandoc_version}")
             else:
                 return False, "Pandoc found but version check failed."
@@ -64,6 +58,7 @@ class PandocIntegration:
         # Check pypandoc
         try:
             import pypandoc
+
             self.pypandoc_available = True
 
             # Get supported formats
@@ -78,23 +73,17 @@ class PandocIntegration:
         try:
             # Get input formats
             result = subprocess.run(
-                ['pandoc', '--list-input-formats'],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["pandoc", "--list-input-formats"], capture_output=True, text=True, timeout=5
             )
             if result.returncode == 0:
-                self.supported_formats['input'] = result.stdout.strip().split('\n')
+                self.supported_formats["input"] = result.stdout.strip().split("\n")
 
             # Get output formats
             result = subprocess.run(
-                ['pandoc', '--list-output-formats'],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["pandoc", "--list-output-formats"], capture_output=True, text=True, timeout=5
             )
             if result.returncode == 0:
-                self.supported_formats['output'] = result.stdout.strip().split('\n')
+                self.supported_formats["output"] = result.stdout.strip().split("\n")
 
         except Exception as e:
             logger.error(f"Error getting supported formats: {e}")
@@ -157,10 +146,10 @@ Or download from https://pandoc.org/installing.html"""
 
             # Use subprocess to install pypandoc
             result = subprocess.run(
-                [sys.executable, '-m', 'pip', 'install', 'pypandoc'],
+                [sys.executable, "-m", "pip", "install", "pypandoc"],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             if result.returncode == 0:
@@ -178,8 +167,9 @@ Or download from https://pandoc.org/installing.html"""
             logger.error(f"Error installing pypandoc: {e}")
             return False, f"Error installing pypandoc: {str(e)}"
 
-    def convert_file(self, input_file: Path, output_format: str,
-                     input_format: Optional[str] = None) -> Tuple[bool, str, str]:
+    def convert_file(
+        self, input_file: Path, output_format: str, input_format: Optional[str] = None
+    ) -> Tuple[bool, str, str]:
         """
         Convert a file using pandoc.
 
@@ -200,35 +190,35 @@ Or download from https://pandoc.org/installing.html"""
             # Auto-detect input format from extension if not provided
             if not input_format:
                 extension_map = {
-                    '.md': 'markdown',
-                    '.markdown': 'markdown',
-                    '.docx': 'docx',
-                    '.html': 'html',
-                    '.htm': 'html',
-                    '.tex': 'latex',
-                    '.rst': 'rst',
-                    '.org': 'org',
-                    '.wiki': 'mediawiki',
-                    '.textile': 'textile'
+                    ".md": "markdown",
+                    ".markdown": "markdown",
+                    ".docx": "docx",
+                    ".html": "html",
+                    ".htm": "html",
+                    ".tex": "latex",
+                    ".rst": "rst",
+                    ".org": "org",
+                    ".wiki": "mediawiki",
+                    ".textile": "textile",
                 }
-                input_format = extension_map.get(input_file.suffix.lower(), 'markdown')
+                input_format = extension_map.get(input_file.suffix.lower(), "markdown")
 
             logger.info(f"Converting {input_file} from {input_format} to {output_format}")
 
             # Read file content
-            if input_file.suffix.lower() in ['.docx']:
+            if input_file.suffix.lower() in [".docx"]:
                 # Binary files
                 content = input_file.read_bytes()
             else:
                 # Text files
-                content = input_file.read_text(encoding='utf-8')
+                content = input_file.read_text(encoding="utf-8")
 
             # Convert using pypandoc
             result = pypandoc.convert_text(
                 source=content,
                 to=output_format,
                 format=input_format,
-                extra_args=['--wrap=preserve']  # Preserve line breaks
+                extra_args=["--wrap=preserve"],  # Preserve line breaks
             )
 
             return True, result, ""
@@ -241,20 +231,20 @@ Or download from https://pandoc.org/installing.html"""
     def get_format_info(self, format_name: str) -> str:
         """Get information about a specific format."""
         format_descriptions = {
-            'asciidoc': 'AsciiDoc - A text document format for writing documentation',
-            'markdown': 'Markdown - Lightweight markup language',
-            'docx': 'Microsoft Word Document',
-            'html': 'HTML - HyperText Markup Language',
-            'latex': 'LaTeX - Document preparation system',
-            'rst': 'reStructuredText - Markup language',
-            'org': 'Org-mode - Emacs organization format',
-            'mediawiki': 'MediaWiki markup format',
-            'textile': 'Textile markup language'
+            "asciidoc": "AsciiDoc - A text document format for writing documentation",
+            "markdown": "Markdown - Lightweight markup language",
+            "docx": "Microsoft Word Document",
+            "html": "HTML - HyperText Markup Language",
+            "latex": "LaTeX - Document preparation system",
+            "rst": "reStructuredText - Markup language",
+            "org": "Org-mode - Emacs organization format",
+            "mediawiki": "MediaWiki markup format",
+            "textile": "Textile markup language",
         }
 
         return format_descriptions.get(format_name, format_name)
 
-    def is_format_supported(self, format_name: str, direction: str = 'input') -> bool:
+    def is_format_supported(self, format_name: str, direction: str = "input") -> bool:
         """
         Check if a format is supported.
 

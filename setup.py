@@ -9,7 +9,8 @@ Follows modern Python packaging standards (PEP 517/518).
 
 import sys
 from pathlib import Path
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 # Ensure minimum Python version
 if sys.version_info < (3, 11):
@@ -77,7 +78,6 @@ setup(
         "Source Code": "https://github.com/webbwr/AsciiDoctorArtisan",
         "Changelog": "https://github.com/webbwr/AsciiDoctorArtisan/blob/main/CHANGELOG.md",
     },
-
     # Package configuration
     packages=find_packages(where="src"),
     package_dir={"": "src"},
@@ -90,7 +90,6 @@ setup(
             "templates/*.adoc",
         ],
     },
-
     # Scripts and entry points
     entry_points={
         "console_scripts": [
@@ -101,12 +100,10 @@ setup(
             "asciidoc-artisan-gui=asciidoc_artisan.main:main",
         ],
     },
-
     # Dependencies
     python_requires=">=3.11",
     install_requires=requirements,
     extras_require=extras_require,
-
     # PyPI classifiers
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -126,7 +123,6 @@ setup(
         "Topic :: Text Processing :: Markup",
         "Typing :: Typed",
     ],
-
     # Keywords for search
     keywords=[
         "asciidoc",
@@ -139,21 +135,17 @@ setup(
         "git",
         "pandoc",
     ],
-
     # Platform specification
     platforms=["any"],
-
     # License
     license="MIT",
     license_files=["LICENSE"],
-
     # Testing
     test_suite="tests",
     tests_require=[
         "pytest>=7.4.0",
         "pytest-qt>=4.2.0",
     ],
-
     # Build configuration
     zip_safe=False,  # Don't install as zip for resource access
 )

@@ -14,63 +14,60 @@ Python: 3.11+ required
 
 # Standard Library Imports
 # These are Python's built-in modules - no installation needed
-import sys
-import io
-import os
-import subprocess
-import shlex
-from pathlib import Path
-from typing import Optional, Tuple, NamedTuple, List, Union, Any, Dict, Callable
-import warnings
 import html
+import io
 import json
 import logging
-from enum import Enum, auto
-from dataclasses import dataclass
-from contextlib import contextmanager
-import time
-from functools import lru_cache, wraps
-from collections import deque
+import os
+import subprocess
+import sys
 import threading
+import time
+import warnings
+from contextlib import contextmanager
+from dataclasses import dataclass
+from enum import Enum, auto
+from functools import lru_cache, wraps
+from pathlib import Path
+from typing import Callable, Dict, List, NamedTuple, Optional, Union
+
+from PySide6.QtCore import (
+    QObject,
+    QStandardPaths,
+    Qt,
+    QThread,
+    QTimer,
+    Signal,
+    Slot,
+)
+from PySide6.QtGui import (
+    QAction,
+    QColor,
+    QFont,
+    QGuiApplication,
+    QKeySequence,
+    QPalette,
+)
 
 # Third-Party Imports - Qt Framework
 # PySide6 is Qt for Python - provides the GUI framework
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QSplitter,
-    QPlainTextEdit,
-    QMessageBox,
     QFileDialog,
+    QInputDialog,
+    QMainWindow,
+    QMessageBox,
+    QPlainTextEdit,
+    QSplitter,
     QStatusBar,
     QTextBrowser,
-    QInputDialog,
-)
-from PySide6.QtGui import (
-    QAction,
-    QPalette,
-    QColor,
-    QFont,
-    QKeySequence,
-    QGuiApplication,
-    QScreen,
-)
-from PySide6.QtCore import (
-    Qt,
-    QTimer,
-    QUrl,
-    QStandardPaths,
-    QObject,
-    QThread,
-    Signal,
-    Slot,
-    QRect,
 )
 
 # Optional Dependencies with Graceful Fallback
 # These enhance functionality but aren't required
 try:
     import pypandoc
+
     PANDOC_AVAILABLE = True
 except ImportError:
     logging.warning("pypandoc not found. DOCX conversion disabled.")
@@ -80,6 +77,7 @@ except ImportError:
 try:
     from asciidoc3 import asciidoc3
     from asciidoc3.asciidoc3api import AsciiDoc3API
+
     ASCIIDOC3_AVAILABLE = True
 except ImportError:
     logging.warning("asciidoc3 not found. Live preview will use plain text.")
@@ -99,40 +97,38 @@ DEFAULT_FILENAME = "untitled.adoc"
 
 # UI Configuration
 PREVIEW_UPDATE_INTERVAL_MS = 350  # Milliseconds between preview updates
-PREVIEW_DEBOUNCE_MS = 150        # Debounce time for keystrokes
+PREVIEW_DEBOUNCE_MS = 150  # Debounce time for keystrokes
 EDITOR_FONT_FAMILY = "Courier New"
-EDITOR_FONT_SIZE = 18            # Optimized for 5K displays
-MIN_FONT_SIZE = 10               # Minimum readable font size
-MAX_FONT_SIZE = 72               # Maximum font size
-ZOOM_STEP = 1                    # Font size change per zoom action
+EDITOR_FONT_SIZE = 18  # Optimized for 5K displays
+MIN_FONT_SIZE = 10  # Minimum readable font size
+MAX_FONT_SIZE = 72  # Maximum font size
+ZOOM_STEP = 1  # Font size change per zoom action
 
 # File Paths
 SETTINGS_FILENAME = "AsciiDocArtisan.json"
 LOG_FILENAME = "AsciiDocArtisan.log"
 
 # Window Geometry (optimized for 5K displays)
-DEFAULT_WINDOW_WIDTH = 4096      # 80% of 5120 (5K width)
-DEFAULT_WINDOW_HEIGHT = 2304     # 80% of 2880 (5K height)
+DEFAULT_WINDOW_WIDTH = 4096  # 80% of 5120 (5K width)
+DEFAULT_WINDOW_HEIGHT = 2304  # 80% of 2880 (5K height)
 
 # Process Timeouts (in seconds)
-GIT_COMMAND_TIMEOUT = 30         # Maximum time for git operations
-PANDOC_TIMEOUT = 60              # Maximum time for document conversion
+GIT_COMMAND_TIMEOUT = 30  # Maximum time for git operations
+PANDOC_TIMEOUT = 60  # Maximum time for document conversion
 
 # File Dialog Filters
 # These define what files appear in open/save dialogs
 ADOC_FILTER = "AsciiDoc Files (*.adoc *.asciidoc)"
 DOCX_FILTER = "Word Documents (*.docx)"
 ALL_FILES_FILTER = "All Files (*)"
-SUPPORTED_OPEN_FILTER = (
-    f"All Supported Files (*.adoc *.asciidoc *.docx);;"
-    f"{ADOC_FILTER};;{DOCX_FILTER};;{ALL_FILES_FILTER}"
-)
+SUPPORTED_OPEN_FILTER = f"All Supported Files (*.adoc *.asciidoc *.docx);;{ADOC_FILTER};;{DOCX_FILTER};;{ALL_FILES_FILTER}"
 SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{ALL_FILES_FILTER}"
 
 # ============================================================================
 # LOGGING CONFIGURATION
 # ============================================================================
 # Set up comprehensive logging for debugging and monitoring
+
 
 def setup_logging() -> logging.Logger:
     """
@@ -149,15 +145,15 @@ def setup_logging() -> logging.Logger:
 
     # Create formatters
     detailed_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
+        "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
     )
-    simple_formatter = logging.Formatter('%(levelname)s: %(message)s')
+    simple_formatter = logging.Formatter("%(levelname)s: %(message)s")
 
     # File handler for detailed logs
     try:
         log_path = Path.home() / ".asciidoc-artisan" / LOG_FILENAME
         log_path.parent.mkdir(exist_ok=True)
-        file_handler = logging.FileHandler(log_path, encoding='utf-8')
+        file_handler = logging.FileHandler(log_path, encoding="utf-8")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(detailed_formatter)
         logger.addHandler(file_handler)
@@ -172,6 +168,7 @@ def setup_logging() -> logging.Logger:
 
     return logger
 
+
 # Initialize logger
 logger = setup_logging()
 
@@ -180,8 +177,10 @@ logger = setup_logging()
 # ============================================================================
 # Type-safe representations of states and data
 
+
 class GitOperation(Enum):
     """Enumeration of all possible Git operations."""
+
     NONE = auto()
     PULL = auto()
     COMMIT_ADD = auto()
@@ -189,13 +188,16 @@ class GitOperation(Enum):
     PUSH = auto()
     STATUS = auto()
 
+
 class ProcessingState(Enum):
     """Application processing states."""
+
     IDLE = auto()
     PROCESSING_GIT = auto()
     PROCESSING_PANDOC = auto()
     OPENING_FILE = auto()
     SAVING_FILE = auto()
+
 
 @dataclass
 class AppSettings:
@@ -205,6 +207,7 @@ class AppSettings:
     This class holds all persistent application settings that are
     saved between sessions.
     """
+
     last_directory: str
     git_repo_path: Optional[str]
     dark_mode: bool
@@ -216,7 +219,7 @@ class AppSettings:
     autosave_interval: int
 
     @classmethod
-    def default(cls) -> 'AppSettings':
+    def default(cls) -> "AppSettings":
         """Create settings with default values."""
         return cls(
             last_directory=str(Path.home() / "Documents"),
@@ -230,6 +233,7 @@ class AppSettings:
             autosave_interval=300,  # 5 minutes
         )
 
+
 class GitResult(NamedTuple):
     """
     Result of a Git command execution.
@@ -241,15 +245,18 @@ class GitResult(NamedTuple):
         exit_code: Process exit code (None if process failed to start)
         user_message: Human-readable message for the user
     """
+
     success: bool
     stdout: str
     stderr: str
     exit_code: Optional[int]
     user_message: str
 
+
 # ============================================================================
 # UTILITY FUNCTIONS AND DECORATORS
 # ============================================================================
+
 
 def debounce(wait_time: float):
     """
@@ -267,6 +274,7 @@ def debounce(wait_time: float):
             # This will only run 0.5 seconds after the last call
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         timer: Optional[threading.Timer] = None
         lock = threading.Lock()
@@ -286,7 +294,9 @@ def debounce(wait_time: float):
                 timer.start()
 
         return debounced
+
     return decorator
+
 
 @contextmanager
 def timed_operation(operation_name: str):
@@ -311,6 +321,7 @@ def timed_operation(operation_name: str):
         duration = time.time() - start_time
         logger.debug(f"{operation_name} completed in {duration:.3f} seconds")
 
+
 def sanitize_path(path_str: str) -> Optional[Path]:
     """
     Sanitize and validate a file path.
@@ -333,9 +344,11 @@ def sanitize_path(path_str: str) -> Optional[Path]:
 
         # Ensure path is under allowed directories
         home_path = Path.home()
-        if not (path.is_relative_to(home_path) or
-                path.is_relative_to(Path("/tmp")) or
-                path.is_relative_to(Path.cwd())):
+        if not (
+            path.is_relative_to(home_path)
+            or path.is_relative_to(Path("/tmp"))
+            or path.is_relative_to(Path.cwd())
+        ):
             logger.warning(f"Path outside allowed directories: {path_str}")
             return None
 
@@ -344,6 +357,7 @@ def sanitize_path(path_str: str) -> Optional[Path]:
     except Exception as e:
         logger.error(f"Invalid path: {path_str} - {e}")
         return None
+
 
 def sanitize_git_input(text: str) -> str:
     """
@@ -359,12 +373,13 @@ def sanitize_git_input(text: str) -> str:
         Sanitized text safe for Git operations
     """
     # Remove null bytes and control characters except newlines and tabs
-    sanitized = text.replace('\0', '')
+    sanitized = text.replace("\0", "")
 
     # Remove other control characters but keep newlines and tabs
     import string
-    allowed_chars = string.printable + '\n\t'
-    sanitized = ''.join(c for c in sanitized if c in allowed_chars)
+
+    allowed_chars = string.printable + "\n\t"
+    sanitized = "".join(c for c in sanitized if c in allowed_chars)
 
     # Remove leading/trailing whitespace
     sanitized = sanitized.strip()
@@ -376,10 +391,12 @@ def sanitize_git_input(text: str) -> str:
 
     return sanitized
 
+
 # ============================================================================
 # WORKER THREAD CLASSES
 # ============================================================================
 # These handle long-running operations without blocking the UI
+
 
 class GitWorker(QObject):
     """
@@ -432,10 +449,10 @@ class GitWorker(QObject):
                 capture_output=True,
                 text=True,
                 check=False,  # Don't raise exception on non-zero exit
-                encoding='utf-8',
-                errors='replace',  # Replace invalid UTF-8 sequences
+                encoding="utf-8",
+                errors="replace",  # Replace invalid UTF-8 sequences
                 env=env,
-                timeout=GIT_COMMAND_TIMEOUT  # Prevent hanging
+                timeout=GIT_COMMAND_TIMEOUT,  # Prevent hanging
             )
 
             # Capture results
@@ -501,7 +518,7 @@ class GitWorker(QObject):
             "nothing to commit": "No changes to commit. Working directory is clean.",
             "changes not staged": "No changes staged. Use 'git add' to stage changes first.",
             "repository not found": "Repository not found. Check the remote URL.",
-            "branch diverged": "Local and remote branches have diverged. Merge or rebase required."
+            "branch diverged": "Local and remote branches have diverged. Merge or rebase required.",
         }
 
         # Find matching error pattern
@@ -511,6 +528,7 @@ class GitWorker(QObject):
 
         # Generic message if no pattern matches
         return f"Git command failed: {stderr[:200]}{'...' if len(stderr) > 200 else ''}"
+
 
 class PandocWorker(QObject):
     """
@@ -522,15 +540,11 @@ class PandocWorker(QObject):
 
     # Signals for conversion results
     conversion_complete = Signal(str, str)  # (result_text, context)
-    conversion_error = Signal(str, str)     # (error_message, context)
+    conversion_error = Signal(str, str)  # (error_message, context)
 
     @Slot(object, str, str, str)
     def run_pandoc_conversion(
-        self,
-        source: Union[str, bytes],
-        to_format: str,
-        from_format: str,
-        context: str
+        self, source: Union[str, bytes], to_format: str, from_format: str, context: str
     ) -> None:
         """
         Convert document content between formats using Pandoc.
@@ -550,15 +564,17 @@ class PandocWorker(QObject):
 
         # Prepare conversion arguments
         extra_args = []
-        is_docx_to_adoc = (from_format == 'docx' and to_format == 'asciidoc')
+        is_docx_to_adoc = from_format == "docx" and to_format == "asciidoc"
 
         if is_docx_to_adoc:
             # Special handling for DOCX to AsciiDoc conversion
-            extra_args.extend([
-                '--number-sections',      # Number sections automatically
-                '--wrap=none',            # Don't wrap lines
-                '--extract-media=media',  # Extract embedded images
-            ])
+            extra_args.extend(
+                [
+                    "--number-sections",  # Number sections automatically
+                    "--wrap=none",  # Don't wrap lines
+                    "--extract-media=media",  # Extract embedded images
+                ]
+            )
             logger.info(f"DOCX to AsciiDoc conversion with args: {extra_args}")
 
         try:
@@ -566,10 +582,7 @@ class PandocWorker(QObject):
             logger.info(f"Starting Pandoc conversion: {context}")
             with timed_operation(f"Pandoc {from_format} to {to_format}"):
                 result_text = pypandoc.convert_text(
-                    source=source,
-                    to=to_format,
-                    format=from_format,
-                    extra_args=extra_args
+                    source=source, to=to_format, format=from_format, extra_args=extra_args
                 )
 
             # Post-process for specific conversions
@@ -601,10 +614,10 @@ class PandocWorker(QObject):
         toc_directives = ":toc:\n:toc-title: Table of Contents\n:toclevels: 3\n\n"
 
         # Split into lines for processing
-        lines = asciidoc_text.split('\n', 1)
+        lines = asciidoc_text.split("\n", 1)
 
         # If document starts with a title, insert TOC after it
-        if lines and lines[0].startswith('= '):
+        if lines and lines[0].startswith("= "):
             if len(lines) > 1:
                 enhanced = f"{lines[0]}\n{toc_directives}{lines[1]}"
             else:
@@ -645,9 +658,11 @@ class PandocWorker(QObject):
         else:
             return f"Conversion Error ({error_type})\n\n{error_str[:300]}"
 
+
 # ============================================================================
 # MAIN APPLICATION CLASS
 # ============================================================================
+
 
 class AsciiDocEditor(QMainWindow):
     """
@@ -735,9 +750,7 @@ class AsciiDocEditor(QMainWindow):
 
         # Enable word wrap and set tab size
         self.editor.setWordWrapMode(self.editor.WrapMode.WrapAtWordBoundaryOrAnywhere)
-        self.editor.setTabStopDistance(
-            self.editor.fontMetrics().horizontalAdvance(' ') * 4
-        )
+        self.editor.setTabStopDistance(self.editor.fontMetrics().horizontalAdvance(" ") * 4)
 
         # Connect editor signals with debouncing
         self.editor.textChanged.connect(self._on_text_changed)
@@ -769,90 +782,102 @@ class AsciiDocEditor(QMainWindow):
         """Create all application actions."""
         # File actions
         self.open_act = QAction(
-            "Open…", self,
+            "Open…",
+            self,
             shortcut=QKeySequence.StandardKey.Open,
             statusTip="Open a file or convert DOCX",
-            triggered=self.open_file
+            triggered=self.open_file,
         )
 
         self.save_act = QAction(
-            "Save", self,
+            "Save",
+            self,
             shortcut=QKeySequence.StandardKey.Save,
             statusTip="Save the current document",
-            triggered=self.save_file
+            triggered=self.save_file,
         )
 
         self.save_as_act = QAction(
-            "Save As…", self,
+            "Save As…",
+            self,
             shortcut=QKeySequence.StandardKey.SaveAs,
             statusTip="Save with a new name",
-            triggered=lambda: self.save_file(save_as=True)
+            triggered=lambda: self.save_file(save_as=True),
         )
 
         self.exit_act = QAction(
-            "Exit", self,
+            "Exit",
+            self,
             shortcut=QKeySequence.StandardKey.Quit,
             statusTip="Exit the application",
-            triggered=self.close
+            triggered=self.close,
         )
 
         # Edit actions
         self.convert_paste_act = QAction(
-            "Convert && Paste from Clipboard", self,
+            "Convert && Paste from Clipboard",
+            self,
             shortcut="Ctrl+Shift+V",
             statusTip="Convert clipboard content to AsciiDoc",
-            triggered=self.convert_and_paste
+            triggered=self.convert_and_paste,
         )
 
         # View actions
         self.zoom_in_act = QAction(
-            "Zoom In", self,
+            "Zoom In",
+            self,
             shortcut=QKeySequence.StandardKey.ZoomIn,
             statusTip="Increase font size",
-            triggered=lambda: self._zoom(1)
+            triggered=lambda: self._zoom(1),
         )
 
         self.zoom_out_act = QAction(
-            "Zoom Out", self,
+            "Zoom Out",
+            self,
             shortcut=QKeySequence.StandardKey.ZoomOut,
             statusTip="Decrease font size",
-            triggered=lambda: self._zoom(-1)
+            triggered=lambda: self._zoom(-1),
         )
 
         self.dark_mode_act = QAction(
-            "Dark Mode", self,
+            "Dark Mode",
+            self,
             checkable=True,
             checked=self._settings.dark_mode,
             statusTip="Toggle dark mode",
-            triggered=self._toggle_theme
+            triggered=self._toggle_theme,
         )
 
         # Git actions
         self.set_repo_act = QAction(
-            "Set Repository…", self,
+            "Set Repository…",
+            self,
             statusTip="Choose Git repository location",
-            triggered=self._select_git_repo
+            triggered=self._select_git_repo,
         )
 
         self.git_commit_act = QAction(
-            "&Commit…", self,
+            "&Commit…",
+            self,
             shortcut="Ctrl+Shift+C",
             statusTip="Commit changes to Git",
-            triggered=self._git_commit
+            triggered=self._git_commit,
         )
 
         self.git_pull_act = QAction(
-            "&Pull", self,
+            "&Pull",
+            self,
             shortcut="Ctrl+Shift+P",
             statusTip="Pull changes from remote",
-            triggered=self._git_pull
+            triggered=self._git_pull,
         )
 
         self.git_push_act = QAction(
-            "P&ush", self,
+            "P&ush",
+            self,
             shortcut="Ctrl+Shift+U",
             statusTip="Push changes to remote",
-            triggered=self._git_push
+            triggered=self._git_push,
         )
 
     def _create_menus(self) -> None:
@@ -933,31 +958,30 @@ class AsciiDocEditor(QMainWindow):
             return AppSettings.default()
 
         try:
-            with open(settings_path, 'r', encoding='utf-8') as f:
+            with open(settings_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             # Create settings with defaults, then update with loaded values
             settings = AppSettings.default()
 
             # Update each field if present in loaded data
-            if 'last_directory' in data and Path(data['last_directory']).is_dir():
-                settings.last_directory = data['last_directory']
+            if "last_directory" in data and Path(data["last_directory"]).is_dir():
+                settings.last_directory = data["last_directory"]
 
-            if 'git_repo_path' in data:
-                settings.git_repo_path = data['git_repo_path']
+            if "git_repo_path" in data:
+                settings.git_repo_path = data["git_repo_path"]
 
-            if 'dark_mode' in data:
-                settings.dark_mode = bool(data['dark_mode'])
+            if "dark_mode" in data:
+                settings.dark_mode = bool(data["dark_mode"])
 
-            if 'window_maximized' in data:
-                settings.window_maximized = bool(data['window_maximized'])
+            if "window_maximized" in data:
+                settings.window_maximized = bool(data["window_maximized"])
 
-            if 'window_geometry' in data:
-                settings.window_geometry = data['window_geometry']
+            if "window_geometry" in data:
+                settings.window_geometry = data["window_geometry"]
 
-            if 'font_size' in data:
-                settings.font_size = max(MIN_FONT_SIZE,
-                                        min(MAX_FONT_SIZE, int(data['font_size'])))
+            if "font_size" in data:
+                settings.font_size = max(MIN_FONT_SIZE, min(MAX_FONT_SIZE, int(data["font_size"])))
 
             logger.info("Settings loaded successfully")
             return settings
@@ -965,9 +989,7 @@ class AsciiDocEditor(QMainWindow):
         except Exception as e:
             logger.error(f"Failed to load settings: {e}")
             self._show_message(
-                "warning",
-                "Settings Load Error",
-                f"Could not load settings: {e}\nUsing defaults."
+                "warning", "Settings Load Error", f"Could not load settings: {e}\nUsing defaults."
             )
             return AppSettings.default()
 
@@ -977,21 +999,21 @@ class AsciiDocEditor(QMainWindow):
 
         # Prepare settings data
         settings_data = {
-            'last_directory': self._settings.last_directory,
-            'git_repo_path': self._settings.git_repo_path,
-            'dark_mode': self.dark_mode_act.isChecked(),
-            'font_size': self.editor.font().pointSize(),
-            'window_maximized': self.isMaximized(),
+            "last_directory": self._settings.last_directory,
+            "git_repo_path": self._settings.git_repo_path,
+            "dark_mode": self.dark_mode_act.isChecked(),
+            "font_size": self.editor.font().pointSize(),
+            "window_maximized": self.isMaximized(),
         }
 
         # Add window geometry if not maximized
         if not self.isMaximized():
             geom = self.geometry()
-            settings_data['window_geometry'] = {
-                'x': geom.x(),
-                'y': geom.y(),
-                'width': geom.width(),
-                'height': geom.height()
+            settings_data["window_geometry"] = {
+                "x": geom.x(),
+                "y": geom.y(),
+                "width": geom.width(),
+                "height": geom.height(),
             }
 
         try:
@@ -999,7 +1021,7 @@ class AsciiDocEditor(QMainWindow):
             settings_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Write settings
-            with open(settings_path, 'w', encoding='utf-8') as f:
+            with open(settings_path, "w", encoding="utf-8") as f:
                 json.dump(settings_data, f, indent=2)
 
             logger.info("Settings saved successfully")
@@ -1056,16 +1078,14 @@ class AsciiDocEditor(QMainWindow):
     def _show_welcome_message(self) -> None:
         """Display welcome message in status bar."""
         if self._settings.git_repo_path:
-            self.statusBar.showMessage(
-                f"Ready. Git: {Path(self._settings.git_repo_path).name}"
-            )
+            self.statusBar.showMessage(f"Ready. Git: {Path(self._settings.git_repo_path).name}")
         else:
             self.statusBar.showMessage("Ready. Set Git repository via Git menu.")
 
     def _update_ui_state(self) -> None:
         """Update UI element states based on current application state."""
         # Determine what should be enabled
-        is_idle = (self._state == ProcessingState.IDLE)
+        is_idle = self._state == ProcessingState.IDLE
         git_ready = bool(self._settings.git_repo_path) and is_idle
         pandoc_ready = PANDOC_AVAILABLE and is_idle
 
@@ -1097,10 +1117,10 @@ class AsciiDocEditor(QMainWindow):
         msg_box.setText(message)
 
         icon_map = {
-            'info': QMessageBox.Icon.Information,
-            'warning': QMessageBox.Icon.Warning,
-            'critical': QMessageBox.Icon.Critical,
-            'question': QMessageBox.Icon.Question
+            "info": QMessageBox.Icon.Information,
+            "warning": QMessageBox.Icon.Warning,
+            "critical": QMessageBox.Icon.Critical,
+            "question": QMessageBox.Icon.Question,
         }
 
         msg_box.setIcon(icon_map.get(level, QMessageBox.Icon.NoIcon))
@@ -1214,10 +1234,7 @@ class AsciiDocEditor(QMainWindow):
 
         # Show file dialog
         path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open File",
-            self._settings.last_directory,
-            SUPPORTED_OPEN_FILTER
+            self, "Open File", self._settings.last_directory, SUPPORTED_OPEN_FILTER
         )
 
         if not path:
@@ -1227,22 +1244,20 @@ class AsciiDocEditor(QMainWindow):
         self._settings.last_directory = str(file_path.parent)
 
         # Handle different file types
-        if file_path.suffix.lower() == '.docx':
+        if file_path.suffix.lower() == ".docx":
             self._convert_docx_file(file_path)
-        elif file_path.suffix.lower() in ['.adoc', '.asciidoc']:
+        elif file_path.suffix.lower() in [".adoc", ".asciidoc"]:
             self._open_asciidoc_file(file_path)
         else:
             self._show_message(
-                "warning",
-                "Unsupported File Type",
-                f"Cannot open files of type: {file_path.suffix}"
+                "warning", "Unsupported File Type", f"Cannot open files of type: {file_path.suffix}"
             )
 
     def _open_asciidoc_file(self, path: Path) -> None:
         """Open an AsciiDoc file."""
         try:
             self._state = ProcessingState.OPENING_FILE
-            content = path.read_text(encoding='utf-8')
+            content = path.read_text(encoding="utf-8")
 
             # Load into editor
             self.editor.setPlainText(content)
@@ -1259,9 +1274,7 @@ class AsciiDocEditor(QMainWindow):
         except Exception as e:
             logger.exception(f"Failed to open file: {path}")
             self._show_message(
-                "critical",
-                "Open Error",
-                f"Failed to open file:\n{path}\n\nError: {e}"
+                "critical", "Open Error", f"Failed to open file:\n{path}\n\nError: {e}"
             )
         finally:
             self._state = ProcessingState.IDLE
@@ -1273,8 +1286,7 @@ class AsciiDocEditor(QMainWindow):
             self._show_message(
                 "critical",
                 "Pandoc Not Available",
-                "DOCX conversion requires Pandoc.\n"
-                "Please install pandoc and pypandoc."
+                "DOCX conversion requires Pandoc.\nPlease install pandoc and pypandoc.",
             )
             return
 
@@ -1290,17 +1302,12 @@ class AsciiDocEditor(QMainWindow):
         try:
             content = path.read_bytes()
             self.request_pandoc_conversion.emit(
-                content,
-                'asciidoc',
-                'docx',
-                f'converting {path.name}'
+                content, "asciidoc", "docx", f"converting {path.name}"
             )
         except Exception as e:
             logger.exception(f"Failed to read DOCX file: {path}")
             self._show_message(
-                "critical",
-                "Read Error",
-                f"Failed to read file:\n{path}\n\nError: {e}"
+                "critical", "Read Error", f"Failed to read file:\n{path}\n\nError: {e}"
             )
             self._state = ProcessingState.IDLE
             self._pending_file = None
@@ -1331,7 +1338,7 @@ class AsciiDocEditor(QMainWindow):
             content = self.editor.toPlainText()
 
             with timed_operation(f"Saving {path.name}"):
-                path.write_text(content, encoding='utf-8')
+                path.write_text(content, encoding="utf-8")
 
             # Update state
             self._current_file = path
@@ -1348,9 +1355,7 @@ class AsciiDocEditor(QMainWindow):
         except Exception as e:
             logger.exception(f"Failed to save file: {path}")
             self._show_message(
-                "critical",
-                "Save Error",
-                f"Failed to save file:\n{path}\n\nError: {e}"
+                "critical", "Save Error", f"Failed to save file:\n{path}\n\nError: {e}"
             )
             return False
         finally:
@@ -1366,20 +1371,15 @@ class AsciiDocEditor(QMainWindow):
             suggested = str(Path(self._settings.last_directory) / DEFAULT_FILENAME)
 
         # Show save dialog
-        path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save As",
-            suggested,
-            SUPPORTED_SAVE_FILTER
-        )
+        path, _ = QFileDialog.getSaveFileName(self, "Save As", suggested, SUPPORTED_SAVE_FILTER)
 
         if not path:
             return None
 
         # Ensure proper extension
         path_obj = Path(path)
-        if path_obj.suffix.lower() not in ['.adoc', '.asciidoc']:
-            path_obj = path_obj.with_suffix('.adoc')
+        if path_obj.suffix.lower() not in [".adoc", ".asciidoc"]:
+            path_obj = path_obj.with_suffix(".adoc")
 
         return path_obj
 
@@ -1388,9 +1388,7 @@ class AsciiDocEditor(QMainWindow):
         """Convert clipboard content and paste as AsciiDoc."""
         if not PANDOC_AVAILABLE:
             self._show_message(
-                "warning",
-                "Pandoc Not Available",
-                "Clipboard conversion requires Pandoc."
+                "warning", "Pandoc Not Available", "Clipboard conversion requires Pandoc."
             )
             return
 
@@ -1407,9 +1405,7 @@ class AsciiDocEditor(QMainWindow):
             source_format = "markdown"  # Assume markdown for plain text
         else:
             self._show_message(
-                "info",
-                "No Content",
-                "Clipboard contains no text or HTML to convert."
+                "info", "No Content", "Clipboard contains no text or HTML to convert."
             )
             return
 
@@ -1419,10 +1415,7 @@ class AsciiDocEditor(QMainWindow):
         self.statusBar.showMessage("Converting clipboard content...")
 
         self.request_pandoc_conversion.emit(
-            source,
-            'asciidoc',
-            source_format,
-            'clipboard conversion'
+            source, "asciidoc", source_format, "clipboard conversion"
         )
 
     def _zoom(self, direction: int) -> None:
@@ -1460,10 +1453,7 @@ class AsciiDocEditor(QMainWindow):
         start_dir = self._settings.git_repo_path or self._settings.last_directory
 
         path = QFileDialog.getExistingDirectory(
-            self,
-            "Select Git Repository",
-            start_dir,
-            QFileDialog.Option.ShowDirsOnly
+            self, "Select Git Repository", start_dir, QFileDialog.Option.ShowDirsOnly
         )
 
         if not path:
@@ -1476,7 +1466,7 @@ class AsciiDocEditor(QMainWindow):
                 "warning",
                 "Not a Git Repository",
                 f"Selected directory is not a Git repository:\n{path}\n\n"
-                "Initialize with 'git init' or select a different directory."
+                "Initialize with 'git init' or select a different directory.",
             )
             return
 
@@ -1498,10 +1488,7 @@ class AsciiDocEditor(QMainWindow):
 
         # Get commit message
         message, ok = QInputDialog.getMultiLineText(
-            self,
-            "Commit Changes",
-            "Enter commit message:",
-            ""
+            self, "Commit Changes", "Enter commit message:", ""
         )
 
         if not ok:
@@ -1510,11 +1497,7 @@ class AsciiDocEditor(QMainWindow):
         # Sanitize and validate message
         message = sanitize_git_input(message)
         if not message:
-            self._show_message(
-                "warning",
-                "Empty Message",
-                "Please provide a commit message."
-            )
+            self._show_message("warning", "Empty Message", "Please provide a commit message.")
             return
 
         # Start commit process
@@ -1524,10 +1507,7 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
 
         self.statusBar.showMessage("Adding files to Git...")
-        self.request_git_command.emit(
-            ["git", "add", "."],
-            self._settings.git_repo_path
-        )
+        self.request_git_command.emit(["git", "add", "."], self._settings.git_repo_path)
 
     def _git_pull(self) -> None:
         """Pull changes from remote."""
@@ -1549,10 +1529,7 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
 
         self.statusBar.showMessage("Pulling from remote...")
-        self.request_git_command.emit(
-            ["git", "pull"],
-            self._settings.git_repo_path
-        )
+        self.request_git_command.emit(["git", "pull"], self._settings.git_repo_path)
 
     def _git_push(self) -> None:
         """Push changes to remote."""
@@ -1565,27 +1542,18 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
 
         self.statusBar.showMessage("Pushing to remote...")
-        self.request_git_command.emit(
-            ["git", "push"],
-            self._settings.git_repo_path
-        )
+        self.request_git_command.emit(["git", "push"], self._settings.git_repo_path)
 
     def _ensure_git_ready(self) -> bool:
         """Check if Git operations can proceed."""
         if not self._settings.git_repo_path:
             self._show_message(
-                "info",
-                "No Repository",
-                "Please set a Git repository first using the Git menu."
+                "info", "No Repository", "Please set a Git repository first using the Git menu."
             )
             return False
 
         if self._state != ProcessingState.IDLE:
-            self._show_message(
-                "warning",
-                "Busy",
-                "Another operation is in progress. Please wait."
-            )
+            self._show_message("warning", "Busy", "Another operation is in progress. Please wait.")
             return False
 
         return True
@@ -1607,7 +1575,7 @@ class AsciiDocEditor(QMainWindow):
 
         save_btn = msg_box.addButton("Save", QMessageBox.ButtonRole.AcceptRole)
         discard_btn = msg_box.addButton("Don't Save", QMessageBox.ButtonRole.DestructiveRole)
-        cancel_btn = msg_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        msg_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
 
         msg_box.setDefaultButton(save_btn)
         msg_box.exec()
@@ -1640,8 +1608,7 @@ class AsciiDocEditor(QMainWindow):
 
                 self.statusBar.showMessage("Committing changes...")
                 self.request_git_command.emit(
-                    ["git", "commit", "-m", self._pending_commit_msg],
-                    self._settings.git_repo_path
+                    ["git", "commit", "-m", self._pending_commit_msg], self._settings.git_repo_path
                 )
             else:
                 self._pending_commit_msg = None
@@ -1689,7 +1656,7 @@ class AsciiDocEditor(QMainWindow):
             # Load converted file
             if self._pending_file:
                 self.editor.setPlainText(result)
-                self._current_file = self._pending_file.with_suffix('.adoc')
+                self._current_file = self._pending_file.with_suffix(".adoc")
                 self._last_saved_content = ""  # Mark as unsaved
 
                 self.setWindowTitle(f"{APP_NAME} - {self._current_file.name}*")
@@ -1759,6 +1726,7 @@ class AsciiDocEditor(QMainWindow):
 
         logger.info("Application closing")
         event.accept()
+
 
 # ============================================================================
 # THEME STYLES
@@ -1958,6 +1926,7 @@ tr:nth-child(even) {
 </style>
 """
 
+
 def apply_dark_theme(app: QApplication) -> None:
     """Apply dark theme to the application."""
     palette = QPalette()
@@ -1990,22 +1959,25 @@ def apply_dark_theme(app: QApplication) -> None:
     palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
 
     # Disabled colors
-    palette.setColor(QPalette.ColorGroup.Disabled,
-                    QPalette.ColorRole.WindowText, QColor(128, 128, 128))
-    palette.setColor(QPalette.ColorGroup.Disabled,
-                    QPalette.ColorRole.Text, QColor(128, 128, 128))
-    palette.setColor(QPalette.ColorGroup.Disabled,
-                    QPalette.ColorRole.ButtonText, QColor(128, 128, 128))
-    palette.setColor(QPalette.ColorGroup.Disabled,
-                    QPalette.ColorRole.Highlight, QColor(80, 80, 80))
-    palette.setColor(QPalette.ColorGroup.Disabled,
-                    QPalette.ColorRole.HighlightedText, QColor(128, 128, 128))
+    palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor(128, 128, 128)
+    )
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(128, 128, 128))
+    palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor(128, 128, 128)
+    )
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Highlight, QColor(80, 80, 80))
+    palette.setColor(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.HighlightedText, QColor(128, 128, 128)
+    )
 
     app.setPalette(palette)
+
 
 # ============================================================================
 # APPLICATION ENTRY POINT
 # ============================================================================
+
 
 def main():
     """Main application entry point."""
@@ -2027,7 +1999,7 @@ def main():
     app.setStyle("Fusion")
 
     # Suppress warnings from third-party libraries
-    warnings.filterwarnings('ignore', category=SyntaxWarning)
+    warnings.filterwarnings("ignore", category=SyntaxWarning)
 
     # Create and show main window
     window = AsciiDocEditor(original_palette)
@@ -2038,7 +2010,7 @@ def main():
     elif window._settings.window_geometry:
         # Restore saved geometry
         geom = window._settings.window_geometry
-        window.setGeometry(geom['x'], geom['y'], geom['width'], geom['height'])
+        window.setGeometry(geom["x"], geom["y"], geom["width"], geom["height"])
         window.show()
     else:
         # Default size
