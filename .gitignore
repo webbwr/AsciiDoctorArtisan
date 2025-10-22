@@ -52,3 +52,9 @@ htmlcov/
 *.dmg
 *.exe
 *.app
+
+# Claude AI Integration
+claude-integration/node_modules/
+claude-integration/.env
+claude-integration/package-lock.json
+claude-integration/*.log
