@@ -2445,7 +2445,7 @@ class AsciiDocEditor(QMainWindow):
         """Show detailed pandoc installation status."""
         if ENHANCED_PANDOC and pandoc:
             # Get detailed status from enhanced integration
-            is_available, status = ensure_pandoc_available()
+            _is_available, status = ensure_pandoc_available()
 
             details = "Pandoc Status:\n\n"
             details += f"Binary found: {'Yes' if pandoc.pandoc_path else 'No'}\n"

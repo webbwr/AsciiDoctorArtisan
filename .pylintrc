@@ -1,0 +1,137 @@
+[MASTER]
+# Extension packages with C compiled modules that pylint can't analyze
+extension-pkg-allow-list=PySide6
+
+# Files or directories to skip
+ignore=venv,__pycache__,.git,.specify,docs,scripts
+
+# Use multiple processes to speed up Pylint
+jobs=4
+
+[MESSAGES CONTROL]
+# Disable specific warnings that are not applicable or too strict
+disable=
+    # Import related - PySide6 is a C extension
+    no-name-in-module,
+    # Code complexity - application is a single file by design
+    too-many-lines,
+    too-many-instance-attributes,
+    too-many-statements,
+    too-many-branches,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-few-public-methods,
+    # Logging - f-strings are acceptable in modern Python
+    logging-fstring-interpolation,
+    # Broad exceptions - acceptable for GUI error handling
+    broad-exception-caught,
+    # Style preferences
+    invalid-name,
+    # Import organization - handled by isort/black
+    wrong-import-position,
+    import-outside-toplevel,
+    # Code organization
+    no-else-return,
+    # Resource management - Qt manages resources
+    consider-using-with,
+    # Documentation - will be added incrementally
+    missing-class-docstring,
+    missing-function-docstring,
+    missing-module-docstring,
+    # Unused arguments - Qt slots may have unused params
+    unused-argument,
+    # Reimport - intentional in some cases
+    reimported,
+    redefined-outer-name,
+    # Exception handling - bare except is sometimes necessary
+    bare-except,
+    # Qt applications often set attributes dynamically
+    attribute-defined-outside-init,
+    # Function complexity - acceptable for GUI setup and event handlers
+    too-many-return-statements,
+    too-many-locals,
+    # Qt signals - false positive
+    no-member,
+    # Line length - some lines unavoidably long (URLs, import lists)
+    line-too-long,
+    # Subprocess - check parameter handled by exception catching
+    subprocess-run-check,
+    # Unused imports - may be used by dynamic code or type checking
+    unused-import,
+    # Import errors - setuptools not always in venv
+    import-error
+
+[BASIC]
+# Good variable names (1-2 chars are okay for counters/Qt objects)
+good-names=i,j,k,x,y,e,f,_,ui,db,id,ok
+
+# Regular expression for class names
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+
+# Regular expression for function names
+function-rgx=[a-z_][a-z0-9_]{2,50}$
+
+# Regular expression for method names
+method-rgx=[a-z_][a-z0-9_]{2,50}$
+
+# Regular expression for attribute names
+attr-rgx=[a-z_][a-z0-9_]{2,50}$
+
+[FORMAT]
+# Maximum line length (extended from default 100)
+max-line-length=120
+
+# Maximum number of lines in a module (relaxed for single-file apps)
+max-module-lines=3000
+
+# Allow longer lines for URLs, imports, and strings
+ignore-long-lines=^\s*(# )?<?https?://\S+>?$
+
+[DESIGN]
+# Maximum number of attributes for a class (relaxed for Qt MainWindow)
+max-attributes=70
+
+# Maximum number of public methods for a class
+max-public-methods=100
+
+# Minimum number of public methods for a class (relaxed for worker classes)
+min-public-methods=1
+
+# Maximum number of statements in a function (relaxed for UI setup)
+max-statements=100
+
+# Maximum number of branches in a function
+max-branches=20
+
+# Maximum number of arguments for function/method
+max-args=10
+
+[SIMILARITIES]
+# Minimum lines number of a similarity (avoid false positives in Qt code)
+min-similarity-lines=10
+
+[TYPECHECK]
+# List of members which are set dynamically and missed by pylint
+generated-members=
+    PySide6.*,
+    Qt.*,
+    QObject.*,
+    Signal.*,
+    Slot.*
+
+# Ignore missing members on Qt types
+ignored-classes=
+    PySide6.QtCore,
+    PySide6.QtGui,
+    PySide6.QtWidgets
+
+[VARIABLES]
+# List of additional names supposed to be defined in builtins
+additional-builtins=
+
+# Tells whether unused global variables should be treated as a violation
+allow-global-unused-variables=yes
+
+[EXCEPTIONS]
+# Exceptions that don't require a mention in docstrings
+overgeneral-exceptions=builtins.Exception
