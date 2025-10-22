@@ -34,7 +34,7 @@ A technical writer opens the application to create documentation for a software 
 
 ### User Story 2 - Open and Save AsciiDoc Files (Priority: P1)
 
-A documentation engineer needs to open existing AsciiDoc files from their project repository and save changes. They use File→Open to browse to their documentation folder, select a .adoc file, and it opens in the editor with the preview automatically updated. After making changes, they save the file with Ctrl+S, and the application persists the changes atomically to prevent data corruption.
+A documentation engineer needs to open existing AsciiDoc files from their project repository and save changes. They use File→Open to browse to their documentation folder, select a .adoc file, and it opens in the editor with the preview automatically updated. After making changes, they save the file with Ctrl+S, and the application persists the changes atomically to prevent data corruption. The user can also open a GitHub Markdown (MD), Microsoft Word (DOCX) file, or an Adobe Acrobat (PDF) file. These file formats will be automatically converted to the AsciiDoctor (ADOC) files in the background. 
 
 **Why this priority**: File I/O is fundamental to any editor. Without reliable file operations, users cannot work with their existing documentation or preserve their work.
 
