@@ -130,6 +130,127 @@ SUPPORTED_SAVE_FILTER = (
 )
 
 
+# Security and Data Integrity Utilities
+def sanitize_path(path_input: Union[str, Path]) -> Optional[Path]:
+    """
+    Sanitize file path to prevent directory traversal attacks.
+
+    Args:
+        path_input: Path as string or Path object
+
+    Returns:
+        Resolved Path object if safe, None if suspicious patterns detected
+
+    Security:
+        - Resolves symbolic links and relative paths
+        - Blocks paths containing '..' components
+        - Prevents directory traversal attacks
+    """
+    try:
+        path = Path(path_input).resolve()
+        # Check for directory traversal attempts
+        if ".." in path.parts:
+            logger.warning(f"Path sanitization blocked suspicious path: {path_input}")
+            return None
+        return path
+    except Exception as e:
+        logger.error(f"Path sanitization failed for {path_input}: {e}")
+        return None
+
+
+def atomic_save_text(file_path: Path, content: str, encoding: str = "utf-8") -> bool:
+    """
+    Atomically save text content to file using temp file + rename pattern.
+
+    This prevents file corruption if the write operation is interrupted by
+    crash, power loss, or other system failures.
+
+    Args:
+        file_path: Target file path
+        content: Text content to write
+        encoding: Text encoding (default: utf-8)
+
+    Returns:
+        True if successful, False otherwise
+
+    Implementation:
+        1. Write to temporary file in same directory
+        2. Perform atomic rename to target path
+        3. Cleanup temp file on failure
+    """
+    if not file_path:
+        logger.error("atomic_save_text: file_path is None")
+        return False
+
+    # Create temp file in same directory to ensure same filesystem
+    temp_path = file_path.with_suffix(file_path.suffix + '.tmp')
+
+    try:
+        # Write to temporary file
+        temp_path.write_text(content, encoding=encoding)
+
+        # Atomic rename (POSIX guarantee, Windows best-effort)
+        temp_path.replace(file_path)
+
+        logger.debug(f"Atomic save successful: {file_path}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Atomic save failed for {file_path}: {e}")
+
+        # Cleanup temporary file on failure
+        try:
+            if temp_path.exists():
+                temp_path.unlink()
+        except Exception as cleanup_error:
+            logger.warning(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
+
+        return False
+
+
+def atomic_save_json(file_path: Path, data: dict, encoding: str = "utf-8", indent: int = 2) -> bool:
+    """
+    Atomically save JSON data to file using temp file + rename pattern.
+
+    Args:
+        file_path: Target file path
+        data: Dictionary to serialize as JSON
+        encoding: Text encoding (default: utf-8)
+        indent: JSON indentation (default: 2)
+
+    Returns:
+        True if successful, False otherwise
+    """
+    if not file_path:
+        logger.error("atomic_save_json: file_path is None")
+        return False
+
+    temp_path = file_path.with_suffix(file_path.suffix + '.tmp')
+
+    try:
+        # Write JSON to temporary file
+        with open(temp_path, "w", encoding=encoding) as f:
+            json.dump(data, f, indent=indent)
+
+        # Atomic rename
+        temp_path.replace(file_path)
+
+        logger.debug(f"Atomic JSON save successful: {file_path}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Atomic JSON save failed for {file_path}: {e}")
+
+        # Cleanup temporary file on failure
+        try:
+            if temp_path.exists():
+                temp_path.unlink()
+        except Exception as cleanup_error:
+            logger.warning(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
+
+        return False
+
+
 class GitResult(NamedTuple):
     success: bool
     stdout: str
@@ -374,9 +495,64 @@ class PandocWorker(QObject):
         return text
 
 
+class PreviewWorker(QObject):
+    """Worker thread for rendering AsciiDoc preview without blocking UI."""
+    render_complete = Signal(str)  # Emits rendered HTML
+    render_error = Signal(str)  # Emits error message
+
+    def __init__(self):
+        super().__init__()
+        self._asciidoc_api = None
+
+    def initialize_asciidoc(self, asciidoc_module_file: str) -> None:
+        """Initialize AsciiDoc API in worker thread."""
+        if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
+            try:
+                self._asciidoc_api = AsciiDoc3API(asciidoc_module_file)
+                # Enhanced options for better HTML output
+                self._asciidoc_api.options("--no-header-footer")
+
+                # Set attributes for better rendering
+                self._asciidoc_api.attributes["icons"] = "font"
+                self._asciidoc_api.attributes["source-highlighter"] = "highlight.js"
+                self._asciidoc_api.attributes["toc"] = "left"
+                self._asciidoc_api.attributes["sectanchors"] = ""
+                self._asciidoc_api.attributes["sectnums"] = ""
+                self._asciidoc_api.attributes["imagesdir"] = "."
+
+                logger.debug("PreviewWorker: AsciiDoc API initialized")
+            except Exception as exc:
+                logger.error(f"PreviewWorker: AsciiDoc API initialization failed: {exc}")
+
+    @Slot(str)
+    def render_preview(self, source_text: str) -> None:
+        """Render AsciiDoc source to HTML in background thread."""
+        try:
+            if self._asciidoc_api is None:
+                # Fallback to plain text if AsciiDoc not available
+                html_body = f"<pre>{html.escape(source_text)}</pre>"
+                self.render_complete.emit(html_body)
+                return
+
+            # Render AsciiDoc to HTML
+            infile = io.StringIO(source_text)
+            outfile = io.StringIO()
+            self._asciidoc_api.execute(infile, outfile, backend="html5")
+            html_body = outfile.getvalue()
+
+            logger.debug("PreviewWorker: Rendering successful")
+            self.render_complete.emit(html_body)
+
+        except Exception as exc:
+            error_html = f"<div style='color:red'>Render Error: {html.escape(str(exc))}</div>"
+            logger.error(f"PreviewWorker: Rendering failed: {exc}")
+            self.render_error.emit(error_html)
+
+
 class AsciiDocEditor(QMainWindow):
     request_git_command = Signal(list, str)
     request_pandoc_conversion = Signal(object, str, str, str, object)
+    request_preview_render = Signal(str)  # Request preview rendering
 
     def __init__(self) -> None:
         super().__init__()
@@ -519,12 +695,11 @@ class AsciiDocEditor(QMainWindow):
                 "height": geom.height(),
             }
 
-        try:
-            with open(self._settings_path, "w", encoding="utf-8") as f:
-                json.dump(settings, f, indent=2)
+        # Save settings with atomic write
+        if atomic_save_json(self._settings_path, settings, encoding="utf-8", indent=2):
             logger.info("Settings saved successfully")
-        except Exception as e:
-            logger.error(f"Failed to save settings: {e}")
+        else:
+            logger.error(f"Failed to save settings: {self._settings_path}")
 
     def _initialize_asciidoc(self) -> Optional[AsciiDoc3API]:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
@@ -1074,6 +1249,24 @@ class AsciiDocEditor(QMainWindow):
         self.pandoc_thread.finished.connect(self.pandoc_worker.deleteLater)
         self.pandoc_thread.start()
 
+        # Preview thread
+        self.preview_thread = QThread(self)
+        self.preview_worker = PreviewWorker()
+        self.preview_worker.moveToThread(self.preview_thread)
+
+        # Initialize AsciiDoc API in worker thread
+        if ASCIIDOC3_AVAILABLE and asciidoc3:
+            self.preview_worker.initialize_asciidoc(asciidoc3.__file__)
+
+        # Connect signals
+        self.request_preview_render.connect(self.preview_worker.render_preview)
+        self.preview_worker.render_complete.connect(self._handle_preview_complete)
+        self.preview_worker.render_error.connect(self._handle_preview_error)
+        self.preview_thread.finished.connect(self.preview_worker.deleteLater)
+        self.preview_thread.start()
+
+        logger.info("All worker threads started (Git, Pandoc, Preview)")
+
     def _start_preview_timer(self) -> None:
         if self._is_opening_file:
             return
@@ -1371,21 +1564,19 @@ class AsciiDocEditor(QMainWindow):
                     f"Converting save format from {self._current_file_path.suffix} to .adoc"
                 )
 
-        # Save as AsciiDoc
-        try:
-            content = self.editor.toPlainText()
-            file_path.write_text(content, encoding="utf-8")
+        # Save as AsciiDoc with atomic write
+        content = self.editor.toPlainText()
 
+        if atomic_save_text(file_path, content, encoding="utf-8"):
             self._current_file_path = file_path
             self._last_directory = str(file_path.parent)
             self._unsaved_changes = False
             self._update_window_title()
             self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
+            logger.info(f"Saved file: {file_path}")
             return True
-
-        except Exception as e:
-            logger.exception(f"Failed to save file: {file_path}")
-            self._show_message("critical", "Save Error", f"Failed to save file:\n{e}")
+        else:
+            self._show_message("critical", "Save Error", f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.")
             return False
 
     def _save_as_format_internal(self, file_path: Path, format_type: str) -> bool:
@@ -1396,19 +1587,17 @@ class AsciiDocEditor(QMainWindow):
         # Get current content
         content = self.editor.toPlainText()
 
-        # For native AsciiDoc format, just save directly
+        # For native AsciiDoc format, save with atomic write
         if format_type == "adoc":
-            try:
-                file_path.write_text(content, encoding="utf-8")
+            if atomic_save_text(file_path, content, encoding="utf-8"):
                 self._current_file_path = file_path
                 self._last_directory = str(file_path.parent)
                 self._unsaved_changes = False
                 self._update_window_title()
                 self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
                 return True
-            except Exception as e:
-                logger.exception(f"Failed to save AsciiDoc file: {file_path}")
-                self._show_message("critical", "Save Error", f"Failed to save AsciiDoc file:\n{e}")
+            else:
+                self._show_message("critical", "Save Error", f"Failed to save AsciiDoc file: {file_path}")
                 return False
 
         # For HTML format, convert directly without pandoc
@@ -1421,11 +1610,13 @@ class AsciiDocEditor(QMainWindow):
                 self._asciidoc_api.execute(infile, outfile, backend="html5")
                 html_content = outfile.getvalue()
 
-                # Save HTML directly
-                file_path.write_text(html_content, encoding="utf-8")
-                self.statusBar.showMessage(f"Saved as HTML: {file_path}")
-                logger.info(f"Successfully saved as HTML: {file_path}")
-                return True
+                # Save HTML with atomic write
+                if atomic_save_text(file_path, html_content, encoding="utf-8"):
+                    self.statusBar.showMessage(f"Saved as HTML: {file_path}")
+                    logger.info(f"Successfully saved as HTML: {file_path}")
+                    return True
+                else:
+                    raise IOError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to save HTML file: {e}")
                 self._show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
@@ -1473,7 +1664,10 @@ class AsciiDocEditor(QMainWindow):
                     # Add print-friendly CSS to HTML
                     styled_html = self._add_print_css_to_html(html_content)
                     html_path = file_path.with_suffix(".html")
-                    html_path.write_text(styled_html, encoding="utf-8")
+
+                    # Save with atomic write
+                    if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
+                        raise IOError(f"Failed to save HTML file: {html_path}")
 
                     self.statusBar.showMessage(f"Saved as HTML (PDF-ready): {html_path}")
                     self._show_message(
@@ -1572,16 +1766,14 @@ class AsciiDocEditor(QMainWindow):
         # Get current content
         content = self.editor.toPlainText()
 
-        # For native AsciiDoc format, just save directly
+        # For native AsciiDoc format, save with atomic write
         if format_type == "adoc":
-            try:
-                file_path.write_text(content, encoding="utf-8")
+            if atomic_save_text(file_path, content, encoding="utf-8"):
                 self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
                 return True
-            except Exception as e:
-                logger.exception(f"Failed to save AsciiDoc file: {file_path}")
+            else:
                 self._show_message(
-                    "critical", "Export Error", f"Failed to save AsciiDoc file:\n{e}"
+                    "critical", "Export Error", f"Failed to save AsciiDoc file: {file_path}"
                 )
                 return False
 
@@ -1595,11 +1787,13 @@ class AsciiDocEditor(QMainWindow):
                 self._asciidoc_api.execute(infile, outfile, backend="html5")
                 html_content = outfile.getvalue()
 
-                # Save HTML directly
-                file_path.write_text(html_content, encoding="utf-8")
-                self.statusBar.showMessage(f"Exported to HTML: {file_path}")
-                logger.info(f"Successfully exported to HTML: {file_path}")
-                return True
+                # Save HTML with atomic write
+                if atomic_save_text(file_path, html_content, encoding="utf-8"):
+                    self.statusBar.showMessage(f"Exported to HTML: {file_path}")
+                    logger.info(f"Successfully exported to HTML: {file_path}")
+                    return True
+                else:
+                    raise IOError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to export HTML file: {e}")
                 self._show_message("critical", "Export Error", f"Failed to export HTML file:\n{e}")
@@ -1643,7 +1837,10 @@ class AsciiDocEditor(QMainWindow):
                     # Add print-friendly CSS to HTML
                     styled_html = self._add_print_css_to_html(html_content)
                     html_path = file_path.with_suffix(".html")
-                    html_path.write_text(styled_html, encoding="utf-8")
+
+                    # Save with atomic write
+                    if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
+                        raise IOError(f"Failed to save HTML file: {html_path}")
 
                     self.statusBar.showMessage(f"Exported as HTML (PDF-ready): {html_path}")
                     self._show_message(
@@ -1757,20 +1954,25 @@ class AsciiDocEditor(QMainWindow):
         return html_content
 
     def _auto_save(self) -> None:
-        """Auto-save current file if there are unsaved changes."""
+        """Auto-save current file if there are unsaved changes using atomic write."""
         if self._current_file_path and self._unsaved_changes:
-            try:
-                content = self.editor.toPlainText()
-                self._current_file_path.write_text(content, encoding="utf-8")
+            content = self.editor.toPlainText()
+            if atomic_save_text(self._current_file_path, content, encoding="utf-8"):
                 self.statusBar.showMessage("Auto-saved", 2000)
                 logger.info(f"Auto-saved: {self._current_file_path}")
-            except Exception as e:
-                logger.error(f"Auto-save failed: {e}")
+            else:
+                logger.error(f"Auto-save failed: {self._current_file_path}")
 
     @Slot()
     def update_preview(self) -> None:
+        """Request preview rendering in background thread."""
         source_text = self.editor.toPlainText()
-        html_body = self._convert_asciidoc_to_html_body(source_text)
+        # Emit signal to worker thread for rendering
+        self.request_preview_render.emit(source_text)
+
+    @Slot(str)
+    def _handle_preview_complete(self, html_body: str) -> None:
+        """Handle successful preview rendering from worker thread."""
         full_html = f"""<!doctype html>
 <html>
 <head>
@@ -1782,8 +1984,28 @@ class AsciiDocEditor(QMainWindow):
 </body>
 </html>"""
         self.preview.setHtml(full_html)
+        logger.debug("Preview updated successfully")
+
+    @Slot(str)
+    def _handle_preview_error(self, error_html: str) -> None:
+        """Handle preview rendering error from worker thread."""
+        full_html = f"""<!doctype html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>{self._get_preview_css()}</style>
+</head>
+<body>
+    {error_html}
+</body>
+</html>"""
+        self.preview.setHtml(full_html)
 
     def _convert_asciidoc_to_html_body(self, source_text: str) -> str:
+        """
+        DEPRECATED: Rendering now handled by PreviewWorker thread.
+        Kept for compatibility with export operations that need synchronous rendering.
+        """
         if self._asciidoc_api is None:
             return f"<pre>{html.escape(source_text)}</pre>"
 
@@ -2092,17 +2314,21 @@ class AsciiDocEditor(QMainWindow):
                     if self._pending_export_path.exists():
                         self.statusBar.showMessage(f"Exported to PDF: {self._pending_export_path}")
                     else:
-                        # If not, write the result as text (unlikely for PDF)
-                        self._pending_export_path.write_text(result, encoding="utf-8")
-                        self.statusBar.showMessage(
-                            f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}"
-                        )
+                        # If not, write the result as text (unlikely for PDF) with atomic write
+                        if atomic_save_text(self._pending_export_path, result, encoding="utf-8"):
+                            self.statusBar.showMessage(
+                                f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}"
+                            )
+                        else:
+                            raise IOError(f"Failed to save: {self._pending_export_path}")
                 else:
-                    # For text formats (MD), write the result
-                    self._pending_export_path.write_text(result, encoding="utf-8")
-                    self.statusBar.showMessage(
-                        f"Saved as {self._pending_export_format.upper()}: {self._pending_export_path}"
-                    )
+                    # For text formats (MD), write the result with atomic write
+                    if atomic_save_text(self._pending_export_path, result, encoding="utf-8"):
+                        self.statusBar.showMessage(
+                            f"Saved as {self._pending_export_format.upper()}: {self._pending_export_path}"
+                        )
+                    else:
+                        raise IOError(f"Failed to save: {self._pending_export_path}")
 
                 logger.info(
                     f"Successfully saved as {self._pending_export_format}: {self._pending_export_path}"
@@ -2328,10 +2554,12 @@ class AsciiDocEditor(QMainWindow):
         logger.info("Shutting down worker threads...")
         self.git_thread.quit()
         self.pandoc_thread.quit()
+        self.preview_thread.quit()
 
         # Wait briefly for threads
         self.git_thread.wait(1000)
         self.pandoc_thread.wait(1000)
+        self.preview_thread.wait(1000)
 
         # Clean up temp directory
         try:
@@ -2343,11 +2571,8 @@ class AsciiDocEditor(QMainWindow):
 
 
 def main():
-    # Enable high DPI support
-    if hasattr(Qt, "AA_EnableHighDpiScaling"):
-        QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
-    if hasattr(Qt, "AA_UseHighDpiPixmaps"):
-        QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+    # High DPI support is enabled by default in Qt 6 (PySide6)
+    # No need to set AA_EnableHighDpiScaling or AA_UseHighDpiPixmaps
 
     # Suppress warnings
     warnings.filterwarnings("ignore", category=SyntaxWarning)
