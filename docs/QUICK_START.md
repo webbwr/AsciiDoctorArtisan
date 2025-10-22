@@ -94,6 +94,6 @@ If the window doesn't appear:
 
 - See `PANDOC_INTEGRATION.md` for format conversion details
 - See `README.md` for full feature list
-- See `UPDATE_PLAN.md` for development roadmap
+- See `CONTRIBUTING.md` for contribution guidelines
 
-Enjoy using AsciiDoc Artisan with its new powerful features!
+Enjoy using AsciiDoc Artisan with its powerful features!

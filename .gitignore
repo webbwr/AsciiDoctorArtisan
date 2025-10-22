@@ -32,6 +32,11 @@ env/
 *.swp
 *.swo
 *~
+
+# Claude Code / AI agents (credentials & private artifacts)
+.claude/
+
+# OS files
 .DS_Store
 
 # Testing and coverage
