@@ -52,7 +52,7 @@ A documentation engineer needs to open existing AsciiDoc files from their projec
 
 ### User Story 3 - Convert Documents Between Formats (Priority: P2)
 
-A content creator receives documentation in Word format (.docx) that needs to be converted to AsciiDoc for version control. They open the .docx file through File→Open, and the application automatically converts it to AsciiDoc markup while preserving structure, headings, lists, and formatting. They can then edit in AsciiDoc format and export back to various formats (HTML, DOCX, PDF) via Tools→Export.
+A content creator receives documentation in a GitHub Markdown (.md), Word format (.docx), or Adobe Acrobat (.pdf) format that needs to be converted to AsciiDoc for version control. They open the initial file through File→Open, and the application automatically converts it to AsciiDoc markup while preserving structure, headings, lists, and formatting. They can then edit in AsciiDoc format and export back to various formats (MD, HTML, DOCX, PDF) via Tools→Export.
 
 **Why this priority**: Format interoperability enables migration from other documentation systems and collaboration with non-AsciiDoc users. This significantly expands the application's utility and addressable use cases.
 
