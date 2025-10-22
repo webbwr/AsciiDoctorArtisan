@@ -17,7 +17,7 @@ AsciiDoc Artisan is a professional-grade, cross-platform desktop application tha
 
 ### User Story 1 - Create and Edit AsciiDoc Documents with Live Preview (Priority: P1)
 
-A technical writer opens the application to create documentation for a software project. They write AsciiDoc markup in the editor and immediately see the rendered HTML output in the adjacent preview pane. As they type, the preview updates within 350ms, providing instant visual feedback on document structure, formatting, and content presentation.
+A technical writer opens the application to create documentation for a software project. They write AsciiDoc markup in the editor and immediately see the rendered HTML output in the adjacent preview pane. As they type, the preview updates within 350ms, providing instant visual feedback on document structure, formatting, and content presentation. The user can edit the document in the Edit pane (AsciiDoc markup) and in the Preview pane (WYSIWYG); both panes synchronize document content, so the user can always see both the source and the published output.   
 
 **Why this priority**: This is the core value proposition. Without reliable editing and preview, the application has no primary purpose. This story represents the minimal viable product.
 
