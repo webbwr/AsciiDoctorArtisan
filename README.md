@@ -77,10 +77,10 @@ brew install pandoc
 
 ```bash
 # Linux/WSL/macOS
-python3 adp.py
+python3 adp_windows.py
 
 # Windows
-python adp.py
+python adp_windows.py
 ```
 
 ### Keyboard Shortcuts
@@ -172,17 +172,24 @@ Settings are automatically stored in a platform-appropriate location:
 
 ```
 AsciiDoctorArtisan/
-├── adp.py                           # Main application (1,045 lines)
-├── requirements.txt                 # Python dependencies
-├── setup.sh                         # Linux/WSL setup script
-├── verify.sh                        # Linux/WSL verification script
-├── AsciiDocArtisanVerify.ps1        # Windows verification script
-├── asciidoc-verification-summary.md # Windows setup documentation
-├── INSTALLATION_COMPLETE.md         # Installation guide
+├── adp_windows.py                   # Main application
+├── pandoc_integration.py            # Document conversion module
+├── setup.py                         # Package setup
+├── requirements.txt                 # Python dependencies (flexible)
+├── requirements-production.txt      # Pinned production versions
 ├── LICENSE                          # MIT License
 ├── CHANGELOG.md                     # Version history
+├── CONTRIBUTING.md                  # Contribution guidelines
 ├── README.md                        # This file
-├── ANALYSIS_AND_MVP_PLAN.md         # Code analysis and MVP roadmap
+├── docs/                            # Documentation
+│   ├── QUICK_START.md
+│   ├── INSTALLATION_COMPLETE.md
+│   ├── ANALYSIS_AND_MVP_PLAN.md
+│   └── ... (guides and release notes)
+├── scripts/                         # Setup and verification scripts
+│   └── AsciiDocArtisanVerify.ps1
+├── .github/                         # GitHub configuration
+│   └── copilot-instructions.md
 └── .gitignore                       # Git exclusions
 ```
 
@@ -228,7 +235,7 @@ See [asciidoc-verification-summary.md](asciidoc-verification-summary.md) for det
 ./verify.sh
 
 # Check Python syntax
-python3 -m py_compile adp.py
+python3 -m py_compile adp_windows.py
 
 # Check dependencies
 python3 -c "import PySide6, asciidoc3, pypandoc; print('All OK')"
