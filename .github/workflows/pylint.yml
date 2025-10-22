@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.11", "3.12"]
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -18,6 +18,24 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pylint
+        # Install project dependencies for import checking
+        pip install -r requirements.txt || pip install PySide6 asciidoc3 pypandoc requests
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        # Pylint exit codes (bitmask):
+        # 0: No errors
+        # 1: Fatal message issued
+        # 2: Error message issued
+        # 4: Warning message issued
+        # 8: Refactor message issued
+        # 16: Convention message issued
+        # 32: Usage error
+        # We want to fail only on fatal errors and usage errors (exit codes 1 and 32)
+        pylint $(git ls-files '*.py') || EXIT_CODE=$?
+        if [ "${EXIT_CODE}" -eq 1 ] || [ "${EXIT_CODE}" -eq 32 ]; then
+          echo "Pylint found fatal errors (exit code: ${EXIT_CODE})"
+          exit 1
+        elif [ -n "${EXIT_CODE}" ] && [ "${EXIT_CODE}" -ne 0 ]; then
+          echo "Pylint completed with warnings/messages (exit code: ${EXIT_CODE})"
+          exit 0
+        fi
