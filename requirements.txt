@@ -10,8 +10,10 @@ asciidoc3
 # Document conversion (DOCX, clipboard, etc.)
 pypandoc
 
-# HTTP client for Claude AI integration
-requests>=2.31.0
+# AI-enhanced format conversion
+anthropic>=0.40.0
 
-# Additional recommended packages for complete functionality
-# (Add as needed based on adp.py application requirements)
+# Testing (development)
+pytest>=7.4.0
+pytest-qt>=4.2.0
+pytest-cov>=4.1.0

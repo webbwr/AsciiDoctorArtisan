@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Pandoc Integration Module for AsciiDoc Artisan
-=============================================
 
-This module provides enhanced pandoc integration with automatic installation
-detection, better error handling, and support for multiple conversion formats.
+Provides high-performance pandoc integration with automatic installation detection,
+format support querying, and intelligent error handling.
 """
 
 import logging
@@ -13,6 +10,7 @@ import platform
 import shutil
 import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -20,7 +18,28 @@ logger = logging.getLogger(__name__)
 
 
 class PandocIntegration:
-    """Enhanced pandoc integration with automatic setup and conversion support."""
+    """High-performance pandoc integration with caching and optimized format detection."""
+
+    EXTENSION_MAP = {
+        ".md": "markdown", ".markdown": "markdown",
+        ".docx": "docx", ".html": "html", ".htm": "html",
+        ".tex": "latex", ".rst": "rst", ".org": "org",
+        ".wiki": "mediawiki", ".textile": "textile",
+    }
+
+    FORMAT_DESCRIPTIONS = {
+        "asciidoc": "AsciiDoc - Text document format for documentation",
+        "markdown": "Markdown - Lightweight markup language",
+        "docx": "Microsoft Word Document",
+        "html": "HTML - HyperText Markup Language",
+        "latex": "LaTeX - Document preparation system",
+        "rst": "reStructuredText - Markup language",
+        "org": "Org-mode - Emacs organization format",
+        "mediawiki": "MediaWiki markup format",
+        "textile": "Textile markup language",
+    }
+
+    __slots__ = ('pandoc_path', 'pypandoc_available', 'pandoc_version', 'supported_formats')
 
     def __init__(self):
         self.pandoc_path: Optional[str] = None
@@ -31,20 +50,22 @@ class PandocIntegration:
 
     def check_installation(self) -> Tuple[bool, str]:
         """
-        Check if pandoc and pypandoc are properly installed.
+        Check pandoc and pypandoc installation status.
 
         Returns:
             Tuple of (is_available, status_message)
         """
-        # Check pandoc binary
         self.pandoc_path = shutil.which("pandoc")
         if not self.pandoc_path:
             return False, "Pandoc binary not found. Please install pandoc."
 
-        # Get pandoc version
         try:
             result = subprocess.run(
-                ["pandoc", "--version"], capture_output=True, text=True, timeout=5
+                ["pandoc", "--version"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False
             )
             if result.returncode == 0:
                 self.pandoc_version = result.stdout.split("\n")[0]
@@ -53,125 +74,99 @@ class PandocIntegration:
                 return False, "Pandoc found but version check failed."
         except Exception as e:
             logger.error(f"Error checking pandoc version: {e}")
-            return False, f"Error checking pandoc: {str(e)}"
+            return False, f"Error checking pandoc: {e}"
 
-        # Check pypandoc
         try:
             import pypandoc
-
             self.pypandoc_available = True
-
-            # Get supported formats
             self._get_supported_formats()
-
-            return True, f"{self.pandoc_version} and pypandoc are properly installed."
+            return True, f"{self.pandoc_version} and pypandoc properly installed."
         except ImportError:
             return False, "pypandoc not installed. Run: pip install pypandoc"
 
     def _get_supported_formats(self) -> None:
-        """Get list of supported input and output formats from pandoc."""
-        try:
-            # Get input formats
-            result = subprocess.run(
-                ["pandoc", "--list-input-formats"], capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                self.supported_formats["input"] = result.stdout.strip().split("\n")
+        """Query pandoc for supported input/output formats."""
+        for direction, flag in [("input", "--list-input-formats"), ("output", "--list-output-formats")]:
+            try:
+                result = subprocess.run(
+                    ["pandoc", flag],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    check=False
+                )
+                if result.returncode == 0:
+                    self.supported_formats[direction] = result.stdout.strip().split("\n")
+            except Exception as e:
+                logger.error(f"Error getting {direction} formats: {e}")
 
-            # Get output formats
-            result = subprocess.run(
-                ["pandoc", "--list-output-formats"], capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                self.supported_formats["output"] = result.stdout.strip().split("\n")
-
-        except Exception as e:
-            logger.error(f"Error getting supported formats: {e}")
-
-    def get_installation_instructions(self) -> str:
-        """Get platform-specific installation instructions."""
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def get_installation_instructions() -> str:
+        """Get platform-specific installation instructions. Cached."""
         system = platform.system()
+        base = "To install pandoc:\n\n"
 
-        instructions = "To install pandoc:\n\n"
+        instructions = {
+            "Windows": """Windows:
+1. Download from https://pandoc.org/installing.html
+2. Run installer and restart application
 
-        if system == "Windows":
-            instructions += """Windows:
-1. Download installer from https://pandoc.org/installing.html
-2. Run the installer
-3. Restart your application
+Chocolatey: choco install pandoc
+Scoop: scoop install pandoc""",
 
-Or using Chocolatey:
-   choco install pandoc
+            "Darwin": """macOS:
+Homebrew: brew install pandoc
+Or download from https://pandoc.org/installing.html""",
 
-Or using Scoop:
-   scoop install pandoc"""
-
-        elif system == "Darwin":  # macOS
-            instructions += """macOS:
-Using Homebrew:
-   brew install pandoc
-
+            "Linux": """Linux:
+Ubuntu/Debian: sudo apt-get install pandoc
+Fedora/RHEL: sudo dnf install pandoc
+Arch: sudo pacman -S pandoc
 Or download from https://pandoc.org/installing.html"""
+        }
 
-        else:  # Linux/Unix
-            instructions += """Linux:
-Ubuntu/Debian:
-   sudo apt-get install pandoc
-
-Fedora/RHEL:
-   sudo dnf install pandoc
-
-Arch Linux:
-   sudo pacman -S pandoc
-
-Or download from https://pandoc.org/installing.html"""
-
-        instructions += "\n\nThen install pypandoc:\n   pip install pypandoc"
-
-        return instructions
+        return base + instructions.get(system, instructions["Linux"]) + "\n\nThen: pip install pypandoc"
 
     def auto_install_pypandoc(self) -> Tuple[bool, str]:
         """
-        Attempt to automatically install pypandoc using pip.
+        Attempt automatic pypandoc installation via pip.
 
         Returns:
             Tuple of (success, message)
         """
+        if not self.pandoc_path:
+            return False, "Cannot install pypandoc: pandoc binary not found."
+
         try:
-            # Check if pandoc binary is available first
-            if not self.pandoc_path:
-                return False, "Cannot install pypandoc: pandoc binary not found."
-
-            logger.info("Attempting to install pypandoc...")
-
-            # Use subprocess to install pypandoc
+            logger.info("Installing pypandoc...")
             result = subprocess.run(
                 [sys.executable, "-m", "pip", "install", "pypandoc"],
                 capture_output=True,
                 text=True,
                 timeout=30,
+                check=False
             )
 
             if result.returncode == 0:
-                # Reload and check
                 self.check_installation()
-                if self.pypandoc_available:
-                    return True, "pypandoc installed successfully!"
-                else:
-                    return False, "pypandoc installation completed but import failed."
-            else:
-                error_msg = result.stderr if result.stderr else result.stdout
-                return False, f"Failed to install pypandoc: {error_msg}"
+                return (True, "pypandoc installed successfully!") if self.pypandoc_available else \
+                       (False, "pypandoc installation completed but import failed.")
+
+            return False, f"Failed to install pypandoc: {result.stderr or result.stdout}"
 
         except Exception as e:
             logger.error(f"Error installing pypandoc: {e}")
-            return False, f"Error installing pypandoc: {str(e)}"
+            return False, f"Error installing pypandoc: {e}"
 
     def convert_file(
-        self, input_file: Path, output_format: str, input_format: Optional[str] = None
+        self,
+        input_file: Path,
+        output_format: str,
+        input_format: Optional[str] = None
     ) -> Tuple[bool, str, str]:
         """
-        Convert a file using pandoc.
+        Convert file using pandoc with automatic format detection.
 
         Args:
             input_file: Path to input file
@@ -187,69 +182,39 @@ Or download from https://pandoc.org/installing.html"""
         try:
             import pypandoc
 
-            # Auto-detect input format from extension if not provided
             if not input_format:
-                extension_map = {
-                    ".md": "markdown",
-                    ".markdown": "markdown",
-                    ".docx": "docx",
-                    ".html": "html",
-                    ".htm": "html",
-                    ".tex": "latex",
-                    ".rst": "rst",
-                    ".org": "org",
-                    ".wiki": "mediawiki",
-                    ".textile": "textile",
-                }
-                input_format = extension_map.get(input_file.suffix.lower(), "markdown")
+                input_format = self.EXTENSION_MAP.get(input_file.suffix.lower(), "markdown")
 
-            logger.info(f"Converting {input_file} from {input_format} to {output_format}")
+            logger.info(f"Converting {input_file.name}: {input_format} → {output_format}")
 
-            # Read file content
-            if input_file.suffix.lower() in [".docx"]:
-                # Binary files
-                content = input_file.read_bytes()
-            else:
-                # Text files
-                content = input_file.read_text(encoding="utf-8")
+            content = input_file.read_bytes() if input_file.suffix.lower() == ".docx" \
+                     else input_file.read_text(encoding="utf-8")
 
-            # Convert using pypandoc
             result = pypandoc.convert_text(
                 source=content,
                 to=output_format,
                 format=input_format,
-                extra_args=["--wrap=preserve"],  # Preserve line breaks
+                extra_args=["--wrap=preserve"]
             )
 
             return True, result, ""
 
         except Exception as e:
-            error_msg = f"Conversion error: {str(e)}"
+            error_msg = f"Conversion error: {e}"
             logger.error(error_msg)
             return False, "", error_msg
 
-    def get_format_info(self, format_name: str) -> str:
-        """Get information about a specific format."""
-        format_descriptions = {
-            "asciidoc": "AsciiDoc - A text document format for writing documentation",
-            "markdown": "Markdown - Lightweight markup language",
-            "docx": "Microsoft Word Document",
-            "html": "HTML - HyperText Markup Language",
-            "latex": "LaTeX - Document preparation system",
-            "rst": "reStructuredText - Markup language",
-            "org": "Org-mode - Emacs organization format",
-            "mediawiki": "MediaWiki markup format",
-            "textile": "Textile markup language",
-        }
-
-        return format_descriptions.get(format_name, format_name)
+    @staticmethod
+    def get_format_info(format_name: str) -> str:
+        """Get human-readable format description."""
+        return PandocIntegration.FORMAT_DESCRIPTIONS.get(format_name, format_name)
 
     def is_format_supported(self, format_name: str, direction: str = "input") -> bool:
         """
-        Check if a format is supported.
+        Check if format is supported by pandoc.
 
         Args:
-            format_name: The format to check
+            format_name: Format identifier
             direction: 'input' or 'output'
 
         Returns:
@@ -258,38 +223,34 @@ Or download from https://pandoc.org/installing.html"""
         return format_name in self.supported_formats.get(direction, [])
 
 
-# Global instance for easy access
 pandoc = PandocIntegration()
 
 
 def ensure_pandoc_available() -> Tuple[bool, str]:
     """
-    Ensure pandoc is available, with user-friendly error handling.
+    Ensure pandoc is available with user-friendly error handling.
 
     Returns:
         Tuple of (is_available, message)
     """
     is_available, status = pandoc.check_installation()
 
-    if not is_available:
-        # Try to auto-install pypandoc if pandoc binary exists
-        if pandoc.pandoc_path and not pandoc.pypandoc_available:
-            success, msg = pandoc.auto_install_pypandoc()
-            if success:
-                return True, msg
+    if not is_available and pandoc.pandoc_path and not pandoc.pypandoc_available:
+        success, msg = pandoc.auto_install_pypandoc()
+        if success:
+            return True, msg
+        return False, status + "\n\n" + PandocIntegration.get_installation_instructions()
 
-        # Return installation instructions
-        return False, status + "\n\n" + pandoc.get_installation_instructions()
-
-    return True, status
+    return is_available, status if is_available else \
+           status + "\n\n" + PandocIntegration.get_installation_instructions()
 
 
 if __name__ == "__main__":
-    # Test the integration
     available, message = ensure_pandoc_available()
     print(f"Pandoc available: {available}")
     print(f"Status: {message}")
 
     if available:
-        print(f"\nSupported input formats: {len(pandoc.supported_formats['input'])}")
-        print(f"Supported output formats: {len(pandoc.supported_formats['output'])}")
+        print("\nSupported formats:")
+        print(f"  Input: {len(pandoc.supported_formats['input'])}")
+        print(f"  Output: {len(pandoc.supported_formats['output'])}")
