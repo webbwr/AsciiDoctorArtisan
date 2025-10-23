@@ -1,9 +1,10 @@
 """
 Unit tests for Settings dataclass and persistence.
 """
-import json
-import pytest
 from pathlib import Path
+
+import pytest
+
 from adp_windows import Settings
 
 
@@ -21,10 +22,10 @@ class TestSettings:
         assert settings.maximized is False
         assert settings.window_geometry is None
         assert settings.splitter_sizes is None
-        assert settings.font_size == 12  # EDITOR_FONT_SIZE default
+        assert settings.font_size == 12
         assert settings.auto_save_enabled is True
         assert settings.auto_save_interval == 300
-        assert settings.ai_conversion_enabled is False  # FR-055 default
+        assert settings.ai_conversion_enabled is False
 
     def test_settings_to_dict(self):
         """Test Settings converts to dictionary correctly."""
@@ -88,11 +89,11 @@ class TestSettings:
             ai_conversion_enabled=True
         )
 
-        # Convert to dict and back
+
         data = original.to_dict()
         restored = Settings.from_dict(data)
 
-        # Verify all fields match
+
         assert restored.last_directory == original.last_directory
         assert restored.last_file == original.last_file
         assert restored.git_repo_path == original.git_repo_path
