@@ -249,20 +249,27 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **SC-008**: Application functions identically on Linux, macOS, and Windows with no platform-specific feature degradation
 - **SC-009**: Session state (last file, window geometry, theme) persists correctly across 99% of application restarts
 - **SC-010**: Git commit operations complete successfully without data loss in 100% of cases where repository is valid
+- **SC-011**: Claude AI service connects successfully on application launch when properly configured
+- **SC-012**: AI content generation completes within 15 seconds for typical prompts
+- **SC-013**: AI-generated content is valid AsciiDoc syntax in 100% of cases
+- **SC-014**: AI content improvement maintains user intent while enhancing quality in 95% of cases
 
 ### User Experience Goals
 
-- **SC-011**: Users report improved productivity compared to separate editor + preview tool workflows (measured via user surveys)
-- **SC-012**: Technical writers can migrate from proprietary documentation tools within one day of using the application
-- **SC-013**: Support requests related to data loss or corruption remain under 0.1% of user base
-- **SC-014**: Users successfully convert documents between formats on first attempt 85% of the time
+- **SC-015**: Users report improved productivity compared to separate editor + preview tool workflows (measured via user surveys)
+- **SC-016**: Technical writers can migrate from proprietary documentation tools within one day of using the application
+- **SC-017**: Support requests related to data loss or corruption remain under 0.1% of user base
+- **SC-018**: Users successfully convert documents between formats on first attempt 85% of the time
+- **SC-019**: Users report AI assistance reduces documentation time by 30% or more (measured via user surveys)
+- **SC-020**: 80% of users successfully use AI content generation within their first week
 
 ### Technical Excellence
 
-- **SC-015**: Code maintains 80%+ test coverage for core functionality
-- **SC-016**: Zero critical security vulnerabilities (path traversal, command injection) in production releases
-- **SC-017**: Memory usage remains under 500MB for typical documents (<5000 lines)
-- **SC-018**: Application passes linting (Ruff) and type checking (mypy strict) with zero warnings
+- **SC-021**: Code maintains 80%+ test coverage for core functionality
+- **SC-022**: Zero critical security vulnerabilities (path traversal, command injection, API key exposure) in production releases
+- **SC-023**: Memory usage remains under 500MB for typical documents (<5000 lines)
+- **SC-024**: Application passes linting (Ruff) and type checking (mypy strict) with zero warnings
+- **SC-025**: Claude AI service remains stable with 99.5% uptime during application runtime
 
 ## Dependencies & Assumptions
 
@@ -274,6 +281,8 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **pypandoc**: Python wrapper for Pandoc document converter
 - **Pandoc**: Universal document converter (external system dependency)
 - **Git**: Version control system (optional, for Git integration features)
+- **Node.js 18+**: JavaScript runtime for Claude AI service (required)
+- **Anthropic API Key**: Required for Claude AI features (required for full functionality)
 
 ### Assumptions
 
@@ -286,7 +295,9 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **A-007**: Users have at least 4GB RAM available for comfortable application performance
 - **A-008**: Display resolution is at least 1280x720 for proper UI layout
 - **A-009**: Users accept open-source MIT license terms for the application
-- **A-010**: Network connectivity is available for Git push/pull operations but not required for core editing
+- **A-010**: Network connectivity is available for Git push/pull operations and Claude AI features
+- **A-011**: Users have Node.js 18+ installed and have obtained an Anthropic API key for Claude AI integration
+- **A-012**: Users understand that Claude AI features require internet connectivity and may incur API usage costs
 
 ### Constraints & Limitations
 
@@ -295,6 +306,231 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **C-003**: Git integration provides basic commit/push/pull operations but not advanced Git features (rebasing, cherry-picking, etc.)
 - **C-004**: Format conversion fidelity depends on Pandoc capabilities and may lose some formatting details
 - **C-005**: Application is designed for single-user, single-file editing (not multi-user collaboration)
+- **C-006**: Claude AI features require active internet connection and valid API key
+- **C-007**: AI-generated content MUST be reviewed for accuracy and appropriateness by users
+- **C-008**: API rate limits and costs are determined by Anthropic pricing tiers
+- **C-009**: Claude AI service must be started before launching the main application
+- **C-010**: AI operations may take 5-15 seconds depending on content complexity and API response time
+
+---
+
+## Claude AI Integration (Core Feature)
+
+### Overview
+
+AsciiDoc Artisan includes mandatory integration with Claude AI (Anthropic) to provide AI-powered content generation, improvement, and assistance features. This core feature uses a **hybrid architecture** combining a Node.js service with the Python/PySide6 application.
+
+**Status**: Required core feature - includes AI-powered documentation assistance
+
+### Architecture
+
+The integration consists of three components:
+
+1. **Node.js Service** (`claude-integration/server.js`)
+   - REST API server using Express.js
+   - Integrates `@anthropic-ai/claude-agent-sdk`
+   - Runs on `http://localhost:3000` (configurable)
+   - Handles all Claude API communication
+
+2. **Python Client** (`claude_client.py`)
+   - HTTP client wrapper for the Node.js service
+   - Provides clean Python API for AI operations
+   - Handles connection errors, timeouts, and error states
+   - Singleton pattern for resource management
+
+3. **GUI Integration** (`claude_integration_example.py`)
+   - Adds "Claude AI" menu to the main window
+   - Uses Qt threads for non-blocking AI operations
+   - Provides dialogs for user input and result display
+   - Seamlessly integrates with editor text operations
+
+### AI-Powered Features
+
+#### FR-054: AI Content Generation
+- System MUST provide AI-powered AsciiDoc content generation from natural language prompts
+- Users can describe desired content and receive properly formatted AsciiDoc
+- Generation respects context (technical documentation, user guides, etc.)
+- System MUST complete generation within 15 seconds for typical prompts
+
+#### FR-055: AI Content Improvement
+- System MUST provide AI-powered enhancement of existing AsciiDoc content
+- Users can select text and specify improvement instructions (clarity, structure, tone)
+- Improved content maintains valid AsciiDoc syntax
+- System MUST preserve user intent while enhancing quality
+
+#### FR-056: AI Format Conversion
+- System MUST provide AI-assisted format conversion between Markdown, HTML, and AsciiDoc
+- Complements Pandoc conversion with intelligent semantic preservation
+- Handles edge cases where traditional conversion may struggle
+- System MUST maintain document structure and formatting during conversion
+
+#### FR-057: AI Outline Generation
+- System MUST generate structured documentation outlines for specified topics
+- Supports multiple documentation styles (technical, user guide, API reference, tutorial)
+- Provides hierarchical structure with section placeholders
+- System MUST generate comprehensive outlines with logical organization
+
+#### FR-058: AI Syntax Help
+- System MUST provide interactive help about AsciiDoc syntax and best practices
+- Users can ask natural language questions about AsciiDoc
+- Responses include examples and practical guidance
+- System MUST provide accurate, helpful responses within 10 seconds
+
+### User Story 7 - AI-Powered Content Creation (Priority: P2)
+
+A technical writer needs to quickly draft documentation for a new API endpoint. They select Claude AI → Generate AsciiDoc, describe the endpoint functionality, and receive a well-structured AsciiDoc template with sections for description, parameters, examples, and response codes. They then refine the content using the editor, and if needed, select specific sections to improve with Claude AI → Improve Selection.
+
+**Why this priority**: AI assistance significantly accelerates documentation workflows and is a core differentiator for AsciiDoc Artisan. This feature provides substantial value by reducing time-to-first-draft and improving content quality through intelligent assistance.
+
+**Independent Test**: Can be tested by starting the Claude service, generating content through the GUI, improving existing content, and verifying results integrate correctly with the editor. Requires Anthropic API key and Node.js service running.
+
+**Acceptance Scenarios**:
+
+1. **Given** the Claude service is not running, **When** the application starts, **Then** the application displays a warning dialog with instructions to start the Claude service and the Claude AI menu options are disabled
+2. **Given** the Claude service is available and the user selects Claude AI → Generate AsciiDoc, **When** they provide a content prompt, **Then** the system generates AsciiDoc content and inserts it at the cursor position within 15 seconds
+3. **Given** the user has selected text in the editor and chooses Claude AI → Improve Selection, **When** they specify an improvement instruction, **Then** the selected text is replaced with the improved version maintaining AsciiDoc syntax
+4. **Given** the user selects Claude AI → Generate Outline, **When** they specify a topic and style, **Then** the system generates a hierarchical outline in valid AsciiDoc format
+5. **Given** the user selects Claude AI → AsciiDoc Help, **When** they ask a question about syntax, **Then** the system displays a helpful answer with examples in a dialog window
+
+### API Endpoints
+
+The Node.js service exposes the following REST API endpoints:
+
+- **GET `/health`**: Health check and Claude availability status
+- **POST `/api/generate-asciidoc`**: Generate new AsciiDoc content
+  - Body: `{ "prompt": string, "context": string? }`
+  - Response: `{ "content": string, "usage": object }`
+- **POST `/api/improve-asciidoc`**: Improve existing content
+  - Body: `{ "content": string, "instruction": string }`
+  - Response: `{ "content": string, "usage": object }`
+- **POST `/api/convert-format`**: Convert between formats
+  - Body: `{ "content": string, "fromFormat": string, "toFormat": string }`
+  - Response: `{ "content": string, "usage": object }`
+- **POST `/api/generate-outline`**: Generate documentation outline
+  - Body: `{ "topic": string, "style": string? }`
+  - Response: `{ "content": string, "usage": object }`
+- **POST `/api/asciidoc-help`**: Get AsciiDoc syntax help
+  - Body: `{ "question": string }`
+  - Response: `{ "answer": string, "usage": object }`
+
+### Setup Requirements
+
+**Prerequisites**:
+- Node.js 18+ installed
+- Anthropic API key from https://console.anthropic.com/
+- Python `requests` library (included in requirements.txt)
+
+**Installation Steps**:
+
+1. Navigate to `claude-integration/` directory
+2. Run `npm install` to install Node.js dependencies
+3. Copy `.env.example` to `.env` and add Anthropic API key
+4. Start service with `npm start` or `npm run dev` (development mode)
+5. Service runs on port 3000 by default (configurable via `PORT` environment variable)
+
+**Python Integration**:
+
+```python
+from claude_client import get_claude_client
+
+claude = get_claude_client()
+if claude.is_available():
+    success, content, error = claude.generate_asciidoc(
+        prompt="Create a getting started guide",
+        context="For Python developers"
+    )
+```
+
+**GUI Integration**:
+
+```python
+# In adp.py __init__ method
+from claude_integration_example import integrate_claude
+
+try:
+    self.claude_integration = integrate_claude(self)
+except Exception as e:
+    logger.warning(f"Claude integration not available: {e}")
+```
+
+### Dependencies
+
+**Node.js Dependencies**:
+- `express` - Web server framework
+- `cors` - Cross-origin resource sharing
+- `dotenv` - Environment variable management
+- `@anthropic-ai/claude-agent-sdk` - Claude AI integration
+
+**Python Dependencies**:
+- `requests` - HTTP client for service communication
+
+### Production Deployment
+
+**Linux (systemd)**:
+Create `/etc/systemd/system/asciidoc-claude.service`:
+
+```ini
+[Unit]
+Description=AsciiDoc Artisan Claude Integration
+After=network.target
+
+[Service]
+Type=simple
+User=appuser
+WorkingDirectory=/path/to/claude-integration
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Windows (Task Scheduler)**:
+Create scheduled task to run `node server.js` at system startup from the `claude-integration` directory.
+
+### Security Considerations
+
+- **API Key Protection**: Never commit `.env` files to Git; use `.gitignore` to exclude
+- **Network Security**: Service runs locally by default; use HTTPS/TLS in production environments
+- **Input Validation**: All user inputs are sanitized before transmission to Claude API
+- **Rate Limiting**: Consider implementing request throttling to manage API costs
+- **Error Handling**: Sensitive information (API keys, full paths) never exposed in error messages
+
+### Cost Management
+
+Claude API usage is metered and billed by Anthropic:
+- Implement usage tracking for organizational budgeting
+- Set up spending alerts via Anthropic Console
+- Consider caching responses for frequently requested content
+- Choose appropriate Claude model (Sonnet for speed vs Opus for quality)
+
+### Implementation Requirements
+
+- **IR-001**: Application MUST check Claude service availability on startup
+- **IR-002**: Application MUST display clear setup instructions if Claude service is unavailable
+- **IR-003**: Application MUST gracefully degrade if Claude service becomes unavailable during runtime
+- **IR-004**: Application MUST never expose API keys in logs, error messages, or user interfaces
+- **IR-005**: Application MUST provide progress indicators during AI operations
+- **IR-006**: Application MUST allow users to cancel in-progress AI operations
+
+### Testing Strategy
+
+**Integration Tests**:
+- Service health check and availability detection
+- Content generation with various prompts
+- Content improvement with different instructions
+- Outline generation for multiple topics and styles
+- Format conversion between supported formats
+- Error handling for service unavailability, timeouts, and API errors
+
+**UI Tests**:
+- Menu integration and action states
+- Non-blocking AI operations (application remains responsive)
+- Result insertion and text replacement in editor
+- Error dialog display for various failure modes
+
+---
 
 ## Out of Scope
 
@@ -303,28 +539,35 @@ The following capabilities are explicitly **not included** in this specification
 - **Multi-file project management**: No project browser or workspace management
 - **Real-time collaboration**: No concurrent editing with multiple users
 - **Cloud integration**: No built-in cloud storage or synchronization
-- **Spell checking or grammar analysis**: Users should use external tools
+- **Spell checking or grammar analysis**: Basic grammar/style improvements available via AI features, but no dedicated grammar checker
 - **Custom AsciiDoc extensions or plugins**: Standard AsciiDoc syntax only
 - **Advanced Git features**: Branching, merging, and rebasing handled outside the application
 - **PDF editing or annotation**: PDF is export-only target
 - **Custom themes beyond light/dark**: No user-customizable color schemes
 - **Mobile or web versions**: Desktop application only
 - **Telemetry or analytics**: No usage tracking or data collection
+- **AI model training or fine-tuning**: Uses Anthropic's pre-trained Claude models only
+- **Offline AI features**: All AI features require network connectivity to Claude API
+- **Alternative AI providers**: Only Claude AI (Anthropic) is supported, no OpenAI, Google, or other LLM integrations
+- **AI conversation history**: Each AI operation is stateless; no persistent chat interface
 
 ## Implementation Notes for Developers
 
 ### Architecture Patterns
 
 - **MVC Pattern**: Separate UI (View), application logic (Controller), and data models
-- **Worker Threads**: Offload CPU-intensive tasks (rendering, Git, Pandoc) to background threads
+- **Worker Threads**: Offload CPU-intensive tasks (rendering, Git, Pandoc, AI operations) to background threads
 - **Debouncing**: Use timer-based debouncing for preview updates to prevent performance issues
 - **Atomic Writes**: Use temporary file + rename pattern to ensure atomic file writes
+- **Hybrid Architecture (Claude AI)**: Node.js REST service for AI operations communicates with Python client via HTTP
 
 ### Technology Choices
 
 - **PySide6**: Chosen for Qt's mature cross-platform GUI capabilities and broad platform support
 - **asciidoc3**: Python-native AsciiDoc processor for preview rendering
 - **Pandoc**: Industry-standard document converter with extensive format support
+- **Node.js + Express**: REST service for Claude AI integration due to `@anthropic-ai/claude-agent-sdk` being Node.js-only
+- **Claude AI (Anthropic)**: State-of-the-art language model for content generation and assistance
 
 ### Testing Strategy
 
