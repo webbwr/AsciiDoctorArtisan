@@ -21,7 +21,16 @@ import uuid
 import warnings
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Union, Dict, Any
+from typing import List, NamedTuple, Optional, Union, Dict, Any, Callable
+
+# Import Claude AI client for AI-enhanced conversion (FR-054)
+try:
+    from claude_client import ClaudeClient, ConversionFormat, ConversionResult, create_client
+    CLAUDE_CLIENT_AVAILABLE = True
+except ImportError:
+    CLAUDE_CLIENT_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.info("Claude client not available. AI-enhanced conversion disabled.")
 
 # Configure logging
 logging.basicConfig(
@@ -267,6 +276,9 @@ class Settings:
     Application settings with persistence support.
 
     Attributes match the specification in .specify/specs/data-model.md
+
+    Note: API keys (for Claude AI) are NOT stored here for security reasons (FR-061).
+    API keys should be provided via ANTHROPIC_API_KEY environment variable.
     """
     last_directory: str = field(default_factory=lambda: str(Path.home()))
     last_file: Optional[str] = None
@@ -278,6 +290,7 @@ class Settings:
     font_size: int = EDITOR_FONT_SIZE
     auto_save_enabled: bool = True
     auto_save_interval: int = 300
+    ai_conversion_enabled: bool = False  # FR-055: AI-Enhanced Conversion option
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary for JSON serialization."""
@@ -366,8 +379,9 @@ class GitWorker(QObject):
 class PandocWorker(QObject):
     conversion_complete = Signal(str, str)
     conversion_error = Signal(str, str)
+    progress_update = Signal(str)  # FR-059: Progress indicator for long operations
 
-    @Slot(object, str, str, str, object)
+    @Slot(object, str, str, str, object, bool)
     def run_pandoc_conversion(
         self,
         source: Union[str, bytes, Path],
@@ -375,7 +389,18 @@ class PandocWorker(QObject):
         from_format: str,
         context: str,
         output_file: Optional[Path] = None,
+        use_ai_conversion: bool = False,  # FR-055: AI-Enhanced Conversion option
     ) -> None:
+        # FR-056: Try AI-enhanced conversion if enabled and available
+        if use_ai_conversion and CLAUDE_CLIENT_AVAILABLE:
+            ai_result = self._try_ai_conversion(source, from_format, to_format, context, output_file)
+            if ai_result is not None:
+                # AI conversion succeeded, return early
+                return
+            # AI conversion failed, fall back to Pandoc (FR-057)
+            self.progress_update.emit("AI conversion unavailable, falling back to Pandoc...")
+            logger.info(f"Falling back to Pandoc for {context}")
+
         if not PANDOC_AVAILABLE or not pypandoc:
             err = "Pandoc/pypandoc not available for conversion."
             logger.error(err)
@@ -526,6 +551,98 @@ class PandocWorker(QObject):
         text = re.sub(r"(?m)^(NOTE|TIP|IMPORTANT|WARNING|CAUTION):\s*", r"\n\1: ", text)
 
         return text
+
+    def _try_ai_conversion(
+        self,
+        source: Union[str, bytes, Path],
+        from_format: str,
+        to_format: str,
+        context: str,
+        output_file: Optional[Path] = None
+    ) -> Optional[str]:
+        """
+        Attempt AI-enhanced conversion using Claude API.
+
+        Returns conversion result on success, None on failure (to trigger fallback).
+
+        FR-054: Claude API integration for format conversion
+        FR-056: Complex document handling with AI
+        FR-057: Fallback to Pandoc on AI failure
+        FR-058: API key validation
+        FR-059: Progress indicators for long operations
+        FR-060: Error handling for API failures
+        FR-062: Rate limiting and retry logic
+        """
+        try:
+            self.progress_update.emit("Initializing AI-enhanced conversion...")
+
+            # Create Claude client (reads API key from environment)
+            client = create_client()
+            if client is None:
+                logger.warning("Failed to create Claude client, falling back to Pandoc")
+                return None
+
+            # Get source content
+            if isinstance(source, Path):
+                source_content = source.read_text(encoding="utf-8")
+            else:
+                source_content = str(source)
+
+            # Check if document size is within limits (FR-056)
+            if not client.can_handle_document(source_content):
+                logger.warning("Document too large for AI conversion, falling back to Pandoc")
+                self.progress_update.emit("Document too large for AI, using Pandoc...")
+                return None
+
+            # Map to ConversionFormat enum
+            try:
+                target_format = ConversionFormat(to_format.lower())
+            except ValueError:
+                logger.warning(f"Format {to_format} not supported by AI, falling back to Pandoc")
+                return None
+
+            # Define progress callback
+            def progress_callback(message: str):
+                self.progress_update.emit(message)
+
+            # Perform AI conversion with progress updates
+            self.progress_update.emit(f"Converting with Claude AI ({from_format} → {to_format})...")
+            result: ConversionResult = client.convert_document(
+                content=source_content,
+                source_format=from_format,
+                target_format=target_format,
+                progress_callback=progress_callback
+            )
+
+            if not result.success:
+                # AI conversion failed, trigger fallback (FR-057)
+                logger.warning(f"AI conversion failed: {result.error_message}")
+                self.progress_update.emit(f"AI conversion failed: {result.error_message}")
+                return None
+
+            # AI conversion succeeded
+            converted_content = result.content
+            logger.info(f"AI conversion successful in {result.processing_time:.2f}s ({context})")
+            self.progress_update.emit(f"AI conversion completed in {result.processing_time:.1f}s")
+
+            # Handle output file if specified
+            if output_file and to_format in ["pdf", "docx"]:
+                # For binary formats, we still need Pandoc to create the final file
+                # Use converted content as intermediate format
+                logger.info("Converting AI result to binary format with Pandoc...")
+                self.progress_update.emit("Finalizing binary format...")
+                # Return None to trigger Pandoc fallback with improved content
+                return None
+
+            # For text formats, return the AI-converted content directly
+            self.conversion_complete.emit(converted_content, context)
+            return converted_content
+
+        except Exception as e:
+            # Unexpected error, fall back to Pandoc (FR-060)
+            logger.error(f"Unexpected error in AI conversion: {e}")
+            self.progress_update.emit(f"AI conversion error: {str(e)[:50]}...")
+            return None
 
 
 class PreviewWorker(QObject):

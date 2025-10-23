@@ -24,6 +24,7 @@ class TestSettings:
         assert settings.font_size == 12  # EDITOR_FONT_SIZE default
         assert settings.auto_save_enabled is True
         assert settings.auto_save_interval == 300
+        assert settings.ai_conversion_enabled is False  # FR-055 default
 
     def test_settings_to_dict(self):
         """Test Settings converts to dictionary correctly."""
@@ -83,7 +84,8 @@ class TestSettings:
             splitter_sizes=[350, 650],
             font_size=14,
             auto_save_enabled=True,
-            auto_save_interval=600
+            auto_save_interval=600,
+            ai_conversion_enabled=True
         )
 
         # Convert to dict and back
@@ -101,3 +103,4 @@ class TestSettings:
         assert restored.font_size == original.font_size
         assert restored.auto_save_enabled == original.auto_save_enabled
         assert restored.auto_save_interval == original.auto_save_interval
+        assert restored.ai_conversion_enabled == original.ai_conversion_enabled
