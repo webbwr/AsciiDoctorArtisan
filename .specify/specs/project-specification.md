@@ -122,6 +122,25 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 
 ---
 
+### User Story 7 - AI-Assisted Format Conversion (Priority: P2)
+
+A technical writer receives complex documentation in Markdown or HTML with intricate formatting, tables, and embedded code that Pandoc struggles to convert cleanly. They use File→Open with "AI-Enhanced Conversion" option, and the application uses Claude AI to intelligently convert the content to AsciiDoc, preserving semantic meaning, correcting formatting issues, and optimizing the structure. The AI handles edge cases like nested lists, complex tables, and mixed formatting that traditional converters miss.
+
+**Why this priority**: AI-assisted conversion significantly improves conversion quality for complex documents, reducing manual cleanup time from hours to minutes. This addresses the #1 pain point with traditional format conversion tools.
+
+**Independent Test**: Can be tested by opening complex Markdown/HTML documents with tables, code blocks, and nested structures, comparing AI-enhanced conversion with standard Pandoc conversion, and measuring time saved on manual cleanup.
+
+**Acceptance Scenarios**:
+
+1. **Given** the user has a complex Markdown file with nested lists and tables, **When** they select "AI-Enhanced Conversion" and open the file, **Then** the application uses Claude AI to convert it to AsciiDoc with proper structure preservation
+2. **Given** the user has an HTML file with mixed formatting and inline styles, **When** they use AI conversion, **Then** the AI cleans up the formatting and produces semantic AsciiDoc markup
+3. **Given** the user has a Markdown file with code blocks in multiple languages, **When** AI converts it, **Then** code blocks are preserved with correct language identifiers and syntax
+4. **Given** the AI conversion fails or times out, **When** the error occurs, **Then** the application falls back to standard Pandoc conversion with a warning message
+5. **Given** the user has no Anthropic API key configured, **When** they attempt AI conversion, **Then** the application prompts to configure the API key or use standard conversion
+6. **Given** a document with 100+ pages, **When** using AI conversion, **Then** the application shows progress and allows cancellation
+
+---
+
 ### Edge Cases
 
 - **What happens when the user opens a corrupt or invalid AsciiDoc file?**
@@ -226,14 +245,27 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **FR-052**: System MUST handle platform-specific file path conventions transparently
 - **FR-053**: System MUST adapt keyboard shortcuts to platform conventions (Ctrl vs Cmd)
 
+#### AI-Assisted Format Conversion
+
+- **FR-054**: System MUST integrate with Anthropic Claude API for AI-enhanced document conversion
+- **FR-055**: System MUST provide "AI-Enhanced Conversion" option in File→Open dialog for Markdown and HTML files
+- **FR-056**: System MUST use Claude AI to improve conversion quality for complex documents with tables, nested lists, and code blocks
+- **FR-057**: System MUST fall back to standard Pandoc conversion if AI conversion fails or API is unavailable
+- **FR-058**: System MUST validate Anthropic API key on startup and provide clear configuration instructions if missing
+- **FR-059**: System MUST show conversion progress and allow cancellation for large documents (>50 pages)
+- **FR-060**: System MUST handle AI API errors gracefully with informative user messages and automatic fallback
+- **FR-061**: System MUST cache API credentials securely using platform-appropriate credential storage
+- **FR-062**: System MUST respect API rate limits and implement exponential backoff for retries
+
 ### Key Entities
 
 - **Document**: Represents an AsciiDoc file open in the editor with content, file path, modification state, and scroll position
 - **EditorState**: Captures current editor configuration, including font size, zoom level, cursor position, and selection
 - **PreviewState**: Manages rendered HTML content, scroll position, and synchronization status with the editor
-- **Configuration**: Stores user preferences including theme, last opened file, window geometry, and persistent settings
+- **Configuration**: Stores user preferences including theme, last opened file, window geometry, persistent settings, and Anthropic API key
 - **GitRepository**: Represents a detected Git repository with path, remote configuration, and current status
-- **ConversionJob**: Represents a document format conversion task with source format, target format, Pandoc options, and conversion status
+- **ConversionJob**: Represents a document format conversion task with source format, target format, Pandoc options, AI enhancement flag, and conversion status
+- **ClaudeAIClient**: Manages communication with Anthropic Claude API, handles authentication, rate limiting, and format conversion requests
 
 ## Success Criteria *(mandatory)*
 
@@ -249,20 +281,24 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **SC-008**: Application functions identically on Linux, macOS, and Windows with no platform-specific feature degradation
 - **SC-009**: Session state (last file, window geometry, theme) persists correctly across 99% of application restarts
 - **SC-010**: Git commit operations complete successfully without data loss in 100% of cases where repository is valid
+- **SC-011**: AI-enhanced conversion reduces manual cleanup time by 70% compared to standard Pandoc conversion for complex documents
+- **SC-012**: AI conversion successfully handles 95% of complex formatting scenarios (nested lists, tables, code blocks) without manual intervention
+- **SC-013**: AI conversion completes within 30 seconds for documents up to 50 pages
+- **SC-014**: AI conversion falls back to standard Pandoc seamlessly within 5 seconds if API fails
 
 ### User Experience Goals
 
-- **SC-011**: Users report improved productivity compared to separate editor + preview tool workflows (measured via user surveys)
-- **SC-012**: Technical writers can migrate from proprietary documentation tools within one day of using the application
-- **SC-013**: Support requests related to data loss or corruption remain under 0.1% of user base
-- **SC-014**: Users successfully convert documents between formats on first attempt 85% of the time
+- **SC-015**: Users report improved productivity compared to separate editor + preview tool workflows (measured via user surveys)
+- **SC-016**: Technical writers can migrate from proprietary documentation tools within one day of using the application
+- **SC-017**: Support requests related to data loss or corruption remain under 0.1% of user base
+- **SC-018**: Users successfully convert documents between formats on first attempt 85% of the time (95% with AI assistance)
 
 ### Technical Excellence
 
-- **SC-015**: Code maintains 80%+ test coverage for core functionality
-- **SC-016**: Zero critical security vulnerabilities (path traversal, command injection) in production releases
-- **SC-017**: Memory usage remains under 500MB for typical documents (<5000 lines)
-- **SC-018**: Application passes linting (Ruff) and type checking (mypy strict) with zero warnings
+- **SC-019**: Code maintains 80%+ test coverage for core functionality
+- **SC-020**: Zero critical security vulnerabilities (path traversal, command injection, API key exposure) in production releases
+- **SC-021**: Memory usage remains under 500MB for typical documents (<5000 lines)
+- **SC-022**: Application passes linting (Ruff) and type checking (mypy strict) with zero warnings
 
 ## Dependencies & Assumptions
 
@@ -274,6 +310,8 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **pypandoc**: Python wrapper for Pandoc document converter
 - **Pandoc**: Universal document converter (external system dependency)
 - **Git**: Version control system (optional, for Git integration features)
+- **anthropic ≥0.40.0**: Anthropic Python SDK for Claude AI integration
+- **Anthropic API Key**: Required for AI-enhanced format conversion (user-provided)
 
 ### Assumptions
 
@@ -287,6 +325,7 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **A-008**: Display resolution is at least 1280x720 for proper UI layout
 - **A-009**: Users accept open-source MIT license terms for the application
 - **A-010**: Network connectivity is available for Git push/pull operations but not required for core editing
+- **A-011**: Users who want AI-enhanced conversion provide their own Anthropic API key and accept associated usage costs
 
 ### Constraints & Limitations
 
@@ -295,6 +334,9 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **C-003**: Git integration provides basic commit/push/pull operations but not advanced Git features (rebasing, cherry-picking, etc.)
 - **C-004**: Format conversion fidelity depends on Pandoc capabilities and may lose some formatting details
 - **C-005**: Application is designed for single-user, single-file editing (not multi-user collaboration)
+- **C-006**: AI-enhanced conversion requires valid Anthropic API key and incurs usage costs based on document size
+- **C-007**: AI conversion may be rate-limited by Anthropic API and requires internet connectivity
+- **C-008**: AI conversion quality depends on Claude model capabilities and may vary with complex or domain-specific content
 
 ## Out of Scope
 
@@ -316,23 +358,28 @@ The following capabilities are explicitly **not included** in this specification
 ### Architecture Patterns
 
 - **MVC Pattern**: Separate UI (View), application logic (Controller), and data models
-- **Worker Threads**: Offload CPU-intensive tasks (rendering, Git, Pandoc) to background threads
+- **Worker Threads**: Offload CPU-intensive tasks (rendering, Git, Pandoc, AI API calls) to background threads
 - **Debouncing**: Use timer-based debouncing for preview updates to prevent performance issues
 - **Atomic Writes**: Use temporary file + rename pattern to ensure atomic file writes
+- **Fallback Pattern**: AI conversion should gracefully degrade to standard Pandoc if API fails or is unavailable
+- **Retry Logic**: Implement exponential backoff for transient API failures with maximum 3 retry attempts
+- **Progress Indication**: Long-running AI operations must provide progress feedback to prevent UI freezing perception
 
 ### Technology Choices
 
 - **PySide6**: Chosen for Qt's mature cross-platform GUI capabilities and broad platform support
 - **asciidoc3**: Python-native AsciiDoc processor for preview rendering
 - **Pandoc**: Industry-standard document converter with extensive format support
+- **Anthropic SDK**: Official Python SDK for Claude API integration, chosen for reliability and streaming support
 
 ### Testing Strategy
 
 - **Unit Tests**: Core functionality (file I/O, conversion, configuration)
-- **Integration Tests**: Pandoc integration, Git integration, cross-module interactions
+- **Integration Tests**: Pandoc integration, Git integration, AI API integration (with mocked responses), cross-module interactions
 - **UI Tests**: Critical user workflows using pytest-qt
 - **Platform Tests**: Verify behavior on Linux, macOS, Windows
-- **Performance Tests**: Measure preview update latency, memory usage, startup time
+- **Performance Tests**: Measure preview update latency, memory usage, startup time, AI conversion response times
+- **AI Testing**: Mock Anthropic API responses for testing error handling, rate limits, and fallback behavior
 
 ### Security Considerations
 
@@ -340,10 +387,15 @@ The following capabilities are explicitly **not included** in this specification
 - **Command Injection**: Git and Pandoc must be called with parameterized arguments, never shell interpolation
 - **Credential Storage**: Never store Git credentials; use system-configured credentials only
 - **Error Messages**: Avoid exposing full file paths or system information in user-facing errors
+- **API Key Security**: Anthropic API keys must be stored in secure credential storage (keyring) or environment variables, never in plain text configuration files
+- **Document Privacy**: User documents sent to Claude API should be validated for sensitive content; warn users about cloud processing
+- **Rate Limiting**: Implement exponential backoff for API rate limit errors to prevent account suspension
+- **API Error Handling**: Sanitize API error messages to avoid exposing API keys or internal system details
 
 ---
 
-**Specification Version**: 1.0.0
-**Last Updated**: 2025-10-22
+**Specification Version**: 1.1.0
+**Last Updated**: 2025-10-23
 **Approved By**: Project Maintainer
+**Changes from 1.0.0**: Added AI-assisted format conversion (FR-054 to FR-062, User Story 7, SC-011 to SC-014)
 **Next Steps**: Refer to the constitution for development standards; Use `/speckit.plan` to generate an implementation plan
