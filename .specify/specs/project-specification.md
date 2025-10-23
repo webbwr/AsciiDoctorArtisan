@@ -172,7 +172,7 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 
 #### Format Conversion
 
-- **FR-016**: System MUST integrate with Pandoc to support document conversion
+- **FR-016**: System MUST integrate with Pandoc to support all document conversion
 - **FR-016**: System MUST support importing DOCX, Markdown, HTML, LaTeX, reStructuredText, Org, and Textile formats
 - **FR-018**: System MUST automatically detect file format and convert to AsciiDoc on open
 - **FR-019**: System MUST support exporting to HTML, DOCX, and PDF formats via Pandoc
