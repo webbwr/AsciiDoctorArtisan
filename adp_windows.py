@@ -1163,15 +1163,12 @@ class AsciiDocEditor(QMainWindow):
 
         self.editor_label = QLabel("Editor")
         # Store label as instance variable to update color dynamically
-        # Set initial color based on current theme
-        if self._settings.dark_mode:
-            self.editor_label.setStyleSheet("color: white;")
-        else:
-            self.editor_label.setStyleSheet("color: black;")
+        # Set green color for editor pane
+        self.editor_label.setStyleSheet("color: #4ade80; font-weight: bold;")
         editor_toolbar_layout.addWidget(self.editor_label)
         editor_toolbar_layout.addStretch()
 
-        # Editor maximize/restore button
+        # Editor maximize/restore button - match editor green color
         self.editor_max_btn = QPushButton("⬜")  # Maximize icon
         self.editor_max_btn.setFixedSize(24, 24)
         self.editor_max_btn.setToolTip("Maximize editor")
@@ -1179,16 +1176,17 @@ class AsciiDocEditor(QMainWindow):
             """
             QPushButton {
                 background-color: transparent;
-                border: 1px solid #888;
+                border: 1px solid #4ade80;
                 border-radius: 3px;
                 padding: 2px;
+                color: #4ade80;
             }
             QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-                border-color: #aaa;
+                background-color: rgba(74, 222, 128, 0.2);
+                border-color: #4ade80;
             }
             QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 0.2);
+                background-color: rgba(74, 222, 128, 0.3);
             }
         """
         )
@@ -1223,15 +1221,12 @@ class AsciiDocEditor(QMainWindow):
 
         self.preview_label = QLabel("Preview")
         # Store label as instance variable to update color dynamically
-        # Set initial color based on current theme
-        if self._settings.dark_mode:
-            self.preview_label.setStyleSheet("color: white;")
-        else:
-            self.preview_label.setStyleSheet("color: black;")
+        # Set blue color for preview pane
+        self.preview_label.setStyleSheet("color: #4a9eff; font-weight: bold;")
         preview_toolbar_layout.addWidget(self.preview_label)
         preview_toolbar_layout.addStretch()
 
-        # Preview maximize/restore button
+        # Preview maximize/restore button - match preview blue color
         self.preview_max_btn = QPushButton("⬜")  # Maximize icon
         self.preview_max_btn.setFixedSize(24, 24)
         self.preview_max_btn.setToolTip("Maximize preview")
@@ -1239,16 +1234,17 @@ class AsciiDocEditor(QMainWindow):
             """
             QPushButton {
                 background-color: transparent;
-                border: 1px solid #888;
+                border: 1px solid #4a9eff;
                 border-radius: 3px;
                 padding: 2px;
+                color: #4a9eff;
             }
             QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-                border-color: #aaa;
+                background-color: rgba(74, 158, 255, 0.2);
+                border-color: #4a9eff;
             }
             QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 0.2);
+                background-color: rgba(74, 158, 255, 0.3);
             }
         """
         )
