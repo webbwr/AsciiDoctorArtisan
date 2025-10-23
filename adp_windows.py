@@ -1,5 +1,3 @@
-
-
 """
 AsciiDoc Artisan - Windows-Optimized Version
 ============================================
@@ -25,6 +23,7 @@ from typing import Any, Dict, List, NamedTuple, Optional, Union
 
 try:
     from claude_client import ConversionFormat, ConversionResult, create_client
+
     CLAUDE_CLIENT_AVAILABLE = True
 except ImportError:
     CLAUDE_CLIENT_AVAILABLE = False
@@ -91,8 +90,8 @@ try:
     ENHANCED_PANDOC = True
 except ImportError:
     logger.warning("Enhanced pandoc integration not available")
-    pandoc = None
-    ensure_pandoc_available = None
+    pandoc = None  # type: ignore[assignment]
+    ensure_pandoc_available = None  # type: ignore[assignment]
     ENHANCED_PANDOC = False
 
 try:
@@ -131,15 +130,10 @@ ALL_FILES_FILTER = "All Files (*)"
 
 COMMON_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm"
 
-ALL_FORMATS = (
-    "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm *.tex *.rst *.org *.textile"
-)
+ALL_FORMATS = "*.adoc *.asciidoc *.docx *.pdf *.md *.markdown *.html *.htm *.tex *.rst *.org *.textile"
 
 SUPPORTED_OPEN_FILTER = f"Common Formats ({COMMON_FORMATS});;All Supported ({ALL_FORMATS});;{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{LATEX_FILTER};;{RST_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
-SUPPORTED_SAVE_FILTER = (
-    f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
-)
-
+SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
 
 
 def sanitize_path(path_input: Union[str, Path]) -> Optional[Path]:
@@ -193,13 +187,11 @@ def atomic_save_text(file_path: Path, content: str, encoding: str = "utf-8") -> 
         logger.error("atomic_save_text: file_path is None")
         return False
 
-
-    temp_path = file_path.with_suffix(file_path.suffix + '.tmp')
+    temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
 
     try:
 
         temp_path.write_text(content, encoding=encoding)
-
 
         temp_path.replace(file_path)
 
@@ -208,7 +200,6 @@ def atomic_save_text(file_path: Path, content: str, encoding: str = "utf-8") -> 
 
     except Exception as e:
         logger.error(f"Atomic save failed for {file_path}: {e}")
-
 
         try:
             if temp_path.exists():
@@ -219,7 +210,9 @@ def atomic_save_text(file_path: Path, content: str, encoding: str = "utf-8") -> 
         return False
 
 
-def atomic_save_json(file_path: Path, data: dict, encoding: str = "utf-8", indent: int = 2) -> bool:
+def atomic_save_json(
+    file_path: Path, data: dict, encoding: str = "utf-8", indent: int = 2
+) -> bool:
     """
     Atomically save JSON data to file using temp file + rename pattern.
 
@@ -236,13 +229,12 @@ def atomic_save_json(file_path: Path, data: dict, encoding: str = "utf-8", inden
         logger.error("atomic_save_json: file_path is None")
         return False
 
-    temp_path = file_path.with_suffix(file_path.suffix + '.tmp')
+    temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
 
     try:
 
         with open(temp_path, "w", encoding=encoding) as f:
             json.dump(data, f, indent=indent)
-
 
         temp_path.replace(file_path)
 
@@ -251,7 +243,6 @@ def atomic_save_json(file_path: Path, data: dict, encoding: str = "utf-8", inden
 
     except Exception as e:
         logger.error(f"Atomic JSON save failed for {file_path}: {e}")
-
 
         try:
             if temp_path.exists():
@@ -270,7 +261,6 @@ class GitResult(NamedTuple):
     user_message: str
 
 
-
 @dataclass
 class Settings:
     """
@@ -281,6 +271,7 @@ class Settings:
     Note: API keys (for Claude AI) are NOT stored here for security reasons (FR-061).
     API keys should be provided via ANTHROPIC_API_KEY environment variable.
     """
+
     last_directory: str = field(default_factory=lambda: str(Path.home()))
     last_file: Optional[str] = None
     git_repo_path: Optional[str] = None
@@ -298,7 +289,7 @@ class Settings:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Settings':
+    def from_dict(cls, data: Dict[str, Any]) -> "Settings":
         """Create Settings instance from dictionary."""
 
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
@@ -313,7 +304,9 @@ class ImportOptionsDialog(QDialog):
     FR-055: AI-Enhanced Conversion option with per-operation override for imports
     """
 
-    def __init__(self, format_type: str, filename: str, default_use_ai: bool, parent=None):
+    def __init__(
+        self, format_type: str, filename: str, default_use_ai: bool, parent=None
+    ):
         super().__init__(parent)
         self.format_type = format_type
         self.filename = filename
@@ -327,10 +320,10 @@ class ImportOptionsDialog(QDialog):
 
         layout = QVBoxLayout(self)
 
-
-        info_label = QLabel(f"Converting '{self.filename}' from {self.format_type.upper()} to AsciiDoc.")
+        info_label = QLabel(
+            f"Converting '{self.filename}' from {self.format_type.upper()} to AsciiDoc."
+        )
         layout.addWidget(info_label)
-
 
         self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this import")
         self.ai_checkbox.setChecked(self.default_use_ai)
@@ -339,16 +332,15 @@ class ImportOptionsDialog(QDialog):
             "Requires ANTHROPIC_API_KEY environment variable and may incur costs."
         )
 
-
         if not CLAUDE_CLIENT_AVAILABLE:
             self.ai_checkbox.setEnabled(False)
-            self.ai_checkbox.setToolTip("Claude AI is not available (missing anthropic library or API key)")
+            self.ai_checkbox.setToolTip(
+                "Claude AI is not available (missing anthropic library or API key)"
+            )
 
         layout.addWidget(self.ai_checkbox)
 
-
         layout.addStretch()
-
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -390,10 +382,8 @@ class ExportOptionsDialog(QDialog):
 
         layout = QVBoxLayout(self)
 
-
         info_label = QLabel(f"Exporting document to {self.format_type.upper()} format.")
         layout.addWidget(info_label)
-
 
         self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this export")
         self.ai_checkbox.setChecked(self.default_use_ai)
@@ -402,16 +392,15 @@ class ExportOptionsDialog(QDialog):
             "Requires ANTHROPIC_API_KEY environment variable and may incur costs."
         )
 
-
         if not CLAUDE_CLIENT_AVAILABLE:
             self.ai_checkbox.setEnabled(False)
-            self.ai_checkbox.setToolTip("Claude AI is not available (missing anthropic library or API key)")
+            self.ai_checkbox.setToolTip(
+                "Claude AI is not available (missing anthropic library or API key)"
+            )
 
         layout.addWidget(self.ai_checkbox)
 
-
         layout.addStretch()
-
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -449,13 +438,10 @@ class PreferencesDialog(QDialog):
         self.setWindowTitle("Preferences")
         self.setMinimumWidth(500)
 
-
         layout = QVBoxLayout(self)
-
 
         ai_group = QGroupBox("AI-Enhanced Conversion")
         ai_layout = QVBoxLayout()
-
 
         self.ai_enabled_checkbox = QCheckBox("Enable AI-enhanced conversion by default")
         self.ai_enabled_checkbox.setChecked(self.settings.ai_conversion_enabled)
@@ -465,14 +451,14 @@ class PreferencesDialog(QDialog):
         )
         ai_layout.addWidget(self.ai_enabled_checkbox)
 
-
         api_key_status = self._get_api_key_status()
         status_label = QLabel(f"API Key Status: {api_key_status}")
         status_label.setStyleSheet(
-            "QLabel { color: green; }" if api_key_status == "✓ Configured" else "QLabel { color: red; }"
+            "QLabel { color: green; }"
+            if api_key_status == "✓ Configured"
+            else "QLabel { color: red; }"
         )
         ai_layout.addWidget(status_label)
-
 
         info_label = QLabel(
             "• Requires ANTHROPIC_API_KEY environment variable\n"
@@ -486,7 +472,6 @@ class PreferencesDialog(QDialog):
 
         ai_group.setLayout(ai_layout)
         layout.addWidget(ai_group)
-
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -504,6 +489,7 @@ class PreferencesDialog(QDialog):
     def _get_api_key_status(self) -> str:
         """Check if ANTHROPIC_API_KEY is configured."""
         import os
+
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if api_key and len(api_key) > 0:
             return "✓ Configured"
@@ -527,11 +513,12 @@ class GitWorker(QObject):
         try:
             if not Path(working_dir).is_dir():
                 user_message = f"Error: Git working directory not found: {working_dir}"
-                self.command_complete.emit(GitResult(False, "", user_message, None, user_message))
+                self.command_complete.emit(
+                    GitResult(False, "", user_message, None, user_message)
+                )
                 return
 
             logger.info(f"Executing Git: {' '.join(command)} in {working_dir}")
-
 
             shell = platform.system() == "Windows"
 
@@ -552,7 +539,9 @@ class GitWorker(QObject):
 
             if exit_code == 0:
                 logger.info(f"Git command successful: {' '.join(command)}")
-                result = GitResult(True, stdout, stderr, exit_code, "Git command successful.")
+                result = GitResult(
+                    True, stdout, stderr, exit_code, "Git command successful."
+                )
             else:
                 user_message = self._analyze_git_error(stderr, command)
                 logger.error(f"Git command failed (code {exit_code}): {user_message}")
@@ -561,7 +550,9 @@ class GitWorker(QObject):
             self.command_complete.emit(result)
 
         except FileNotFoundError:
-            error_msg = "Git command not found. Ensure Git is installed and in system PATH."
+            error_msg = (
+                "Git command not found. Ensure Git is installed and in system PATH."
+            )
             logger.error(error_msg)
             self.command_complete.emit(GitResult(False, "", error_msg, None, error_msg))
         except Exception as e:
@@ -575,7 +566,9 @@ class GitWorker(QObject):
         stderr_lower = stderr.lower()
 
         if "authentication failed" in stderr_lower:
-            return "Git Authentication Failed. Check credentials (SSH key/token/helper)."
+            return (
+                "Git Authentication Failed. Check credentials (SSH key/token/helper)."
+            )
         elif "not a git repository" in stderr_lower:
             return "Directory is not a Git repository."
         elif "resolve host" in stderr_lower:
@@ -603,12 +596,16 @@ class PandocWorker(QObject):
     ) -> None:
 
         if use_ai_conversion and CLAUDE_CLIENT_AVAILABLE:
-            ai_result = self._try_ai_conversion(source, from_format, to_format, context, output_file)
+            ai_result = self._try_ai_conversion(
+                source, from_format, to_format, context, output_file
+            )
             if ai_result is not None:
 
                 return
 
-            self.progress_update.emit("AI conversion unavailable, falling back to Pandoc...")
+            self.progress_update.emit(
+                "AI conversion unavailable, falling back to Pandoc..."
+            )
             logger.info(f"Falling back to Pandoc for {context}")
 
         if not PANDOC_AVAILABLE or not pypandoc:
@@ -620,7 +617,6 @@ class PandocWorker(QObject):
         try:
             logger.info(f"Starting Pandoc conversion ({context})")
 
-
             extra_args = [
                 "--wrap=preserve",
                 "--reference-links",
@@ -628,14 +624,12 @@ class PandocWorker(QObject):
                 "--toc-depth=3",
             ]
 
-
             if from_format == "docx":
                 extra_args.extend(
                     [
                         "--extract-media=.",
                     ]
                 )
-
 
             if to_format == "pdf":
 
@@ -663,7 +657,9 @@ class PandocWorker(QObject):
                 pdf_engine_found = False
                 for engine in pdf_engines:
                     try:
-                        subprocess.run([engine, "--version"], capture_output=True, check=True)
+                        subprocess.run(
+                            [engine, "--version"], capture_output=True, check=True
+                        )
                         extra_args.append(f"--pdf-engine={engine}")
                         logger.info(f"Using PDF engine: {engine}")
                         pdf_engine_found = True
@@ -673,7 +669,9 @@ class PandocWorker(QObject):
 
                 if not pdf_engine_found:
 
-                    logger.warning("No PDF engine found. Will use HTML as intermediate format.")
+                    logger.warning(
+                        "No PDF engine found. Will use HTML as intermediate format."
+                    )
             elif to_format == "docx":
 
                 pass
@@ -683,7 +681,6 @@ class PandocWorker(QObject):
                         "--wrap=none",
                     ]
                 )
-
 
             if output_file and to_format in ["pdf", "docx"]:
 
@@ -707,16 +704,19 @@ class PandocWorker(QObject):
                 result_text = f"File saved to: {output_file}"
             else:
 
-
                 if isinstance(source, Path):
                     source_content = source.read_text(encoding="utf-8")
                 else:
                     source_content = source
 
-                result_text = pypandoc.convert_text(
-                    source=source_content, to=to_format, format=from_format, extra_args=extra_args
+                result_text = pypandoc.convert_text(  # type: ignore[assignment]
+                    source=source_content,
+                    to=to_format,
+                    format=from_format,
+                    extra_args=extra_args,
                 )
-
+                if isinstance(result_text, bytes):
+                    result_text = result_text.decode("utf-8")
 
                 if to_format == "asciidoc":
                     result_text = self._enhance_asciidoc_output(result_text)
@@ -732,7 +732,6 @@ class PandocWorker(QObject):
         """Post-process AsciiDoc output for better quality."""
         import re
 
-
         if not text.strip().startswith("="):
             lines = text.strip().split("\n")
 
@@ -747,16 +746,11 @@ class PandocWorker(QObject):
                 lines.insert(0, "= Converted Document\n")
             text = "\n".join(lines)
 
-
-
         text = re.sub(r"\[source\](\w+)", r"[source,\1]", text)
-
 
         text = re.sub(r"\n(=+\s+[^\n]+)\n(?!=)", r"\n\n\1\n", text)
 
-
         text = re.sub(r"\|===\n\n", r"|===\n", text)
-
 
         text = re.sub(r"(?m)^(NOTE|TIP|IMPORTANT|WARNING|CAUTION):\s*", r"\n\1: ", text)
 
@@ -768,7 +762,7 @@ class PandocWorker(QObject):
         from_format: str,
         to_format: str,
         context: str,
-        output_file: Optional[Path] = None
+        output_file: Optional[Path] = None,
     ) -> Optional[str]:
         """
         Attempt AI-enhanced conversion using Claude API.
@@ -786,64 +780,66 @@ class PandocWorker(QObject):
         try:
             self.progress_update.emit("Initializing AI-enhanced conversion...")
 
-
             client = create_client()
             if client is None:
                 logger.warning("Failed to create Claude client, falling back to Pandoc")
                 return None
-
 
             if isinstance(source, Path):
                 source_content = source.read_text(encoding="utf-8")
             else:
                 source_content = str(source)
 
-
             if not client.can_handle_document(source_content):
-                logger.warning("Document too large for AI conversion, falling back to Pandoc")
+                logger.warning(
+                    "Document too large for AI conversion, falling back to Pandoc"
+                )
                 self.progress_update.emit("Document too large for AI, using Pandoc...")
                 return None
-
 
             try:
                 target_format = ConversionFormat(to_format.lower())
             except ValueError:
-                logger.warning(f"Format {to_format} not supported by AI, falling back to Pandoc")
+                logger.warning(
+                    f"Format {to_format} not supported by AI, falling back to Pandoc"
+                )
                 return None
-
 
             def progress_callback(message: str):
                 self.progress_update.emit(message)
 
-
-            self.progress_update.emit(f"Converting with Claude AI ({from_format} → {to_format})...")
+            self.progress_update.emit(
+                f"Converting with Claude AI ({from_format} → {to_format})..."
+            )
             result: ConversionResult = client.convert_document(
                 content=source_content,
                 source_format=from_format,
                 target_format=target_format,
-                progress_callback=progress_callback
+                progress_callback=progress_callback,
             )
 
             if not result.success:
 
                 logger.warning(f"AI conversion failed: {result.error_message}")
-                self.progress_update.emit(f"AI conversion failed: {result.error_message}")
+                self.progress_update.emit(
+                    f"AI conversion failed: {result.error_message}"
+                )
                 return None
 
-
             converted_content = result.content
-            logger.info(f"AI conversion successful in {result.processing_time:.2f}s ({context})")
-            self.progress_update.emit(f"AI conversion completed in {result.processing_time:.1f}s")
-
+            logger.info(
+                f"AI conversion successful in {result.processing_time:.2f}s ({context})"
+            )
+            self.progress_update.emit(
+                f"AI conversion completed in {result.processing_time:.1f}s"
+            )
 
             if output_file and to_format in ["pdf", "docx"]:
-
 
                 logger.info("Converting AI result to binary format with Pandoc...")
                 self.progress_update.emit("Finalizing binary format...")
 
                 return None
-
 
             self.conversion_complete.emit(converted_content, context)
             return converted_content
@@ -857,6 +853,7 @@ class PandocWorker(QObject):
 
 class PreviewWorker(QObject):
     """Worker thread for rendering AsciiDoc preview without blocking UI."""
+
     render_complete = Signal(str)
     render_error = Signal(str)
 
@@ -872,7 +869,6 @@ class PreviewWorker(QObject):
 
                 self._asciidoc_api.options("--no-header-footer")
 
-
                 self._asciidoc_api.attributes["icons"] = "font"
                 self._asciidoc_api.attributes["source-highlighter"] = "highlight.js"
                 self._asciidoc_api.attributes["toc"] = "left"
@@ -882,7 +878,9 @@ class PreviewWorker(QObject):
 
                 logger.debug("PreviewWorker: AsciiDoc API initialized")
             except Exception as exc:
-                logger.error(f"PreviewWorker: AsciiDoc API initialization failed: {exc}")
+                logger.error(
+                    f"PreviewWorker: AsciiDoc API initialization failed: {exc}"
+                )
 
     @Slot(str)
     def render_preview(self, source_text: str) -> None:
@@ -894,7 +892,6 @@ class PreviewWorker(QObject):
                 self.render_complete.emit(html_body)
                 return
 
-
             infile = io.StringIO(source_text)
             outfile = io.StringIO()
             self._asciidoc_api.execute(infile, outfile, backend="html5")
@@ -904,7 +901,9 @@ class PreviewWorker(QObject):
             self.render_complete.emit(html_body)
 
         except Exception as exc:
-            error_html = f"<div style='color:red'>Render Error: {html.escape(str(exc))}</div>"
+            error_html = (
+                f"<div style='color:red'>Render Error: {html.escape(str(exc))}</div>"
+            )
             logger.error(f"PreviewWorker: Rendering failed: {exc}")
             self.render_error.emit(error_html)
 
@@ -920,7 +919,6 @@ class AsciiDocEditor(QMainWindow):
         self._set_default_settings()
         self._load_settings()
         self.setWindowTitle(f"{APP_NAME} · Basic Preview")
-
 
         if platform.system() == "Windows":
             self.setWindowFlags(
@@ -940,7 +938,6 @@ class AsciiDocEditor(QMainWindow):
         self._setup_workers_and_threads()
         self._update_ui_state()
 
-
         self._auto_save_timer = QTimer(self)
         self._auto_save_timer.timeout.connect(self._auto_save)
         self._auto_save_timer.start(300000)
@@ -955,7 +952,6 @@ class AsciiDocEditor(QMainWindow):
         else:
             last_dir = str(Path.home())
 
-
         self._settings = Settings(
             last_directory=last_dir,
             last_file=None,
@@ -966,12 +962,11 @@ class AsciiDocEditor(QMainWindow):
             splitter_sizes=None,
             font_size=EDITOR_FONT_SIZE,
             auto_save_enabled=True,
-            auto_save_interval=300
+            auto_save_interval=300,
         )
 
-
         self._current_file_path: Optional[Path] = None
-        self._initial_geometry = None
+        self._initial_geometry: Optional[QRect] = None
         self._start_maximized = False
         self._asciidoc_api = self._initialize_asciidoc()
         self._preview_timer = self._setup_preview_timer()
@@ -1027,19 +1022,18 @@ class AsciiDocEditor(QMainWindow):
             with open(self._settings_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
-
             self._settings = Settings.from_dict(data)
 
-
-            if self._settings.last_directory and Path(self._settings.last_directory).is_dir():
+            if (
+                self._settings.last_directory
+                and Path(self._settings.last_directory).is_dir()
+            ):
                 pass
             else:
 
                 self._settings.last_directory = str(Path.home())
 
-
             self._start_maximized = self._settings.maximized
-
 
             if not self._start_maximized and self._settings.window_geometry:
                 geom = self._settings.window_geometry
@@ -1047,7 +1041,6 @@ class AsciiDocEditor(QMainWindow):
                     self._initial_geometry = QRect(
                         geom["x"], geom["y"], geom["width"], geom["height"]
                     )
-
 
             if self._settings.last_file and Path(self._settings.last_file).is_file():
                 self._current_file_path = Path(self._settings.last_file)
@@ -1059,12 +1052,23 @@ class AsciiDocEditor(QMainWindow):
 
     def _save_settings(self) -> None:
 
-        self._settings.last_directory = str(Path(self._current_file_path).parent) if self._current_file_path else self._settings.last_directory
-        self._settings.last_file = str(self._current_file_path) if self._current_file_path else None
-        self._settings.git_repo_path = str(self._settings.git_repo_path) if hasattr(self, '_settings') and self._settings.git_repo_path else None
-        self._settings.dark_mode = self.dark_mode_act.isChecked() if hasattr(self, 'dark_mode_act') else True
+        self._settings.last_directory = (
+            str(Path(self._current_file_path).parent)
+            if self._current_file_path
+            else self._settings.last_directory
+        )
+        self._settings.last_file = (
+            str(self._current_file_path) if self._current_file_path else None
+        )
+        self._settings.git_repo_path = (
+            str(self._settings.git_repo_path)
+            if hasattr(self, "_settings") and self._settings.git_repo_path
+            else None
+        )
+        self._settings.dark_mode = (
+            self.dark_mode_act.isChecked() if hasattr(self, "dark_mode_act") else True
+        )
         self._settings.maximized = self.isMaximized()
-
 
         if not self.isMaximized():
             geom = self.geometry()
@@ -1077,18 +1081,17 @@ class AsciiDocEditor(QMainWindow):
         else:
             self._settings.window_geometry = None
 
-
-        if hasattr(self, 'splitter') and self.splitter:
+        if hasattr(self, "splitter") and self.splitter:
             self._settings.splitter_sizes = self.splitter.sizes()
 
-
-        if hasattr(self, 'editor'):
+        if hasattr(self, "editor"):
             font = self.editor.font()
             self._settings.font_size = font.pointSize()
 
-
         settings_dict = self._settings.to_dict()
-        if atomic_save_json(self._settings_path, settings_dict, encoding="utf-8", indent=2):
+        if atomic_save_json(
+            self._settings_path, settings_dict, encoding="utf-8", indent=2
+        ):
             logger.info("Settings saved successfully")
         else:
             logger.error(f"Failed to save settings: {self._settings_path}")
@@ -1098,9 +1101,9 @@ class AsciiDocEditor(QMainWindow):
 
         if self._settings.splitter_sizes and len(self._settings.splitter_sizes) == 2:
 
-            QTimer.singleShot(100, lambda: self.splitter.setSizes(self._settings.splitter_sizes))
+            sizes = list(self._settings.splitter_sizes)
+            QTimer.singleShot(100, lambda: self.splitter.setSizes(sizes))
             logger.info(f"Restoring splitter sizes: {self._settings.splitter_sizes}")
-
 
         if self._settings.font_size and self._settings.font_size != EDITOR_FONT_SIZE:
             font = self.editor.font()
@@ -1114,7 +1117,6 @@ class AsciiDocEditor(QMainWindow):
                 instance = AsciiDoc3API(asciidoc3.__file__)
 
                 instance.options("--no-header-footer")
-
 
                 instance.attributes["icons"] = "font"
                 instance.attributes["source-highlighter"] = "highlight.js"
@@ -1140,16 +1142,13 @@ class AsciiDocEditor(QMainWindow):
 
         self.setMinimumSize(800, 600)
 
-
         self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
         self.setCentralWidget(self.splitter)
-
 
         editor_container = QWidget()
         editor_layout = QVBoxLayout(editor_container)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_layout.setSpacing(0)
-
 
         editor_toolbar = QWidget()
         editor_toolbar.setFixedHeight(30)
@@ -1161,11 +1160,9 @@ class AsciiDocEditor(QMainWindow):
 
         self.editor_label = QLabel("Editor")
 
-
         self.editor_label.setStyleSheet("color: #4ade80; font-weight: bold;")
         editor_toolbar_layout.addWidget(self.editor_label)
         editor_toolbar_layout.addStretch()
-
 
         self.editor_max_btn = QPushButton("⬜")
         self.editor_max_btn.setFixedSize(24, 24)
@@ -1188,11 +1185,12 @@ class AsciiDocEditor(QMainWindow):
             }
         """
         )
-        self.editor_max_btn.clicked.connect(lambda: self._toggle_pane_maximize("editor"))
+        self.editor_max_btn.clicked.connect(
+            lambda: self._toggle_pane_maximize("editor")
+        )
         editor_toolbar_layout.addWidget(self.editor_max_btn)
 
         editor_layout.addWidget(editor_toolbar)
-
 
         self.editor = QPlainTextEdit(self)
         font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
@@ -1202,12 +1200,10 @@ class AsciiDocEditor(QMainWindow):
 
         self.splitter.addWidget(editor_container)
 
-
         preview_container = QWidget()
         preview_layout = QVBoxLayout(preview_container)
         preview_layout.setContentsMargins(0, 0, 0, 0)
         preview_layout.setSpacing(0)
-
 
         preview_toolbar = QWidget()
         preview_toolbar.setFixedHeight(30)
@@ -1219,11 +1215,9 @@ class AsciiDocEditor(QMainWindow):
 
         self.preview_label = QLabel("Preview")
 
-
         self.preview_label.setStyleSheet("color: #4a9eff; font-weight: bold;")
         preview_toolbar_layout.addWidget(self.preview_label)
         preview_toolbar_layout.addStretch()
-
 
         self.preview_max_btn = QPushButton("⬜")
         self.preview_max_btn.setFixedSize(24, 24)
@@ -1246,11 +1240,12 @@ class AsciiDocEditor(QMainWindow):
             }
         """
         )
-        self.preview_max_btn.clicked.connect(lambda: self._toggle_pane_maximize("preview"))
+        self.preview_max_btn.clicked.connect(
+            lambda: self._toggle_pane_maximize("preview")
+        )
         preview_toolbar_layout.addWidget(self.preview_max_btn)
 
         preview_layout.addWidget(preview_toolbar)
-
 
         self.preview = QTextBrowser(self)
         self.preview.setReadOnly(True)
@@ -1259,19 +1254,13 @@ class AsciiDocEditor(QMainWindow):
 
         self.splitter.addWidget(preview_container)
 
-
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 1)
 
-
-
-
         self._setup_synchronized_scrolling()
 
-
-        self.statusBar = QStatusBar(self)
-        self.setStatusBar(self.statusBar)
-
+        self.status_bar = QStatusBar(self)
+        self.setStatusBar(self.status_bar)
 
         self._setup_dynamic_sizing()
 
@@ -1281,10 +1270,8 @@ class AsciiDocEditor(QMainWindow):
         if screen:
             available = screen.availableGeometry()
 
-
             default_width = int(available.width() * 0.8)
             default_height = int(available.height() * 0.8)
-
 
             if self._initial_geometry and available.intersects(self._initial_geometry):
                 self.setGeometry(self._initial_geometry)
@@ -1295,7 +1282,6 @@ class AsciiDocEditor(QMainWindow):
                     (available.width() - default_width) // 2 + available.x(),
                     (available.height() - default_height) // 2 + available.y(),
                 )
-
 
             if self._start_maximized:
                 self.showMaximized()
@@ -1319,7 +1305,6 @@ class AsciiDocEditor(QMainWindow):
             editor_scrollbar = self.editor.verticalScrollBar()
             preview_scrollbar = self.preview.verticalScrollBar()
 
-
             editor_max = editor_scrollbar.maximum()
             if editor_max > 0:
                 scroll_percentage = value / editor_max
@@ -1338,7 +1323,6 @@ class AsciiDocEditor(QMainWindow):
             editor_scrollbar = self.editor.verticalScrollBar()
             preview_scrollbar = self.preview.verticalScrollBar()
 
-
             preview_max = preview_scrollbar.maximum()
             if preview_max > 0:
                 scroll_percentage = value / preview_max
@@ -1347,9 +1331,9 @@ class AsciiDocEditor(QMainWindow):
         finally:
             self._is_syncing_scroll = False
 
-    def _create_actions(self) -> None:
+    def _create_actions(self) -> None:  # type: ignore[misc]
 
-        self.new_act = QAction(
+        self.new_act = QAction(  # type: ignore[call-overload]  # type: ignore[call-overload]
             "&New",
             self,
             shortcut=QKeySequence.StandardKey.New,
@@ -1357,7 +1341,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.new_file,
         )
 
-        self.open_act = QAction(
+        self.open_act = QAction(  # type: ignore[call-overload]
             "&Open...",
             self,
             shortcut=QKeySequence.StandardKey.Open,
@@ -1365,59 +1349,58 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.open_file,
         )
 
-        self.save_act = QAction(
+        self.save_act = QAction(  # type: ignore[call-overload]
             "&Save",
             self,
-            shortcut=QKeySequence.StandardKey.Save,
+            shortcut=QKeySequence(QKeySequence.StandardKey.Save),
             statusTip="Save the document as AsciiDoc format (.adoc)",
             triggered=self.save_file,
         )
 
-        self.save_as_act = QAction(
+        self.save_as_act = QAction(  # type: ignore[call-overload]
             "Save &As...",
             self,
-            shortcut=QKeySequence.StandardKey.SaveAs,
+            shortcut=QKeySequence(QKeySequence.StandardKey.SaveAs),
             statusTip="Save with a new name",
             triggered=lambda: self.save_file(save_as=True),
         )
 
-
-        self.save_as_adoc_act = QAction(
+        self.save_as_adoc_act = QAction(  # type: ignore[call-overload]
             "AsciiDoc (*.adoc)",
             self,
             statusTip="Save as AsciiDoc file",
             triggered=lambda: self.save_file_as_format("adoc"),
         )
 
-        self.save_as_md_act = QAction(
+        self.save_as_md_act = QAction(  # type: ignore[call-overload]
             "GitHub Markdown (*.md)",
             self,
             statusTip="Export to GitHub Markdown format",
             triggered=lambda: self.save_file_as_format("md"),
         )
 
-        self.save_as_docx_act = QAction(
+        self.save_as_docx_act = QAction(  # type: ignore[call-overload]
             "Microsoft Word (*.docx)",
             self,
             statusTip="Export to Microsoft Office 365 Word format",
             triggered=lambda: self.save_file_as_format("docx"),
         )
 
-        self.save_as_html_act = QAction(
+        self.save_as_html_act = QAction(  # type: ignore[call-overload]
             "HTML Web Page (*.html)",
             self,
             statusTip="Export to HTML format (can print to PDF from browser)",
             triggered=lambda: self.save_file_as_format("html"),
         )
 
-        self.save_as_pdf_act = QAction(
+        self.save_as_pdf_act = QAction(  # type: ignore[call-overload]
             "Adobe PDF (*.pdf)",
             self,
             statusTip="Export to Adobe Acrobat PDF format",
             triggered=lambda: self.save_file_as_format("pdf"),
         )
 
-        self.exit_act = QAction(
+        self.exit_act = QAction(  # type: ignore[call-overload]
             "E&xit",
             self,
             shortcut=QKeySequence.StandardKey.Quit,
@@ -1425,8 +1408,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.close,
         )
 
-
-        self.undo_act = QAction(
+        self.undo_act = QAction(  # type: ignore[call-overload]
             "&Undo",
             self,
             shortcut=QKeySequence.StandardKey.Undo,
@@ -1434,7 +1416,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.editor.undo,
         )
 
-        self.redo_act = QAction(
+        self.redo_act = QAction(  # type: ignore[call-overload]
             "&Redo",
             self,
             shortcut=QKeySequence.StandardKey.Redo,
@@ -1442,7 +1424,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.editor.redo,
         )
 
-        self.cut_act = QAction(
+        self.cut_act = QAction(  # type: ignore[call-overload]
             "Cu&t",
             self,
             shortcut=QKeySequence.StandardKey.Cut,
@@ -1450,7 +1432,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.editor.cut,
         )
 
-        self.copy_act = QAction(
+        self.copy_act = QAction(  # type: ignore[call-overload]
             "&Copy",
             self,
             shortcut=QKeySequence.StandardKey.Copy,
@@ -1458,7 +1440,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.editor.copy,
         )
 
-        self.paste_act = QAction(
+        self.paste_act = QAction(  # type: ignore[call-overload]
             "&Paste",
             self,
             shortcut=QKeySequence.StandardKey.Paste,
@@ -1466,7 +1448,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.editor.paste,
         )
 
-        self.convert_paste_act = QAction(
+        self.convert_paste_act = QAction(  # type: ignore[call-overload]
             "Convert && Paste",
             self,
             shortcut="Ctrl+Shift+V",
@@ -1474,7 +1456,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.convert_and_paste_from_clipboard,
         )
 
-        self.preferences_act = QAction(
+        self.preferences_act = QAction(  # type: ignore[call-overload]
             "&Preferences...",
             self,
             shortcut="Ctrl+,",
@@ -1482,8 +1464,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._show_preferences_dialog,
         )
 
-
-        self.zoom_in_act = QAction(
+        self.zoom_in_act = QAction(  # type: ignore[call-overload]
             "Zoom &In",
             self,
             shortcut=QKeySequence.StandardKey.ZoomIn,
@@ -1491,7 +1472,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=lambda: self._zoom(1),
         )
 
-        self.zoom_out_act = QAction(
+        self.zoom_out_act = QAction(  # type: ignore[call-overload]
             "Zoom &Out",
             self,
             shortcut=QKeySequence.StandardKey.ZoomOut,
@@ -1499,7 +1480,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=lambda: self._zoom(-1),
         )
 
-        self.dark_mode_act = QAction(
+        self.dark_mode_act = QAction(  # type: ignore[call-overload]
             "&Dark Mode",
             self,
             checkable=True,
@@ -1508,7 +1489,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._toggle_dark_mode,
         )
 
-        self.sync_scrolling_act = QAction(
+        self.sync_scrolling_act = QAction(  # type: ignore[call-overload]
             "&Synchronized Scrolling",
             self,
             checkable=True,
@@ -1517,8 +1498,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._toggle_sync_scrolling,
         )
 
-
-        self.maximize_editor_act = QAction(
+        self.maximize_editor_act = QAction(  # type: ignore[call-overload]
             "Maximize &Editor",
             self,
             shortcut="Ctrl+Shift+E",
@@ -1526,7 +1506,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=lambda: self._toggle_pane_maximize("editor"),
         )
 
-        self.maximize_preview_act = QAction(
+        self.maximize_preview_act = QAction(  # type: ignore[call-overload]
             "Maximize &Preview",
             self,
             shortcut="Ctrl+Shift+R",
@@ -1534,15 +1514,14 @@ class AsciiDocEditor(QMainWindow):
             triggered=lambda: self._toggle_pane_maximize("preview"),
         )
 
-
-        self.set_repo_act = QAction(
+        self.set_repo_act = QAction(  # type: ignore[call-overload]
             "Set &Repository...",
             self,
             statusTip="Select Git repository",
             triggered=self._select_git_repository,
         )
 
-        self.git_commit_act = QAction(
+        self.git_commit_act = QAction(  # type: ignore[call-overload]
             "&Commit...",
             self,
             shortcut="Ctrl+Shift+C",
@@ -1550,7 +1529,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._trigger_git_commit,
         )
 
-        self.git_pull_act = QAction(
+        self.git_pull_act = QAction(  # type: ignore[call-overload]
             "&Pull",
             self,
             shortcut="Ctrl+Shift+P",
@@ -1558,7 +1537,7 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._trigger_git_pull,
         )
 
-        self.git_push_act = QAction(
+        self.git_push_act = QAction(  # type: ignore[call-overload]
             "P&ush",
             self,
             shortcut="Ctrl+Shift+U",
@@ -1566,30 +1545,28 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._trigger_git_push,
         )
 
-
-        self.pandoc_status_act = QAction(
+        self.pandoc_status_act = QAction(  # type: ignore[call-overload]
             "&Pandoc Status",
             self,
             statusTip="Check Pandoc installation status",
             triggered=self._show_pandoc_status,
         )
 
-        self.pandoc_formats_act = QAction(
+        self.pandoc_formats_act = QAction(  # type: ignore[call-overload]
             "Supported &Formats",
             self,
             statusTip="Show supported conversion formats",
             triggered=self._show_supported_formats,
         )
 
-
-        self.ai_setup_help_act = QAction(
+        self.ai_setup_help_act = QAction(  # type: ignore[call-overload]
             "&AI Conversion Setup",
             self,
             statusTip="How to set up AI-enhanced conversion",
             triggered=self._show_ai_setup_help,
         )
 
-        self.about_act = QAction(
+        self.about_act = QAction(  # type: ignore[call-overload]
             "&About",
             self,
             statusTip="About AsciiDoctor Artisan",
@@ -1599,14 +1576,12 @@ class AsciiDocEditor(QMainWindow):
     def _create_menus(self) -> None:
         menubar = self.menuBar()
 
-
         file_menu = menubar.addMenu("&File")
         file_menu.addAction(self.new_act)
         file_menu.addAction(self.open_act)
         file_menu.addSeparator()
         file_menu.addAction(self.save_act)
         file_menu.addAction(self.save_as_act)
-
 
         export_menu = file_menu.addMenu("&Export As")
         export_menu.addAction(self.save_as_adoc_act)
@@ -1617,7 +1592,6 @@ class AsciiDocEditor(QMainWindow):
 
         file_menu.addSeparator()
         file_menu.addAction(self.exit_act)
-
 
         edit_menu = menubar.addMenu("&Edit")
         edit_menu.addAction(self.undo_act)
@@ -1631,7 +1605,6 @@ class AsciiDocEditor(QMainWindow):
         edit_menu.addSeparator()
         edit_menu.addAction(self.preferences_act)
 
-
         view_menu = menubar.addMenu("&View")
         view_menu.addAction(self.zoom_in_act)
         view_menu.addAction(self.zoom_out_act)
@@ -1642,7 +1615,6 @@ class AsciiDocEditor(QMainWindow):
         view_menu.addAction(self.maximize_editor_act)
         view_menu.addAction(self.maximize_preview_act)
 
-
         git_menu = menubar.addMenu("&Git")
         git_menu.addAction(self.set_repo_act)
         git_menu.addSeparator()
@@ -1650,11 +1622,9 @@ class AsciiDocEditor(QMainWindow):
         git_menu.addAction(self.git_pull_act)
         git_menu.addAction(self.git_push_act)
 
-
         tools_menu = menubar.addMenu("&Tools")
         tools_menu.addAction(self.pandoc_status_act)
         tools_menu.addAction(self.pandoc_formats_act)
-
 
         help_menu = menubar.addMenu("&Help")
         help_menu.addAction(self.ai_setup_help_act)
@@ -1664,7 +1634,6 @@ class AsciiDocEditor(QMainWindow):
     def _setup_workers_and_threads(self) -> None:
         logger.info("Setting up worker threads...")
 
-
         self.git_thread = QThread(self)
         self.git_worker = GitWorker()
         self.git_worker.moveToThread(self.git_thread)
@@ -1672,7 +1641,6 @@ class AsciiDocEditor(QMainWindow):
         self.git_worker.command_complete.connect(self._handle_git_result)
         self.git_thread.finished.connect(self.git_worker.deleteLater)
         self.git_thread.start()
-
 
         self.pandoc_thread = QThread(self)
         self.pandoc_worker = PandocWorker()
@@ -1683,15 +1651,12 @@ class AsciiDocEditor(QMainWindow):
         self.pandoc_thread.finished.connect(self.pandoc_worker.deleteLater)
         self.pandoc_thread.start()
 
-
         self.preview_thread = QThread(self)
         self.preview_worker = PreviewWorker()
         self.preview_worker.moveToThread(self.preview_thread)
 
-
         if ASCIIDOC3_AVAILABLE and asciidoc3:
             self.preview_worker.initialize_asciidoc(asciidoc3.__file__)
-
 
         self.request_preview_render.connect(self.preview_worker.render_preview)
         self.preview_worker.render_complete.connect(self._handle_preview_complete)
@@ -1780,19 +1745,20 @@ class AsciiDocEditor(QMainWindow):
         self._current_file_path = None
         self._unsaved_changes = False
         self._update_window_title()
-        self.statusBar.showMessage("New file created")
+        self.status_bar.showMessage("New file created")
 
     @Slot()
     def open_file(self) -> None:
         """Open a file with proper Windows dialog."""
         if self._is_processing_pandoc:
-            self._show_message("warning", "Busy", "Already processing a file conversion.")
+            self._show_message(
+                "warning", "Busy", "Already processing a file conversion."
+            )
             return
 
         if self._unsaved_changes:
             if not self._prompt_save_before_action("opening a new file"):
                 return
-
 
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -1842,7 +1808,6 @@ class AsciiDocEditor(QMainWindow):
                 if not self._check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
                     return
 
-
                 format_map = {
                     ".docx": ("docx", "binary"),
                     ".md": ("markdown", "text"),
@@ -1857,10 +1822,10 @@ class AsciiDocEditor(QMainWindow):
 
                 input_format, file_type = format_map.get(suffix, ("markdown", "text"))
 
-
-
                 use_ai_for_import = self._get_ai_conversion_preference()
-                import_dialog = ImportOptionsDialog(input_format, file_path.name, use_ai_for_import, self)
+                import_dialog = ImportOptionsDialog(
+                    input_format, file_path.name, use_ai_for_import, self
+                )
                 if import_dialog.exec() == QDialog.DialogCode.Accepted:
                     use_ai_for_import = import_dialog.get_use_ai()
                 else:
@@ -1870,31 +1835,32 @@ class AsciiDocEditor(QMainWindow):
                 self._pending_file_path = file_path
                 self._update_ui_state()
 
-
                 self.editor.setPlainText(
                     f"// Converting {file_path.name} to AsciiDoc...\n// Please wait..."
                 )
                 self.preview.setHtml(
                     "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
                 )
-                self.statusBar.showMessage(
+                self.status_bar.showMessage(
                     f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc..."
                 )
-
 
                 if file_type == "binary":
                     file_content = file_path.read_bytes()
                 else:
                     file_content = file_path.read_text(encoding="utf-8")
 
-
                 logger.info(
                     f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})"
                 )
 
                 self.request_pandoc_conversion.emit(
-                    file_content, "asciidoc", input_format, f"converting '{file_path.name}'", None,
-                    use_ai_for_import
+                    file_content,
+                    "asciidoc",
+                    input_format,
+                    f"converting '{file_path.name}'",
+                    None,
+                    use_ai_for_import,
                 )
             else:
 
@@ -1914,7 +1880,6 @@ class AsciiDocEditor(QMainWindow):
             self._unsaved_changes = False
             self._update_window_title()
 
-
             if file_path.suffix.lower() in [
                 ".md",
                 ".markdown",
@@ -1926,13 +1891,13 @@ class AsciiDocEditor(QMainWindow):
                 ".org",
                 ".textile",
             ]:
-                self.statusBar.showMessage(f"Converted and opened: {file_path} → AsciiDoc")
+                self.status_bar.showMessage(
+                    f"Converted and opened: {file_path} → AsciiDoc"
+                )
             else:
-                self.statusBar.showMessage(f"Opened: {file_path}")
-
+                self.status_bar.showMessage(f"Opened: {file_path}")
 
             self.update_preview()
-
 
             logger.info(f"Loaded content into editor: {file_path}")
         finally:
@@ -1944,7 +1909,9 @@ class AsciiDocEditor(QMainWindow):
         if save_as or not self._current_file_path:
 
             suggested_name = (
-                self._current_file_path.name if self._current_file_path else DEFAULT_FILENAME
+                self._current_file_path.name
+                if self._current_file_path
+                else DEFAULT_FILENAME
             )
             suggested_path = Path(self._settings.last_directory) / suggested_name
 
@@ -1968,9 +1935,7 @@ class AsciiDocEditor(QMainWindow):
                 f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}"
             )
 
-
             format_type = "adoc"
-
 
             if MD_FILTER in selected_filter:
                 format_type = "md"
@@ -1992,7 +1957,6 @@ class AsciiDocEditor(QMainWindow):
                 elif ext == ".pdf":
                     format_type = "pdf"
 
-
             if format_type == "md" and not file_path.suffix:
                 file_path = file_path.with_suffix(".md")
             elif format_type == "docx" and not file_path.suffix:
@@ -2004,13 +1968,13 @@ class AsciiDocEditor(QMainWindow):
             elif format_type == "adoc" and not file_path.suffix:
                 file_path = file_path.with_suffix(".adoc")
 
-
             if format_type != "adoc":
-
 
                 use_ai_for_export = self._get_ai_conversion_preference()
                 if format_type in ["md", "docx", "pdf"]:
-                    export_dialog = ExportOptionsDialog(format_type, use_ai_for_export, self)
+                    export_dialog = ExportOptionsDialog(
+                        format_type, use_ai_for_export, self
+                    )
                     if export_dialog.exec() == QDialog.DialogCode.Accepted:
                         use_ai_for_export = export_dialog.get_use_ai()
                     else:
@@ -2019,12 +1983,13 @@ class AsciiDocEditor(QMainWindow):
                 logger.info(
                     f"Calling _save_as_format_internal with file_path={file_path}, format_type={format_type}, use_ai={use_ai_for_export}"
                 )
-                return self._save_as_format_internal(file_path, format_type, use_ai_for_export)
+                return self._save_as_format_internal(
+                    file_path, format_type, use_ai_for_export
+                )
 
         else:
 
             file_path = self._current_file_path
-
 
             if file_path.suffix.lower() not in [".adoc", ".asciidoc"]:
 
@@ -2033,7 +1998,6 @@ class AsciiDocEditor(QMainWindow):
                     f"Converting save format from {self._current_file_path.suffix} to .adoc"
                 )
 
-
         content = self.editor.toPlainText()
 
         if atomic_save_text(file_path, content, encoding="utf-8"):
@@ -2041,14 +2005,20 @@ class AsciiDocEditor(QMainWindow):
             self._settings.last_directory = str(file_path.parent)
             self._unsaved_changes = False
             self._update_window_title()
-            self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
+            self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
             logger.info(f"Saved file: {file_path}")
             return True
         else:
-            self._show_message("critical", "Save Error", f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.")
+            self._show_message(
+                "critical",
+                "Save Error",
+                f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.",
+            )
             return False
 
-    def _save_as_format_internal(self, file_path: Path, format_type: str, use_ai: bool = None) -> bool:
+    def _save_as_format_internal(
+        self, file_path: Path, format_type: str, use_ai: bool = None
+    ) -> bool:
         """Internal method to save file in specified format without showing dialog.
 
         Args:
@@ -2060,13 +2030,10 @@ class AsciiDocEditor(QMainWindow):
             f"_save_as_format_internal called - file_path: {file_path}, format_type: {format_type}, use_ai: {use_ai}"
         )
 
-
         if use_ai is None:
             use_ai = self._get_ai_conversion_preference()
 
-
         content = self.editor.toPlainText()
-
 
         if format_type == "adoc":
             if atomic_save_text(file_path, content, encoding="utf-8"):
@@ -2074,15 +2041,18 @@ class AsciiDocEditor(QMainWindow):
                 self._settings.last_directory = str(file_path.parent)
                 self._unsaved_changes = False
                 self._update_window_title()
-                self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
+                self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
                 return True
             else:
-                self._show_message("critical", "Save Error", f"Failed to save AsciiDoc file: {file_path}")
+                self._show_message(
+                    "critical",
+                    "Save Error",
+                    f"Failed to save AsciiDoc file: {file_path}",
+                )
                 return False
 
-
         if format_type == "html":
-            self.statusBar.showMessage("Saving as HTML...")
+            self.status_bar.showMessage("Saving as HTML...")
             try:
 
                 infile = io.StringIO(content)
@@ -2090,25 +2060,23 @@ class AsciiDocEditor(QMainWindow):
                 self._asciidoc_api.execute(infile, outfile, backend="html5")
                 html_content = outfile.getvalue()
 
-
                 if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                    self.statusBar.showMessage(f"Saved as HTML: {file_path}")
+                    self.status_bar.showMessage(f"Saved as HTML: {file_path}")
                     logger.info(f"Successfully saved as HTML: {file_path}")
                     return True
                 else:
                     raise IOError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to save HTML file: {e}")
-                self._show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
+                self._show_message(
+                    "critical", "Save Error", f"Failed to save HTML file:\n{e}"
+                )
                 return False
-
 
         if not self._check_pandoc_availability(f"Save as {format_type.upper()}"):
             return False
 
-
-        self.statusBar.showMessage(f"Saving as {format_type.upper()}...")
-
+        self.status_bar.showMessage(f"Saving as {format_type.upper()}...")
 
         try:
 
@@ -2119,22 +2087,22 @@ class AsciiDocEditor(QMainWindow):
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
             self._show_message(
-                "critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}"
+                "critical",
+                "Conversion Error",
+                f"Failed to convert AsciiDoc to HTML:\n{e}",
             )
             return False
-
 
         temp_html = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
         try:
             temp_html.write_text(html_content, encoding="utf-8")
         except Exception as e:
-            self._show_message("critical", "Save Error", f"Failed to create temporary file:\n{e}")
+            self._show_message(
+                "critical", "Save Error", f"Failed to create temporary file:\n{e}"
+            )
             return False
 
-
-
-        self.statusBar.showMessage(f"Saving as {format_type.upper()}...")
-
+        self.status_bar.showMessage(f"Saving as {format_type.upper()}...")
 
         if format_type in ["pdf", "docx"]:
 
@@ -2145,11 +2113,12 @@ class AsciiDocEditor(QMainWindow):
                     styled_html = self._add_print_css_to_html(html_content)
                     html_path = file_path.with_suffix(".html")
 
-
                     if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
                         raise IOError(f"Failed to save HTML file: {html_path}")
 
-                    self.statusBar.showMessage(f"Saved as HTML (PDF-ready): {html_path}")
+                    self.status_bar.showMessage(
+                        f"Saved as HTML (PDF-ready): {html_path}"
+                    )
                     self._show_message(
                         "information",
                         "PDF Export Alternative",
@@ -2173,7 +2142,7 @@ class AsciiDocEditor(QMainWindow):
                 "html",
                 f"Exporting to {format_type.upper()}",
                 file_path,
-                use_ai
+                use_ai,
             )
         else:
 
@@ -2183,12 +2152,11 @@ class AsciiDocEditor(QMainWindow):
                 "html",
                 f"Exporting to {format_type.upper()}",
                 None,
-                use_ai
+                use_ai,
             )
 
             self._pending_export_path = file_path
             self._pending_export_format = format_type
-
 
         if format_type == "adoc":
             self._current_file_path = file_path
@@ -2210,11 +2178,12 @@ class AsciiDocEditor(QMainWindow):
         }
 
         if format_type not in format_filters:
-            self._show_message("warning", "Export Error", f"Unsupported format: {format_type}")
+            self._show_message(
+                "warning", "Export Error", f"Unsupported format: {format_type}"
+            )
             return False
 
         file_filter, suggested_ext = format_filters[format_type]
-
 
         if self._current_file_path:
             suggested_name = self._current_file_path.stem + suggested_ext
@@ -2222,7 +2191,6 @@ class AsciiDocEditor(QMainWindow):
             suggested_name = "document" + suggested_ext
 
         suggested_path = Path(self._settings.last_directory) / suggested_name
-
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
@@ -2241,14 +2209,10 @@ class AsciiDocEditor(QMainWindow):
 
         file_path = Path(file_path)
 
-
         if not file_path.suffix:
             file_path = file_path.with_suffix(suggested_ext)
 
-
         content = self.editor.toPlainText()
-
-
 
         use_ai_for_export = self._get_ai_conversion_preference()
         if format_type in ["md", "docx", "pdf"]:
@@ -2258,20 +2222,20 @@ class AsciiDocEditor(QMainWindow):
             else:
                 return False
 
-
         if format_type == "adoc":
             if atomic_save_text(file_path, content, encoding="utf-8"):
-                self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
+                self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
                 return True
             else:
                 self._show_message(
-                    "critical", "Export Error", f"Failed to save AsciiDoc file: {file_path}"
+                    "critical",
+                    "Export Error",
+                    f"Failed to save AsciiDoc file: {file_path}",
                 )
                 return False
 
-
         if format_type == "html":
-            self.statusBar.showMessage("Exporting to HTML...")
+            self.status_bar.showMessage("Exporting to HTML...")
             try:
 
                 infile = io.StringIO(content)
@@ -2279,21 +2243,20 @@ class AsciiDocEditor(QMainWindow):
                 self._asciidoc_api.execute(infile, outfile, backend="html5")
                 html_content = outfile.getvalue()
 
-
                 if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                    self.statusBar.showMessage(f"Exported to HTML: {file_path}")
+                    self.status_bar.showMessage(f"Exported to HTML: {file_path}")
                     logger.info(f"Successfully exported to HTML: {file_path}")
                     return True
                 else:
                     raise IOError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to export HTML file: {e}")
-                self._show_message("critical", "Export Error", f"Failed to export HTML file:\n{e}")
+                self._show_message(
+                    "critical", "Export Error", f"Failed to export HTML file:\n{e}"
+                )
                 return False
 
-
-        self.statusBar.showMessage(f"Exporting to {format_type.upper()}...")
-
+        self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
 
         try:
 
@@ -2304,22 +2267,22 @@ class AsciiDocEditor(QMainWindow):
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
             self._show_message(
-                "critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}"
+                "critical",
+                "Conversion Error",
+                f"Failed to convert AsciiDoc to HTML:\n{e}",
             )
             return False
-
 
         temp_html = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
         try:
             temp_html.write_text(html_content, encoding="utf-8")
         except Exception as e:
-            self._show_message("critical", "Export Error", f"Failed to create temporary file:\n{e}")
+            self._show_message(
+                "critical", "Export Error", f"Failed to create temporary file:\n{e}"
+            )
             return False
 
-
-
-        self.statusBar.showMessage(f"Exporting to {format_type.upper()}...")
-
+        self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
 
         if format_type in ["pdf", "docx"]:
 
@@ -2330,11 +2293,12 @@ class AsciiDocEditor(QMainWindow):
                     styled_html = self._add_print_css_to_html(html_content)
                     html_path = file_path.with_suffix(".html")
 
-
                     if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
                         raise IOError(f"Failed to save HTML file: {html_path}")
 
-                    self.statusBar.showMessage(f"Exported as HTML (PDF-ready): {html_path}")
+                    self.status_bar.showMessage(
+                        f"Exported as HTML (PDF-ready): {html_path}"
+                    )
                     self._show_message(
                         "information",
                         "PDF Export Alternative",
@@ -2355,7 +2319,7 @@ class AsciiDocEditor(QMainWindow):
                 "html",
                 f"Exporting to {format_type.upper()}",
                 file_path,
-                use_ai_for_export
+                use_ai_for_export,
             )
             self._pending_export_path = None
             self._pending_export_format = None
@@ -2367,7 +2331,7 @@ class AsciiDocEditor(QMainWindow):
                 "html",
                 f"Exporting to {format_type.upper()}",
                 None,
-                use_ai_for_export
+                use_ai_for_export,
             )
 
             self._pending_export_path = file_path
@@ -2436,7 +2400,6 @@ class AsciiDocEditor(QMainWindow):
         </style>
         """
 
-
         if "</head>" in html_content:
             html_content = html_content.replace("</head>", print_css + "</head>")
         elif "<html>" in html_content:
@@ -2452,7 +2415,7 @@ class AsciiDocEditor(QMainWindow):
         if self._current_file_path and self._unsaved_changes:
             content = self.editor.toPlainText()
             if atomic_save_text(self._current_file_path, content, encoding="utf-8"):
-                self.statusBar.showMessage("Auto-saved", 2000)
+                self.status_bar.showMessage("Auto-saved", 2000)
                 logger.info(f"Auto-saved: {self._current_file_path}")
             else:
                 logger.error(f"Auto-save failed: {self._current_file_path}")
@@ -2589,8 +2552,9 @@ class AsciiDocEditor(QMainWindow):
 
     def _toggle_sync_scrolling(self) -> None:
         self._sync_scrolling = self.sync_scrolling_act.isChecked()
-        self.statusBar.showMessage(
-            f"Synchronized scrolling {'enabled' if self._sync_scrolling else 'disabled'}", 5000
+        self.status_bar.showMessage(
+            f"Synchronized scrolling {'enabled' if self._sync_scrolling else 'disabled'}",
+            5000,
         )
 
     def _toggle_pane_maximize(self, pane: str) -> None:
@@ -2621,7 +2585,7 @@ class AsciiDocEditor(QMainWindow):
 
             self.preview_max_btn.setText("⬜")
             self.preview_max_btn.setToolTip("Maximize preview")
-            self.statusBar.showMessage("Editor maximized", 3000)
+            self.status_bar.showMessage("Editor maximized", 3000)
         else:
 
             self.splitter.setSizes([0, self.splitter.width()])
@@ -2632,7 +2596,7 @@ class AsciiDocEditor(QMainWindow):
 
             self.editor_max_btn.setText("⬜")
             self.editor_max_btn.setToolTip("Maximize editor")
-            self.statusBar.showMessage("Preview maximized", 3000)
+            self.status_bar.showMessage("Preview maximized", 3000)
 
         self._maximized_pane = pane
 
@@ -2652,7 +2616,6 @@ class AsciiDocEditor(QMainWindow):
             width = self.splitter.width()
             self.splitter.setSizes([width // 2, width // 2])
 
-
         self.editor_max_btn.setText("⬜")
         self.editor_max_btn.setToolTip("Maximize editor")
         self.editor_max_btn.setEnabled(True)
@@ -2661,7 +2624,7 @@ class AsciiDocEditor(QMainWindow):
         self.preview_max_btn.setEnabled(True)
 
         self._maximized_pane = None
-        self.statusBar.showMessage("View restored", 3000)
+        self.status_bar.showMessage("View restored", 3000)
 
     def convert_and_paste_from_clipboard(self) -> None:
         if not self._check_pandoc_availability("Clipboard Conversion"):
@@ -2680,15 +2643,21 @@ class AsciiDocEditor(QMainWindow):
             source_text = mime_data.text()
 
         if not source_text:
-            self._show_message("info", "Empty Clipboard", "No text or HTML found in clipboard.")
+            self._show_message(
+                "info", "Empty Clipboard", "No text or HTML found in clipboard."
+            )
             return
 
         self._is_processing_pandoc = True
         self._update_ui_state()
-        self.statusBar.showMessage("Converting clipboard content...")
+        self.status_bar.showMessage("Converting clipboard content...")
         self.request_pandoc_conversion.emit(
-            source_text, "asciidoc", source_format, "clipboard conversion", None,
-            self._get_ai_conversion_preference()
+            source_text,
+            "asciidoc",
+            source_format,
+            "clipboard conversion",
+            None,
+            self._get_ai_conversion_preference(),
         )
 
     def _select_git_repository(self) -> None:
@@ -2704,12 +2673,14 @@ class AsciiDocEditor(QMainWindow):
 
         if not (Path(dir_path) / ".git").is_dir():
             self._show_message(
-                "warning", "Not a Git Repository", "Selected directory is not a Git repository."
+                "warning",
+                "Not a Git Repository",
+                "Selected directory is not a Git repository.",
             )
             return
 
         self._settings.git_repo_path = dir_path
-        self.statusBar.showMessage(f"Git repository set: {dir_path}")
+        self.status_bar.showMessage(f"Git repository set: {dir_path}")
         self._update_ui_state()
 
     def _trigger_git_commit(self) -> None:
@@ -2732,7 +2703,7 @@ class AsciiDocEditor(QMainWindow):
         self._pending_commit_message = message
         self._update_ui_state()
 
-        self.statusBar.showMessage("Committing changes...")
+        self.status_bar.showMessage("Committing changes...")
         self.request_git_command.emit(["git", "add", "."], self._settings.git_repo_path)
 
     def _trigger_git_pull(self) -> None:
@@ -2743,7 +2714,7 @@ class AsciiDocEditor(QMainWindow):
         self._last_git_operation = "pull"
         self._update_ui_state()
 
-        self.statusBar.showMessage("Pulling from remote...")
+        self.status_bar.showMessage("Pulling from remote...")
         self.request_git_command.emit(["git", "pull"], self._settings.git_repo_path)
 
     def _trigger_git_push(self) -> None:
@@ -2754,12 +2725,14 @@ class AsciiDocEditor(QMainWindow):
         self._last_git_operation = "push"
         self._update_ui_state()
 
-        self.statusBar.showMessage("Pushing to remote...")
+        self.status_bar.showMessage("Pushing to remote...")
         self.request_git_command.emit(["git", "push"], self._settings.git_repo_path)
 
     def _ensure_git_ready(self) -> bool:
         if not self._settings.git_repo_path:
-            self._show_message("info", "No Repository", "Please set a Git repository first.")
+            self._show_message(
+                "info", "No Repository", "Please set a Git repository first."
+            )
             return False
         if self._is_processing_git:
             self._show_message("warning", "Busy", "Git operation in progress.")
@@ -2771,7 +2744,8 @@ class AsciiDocEditor(QMainWindow):
         if self._last_git_operation == "commit" and result.success:
 
             self.request_git_command.emit(
-                ["git", "commit", "-m", self._pending_commit_message], self._settings.git_repo_path
+                ["git", "commit", "-m", self._pending_commit_message],
+                self._settings.git_repo_path,
             )
             self._last_git_operation = "commit_final"
             return
@@ -2794,7 +2768,7 @@ class AsciiDocEditor(QMainWindow):
 
         if context == "clipboard conversion":
             self.editor.insertPlainText(result)
-            self.statusBar.showMessage("Pasted converted content")
+            self.status_bar.showMessage("Pasted converted content")
         elif "Exporting to" in context and (
             "File saved to:" in result or self._pending_export_path
         ):
@@ -2802,24 +2776,33 @@ class AsciiDocEditor(QMainWindow):
             try:
                 if "File saved to:" in result:
 
-                    self.statusBar.showMessage(f"Exported successfully: {result.split(': ', 1)[1]}")
+                    self.status_bar.showMessage(
+                        f"Exported successfully: {result.split(': ', 1)[1]}"
+                    )
                 elif self._pending_export_format == "pdf":
 
-
                     if self._pending_export_path.exists():
-                        self.statusBar.showMessage(f"Exported to PDF: {self._pending_export_path}")
+                        self.status_bar.showMessage(
+                            f"Exported to PDF: {self._pending_export_path}"
+                        )
                     else:
 
-                        if atomic_save_text(self._pending_export_path, result, encoding="utf-8"):
-                            self.statusBar.showMessage(
+                        if atomic_save_text(
+                            self._pending_export_path, result, encoding="utf-8"
+                        ):
+                            self.status_bar.showMessage(
                                 f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}"
                             )
                         else:
-                            raise IOError(f"Failed to save: {self._pending_export_path}")
+                            raise IOError(
+                                f"Failed to save: {self._pending_export_path}"
+                            )
                 else:
 
-                    if atomic_save_text(self._pending_export_path, result, encoding="utf-8"):
-                        self.statusBar.showMessage(
+                    if atomic_save_text(
+                        self._pending_export_path, result, encoding="utf-8"
+                    ):
+                        self.status_bar.showMessage(
                             f"Saved as {self._pending_export_format.upper()}: {self._pending_export_path}"
                         )
                     else:
@@ -2829,7 +2812,9 @@ class AsciiDocEditor(QMainWindow):
                     f"Successfully saved as {self._pending_export_format}: {self._pending_export_path}"
                 )
             except Exception as e:
-                logger.exception(f"Failed to save export file: {self._pending_export_path}")
+                logger.exception(
+                    f"Failed to save export file: {self._pending_export_path}"
+                )
                 self._show_message(
                     "critical", "Export Error", f"Failed to save exported file:\n{e}"
                 )
@@ -2841,9 +2826,7 @@ class AsciiDocEditor(QMainWindow):
             self._load_content_into_editor(result, self._pending_file_path)
             self._pending_file_path = None
 
-
             logger.info(f"Successfully converted {context}")
-
 
             QTimer.singleShot(100, self.update_preview)
 
@@ -2856,13 +2839,14 @@ class AsciiDocEditor(QMainWindow):
         self._pending_export_path = None
         self._pending_export_format = None
         self._update_ui_state()
-        self.statusBar.showMessage(f"Conversion failed: {context}")
-
+        self.status_bar.showMessage(f"Conversion failed: {context}")
 
         if export_path and "Exporting to" in context:
 
             if "PDF" in context and (
-                "pdflatex" in error or "pdf-engine" in error or "No such file or directory" in error
+                "pdflatex" in error
+                or "pdf-engine" in error
+                or "No such file or directory" in error
             ):
                 error_msg = (
                     f"Failed to export to PDF:\n\n"
@@ -2874,15 +2858,17 @@ class AsciiDocEditor(QMainWindow):
                     f"Technical details:\n{error}"
                 )
             else:
-                error_msg = f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
+                error_msg = (
+                    f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
+                )
 
             self._show_message("critical", "Export Error", error_msg)
             return
 
-
         self.editor.clear()
-        self.preview.setHtml("<h3>Conversion Failed</h3><p>Unable to convert the document.</p>")
-
+        self.preview.setHtml(
+            "<h3>Conversion Failed</h3><p>Unable to convert the document.</p>"
+        )
 
         error_msg = f"{context} failed:\n\n{error}"
         if file_path:
@@ -2892,10 +2878,8 @@ class AsciiDocEditor(QMainWindow):
 
     def _update_ui_state(self) -> None:
 
-
         self.save_act.setEnabled(not self._is_processing_pandoc)
         self.save_as_act.setEnabled(not self._is_processing_pandoc)
-
 
         export_enabled = not self._is_processing_pandoc
         self.save_as_adoc_act.setEnabled(export_enabled)
@@ -2904,14 +2888,14 @@ class AsciiDocEditor(QMainWindow):
         self.save_as_html_act.setEnabled(export_enabled)
         self.save_as_pdf_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
 
-
         git_ready = bool(self._settings.git_repo_path) and not self._is_processing_git
         self.git_commit_act.setEnabled(git_ready)
         self.git_pull_act.setEnabled(git_ready)
         self.git_push_act.setEnabled(git_ready)
 
-
-        self.convert_paste_act.setEnabled(PANDOC_AVAILABLE and not self._is_processing_pandoc)
+        self.convert_paste_act.setEnabled(
+            PANDOC_AVAILABLE and not self._is_processing_pandoc
+        )
 
     def _check_pandoc_availability(self, context: str) -> bool:
         if ENHANCED_PANDOC and ensure_pandoc_available:
@@ -2919,7 +2903,9 @@ class AsciiDocEditor(QMainWindow):
             is_available, message = ensure_pandoc_available()
             if not is_available:
                 self._show_message(
-                    "critical", "Pandoc Setup Required", f"{context} requires Pandoc.\n\n{message}"
+                    "critical",
+                    "Pandoc Setup Required",
+                    f"{context} requires Pandoc.\n\n{message}",
                 )
                 return False
             return True
@@ -2947,9 +2933,7 @@ class AsciiDocEditor(QMainWindow):
             if pandoc.pandoc_path:
                 details += f"Location: {pandoc.pandoc_path}\n"
             details += f"Version: {pandoc.pandoc_version or 'Unknown'}\n"
-            details += (
-                f"pypandoc: {'Available' if pandoc.pypandoc_available else 'Not installed'}\n\n"
-            )
+            details += f"pypandoc: {'Available' if pandoc.pypandoc_available else 'Not installed'}\n\n"
             details += f"Status: {status}"
 
             self._show_message("info", "Pandoc Status", details)
@@ -2972,23 +2956,28 @@ class AsciiDocEditor(QMainWindow):
 
             message = "Supported Conversion Formats:\n\n"
 
-
             key_inputs = ["markdown", "docx", "html", "latex", "rst", "org"]
-            available_inputs = [f for f in key_inputs if pandoc.is_format_supported(f, "input")]
+            available_inputs = [
+                f for f in key_inputs if pandoc.is_format_supported(f, "input")
+            ]
 
             message += "INPUT FORMATS:\n"
             for fmt in available_inputs:
                 desc = pandoc.get_format_info(fmt)
                 message += f"  • {fmt}: {desc}\n"
 
-            message += f"\nTotal input formats: {len(pandoc.supported_formats['input'])}\n"
+            message += (
+                f"\nTotal input formats: {len(pandoc.supported_formats['input'])}\n"
+            )
 
             message += "\nOUTPUT FORMATS:\n"
             message += f"  • asciidoc: {pandoc.get_format_info('asciidoc')}\n"
             message += f"  • markdown: {pandoc.get_format_info('markdown')}\n"
             message += f"  • html: {pandoc.get_format_info('html')}\n"
 
-            message += f"\nTotal output formats: {len(pandoc.supported_formats['output'])}"
+            message += (
+                f"\nTotal output formats: {len(pandoc.supported_formats['output'])}"
+            )
 
             self._show_message("info", "Supported Formats", message)
         else:
@@ -3046,8 +3035,10 @@ class AsciiDocEditor(QMainWindow):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self._settings = dialog.get_settings()
             self._save_settings()
-            self.statusBar.showMessage("Preferences updated", 3000)
-            logger.info(f"AI conversion preference updated: {self._settings.ai_conversion_enabled}")
+            self.status_bar.showMessage("Preferences updated", 3000)
+            logger.info(
+                f"AI conversion preference updated: {self._settings.ai_conversion_enabled}"
+            )
 
     def _show_ai_setup_help(self) -> None:
         """
@@ -3057,11 +3048,9 @@ class AsciiDocEditor(QMainWindow):
         """
         import os
 
-
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         api_key_status = "✓ Configured" if api_key else "✗ Not Set"
         api_key_color = "green" if api_key else "red"
-
 
         client_status = "✓ Available" if CLAUDE_CLIENT_AVAILABLE else "✗ Not Available"
         client_color = "green" if CLAUDE_CLIENT_AVAILABLE else "red"
@@ -3175,20 +3164,16 @@ class AsciiDocEditor(QMainWindow):
             event.ignore()
             return
 
-
         self._save_settings()
-
 
         logger.info("Shutting down worker threads...")
         self.git_thread.quit()
         self.pandoc_thread.quit()
         self.preview_thread.quit()
 
-
         self.git_thread.wait(1000)
         self.pandoc_thread.wait(1000)
         self.preview_thread.wait(1000)
-
 
         try:
             self._temp_dir.cleanup()
@@ -3200,29 +3185,21 @@ class AsciiDocEditor(QMainWindow):
 
 def main():
 
-
-
-
     warnings.filterwarnings("ignore", category=SyntaxWarning)
-
 
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setOrganizationName("AsciiDoc Artisan")
-
 
     if platform.system() == "Windows":
         app.setStyle("windowsvista")
     else:
         app.setStyle("Fusion")
 
-
     window = AsciiDocEditor()
     window.show()
 
-
     window.update_preview()
-
 
     sys.exit(app.exec())
 

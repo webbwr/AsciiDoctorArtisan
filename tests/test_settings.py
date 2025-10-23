@@ -1,6 +1,7 @@
 """
 Unit tests for Settings dataclass and persistence.
 """
+
 from pathlib import Path
 
 import pytest
@@ -29,11 +30,7 @@ class TestSettings:
 
     def test_settings_to_dict(self):
         """Test Settings converts to dictionary correctly."""
-        settings = Settings(
-            last_directory="/test/path",
-            dark_mode=False,
-            font_size=14
-        )
+        settings = Settings(last_directory="/test/path", dark_mode=False, font_size=14)
         data = settings.to_dict()
 
         assert isinstance(data, dict)
@@ -49,7 +46,7 @@ class TestSettings:
             "dark_mode": False,
             "maximized": True,
             "font_size": 16,
-            "splitter_sizes": [400, 600]
+            "splitter_sizes": [400, 600],
         }
 
         settings = Settings.from_dict(data)
@@ -65,7 +62,7 @@ class TestSettings:
         data = {
             "last_directory": "/test/path",
             "unknown_key": "should be ignored",
-            "another_unknown": 123
+            "another_unknown": 123,
         }
 
         settings = Settings.from_dict(data)
@@ -86,13 +83,11 @@ class TestSettings:
             font_size=14,
             auto_save_enabled=True,
             auto_save_interval=600,
-            ai_conversion_enabled=True
+            ai_conversion_enabled=True,
         )
-
 
         data = original.to_dict()
         restored = Settings.from_dict(data)
-
 
         assert restored.last_directory == original.last_directory
         assert restored.last_file == original.last_file

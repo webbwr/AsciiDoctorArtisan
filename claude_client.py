@@ -14,6 +14,7 @@ from typing import Callable, Optional
 
 try:
     from anthropic import Anthropic, APIConnectionError, APIError, RateLimitError
+
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class ConversionFormat(Enum):
     """Supported output formats for document conversion."""
+
     MARKDOWN = "markdown"
     DOCX = "docx"
     HTML = "html"
@@ -35,6 +37,7 @@ class ConversionFormat(Enum):
 @dataclass
 class ConversionResult:
     """Result of a document conversion operation."""
+
     success: bool
     content: Optional[str] = None
     error_message: Optional[str] = None
@@ -61,17 +64,19 @@ class ClaudeClient:
     MAX_TOKENS = 50000
     CHARS_PER_TOKEN = 4
 
-    __slots__ = ('client', 'model', 'max_retries', 'timeout', '_validated')
+    __slots__ = ("client", "model", "max_retries", "timeout", "_validated")
 
     def __init__(
         self,
         api_key: Optional[str] = None,
         model: str = DEFAULT_MODEL,
         max_retries: int = MAX_RETRIES,
-        timeout: int = DEFAULT_TIMEOUT
+        timeout: int = DEFAULT_TIMEOUT,
     ):
         if not ANTHROPIC_AVAILABLE:
-            raise ImportError("Anthropic SDK not installed. Install with: pip install anthropic>=0.40.0")
+            raise ImportError(
+                "Anthropic SDK not installed. Install with: pip install anthropic>=0.40.0"
+            )
 
         self.client = Anthropic(api_key=api_key, timeout=timeout)
         self.model = model
@@ -88,7 +93,7 @@ class ClaudeClient:
             self.client.messages.create(
                 model=self.model,
                 max_tokens=10,
-                messages=[{"role": "user", "content": "test"}]
+                messages=[{"role": "user", "content": "test"}],
             )
             self._validated = True
             logger.info("API key validated")
@@ -101,7 +106,7 @@ class ClaudeClient:
         content: str,
         source_format: str,
         target_format: ConversionFormat,
-        progress_callback: Optional[Callable[[str], None]] = None
+        progress_callback: Optional[Callable[[str], None]] = None,
     ) -> ConversionResult:
         """
         Convert document using Claude AI with intelligent formatting preservation.
@@ -125,7 +130,7 @@ class ClaudeClient:
                     success=False,
                     error_message=str(e),
                     used_ai=True,
-                    processing_time=time.time() - start_time
+                    processing_time=time.time() - start_time,
                 )
 
         if progress_callback:
@@ -136,13 +141,15 @@ class ClaudeClient:
         for attempt in range(1, self.max_retries + 1):
             try:
                 if progress_callback:
-                    progress_callback(f"Claude API request (attempt {attempt}/{self.max_retries})...")
+                    progress_callback(
+                        f"Claude API request (attempt {attempt}/{self.max_retries})..."
+                    )
 
                 response = self.client.messages.create(
                     model=self.model,
                     max_tokens=8192,
                     temperature=0.3,
-                    messages=[{"role": "user", "content": prompt}]
+                    messages=[{"role": "user", "content": prompt}],
                 )
 
                 converted_content = response.content[0].text
@@ -157,12 +164,12 @@ class ClaudeClient:
                     success=True,
                     content=converted_content,
                     used_ai=True,
-                    processing_time=processing_time
+                    processing_time=processing_time,
                 )
 
             except RateLimitError:
                 if attempt < self.max_retries:
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     logger.warning(f"Rate limit hit, retrying in {wait_time}s")
                     if progress_callback:
                         progress_callback(f"Rate limited. Retrying in {wait_time}s...")
@@ -170,20 +177,22 @@ class ClaudeClient:
                 else:
                     return self._error_result(
                         f"Rate limit exceeded after {self.max_retries} attempts",
-                        start_time
+                        start_time,
                     )
 
             except APIConnectionError as e:
                 if attempt < self.max_retries:
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     logger.warning(f"Connection error, retrying in {wait_time}s")
                     if progress_callback:
-                        progress_callback(f"Connection error. Retrying in {wait_time}s...")
+                        progress_callback(
+                            f"Connection error. Retrying in {wait_time}s..."
+                        )
                     time.sleep(wait_time)
                 else:
                     return self._error_result(
                         f"Connection failed after {self.max_retries} attempts: {e}",
-                        start_time
+                        start_time,
                     )
 
             except APIError as e:
@@ -203,12 +212,14 @@ class ClaudeClient:
             success=False,
             error_message=error_message,
             used_ai=True,
-            processing_time=time.time() - start_time
+            processing_time=time.time() - start_time,
         )
 
     @staticmethod
     @lru_cache(maxsize=32)
-    def _build_prompt(content: str, source_format: str, target_format: ConversionFormat) -> str:
+    def _build_prompt(
+        content: str, source_format: str, target_format: ConversionFormat
+    ) -> str:
         """Build optimized conversion prompt. Cached for repeated formats."""
         return f"""Expert document converter. Convert {source_format.upper()} to {target_format.value.upper()}.
 

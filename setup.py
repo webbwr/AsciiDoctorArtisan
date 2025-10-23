@@ -21,7 +21,8 @@ except FileNotFoundError:
 
 try:
     requirements = [
-        line.strip() for line in (BASE_DIR / "requirements.txt").read_text().splitlines()
+        line.strip()
+        for line in (BASE_DIR / "requirements.txt").read_text().splitlines()
         if line.strip() and not line.startswith("#")
     ]
 except FileNotFoundError:
@@ -29,14 +30,23 @@ except FileNotFoundError:
 
 extras_require = {
     "dev": [
-        "pytest>=7.4.0", "pytest-qt>=4.2.0", "pytest-cov>=4.1.0",
-        "black>=23.0.0", "ruff>=0.1.0", "mypy>=1.5.0", "types-setuptools>=68.0.0",
+        "pytest>=7.4.0",
+        "pytest-qt>=4.2.0",
+        "pytest-cov>=4.1.0",
+        "black>=23.0.0",
+        "ruff>=0.1.0",
+        "mypy>=1.5.0",
+        "types-setuptools>=68.0.0",
     ],
     "docs": [
-        "sphinx>=7.0.0", "sphinx-rtd-theme>=1.3.0", "sphinx-autodoc-typehints>=1.24.0",
+        "sphinx>=7.0.0",
+        "sphinx-rtd-theme>=1.3.0",
+        "sphinx-autodoc-typehints>=1.24.0",
     ],
     "build": [
-        "pyinstaller>=6.0.0", "wheel>=0.41.0", "build>=1.0.0",
+        "pyinstaller>=6.0.0",
+        "wheel>=0.41.0",
+        "build>=1.0.0",
     ],
 }
 
@@ -62,7 +72,10 @@ setup(
     include_package_data=True,
     package_data={
         "asciidoc_artisan": [
-            "resources/*.png", "resources/*.ico", "resources/*.json", "templates/*.adoc",
+            "resources/*.png",
+            "resources/*.ico",
+            "resources/*.json",
+            "templates/*.adoc",
         ],
     },
     entry_points={
@@ -96,8 +109,15 @@ setup(
         "Typing :: Typed",
     ],
     keywords=[
-        "asciidoc", "editor", "documentation", "markup", "preview",
-        "qt", "pyside6", "git", "pandoc",
+        "asciidoc",
+        "editor",
+        "documentation",
+        "markup",
+        "preview",
+        "qt",
+        "pyside6",
+        "git",
+        "pandoc",
     ],
     platforms=["any"],
     license="MIT",

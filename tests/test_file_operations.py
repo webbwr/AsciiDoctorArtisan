@@ -1,6 +1,7 @@
 """
 Unit tests for file operations and data integrity.
 """
+
 import tempfile
 from pathlib import Path
 
@@ -30,10 +31,8 @@ class TestFileOperations:
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = Path(tmpdir) / "test.txt"
 
-
             file_path.write_text("Original content", encoding="utf-8")
             assert file_path.read_text(encoding="utf-8") == "Original content"
-
 
             new_content = "New content"
             result = atomic_save_text(file_path, new_content)
@@ -49,7 +48,7 @@ class TestFileOperations:
                 "string": "value",
                 "number": 42,
                 "boolean": True,
-                "nested": {"key": "value"}
+                "nested": {"key": "value"},
             }
 
             result = atomic_save_json(file_path, data)
@@ -57,8 +56,8 @@ class TestFileOperations:
             assert result is True
             assert file_path.exists()
 
-
             import json
+
             loaded = json.loads(file_path.read_text(encoding="utf-8"))
             assert loaded == data
 
@@ -72,7 +71,6 @@ class TestFileOperations:
 
             assert result is True
             content = file_path.read_text(encoding="utf-8")
-
 
             assert "  " in content
             assert "\\n" in repr(content)
@@ -104,7 +102,7 @@ class TestPathSanitization:
         dangerous_paths = [
             "../../../etc/passwd",
             "test/../../secret",
-            "/home/../etc/shadow"
+            "/home/../etc/shadow",
         ]
 
         for dangerous_path in dangerous_paths:
@@ -126,10 +124,6 @@ class TestPathSanitization:
 
         dangerous_path = "/home/user/documents/../../etc/passwd"
         result = sanitize_path(dangerous_path)
-
-
-
-
 
         if result is not None:
             assert isinstance(result, Path)
