@@ -8,18 +8,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Repository cleanup (removed unused template files)
-- MIT License
-- This CHANGELOG file
-- Comprehensive code analysis and MVP plan document
+- Settings dataclass for structured configuration management (FR-045)
+- Persistent splitter position between editor and preview panes (FR-045)
+- Persistent font size across application sessions (FR-043)
+- Comprehensive test suite with pytest infrastructure
+- Unit tests for Settings dataclass persistence
+- Unit tests for atomic file operations
+- Unit tests for path sanitization security
+- pytest.ini configuration for test organization
+- Test markers for unit, integration, and GUI tests
 
 ### Changed
-- Improved configuration file handling
-- Enhanced input sanitization for Git commands
-- Better user-facing error messages
+- **BREAKING**: Removed Claude AI integration (out of specification scope)
+- Refactored settings management to use dataclass pattern
+- Settings now stored in Settings dataclass matching specification
+- All configuration persistence uses Settings.to_dict/from_dict
+- Updated requirements.txt to remove anthropic and requests dependencies
+- Improved README.md to focus on specification features only
+- Enhanced settings restoration on application startup
+
+### Removed
+- Claude AI integration files (claude_client.py, claude_integration_example.py)
+- Claude AI integration directory (claude-integration/)
+- Claude AI documentation (CLAUDE_INTEGRATION.md, CLAUDE_MIGRATION_GUIDE.md, ANTHROPIC_SDK_INTEGRATION_SUMMARY.md)
+- anthropic>=0.71.0 dependency
+- requests>=2.31.0 dependency
 
 ### Fixed
+- Settings now properly persist splitter sizes between sessions
+- Font size now properly persists between application sessions
 - Configuration file location now uses platform-appropriate paths
+
+### Technical Improvements
+- Code now fully aligned with project specification (.specify/specs/)
+- All settings variables migrated from instance variables to Settings dataclass
+- Added 14 passing unit tests with 100% success rate
+- Improved code maintainability with structured settings management
 
 ## [1.0.0-alpha] - 2025-10-19
 

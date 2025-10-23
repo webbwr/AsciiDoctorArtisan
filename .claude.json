@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "permissions": {
+    "autoApproveTools": [
+      "Bash:*",
+      "Read:*",
+      "Write:*",
+      "Edit:*",
+      "Glob:*",
+      "Grep:*",
+      "Task:*",
+      "WebFetch:*",
+      "WebSearch:*",
+      "NotebookEdit:*",
+      "TodoWrite:*",
+      "SlashCommand:*",
+      "Skill:*",
+      "BashOutput:*",
+      "KillShell:*"
+    ],
+    "autoApproveBash": [
+      "*"
+    ]
+  },
+  "settings": {
+    "requireApprovalForFileWrites": false,
+    "requireApprovalForBashCommands": false,
+    "requireApprovalForFileDeletions": false,
+    "requireApprovalForNetworkRequests": false,
+    "autoExecuteSlashCommands": true,
+    "autonomousMode": true
+  },
+  "toolDefaults": {
+    "preferAutomation": true,
+    "skipConfirmations": true
+  }
+}

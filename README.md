@@ -6,7 +6,7 @@ A modern, feature-rich AsciiDoc editor with live preview, built with Python and 
 
 - **Live Preview**: Real-time HTML preview of your AsciiDoc content
 - **Syntax Highlighting**: Clear, monospace editor optimized for AsciiDoc
-- **Document Conversion**: Import/export DOCX files via Pandoc
+- **Document Conversion**: Import/export multiple formats (DOCX, Markdown, HTML, LaTeX, RST, PDF) via Pandoc
 - **Git Integration**: Commit, pull, and push directly from the editor
 - **Dark Mode**: Toggle between light and dark themes
 - **Auto-save**: Automatic saving with configurable intervals
@@ -19,8 +19,8 @@ A modern, feature-rich AsciiDoc editor with live preview, built with Python and 
 - **Python**: 3.11+ (3.12 recommended)
 - **PySide6**: 6.9.0 or higher
 - **asciidoc3**: For AsciiDoc to HTML conversion
-- **pypandoc**: For DOCX import/export (optional)
-- **Pandoc**: Required for DOCX conversion (install separately)
+- **pypandoc**: For document format conversion (optional)
+- **Pandoc**: Required for multi-format conversion (install separately)
 - **Git**: Required for version control features (optional)
 
 ## Installation

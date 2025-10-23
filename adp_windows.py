@@ -19,8 +19,9 @@ import sys
 import tempfile
 import uuid
 import warnings
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Union
+from typing import List, NamedTuple, Optional, Union, Dict, Any
 
 # Configure logging
 logging.basicConfig(
@@ -257,6 +258,38 @@ class GitResult(NamedTuple):
     stderr: str
     exit_code: Optional[int]
     user_message: str
+
+
+# Settings Management
+@dataclass
+class Settings:
+    """
+    Application settings with persistence support.
+
+    Attributes match the specification in .specify/specs/data-model.md
+    """
+    last_directory: str = field(default_factory=lambda: str(Path.home()))
+    last_file: Optional[str] = None
+    git_repo_path: Optional[str] = None
+    dark_mode: bool = True
+    maximized: bool = False
+    window_geometry: Optional[Dict[str, int]] = None
+    splitter_sizes: Optional[List[int]] = None
+    font_size: int = EDITOR_FONT_SIZE
+    auto_save_enabled: bool = True
+    auto_save_interval: int = 300
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert settings to dictionary for JSON serialization."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Settings':
+        """Create Settings instance from dictionary."""
+        # Filter out any keys that aren't in the dataclass
+        valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
+        filtered_data = {k: v for k, v in data.items() if k in valid_keys}
+        return cls(**filtered_data)
 
 
 class GitWorker(QObject):
@@ -573,6 +606,7 @@ class AsciiDocEditor(QMainWindow):
             )
 
         self._setup_ui()
+        self._restore_ui_settings()  # Restore splitter, font, etc. from settings
         self._create_actions()
         self._create_menus()
         self._apply_theme()
@@ -590,13 +624,26 @@ class AsciiDocEditor(QMainWindow):
             docs_path = QStandardPaths.writableLocation(
                 QStandardPaths.StandardLocation.DocumentsLocation
             )
-            self._last_directory = docs_path or str(Path.home() / "Documents")
+            last_dir = docs_path or str(Path.home() / "Documents")
         else:
-            self._last_directory = str(Path.home())
+            last_dir = str(Path.home())
 
+        # Initialize Settings dataclass with defaults
+        self._settings = Settings(
+            last_directory=last_dir,
+            last_file=None,
+            git_repo_path=None,
+            dark_mode=True,
+            maximized=False,
+            window_geometry=None,
+            splitter_sizes=None,
+            font_size=EDITOR_FONT_SIZE,
+            auto_save_enabled=True,
+            auto_save_interval=300
+        )
+
+        # UI state variables (not persisted in settings)
         self._current_file_path: Optional[Path] = None
-        self._git_repo_path: Optional[Path] = None
-        self._dark_mode_enabled = True
         self._initial_geometry = None
         self._start_maximized = False  # Don't maximize by default
         self._asciidoc_api = self._initialize_asciidoc()
@@ -651,26 +698,32 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             with open(self._settings_path, "r", encoding="utf-8") as f:
-                settings = json.load(f)
+                data = json.load(f)
 
-            # Load directory setting
-            if "last_directory" in settings:
-                dir_path = settings["last_directory"]
-                if Path(dir_path).is_dir():
-                    self._last_directory = dir_path
+            # Load settings from dictionary into dataclass
+            self._settings = Settings.from_dict(data)
 
-            # Load other settings
-            self._git_repo_path = settings.get("git_repo_path")
-            self._dark_mode_enabled = settings.get("dark_mode", True)
-            self._start_maximized = settings.get("maximized", False)
+            # Validate and apply loaded settings
+            if self._settings.last_directory and Path(self._settings.last_directory).is_dir():
+                pass  # Valid directory
+            else:
+                # Reset to default if invalid
+                self._settings.last_directory = str(Path.home())
+
+            # Set UI state from settings
+            self._start_maximized = self._settings.maximized
 
             # Load window geometry if not maximized
-            if not self._start_maximized and "window_geometry" in settings:
-                geom = settings["window_geometry"]
+            if not self._start_maximized and self._settings.window_geometry:
+                geom = self._settings.window_geometry
                 if all(key in geom for key in ["x", "y", "width", "height"]):
                     self._initial_geometry = QRect(
                         geom["x"], geom["y"], geom["width"], geom["height"]
                     )
+
+            # Load last file if exists
+            if self._settings.last_file and Path(self._settings.last_file).is_file():
+                self._current_file_path = Path(self._settings.last_file)
 
             logger.info("Settings loaded successfully")
 
@@ -678,28 +731,55 @@ class AsciiDocEditor(QMainWindow):
             logger.error(f"Failed to load settings: {e}")
 
     def _save_settings(self) -> None:
-        settings = {
-            "last_directory": self._last_directory,
-            "git_repo_path": self._git_repo_path,
-            "dark_mode": self.dark_mode_act.isChecked(),
-            "maximized": self.isMaximized(),
-        }
+        # Update settings from current state
+        self._settings.last_directory = str(Path(self._current_file_path).parent) if self._current_file_path else self._settings.last_directory
+        self._settings.last_file = str(self._current_file_path) if self._current_file_path else None
+        self._settings.git_repo_path = str(self._settings.git_repo_path) if hasattr(self, '_settings') and self._settings.git_repo_path else None
+        self._settings.dark_mode = self.dark_mode_act.isChecked() if hasattr(self, 'dark_mode_act') else True
+        self._settings.maximized = self.isMaximized()
 
         # Save geometry if not maximized
         if not self.isMaximized():
             geom = self.geometry()
-            settings["window_geometry"] = {
+            self._settings.window_geometry = {
                 "x": geom.x(),
                 "y": geom.y(),
                 "width": geom.width(),
                 "height": geom.height(),
             }
+        else:
+            self._settings.window_geometry = None
 
-        # Save settings with atomic write
-        if atomic_save_json(self._settings_path, settings, encoding="utf-8", indent=2):
+        # Save splitter sizes (FR-045)
+        if hasattr(self, 'splitter') and self.splitter:
+            self._settings.splitter_sizes = self.splitter.sizes()
+
+        # Save font size (FR-043)
+        if hasattr(self, 'editor'):
+            font = self.editor.font()
+            self._settings.font_size = font.pointSize()
+
+        # Convert settings to dictionary and save with atomic write
+        settings_dict = self._settings.to_dict()
+        if atomic_save_json(self._settings_path, settings_dict, encoding="utf-8", indent=2):
             logger.info("Settings saved successfully")
         else:
             logger.error(f"Failed to save settings: {self._settings_path}")
+
+    def _restore_ui_settings(self) -> None:
+        """Restore UI state from settings (splitter sizes, font size, etc.)."""
+        # Restore splitter sizes (FR-045)
+        if self._settings.splitter_sizes and len(self._settings.splitter_sizes) == 2:
+            # Use QTimer to ensure the window is fully laid out before setting sizes
+            QTimer.singleShot(100, lambda: self.splitter.setSizes(self._settings.splitter_sizes))
+            logger.info(f"Restoring splitter sizes: {self._settings.splitter_sizes}")
+
+        # Restore font size (FR-043)
+        if self._settings.font_size and self._settings.font_size != EDITOR_FONT_SIZE:
+            font = self.editor.font()
+            font.setPointSize(self._settings.font_size)
+            self.editor.setFont(font)
+            logger.info(f"Restoring font size: {self._settings.font_size}")
 
     def _initialize_asciidoc(self) -> Optional[AsciiDoc3API]:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
@@ -755,7 +835,7 @@ class AsciiDocEditor(QMainWindow):
         self.editor_label = QLabel("Editor")
         # Store label as instance variable to update color dynamically
         # Set initial color based on current theme
-        if self._dark_mode_enabled:
+        if self._settings.dark_mode:
             self.editor_label.setStyleSheet("color: white;")
         else:
             self.editor_label.setStyleSheet("color: black;")
@@ -815,7 +895,7 @@ class AsciiDocEditor(QMainWindow):
         self.preview_label = QLabel("Preview")
         # Store label as instance variable to update color dynamically
         # Set initial color based on current theme
-        if self._dark_mode_enabled:
+        if self._settings.dark_mode:
             self.preview_label.setStyleSheet("color: white;")
         else:
             self.preview_label.setStyleSheet("color: black;")
@@ -1092,7 +1172,7 @@ class AsciiDocEditor(QMainWindow):
             "&Dark Mode",
             self,
             checkable=True,
-            checked=self._dark_mode_enabled,
+            checked=self._settings.dark_mode,
             statusTip="Toggle dark mode",
             triggered=self._toggle_dark_mode,
         )
@@ -1287,7 +1367,7 @@ class AsciiDocEditor(QMainWindow):
         self.setWindowTitle(title)
 
     def _apply_theme(self) -> None:
-        if self._dark_mode_enabled:
+        if self._settings.dark_mode:
             self._apply_dark_theme()
             # Update label colors for dark mode
             if hasattr(self, "editor_label"):
@@ -1348,7 +1428,7 @@ class AsciiDocEditor(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Open File",
-            self._last_directory,
+            self._settings.last_directory,
             SUPPORTED_OPEN_FILTER,
             options=(
                 QFileDialog.Option.DontUseNativeDialog
@@ -1361,7 +1441,7 @@ class AsciiDocEditor(QMainWindow):
             return
 
         file_path = Path(file_path)
-        self._last_directory = str(file_path.parent)
+        self._settings.last_directory = str(file_path.parent)
 
         try:
             suffix = file_path.suffix.lower()
@@ -1487,7 +1567,7 @@ class AsciiDocEditor(QMainWindow):
             suggested_name = (
                 self._current_file_path.name if self._current_file_path else DEFAULT_FILENAME
             )
-            suggested_path = Path(self._last_directory) / suggested_name
+            suggested_path = Path(self._settings.last_directory) / suggested_name
 
             file_path, selected_filter = QFileDialog.getSaveFileName(
                 self,
@@ -1569,7 +1649,7 @@ class AsciiDocEditor(QMainWindow):
 
         if atomic_save_text(file_path, content, encoding="utf-8"):
             self._current_file_path = file_path
-            self._last_directory = str(file_path.parent)
+            self._settings.last_directory = str(file_path.parent)
             self._unsaved_changes = False
             self._update_window_title()
             self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
@@ -1591,7 +1671,7 @@ class AsciiDocEditor(QMainWindow):
         if format_type == "adoc":
             if atomic_save_text(file_path, content, encoding="utf-8"):
                 self._current_file_path = file_path
-                self._last_directory = str(file_path.parent)
+                self._settings.last_directory = str(file_path.parent)
                 self._unsaved_changes = False
                 self._update_window_title()
                 self.statusBar.showMessage(f"Saved as AsciiDoc: {file_path}")
@@ -1710,7 +1790,7 @@ class AsciiDocEditor(QMainWindow):
         # Update current file path for AsciiDoc files
         if format_type == "adoc":
             self._current_file_path = file_path
-            self._last_directory = str(file_path.parent)
+            self._settings.last_directory = str(file_path.parent)
             self._unsaved_changes = False
             self._update_window_title()
 
@@ -1739,7 +1819,7 @@ class AsciiDocEditor(QMainWindow):
         else:
             suggested_name = "document" + suggested_ext
 
-        suggested_path = Path(self._last_directory) / suggested_name
+        suggested_path = Path(self._settings.last_directory) / suggested_name
 
         # Show save dialog
         file_path, _ = QFileDialog.getSaveFileName(
@@ -2020,7 +2100,7 @@ class AsciiDocEditor(QMainWindow):
 
     def _get_preview_css(self) -> str:
         # Enhanced CSS for better AsciiDoc WYSIWYG rendering
-        if self._dark_mode_enabled:
+        if self._settings.dark_mode:
             return """
                 body {
                     background:#1e1e1e; color:#dcdcdc;
@@ -2089,7 +2169,7 @@ class AsciiDocEditor(QMainWindow):
         self.preview.zoomIn(delta)
 
     def _toggle_dark_mode(self) -> None:
-        self._dark_mode_enabled = self.dark_mode_act.isChecked()
+        self._settings.dark_mode = self.dark_mode_act.isChecked()
         self._apply_theme()
         self.update_preview()
 
@@ -2200,7 +2280,7 @@ class AsciiDocEditor(QMainWindow):
         dir_path = QFileDialog.getExistingDirectory(
             self,
             "Select Git Repository",
-            self._git_repo_path or self._last_directory,
+            self._settings.git_repo_path or self._settings.last_directory,
             QFileDialog.Option.ShowDirsOnly,
         )
 
@@ -2213,7 +2293,7 @@ class AsciiDocEditor(QMainWindow):
             )
             return
 
-        self._git_repo_path = dir_path
+        self._settings.git_repo_path = dir_path
         self.statusBar.showMessage(f"Git repository set: {dir_path}")
         self._update_ui_state()
 
@@ -2238,7 +2318,7 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
 
         self.statusBar.showMessage("Committing changes...")
-        self.request_git_command.emit(["git", "add", "."], self._git_repo_path)
+        self.request_git_command.emit(["git", "add", "."], self._settings.git_repo_path)
 
     def _trigger_git_pull(self) -> None:
         if not self._ensure_git_ready():
@@ -2249,7 +2329,7 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
 
         self.statusBar.showMessage("Pulling from remote...")
-        self.request_git_command.emit(["git", "pull"], self._git_repo_path)
+        self.request_git_command.emit(["git", "pull"], self._settings.git_repo_path)
 
     def _trigger_git_push(self) -> None:
         if not self._ensure_git_ready():
@@ -2260,10 +2340,10 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
 
         self.statusBar.showMessage("Pushing to remote...")
-        self.request_git_command.emit(["git", "push"], self._git_repo_path)
+        self.request_git_command.emit(["git", "push"], self._settings.git_repo_path)
 
     def _ensure_git_ready(self) -> bool:
-        if not self._git_repo_path:
+        if not self._settings.git_repo_path:
             self._show_message("info", "No Repository", "Please set a Git repository first.")
             return False
         if self._is_processing_git:
@@ -2276,7 +2356,7 @@ class AsciiDocEditor(QMainWindow):
         if self._last_git_operation == "commit" and result.success:
             # Continue with actual commit
             self.request_git_command.emit(
-                ["git", "commit", "-m", self._pending_commit_message], self._git_repo_path
+                ["git", "commit", "-m", self._pending_commit_message], self._settings.git_repo_path
             )
             self._last_git_operation = "commit_final"
             return
@@ -2410,7 +2490,7 @@ class AsciiDocEditor(QMainWindow):
         self.save_as_pdf_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
 
         # Git operations
-        git_ready = bool(self._git_repo_path) and not self._is_processing_git
+        git_ready = bool(self._settings.git_repo_path) and not self._is_processing_git
         self.git_commit_act.setEnabled(git_ready)
         self.git_pull_act.setEnabled(git_ready)
         self.git_push_act.setEnabled(git_ready)

@@ -60,8 +60,4 @@ test_*.adoc
 *.exe
 *.app
 
-# Claude AI Integration
-claude-integration/node_modules/
-claude-integration/.env
-claude-integration/package-lock.json
-claude-integration/*.log
+# Removed: Claude AI Integration (out of specification scope)
