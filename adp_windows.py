@@ -58,7 +58,10 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QApplication,
+    QCheckBox,
+    QDialog,
     QFileDialog,
+    QGroupBox,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -303,6 +306,215 @@ class Settings:
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
         return cls(**filtered_data)
+
+
+class ImportOptionsDialog(QDialog):
+    """
+    Import options dialog for per-operation AI conversion choice.
+
+    FR-055: AI-Enhanced Conversion option with per-operation override for imports
+    """
+
+    def __init__(self, format_type: str, filename: str, default_use_ai: bool, parent=None):
+        super().__init__(parent)
+        self.format_type = format_type
+        self.filename = filename
+        self.default_use_ai = default_use_ai
+        self._init_ui()
+
+    def _init_ui(self):
+        """Initialize the import options UI."""
+        self.setWindowTitle(f"Import {self.format_type.upper()}")
+        self.setMinimumWidth(400)
+
+        layout = QVBoxLayout(self)
+
+        # Info text
+        info_label = QLabel(f"Converting '{self.filename}' from {self.format_type.upper()} to AsciiDoc.")
+        layout.addWidget(info_label)
+
+        # AI conversion checkbox
+        self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this import")
+        self.ai_checkbox.setChecked(self.default_use_ai)
+        self.ai_checkbox.setToolTip(
+            "AI conversion preserves complex formatting like nested lists and tables.\n"
+            "Requires ANTHROPIC_API_KEY environment variable and may incur costs."
+        )
+
+        # Disable checkbox if Claude is not available
+        if not CLAUDE_CLIENT_AVAILABLE:
+            self.ai_checkbox.setEnabled(False)
+            self.ai_checkbox.setToolTip("Claude AI is not available (missing anthropic library or API key)")
+
+        layout.addWidget(self.ai_checkbox)
+
+        # Spacer
+        layout.addStretch()
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        ok_button = QPushButton("Import")
+        ok_button.setDefault(True)
+        ok_button.clicked.connect(self.accept)
+        button_layout.addWidget(ok_button)
+
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+
+        layout.addLayout(button_layout)
+
+    def get_use_ai(self) -> bool:
+        """Get the user's choice for AI conversion."""
+        return self.ai_checkbox.isChecked() if CLAUDE_CLIENT_AVAILABLE else False
+
+
+class ExportOptionsDialog(QDialog):
+    """
+    Export options dialog for per-operation AI conversion choice.
+
+    FR-055: AI-Enhanced Conversion option with per-operation override
+    """
+
+    def __init__(self, format_type: str, default_use_ai: bool, parent=None):
+        super().__init__(parent)
+        self.format_type = format_type
+        self.default_use_ai = default_use_ai
+        self.use_ai = default_use_ai
+        self._init_ui()
+
+    def _init_ui(self):
+        """Initialize the export options UI."""
+        self.setWindowTitle(f"Export to {self.format_type.upper()}")
+        self.setMinimumWidth(400)
+
+        layout = QVBoxLayout(self)
+
+        # Info text
+        info_label = QLabel(f"Exporting document to {self.format_type.upper()} format.")
+        layout.addWidget(info_label)
+
+        # AI conversion checkbox
+        self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this export")
+        self.ai_checkbox.setChecked(self.default_use_ai)
+        self.ai_checkbox.setToolTip(
+            "AI conversion preserves complex formatting like nested lists and tables.\n"
+            "Requires ANTHROPIC_API_KEY environment variable and may incur costs."
+        )
+
+        # Disable checkbox if Claude is not available
+        if not CLAUDE_CLIENT_AVAILABLE:
+            self.ai_checkbox.setEnabled(False)
+            self.ai_checkbox.setToolTip("Claude AI is not available (missing anthropic library or API key)")
+
+        layout.addWidget(self.ai_checkbox)
+
+        # Spacer
+        layout.addStretch()
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        ok_button = QPushButton("Export")
+        ok_button.setDefault(True)
+        ok_button.clicked.connect(self.accept)
+        button_layout.addWidget(ok_button)
+
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+
+        layout.addLayout(button_layout)
+
+    def get_use_ai(self) -> bool:
+        """Get the user's choice for AI conversion."""
+        return self.ai_checkbox.isChecked() if CLAUDE_CLIENT_AVAILABLE else False
+
+
+class PreferencesDialog(QDialog):
+    """
+    Preferences dialog for user settings.
+
+    FR-055: AI-Enhanced Conversion option configuration
+    """
+
+    def __init__(self, settings: Settings, parent=None):
+        super().__init__(parent)
+        self.settings = settings
+        self._init_ui()
+
+    def _init_ui(self):
+        """Initialize the preferences UI."""
+        self.setWindowTitle("Preferences")
+        self.setMinimumWidth(500)
+
+        # Main layout
+        layout = QVBoxLayout(self)
+
+        # AI Conversion Section
+        ai_group = QGroupBox("AI-Enhanced Conversion")
+        ai_layout = QVBoxLayout()
+
+        # AI enabled checkbox
+        self.ai_enabled_checkbox = QCheckBox("Enable AI-enhanced conversion by default")
+        self.ai_enabled_checkbox.setChecked(self.settings.ai_conversion_enabled)
+        self.ai_enabled_checkbox.setToolTip(
+            "Use Claude AI for better document conversions\n"
+            "Preserves complex formatting like nested lists and tables"
+        )
+        ai_layout.addWidget(self.ai_enabled_checkbox)
+
+        # API key status
+        api_key_status = self._get_api_key_status()
+        status_label = QLabel(f"API Key Status: {api_key_status}")
+        status_label.setStyleSheet(
+            "QLabel { color: green; }" if api_key_status == "✓ Configured" else "QLabel { color: red; }"
+        )
+        ai_layout.addWidget(status_label)
+
+        # Info text
+        info_label = QLabel(
+            "• Requires ANTHROPIC_API_KEY environment variable\n"
+            "• May incur usage costs (see anthropic.com for pricing)\n"
+            "• Falls back to Pandoc automatically if unavailable\n"
+            "• See Help → AI Conversion Setup for more information"
+        )
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
+        ai_layout.addWidget(info_label)
+
+        ai_group.setLayout(ai_layout)
+        layout.addWidget(ai_group)
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(self.accept)
+        button_layout.addWidget(ok_button)
+
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+
+        layout.addLayout(button_layout)
+
+    def _get_api_key_status(self) -> str:
+        """Check if ANTHROPIC_API_KEY is configured."""
+        import os
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if api_key and len(api_key) > 0:
+            return "✓ Configured"
+        return "✗ Not Set"
+
+    def get_settings(self) -> Settings:
+        """Get updated settings from dialog."""
+        self.settings.ai_conversion_enabled = self.ai_enabled_checkbox.isChecked()
+        return self.settings
 
 
 class GitWorker(QObject):
@@ -701,7 +913,7 @@ class PreviewWorker(QObject):
 
 class AsciiDocEditor(QMainWindow):
     request_git_command = Signal(list, str)
-    request_pandoc_conversion = Signal(object, str, str, str, object)
+    request_pandoc_conversion = Signal(object, str, str, str, object, bool)  # Added use_ai_conversion parameter
     request_preview_render = Signal(str)  # Request preview rendering
 
     def __init__(self) -> None:
@@ -1268,6 +1480,14 @@ class AsciiDocEditor(QMainWindow):
             triggered=self.convert_and_paste_from_clipboard,
         )
 
+        self.preferences_act = QAction(
+            "&Preferences...",
+            self,
+            shortcut="Ctrl+,",
+            statusTip="Configure application preferences",
+            triggered=self._show_preferences_dialog,
+        )
+
         # View actions
         self.zoom_in_act = QAction(
             "Zoom &In",
@@ -1367,6 +1587,21 @@ class AsciiDocEditor(QMainWindow):
             triggered=self._show_supported_formats,
         )
 
+        # Help menu actions
+        self.ai_setup_help_act = QAction(
+            "&AI Conversion Setup",
+            self,
+            statusTip="How to set up AI-enhanced conversion",
+            triggered=self._show_ai_setup_help,
+        )
+
+        self.about_act = QAction(
+            "&About",
+            self,
+            statusTip="About AsciiDoctor Artisan",
+            triggered=self._show_about,
+        )
+
     def _create_menus(self) -> None:
         menubar = self.menuBar()
 
@@ -1399,6 +1634,8 @@ class AsciiDocEditor(QMainWindow):
         edit_menu.addAction(self.paste_act)
         edit_menu.addSeparator()
         edit_menu.addAction(self.convert_paste_act)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.preferences_act)
 
         # View menu
         view_menu = menubar.addMenu("&View")
@@ -1423,6 +1660,12 @@ class AsciiDocEditor(QMainWindow):
         tools_menu = menubar.addMenu("&Tools")
         tools_menu.addAction(self.pandoc_status_act)
         tools_menu.addAction(self.pandoc_formats_act)
+
+        # Help menu
+        help_menu = menubar.addMenu("&Help")
+        help_menu.addAction(self.ai_setup_help_act)
+        help_menu.addSeparator()
+        help_menu.addAction(self.about_act)
 
     def _setup_workers_and_threads(self) -> None:
         logger.info("Setting up worker threads...")
@@ -1517,6 +1760,21 @@ class AsciiDocEditor(QMainWindow):
         palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
         QApplication.setPalette(palette)
 
+    def _get_ai_conversion_preference(self) -> bool:
+        """
+        Get AI conversion preference with availability check.
+
+        Returns True if AI conversion should be used:
+        - Claude client is available
+        - Settings have AI enabled
+        - API key is present in environment
+
+        FR-055: AI-Enhanced Conversion option
+        """
+        if not CLAUDE_CLIENT_AVAILABLE:
+            return False
+        return self._settings.ai_conversion_enabled
+
     @Slot()
     def new_file(self) -> None:
         """Create a new file."""
@@ -1590,21 +1848,6 @@ class AsciiDocEditor(QMainWindow):
                 if not self._check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
                     return
 
-                self._is_processing_pandoc = True
-                self._pending_file_path = file_path
-                self._update_ui_state()
-
-                # Clear editor and show conversion message
-                self.editor.setPlainText(
-                    f"// Converting {file_path.name} to AsciiDoc...\n// Please wait..."
-                )
-                self.preview.setHtml(
-                    "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
-                )
-                self.statusBar.showMessage(
-                    f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc..."
-                )
-
                 # Determine the input format for pandoc
                 format_map = {
                     ".docx": ("docx", "binary"),
@@ -1620,6 +1863,30 @@ class AsciiDocEditor(QMainWindow):
 
                 input_format, file_type = format_map.get(suffix, ("markdown", "text"))
 
+                # Show import options dialog
+                # FR-055: Allow per-operation AI conversion override
+                use_ai_for_import = self._get_ai_conversion_preference()
+                import_dialog = ImportOptionsDialog(input_format, file_path.name, use_ai_for_import, self)
+                if import_dialog.exec() == QDialog.DialogCode.Accepted:
+                    use_ai_for_import = import_dialog.get_use_ai()
+                else:
+                    return  # User cancelled import
+
+                self._is_processing_pandoc = True
+                self._pending_file_path = file_path
+                self._update_ui_state()
+
+                # Clear editor and show conversion message
+                self.editor.setPlainText(
+                    f"// Converting {file_path.name} to AsciiDoc...\n// Please wait..."
+                )
+                self.preview.setHtml(
+                    "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
+                )
+                self.statusBar.showMessage(
+                    f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc..."
+                )
+
                 # Read file content based on type
                 if file_type == "binary":
                     file_content = file_path.read_bytes()
@@ -1628,11 +1895,12 @@ class AsciiDocEditor(QMainWindow):
 
                 # Log the conversion start
                 logger.info(
-                    f"Starting conversion of {file_path.name} from {input_format} to asciidoc"
+                    f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})"
                 )
 
                 self.request_pandoc_conversion.emit(
-                    file_content, "asciidoc", input_format, f"converting '{file_path.name}'", None
+                    file_content, "asciidoc", input_format, f"converting '{file_path.name}'", None,
+                    use_ai_for_import  # FR-055: Per-operation AI preference
                 )
             else:
                 # Open AsciiDoc directly
@@ -1744,10 +2012,20 @@ class AsciiDocEditor(QMainWindow):
 
             # If saving as non-AsciiDoc format, use export functionality
             if format_type != "adoc":
+                # Show export options dialog for formats that need conversion
+                # FR-055: Allow per-operation AI conversion override
+                use_ai_for_export = self._get_ai_conversion_preference()
+                if format_type in ["md", "docx", "pdf"]:
+                    export_dialog = ExportOptionsDialog(format_type, use_ai_for_export, self)
+                    if export_dialog.exec() == QDialog.DialogCode.Accepted:
+                        use_ai_for_export = export_dialog.get_use_ai()
+                    else:
+                        return False  # User cancelled export
+
                 logger.info(
-                    f"Calling _save_as_format_internal with file_path={file_path}, format_type={format_type}"
+                    f"Calling _save_as_format_internal with file_path={file_path}, format_type={format_type}, use_ai={use_ai_for_export}"
                 )
-                return self._save_as_format_internal(file_path, format_type)
+                return self._save_as_format_internal(file_path, format_type, use_ai_for_export)
 
         else:
             # For regular save, always use AsciiDoc format
@@ -1776,11 +2054,22 @@ class AsciiDocEditor(QMainWindow):
             self._show_message("critical", "Save Error", f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.")
             return False
 
-    def _save_as_format_internal(self, file_path: Path, format_type: str) -> bool:
-        """Internal method to save file in specified format without showing dialog."""
+    def _save_as_format_internal(self, file_path: Path, format_type: str, use_ai: bool = None) -> bool:
+        """Internal method to save file in specified format without showing dialog.
+
+        Args:
+            file_path: Target file path
+            format_type: Target format (adoc, md, docx, pdf, html)
+            use_ai: Whether to use AI conversion (None = use settings default)
+        """
         logger.info(
-            f"_save_as_format_internal called - file_path: {file_path}, format_type: {format_type}"
+            f"_save_as_format_internal called - file_path: {file_path}, format_type: {format_type}, use_ai: {use_ai}"
         )
+
+        # Use settings default if not specified
+        if use_ai is None:
+            use_ai = self._get_ai_conversion_preference()
+
         # Get current content
         content = self.editor.toPlainText()
 
@@ -1890,6 +2179,7 @@ class AsciiDocEditor(QMainWindow):
                 "html",  # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 file_path,
+                use_ai  # FR-055: Per-operation AI preference
             )
         else:
             # For text formats, get the result and save it
@@ -1899,6 +2189,7 @@ class AsciiDocEditor(QMainWindow):
                 "html",  # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 None,
+                use_ai  # FR-055: Per-operation AI preference
             )
             # Store target path for when conversion completes
             self._pending_export_path = file_path
@@ -1962,6 +2253,16 @@ class AsciiDocEditor(QMainWindow):
 
         # Get current content
         content = self.editor.toPlainText()
+
+        # For formats that require conversion, show export options dialog
+        # FR-055: Allow per-operation AI conversion override
+        use_ai_for_export = self._get_ai_conversion_preference()  # Default from settings
+        if format_type in ["md", "docx", "pdf"]:
+            export_dialog = ExportOptionsDialog(format_type, use_ai_for_export, self)
+            if export_dialog.exec() == QDialog.DialogCode.Accepted:
+                use_ai_for_export = export_dialog.get_use_ai()
+            else:
+                return False  # User cancelled export
 
         # For native AsciiDoc format, save with atomic write
         if format_type == "adoc":
@@ -2060,6 +2361,7 @@ class AsciiDocEditor(QMainWindow):
                 "html",  # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 file_path,
+                use_ai_for_export  # FR-055: Per-operation AI preference
             )
             self._pending_export_path = None  # Don't need to save later
             self._pending_export_format = None
@@ -2071,6 +2373,7 @@ class AsciiDocEditor(QMainWindow):
                 "html",  # from_format (source)
                 f"Exporting to {format_type.upper()}",
                 None,
+                use_ai_for_export  # FR-055: Per-operation AI preference
             )
             # Store target path for when conversion completes
             self._pending_export_path = file_path
@@ -2390,7 +2693,8 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
         self.statusBar.showMessage("Converting clipboard content...")
         self.request_pandoc_conversion.emit(
-            source_text, "asciidoc", source_format, "clipboard conversion", None
+            source_text, "asciidoc", source_format, "clipboard conversion", None,
+            self._get_ai_conversion_preference()  # FR-055: Use AI if enabled
         )
 
     def _select_git_repository(self) -> None:
@@ -2737,6 +3041,139 @@ class AsciiDocEditor(QMainWindow):
             return True
         else:
             return False
+
+    def _show_preferences_dialog(self) -> None:
+        """
+        Show preferences dialog for configuring application settings.
+
+        FR-055: AI-Enhanced Conversion option configuration UI
+        """
+        dialog = PreferencesDialog(self._settings, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self._settings = dialog.get_settings()
+            self._save_settings()
+            self.statusBar.showMessage("Preferences updated", 3000)
+            logger.info(f"AI conversion preference updated: {self._settings.ai_conversion_enabled}")
+
+    def _show_ai_setup_help(self) -> None:
+        """
+        Show help dialog for AI conversion setup.
+
+        FR-055: AI Conversion Setup documentation
+        """
+        import os
+
+        # Check current API key status
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        api_key_status = "✓ Configured" if api_key else "✗ Not Set"
+        api_key_color = "green" if api_key else "red"
+
+        # Check Claude client availability
+        client_status = "✓ Available" if CLAUDE_CLIENT_AVAILABLE else "✗ Not Available"
+        client_color = "green" if CLAUDE_CLIENT_AVAILABLE else "red"
+
+        help_text = f"""
+        <h2>AI-Enhanced Conversion Setup</h2>
+
+        <h3>Current Status</h3>
+        <ul>
+            <li><span style="color: {api_key_color}; font-weight: bold;">API Key: {api_key_status}</span></li>
+            <li><span style="color: {client_color}; font-weight: bold;">Claude Client: {client_status}</span></li>
+        </ul>
+
+        <h3>How to Enable AI Conversion</h3>
+        <p>AI-enhanced conversion uses Claude AI to preserve complex formatting like nested lists, tables, and code blocks during document conversion.</p>
+
+        <h4>Step 1: Install the anthropic library</h4>
+        <pre style="background-color: #f0f0f0; padding: 10px; border-radius: 5px;">pip install anthropic</pre>
+
+        <h4>Step 2: Get an API key from Anthropic</h4>
+        <ol>
+            <li>Visit <a href="https://console.anthropic.com/">https://console.anthropic.com/</a></li>
+            <li>Sign up or log in to your account</li>
+            <li>Navigate to API Keys section</li>
+            <li>Create a new API key</li>
+            <li>Copy the key (it starts with "sk-ant-")</li>
+        </ol>
+
+        <h4>Step 3: Set the environment variable</h4>
+        <p><b>Windows (PowerShell):</b></p>
+        <pre style="background-color: #f0f0f0; padding: 10px; border-radius: 5px;">$env:ANTHROPIC_API_KEY = "your-api-key-here"</pre>
+
+        <p><b>Windows (Command Prompt):</b></p>
+        <pre style="background-color: #f0f0f0; padding: 10px; border-radius: 5px;">set ANTHROPIC_API_KEY=your-api-key-here</pre>
+
+        <p><b>Linux/Mac:</b></p>
+        <pre style="background-color: #f0f0f0; padding: 10px; border-radius: 5px;">export ANTHROPIC_API_KEY="your-api-key-here"</pre>
+
+        <p><b>Make it permanent:</b> Add the above command to your shell profile (~/.bashrc, ~/.zshrc, or system environment variables on Windows)</p>
+
+        <h4>Step 4: Restart the application</h4>
+        <p>After setting the environment variable, restart AsciiDoctor Artisan for the changes to take effect.</p>
+
+        <h4>Step 5: Enable AI conversion</h4>
+        <p>Go to <b>Edit → Preferences</b> and check "Enable AI-enhanced conversion by default"</p>
+
+        <h3>Usage Notes</h3>
+        <ul>
+            <li><b>Cost:</b> AI conversion uses Claude API which may incur usage costs. See <a href="https://www.anthropic.com/pricing">pricing details</a>.</li>
+            <li><b>Fallback:</b> If AI conversion fails, the system automatically falls back to Pandoc.</li>
+            <li><b>Per-operation override:</b> You can enable/disable AI for individual exports and imports using the conversion dialog.</li>
+            <li><b>Supported formats:</b> AI conversion works best for Markdown, HTML, and DOCX conversions.</li>
+        </ul>
+
+        <h3>Troubleshooting</h3>
+        <ul>
+            <li><b>API key not detected:</b> Make sure you set the environment variable and restarted the application.</li>
+            <li><b>anthropic library missing:</b> Install it with: <code>pip install anthropic</code></li>
+            <li><b>Conversion fails:</b> Check your API key is valid and you have sufficient credits.</li>
+        </ul>
+        """
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("AI Conversion Setup Guide")
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        msg.setText(help_text)
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+
+    def _show_about(self) -> None:
+        """Show about dialog."""
+        about_text = """
+        <h2>AsciiDoctor Artisan</h2>
+        <p><b>Version:</b> 1.1.0</p>
+        <p><b>Description:</b> A unified, distraction-free environment for AsciiDoc authoring with live preview.</p>
+
+        <h3>Features</h3>
+        <ul>
+            <li>Real-time AsciiDoc preview</li>
+            <li>Git integration for version control</li>
+            <li>Multi-format export (Markdown, DOCX, HTML, PDF)</li>
+            <li>AI-enhanced document conversion (optional)</li>
+            <li>Dark mode support</li>
+            <li>Auto-save functionality</li>
+        </ul>
+
+        <h3>Technology Stack</h3>
+        <ul>
+            <li>Python + PySide6 (Qt)</li>
+            <li>asciidoc3 for rendering</li>
+            <li>Pandoc for format conversion</li>
+            <li>Claude AI for enhanced conversions (optional)</li>
+        </ul>
+
+        <p><b>License:</b> Open Source</p>
+        <p><b>Documentation:</b> See Help menu for AI setup and usage guides</p>
+        """
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("About AsciiDoctor Artisan")
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        msg.setText(about_text)
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
 
     def closeEvent(self, event):
         """Handle window close event."""
