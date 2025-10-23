@@ -1,5 +1,10 @@
 # AsciiDoc Artisan
 
+[![CI](https://github.com/webbwr/AsciiDoctorArtisan/workflows/CI/badge.svg)](https://github.com/webbwr/AsciiDoctorArtisan/actions)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 A modern, feature-rich AsciiDoc editor with live preview, built with Python and PySide6.
 
 ## Features
@@ -30,7 +35,7 @@ A modern, feature-rich AsciiDoc editor with live preview, built with Python and 
 ```bash
 # Clone the repository
 cd ~/github  # or your preferred location
-git clone https://github.com/YOUR_USERNAME/AsciiDoctorArtisan.git
+git clone https://github.com/webbwr/AsciiDoctorArtisan.git
 cd AsciiDoctorArtisan
 
 # Run the setup script
