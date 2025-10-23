@@ -17,7 +17,7 @@ AsciiDoc Artisan is a professional-grade, cross-platform desktop application tha
 
 ### User Story 1 - Create and Edit AsciiDoc Documents with Live Preview (Priority: P1)
 
-A technical writer opens the application to create documentation for a software project. They write AsciiDoc markup in the editor and immediately see the rendered HTML output in the adjacent preview pane. As they type, the preview updates within 250ms, providing instant visual feedback on document structure, formatting, and content presentation. The user can edit the document in the Edit pane (AsciiDoc markup) and in the Preview pane (WYSIWYG); both panes synchronize document content, so the user can always see both the source and the published output.   
+The technical writer opens the application to create documentation for a software project. They write AsciiDoc markup in the editor and immediately see the rendered HTML output (WYSIWYG) in the adjacent preview pane. As they type, the preview updates within 250ms, providing instant visual feedback on document structure, formatting, and content presentation. The user can edit the document in the Edit pane (AsciiDoc markup) and in the Preview pane (WYSIWYG); both panes synchronize document content, so the user can always see both the source and the published output in a split view..   
 
 **Why this priority**: This is the core value proposition. Without reliable editing and preview, the application has no primary purpose. This story represents the minimal viable product.
 
@@ -34,7 +34,7 @@ A technical writer opens the application to create documentation for a software 
 
 ### User Story 2 - Open and Save AsciiDoc Files (Priority: P1)
 
-A documentation engineer needs to open existing AsciiDoc files from their project repository and save changes. They use File→Open to browse to their documentation folder, select a .adoc file, and it opens in the editor with the preview automatically updated. After making changes, they save the file with Ctrl+S, and the application persists the changes atomically to prevent data corruption. The user can also open a GitHub Markdown (MD) file, a Microsoft Word (DOCX) file, or an Adobe Acrobat (PDF) file. These file formats will be automatically converted to the AsciiDoctor (ADOC) files in the background. 
+The documentation engineer needs to open existing AsciiDoc files from their project repository and save changes. They use File→Open to browse to their documentation folder, select a .adoc file, and it opens in the editor with the preview automatically updated. After making changes, they save the file with Ctrl+S, and the application persists the changes atomically to prevent data corruption. The user can also open a GitHub Markdown (MD) file, a Microsoft Word (DOCX) file, or an Adobe Acrobat (PDF) file. These file formats will be automatically converted to the AsciiDoctor (ADOC) files in the background via the Pandoc integration.. 
 
 **Why this priority**: File I/O is fundamental to any editor. Without reliable file operations, users cannot work with their existing documentation or preserve their work.
 
@@ -48,11 +48,9 @@ A documentation engineer needs to open existing AsciiDoc files from their projec
 4. **Given** the user creates a new document, **When** they save for the first time, **Then** a save dialog appears, allowing them to choose a location and filename with the .adoc extension by default
 5. **Given** the application loses power during save, **When** the system restarts, **Then** the file contains either the complete previous version or the complete new version (no partial writes or corruption)
 
----
-
 ### User Story 3 - Convert Documents Between Formats (Priority: P2)
 
-A content creator receives documentation in a GitHub Markdown (.md), Word format (.docx), or Adobe Acrobat (.pdf) format that needs to be converted to AsciiDoc for version control. They open the initial file through File→Open, and the application automatically converts it to AsciiDoc markup while preserving structure, headings, lists, and formatting. They can then edit in AsciiDoc format and export back to various formats (MD, HTML, DOCX, PDF) via Tools→Export.
+The content creator receives documentation in a GitHub Markdown (.md), Microsoft Word (.docx), or Adobe Acrobat (.pdf) format that needs to be converted to AsciiDoc for version control. They open the initial file through File→Open, and the application automatically converts it to AsciiDoc markup while preserving structure, headings, lists, and formatting. They can then edit and save the document in the "official" AsciiDoc format (standard) and then export back to various formats (MD, HTML, DOCX, PDF) via Tools→Export.
 
 **Why this priority**: Format interoperability enables migration from other documentation systems and collaboration with non-AsciiDoc users. This significantly expands the application's utility and addressable use cases.
 
@@ -61,18 +59,17 @@ A content creator receives documentation in a GitHub Markdown (.md), Word format
 **Acceptance Scenarios**:
 
 1. **Given** the user selects File→Open with file type "All Supported Formats", **When** they select a .docx file, **Then** the application converts it to AsciiDoc and displays both editor and preview
+1. **Given** the user selects File→Open with file type "All Supported Formats", **When** they select a .pdf file, **Then** the application converts it to AsciiDoc and displays both editor and preview
 2. **Given** the user has a Markdown (.md) file, **When** they open it, **Then** the content converts to AsciiDoc syntax while preserving headings, lists, code blocks, and links
 3. **Given** the user has an AsciiDoc document open, **When** they select Tools→Export As→HTML, **Then** the application exports a standalone HTML file with embedded styles
-4. **Given** Pandoc is not installed, **When** the user attempts to open a DOCX file, **Then** the application displays a clear error message with instructions to install Pandoc
+4. **Given** Pandoc is not installed, **When** the user attempts to open a MD, DOCX, or PDF file, **Then** the application displays a clear error message with instructions to install Pandoc
 5. **Given** a complex document with tables and images, **When** converting between formats, **Then** the application preserves semantic structure with graceful degradation for unsupported elements
-
----
 
 ### User Story 4 - Git Version Control Integration (Priority: P2)
 
-A software developer maintains documentation alongside code in a Git repository. They edit documentation in AsciiDoc Artisan, and when ready to commit changes, they select Git→Commit, enter a commit message, and the application stages and commits the current file. They can also pull the latest changes and push to the remote repository without leaving the editor.
+The software developer verifies and maintains documentation alongside code in a Git repository. They edit documentation in AsciiDoc Artisan, and when ready to commit changes, they select Git→Commit, enter a commit message, and the application stages and commits the current file. They can also pull the latest changes and push to the remote repository without leaving the editor.
 
-**Why this priority**: Version control integration eliminates context switching to a terminal or separate Git GUI tools. For developers, this is a high-value workflow enhancement but not essential for basic editing.
+**Why this priority**: Version control integration eliminates context switching to a terminal or separate Git GUI tools. For developers, this is a high-value workflow enhancement and is essential for basic editing.
 
 **Independent Test**: Can be tested by opening a file in a Git repository, making changes, committing via Git menu, and verifying the commit appears in git log. Delivers value as integrated version control for documentation workflows.
 
@@ -84,15 +81,13 @@ A software developer maintains documentation alongside code in a Git repository.
 4. **Given** the user selects Git→Pull, **When** there are remote changes, **Then** the application pulls changes and reloads the current file if affected
 5. **Given** the file is not in a Git repository, **When** the user opens the Git menu, **Then** Git commands are disabled with a message indicating no repository detected
 
----
-
 ### User Story 5 - Persistent Session and Preferences (Priority: P3)
 
 A user closes AsciiDoc Artisan after working on documentation. The next time they launch the application, it automatically reopens the last file and Git repository they were editing, restores the window size and position, and applies their preferred theme (dark/light). Their font size, zoom level, and splitter position between editor and preview are preserved.
 
 **Why this priority**: Session persistence significantly improves user experience and workflow continuity, but is not essential for basic functionality. Users can manually reopen files and reconfigure the layout if needed.
 
-**Independent Test**: This can be tested by configuring the window layout, zoom level, and theme, closing the application, and verifying that all settings restore correctly on the next launch. Delivers comfort and efficiency improvements.
+**Independent Test**: This can be verified by configuring the window layout, zoom level, and theme, then closing the application and verifying that all settings are restored correctly on the next launch. Delivers comfort and efficiency improvements.
 
 **Acceptance Scenarios**:
 
@@ -102,15 +97,13 @@ A user closes AsciiDoc Artisan after working on documentation. The next time the
 4. **Given** the user has adjusted editor font size to 16pt, **When** they reopen the application, **Then** the editor font size remains 16pt
 5. **Given** the user has adjusted the splitter between editor and preview to 60/40, **When** they restart, **Then** the splitter position is preserved
 
----
-
 ### User Story 6 - Keyboard Shortcuts and Productivity Features (Priority: P3)
 
 An experienced user relies on keyboard shortcuts to achieve an efficient workflow. They use Ctrl+N for a new document, Ctrl+O to open, Ctrl+S to save, Ctrl+F to find text, Ctrl+G to go to a specific line, Ctrl+D to toggle dark mode, and Ctrl+/- to adjust font zoom. All shortcuts follow platform conventions (Cmd on macOS, Ctrl on Windows/Linux).
 
 **Why this priority**: Keyboard shortcuts dramatically improve productivity for power users but are not required for basic functionality. Users can access all features through menus.
 
-**Independent Test**: Can be tested by executing each keyboard shortcut and verifying the expected action occurs. Delivers efficiency gains for regular users.
+**Independent Test**: Can be tested by executing each keyboard shortcut and verifying that the expected action occurs. Delivers efficiency gains for regular users.
 
 **Acceptance Scenarios**:
 
@@ -120,8 +113,6 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 4. **Given** the current font size is 12pt, **When** the user presses Ctrl+Plus three times, **Then** the font size increases to 15pt
 5. **Given** the application is in light mode, **When** the user presses Ctrl+D or F5, **Then** the theme switches to dark mode instantly
 
----
-
 ### Edge Cases
 
 - **What happens when the user opens a corrupt or invalid AsciiDoc file?**
@@ -130,7 +121,7 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **How does the system handle opening extremely large files (>100MB)?**
   The application displays a warning about potential performance impact and offers to open in read-only mode with preview disabled, or to proceed with standard editing (which may be slower).
 
-- **What happens when Pandoc is not installed but the user tries to open a DOCX file?**
+- **What happens when Pandoc is not installed but the user tries to open a DOCX or PDF file?**
   The application detects the missing dependency on startup and, when attempting conversion, displays a clear error message with installation instructions and a link to the Pandoc download page.
 
 - **How does the application handle file conflicts when pulling from Git?**
@@ -143,7 +134,7 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
   The application falls back to system default monospace fonts and logs the issue. Preview rendering uses browser defaults if custom fonts fail to load.
 
 - **What happens when saving to a location without write permissions?**
-  The application displays an error dialog indicating insufficient permissions and offers to save to a different location via Save As dialog.
+  The application displays an error dialog indicating insufficient permissions and offers to save to a different location via the Save As dialog.
 
 ## Requirements *(mandatory)*
 
@@ -198,7 +189,7 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 - **FR-034**: System MUST provide a resizable splitter between editor and preview panes
 - **FR-036**: System MUST support font zoom via Ctrl+Plus, Ctrl+Minus, Ctrl+0 keyboard shortcuts
 - **FR-036**: System MUST provide keyboard shortcuts following platform conventions (Ctrl on Windows/Linux, Cmd on macOS)
-- **FR-037**: System MUST render correctly on high-DPI displays with proper scaling
+- **FR-037**: System MUST render correctly on high-DPI (5K) displays with proper PPI and scaling
 - **FR-038**: System MUST display status bar with current file information
 
 #### Session & Configuration
@@ -213,11 +204,11 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 
 #### Performance & Reliability
 
-- **FR-045**: System MUST remain responsive when editing documents up to 10,000 lines
+- **FR-045**: System MUST remain responsive when editing documents up to 25,000 lines
 - **FR-046**: System MUST start within 3 seconds on standard hardware
-- **FR-047**: System MUST use worker threads for CPU-intensive operations (Git, Pandoc, AsciiDoc rendering)
+- **FR-047**: System MUST use worker threads for CPU-intensive operations (Git, Pandoc, AsciiDoc editing, AsciiDoc rendering)
 - **FR-048**: System MUST handle memory efficiently to prevent leaks during extended sessions
-- **FR-049**: System MUST provide comprehensive error logging for debugging without exposing sensitive data
+- **FR-049**: System MUST provide, as a selectable option, comprehensive error logging for debugging without exposing sensitive data
 
 #### Cross-Platform Compatibility
 
@@ -229,11 +220,12 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 ### Key Entities
 
 - **Document**: Represents an AsciiDoc file open in the editor with content, file path, modification state, and scroll position
-- **EditorState**: Captures current editor configuration, including font size, zoom level, cursor position, and selection
-- **PreviewState**: Manages rendered HTML content, scroll position, and synchronization status with the editor
+- **EditorState**: Captures current editor configuration, including font size, zoom level, cursor position, and selection with toggle button for full and split views
+- **PreviewState**: Manages rendered HTML content, scroll position, and synchronization status with the editor with toggle button for full and split views
 - **Configuration**: Stores user preferences including theme, last opened file, window geometry, and persistent settings
 - **GitRepository**: Represents a detected Git repository with path, remote configuration, and current status
 - **ConversionJob**: Represents a document format conversion task with source format, target format, Pandoc options, and conversion status
+- **Conversion**: Represents a document format conversion from one format to another via integrated Pandoc functionality.
 
 ## Success Criteria *(mandatory)*
 
@@ -301,16 +293,16 @@ An experienced user relies on keyboard shortcuts to achieve an efficient workflo
 
 ### Constraints & Limitations
 
-- **C-001**: PDF export requires Pandoc with LaTeX backend installed separately
+- **C-001**: PDF export requires Pandoc with a LaTeX backend installed separately
 - **C-002**: Some advanced AsciiDoc features may have limited preview support based on asciidoc3 capabilities
 - **C-003**: Git integration provides basic commit/push/pull operations but not advanced Git features (rebasing, cherry-picking, etc.)
 - **C-004**: Format conversion fidelity depends on Pandoc capabilities and may lose some formatting details
 - **C-005**: Application is designed for single-user, single-file editing (not multi-user collaboration)
-- **C-006**: Claude AI features require active internet connection and valid API key
+- **C-006**: Claude AI features require an active internet connection and a valid API key
 - **C-007**: AI-generated content MUST be reviewed for accuracy and appropriateness by users
 - **C-008**: API rate limits and costs are determined by Anthropic pricing tiers
 - **C-009**: Claude AI service must be started before launching the main application
-- **C-010**: AI operations may take 5-15 seconds depending on content complexity and API response time
+- **C-010**: AI operations may take 5-15 seconds, depending on content complexity and API response time
 
 ---
 
@@ -378,17 +370,17 @@ The integration consists of three components:
 
 ### User Story 7 - AI-Powered Content Creation (Priority: P2)
 
-A technical writer needs to quickly draft documentation for a new API endpoint. They select Claude AI → Generate AsciiDoc, describe the endpoint functionality, and receive a well-structured AsciiDoc template with sections for description, parameters, examples, and response codes. They then refine the content using the editor, and if needed, select specific sections to improve with Claude AI → Improve Selection.
+The technical writer needs to draft documentation for a new API endpoint quickly. They select Claude AI → Generate AsciiDoc, describe the endpoint functionality, and receive a well-structured AsciiDoc template with sections for description, parameters, examples, and response codes. They then refine the content using the editor, and if needed, select specific sections to improve with Claude AI → Improve Selection.
 
 **Why this priority**: AI assistance significantly accelerates documentation workflows and is a core differentiator for AsciiDoc Artisan. This feature provides substantial value by reducing time-to-first-draft and improving content quality through intelligent assistance.
 
-**Independent Test**: Can be tested by starting the Claude service, generating content through the GUI, improving existing content, and verifying results integrate correctly with the editor. Requires Anthropic API key and Node.js service running.
+**Independent Test**: Can be tested by starting the Claude service, generating content through the GUI, improving existing content, and verifying that the results integrate correctly with the editor. Requires an Anthropic API key and a Node.js service running.
 
 **Acceptance Scenarios**:
 
 1. **Given** the Claude service is not running, **When** the application starts, **Then** the application displays a warning dialog with instructions to start the Claude service and the Claude AI menu options are disabled
 2. **Given** the Claude service is available and the user selects Claude AI → Generate AsciiDoc, **When** they provide a content prompt, **Then** the system generates AsciiDoc content and inserts it at the cursor position within 15 seconds
-3. **Given** the user has selected text in the editor and chooses Claude AI → Improve Selection, **When** they specify an improvement instruction, **Then** the selected text is replaced with the improved version maintaining AsciiDoc syntax
+3. **Given** the user has selected text in the editor and chooses Claude AI → Improve Selection, **When** they specify an improvement instruction, **Then** the selected text is replaced with the improved version, maintaining AsciiDoc syntax
 4. **Given** the user selects Claude AI → Generate Outline, **When** they specify a topic and style, **Then** the system generates a hierarchical outline in valid AsciiDoc format
 5. **Given** the user selects Claude AI → AsciiDoc Help, **When** they ask a question about syntax, **Then** the system displays a helpful answer with examples in a dialog window
 
@@ -487,7 +479,7 @@ WantedBy=multi-user.target
 ```
 
 **Windows (Task Scheduler)**:
-Create scheduled task to run `node server.js` at system startup from the `claude-integration` directory.
+Create a scheduled task to run `node server.js` at system startup from the `claude-integration` directory.
 
 ### Security Considerations
 
@@ -503,7 +495,7 @@ Claude API usage is metered and billed by Anthropic:
 - Implement usage tracking for organizational budgeting
 - Set up spending alerts via Anthropic Console
 - Consider caching responses for frequently requested content
-- Choose appropriate Claude model (Sonnet for speed vs Opus for quality)
+- Choose an appropriate Claude model (Sonnet for speed vs Opus for quality)
 
 ### Implementation Requirements
 
@@ -583,8 +575,6 @@ The following capabilities are explicitly **not included** in this specification
 - **Command Injection**: Git and Pandoc must be called with parameterized arguments, never shell interpolation
 - **Credential Storage**: Never store Git credentials; use system-configured credentials only
 - **Error Messages**: Avoid exposing full file paths or system information in user-facing errors
-
----
 
 **Specification Version**: 1.0.0
 **Last Updated**: 2025-10-22
