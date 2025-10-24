@@ -190,7 +190,7 @@ class PandocWorker(QObject):
                         logger.info(f"Using PDF engine: {engine}")
                         pdf_engine_found = True
                         break
-                    except:
+                    except (FileNotFoundError, subprocess.CalledProcessError, Exception):
                         continue
 
                 if not pdf_engine_found:

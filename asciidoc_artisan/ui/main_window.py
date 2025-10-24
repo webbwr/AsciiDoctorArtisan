@@ -27,6 +27,7 @@ import platform
 import subprocess
 import sys
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any, Optional
 
@@ -50,6 +51,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QApplication,
+    QDialog,
     QFileDialog,
     QHBoxLayout,
     QInputDialog,
@@ -1452,7 +1454,6 @@ class AsciiDocEditor(QMainWindow):
 
     def _check_pdf_engine_available(self) -> bool:
         """Check if any PDF engine is available."""
-        import subprocess
 
         pdf_engines = ["wkhtmltopdf", "weasyprint", "pdflatex", "xelatex", "lualatex"]
 
@@ -1460,7 +1461,7 @@ class AsciiDocEditor(QMainWindow):
             try:
                 subprocess.run([engine, "--version"], capture_output=True, check=True)
                 return True
-            except:
+            except (FileNotFoundError, subprocess.CalledProcessError, Exception):
                 continue
 
         return False
@@ -2013,19 +2014,8 @@ class AsciiDocEditor(QMainWindow):
         )
 
     def _check_pandoc_availability(self, context: str) -> bool:
-        if ENHANCED_PANDOC and ensure_pandoc_available:
-
-            is_available, message = ensure_pandoc_available()
-            if not is_available:
-                self._show_message(
-                    "critical",
-                    "Pandoc Setup Required",
-                    f"{context} requires Pandoc.\n\n{message}",
-                )
-                return False
-            return True
-        elif not PANDOC_AVAILABLE:
-
+        """Check if Pandoc is available for document conversion."""
+        if not PANDOC_AVAILABLE:
             self._show_message(
                 "critical",
                 "Pandoc Not Available",
@@ -2039,61 +2029,45 @@ class AsciiDocEditor(QMainWindow):
 
     def _show_pandoc_status(self) -> None:
         """Show detailed pandoc installation status."""
-        if ENHANCED_PANDOC and pandoc:
+        status = "Pandoc Status:\n\n"
+        status += f"PANDOC_AVAILABLE: {PANDOC_AVAILABLE}\n"
+        status += f"pypandoc module: {'Imported' if pypandoc else 'Not found'}\n"
 
-            _is_available, status = ensure_pandoc_available()
+        if PANDOC_AVAILABLE and pypandoc:
+            try:
+                version = pypandoc.get_pandoc_version()
+                status += f"Pandoc version: {version}\n"
+                path = pypandoc.get_pandoc_path()
+                status += f"Pandoc path: {path}\n"
+            except Exception as e:
+                status += f"Error getting pandoc info: {e}\n"
 
-            details = "Pandoc Status:\n\n"
-            details += f"Binary found: {'Yes' if pandoc.pandoc_path else 'No'}\n"
-            if pandoc.pandoc_path:
-                details += f"Location: {pandoc.pandoc_path}\n"
-            details += f"Version: {pandoc.pandoc_version or 'Unknown'}\n"
-            details += f"pypandoc: {'Available' if pandoc.pypandoc_available else 'Not installed'}\n\n"
-            details += f"Status: {status}"
+        if not PANDOC_AVAILABLE:
+            status += "\nTo enable document conversion:\n"
+            status += "1. Install pandoc from https://pandoc.org\n"
+            status += "2. Run: pip install pypandoc"
 
-            self._show_message("info", "Pandoc Status", details)
-        else:
-
-            status = "Pandoc Status:\n\n"
-            status += f"PANDOC_AVAILABLE: {PANDOC_AVAILABLE}\n"
-            status += f"pypandoc module: {'Imported' if pypandoc else 'Not found'}\n\n"
-
-            if not PANDOC_AVAILABLE:
-                status += "To enable document conversion:\n"
-                status += "1. Install pandoc from https://pandoc.org\n"
-                status += "2. Run: pip install pypandoc"
-
-            self._show_message("info", "Pandoc Status", status)
+        self._show_message("info", "Pandoc Status", status)
 
     def _show_supported_formats(self) -> None:
         """Show supported input and output formats."""
-        if ENHANCED_PANDOC and pandoc and pandoc.pypandoc_available:
-
+        if PANDOC_AVAILABLE and pypandoc:
             message = "Supported Conversion Formats:\n\n"
-
-            key_inputs = ["markdown", "docx", "html", "latex", "rst", "org"]
-            available_inputs = [
-                f for f in key_inputs if pandoc.is_format_supported(f, "input")
-            ]
-
-            message += "INPUT FORMATS:\n"
-            for fmt in available_inputs:
-                desc = pandoc.get_format_info(fmt)
-                message += f"  • {fmt}: {desc}\n"
-
-            message += (
-                f"\nTotal input formats: {len(pandoc.supported_formats['input'])}\n"
-            )
-
-            message += "\nOUTPUT FORMATS:\n"
-            message += f"  • asciidoc: {pandoc.get_format_info('asciidoc')}\n"
-            message += f"  • markdown: {pandoc.get_format_info('markdown')}\n"
-            message += f"  • html: {pandoc.get_format_info('html')}\n"
-
-            message += (
-                f"\nTotal output formats: {len(pandoc.supported_formats['output'])}"
-            )
-
+            message += "COMMON INPUT FORMATS:\n"
+            message += "  • markdown (.md, .markdown)\n"
+            message += "  • docx (Microsoft Word)\n"
+            message += "  • html (.html, .htm)\n"
+            message += "  • latex (.tex)\n"
+            message += "  • rst (reStructuredText)\n"
+            message += "  • org (Org Mode)\n"
+            message += "\nCOMMON OUTPUT FORMATS:\n"
+            message += "  • asciidoc (.adoc)\n"
+            message += "  • markdown (.md)\n"
+            message += "  • html (.html)\n"
+            message += "  • docx (Microsoft Word)\n"
+            message += "  • pdf (via PDF engine)\n"
+            message += "\nNote: Pandoc supports 40+ formats total.\n"
+            message += "See https://pandoc.org for complete list."
             self._show_message("info", "Supported Formats", message)
         else:
             self._show_message(
@@ -2163,7 +2137,6 @@ class AsciiDocEditor(QMainWindow):
 
         FR-055: AI Conversion Setup documentation
         """
-        import os
 
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         api_key_status = "✓ Configured" if api_key else "✗ Not Set"
@@ -2302,7 +2275,7 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             self._temp_dir.cleanup()
-        except:
+        except Exception:
             pass
 
         event.accept()

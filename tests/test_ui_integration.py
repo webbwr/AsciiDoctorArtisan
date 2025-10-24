@@ -26,7 +26,7 @@ class TestAsciiDocEditorUI:
     @pytest.fixture
     def editor(self, qtbot):
         """Create AsciiDocEditor instance for testing with proper cleanup."""
-        with patch("adp_windows.AsciiDocEditor._load_settings"):
+        with patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
@@ -156,7 +156,7 @@ class TestEditorDialogs:
     @pytest.fixture
     def editor(self, qtbot):
         """Create AsciiDocEditor instance for testing with proper cleanup."""
-        with patch("adp_windows.AsciiDocEditor._load_settings"):
+        with patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
@@ -213,7 +213,7 @@ class TestEditorActions:
     @pytest.fixture
     def editor(self, qtbot):
         """Create AsciiDocEditor instance for testing with proper cleanup."""
-        with patch("adp_windows.AsciiDocEditor._load_settings"):
+        with patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
@@ -274,7 +274,7 @@ class TestSplitterBehavior:
     @pytest.fixture
     def editor(self, qtbot):
         """Create AsciiDocEditor instance for testing with proper cleanup."""
-        with patch("adp_windows.AsciiDocEditor._load_settings"):
+        with patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
@@ -337,7 +337,7 @@ class TestPreviewUpdate:
     @pytest.fixture
     def editor(self, qtbot):
         """Create AsciiDocEditor instance for testing with proper cleanup."""
-        with patch("adp_windows.AsciiDocEditor._load_settings"):
+        with patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
@@ -385,7 +385,7 @@ class TestWorkerThreads:
     @pytest.fixture
     def editor(self, qtbot):
         """Create AsciiDocEditor instance for testing with proper cleanup."""
-        with patch("adp_windows.AsciiDocEditor._load_settings"):
+        with patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
