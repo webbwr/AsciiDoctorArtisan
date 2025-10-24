@@ -10,6 +10,9 @@ asciidoc3
 # Document conversion (DOCX, clipboard, etc.)
 pypandoc
 
+# PDF text extraction
+pdfplumber>=0.10.0
+
 # AI-enhanced format conversion
 anthropic>=0.40.0
 

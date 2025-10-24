@@ -11,7 +11,7 @@ A modern, feature-rich AsciiDoc editor with live preview, built with Python and 
 
 - **Live Preview**: Real-time HTML preview of your AsciiDoc content
 - **Syntax Highlighting**: Clear, monospace editor optimized for AsciiDoc
-- **Document Conversion**: Import/export multiple formats (DOCX, Markdown, HTML, LaTeX, RST, PDF) via Pandoc
+- **Document Conversion**: Import PDF and DOCX files; export to Markdown, HTML, LaTeX, RST, and PDF via Pandoc
 - **Git Integration**: Commit, pull, and push directly from the editor
 - **Dark Mode**: Toggle between light and dark themes
 - **Auto-save**: Automatic saving with configurable intervals
@@ -25,6 +25,7 @@ A modern, feature-rich AsciiDoc editor with live preview, built with Python and 
 - **PySide6**: 6.9.0 or higher
 - **asciidoc3**: For AsciiDoc to HTML conversion
 - **pypandoc**: For document format conversion (optional)
+- **pdfplumber**: For PDF text extraction (optional)
 - **Pandoc**: Required for multi-format conversion (install separately)
 - **Git**: Required for version control features (optional)
 
@@ -110,11 +111,12 @@ python adp_windows.py
 - `.adoc` - AsciiDoc files (native)
 - `.asciidoc` - AsciiDoc files (native)
 - `.docx` - Word documents (via Pandoc conversion)
+- `.pdf` - PDF files (via pdfplumber text extraction)
 
 **Opening Files:**
 1. Click `File → Open` or press `Ctrl+O`
-2. Select an AsciiDoc or DOCX file
-3. DOCX files are automatically converted to AsciiDoc
+2. Select an AsciiDoc, DOCX, or PDF file
+3. DOCX and PDF files are automatically converted to AsciiDoc
 
 **Saving Files:**
 1. Click `File → Save` or press `Ctrl+S`
@@ -205,6 +207,10 @@ AsciiDoctorArtisan/
 **Issue: "WARNING: 'pypandoc' library not found"**
 - **Solution**: Install pypandoc: `pip install pypandoc`
 - **Note**: DOCX conversion will be disabled without this
+
+**Issue: "WARNING: 'pdfplumber' library not found"**
+- **Solution**: Install pdfplumber: `pip install pdfplumber`
+- **Note**: PDF import will be disabled without this
 
 **Issue: "WARNING: 'asciidoc3' library not found"**
 - **Solution**: Install asciidoc3: `pip install asciidoc3`

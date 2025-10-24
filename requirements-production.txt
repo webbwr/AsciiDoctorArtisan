@@ -17,6 +17,10 @@ asciidoc3==3.2.0
 pypandoc==1.11
 # Note: Pandoc itself must be installed separately via system package manager
 
+# PDF Text Extraction
+# pdfplumber provides robust PDF text extraction
+pdfplumber==0.11.0
+
 # Optional but recommended for better performance
 # MarkupSafe provides faster HTML escaping
 MarkupSafe==2.1.3

@@ -14,10 +14,12 @@ from typing import Callable, Optional
 
 try:
     from anthropic import Anthropic, APIConnectionError, APIError, RateLimitError
+    from anthropic.types import TextBlock
 
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
+    TextBlock = None  # type: ignore
     logging.warning("Anthropic SDK not installed. AI-enhanced conversion unavailable.")
 
 
@@ -152,7 +154,12 @@ class ClaudeClient:
                     messages=[{"role": "user", "content": prompt}],
                 )
 
-                converted_content = response.content[0].text
+                # Extract text from response, filtering for TextBlock
+                text_blocks = [block for block in response.content if isinstance(block, TextBlock)]
+                if not text_blocks:
+                    return self._error_result("No text content in API response", start_time)
+
+                converted_content = text_blocks[0].text
                 processing_time = time.time() - start_time
 
                 logger.info(f"AI conversion successful in {processing_time:.2f}s")

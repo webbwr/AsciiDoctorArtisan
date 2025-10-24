@@ -52,7 +52,7 @@ class PandocIntegration:
         "supported_formats",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.pandoc_path: Optional[str] = None
         self.pypandoc_available: bool = False
         self.pandoc_version: Optional[str] = None
@@ -280,6 +280,146 @@ def ensure_pandoc_available() -> Tuple[bool, str]:
     )
 
 
+class PDFExtractor:
+    """PDF text extraction with enhanced formatting preservation."""
+
+    @staticmethod
+    def is_available() -> bool:
+        """Check if pdfplumber is available."""
+        try:
+            import pdfplumber
+
+            return True
+        except ImportError:
+            return False
+
+    @staticmethod
+    def extract_text(pdf_path: Path) -> Tuple[bool, str, str]:
+        """
+        Extract text from PDF file.
+
+        Args:
+            pdf_path: Path to PDF file
+
+        Returns:
+            Tuple of (success, extracted_text, error_message)
+        """
+        try:
+            import pdfplumber
+        except ImportError:
+            return (
+                False,
+                "",
+                "pdfplumber not installed. Run: pip install pdfplumber",
+            )
+
+        try:
+            extracted_text = []
+
+            with pdfplumber.open(pdf_path) as pdf:
+                total_pages = len(pdf.pages)
+                logger.info(f"Extracting text from {total_pages} pages in {pdf_path}")
+
+                for page_num, page in enumerate(pdf.pages, 1):
+                    # Extract text from page
+                    text = page.extract_text()
+
+                    if text:
+                        # Add page marker for multi-page documents
+                        if total_pages > 1:
+                            extracted_text.append(
+                                f"\n// Page {page_num} of {total_pages}\n"
+                            )
+                        extracted_text.append(text)
+
+                        # Extract tables if present
+                        tables = page.extract_tables()
+                        if tables:
+                            for table in tables:
+                                extracted_text.append("\n\n// Table extracted:\n")
+                                extracted_text.append(
+                                    PDFExtractor._format_table_as_asciidoc(table)
+                                )
+
+            if not extracted_text:
+                return (
+                    False,
+                    "",
+                    "No text content found in PDF. The PDF may contain only images.",
+                )
+
+            full_text = "\n".join(extracted_text)
+            logger.info(f"Successfully extracted {len(full_text)} characters from PDF")
+
+            return True, full_text, ""
+
+        except Exception as e:
+            logger.error(f"PDF extraction failed: {e}")
+            return False, "", f"Failed to extract PDF: {e}"
+
+    @staticmethod
+    def _format_table_as_asciidoc(table: list) -> str:
+        """
+        Format extracted table as AsciiDoc table syntax.
+
+        Args:
+            table: List of rows, each row is a list of cells
+
+        Returns:
+            AsciiDoc formatted table
+        """
+        if not table or not table[0]:
+            return ""
+
+        lines = ["[options=\"header\"]", "|==="]
+
+        for row_num, row in enumerate(table):
+            # Filter out None values and convert to strings
+            cells = [str(cell).strip() if cell else "" for cell in row]
+
+            # Add row separator for header
+            if row_num == 0:
+                lines.append("| " + " | ".join(cells))
+            else:
+                lines.append("| " + " | ".join(cells))
+
+        lines.append("|===\n")
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def convert_to_asciidoc(pdf_path: Path) -> Tuple[bool, str, str]:
+        """
+        Extract PDF and convert to AsciiDoc format.
+
+        Args:
+            pdf_path: Path to PDF file
+
+        Returns:
+            Tuple of (success, asciidoc_text, error_message)
+        """
+        success, text, error = PDFExtractor.extract_text(pdf_path)
+
+        if not success:
+            return False, "", error
+
+        # Add document header
+        asciidoc_content = [
+            f"= Document from {pdf_path.name}",
+            ":toc:",
+            ":toc-placement: preamble",
+            "",
+            "// Extracted from PDF",
+            "",
+            text,
+        ]
+
+        return True, "\n".join(asciidoc_content), ""
+
+
+pdf_extractor = PDFExtractor()
+
+
 if __name__ == "__main__":
     available, message = ensure_pandoc_available()
     print(f"Pandoc available: {available}")
@@ -289,3 +429,6 @@ if __name__ == "__main__":
         print("\nSupported formats:")
         print(f"  Input: {len(pandoc.supported_formats['input'])}")
         print(f"  Output: {len(pandoc.supported_formats['output'])}")
+
+    # Test PDF extraction
+    print(f"\nPDF extraction available: {PDFExtractor.is_available()}")

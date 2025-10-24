@@ -24,7 +24,7 @@ The AsciiDoc Artisan editor should now be open on your display. If you don't see
 - **reStructuredText** (.rst)
 - **Org Mode** (.org)
 - **Textile** (.textile)
-- **PDF** (.pdf) - Shows helpful instructions
+- **PDF** (.pdf) - Text extraction with table support
 
 ## 🧪 Test the Features
 

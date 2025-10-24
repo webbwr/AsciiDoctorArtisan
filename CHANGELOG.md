@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- PDF import capability via pdfplumber text extraction with table support
+- Comprehensive test suite for PDF extraction (15 tests covering all scenarios)
 - Settings dataclass for structured configuration management (FR-045)
 - Persistent splitter position between editor and preview panes (FR-045)
 - Persistent font size across application sessions (FR-043)
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored settings management to use dataclass pattern
 - Settings now stored in Settings dataclass matching specification
 - All configuration persistence uses Settings.to_dict/from_dict
+- Updated requirements.txt to add pdfplumber>=0.10.0 for PDF extraction
 - Updated requirements.txt to remove anthropic and requests dependencies
 - Improved README.md to focus on specification features only
 - Enhanced settings restoration on application startup

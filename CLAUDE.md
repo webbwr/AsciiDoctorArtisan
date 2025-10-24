@@ -90,7 +90,7 @@ The application is primarily contained in `adp_windows.py` (~3000 lines). This i
    - `ClaudeWorker` - AI-enhanced conversion (optional)
 
 3. **Supporting Modules:**
-   - `pandoc_integration.py` - Enhanced Pandoc wrapper with error handling
+   - `pandoc_integration.py` - Enhanced Pandoc wrapper with error handling and PDF extraction
    - `claude_client.py` - Claude AI integration for conversions (optional)
    - `setup.py` - Package configuration
 
@@ -137,8 +137,9 @@ Uses `QStandardPaths.AppDataLocation` for cross-platform path resolution.
 
 ### Document Conversion Pipeline
 1. **DOCX → AsciiDoc:** Pandoc via `pypandoc` with TOC directives prepended
-2. **Clipboard HTML → AsciiDoc:** Direct Pandoc conversion from clipboard
-3. **Export formats:** HTML, DOCX, Markdown, LaTeX, RST, PDF (all via Pandoc)
+2. **PDF → AsciiDoc:** Direct extraction via `pdfplumber` with table formatting
+3. **Clipboard HTML → AsciiDoc:** Direct Pandoc conversion from clipboard
+4. **Export formats:** HTML, DOCX, Markdown, LaTeX, RST, PDF (all via Pandoc)
 
 ## Code Conventions & Patterns
 
@@ -176,7 +177,7 @@ self.git_commit_act.setEnabled(True)
 | File | Purpose |
 |------|---------|
 | `adp_windows.py` | Main application (UI, logic, workers) |
-| `pandoc_integration.py` | Enhanced Pandoc wrapper with validation |
+| `pandoc_integration.py` | Enhanced Pandoc wrapper with validation and PDF extraction |
 | `claude_client.py` | Optional Claude AI integration |
 | `pyproject.toml` | Build config, tool settings (black, ruff, mypy, pytest) |
 | `Makefile` | Development commands |
