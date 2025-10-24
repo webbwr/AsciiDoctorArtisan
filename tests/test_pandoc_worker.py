@@ -19,7 +19,7 @@ class TestPandocWorker:
         worker = PandocWorker()
         assert worker is not None
 
-    @patch("adp_windows.pypandoc")
+    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_successful_text_conversion(self, mock_pypandoc):
         """Test successful text-to-text conversion."""
         mock_pypandoc.convert_text.return_value = "# Converted AsciiDoc"
@@ -50,7 +50,7 @@ class TestPandocWorker:
         assert "Converted" in result
         assert context == "test conversion"
 
-    @patch("adp_windows.pypandoc")
+    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_conversion_error_handling(self, mock_pypandoc):
         """Test conversion error is properly handled."""
         mock_pypandoc.convert_text.side_effect = Exception("Conversion failed")
@@ -96,7 +96,7 @@ class TestPandocWorker:
 
         assert enhanced.startswith("= My Document")  # Should keep original
 
-    @patch("adp_windows.pypandoc")
+    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_bytes_to_string_conversion(self, mock_pypandoc):
         """Test conversion handles bytes return value."""
         mock_pypandoc.convert_text.return_value = b"Converted bytes"
@@ -123,7 +123,7 @@ class TestPandocWorker:
         assert isinstance(result, str)
         assert "Converted bytes" in result
 
-    @patch("adp_windows.pypandoc")
+    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_file_output_conversion(self, mock_pypandoc):
         """Test conversion with file output."""
         mock_pypandoc.convert_text.return_value = None  # File output returns None
@@ -151,8 +151,8 @@ class TestPandocWorker:
         assert result is not None
         assert "File saved to:" in result or str(output_path) in result
 
-    @patch("adp_windows.pypandoc")
-    @patch("adp_windows.create_client")
+    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
+    @patch("asciidoc_artisan.workers.pandoc_worker.create_client")
     def test_ai_conversion_attempt(self, mock_create_client, mock_pypandoc):
         """Test AI conversion attempt when enabled."""
         from claude_client import ConversionResult

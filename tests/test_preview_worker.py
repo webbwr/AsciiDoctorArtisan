@@ -19,8 +19,8 @@ class TestPreviewWorker:
         assert worker is not None
         assert worker._asciidoc_api is None  # Starts uninitialized
 
-    @patch("adp_windows.asciidoc3")
-    @patch("adp_windows.AsciiDoc3API")
+    @patch("asciidoc_artisan.workers.preview_worker.asciidoc3")
+    @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
     def test_asciidoc_initialization(self, mock_api_class, mock_asciidoc3):
         """Test AsciiDoc API initialization."""
         mock_asciidoc3.__file__ = "/path/to/asciidoc3.py"
@@ -34,8 +34,8 @@ class TestPreviewWorker:
         mock_api_class.assert_called_once_with("/path/to/asciidoc3.py")
         assert worker._asciidoc_api is not None
 
-    @patch("adp_windows.ASCIIDOC3_AVAILABLE", True)
-    @patch("adp_windows.AsciiDoc3API")
+    @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
+    @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
     def test_successful_preview_rendering(self, mock_api_class):
         """Test successful AsciiDoc preview rendering."""
         # Setup mock
@@ -81,8 +81,8 @@ class TestPreviewWorker:
         assert result is not None
         assert "Test Document" in result  # Should show plain text content
 
-    @patch("adp_windows.ASCIIDOC3_AVAILABLE", True)
-    @patch("adp_windows.AsciiDoc3API")
+    @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
+    @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
     def test_preview_error_handling(self, mock_api_class):
         """Test preview handles rendering errors gracefully."""
         # Setup mock to raise error
@@ -125,8 +125,8 @@ class TestPreviewWorker:
         # Should handle empty content gracefully
         assert result is not None
 
-    @patch("adp_windows.ASCIIDOC3_AVAILABLE", True)
-    @patch("adp_windows.AsciiDoc3API")
+    @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
+    @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
     def test_preview_special_characters(self, mock_api_class):
         """Test preview handles special characters."""
         mock_api_instance = MagicMock()
