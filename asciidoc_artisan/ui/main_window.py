@@ -51,13 +51,17 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
+    QHBoxLayout,
     QInputDialog,
+    QLabel,
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
+    QPushButton,
     QSplitter,
     QStatusBar,
     QTextBrowser,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -112,6 +116,15 @@ except ImportError:
     asciidoc3 = None
     AsciiDoc3API = None
     ASCIIDOC3_AVAILABLE = False
+
+# Check for Pandoc availability
+try:
+    import pypandoc
+
+    PANDOC_AVAILABLE = True
+except ImportError:
+    pypandoc = None
+    PANDOC_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
