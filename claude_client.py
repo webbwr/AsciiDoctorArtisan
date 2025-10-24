@@ -261,6 +261,24 @@ CONVERTED:"""
         """Check if document size is within API limits."""
         return self.estimate_tokens(content) <= max_tokens
 
+    @staticmethod
+    def get_installation_instructions() -> str:
+        """Get installation instructions for AI-enhanced conversion."""
+        return """To use AI-enhanced conversion with Claude AI:
+
+1. Install the Anthropic SDK:
+   pip install anthropic>=0.40.0
+
+2. Get an API key from https://console.anthropic.com/
+
+3. Set the ANTHROPIC_API_KEY environment variable:
+   export ANTHROPIC_API_KEY=your_key_here
+
+4. Ensure Pandoc is installed for fallback conversion:
+   https://pandoc.org/installing.html
+
+For more information, see the documentation."""
+
 
 def create_client(api_key: Optional[str] = None) -> Optional[ClaudeClient]:
     """

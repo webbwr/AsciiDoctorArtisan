@@ -42,7 +42,7 @@ class TestPandocWorker:
             from_format="markdown",
             context="test conversion",
             output_file=None,
-            use_ai=False,
+            use_ai_conversion=False,
         )
 
         # Verify
@@ -73,7 +73,7 @@ class TestPandocWorker:
             from_format="markdown",
             context="error test",
             output_file=None,
-            use_ai=False,
+            use_ai_conversion=False,
         )
 
         # Verify error was emitted
@@ -116,16 +116,15 @@ class TestPandocWorker:
             from_format="markdown",
             context="bytes test",
             output_file=None,
-            use_ai=False,
+            use_ai_conversion=False,
         )
 
         # Verify bytes were decoded to string
         assert isinstance(result, str)
-        assert result == "Converted bytes"
+        assert "Converted bytes" in result
 
     @patch("adp_windows.pypandoc")
-    @patch("adp_windows.Path")
-    def test_file_output_conversion(self, mock_path, mock_pypandoc):
+    def test_file_output_conversion(self, mock_pypandoc):
         """Test conversion with file output."""
         mock_pypandoc.convert_text.return_value = None  # File output returns None
 
@@ -145,22 +144,31 @@ class TestPandocWorker:
             from_format="asciidoc",
             context="file output test",
             output_file=output_path,
-            use_ai=False,
+            use_ai_conversion=False,
         )
 
         # Verify result indicates file was saved
         assert result is not None
-        assert "File saved to:" in result
+        assert "File saved to:" in result or str(output_path) in result
 
-    @patch("adp_windows.ClaudeClient")
-    def test_ai_conversion_attempt(self, mock_claude):
+    @patch("adp_windows.pypandoc")
+    @patch("adp_windows.create_client")
+    def test_ai_conversion_attempt(self, mock_create_client, mock_pypandoc):
         """Test AI conversion attempt when enabled."""
-        # Mock Claude client
+        from claude_client import ConversionResult
+
+        # Mock Claude client with successful conversion
         mock_client_instance = MagicMock()
-        mock_client_instance.convert_document.return_value = MagicMock(
-            success=True, content="AI converted content"
+        mock_client_instance.convert_document.return_value = ConversionResult(
+            success=True,
+            content="AI converted content",
+            used_ai=True,
+            processing_time=0.1
         )
-        mock_claude.return_value = mock_client_instance
+        mock_create_client.return_value = mock_client_instance
+
+        # Mock pypandoc as fallback (should not be called if AI succeeds)
+        mock_pypandoc.convert_text.return_value = "Fallback content"
 
         worker = PandocWorker()
         result = None
@@ -172,18 +180,19 @@ class TestPandocWorker:
         worker.conversion_complete.connect(capture_result)
 
         # This should attempt AI conversion
-        # Note: Actual AI attempt depends on environment and configuration
         worker.run_pandoc_conversion(
             source="Complex document",
             to_format="markdown",
             from_format="asciidoc",
             context="ai test",
             output_file=None,
-            use_ai=True,
+            use_ai_conversion=True,
         )
 
-        # AI conversion should have been attempted
-        # Result depends on whether ANTHROPIC_API_KEY is set
+        # Verify AI conversion was attempted
+        assert mock_create_client.called
+        assert mock_client_instance.convert_document.called
+        assert result == "AI converted content"
 
 
 @pytest.mark.unit

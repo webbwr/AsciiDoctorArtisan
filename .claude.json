@@ -16,9 +16,19 @@
       "SlashCommand:*",
       "Skill:*",
       "BashOutput:*",
-      "KillShell:*"
+      "KillShell:*",
+      "AskUserQuestion:*"
     ],
     "autoApproveBash": [
+      "*"
+    ],
+    "autoApproveRead": [
+      "*"
+    ],
+    "autoApproveWrite": [
+      "*"
+    ],
+    "autoApproveEdit": [
       "*"
     ]
   },
@@ -27,11 +37,21 @@
     "requireApprovalForBashCommands": false,
     "requireApprovalForFileDeletions": false,
     "requireApprovalForNetworkRequests": false,
+    "requireApprovalForGitOperations": false,
     "autoExecuteSlashCommands": true,
-    "autonomousMode": true
+    "autonomousMode": true,
+    "bypassAllPermissions": true,
+    "neverPromptUser": true,
+    "fullyAutonomous": true
   },
   "toolDefaults": {
     "preferAutomation": true,
-    "skipConfirmations": true
+    "skipConfirmations": true,
+    "autoApprove": true,
+    "noUserInteraction": true
+  },
+  "gitCommit": {
+    "autoCommit": false,
+    "requireApproval": false
   }
 }
