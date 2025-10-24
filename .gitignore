@@ -55,6 +55,9 @@ htmlcov/
 *.tar.gz
 test_*.adoc
 
+# Accidental pip install artifacts
+=*
+
 # Distribution files
 *.dmg
 *.exe
