@@ -96,6 +96,7 @@ from asciidoc_artisan.ui.dialogs import (
     ImportOptionsDialog,
     PreferencesDialog,
 )
+from asciidoc_artisan.ui.settings_manager import SettingsManager
 from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
 
 # Check for Claude client availability
@@ -136,61 +137,18 @@ class AsciiDocEditor(QMainWindow):
 
     def __init__(self) -> None:
         super().__init__()
-        self._settings_path = self._get_settings_path()
-        self._set_default_settings()
-        self._load_settings()
-        self.setWindowTitle(f"{APP_NAME} · Basic Preview")
 
-        if platform.system() == "Windows":
-            self.setWindowFlags(
-                Qt.WindowType.Window
-                | Qt.WindowType.WindowTitleHint
-                | Qt.WindowType.WindowSystemMenuHint
-                | Qt.WindowType.WindowMinimizeButtonHint
-                | Qt.WindowType.WindowMaximizeButtonHint
-                | Qt.WindowType.WindowCloseButtonHint
-            )
+        # Initialize settings manager
+        self._settings_manager = SettingsManager()
+        self._settings_path = self._settings_manager.get_settings_path()
 
-        self._setup_ui()
-        self._restore_ui_settings()
-        self._create_actions()
-        self._create_menus()
-        self._apply_theme()
-        self._setup_workers_and_threads()
-        self._update_ui_state()
+        # Load settings
+        self._settings = self._settings_manager.load_settings()
 
-        self._auto_save_timer = QTimer(self)
-        self._auto_save_timer.timeout.connect(self._auto_save)
-        self._auto_save_timer.start(300000)
-
-    def _set_default_settings(self) -> None:
-
-        if platform.system() == "Windows":
-            docs_path = QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.DocumentsLocation
-            )
-            last_dir = docs_path or str(Path.home() / "Documents")
-        else:
-            last_dir = str(Path.home())
-
-        self._settings = Settings(
-            last_directory=last_dir,
-            last_file=None,
-            git_repo_path=None,
-            dark_mode=True,
-            maximized=False,
-            window_geometry=None,
-            splitter_sizes=None,
-            font_size=EDITOR_FONT_SIZE,
-            auto_save_enabled=True,
-            auto_save_interval=300,
-        )
-
+        # Initialize state variables
         self._current_file_path: Optional[Path] = None
         self._initial_geometry: Optional[QRect] = None
-        self._start_maximized = False
-        self._asciidoc_api = self._initialize_asciidoc()
-        self._preview_timer = self._setup_preview_timer()
+        self._start_maximized = self._settings.maximized
         self._is_opening_file = False
         self._is_processing_git = False
         self._is_processing_pandoc = False
@@ -206,131 +164,46 @@ class AsciiDocEditor(QMainWindow):
         self._pending_export_format: Optional[str] = None
         self._temp_dir = tempfile.TemporaryDirectory()
 
-    def _get_settings_path(self) -> Path:
+        # Parse window geometry from settings
+        if not self._start_maximized:
+            self._initial_geometry = self._settings_manager.parse_window_geometry(
+                self._settings
+            )
+
+        # Restore last file if exists
+        if self._settings.last_file and Path(self._settings.last_file).is_file():
+            self._current_file_path = Path(self._settings.last_file)
+
+        # Initialize AsciiDoc API
+        self._asciidoc_api = self._initialize_asciidoc()
+
+        # Setup preview timer
+        self._preview_timer = self._setup_preview_timer()
+
+        self.setWindowTitle(f"{APP_NAME} · Basic Preview")
 
         if platform.system() == "Windows":
-            config_dir_str = os.environ.get("APPDATA")
-            if config_dir_str:
-                config_dir = Path(config_dir_str) / APP_NAME
-            else:
-                config_dir = Path.home() / "AppData" / "Roaming" / APP_NAME
-        else:
-            config_dir_str = QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.AppConfigLocation
+            self.setWindowFlags(
+                Qt.WindowType.Window
+                | Qt.WindowType.WindowTitleHint
+                | Qt.WindowType.WindowSystemMenuHint
+                | Qt.WindowType.WindowMinimizeButtonHint
+                | Qt.WindowType.WindowMaximizeButtonHint
+                | Qt.WindowType.WindowCloseButtonHint
             )
-            if config_dir_str:
-                config_dir = Path(config_dir_str)
-            else:
-                config_dir = Path.home() / f".{APP_NAME.lower()}"
 
-        try:
-            config_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Using config directory: {config_dir}")
-        except Exception as e:
-            logger.warning(f"Could not create config directory {config_dir}: {e}")
-            return Path.home() / SETTINGS_FILENAME
+        self._setup_ui()
+        # Restore UI settings using manager
+        self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
+        self._create_actions()
+        self._create_menus()
+        self._apply_theme()
+        self._setup_workers_and_threads()
+        self._update_ui_state()
 
-        return config_dir / SETTINGS_FILENAME
-
-    def _load_settings(self) -> None:
-        logger.info(f"Loading settings from: {self._settings_path}")
-
-        if not self._settings_path.is_file():
-            logger.info("Settings file not found, using defaults")
-            return
-
-        try:
-            with open(self._settings_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
-            self._settings = Settings.from_dict(data)
-
-            if (
-                self._settings.last_directory
-                and Path(self._settings.last_directory).is_dir()
-            ):
-                pass
-            else:
-
-                self._settings.last_directory = str(Path.home())
-
-            self._start_maximized = self._settings.maximized
-
-            if not self._start_maximized and self._settings.window_geometry:
-                geom = self._settings.window_geometry
-                if all(key in geom for key in ["x", "y", "width", "height"]):
-                    self._initial_geometry = QRect(
-                        geom["x"], geom["y"], geom["width"], geom["height"]
-                    )
-
-            if self._settings.last_file and Path(self._settings.last_file).is_file():
-                self._current_file_path = Path(self._settings.last_file)
-
-            logger.info("Settings loaded successfully")
-
-        except Exception as e:
-            logger.error(f"Failed to load settings: {e}")
-
-    def _save_settings(self) -> None:
-
-        self._settings.last_directory = (
-            str(Path(self._current_file_path).parent)
-            if self._current_file_path
-            else self._settings.last_directory
-        )
-        self._settings.last_file = (
-            str(self._current_file_path) if self._current_file_path else None
-        )
-        self._settings.git_repo_path = (
-            str(self._settings.git_repo_path)
-            if hasattr(self, "_settings") and self._settings.git_repo_path
-            else None
-        )
-        self._settings.dark_mode = (
-            self.dark_mode_act.isChecked() if hasattr(self, "dark_mode_act") else True
-        )
-        self._settings.maximized = self.isMaximized()
-
-        if not self.isMaximized():
-            geom = self.geometry()
-            self._settings.window_geometry = {
-                "x": geom.x(),
-                "y": geom.y(),
-                "width": geom.width(),
-                "height": geom.height(),
-            }
-        else:
-            self._settings.window_geometry = None
-
-        if hasattr(self, "splitter") and self.splitter:
-            self._settings.splitter_sizes = self.splitter.sizes()
-
-        if hasattr(self, "editor"):
-            font = self.editor.font()
-            self._settings.font_size = font.pointSize()
-
-        settings_dict = self._settings.to_dict()
-        if atomic_save_json(
-            self._settings_path, settings_dict, encoding="utf-8", indent=2
-        ):
-            logger.info("Settings saved successfully")
-        else:
-            logger.error(f"Failed to save settings: {self._settings_path}")
-
-    def _restore_ui_settings(self) -> None:
-        """Restore UI state from settings (splitter sizes, font size, etc.)."""
-
-        if self._settings.splitter_sizes and len(self._settings.splitter_sizes) == 2:
-
-            sizes = list(self._settings.splitter_sizes)
-            QTimer.singleShot(100, lambda: self.splitter.setSizes(sizes))
-            logger.info(f"Restoring splitter sizes: {self._settings.splitter_sizes}")
-
-        if self._settings.font_size and self._settings.font_size != EDITOR_FONT_SIZE:
-            font = self.editor.font()
-            font.setPointSize(self._settings.font_size)
-            self.editor.setFont(font)
-            logger.info(f"Restoring font size: {self._settings.font_size}")
+        self._auto_save_timer = QTimer(self)
+        self._auto_save_timer.timeout.connect(self._auto_save)
+        self._auto_save_timer.start(300000)
 
     def _initialize_asciidoc(self) -> Optional[AsciiDoc3API]:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
@@ -940,22 +813,6 @@ class AsciiDocEditor(QMainWindow):
         palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
         QApplication.setPalette(palette)
 
-    def _get_ai_conversion_preference(self) -> bool:
-        """
-        Get AI conversion preference with availability check.
-
-        Returns True if AI conversion should be used:
-        - Claude client is available
-        - Settings have AI enabled
-        - API key is present in environment
-
-        FR-055: AI-Enhanced Conversion option
-        """
-        if not CLAUDE_CLIENT_AVAILABLE:
-            return False
-        return self._settings.ai_conversion_enabled
-
-    @Slot()
     def new_file(self) -> None:
         """Create a new file."""
         if self._unsaved_changes:
@@ -1064,7 +921,9 @@ class AsciiDocEditor(QMainWindow):
 
                 input_format, file_type = format_map.get(suffix, ("markdown", "text"))
 
-                use_ai_for_import = self._get_ai_conversion_preference()
+                use_ai_for_import = self._settings_manager.get_ai_conversion_preference(
+                    self._settings
+                )
                 import_dialog = ImportOptionsDialog(
                     input_format, file_path.name, use_ai_for_import, self
                 )
@@ -1213,7 +1072,7 @@ class AsciiDocEditor(QMainWindow):
 
             if format_type != "adoc":
 
-                use_ai_for_export = self._get_ai_conversion_preference()
+                use_ai_for_export = self._settings_manager.get_ai_conversion_preference(self._settings)
                 if format_type in ["md", "docx", "pdf"]:
                     export_dialog = ExportOptionsDialog(
                         format_type, use_ai_for_export, self
@@ -1275,7 +1134,7 @@ class AsciiDocEditor(QMainWindow):
         )
 
         if use_ai is None:
-            use_ai = self._get_ai_conversion_preference()
+            use_ai = self._settings_manager.get_ai_conversion_preference(self._settings)
 
         content = self.editor.toPlainText()
 
@@ -1462,7 +1321,7 @@ class AsciiDocEditor(QMainWindow):
 
         content = self.editor.toPlainText()
 
-        use_ai_for_export = self._get_ai_conversion_preference()
+        use_ai_for_export = self._settings_manager.get_ai_conversion_preference(self._settings)
         if format_type in ["md", "docx", "pdf"]:
             export_dialog = ExportOptionsDialog(format_type, use_ai_for_export, self)
             if export_dialog.exec() == QDialog.DialogCode.Accepted:
@@ -1909,7 +1768,7 @@ class AsciiDocEditor(QMainWindow):
             source_format,
             "clipboard conversion",
             None,
-            self._get_ai_conversion_preference(),
+            self._settings_manager.get_ai_conversion_preference(self._settings),
         )
 
     def _select_git_repository(self) -> None:
@@ -2290,7 +2149,9 @@ class AsciiDocEditor(QMainWindow):
         dialog = PreferencesDialog(self._settings, self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self._settings = dialog.get_settings()
-            self._save_settings()
+            self._settings_manager.save_settings(
+                self._settings, self, self._current_file_path
+            )
             self.status_bar.showMessage("Preferences updated", 3000)
             logger.info(
                 f"AI conversion preference updated: {self._settings.ai_conversion_enabled}"
@@ -2420,16 +2281,24 @@ class AsciiDocEditor(QMainWindow):
             event.ignore()
             return
 
-        self._save_settings()
+        # Save settings using manager
+        self._settings_manager.save_settings(
+            self._settings, self, self._current_file_path
+        )
 
         logger.info("Shutting down worker threads...")
-        self.git_thread.quit()
-        self.pandoc_thread.quit()
-        self.preview_thread.quit()
+        # Safely shut down threads (defensive for test environments)
+        if self.git_thread and self.git_thread.isRunning():
+            self.git_thread.quit()
+            self.git_thread.wait(1000)
 
-        self.git_thread.wait(1000)
-        self.pandoc_thread.wait(1000)
-        self.preview_thread.wait(1000)
+        if self.pandoc_thread and self.pandoc_thread.isRunning():
+            self.pandoc_thread.quit()
+            self.pandoc_thread.wait(1000)
+
+        if self.preview_thread and self.preview_thread.isRunning():
+            self.preview_thread.quit()
+            self.preview_thread.wait(1000)
 
         try:
             self._temp_dir.cleanup()

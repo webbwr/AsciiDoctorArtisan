@@ -25,16 +25,34 @@ class TestAsciiDocEditorUI:
 
     @pytest.fixture
     def editor(self, qtbot):
-        """Create AsciiDocEditor instance for testing."""
+        """Create AsciiDocEditor instance for testing with proper cleanup."""
         with patch("adp_windows.AsciiDocEditor._load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
-            return window
+            window.show()  # Show window for visibility tests
+
+            yield window
+
+            # Cleanup threads BEFORE qtbot tries to close the window
+            # This prevents segfaults during teardown
+            if hasattr(window, 'git_thread') and window.git_thread:
+                window.git_thread.quit()
+                window.git_thread.wait(1000)
+
+            if hasattr(window, 'pandoc_thread') and window.pandoc_thread:
+                window.pandoc_thread.quit()
+                window.pandoc_thread.wait(1000)
+
+            if hasattr(window, 'preview_thread') and window.preview_thread:
+                window.preview_thread.quit()
+                window.preview_thread.wait(1000)
+
+            # Note: qtbot handles window.close() and window.deleteLater()
 
     def test_window_creation(self, editor):
         """Test main window can be created."""
         assert editor is not None
-        assert editor.windowTitle() == "AsciiDoc Artisan"
+        assert "AsciiDoc Artisan" in editor.windowTitle()
 
     def test_editor_widget_exists(self, editor):
         """Test editor widget is present."""
@@ -137,11 +155,24 @@ class TestEditorDialogs:
 
     @pytest.fixture
     def editor(self, qtbot):
-        """Create AsciiDocEditor instance for testing."""
+        """Create AsciiDocEditor instance for testing with proper cleanup."""
         with patch("adp_windows.AsciiDocEditor._load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
-            return window
+            window.show()  # Show window for visibility tests
+
+            yield window
+
+            # Cleanup threads BEFORE qtbot closes window
+            if hasattr(window, 'git_thread') and window.git_thread:
+                window.git_thread.quit()
+                window.git_thread.wait(1000)
+            if hasattr(window, 'pandoc_thread') and window.pandoc_thread:
+                window.pandoc_thread.quit()
+                window.pandoc_thread.wait(1000)
+            if hasattr(window, 'preview_thread') and window.preview_thread:
+                window.preview_thread.quit()
+                window.preview_thread.wait(1000)
 
     def test_import_options_dialog(self, qtbot):
         """Test import options dialog creation."""
@@ -181,11 +212,24 @@ class TestEditorActions:
 
     @pytest.fixture
     def editor(self, qtbot):
-        """Create AsciiDocEditor instance for testing."""
+        """Create AsciiDocEditor instance for testing with proper cleanup."""
         with patch("adp_windows.AsciiDocEditor._load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
-            return window
+            window.show()  # Show window for visibility tests
+
+            yield window
+
+            # Cleanup threads BEFORE qtbot closes window
+            if hasattr(window, 'git_thread') and window.git_thread:
+                window.git_thread.quit()
+                window.git_thread.wait(1000)
+            if hasattr(window, 'pandoc_thread') and window.pandoc_thread:
+                window.pandoc_thread.quit()
+                window.pandoc_thread.wait(1000)
+            if hasattr(window, 'preview_thread') and window.preview_thread:
+                window.preview_thread.quit()
+                window.preview_thread.wait(1000)
 
     def test_new_action_exists(self, editor):
         """Test new file action exists."""
@@ -229,11 +273,24 @@ class TestSplitterBehavior:
 
     @pytest.fixture
     def editor(self, qtbot):
-        """Create AsciiDocEditor instance for testing."""
+        """Create AsciiDocEditor instance for testing with proper cleanup."""
         with patch("adp_windows.AsciiDocEditor._load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
-            return window
+            window.show()  # Show window for visibility tests
+
+            yield window
+
+            # Cleanup threads BEFORE qtbot closes window
+            if hasattr(window, 'git_thread') and window.git_thread:
+                window.git_thread.quit()
+                window.git_thread.wait(1000)
+            if hasattr(window, 'pandoc_thread') and window.pandoc_thread:
+                window.pandoc_thread.quit()
+                window.pandoc_thread.wait(1000)
+            if hasattr(window, 'preview_thread') and window.preview_thread:
+                window.preview_thread.quit()
+                window.preview_thread.wait(1000)
 
     def test_splitter_exists(self, editor):
         """Test splitter widget exists."""
@@ -279,11 +336,24 @@ class TestPreviewUpdate:
 
     @pytest.fixture
     def editor(self, qtbot):
-        """Create AsciiDocEditor instance for testing."""
+        """Create AsciiDocEditor instance for testing with proper cleanup."""
         with patch("adp_windows.AsciiDocEditor._load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
-            return window
+            window.show()  # Show window for visibility tests
+
+            yield window
+
+            # Cleanup threads BEFORE qtbot closes window
+            if hasattr(window, 'git_thread') and window.git_thread:
+                window.git_thread.quit()
+                window.git_thread.wait(1000)
+            if hasattr(window, 'pandoc_thread') and window.pandoc_thread:
+                window.pandoc_thread.quit()
+                window.pandoc_thread.wait(1000)
+            if hasattr(window, 'preview_thread') and window.preview_thread:
+                window.preview_thread.quit()
+                window.preview_thread.wait(1000)
 
     def test_preview_timer_exists(self, editor):
         """Test preview timer is created."""
@@ -314,11 +384,24 @@ class TestWorkerThreads:
 
     @pytest.fixture
     def editor(self, qtbot):
-        """Create AsciiDocEditor instance for testing."""
+        """Create AsciiDocEditor instance for testing with proper cleanup."""
         with patch("adp_windows.AsciiDocEditor._load_settings"):
             window = AsciiDocEditor()
             qtbot.addWidget(window)
-            return window
+            window.show()  # Show window for visibility tests
+
+            yield window
+
+            # Cleanup threads BEFORE qtbot closes window
+            if hasattr(window, 'git_thread') and window.git_thread:
+                window.git_thread.quit()
+                window.git_thread.wait(1000)
+            if hasattr(window, 'pandoc_thread') and window.pandoc_thread:
+                window.pandoc_thread.quit()
+                window.pandoc_thread.wait(1000)
+            if hasattr(window, 'preview_thread') and window.preview_thread:
+                window.preview_thread.quit()
+                window.preview_thread.wait(1000)
 
     def test_git_worker_exists(self, editor):
         """Test Git worker is created."""

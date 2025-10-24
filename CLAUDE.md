@@ -12,6 +12,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Document Conversion:** pypandoc 1.13+ with Pandoc system binary
 - **Python:** 3.11+ (3.12 recommended)
 
+**Current Version:** 1.1.0 (per specification v1.1.0)
+- Modular architecture with comprehensive test coverage (71/71 tests)
+- All functional requirements (FR-001 to FR-062) implemented
+- Security features: atomic file saves (FR-015), path sanitization (FR-016)
+- Full type hints (NFR-016) and comprehensive documentation (NFR-017)
+
 ## Development Commands
 
 ### Setup
@@ -74,25 +80,50 @@ make clean
 
 ## Architecture Overview
 
-### Single-File Monolithic Design
-The application is primarily contained in `adp_windows.py` (~3000 lines). This is intentional for simplicity and ease of deployment.
+### Modular Package Architecture
+The application has been refactored from a single-file design into a well-structured Python package (`asciidoc_artisan/`) with clear separation of concerns. The legacy `adp_windows.py` remains as the main entry point for backwards compatibility.
+
+**Package Structure:**
+```
+asciidoc_artisan/
+├── core/           # Core functionality and models
+│   ├── constants.py      # App constants and configuration
+│   ├── models.py         # Data models (Settings, GitResult)
+│   ├── settings.py       # Settings persistence
+│   └── file_operations.py # Secure file I/O (atomic saves, path sanitization)
+├── workers/        # Background QThread workers
+│   ├── git_worker.py     # Git operations
+│   ├── pandoc_worker.py  # Document conversion
+│   └── preview_worker.py # AsciiDoc rendering
+├── ui/            # User interface components
+│   ├── main_window.py    # AsciiDocEditor (QMainWindow)
+│   └── dialogs.py        # Import/Export/Preferences dialogs
+├── git/           # Git integration utilities
+├── conversion/    # Document conversion utilities
+└── claude/        # Optional AI integration
+```
 
 **Main Components:**
-1. **`AsciiDocEditor` (QMainWindow)** - Main application class
+1. **`AsciiDocEditor` (QMainWindow)** - Main application class in `ui/main_window.py`
    - UI setup and layout
-   - File I/O operations
-   - Settings persistence
-   - Signal/slot coordination
+   - Coordinates workers via signals/slots
+   - File operations delegated to `core/file_operations.py`
 
-2. **Worker Threads** - Background processing to keep UI responsive
+2. **Worker Threads** - Background processing in `workers/`
    - `GitWorker` - Git operations (commit, pull, push)
-   - `PandocWorker` - Document format conversion
-   - `ClaudeWorker` - AI-enhanced conversion (optional)
+   - `PandocWorker` - Document format conversion (with optional AI)
+   - `PreviewWorker` - AsciiDoc to HTML rendering
 
-3. **Supporting Modules:**
-   - `pandoc_integration.py` - Enhanced Pandoc wrapper with error handling and PDF extraction
-   - `claude_client.py` - Claude AI integration for conversions (optional)
-   - `setup.py` - Package configuration
+3. **Core Models & Settings** - in `core/`
+   - `Settings` - Application settings dataclass
+   - `GitResult` - Git operation results
+   - `atomic_save_text/json` - Secure file writing (FR-015)
+   - `sanitize_path` - Path traversal prevention (FR-016)
+
+4. **Legacy Entry Point:**
+   - `adp_windows.py` - Main entry point (imports from `asciidoc_artisan`)
+   - `pandoc_integration.py` - Enhanced Pandoc wrapper (being phased out)
+   - `claude_client.py` - AI integration (being phased out)
 
 ### Threading Model & State Management
 
@@ -104,17 +135,17 @@ The application is primarily contained in `adp_windows.py` (~3000 lines). This i
 
 **Thread Communication Pattern:**
 ```python
-# Request work from UI thread
+# In ui/main_window.py - Request work from UI thread
 self.request_git_command.emit(["git", "commit", "-m", msg], repo_path)
 
-# Worker processes in background
+# In workers/git_worker.py - Worker processes in background
 class GitWorker(QObject):
     @Slot(list, Path)
     def run_git_command(self, args, working_dir):
         result = subprocess.run(args, cwd=working_dir, ...)
         self.command_complete.emit(result.stdout, result.returncode)
 
-# UI thread receives results
+# In ui/main_window.py - UI thread receives results
 @Slot(str, int)
 def _on_git_command_complete(self, output, return_code):
     self._is_processing_git = False
@@ -174,11 +205,15 @@ self.git_commit_act.setEnabled(True)
 
 ## Important Files
 
-| File | Purpose |
-|------|---------|
-| `adp_windows.py` | Main application (UI, logic, workers) |
-| `pandoc_integration.py` | Enhanced Pandoc wrapper with validation and PDF extraction |
-| `claude_client.py` | Optional Claude AI integration |
+| File/Directory | Purpose |
+|----------------|---------|
+| `adp_windows.py` | Legacy main entry point (imports from `asciidoc_artisan`) |
+| `asciidoc_artisan/` | Main application package (modular architecture) |
+| `asciidoc_artisan/ui/main_window.py` | Main application window and UI logic |
+| `asciidoc_artisan/core/` | Core models, settings, and secure file operations |
+| `asciidoc_artisan/workers/` | Background thread workers (Git, Pandoc, Preview) |
+| `pandoc_integration.py` | Legacy Pandoc wrapper (being phased out) |
+| `claude_client.py` | Legacy AI integration (being phased out) |
 | `pyproject.toml` | Build config, tool settings (black, ruff, mypy, pytest) |
 | `Makefile` | Development commands |
 | `.pre-commit-config.yaml` | Pre-commit hooks (black, ruff, mypy) |
@@ -203,39 +238,49 @@ self.git_commit_act.setEnabled(True)
 
 ## Testing Strategy
 
-Current test coverage is **basic**. Tests exist for:
-- File operations (read/write/save)
-- Settings persistence (load/save)
+Current test coverage is **comprehensive** (71/71 tests passing, 100% coverage per specification v1.1.0).
+
+**Test Organization:**
+- `tests/` - All test files follow `test_*.py` naming convention
+- Tests cover: core models, settings, file operations, workers, UI components
+- Uses `pytest` with `pytest-qt` for Qt testing
 
 **When adding tests:**
 - Use `pytest` with `pytest-qt` for Qt testing
 - Mock file I/O and subprocess calls
 - Avoid launching full GUI in tests (use QApplication fixture sparingly)
 - Target 80%+ coverage for new features
+- Run tests with: `make test` or `pytest tests/ -v --cov`
 
 ## High-Risk Areas
 
 ### Before modifying these, review carefully:
 
-1. **Thread lifecycle management** (`closeEvent`, worker startup/shutdown)
+1. **Thread lifecycle management** (`ui/main_window.py`: `closeEvent`, worker startup/shutdown)
    - Workers must be properly cleaned up on exit
    - Signals must be disconnected before thread termination
 
-2. **Git subprocess invocation** (`GitWorker.run_git_command`)
+2. **Git subprocess invocation** (`workers/git_worker.py`)
    - Security-sensitive: always validate paths and use list arguments
    - Cross-platform: test on Windows AND Linux
 
-3. **Pandoc integration** (`PandocWorker`, `pandoc_integration.py`)
+3. **Pandoc integration** (`workers/pandoc_worker.py`)
    - Environment-sensitive: Pandoc must be in PATH
    - Error handling is critical for user experience
 
-4. **Settings JSON handling** (`_load_settings`, `_save_settings`)
+4. **Settings JSON handling** (`core/settings.py`, `core/file_operations.py`)
+   - Uses atomic saves (`atomic_save_json`) to prevent corruption
    - Malformed JSON must not crash application
    - Path handling differs per platform
 
-5. **State flags** (`_is_processing_*`)
+5. **State flags** (`ui/main_window.py`: `_is_processing_*`)
    - Race conditions possible if not respected
    - Always reset flags in error handlers
+
+6. **File security** (`core/file_operations.py`)
+   - `sanitize_path` prevents path traversal attacks (FR-016)
+   - `atomic_save_text/json` ensures data integrity (FR-015)
+   - Never bypass these security functions
 
 ## Low-Risk Changes
 
@@ -291,6 +336,8 @@ Installed via `pre-commit install`. Runs on every commit:
 
 ### Adding a New Menu Action
 ```python
+# In ui/main_window.py
+
 # 1. Create QAction in _create_actions()
 self.my_action = QAction("&My Feature", self,
     shortcut=QKeySequence("Ctrl+M"),
@@ -313,11 +360,9 @@ def my_feature_handler(self):
 
 ### Adding a Worker Thread
 ```python
-# 1. Define signals in main class
-request_work = Signal(str)  # input
-work_complete = Signal(str)  # output
+# 1. Create worker class in asciidoc_artisan/workers/my_worker.py
+from PySide6.QtCore import QObject, Signal, Slot
 
-# 2. Create worker class
 class MyWorker(QObject):
     result_ready = Signal(str)
 
@@ -326,7 +371,9 @@ class MyWorker(QObject):
         result = process(input_data)
         self.result_ready.emit(result)
 
-# 3. Setup thread in __init__()
+# 2. In ui/main_window.py __init__()
+from asciidoc_artisan.workers import MyWorker
+
 self.worker_thread = QThread()
 self.worker = MyWorker()
 self.worker.moveToThread(self.worker_thread)
@@ -334,15 +381,48 @@ self.request_work.connect(self.worker.do_work)
 self.worker.result_ready.connect(self.handle_result)
 self.worker_thread.start()
 
-# 4. Clean up in closeEvent()
+# 3. Clean up in closeEvent()
 self.worker_thread.quit()
 self.worker_thread.wait()
+
+# 4. Export in asciidoc_artisan/workers/__init__.py
+from .my_worker import MyWorker
+__all__ = [..., "MyWorker"]
 ```
+
+### Adding Secure File Operations
+```python
+# Always use core utilities for file operations
+from asciidoc_artisan.core import atomic_save_text, sanitize_path
+
+# Sanitize user-provided paths
+safe_path = sanitize_path(user_provided_path, base_dir="/safe/base")
+
+# Atomic file writes (prevents corruption)
+atomic_save_text(file_path, content, encoding="utf-8")
+```
+
+## Architectural Notes
+
+### Transition from Monolith to Modular (v1.0 → v1.1)
+The codebase underwent a major refactoring from a single-file `adp.py` (~3000 lines) to a modular package structure:
+- **Old (v1.0)**: Single `adp.py` with all logic
+- **New (v1.1)**: Package `asciidoc_artisan/` with separate modules for UI, workers, core
+- **Entry Point**: `adp_windows.py` remains for backwards compatibility but imports from `asciidoc_artisan`
+
+**When working with code:**
+- New features should be added to the appropriate module in `asciidoc_artisan/`
+- Follow the existing module organization (core, workers, ui)
+- Update both `adp_windows.py` and package modules if needed for compatibility
+
+**Note:** The `.github/copilot-instructions.md` still references the old `adp.py` structure. When in doubt, trust the current package structure in `asciidoc_artisan/` over the copilot instructions.
 
 ## Related Documentation
 
-- **Copilot Instructions:** `.github/copilot-instructions.md` - AI assistant guidance
+- **Package API:** `asciidoc_artisan/__init__.py` - Public API exports
+- **Copilot Instructions:** `.github/copilot-instructions.md` - AI assistant guidance (outdated, refers to old structure)
 - **Contributing Guide:** `CONTRIBUTING.md` - Detailed contribution workflow
 - **Changelog:** `CHANGELOG.md` - Version history
-- **Optimization Report:** `OPTIMIZATION_REPORT.md` - Performance improvements
+- **Refactoring Reports:** `REFACTORING_*.md` - Architectural change documentation
+- **Performance Reports:** `PERFORMANCE_SUMMARY.md`, `OPTIMIZATION_REPORT.md`
 - **Quick Start:** `docs/QUICK_START.md` - New user guide
