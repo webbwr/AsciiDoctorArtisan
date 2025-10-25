@@ -172,9 +172,13 @@ You can use this program for free! It uses the MIT License.
 ## More Help
 
 Need more help?
-- Check the `docs/user/` folder for guides
+- **[How to Use Guide](docs/how-to-use.md)** - Complete guide to all features
+- **[How to Install Guide](docs/how-to-install.md)** - Detailed installation help
+- **[How to Contribute](docs/how-to-contribute.md)** - Help improve the program
 - Look at issues on GitHub
 - Create a new issue if you find a bug
+
+**Reading Level**: Grade 6.1 (Elementary/Middle School)
 
 ## Thank You
 

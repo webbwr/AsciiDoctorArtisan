@@ -6,42 +6,45 @@ Simple guides to help you use and understand AsciiDoc Artisan.
 
 ### For Users
 
-**[USER_GUIDE.md](USER_GUIDE.md)** - How to use the program
+**[how-to-use.md](how-to-use.md)** - How to use the program
 - Writing documents
 - Saving and opening files
 - Using Git
 - Tips and tricks
+- **Reading Level**: Grade 5.1 (Elementary)
 
-**[INSTALL.md](INSTALL.md)** - How to install the program
+**[how-to-install.md](how-to-install.md)** - How to install the program
 - Step-by-step setup
 - Fixing common problems
 - Checking if it works
+- **Reading Level**: Grade 5.4 (Elementary)
 
 ### For Developers
 
-**[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - How to help improve the program
+**[how-to-contribute.md](how-to-contribute.md)** - How to help improve the program
 - Understanding the code
 - Adding new features
 - Sending your changes
+- **Reading Level**: Grade 4.0 (Elementary)
 
 ## Quick Start
 
 New to AsciiDoc Artisan? Read these in order:
 
-1. **INSTALL.md** - Get it running on your computer
-2. **USER_GUIDE.md** - Learn how to use it
+1. **how-to-install.md** - Get it running on your computer
+2. **how-to-use.md** - Learn how to use it
 3. Start writing!
 
 Want to help improve it?
-4. **DEVELOPER_GUIDE.md** - Learn how to make changes
+4. **how-to-contribute.md** - Learn how to make changes
 
 ## What Each File Does
 
-| File | What's In It | Who It's For |
-|------|-------------|--------------|
-| USER_GUIDE.md | How to use all features | Everyone using the program |
-| INSTALL.md | How to set it up | People installing it |
-| DEVELOPER_GUIDE.md | How the code works | People who want to help |
+| File | What's In It | Who It's For | Reading Level |
+|------|-------------|--------------|---------------|
+| how-to-use.md | How to use all features | Everyone using the program | Grade 5.1 |
+| how-to-install.md | How to set it up | People installing it | Grade 5.4 |
+| how-to-contribute.md | How the code works | People who want to help | Grade 4.0 |
 
 ## Other Helpful Files
 

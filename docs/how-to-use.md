@@ -1,4 +1,6 @@
-# AsciiDoc Artisan User Guide
+# How to Use AsciiDoc Artisan
+
+**Reading Level**: Grade 5.1 (Elementary)
 
 A simple guide to help you use AsciiDoc Artisan.
 
@@ -23,7 +25,7 @@ AsciiDoc Artisan is a program that helps you write documents using AsciiDoc. Thi
 
 ### First Time Setup
 
-1. **Install the program** (see README.md for steps)
+1. **Install the program** (see [how-to-install.md](how-to-install.md) for steps)
 2. **Start the program** by double-clicking the launch file
 3. The program opens with two windows:
    - Left side: Where you type
@@ -293,7 +295,8 @@ Yes! Two ways:
 
 ## Need More Help?
 
-- Check the other files in the `docs/` folder
+- Check [how-to-install.md](how-to-install.md) for setup problems
+- Check [how-to-contribute.md](how-to-contribute.md) if you want to help
 - Look for issues on GitHub
 - Create a new issue to ask questions
 
@@ -305,3 +308,6 @@ Yes! Two ways:
 - **Shortcuts save time**: Learn the keyboard shortcuts
 
 Happy writing!
+
+---
+**Document Info**: Reading level Grade 5.1 | Last updated: 2025

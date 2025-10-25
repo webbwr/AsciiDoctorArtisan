@@ -1,5 +1,7 @@
 # Installation Guide
 
+**Reading Level**: Grade 5.4 (Elementary)
+
 This guide shows you how to install AsciiDoc Artisan on your computer.
 
 ## Before You Start

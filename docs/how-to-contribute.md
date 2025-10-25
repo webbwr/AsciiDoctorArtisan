@@ -1,5 +1,7 @@
 # Developer Guide
 
+**Reading Level**: Grade 4.0 (Elementary)
+
 A guide for people who want to help improve AsciiDoc Artisan or understand how it works.
 
 ## Table of Contents
