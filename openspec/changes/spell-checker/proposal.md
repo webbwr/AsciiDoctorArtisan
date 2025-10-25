@@ -1,8 +1,10 @@
 # Proposal: Add Spell Checker
 
-**Status**: Draft (Example)
+**Status**: ⏸️ DEFERRED to v1.4.0+ (Lower Priority)
 **Author**: AsciiDoc Artisan Team
 **Date**: October 2025
+**Decision Date**: October 25, 2025
+**Reason**: Focus on GPT-5 integration first
 **Reading Level**: Grade 6.0
 
 ## Problem

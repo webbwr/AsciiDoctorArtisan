@@ -1,8 +1,9 @@
 # Proposal: GPT-5 Integration
 
-**Status**: Draft
+**Status**: ✅ APPROVED - High Priority (v1.2.0/1.3.0)
 **Author**: AsciiDoc Artisan Team
 **Date**: October 2025
+**Decision Date**: October 25, 2025
 **Reading Level**: Grade 6.0
 **Based On**: GPT-5 API release (August 2025)
 
