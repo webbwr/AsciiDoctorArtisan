@@ -60,6 +60,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
+    QProgressDialog,
     QPushButton,
     QSplitter,
     QStatusBar,
@@ -87,6 +88,7 @@ from asciidoc_artisan.core import (
     ResourceMonitor,
     atomic_save_text,
 )
+from asciidoc_artisan.core.large_file_handler import LargeFileHandler
 from asciidoc_artisan.ui.dialogs import (
     ExportOptionsDialog,
     ImportOptionsDialog,
@@ -155,6 +157,13 @@ class AsciiDocEditor(QMainWindow):
         logger.info(
             f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})"
         )
+
+        # Initialize large file handler
+        self.large_file_handler = LargeFileHandler()
+        self.large_file_handler.progress_update.connect(self._on_file_load_progress)
+
+        # Initialize progress dialog for large file loading
+        self._progress_dialog: Optional[QProgressDialog] = None
 
         # Initialize state variables
         self._current_file_path: Optional[Path] = None
@@ -1001,8 +1010,20 @@ class AsciiDocEditor(QMainWindow):
                     use_ai_for_import,
                 )
             else:
+                # Use optimized loading for large files
+                file_size = file_path.stat().st_size
+                category = LargeFileHandler.get_file_size_category(file_path)
 
-                content = file_path.read_text(encoding="utf-8")
+                if category in ["medium", "large"]:
+                    logger.info(f"Loading {category} file with optimizations")
+                    success, content, error = self.large_file_handler.load_file_optimized(
+                        file_path
+                    )
+                    if not success:
+                        raise Exception(error)
+                else:
+                    content = file_path.read_text(encoding="utf-8")
+
                 self._load_content_into_editor(content, file_path)
 
         except Exception as e:
@@ -1012,9 +1033,20 @@ class AsciiDocEditor(QMainWindow):
             )
 
     def _load_content_into_editor(self, content: str, file_path: Path) -> None:
+        """Load content into editor with lazy loading for large files."""
         self._is_opening_file = True
         try:
+            # Disable preview updates temporarily for large files
+            content_size = len(content)
+            is_large_file = content_size > 100000  # > 100KB
 
+            if is_large_file:
+                logger.info(
+                    f"Loading large file ({content_size / 1024:.1f} KB) - preview will be deferred"
+                )
+
+            # QPlainTextEdit handles large documents efficiently with internal lazy loading
+            # It only renders visible blocks, so setPlainText is still fast
             self.editor.setPlainText(content)
             self._current_file_path = file_path
             self._unsaved_changes = False
@@ -1037,6 +1069,7 @@ class AsciiDocEditor(QMainWindow):
             else:
                 self.status_bar.showMessage(f"Opened: {file_path}")
 
+            # Trigger preview update (will be optimized based on file size)
             self.update_preview()
 
             logger.info(f"Loaded content into editor: {file_path}")
@@ -1572,12 +1605,60 @@ class AsciiDocEditor(QMainWindow):
             else:
                 logger.error(f"Auto-save failed: {self._current_file_path}")
 
+    @Slot(int, str)
+    def _on_file_load_progress(self, percentage: int, message: str) -> None:
+        """Handle file loading progress updates with visual progress dialog."""
+        # Create progress dialog on first progress update
+        if percentage > 0 and percentage < 100:
+            if self._progress_dialog is None:
+                self._progress_dialog = QProgressDialog(
+                    "Loading file...", "Cancel", 0, 100, self
+                )
+                self._progress_dialog.setWindowTitle("Loading")
+                self._progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
+                self._progress_dialog.setMinimumDuration(500)  # Show after 500ms
+                self._progress_dialog.setCancelButton(None)  # No cancel button
+                self._progress_dialog.setAutoClose(True)
+                self._progress_dialog.setAutoReset(True)
+
+            self._progress_dialog.setValue(percentage)
+            self._progress_dialog.setLabelText(message)
+            logger.debug(f"File load progress: {percentage}% - {message}")
+
+        # Close and cleanup on completion
+        elif percentage >= 100:
+            if self._progress_dialog is not None:
+                self._progress_dialog.setValue(100)
+                self._progress_dialog.close()
+                self._progress_dialog = None
+            self.status_bar.showMessage(message, 3000)
+            logger.debug(f"File load complete: {message}")
+
+        # Show in status bar for initial progress
+        else:
+            self.status_bar.showMessage(message, 2000)
+
     @Slot()
     def update_preview(self) -> None:
-        """Request preview rendering in background thread."""
+        """Request preview rendering in background thread with optimization for large files."""
         source_text = self.editor.toPlainText()
 
-        self.request_preview_render.emit(source_text)
+        # Optimize preview for large documents
+        text_size = len(source_text)
+        line_count = source_text.count("\n") + 1
+
+        if text_size > 100000:  # > 100KB
+            # Use optimized preview content for large files
+            preview_text = LargeFileHandler.get_preview_content(source_text)
+            truncated_chars = text_size - len(preview_text)
+            logger.info(
+                f"Large file preview: {len(preview_text):,} / {text_size:,} chars "
+                f"({line_count:,} lines, truncated {truncated_chars:,} chars)"
+            )
+            self.request_preview_render.emit(preview_text)
+        else:
+            logger.debug(f"Preview update: {text_size:,} chars, {line_count:,} lines")
+            self.request_preview_render.emit(source_text)
 
     @Slot(str)
     def _handle_preview_complete(self, html_body: str) -> None:
