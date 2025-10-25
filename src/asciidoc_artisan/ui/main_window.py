@@ -95,6 +95,7 @@ from asciidoc_artisan.ui.dialogs import (
     PreferencesDialog,
 )
 from asciidoc_artisan.ui.file_handler import FileHandler
+from asciidoc_artisan.ui.git_handler import GitHandler
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
 from asciidoc_artisan.ui.preview_handler import PreviewHandler
@@ -291,6 +292,13 @@ class AsciiDocEditor(QMainWindow):
             self
         )
         self.preview_handler.start_preview_updates()
+
+        # Initialize GitHandler (Phase 5: Refactoring)
+        self.git_handler = GitHandler(
+            self,
+            self._settings_manager,
+            self.status_manager
+        )
 
         # Restore UI settings using manager
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
@@ -1928,109 +1936,29 @@ class AsciiDocEditor(QMainWindow):
         )
 
     def _select_git_repository(self) -> None:
-        dir_path = QFileDialog.getExistingDirectory(
-            self,
-            "Select Git Repository",
-            self._settings.git_repo_path or self._settings.last_directory,
-            QFileDialog.Option.ShowDirsOnly,
-        )
-
-        if not dir_path:
-            return
-
-        if not (Path(dir_path) / ".git").is_dir():
-            self.status_manager.show_message(
-                "warning",
-                "Not a Git Repository",
-                "Selected directory is not a Git repository.",
-            )
-            return
-
-        self._settings.git_repo_path = dir_path
-        self.status_bar.showMessage(f"Git repository set: {dir_path}")
-        self._update_ui_state()
+        """Select Git repository (delegates to GitHandler)."""
+        self.git_handler.select_repository()
 
     def _trigger_git_commit(self) -> None:
-        if not self._ensure_git_ready():
-            return
-
-        if self._unsaved_changes:
-            if not self.save_file():
-                return
-
-        message, ok = QInputDialog.getMultiLineText(
-            self, "Commit Message", "Enter commit message:", ""
-        )
-
-        if not ok or not message.strip():
-            return
-
-        self._is_processing_git = True
-        self._last_git_operation = "commit"
-        self._pending_commit_message = message
-        self._update_ui_state()
-
-        self.status_bar.showMessage("Committing changes...")
-        self.request_git_command.emit(["git", "add", "."], self._settings.git_repo_path)
+        """Trigger Git commit (delegates to GitHandler)."""
+        self.git_handler.commit_changes()
 
     def _trigger_git_pull(self) -> None:
-        if not self._ensure_git_ready():
-            return
-
-        self._is_processing_git = True
-        self._last_git_operation = "pull"
-        self._update_ui_state()
-
-        self.status_bar.showMessage("Pulling from remote...")
-        self.request_git_command.emit(["git", "pull"], self._settings.git_repo_path)
+        """Trigger Git pull (delegates to GitHandler)."""
+        self.git_handler.pull_changes()
 
     def _trigger_git_push(self) -> None:
-        if not self._ensure_git_ready():
-            return
-
-        self._is_processing_git = True
-        self._last_git_operation = "push"
-        self._update_ui_state()
-
-        self.status_bar.showMessage("Pushing to remote...")
-        self.request_git_command.emit(["git", "push"], self._settings.git_repo_path)
+        """Trigger Git push (delegates to GitHandler)."""
+        self.git_handler.push_changes()
 
     def _ensure_git_ready(self) -> bool:
-        if not self._settings.git_repo_path:
-            self.status_manager.show_message(
-                "info", "No Repository", "Please set a Git repository first."
-            )
-            return False
-        if self._is_processing_git:
-            self.status_manager.show_message(
-                "warning", "Busy", "Git operation in progress."
-            )
-            return False
-        return True
+        """Ensure Git is ready (delegates to GitHandler)."""
+        return self.git_handler._ensure_ready()
 
     @Slot(GitResult)
     def _handle_git_result(self, result: GitResult) -> None:
-        if self._last_git_operation == "commit" and result.success:
-
-            self.request_git_command.emit(
-                ["git", "commit", "-m", self._pending_commit_message],
-                self._settings.git_repo_path,
-            )
-            self._last_git_operation = "commit_final"
-            return
-
-        self._is_processing_git = False
-        self._update_ui_state()
-
-        if result.success:
-            self.status_manager.show_message("info", "Success", result.user_message)
-        else:
-            self.status_manager.show_message(
-                "critical", "Git Error", result.user_message
-            )
-
-        self._last_git_operation = ""
-        self._pending_commit_message = None
+        """Handle Git result (delegates to GitHandler)."""
+        self.git_handler.handle_git_result(result)
 
     @Slot(str, str)
     def _handle_pandoc_result(self, result: str, context: str) -> None:
