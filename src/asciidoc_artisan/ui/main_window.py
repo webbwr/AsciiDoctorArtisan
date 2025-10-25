@@ -1239,7 +1239,7 @@ class AsciiDocEditor(QMainWindow):
             self._settings.last_directory = str(file_path.parent)
             self._unsaved_changes = False
             self.status_manager.update_window_title()
-            self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
+            self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
             logger.info(f"Saved file: {file_path}")
             return True
         else:
@@ -1275,7 +1275,7 @@ class AsciiDocEditor(QMainWindow):
                 self._settings.last_directory = str(file_path.parent)
                 self._unsaved_changes = False
                 self.status_manager.update_window_title()
-                self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
+                self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
                 return True
             else:
                 self.status_manager.show_message(
@@ -1464,7 +1464,7 @@ class AsciiDocEditor(QMainWindow):
 
         if format_type == "adoc":
             if atomic_save_text(file_path, content, encoding="utf-8"):
-                self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
+                self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
                 return True
             else:
                 self.status_manager.show_message(
