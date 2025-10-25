@@ -1705,7 +1705,7 @@ class AsciiDocEditor(QMainWindow):
         text_size = len(source_text)
         line_count = source_text.count("\n") + 1
 
-        if text_size > 100000:  # > 100KB
+        if text_size > LARGE_FILE_THRESHOLD_BYTES:
             # Use optimized preview content for large files
             preview_text = LargeFileHandler.get_preview_content(source_text)
             truncated_chars = text_size - len(preview_text)
