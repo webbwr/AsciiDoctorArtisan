@@ -350,11 +350,11 @@ class AsciiDocEditor(QMainWindow):
                 color: #4ade80;
             }
             QPushButton:hover {
-                background-color: rgba(74, 222, 128, 0.2);
+                background-color: {EDITOR_HIGHLIGHT_COLOR_ADD};
                 border-color: #4ade80;
             }
             QPushButton:pressed {
-                background-color: rgba(74, 222, 128, 0.3);
+                background-color: {EDITOR_HIGHLIGHT_HOVER_ADD};
             }
         """
         )
