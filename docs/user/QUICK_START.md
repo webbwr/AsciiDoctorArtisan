@@ -88,7 +88,7 @@ def hello_world():
 If the window doesn't appear:
 - Ensure X11 server is running (for WSL users)
 - Check `echo $DISPLAY` returns `:0` or similar
-- Try running with: `DISPLAY=:0 python adp_windows.py`
+- Try running with: `DISPLAY=:0 python main.py`
 
 ## 📚 Documentation
 

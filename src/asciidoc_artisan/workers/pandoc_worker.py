@@ -39,13 +39,13 @@ except ImportError:
     pypandoc = None
     PANDOC_AVAILABLE = False
 
-# Check for Claude client availability
+# Check for AI client availability
 try:
-    from claude_client import ConversionFormat, ConversionResult, create_client
+    from ai_client import ConversionFormat, ConversionResult, create_client
 
-    CLAUDE_CLIENT_AVAILABLE = True
+    AI_CLIENT_AVAILABLE = True
 except ImportError:
-    CLAUDE_CLIENT_AVAILABLE = False
+    AI_CLIENT_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ class PandocWorker(QObject):
             3. Post-process AsciiDoc output for quality
         """
         # Try AI conversion first if requested
-        if use_ai_conversion and CLAUDE_CLIENT_AVAILABLE:
+        if use_ai_conversion and AI_CLIENT_AVAILABLE:
             ai_result = self._try_ai_conversion(
                 source, from_format, to_format, context, output_file
             )

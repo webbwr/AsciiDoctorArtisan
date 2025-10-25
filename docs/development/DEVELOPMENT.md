@@ -18,7 +18,7 @@ pip install ruff black pre-commit
 pre-commit install
 
 # Run the application
-python3 adp_windows.py
+python3 main.py
 ```
 
 ---
@@ -130,9 +130,9 @@ git push origin feature/your-feature-name
 
 ```
 AsciiDoctorArtisan/
-├── adp_windows.py                  # Main application (1,078 lines)
-├── adp_windows.py          # Windows-optimized (2,225 lines)
-├── pandoc_integration.py   # Document conversion (304 lines)
+├── main.py                  # Main application (1,078 lines)
+├── main.py          # Windows-optimized (2,225 lines)
+├── document_converter.py   # Document conversion (304 lines)
 ├── setup.py                # Installation (158 lines)
 ├── requirements.txt        # Development dependencies
 ├── requirements-production.txt  # Production dependencies
@@ -148,10 +148,10 @@ AsciiDoctorArtisan/
 ### Manual Testing
 ```bash
 # Test main application
-python3 adp_windows.py
+python3 main.py
 
 # Test Windows version
-python3 adp_windows.py
+python3 main.py
 
 # Test optimized version
 ```
@@ -327,8 +327,8 @@ pre-commit run --all-files
 ### 3. Test Application
 ```bash
 # Run all versions
-python3 adp_windows.py
-python3 adp_windows.py
+python3 main.py
+python3 main.py
 ```
 
 ### 4. Create Release

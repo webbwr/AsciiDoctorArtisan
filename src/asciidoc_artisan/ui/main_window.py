@@ -98,13 +98,13 @@ from asciidoc_artisan.ui.status_manager import StatusManager
 from asciidoc_artisan.ui.theme_manager import ThemeManager
 from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
 
-# Check for Claude client availability
+# Check for AI client availability
 try:
-    import claude_client  # noqa: F401
+    import ai_client  # noqa: F401
 
-    CLAUDE_CLIENT_AVAILABLE = True
+    AI_CLIENT_AVAILABLE = True
 except ImportError:
-    CLAUDE_CLIENT_AVAILABLE = False
+    AI_CLIENT_AVAILABLE = False
 
 # Check for AsciiDoc3 availability
 try:
@@ -891,7 +891,7 @@ class AsciiDocEditor(QMainWindow):
             suffix = file_path.suffix.lower()
             if suffix == ".pdf":
                 # PDF import via text extraction
-                from pandoc_integration import pdf_extractor
+                from document_converter import pdf_extractor
 
                 if not pdf_extractor.is_available():
                     self.status_manager.show_message(
@@ -2185,8 +2185,8 @@ class AsciiDocEditor(QMainWindow):
         api_key_status = "✓ Configured" if api_key else "✗ Not Set"
         api_key_color = "green" if api_key else "red"
 
-        client_status = "✓ Available" if CLAUDE_CLIENT_AVAILABLE else "✗ Not Available"
-        client_color = "green" if CLAUDE_CLIENT_AVAILABLE else "red"
+        client_status = "✓ Available" if AI_CLIENT_AVAILABLE else "✗ Not Available"
+        client_color = "green" if AI_CLIENT_AVAILABLE else "red"
 
         help_text = f"""
         <h2>AI-Enhanced Conversion Setup</h2>

@@ -80,11 +80,11 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "asciidoc-artisan=asciidoc_artisan.main:main",
-            "ada=asciidoc_artisan.main:main",
+            "asciidoc-artisan=src.main:main",
+            "ada=src.main:main",
         ],
         "gui_scripts": [
-            "asciidoc-artisan-gui=asciidoc_artisan.main:main",
+            "asciidoc-artisan-gui=src.main:main",
         ],
     },
     python_requires=">=3.11",

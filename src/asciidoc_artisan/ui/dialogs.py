@@ -39,16 +39,16 @@ from asciidoc_artisan.core import SecureCredentials, Settings
 _credentials = SecureCredentials()
 ANTHROPIC_API_KEY_AVAILABLE = _credentials.has_anthropic_key()
 
-# Check for legacy Claude client (for backwards compatibility)
+# Check for AI client availability
 try:
-    import claude_client  # noqa: F401
+    import ai_client  # noqa: F401
 
-    CLAUDE_CLIENT_AVAILABLE = True
+    AI_CLIENT_AVAILABLE = True
 except ImportError:
-    CLAUDE_CLIENT_AVAILABLE = False
+    AI_CLIENT_AVAILABLE = False
 
 # AI is available if either secure credentials OR legacy client is present
-AI_AVAILABLE = ANTHROPIC_API_KEY_AVAILABLE or CLAUDE_CLIENT_AVAILABLE
+AI_AVAILABLE = ANTHROPIC_API_KEY_AVAILABLE or AI_CLIENT_AVAILABLE
 
 
 class ImportOptionsDialog(QDialog):

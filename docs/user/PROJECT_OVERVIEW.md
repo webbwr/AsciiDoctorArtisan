@@ -19,8 +19,8 @@
 ### Code Statistics
 ```
 Total Python Code: 2,824 lines
-├─ adp_windows.py: 2,378 lines (Main application)
-├─ pandoc_integration.py: 295 lines (Document conversion)
+├─ main.py: 2,378 lines (Main application)
+├─ document_converter.py: 295 lines (Document conversion)
 └─ setup.py: 151 lines (Installation setup)
 ```
 
@@ -52,8 +52,8 @@ Total Python Code: 2,824 lines
 
 ```
 AsciiDoctorArtisan/
-├── adp_windows.py                   # Main application
-├── pandoc_integration.py            # Document conversion
+├── main.py                   # Main application
+├── document_converter.py            # Document conversion
 ├── setup.py                         # Package setup
 ├── requirements.txt                 # Flexible dependencies
 ├── requirements-production.txt      # Pinned versions
@@ -91,7 +91,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Run application
-python3 adp_windows.py
+python3 main.py
 ```
 
 ### Key Dependencies
@@ -139,7 +139,7 @@ The project uses GitHub Spec Kit for structured development:
 ### Testing
 ```bash
 # Check Python syntax
-python3 -m py_compile adp_windows.py
+python3 -m py_compile main.py
 
 # Verify dependencies
 python3 -c "import PySide6, asciidoc3, pypandoc; print('All OK')"

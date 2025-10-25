@@ -12,13 +12,13 @@ import sys
 import warnings
 
 try:
-    import claude_client  # noqa: F401
+    import ai_client  # noqa: F401
 
-    CLAUDE_CLIENT_AVAILABLE = True
+    AI_CLIENT_AVAILABLE = True
 except ImportError:
-    CLAUDE_CLIENT_AVAILABLE = False
+    AI_CLIENT_AVAILABLE = False
     logger = logging.getLogger(__name__)
-    logger.info("Claude client not available. AI-enhanced conversion disabled.")
+    logger.info("AI client not available. AI-enhanced conversion disabled.")
 
 
 logging.basicConfig(
@@ -52,11 +52,11 @@ except ImportError:
 
 
 try:
-    from pandoc_integration import ensure_pandoc_available, pandoc
+    from document_converter import ensure_pandoc_available, pandoc
 
     ENHANCED_PANDOC = True
 except ImportError:
-    logger.warning("Enhanced pandoc integration not available")
+    logger.warning("Enhanced document converter not available")
     pandoc = None  # type: ignore[assignment]
     ensure_pandoc_available = None  # type: ignore[assignment]
     ENHANCED_PANDOC = False

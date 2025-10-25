@@ -132,8 +132,8 @@ The AsciiDoc Artisan application should now be ready to run:
 # Navigate to project directory
 cd /home/webbp/github/AsciiDoctorArtisan
 
-# Run the application (assuming adp_windows.py is the main application file)
-python3 adp_windows.py
+# Run the application (assuming main.py is the main application file)
+python3 main.py
 ```
 
 ---
@@ -238,7 +238,7 @@ Expected output: "All critical dependencies verified!"
 
 1. **Test the Application:**
    ```bash
-   python3 adp_windows.py
+   python3 main.py
    ```
 
 2. **Review Documentation:**

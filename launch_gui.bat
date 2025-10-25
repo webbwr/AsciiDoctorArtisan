@@ -43,7 +43,7 @@ echo Launching AsciiDoc Artisan...
 echo.
 
 REM Launch the application
-python src\adp_windows.py
+python src\main.py
 
 echo.
 echo Application closed.

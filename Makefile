@@ -75,7 +75,7 @@ build: clean
 	$(PYTHON) -m build
 
 run:
-	$(PYTHON) $(SRC_DIR)/adp_windows.py
+	$(PYTHON) $(SRC_DIR)/main.py
 
 # AsciiDoc Template Targets
 .PHONY: template-html template-pdf template-clean

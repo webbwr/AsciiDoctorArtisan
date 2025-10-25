@@ -105,7 +105,7 @@ Large documents may take a moment to convert. The status bar shows conversion pr
 
 ## Advanced Features
 
-The `pandoc_integration.py` module provides:
+The `document_converter.py` module provides:
 - Automatic installation detection
 - Platform-specific installation guidance
 - Format validation

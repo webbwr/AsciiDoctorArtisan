@@ -70,7 +70,7 @@ echo ""
 
 # Launch the application
 cd /home/webbp/github/AsciiDoctorArtisan
-python3 src/adp_windows.py
+python3 src/main.py
 
 echo ""
 echo "Application closed."

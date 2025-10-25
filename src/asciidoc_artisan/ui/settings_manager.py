@@ -33,13 +33,13 @@ from asciidoc_artisan.core import (
 
 logger = logging.getLogger(__name__)
 
-# Check for Claude client availability
+# Check for AI client availability
 try:
-    import claude_client  # noqa: F401
+    import ai_client  # noqa: F401
 
-    CLAUDE_CLIENT_AVAILABLE = True
+    AI_CLIENT_AVAILABLE = True
 except ImportError:
-    CLAUDE_CLIENT_AVAILABLE = False
+    AI_CLIENT_AVAILABLE = False
 
 
 class SettingsManager:
@@ -328,6 +328,6 @@ class SettingsManager:
         Requirements:
             FR-055: AI-Enhanced Conversion option
         """
-        if not CLAUDE_CLIENT_AVAILABLE:
+        if not AI_CLIENT_AVAILABLE:
             return False
         return settings.ai_conversion_enabled
