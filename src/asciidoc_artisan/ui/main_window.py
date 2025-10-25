@@ -282,7 +282,7 @@ class AsciiDocEditor(QMainWindow):
 
         self._auto_save_timer = QTimer(self)
         self._auto_save_timer.timeout.connect(self._auto_save)
-        self._auto_save_timer.start(300000)
+        self._auto_save_timer.start(AUTO_SAVE_INTERVAL_MS)
 
     def _initialize_asciidoc(self) -> Optional[AsciiDoc3API]:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
