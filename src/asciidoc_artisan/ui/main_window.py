@@ -381,7 +381,7 @@ class AsciiDocEditor(QMainWindow):
         preview_toolbar = QWidget()
         preview_toolbar.setFixedHeight(30)
         preview_toolbar.setStyleSheet(
-            "background-color: rgba(128, 128, 128, 0.1); border-bottom: 1px solid #888;"
+            f"background-color: {SEPARATOR_BACKGROUND_COLOR}; border-bottom: 1px solid {SEPARATOR_BORDER_COLOR};"
         )
         preview_toolbar_layout = QHBoxLayout(preview_toolbar)
         preview_toolbar_layout.setContentsMargins(5, 2, 5, 2)
