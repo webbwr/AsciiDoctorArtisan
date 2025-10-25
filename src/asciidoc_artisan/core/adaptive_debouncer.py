@@ -28,17 +28,26 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class SystemMetrics:
-    """System performance metrics."""
+    """
+    System performance metrics.
+
+    Uses __slots__ for memory efficiency.
+    Created frequently during system monitoring.
+    """
     cpu_percent: float
     memory_percent: float
     timestamp: float
 
 
-@dataclass
+@dataclass(slots=True)
 class DebounceConfig:
-    """Configuration for adaptive debouncing."""
+    """
+    Configuration for adaptive debouncing.
+
+    Uses __slots__ for memory efficiency.
+    """
 
     # Base delays (milliseconds)
     min_delay: int = 100
