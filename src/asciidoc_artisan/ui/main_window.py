@@ -326,7 +326,7 @@ class AsciiDocEditor(QMainWindow):
         editor_toolbar = QWidget()
         editor_toolbar.setFixedHeight(30)
         editor_toolbar.setStyleSheet(
-            "background-color: rgba(128, 128, 128, 0.1); border-bottom: 1px solid #888;"
+            f"background-color: {SEPARATOR_BACKGROUND_COLOR}; border-bottom: 1px solid {SEPARATOR_BORDER_COLOR};"
         )
         editor_toolbar_layout = QHBoxLayout(editor_toolbar)
         editor_toolbar_layout.setContentsMargins(5, 2, 5, 2)
