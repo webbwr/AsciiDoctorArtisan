@@ -1,76 +1,76 @@
-# How We Keep You Safe
+# Keeping You Safe
 
-## Which Versions We Help
+## Which Versions We Fix
 
-We fix safety problems in these versions:
+We fix safety bugs in these versions:
 
-| Version | We Help? |
-| ------- | -------- |
-| 1.0.x   | ✓ Yes    |
-| < 1.0   | ✗ No     |
+| Version | We Fix It? |
+| ------- | ---------- |
+| 1.0.x   | ✓ Yes      |
+| < 1.0   | ✗ No       |
 
-## Found a Safety Problem?
+## Found a Bug?
 
-If you find something unsafe, please tell us:
+If you find a safety bug, tell us:
 
-1. **Don't** write about it in public
-2. Email the person who runs this project
+1. **Don't** post it in public
+2. Email the main person
 3. Tell us:
-   - What the problem is
-   - How to see the problem
-   - What bad things could happen
+   - What is wrong
+   - How to see it
+   - What could break
    - How to fix it (if you know)
 
-### When We Will Answer
+### When We Answer
 
-- First answer: In 2 days
+- First reply: In 2 days
 - Updates: Every week
-- Fix time: Depends how bad it is
-  - Very bad: In 7 days
-  - Bad: In 30 days
-  - Not too bad: In 90 days
-  - Small: Next version
+- Fix time:
+  - Very bad: 7 days
+  - Bad: 30 days
+  - Small: 90 days
+  - Tiny: Next time
 
-### What Happens Next
+### What We Do
 
-- We say thank you for telling us
-- We tell you how the fix is going
-- We say your name in the notes (if you want)
+- We say thanks
+- We tell you about progress
+- We add your name (if you want)
 - We tell you when it's fixed
 
-## How to Stay Safe
+## How to Be Safe
 
-When you use AsciiDoc Artisan:
+When you use this program:
 
-1. **Use New Versions**: Get the newest version
-2. **Update Tools**: Keep tools up to date
-3. **Trust Files**: Only open files you trust
-4. **Check Git**: Look at git commands before you run them
-5. **Get Real Tools**: Get Pandoc from the real website
+1. **Get New Ones**: Use the new version
+2. **Update Stuff**: Keep tools new
+3. **Trust Files**: Only open safe files
+4. **Check Git**: Look at git first
+5. **Get Real Tools**: Get Pandoc from the real site
 
 ## Things to Know
 
-### Git Features
-- Git runs commands on your computer
-- Only use with files you trust
-- Read messages before you save
+### Git Stuff
+- Git runs on your computer
+- Use with safe files only
+- Read before you save
 
 ### Files
-- Program reads and writes files
+- Program reads files
 - Auto-save makes extra files
-- Your choices save on your computer
+- Your stuff saves on your computer
 
 ### Other Tools
-- asciidoc3: Shows your work (could show bad things)
-- pypandoc: Changes files (runs commands)
-- PySide6: Makes windows (uses Qt safety rules)
+- asciidoc3: Shows your work
+- pypandoc: Changes files
+- PySide6: Makes windows
 
-## Safety Updates
+## How We Tell You
 
-We tell you about safety fixes in:
+We tell you about fixes in:
 - New version numbers
-- CHANGELOG.md file
-- Release notes with `security` tag
+- What Changed file
+- Notes with `security` tag
 
 ---
 

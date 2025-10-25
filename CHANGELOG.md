@@ -1,88 +1,45 @@
 # What Changed
 
-This file tells you what we changed in each version.
+This tells what we did.
 
-We use simple rules from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+## Next Update (Not Out Yet)
 
-## Next Version (Not Out Yet)
+We added PDF files. You can open them now. We made tests to check PDFs work. All tests pass!
 
-### New Things
-- You can now open PDF files
-- We made tests to check PDFs work right (15 tests)
-- Settings save better now
-- Window size saves when you close the program
-- Font size saves when you close the program
-- We made lots of tests (all pass!)
-- Tests check settings save right
-- Tests check files save safely
+Settings work better. The window size saves. The font size saves too.
 
-### What We Changed
-- **BIG CHANGE**: Removed AI helper (we don't need it)
-- Settings work better now
-- Settings file is easier to read
-- We need a new tool called pdfplumber
-- We don't need some old tools now
-- README file is clearer now
+We took out the AI helper. We don't need it. This makes the program simpler.
 
-### What We Removed
-- AI helper files (we don't use AI now)
-- Old AI docs
-- Two old tools we don't need
+We need a new tool called pdfplumber. We don't need some old tools now.
 
-### What We Fixed
-- Window size saves right now
-- Font size saves right now
-- Settings file goes in the right place now
+We fixed how settings save. Everything saves right now.
 
-### Better Code
-- Code matches our plan now
-- Settings are cleaner
-- 14 tests all work (100% pass!)
-- Code is easier to read
+The code is cleaner. It fits our plan better. We have 14 tests. They all work!
 
-## Version 1.0.0 (First Try) - October 19, 2025
+## First Version - October 19, 2025
 
-### New Things
-- First version of AsciiDoc Artisan!
-- Nice windows program
-- See your work as you type
-- Open and save files
-- Turn Word files into AsciiDoc
-- Use Git to save versions
-- Copy from Word and paste as AsciiDoc
-- Dark and light colors
-- Make text bigger or smaller
-- Program remembers your choices
-- Works on Windows, Mac, and Linux
-- Help files to get started
-- Setup scripts to install
-- Check scripts to test it works
+This is the first version! It has nice windows. You can see your work as you type.
 
-### What You Need
-- PySide6 6.9.0 or newer (makes windows)
-- asciidoc3 (turns text into HTML)
-- pypandoc (changes file types)
+You can open files. You can save files. It turns Word files into AsciiDoc.
+
+It uses Git to save versions. You can copy from Word. It has dark mode and light mode.
+
+You can make text bigger. It remembers your picks. It works on all computers.
+
+**What you need:**
+- PySide6 to make windows
+- asciidoc3 to make HTML
+- pypandoc to change files
 - git and pandoc on your computer
 
-### What Doesn't Work Yet
-- Can only open one file at a time
-- No colored text in editor
-- No find and replace
-- Basic undo/redo only
-- Can't save as PDF (only see HTML)
+**What doesn't work yet:**
+- You can only open one file
+- No colored text in the editor
+- No find button
+- Basic undo only
+- Can't save as PDF yet
 - Git must be set up first
 
 ---
 
-## How We Label Changes
-
-- **New Things** - Features we added
-- **What We Changed** - Things that work different now
-- **Going Away** - Features we will remove soon
-- **What We Removed** - Features we took out
-- **What We Fixed** - Bugs we fixed
-- **Security** - How we made it safer
-
----
-
-**Reading Level**: Grade 5.0
+**Reading**: Grade 5.0
