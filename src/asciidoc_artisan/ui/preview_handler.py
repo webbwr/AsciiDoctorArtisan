@@ -12,11 +12,20 @@ Extracted from main_window.py to improve maintainability and testability.
 """
 
 import logging
-from typing import Optional
+import time
+from typing import Any, Optional
 
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtWidgets import QPlainTextEdit
 from PySide6.QtWebEngineWidgets import QWebEngineView
+
+try:
+    from asciidoc_artisan.core.adaptive_debouncer import AdaptiveDebouncer, DebounceConfig
+    ADAPTIVE_DEBOUNCER_AVAILABLE = True
+except ImportError:
+    AdaptiveDebouncer = None
+    DebounceConfig = None
+    ADAPTIVE_DEBOUNCER_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +67,15 @@ class PreviewHandler(QObject):
         self.preview_timer.setSingleShot(True)
         self.preview_timer.timeout.connect(self.update_preview)
 
+        # Adaptive debouncer (if available)
+        self._adaptive_debouncer: Optional[Any] = None
+        self._use_adaptive_debouncing = True
+        self._last_render_start: Optional[float] = None
+
+        if ADAPTIVE_DEBOUNCER_AVAILABLE and AdaptiveDebouncer:
+            self._adaptive_debouncer = AdaptiveDebouncer()
+            logger.info("Adaptive debouncing enabled")
+
         # Connect editor text changes to preview updates
         self.editor.textChanged.connect(self._on_text_changed)
 
@@ -74,25 +92,37 @@ class PreviewHandler(QObject):
         """
         Handle text changed in editor.
 
-        Uses adaptive timing based on document size:
-        - Small documents: 200ms delay (fast)
-        - Medium documents: 500ms delay (normal)
-        - Large documents: 1000ms delay (slow)
+        Uses adaptive timing based on:
+        - Document size
+        - System CPU load
+        - Recent render times
+        - User typing speed
         """
         # Cancel any pending update
         self.preview_timer.stop()
 
-        # Determine delay based on document size
+        # Get document size
         text_size = len(self.editor.toPlainText())
 
-        if text_size < 10000:  # < 10KB
-            delay = PREVIEW_FAST_INTERVAL_MS
-        elif text_size < 100000:  # < 100KB
-            delay = PREVIEW_NORMAL_INTERVAL_MS
-        else:  # >= 100KB
-            delay = PREVIEW_SLOW_INTERVAL_MS
+        # Use adaptive debouncing if available
+        if self._use_adaptive_debouncing and self._adaptive_debouncer:
+            # Notify debouncer of text change (for typing detection)
+            self._adaptive_debouncer.on_text_changed()
 
-        # Start timer with adaptive delay
+            # Calculate adaptive delay
+            delay = self._adaptive_debouncer.calculate_delay(
+                document_size=text_size
+            )
+        else:
+            # Fall back to simple size-based delay
+            if text_size < 10000:  # < 10KB
+                delay = PREVIEW_FAST_INTERVAL_MS
+            elif text_size < 100000:  # < 100KB
+                delay = PREVIEW_NORMAL_INTERVAL_MS
+            else:  # >= 100KB
+                delay = PREVIEW_SLOW_INTERVAL_MS
+
+        # Start timer with calculated delay
         self.preview_timer.start(delay)
 
     @Slot()
@@ -101,8 +131,12 @@ class PreviewHandler(QObject):
         Update preview with current editor content.
 
         Emits request_preview_render signal to worker thread.
+        Tracks render start time for adaptive debouncing.
         """
         source_text = self.editor.toPlainText()
+
+        # Track render start time
+        self._last_render_start = time.time()
 
         # Emit signal to worker for rendering
         if hasattr(self.window, 'request_preview_render'):
@@ -117,6 +151,16 @@ class PreviewHandler(QObject):
         Args:
             html: Rendered HTML content
         """
+        # Calculate render time
+        if self._last_render_start is not None:
+            render_time = time.time() - self._last_render_start
+
+            # Update adaptive debouncer with render time
+            if self._adaptive_debouncer:
+                self._adaptive_debouncer.on_render_complete(render_time)
+
+            logger.debug(f"Render completed in {render_time:.3f}s")
+
         # Add CSS styling
         styled_html = self._wrap_with_css(html)
 
@@ -411,3 +455,30 @@ class PreviewHandler(QObject):
         """
         # Would need to implement async retrieval
         return ""
+
+    def set_adaptive_debouncing(self, enabled: bool) -> None:
+        """
+        Enable or disable adaptive debouncing.
+
+        Args:
+            enabled: True to enable, False to disable
+        """
+        self._use_adaptive_debouncing = enabled
+        logger.info(f"Adaptive debouncing {'enabled' if enabled else 'disabled'}")
+
+    def get_debouncer_stats(self) -> dict:
+        """
+        Get adaptive debouncer statistics.
+
+        Returns:
+            Dictionary with stats, or empty dict if not available
+        """
+        if self._adaptive_debouncer:
+            return self._adaptive_debouncer.get_statistics()
+        return {}
+
+    def reset_debouncer(self) -> None:
+        """Reset adaptive debouncer state."""
+        if self._adaptive_debouncer:
+            self._adaptive_debouncer.reset()
+            logger.debug("Adaptive debouncer reset")
