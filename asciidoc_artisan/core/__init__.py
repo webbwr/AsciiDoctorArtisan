@@ -48,12 +48,12 @@ from .file_operations import atomic_save_json, atomic_save_text, sanitize_path
 # Models
 from .models import GitResult
 
+# Performance Monitoring (v1.1 Phase 4)
+from .resource_monitor import DocumentMetrics, ResourceMetrics, ResourceMonitor
+
 # Security (v1.1)
 from .secure_credentials import SecureCredentials
 from .settings import Settings
-
-# Performance Monitoring (v1.1 Phase 4)
-from .resource_monitor import DocumentMetrics, ResourceMetrics, ResourceMonitor
 
 __all__ = [
     # Settings

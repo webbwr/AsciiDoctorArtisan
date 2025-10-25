@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from adp_windows import Settings
+from asciidoc_artisan.core import Settings
 
 
 @pytest.mark.unit

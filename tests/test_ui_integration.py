@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from adp_windows import AsciiDocEditor
+from asciidoc_artisan.ui import AsciiDocEditor
 
 
 @pytest.fixture

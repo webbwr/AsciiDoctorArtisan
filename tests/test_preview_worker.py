@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from adp_windows import PreviewWorker
+from asciidoc_artisan.workers import PreviewWorker
 
 
 @pytest.mark.unit

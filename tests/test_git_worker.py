@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from adp_windows import GitResult, GitWorker
+from asciidoc_artisan.core import GitResult
+from asciidoc_artisan.workers import GitWorker
 
 
 @pytest.mark.unit
@@ -19,7 +20,7 @@ class TestGitWorker:
         worker = GitWorker()
         assert worker is not None
 
-    @patch("adp_windows.subprocess.run")
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
     def test_successful_git_command(self, mock_run):
         """Test successful Git command execution."""
         # Setup mock
@@ -48,7 +49,7 @@ class TestGitWorker:
         assert result.stdout == "Success output"
         assert result.exit_code == 0
 
-    @patch("adp_windows.subprocess.run")
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
     def test_failed_git_command(self, mock_run):
         """Test failed Git command execution."""
         # Setup mock
@@ -95,7 +96,7 @@ class TestGitWorker:
         assert result.success is False
         assert "not found" in result.user_message
 
-    @patch("adp_windows.subprocess.run")
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
     def test_git_error_analysis(self, mock_run):
         """Test Git error message analysis."""
         worker = GitWorker()
@@ -111,7 +112,7 @@ class TestGitWorker:
             error_msg = worker._analyze_git_error(stderr, ["git", "test"])
             assert expected_keyword.lower() in error_msg.lower()
 
-    @patch("adp_windows.subprocess.run")
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
     def test_git_command_timeout(self, mock_run):
         """Test Git command doesn't hang indefinitely."""
         import subprocess

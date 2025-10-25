@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from adp_windows import PandocWorker
+from asciidoc_artisan.workers import PandocWorker
 
 
 @pytest.mark.unit

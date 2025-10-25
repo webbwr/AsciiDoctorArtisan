@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from adp_windows import atomic_save_json, atomic_save_text, sanitize_path
+from asciidoc_artisan.core import atomic_save_json, atomic_save_text, sanitize_path
 
 
 @pytest.mark.unit
