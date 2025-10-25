@@ -154,9 +154,13 @@ AsciiDoctorArtisan/
 │   ├── how-to-use.md     # How to use it (Grade 5.1)
 │   ├── how-to-install.md # How to install it (Grade 3.2)
 │   └── how-to-contribute.md # How to help (Grade 4.0)
+├── openspec/              # Specification system
+│   ├── changes/          # Proposed new features
+│   └── archive/          # Completed changes
 ├── tests/                # Code tests
+├── scripts/              # Helper scripts
 ├── README.md             # This file (Grade 5.0)
-├── SPECIFICATIONS.md     # What it must do (Grade 3.1)
+├── SPECIFICATIONS.md     # What it must do (Grade 6.0)
 └── LICENSE              # Rules for using it
 ```
 
@@ -178,8 +182,9 @@ You can use this program for free! It uses the MIT License.
 Need more help?
 - **[How to Use](docs/how-to-use.md)** - All features explained (Grade 5.1)
 - **[How to Install](docs/how-to-install.md)** - Step by step setup (Grade 3.2)
-- **[What It Must Do](SPECIFICATIONS.md)** - All requirements (Grade 3.1)
+- **[What It Must Do](SPECIFICATIONS.md)** - All requirements (Grade 6.0)
 - **[How to Help](docs/how-to-contribute.md)** - Join the team (Grade 4.0)
+- **[Propose Features](openspec/README.md)** - How to suggest new ideas (Grade 6.0)
 - Look at issues on GitHub
 - Create a new issue if you find a bug
 

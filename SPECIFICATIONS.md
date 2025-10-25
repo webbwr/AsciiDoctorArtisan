@@ -1,20 +1,29 @@
-# What AsciiDoc Artisan Must Do
+# AsciiDoc Artisan Specifications
 
-**Reading Level**: Grade 5.0 (Elementary)
+**Reading Level**: Grade 6.0 (Elementary/Middle School)
 **Version**: 1.1.0
 **Last Updated**: October 2025
+**Format**: OpenSpec-inspired with Given/When/Then scenarios
 
-This paper tells you what AsciiDoc Artisan needs to do.
+## Overview
 
-## What This Paper Is For
+This tells you what AsciiDoc Artisan must do. Each part has clear rules and test cases.
 
-This tells you:
-- What the program does
-- Who uses it
-- What it can do
-- How we know it works
+**Structure**:
+- Core - What the program is
+- Editor - How you type and edit
+- Preview - How you see your work
+- Git - How you save to version control
+- Conversion - How you change file types
+- User Interface - How it looks and works
 
-## What Is AsciiDoc Artisan?
+---
+
+## Core Specifications
+
+This covers what AsciiDoc Artisan is and what it does.
+
+### What Is AsciiDoc Artisan?
 
 AsciiDoc Artisan helps people write papers. It's a program that:
 
@@ -25,438 +34,823 @@ AsciiDoc Artisan helps people write papers. It's a program that:
 
 Think of it like Word, but for AsciiDoc files.
 
-### Why Use AsciiDoc?
+### Requirements
 
-AsciiDoc is:
-- Plain text (works on any computer)
-- Easy to read
-- Good with Git
-- Can do what Word does
+#### Requirement: Cross-Platform Support
 
-### What Makes It Special?
+The program SHALL work on Windows, Mac, and Linux.
 
-1. See changes right away
-2. Never loses your work
-3. Works with other programs
-4. Easy to use
-5. Free
+##### Scenario: Run on Windows
 
-## Who Uses It?
+**Given**: Windows computer with Python 3.11+
+**When**: User runs the program
+**Then**: Program starts without errors
 
-### 1. People Who Write Instructions
-They write manuals. They need to see how it looks.
+##### Scenario: Run on Mac
 
-### 2. People Who Write Code
-They write README files. They want Git.
+**Given**: Mac computer with Python 3.11+
+**When**: User runs the program
+**Then**: Program starts without errors
 
-### 3. Teachers and Students
-They write papers. They need to change file types.
+##### Scenario: Run on Linux
 
-### 4. Writers
-They make long papers. They like plain text.
+**Given**: Linux computer with Python 3.11+
+**When**: User runs the program
+**Then**: Program starts without errors
 
-### 5. Teams
-They share files. They need good tools.
+#### Requirement: Python Version
 
-## Main Things It Does
+The program SHALL require Python 3.11 or newer.
 
-### 1. Live View
+##### Scenario: Check Python Version
 
-**What it does**:
-- Shows HTML on the right side
-- Changes as you type
-- Moves with where you're typing
+**Given**: Python 3.11 or higher installed
+**When**: Program starts
+**Then**: Program runs successfully
 
-**Why it's good**:
-You don't need to save and open a web page.
+##### Scenario: Reject Old Python
 
-### 2. Change File Types
+**Given**: Python 3.10 or lower installed
+**When**: User tries to start program
+**Then**: Program shows error about Python version
 
-**What you can open**:
-- .adoc files
-- .docx files (Word)
-- .pdf files (gets the text)
+#### Requirement: Free and Open Source
 
-**What you can save as**:
-- HTML (web pages)
-- PDF (print files)
-- Word (.docx)
-- Markdown (.md)
+The program SHALL be free to use under MIT License.
 
-**Why it's good**:
-Work with any file type.
+##### Scenario: Check License
 
-### 3. Git Help
+**Given**: User downloads program
+**When**: User checks LICENSE file
+**Then**: File shows MIT License
 
-**What you can do**:
-- Save changes (commit)
-- Send to GitHub (push)
-- Get new version (pull)
+### Who Uses It
 
-**Why it's good**:
-Track all your changes. Work with teams.
-
-### 4. Safe Saving
-
-**How it works**:
-- Saves to test file first
-- Only replaces old file if it works
-- Your file is safe if computer stops
-
-**Why it's good**:
-Your work won't break.
-
-### 5. Remembers Things
-
-**What it remembers**:
-- Last file you used
-- Window size
-- Light or dark colors
-- Text size
-
-**Why it's good**:
-Start right away. No setup needed.
-
-### 6. Easy to Use
-
-**What's in it**:
-- Clear menus
-- Quick keys (Ctrl+S to save)
-- Dark mode
-- Make text bigger or smaller
-
-**Why it's good**:
-Anyone can learn it fast.
-
-## What It Must Do
-
-Things the program must be able to do:
-
-### Files
-
-**Must have**:
-- ✓ Make new files
-- ✓ Open files
-- ✓ Save files
-- ✓ Save with new name
-- ✓ Remember last file
-
-**Would be nice**:
-- List of recent files
-
-### Editing
-
-**Must have**:
-- ✓ Type and edit
-- ✓ Copy and paste
-- ✓ Undo
-- ✓ Find words
-
-**Would be nice**:
-- Find and change
-- Check spelling
-
-### Preview
-
-**Must have**:
-- ✓ Show HTML
-- ✓ Change as you type
-- ✓ Move with you
-
-**Would be nice**:
-- Make preview bigger
-
-### Change Types
-
-**Must have**:
-- ✓ Open Word files
-- ✓ Open PDFs
-- ✓ Save as HTML
-- ✓ Save as PDF
-
-**Would be nice**:
-- Open more types
-
-### Git
-
-**Must have**:
-- ✓ Save changes
-- ✓ Send to server
-- ✓ Get from server
-
-**Would be nice**:
-- See old versions
-
-### Look and Feel
-
-**Must have**:
-- ✓ Light and dark
-- ✓ Make text bigger
-- ✓ Quick keys
-- ✓ Bottom bar shows info
-
-**Would be nice**:
-- Pick colors
-
-### Settings
-
-**Must have**:
-- ✓ Remember window size
-- ✓ Remember colors
-- ✓ Remember last folder
-
-**Would be nice**:
-- Pick your own quick keys
-
-## How We Build It
-
-### What We Use
-
-**Python 3.11 or newer**
-
-Why Python?
-- Easy to write
-- Works everywhere
-- Lots of tools
-
-### Main Tools
-
-**PySide6** (version 6.9.0+)
-- Makes windows
-- Makes buttons
-- Handles clicks
-
-**asciidoc3** (version 10.2.1+)
-- Turns AsciiDoc to HTML
-- Makes the preview
-
-**pypandoc** (version 1.13+)
-- Changes file types
-
-**Pandoc** (separate program)
-- Does the real work
-- Must install it
-
-### How It's Built
-
-```
-Parts:
-- Main Window (what you see)
-- Editor (where you type)
-- Preview (shows HTML)
-- Git Tools
-- File Changer
-- Settings
-```
-
-### How It Works
-
-**When you type**:
-1. You type on left
-2. Program waits a bit
-3. Changes to HTML
-4. Shows on right
-
-**When you save**:
-1. Gets your text
-2. Writes to test file
-3. If good, replaces old file
-4. Updates title
-
-**When you change types**:
-1. Pick file to open
-2. Sees what type it is
-3. Changes to AsciiDoc
-4. Shows in editor
-
-## How We Test It
-
-### What We Test
-
-**Basic Stuff**:
-- Can you make files?
-- Can you open files?
-- Can you save files?
-- Does typing work?
-
-**Preview**:
-- Does it show HTML?
-- Does it change?
-- Does it move right?
-
-**Changing Types**:
-- Can it open Word files?
-- Can it open PDFs?
-- Can it save as PDF?
-
-**Git**:
-- Can you save changes?
-- Can you send to server?
-- Can you get from server?
-
-**Buttons and Menus**:
-- Do buttons work?
-- Do menus work?
-- Do quick keys work?
-- Does dark mode work?
-
-### How We Test
-
-**Computer Tests**:
-- Computer runs tests
-- Checks if it works
-- Runs when we change code
-
-**People Tests**:
-- People try it
-- Click all buttons
-- Try to break it
-
-**System Tests**:
-- Test on Windows
-- Test on Mac
-- Test on Linux
-
-### When We Test
-
-- When we add new stuff
-- Before we share it
-- When someone finds a bug
-- Often to catch problems
-
-## Keeping It Safe
-
-### File Safety
-
-**How we keep files safe**:
-- Use safe saving
-- Check file paths
-- Check all inputs
-- Handle errors well
-
-**What this means**:
-Your files won't break. Bad files can't hurt you.
-
-### Code Safety
-
-**What we do**:
-- Check what you type
-- Check file names
-- Stop bad code
-- Use safe tools
-
-**What this means**:
-Program won't do bad things.
-
-### Privacy
-
-**What we take**:
-- Nothing! All stays on your computer
-
-**What we don't do**:
-- Don't send data out
-- Don't watch you
-- Don't save passwords
-- Don't share files
-
-**API Keys**:
-If you use AI, you give your own key. We never see it.
-
-## How Fast It Should Be
-
-### Speed
-
-Should be:
-- Fast to start (3 seconds)
-- Quick to save (1 second)
-- Smooth preview (half second)
-- Never freeze
-
-### Memory
-
-Should:
-- Use normal memory
-- Not get slow
-- Clean up after itself
-- Handle big files
-
-### File Sizes
-
-Works good with:
-- Files up to 1 MB (normal)
-- Files up to 10 MB (big)
-- Slow with files over 10 MB
-
-## Ideas for Later
-
-Things we might add:
-
-### More Stuff
-- Check spelling
-- Find and change
-- More save types
-- Different colors
-- Add-ons
-
-### Better Git
-- See old versions
-- Compare versions
-- Use branches
-
-### Work Together
-- Share with teams
-- Edit at same time
-- Leave notes
-
-### Better AI
-- Better changes
-- Writing help
-- Auto-fix format
-
-## Old Versions
-
-**Version 1.1.0** (Now)
-- All main stuff works
-- Tests pass
-- Works everywhere
-- Safe
-
-**Version 1.0.0** (Before)
-- First try
-- Basic stuff
-- First tests
-
-## Questions?
-
-**Where are full details?**
-Look in `.specify/specs/` folder.
-
-**Found a bug?**
-Tell us on GitHub. Say what happened.
-
-**Can I help?**
-Yes! Read [how-to-contribute.md](docs/how-to-contribute.md).
-
-**Is it free?**
-Yes! MIT License means free for all.
-
-## Summary
-
-**What it does**:
-Helps you write AsciiDoc with live view and Git.
-
-**Who it's for**:
-Writers, coders, students, teachers, teams.
-
-**Main stuff**:
-Live view, change types, Git, safe saves, easy to use.
-
-**Status**:
-Version 1.1.0 - Works well.
-
-**How hard to read**:
-Grade 5.0 - Anyone can read it!
+**Target Users**:
+1. **People Who Write Instructions** - Write manuals and docs
+2. **People Who Write Code** - Write README files
+3. **Teachers and Students** - Write papers and reports
+4. **Writers** - Make long documents
+5. **Teams** - Share files and work together
 
 ---
 
-**Document Info**: Main spec | Reading level Grade 5.0 | October 2025 | Version 1.1.0
+## Editor Specifications
+
+This covers the text editing features.
+
+### Requirements
+
+#### Requirement: Basic Text Editing
+
+The program SHALL let users type and edit text.
+
+##### Scenario: Type Text
+
+**Given**: Program is open
+**When**: User types "Hello World"
+**Then**: Text appears in editor
+
+##### Scenario: Edit Text
+
+**Given**: Text exists in editor
+**When**: User changes text
+**Then**: Changes appear immediately
+
+#### Requirement: Copy and Paste
+
+The program SHALL support copy, cut, and paste.
+
+##### Scenario: Copy Text
+
+**Given**: Text is selected
+**When**: User presses Ctrl+C
+**Then**: Text is copied to clipboard
+
+##### Scenario: Paste Text
+
+**Given**: Text is in clipboard
+**When**: User presses Ctrl+V
+**Then**: Text is pasted at cursor
+
+#### Requirement: Undo and Redo
+
+The program SHALL support undo and redo.
+
+##### Scenario: Undo Change
+
+**Given**: User made a change
+**When**: User presses Ctrl+Z
+**Then**: Change is undone
+
+##### Scenario: Redo Change
+
+**Given**: User undid a change
+**When**: User presses Ctrl+Y
+**Then**: Change is redone
+
+#### Requirement: Find Text
+
+The program SHALL let users find words.
+
+##### Scenario: Find Word
+
+**Given**: Document contains "hello"
+**When**: User searches for "hello"
+**Then**: Program highlights "hello"
+
+#### Requirement: Go to Line
+
+The program SHALL let users jump to a line number.
+
+##### Scenario: Jump to Line
+
+**Given**: Document has 100 lines
+**When**: User goes to line 50
+**Then**: Cursor moves to line 50
+
+#### Requirement: Line Numbers
+
+The program SHALL show line numbers.
+
+##### Scenario: View Line Numbers
+
+**Given**: Program is open
+**When**: User looks at editor
+**Then**: Line numbers show on left side
+
+---
+
+## Preview Specifications
+
+This covers the live HTML preview feature.
+
+### Requirements
+
+#### Requirement: Live HTML Preview
+
+The program SHALL show HTML preview of AsciiDoc text.
+
+##### Scenario: Show Preview
+
+**Given**: User types AsciiDoc text
+**When**: User stops typing for 350 milliseconds
+**Then**: HTML preview updates on right side
+
+##### Scenario: Preview Updates
+
+**Given**: Preview is showing content
+**When**: User changes text
+**Then**: Preview updates after short delay
+
+#### Requirement: Move Together
+
+The program SHALL move editor and preview together.
+
+##### Scenario: Move Editor
+
+**Given**: Paper is long
+**When**: User moves in editor
+**Then**: Preview moves to same spot
+
+##### Scenario: Move Preview
+
+**Given**: Paper is long
+**When**: User moves in preview
+**Then**: Editor moves to same spot
+
+#### Requirement: Wait to Update
+
+The program SHALL wait before it updates the preview.
+
+##### Scenario: Wait for Typing
+
+**Given**: User types fast
+**When**: User types many letters quick
+**Then**: Preview waits for typing to stop
+
+#### Requirement: Show Plain Text
+
+The program SHALL show plain text if HTML fails.
+
+##### Scenario: Fix Errors
+
+**Given**: HTML making fails
+**When**: Error happens
+**Then**: Program shows plain text with line numbers
+
+---
+
+## Git Specifications
+
+This covers version control integration.
+
+### Requirements
+
+#### Requirement: Git Commit
+
+The program SHALL let users commit changes.
+
+##### Scenario: Commit Changes
+
+**Given**: File is in Git repository
+**When**: User clicks Git > Commit and enters message
+**Then**: Changes are committed with that message
+
+##### Scenario: Commit Without Repository
+
+**Given**: File is not in Git repository
+**When**: User tries to commit
+**Then**: Program shows error message
+
+#### Requirement: Git Push
+
+The program SHALL let users push to remote.
+
+##### Scenario: Push Changes
+
+**Given**: Repository has remote configured
+**When**: User clicks Git > Push
+**Then**: Commits are sent to remote server
+
+##### Scenario: Push Without Remote
+
+**Given**: Repository has no remote
+**When**: User tries to push
+**Then**: Program shows error message
+
+#### Requirement: Git Pull
+
+The program SHALL let users pull from remote.
+
+##### Scenario: Pull Changes
+
+**Given**: Remote has new commits
+**When**: User clicks Git > Pull
+**Then**: New changes download to local repository
+
+##### Scenario: Pull Clash
+
+**Given**: Your copy and server copy both changed
+**When**: User pulls
+**Then**: Program shows clash message
+
+#### Requirement: Git Status Display
+
+The program SHALL show Git status in status bar.
+
+##### Scenario: Show Repository Status
+
+**Given**: File is in Git repository
+**When**: User opens file
+**Then**: Status bar shows repository name
+
+##### Scenario: Show Non-Repository Status
+
+**Given**: File is not in Git repository
+**When**: User opens file
+**Then**: Status bar shows "Not in Git repository"
+
+---
+
+## Conversion Specifications
+
+This covers document format conversion.
+
+### Requirements
+
+#### Requirement: Import Word Files
+
+The program SHALL convert Word files to AsciiDoc.
+
+##### Scenario: Open Word File
+
+**Given**: User has .docx file
+**When**: User opens the file
+**Then**: Program converts it to AsciiDoc
+
+##### Scenario: Handle Conversion Error
+
+**Given**: Word file is corrupted
+**When**: User tries to open it
+**Then**: Program shows error message
+
+#### Requirement: Import PDF Files
+
+The program SHALL extract text from PDF files.
+
+##### Scenario: Open PDF File
+
+**Given**: User has .pdf file
+**When**: User opens the file
+**Then**: Program extracts text to editor
+
+##### Scenario: PDF With Tables
+
+**Given**: PDF has tables
+**When**: User opens it
+**Then**: Tables are formatted in AsciiDoc
+
+#### Requirement: Export to HTML
+
+The program SHALL export to HTML format.
+
+##### Scenario: Export HTML
+
+**Given**: User has AsciiDoc document
+**When**: User clicks File > Export > HTML
+**Then**: Program creates HTML file
+
+#### Requirement: Export to PDF
+
+The program SHALL export to PDF format.
+
+##### Scenario: Export PDF
+
+**Given**: User has AsciiDoc document
+**When**: User clicks File > Export > PDF
+**Then**: Program creates PDF file
+
+#### Requirement: Export to Word
+
+The program SHALL export to Word format.
+
+##### Scenario: Export Word
+
+**Given**: User has AsciiDoc document
+**When**: User clicks File > Export > Word
+**Then**: Program creates .docx file
+
+#### Requirement: Paste from Copy
+
+The program SHALL paste HTML from copy area.
+
+##### Scenario: Paste HTML
+
+**Given**: User copies HTML stuff
+**When**: User clicks File > Import > Clipboard
+**Then**: Program changes HTML to AsciiDoc
+
+---
+
+## User Interface Specifications
+
+This covers how the program looks and works.
+
+### Requirements
+
+#### Requirement: File Operations
+
+The program SHALL provide file menu operations.
+
+##### Scenario: New File
+
+**Given**: Program is open
+**When**: User presses Ctrl+N
+**Then**: Editor clears and shows new blank file
+
+##### Scenario: Open File
+
+**Given**: User has .adoc file
+**When**: User presses Ctrl+O and selects file
+**Then**: File content appears in editor
+
+##### Scenario: Save File
+
+**Given**: User edited text
+**When**: User presses Ctrl+S
+**Then**: File is saved to disk
+
+##### Scenario: Save As
+
+**Given**: User has new file
+**When**: User clicks File > Save As
+**Then**: Program asks for file name and saves
+
+#### Requirement: Dark Mode
+
+The program SHALL support dark color scheme.
+
+##### Scenario: Toggle Dark Mode
+
+**Given**: Program is in light mode
+**When**: User presses Ctrl+D
+**Then**: Colors change to dark theme
+
+##### Scenario: Remember Dark Mode
+
+**Given**: User enabled dark mode
+**When**: User restarts program
+**Then**: Dark mode is still on
+
+#### Requirement: Font Zoom
+
+The program SHALL let users change text size.
+
+##### Scenario: Zoom In
+
+**Given**: Editor shows normal text
+**When**: User presses Ctrl++
+**Then**: Text gets bigger
+
+##### Scenario: Zoom Out
+
+**Given**: Editor shows normal text
+**When**: User presses Ctrl+-
+**Then**: Text gets smaller
+
+#### Requirement: Status Bar
+
+The program SHALL show information in status bar.
+
+##### Scenario: Show Line and Column
+
+**Given**: User is typing
+**When**: User looks at status bar
+**Then**: Status bar shows line and column number
+
+##### Scenario: Show Git Status
+
+**Given**: File is in Git repository
+**When**: User opens file
+**Then**: Status bar shows repository name
+
+##### Scenario: Show File Path
+
+**Given**: File is open
+**When**: User looks at status bar
+**Then**: Status bar shows full file path
+
+#### Requirement: Keyboard Shortcuts
+
+The program SHALL provide keyboard shortcuts.
+
+##### Scenario: Use Shortcuts
+
+**Given**: Program is open
+**When**: User presses keyboard shortcut
+**Then**: Action happens immediately
+
+Common shortcuts:
+- Ctrl+N - New file
+- Ctrl+O - Open file
+- Ctrl+S - Save file
+- Ctrl+Q - Quit program
+- Ctrl+F - Find text
+- Ctrl+D - Dark mode
+- Ctrl++ - Zoom in
+- Ctrl+- - Zoom out
+
+#### Requirement: Settings Persistence
+
+The program SHALL remember user settings.
+
+##### Scenario: Save Window Size
+
+**Given**: User resizes window
+**When**: User closes and reopens program
+**Then**: Window is same size
+
+##### Scenario: Save Last File
+
+**Given**: User opens a file
+**When**: User closes and reopens program
+**Then**: Same file opens automatically
+
+##### Scenario: Save Theme
+
+**Given**: User changes to dark mode
+**When**: User closes and reopens program
+**Then**: Dark mode is still active
+
+#### Requirement: Safe File Saving
+
+The program SHALL save files safely.
+
+##### Scenario: Atomic Save
+
+**Given**: User saves file
+**When**: Save operation runs
+**Then**: Program writes to temp file first, then replaces original
+
+##### Scenario: Save Error
+
+**Given**: Disk is full
+**When**: User tries to save
+**Then**: Program shows error and keeps original file
+
+#### Requirement: Path Security
+
+The program SHALL prevent path attacks.
+
+##### Scenario: Sanitize Paths
+
+**Given**: User provides file path
+**When**: Program processes path
+**Then**: Program blocks dangerous paths like "../../../etc/passwd"
+
+---
+
+## Technical Specifications
+
+This covers how the program is built.
+
+### Requirements
+
+#### Requirement: Dependencies
+
+The program SHALL use these main libraries:
+
+- **PySide6** 6.9.0+ - Makes windows and buttons
+- **asciidoc3** 10.2.1+ - Turns AsciiDoc to HTML
+- **pypandoc** 1.13+ - Changes file types
+- **Pandoc** (separate program) - Does the conversion work
+
+##### Scenario: Check Dependencies
+
+**Given**: Python 3.11+ is installed
+**When**: User runs `pip install -r requirements.txt`
+**Then**: All dependencies install successfully
+
+#### Requirement: Work in Background
+
+The program SHALL do slow work in the background.
+
+##### Scenario: Git in Background
+
+**Given**: User saves a big file to Git
+**When**: Git work starts
+**Then**: Program window still works
+
+##### Scenario: Change Files in Background
+
+**Given**: User changes a big Word file
+**When**: Change work starts
+**Then**: Program window still works
+
+#### Requirement: No Double Work
+
+The program SHALL stop you from doing two things at once.
+
+##### Scenario: Stop Double Save
+
+**Given**: Git save is running
+**When**: User tries to save again
+**Then**: Save button turns off
+
+##### Scenario: Stop Double Change
+
+**Given**: File change is running
+**When**: User tries another change
+**Then**: Program waits for first to finish
+
+---
+
+## Security Specifications
+
+This covers how we keep things safe.
+
+### Requirements
+
+#### Requirement: No Data Collection
+
+The program SHALL NOT send data to external servers.
+
+##### Scenario: Check Network
+
+**Given**: Program is running
+**When**: User monitors network traffic
+**Then**: No data is sent out
+
+#### Requirement: Local Storage Only
+
+The program SHALL store all data locally.
+
+##### Scenario: Check Settings
+
+**Given**: User changes settings
+**When**: Program saves settings
+**Then**: Settings file is in local config directory
+
+Platform locations:
+- Linux: `~/.config/AsciiDocArtisan/`
+- Windows: `%APPDATA%/AsciiDocArtisan/`
+- Mac: `~/Library/Application Support/AsciiDocArtisan/`
+
+#### Requirement: Safe Git Work
+
+The program SHALL run Git in a safe way.
+
+##### Scenario: Use Safe Commands
+
+**Given**: Program runs Git command
+**When**: Command starts
+**Then**: Program uses safe method
+
+##### Scenario: Check Repository First
+
+**Given**: User tries Git work
+**When**: Program checks
+**Then**: Program makes sure file is in Git first
+
+---
+
+## Performance Specifications
+
+This covers how fast it should be.
+
+### Requirements
+
+#### Requirement: Fast Startup
+
+The program SHALL start quickly.
+
+##### Scenario: Measure Startup Time
+
+**Given**: Program is not running
+**When**: User starts program
+**Then**: Window appears within 3 seconds
+
+#### Requirement: Responsive Preview
+
+The program SHALL update preview smoothly.
+
+##### Scenario: Preview Delay
+
+**Given**: User types in editor
+**When**: User stops typing
+**Then**: Preview updates within 500 milliseconds
+
+#### Requirement: Handle Large Files
+
+The program SHALL work with big files.
+
+##### Scenario: Open 1 MB File
+
+**Given**: User has 1 MB .adoc file
+**When**: User opens it
+**Then**: Program loads it smoothly
+
+##### Scenario: Open 10 MB File
+
+**Given**: User has 10 MB .adoc file
+**When**: User opens it
+**Then**: Program loads it but may be slower
+
+#### Requirement: Use Memory Well
+
+The program SHALL use computer memory well.
+
+##### Scenario: No Memory Waste
+
+**Given**: Program runs for 8 hours
+**When**: User checks memory use
+**Then**: Memory use stays the same
+
+---
+
+## Testing Specifications
+
+This covers how we test the program.
+
+### Requirements
+
+#### Requirement: Unit Tests
+
+The program SHALL have unit tests for all features.
+
+##### Scenario: Run Tests
+
+**Given**: Developer has code
+**When**: Developer runs `make test`
+**Then**: All tests pass
+
+##### Scenario: Test Coverage
+
+**Given**: Tests are complete
+**When**: Coverage report is generated
+**Then**: Coverage is 80% or higher
+
+#### Requirement: Integration Tests
+
+The program SHALL have integration tests.
+
+##### Scenario: Test File Operations
+
+**Given**: Test suite runs
+**When**: File operation tests run
+**Then**: New, Open, Save, Save As all work
+
+##### Scenario: Test Git Operations
+
+**Given**: Test repository exists
+**When**: Git tests run
+**Then**: Commit, Push, Pull all work
+
+#### Requirement: Platform Tests
+
+The program SHALL be tested on all platforms.
+
+##### Scenario: Test on Windows
+
+**Given**: Windows test environment
+**When**: Tests run
+**Then**: All tests pass
+
+##### Scenario: Test on Linux
+
+**Given**: Linux test environment
+**When**: Tests run
+**Then**: All tests pass
+
+##### Scenario: Test on Mac
+
+**Given**: Mac test environment
+**When**: Tests run
+**Then**: All tests pass
+
+---
+
+## Version History
+
+### Version 1.1.0 (Current)
+
+**Status**: Stable
+**Date**: October 2025
+
+**Features**:
+- All core features working
+- 71/71 tests passing
+- Full cross-platform support
+- Security features implemented
+- OpenSpec-style specifications
+
+**Reading Level**: Grade 5.0
+
+### Version 1.0.0 (Previous)
+
+**Status**: Legacy
+**Date**: 2024
+
+**Features**:
+- Initial release
+- Basic editing and preview
+- First test suite
+
+---
+
+## Future Enhancements
+
+Things we might add later:
+
+### Editor Enhancements
+- Spell checking
+- Find and replace
+- Auto-complete
+- Syntax highlighting
+
+### Preview Enhancements
+- Zoom preview
+- Print preview
+- Custom CSS themes
+
+### Git Enhancements
+- View commit history
+- Compare versions
+- Branch management
+- Merge tools
+
+### Collaboration Features
+- Share documents
+- Real-time editing
+- Comments and notes
+- Team workspaces
+
+### AI Enhancements
+- Better conversion quality
+- Writing suggestions
+- Auto-formatting
+- Content generation
+
+---
+
+## Summary
+
+**What It Does**:
+Helps you write AsciiDoc with live preview, Git, and file conversion.
+
+**Who It's For**:
+Writers, coders, students, teachers, teams.
+
+**Main Features**:
+Live preview, file conversion, Git integration, cross-platform, safe and secure.
+
+**Status**:
+Version 1.1.0 - Production ready.
+
+**Reading Level**:
+Grade 6.0 - Easy to understand!
+
+---
+
+**Document Info**: Main specification | Reading level Grade 6.0 | Version 1.1.0 | October 2025
