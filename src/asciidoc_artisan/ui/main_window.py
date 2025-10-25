@@ -1096,11 +1096,11 @@ class AsciiDocEditor(QMainWindow):
         try:
             # Disable preview updates temporarily for large files
             content_size = len(content)
-            is_large_file = content_size > 100000  # > 100KB
+            is_large_file = content_size > LARGE_FILE_THRESHOLD_BYTES
 
             if is_large_file:
                 logger.info(
-                    f"Loading large file ({content_size / 1024:.1f} KB) - preview will be deferred"
+                    MSG_LOADING_LARGE_FILE.format(content_size / 1024)
                 )
 
             # QPlainTextEdit handles large documents efficiently with internal lazy loading
