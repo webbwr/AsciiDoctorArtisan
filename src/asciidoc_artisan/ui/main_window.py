@@ -1297,7 +1297,7 @@ class AsciiDocEditor(QMainWindow):
                 html_content = outfile.getvalue()
 
                 if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                    self.status_bar.showMessage(f"Saved as HTML: {file_path}")
+                    self.status_bar.showMessage(MSG_SAVED_HTML.format(file_path))
                     logger.info(f"Successfully saved as HTML: {file_path}")
                     return True
                 else:
