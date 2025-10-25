@@ -20,7 +20,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Setup
+### Installation
+
+**Automated Installation (Recommended):**
+```bash
+# Mac/Linux - Full automated install with validation
+./install-asciidoc-artisan.sh
+
+# Windows 11 - Full automated install with validation (PowerShell 7)
+.\Install-AsciiDocArtisan.ps1
+```
+
+The installation scripts will:
+- Validate Python 3.11+ installation
+- Check and install system dependencies (Pandoc, Git)
+- Create optional virtual environment
+- Install all Python dependencies
+- Run post-install tasks
+- Validate the complete installation
+
+**Manual Setup:**
 ```bash
 # Install production dependencies
 make install

@@ -19,25 +19,42 @@ Before you start, you need these programs:
 
 ## How to Put It On Your Computer
 
-### Easy Way (Linux or WSL)
+### Easy Way - Automatic Install (Recommended)
 
-1. Open your terminal (the black window)
-2. Type these lines:
+We have special scripts that do everything for you!
+
+**For Mac or Linux:**
 ```bash
-cd ~/github
+# Get the program
 git clone https://github.com/webbwr/AsciiDoctorArtisan.git
 cd AsciiDoctorArtisan
-chmod +x setup.sh
-./setup.sh
+
+# Run the installer
+chmod +x install-asciidoc-artisan.sh
+./install-asciidoc-artisan.sh
 ```
 
-3. Test it works:
-```bash
-chmod +x verify.sh
-./verify.sh
+**For Windows 11:**
+```powershell
+# Get the program (in PowerShell)
+git clone https://github.com/webbwr/AsciiDoctorArtisan.git
+cd AsciiDoctorArtisan
+
+# Run the installer
+.\Install-AsciiDocArtisan.ps1
 ```
 
-### Other Way (Any Computer)
+The installer will:
+- ✅ Check you have Python 3.11 or newer
+- ✅ Install all needed Python parts
+- ✅ Install Pandoc (for changing file types)
+- ✅ Check Git is installed
+- ✅ Make a safe place for the program (virtual environment)
+- ✅ Test everything works
+
+### Other Way - Do It Yourself
+
+If you want to install by hand:
 
 1. Get Python parts:
 ```bash
@@ -63,7 +80,7 @@ On Windows, type:
 python src\main.py
 ```
 
-Or just click `launch_gui.sh` (Linux/Mac) or `launch_gui.bat` (Windows)
+Or just click `launch-asciidoc-artisan-gui.sh` (Linux/Mac) or `launch-asciidoc-artisan-gui.bat` (Windows)
 
 ### Quick Keys
 
@@ -138,7 +155,7 @@ The program remembers your settings in a file:
 **Fix**: Make sure your file is in a Git folder (type `git status` to check)
 
 ### "Program won't start on Windows"
-**Fix**: Right-click `launch_gui.bat` and pick "Run as administrator"
+**Fix**: Try running the installer again: `.\Install-AsciiDocArtisan.ps1`
 
 ## What's in the Project
 

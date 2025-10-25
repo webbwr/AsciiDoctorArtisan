@@ -11,6 +11,50 @@ Before you start:
 - Internet to download files
 - About 10 minutes
 
+## Quick Install (Easiest Way!)
+
+We made special scripts that do everything for you!
+
+### For Mac or Linux:
+
+```bash
+# Get the program
+git clone https://github.com/webbwr/AsciiDoctorArtisan.git
+cd AsciiDoctorArtisan
+
+# Run the installer (it does everything!)
+chmod +x install-asciidoc-artisan.sh
+./install-asciidoc-artisan.sh
+```
+
+### For Windows 11:
+
+```powershell
+# Get the program (in PowerShell 7)
+git clone https://github.com/webbwr/AsciiDoctorArtisan.git
+cd AsciiDoctorArtisan
+
+# Run the installer (it does everything!)
+.\Install-AsciiDocArtisan.ps1
+```
+
+**What the installer does**:
+- ✅ Checks you have Python 3.11 or newer
+- ✅ Adds all Python tools needed
+- ✅ Adds Pandoc (for changing files)
+- ✅ Checks if Git is there
+- ✅ Makes a safe space for the program
+- ✅ Tests everything works
+- ✅ Shows you what to do next
+
+**That's it! Skip to "Start the Program" below.**
+
+---
+
+## Slow Install (Do It Yourself)
+
+Want to do it by hand? Follow these steps:
+
 ## Step 1: Get Python
 
 Python makes the program work.
@@ -107,7 +151,7 @@ chmod +x verify.sh
 ```
 
 **On Windows**:
-Right-click `AsciiDocArtisanVerify.ps1` and pick "Run with PowerShell"
+Right-click `scripts\verify-environment.ps1` and pick "Run with PowerShell"
 
 **Or test yourself**:
 ```bash
@@ -120,12 +164,23 @@ If you see "Works!" both times, you're done!
 ## Start the Program
 
 **Easy way**:
-- **Windows**: Double-click `launch_gui.bat`
-- **Mac/Linux**: Double-click `launch_gui.sh`
+- **Windows**: Double-click `launch-asciidoc-artisan-gui.bat`
+- **Mac/Linux**: Double-click `launch-asciidoc-artisan-gui.sh`
 
 **Other way**:
 ```bash
 python3 src/main.py
+```
+
+**If you used the installer and made a virtual environment**:
+```bash
+# First, turn on the virtual environment
+source venv/bin/activate    # Mac/Linux
+# OR
+.\venv\Scripts\Activate.ps1  # Windows
+
+# Then start the program
+python src/main.py
 ```
 
 ## Problems?
@@ -148,7 +203,7 @@ python3 -m ensurepip --upgrade
 
 Type this:
 ```bash
-chmod +x setup.sh verify.sh launch_gui.sh
+chmod +x install-asciidoc-artisan.sh launch-asciidoc-artisan-gui.sh
 ```
 
 ### "Can't run scripts" (on Windows)
