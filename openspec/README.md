@@ -1,134 +1,129 @@
 # OpenSpec Folder
 
-**Reading Level**: Grade 5.0
-
 ## What This Is
 
-This folder helps us plan new features. We write down ideas before we build them.
+We plan new things here. We write ideas first. Then we build them.
 
 ## What's Inside
 
 ```
 openspec/
-├── changes/         (New ideas we want to add)
-│   ├── _template/   (Copy this to start)
-│   └── spell-checker/ (Example idea)
-├── archive/         (Old ideas we already built)
-└── README.md        (This file)
+├── changes/      (New ideas)
+├── archive/      (Built ideas)
+└── README.md     (This file)
 ```
 
-**Main Rules**: See `SPECIFICATIONS.md` in the main folder.
+See `SPECIFICATIONS.md` for rules.
 
-## How to Add a New Idea
+## Add an Idea
 
-### Step 1: Copy the Template
+### Step 1: Copy
 
 ```bash
 cp -r openspec/changes/_template openspec/changes/my-idea
 ```
 
-### Step 2: Fill Out Files
+### Step 2: Fill Files
 
-- `proposal.md` - Why we need it
-- `tasks.md` - What work to do
-- `design.md` - How it works
-- `specs/` - What rules change
+- `proposal.md` - Why
+- `tasks.md` - Work
+- `design.md` - How
+- `specs/` - Rules
 
 ### Step 3: Get Help
 
-- Show other people
-- Talk about it
-- Make it better
-- Get OK to build it
+- Show people
+- Talk
+- Fix it
+- Get OK
 
-### Step 4: Build It
+### Step 4: Build
 
-- Do the tasks
-- Check them off
-- Test it all
+- Do work
+- Check off
+- Test
 
-### Step 5: Save It
+### Step 5: Save
 
 - Move to `archive/`
-- Update main rules
-- Close related notes
+- Update rules
+- Close notes
 
-## See What's Planned
+## See Ideas
 
-**See new ideas**:
+**New ones**:
 ```bash
 ls openspec/changes/
 ```
 
-**See finished ideas**:
+**Old ones**:
 ```bash
 ls openspec/archive/
 ```
 
-## What Goes in Each File
+## File Info
 
 ### proposal.md
-- What problem it fixes
-- How it will work
-- Why it's good
-- What could go wrong
+- Problem
+- Fix
+- Good parts
+- Bad parts
 
 ### tasks.md
-- Things to plan
-- Things to design
-- Things to code
-- Things to test
-- Things to check
+- Plan
+- Design
+- Code
+- Test
+- Check
 
 ### design.md
-- How it works inside
-- What parts change
-- Pictures of screens
-- How to test it
+- How works
+- Changes
+- Pics
+- Tests
 
 ### specs/*.md
-- New rules we add
-- Old rules we change
-- Rules we remove
-- Uses Given/When/Then words
+- New rules
+- Changed rules
+- Removed rules
+- Given/When/Then
 
-## Check Your Work
+## Check Work
 
-Test if your spec is good:
+Test:
 
 ```bash
 ./scripts/validate-specifications.sh
 ```
 
-This checks:
-- Uses SHALL words
-- Has Given/When/Then tests
-- Has all parts
-- Has version number
-- Easy to read
+Checks:
+- Has SHALL
+- Has Given/When/Then
+- Has parts
+- Has version
+- Easy read
 
 ## Example
 
-Look at `openspec/changes/spell-checker/` to see how to do it.
+See `openspec/changes/spell-checker/`.
 
 ## Write Simple
 
-All files should use Grade 5.0 words:
-- Short sentences
-- Simple words
-- Clear examples
+Use Grade 5.0:
+- Short
+- Simple
+- Clear
 
-Test it:
+Test:
 ```bash
 python3 check_readability.py openspec/changes/my-idea/proposal.md
 ```
 
-## Need Help?
+## Help?
 
-- See `SPECIFICATIONS.md` for current rules
+- See `SPECIFICATIONS.md`
 - Ask on GitHub
 
 ---
 
-**Reading Level**: Grade 5.0
-**Last Updated**: October 2025
+**Reading**: Grade 5.0

@@ -1,4 +1,4 @@
-# AsciiDoc Artisan Specifications
+# AsciiDoc Artisan Rules
 
 **Reading Level**: Grade 5.0 Target (Current: 12.8)
 **Version**: 1.1.0
@@ -20,7 +20,7 @@ This tells you what AsciiDoc Artisan must do. Each part has clear rules and test
 
 ---
 
-## Core Specifications
+## Core Rules
 
 This covers what AsciiDoc Artisan is and what it does.
 
@@ -35,11 +35,11 @@ AsciiDoc Artisan helps people write papers. It's a program that:
 
 Think of it like Word, but for AsciiDoc files.
 
-### Requirements
+### Rules
 
-#### Requirement: Cross-Platform Support
+#### Rule: Cross-Platform Support
 
-The program SHALL work on Windows, Mac, and Linux.
+The program MUST work on Windows, Mac, and Linux.
 
 **Why This Helps**: You can use the program no matter what computer you have.
 
@@ -61,9 +61,9 @@ The program SHALL work on Windows, Mac, and Linux.
 **When**: User runs the program
 **Then**: Program starts without errors
 
-#### Requirement: Python Version
+#### Rule: Python Version
 
-The program SHALL require Python 3.11 or newer.
+The program MUST require Python 3.11 or newer.
 
 **Why This Helps**: Newer Python is faster and safer.
 
@@ -71,7 +71,7 @@ The program SHALL require Python 3.11 or newer.
 
 **Given**: Python 3.11 or higher installed
 **When**: Program starts
-**Then**: Program runs successfully
+**Then**: Program runs right
 
 ##### Scenario: Reject Old Python
 
@@ -79,9 +79,9 @@ The program SHALL require Python 3.11 or newer.
 **When**: User tries to start program
 **Then**: Program shows error about Python version
 
-#### Requirement: Free and Open Source
+#### Rule: Free and Open Source
 
-The program SHALL be free to use under MIT License.
+The program MUST be free to use under MIT License.
 
 ##### Scenario: Check License
 
@@ -100,7 +100,7 @@ The program SHALL be free to use under MIT License.
 
 ---
 
-## Installation Specifications
+## Installation Rules
 
 This part tells you how to install the program.
 
@@ -113,11 +113,11 @@ Installation means putting the program on your computer so it works.
 - Internet to get files
 - About 10 minutes
 
-### Requirements
+### Rules
 
-#### Requirement: Easy Install Scripts
+#### Rule: Easy Install Scripts
 
-The program SHALL give you scripts that install everything for you.
+The program MUST give you scripts that install everything for you.
 
 **Why This Helps**: You don't have to type many commands. The script does it all.
 
@@ -139,9 +139,9 @@ The program SHALL give you scripts that install everything for you.
 **When**: You look at the report
 **Then**: The script says all parts installed with no errors
 
-#### Requirement: Check What You Have
+#### Rule: Check What You Have
 
-The install script SHALL check if you have all the tools needed.
+The install script MUST check if you have all the tools needed.
 
 **Why This Helps**: You know right away if something is missing.
 
@@ -163,9 +163,9 @@ The install script SHALL check if you have all the tools needed.
 **When**: The script finds it's missing
 **Then**: The script shows you how to get that tool
 
-#### Requirement: Safe Space For Tools
+#### Rule: Safe Space For Tools
 
-The install script SHALL ask if you want a safe space for the program's tools.
+The install script MUST ask if you want a safe space for the program's tools.
 
 **Why This Helps**: The program's tools don't mix with other programs.
 
@@ -181,9 +181,9 @@ The install script SHALL ask if you want a safe space for the program's tools.
 **When**: Install keeps going
 **Then**: Tools go on your whole computer (you must say this is OK)
 
-#### Requirement: Test The Install
+#### Rule: Test The Install
 
-The install script SHALL test everything after it finishes.
+The install script MUST test everything after it finishes.
 
 **Why This Helps**: You know for sure the program will work.
 
@@ -205,9 +205,9 @@ The install script SHALL test everything after it finishes.
 **When**: Script is finished
 **Then**: Script shows how many errors, how many warnings, and what to do next
 
-#### Requirement: Works On All Computers
+#### Rule: Works On All Computers
 
-The install script SHALL know what type of computer you have.
+The install script MUST know what type of computer you have.
 
 **Why This Helps**: The script uses the right tools for your computer.
 
@@ -231,15 +231,15 @@ The install script SHALL know what type of computer you have.
 
 ---
 
-## Editor Specifications
+## Editor Rules
 
 This covers the text editing features.
 
-### Requirements
+### Rules
 
-#### Requirement: Basic Text Editing
+#### Rule: Basic Text Editing
 
-The program SHALL let users type and edit text.
+The program MUST let users type and edit text.
 
 **Why This Helps**: You can write and fix your work easily.
 
@@ -247,17 +247,17 @@ The program SHALL let users type and edit text.
 
 **Given**: Program is open
 **When**: User types "Hello World"
-**Then**: Text appears in editor
+**Then**: Text shows in editor
 
 ##### Scenario: Edit Text
 
 **Given**: Text exists in editor
 **When**: User changes text
-**Then**: Changes appear immediately
+**Then**: Changes appear right away
 
-#### Requirement: Copy and Paste
+#### Rule: Copy and Paste
 
-The program SHALL support copy, cut, and paste.
+The program MUST support copy, cut, and paste.
 
 **Why This Helps**: You can move text around without retyping it.
 
@@ -273,9 +273,9 @@ The program SHALL support copy, cut, and paste.
 **When**: User presses Ctrl+V
 **Then**: Text is pasted at cursor
 
-#### Requirement: Undo and Redo
+#### Rule: Undo and Redo
 
-The program SHALL support undo and redo.
+The program MUST support undo and redo.
 
 ##### Scenario: Undo Change
 
@@ -289,19 +289,19 @@ The program SHALL support undo and redo.
 **When**: User presses Ctrl+Y
 **Then**: Change is redone
 
-#### Requirement: Find Text
+#### Rule: Find Text
 
-The program SHALL let users find words.
+The program MUST let users find words.
 
 ##### Scenario: Find Word
 
-**Given**: Document contains "hello"
+**Given**: Document has "hello"
 **When**: User searches for "hello"
 **Then**: Program highlights "hello"
 
-#### Requirement: Go to Line
+#### Rule: Go to Line
 
-The program SHALL let users jump to a line number.
+The program MUST let users jump to a line number.
 
 ##### Scenario: Jump to Line
 
@@ -309,9 +309,9 @@ The program SHALL let users jump to a line number.
 **When**: User goes to line 50
 **Then**: Cursor moves to line 50
 
-#### Requirement: Line Numbers
+#### Rule: Line Numbers
 
-The program SHALL show line numbers.
+The program MUST show line numbers.
 
 ##### Scenario: View Line Numbers
 
@@ -321,15 +321,15 @@ The program SHALL show line numbers.
 
 ---
 
-## Preview Specifications
+## Preview Rules
 
 This covers the live HTML preview feature.
 
-### Requirements
+### Rules
 
-#### Requirement: Live HTML Preview
+#### Rule: Live HTML Preview
 
-The program SHALL show HTML preview of AsciiDoc text.
+The program MUST show HTML preview of AsciiDoc text.
 
 ##### Scenario: Show Preview
 
@@ -343,9 +343,9 @@ The program SHALL show HTML preview of AsciiDoc text.
 **When**: User changes text
 **Then**: Preview updates after short delay
 
-#### Requirement: Move Together
+#### Rule: Move Together
 
-The program SHALL move editor and preview together.
+The program MUST move editor and preview together.
 
 ##### Scenario: Move Editor
 
@@ -359,9 +359,9 @@ The program SHALL move editor and preview together.
 **When**: User moves in preview
 **Then**: Editor moves to same spot
 
-#### Requirement: Wait to Update
+#### Rule: Wait to Update
 
-The program SHALL wait before it updates the preview.
+The program MUST wait before it updates the preview.
 
 ##### Scenario: Wait for Typing
 
@@ -369,9 +369,9 @@ The program SHALL wait before it updates the preview.
 **When**: User types many letters quick
 **Then**: Preview waits for typing to stop
 
-#### Requirement: Show Plain Text
+#### Rule: Show Plain Text
 
-The program SHALL show plain text if HTML fails.
+The program MUST show plain text if HTML fails.
 
 ##### Scenario: Fix Errors
 
@@ -381,35 +381,35 @@ The program SHALL show plain text if HTML fails.
 
 ---
 
-## Git Specifications
+## Git Rules
 
 This covers version control integration.
 
-### Requirements
+### Rules
 
-#### Requirement: Git Commit
+#### Rule: Git Commit
 
-The program SHALL let users commit changes.
+The program MUST let users commit changes.
 
 ##### Scenario: Commit Changes
 
-**Given**: File is in Git repository
+**Given**: File is in Git folder
 **When**: User clicks Git > Commit and enters message
 **Then**: Changes are committed with that message
 
 ##### Scenario: Commit Without Repository
 
-**Given**: File is not in Git repository
+**Given**: File is not in Git folder
 **When**: User tries to commit
 **Then**: Program shows error message
 
-#### Requirement: Git Push
+#### Rule: Git Push
 
-The program SHALL let users push to remote.
+The program MUST let users push to remote.
 
 ##### Scenario: Push Changes
 
-**Given**: Repository has remote configured
+**Given**: Repository has remote set upd
 **When**: User clicks Git > Push
 **Then**: Commits are sent to remote server
 
@@ -419,15 +419,15 @@ The program SHALL let users push to remote.
 **When**: User tries to push
 **Then**: Program shows error message
 
-#### Requirement: Git Pull
+#### Rule: Git Pull
 
-The program SHALL let users pull from remote.
+The program MUST let users pull from remote.
 
 ##### Scenario: Pull Changes
 
 **Given**: Remote has new commits
 **When**: User clicks Git > Pull
-**Then**: New changes download to local repository
+**Then**: New changes download to local folder
 
 ##### Scenario: Pull Clash
 
@@ -435,33 +435,33 @@ The program SHALL let users pull from remote.
 **When**: User pulls
 **Then**: Program shows clash message
 
-#### Requirement: Git Status Display
+#### Rule: Git Status Display
 
-The program SHALL show Git status in status bar.
+The program MUST show Git status in status bar.
 
 ##### Scenario: Show Repository Status
 
-**Given**: File is in Git repository
+**Given**: File is in Git folder
 **When**: User opens file
-**Then**: Status bar shows repository name
+**Then**: Status bar shows folder name
 
 ##### Scenario: Show Non-Repository Status
 
-**Given**: File is not in Git repository
+**Given**: File is not in Git folder
 **When**: User opens file
-**Then**: Status bar shows "Not in Git repository"
+**Then**: Status bar shows "Not in Git folder"
 
 ---
 
-## Conversion Specifications
+## Conversion Rules
 
 This covers document format conversion.
 
-### Requirements
+### Rules
 
-#### Requirement: Import Word Files
+#### Rule: Import Word Files
 
-The program SHALL convert Word files to AsciiDoc.
+The program MUST convert Word files to AsciiDoc.
 
 ##### Scenario: Open Word File
 
@@ -475,9 +475,9 @@ The program SHALL convert Word files to AsciiDoc.
 **When**: User tries to open it
 **Then**: Program shows error message
 
-#### Requirement: Import PDF Files
+#### Rule: Import PDF Files
 
-The program SHALL extract text from PDF files.
+The program MUST extract text from PDF files.
 
 ##### Scenario: Open PDF File
 
@@ -491,9 +491,9 @@ The program SHALL extract text from PDF files.
 **When**: User opens it
 **Then**: Tables are formatted in AsciiDoc
 
-#### Requirement: Export to HTML
+#### Rule: Export to HTML
 
-The program SHALL export to HTML format.
+The program MUST export to HTML format.
 
 ##### Scenario: Export HTML
 
@@ -501,9 +501,9 @@ The program SHALL export to HTML format.
 **When**: User clicks File > Export > HTML
 **Then**: Program creates HTML file
 
-#### Requirement: Export to PDF
+#### Rule: Export to PDF
 
-The program SHALL export to PDF format.
+The program MUST export to PDF format.
 
 ##### Scenario: Export PDF
 
@@ -511,9 +511,9 @@ The program SHALL export to PDF format.
 **When**: User clicks File > Export > PDF
 **Then**: Program creates PDF file
 
-#### Requirement: Export to Word
+#### Rule: Export to Word
 
-The program SHALL export to Word format.
+The program MUST export to Word format.
 
 ##### Scenario: Export Word
 
@@ -521,9 +521,9 @@ The program SHALL export to Word format.
 **When**: User clicks File > Export > Word
 **Then**: Program creates .docx file
 
-#### Requirement: Paste from Copy
+#### Rule: Paste from Copy
 
-The program SHALL paste HTML from copy area.
+The program MUST paste HTML from copy area.
 
 ##### Scenario: Paste HTML
 
@@ -533,15 +533,15 @@ The program SHALL paste HTML from copy area.
 
 ---
 
-## User Interface Specifications
+## User Interface Rules
 
 This covers how the program looks and works.
 
-### Requirements
+### Rules
 
-#### Requirement: File Operations
+#### Rule: File Operations
 
-The program SHALL provide file menu operations.
+The program MUST give file menu tasks.
 
 ##### Scenario: New File
 
@@ -553,7 +553,7 @@ The program SHALL provide file menu operations.
 
 **Given**: User has .adoc file
 **When**: User presses Ctrl+O and selects file
-**Then**: File content appears in editor
+**Then**: File content shows in editor
 
 ##### Scenario: Save File
 
@@ -567,9 +567,9 @@ The program SHALL provide file menu operations.
 **When**: User clicks File > Save As
 **Then**: Program asks for file name and saves
 
-#### Requirement: Dark Mode
+#### Rule: Dark Mode
 
-The program SHALL support dark color scheme.
+The program MUST support dark color scheme.
 
 ##### Scenario: Toggle Dark Mode
 
@@ -583,9 +583,9 @@ The program SHALL support dark color scheme.
 **When**: User restarts program
 **Then**: Dark mode is still on
 
-#### Requirement: Font Zoom
+#### Rule: Font Zoom
 
-The program SHALL let users change text size.
+The program MUST let users change text size.
 
 ##### Scenario: Zoom In
 
@@ -599,9 +599,9 @@ The program SHALL let users change text size.
 **When**: User presses Ctrl+-
 **Then**: Text gets smaller
 
-#### Requirement: Status Bar
+#### Rule: Status Bar
 
-The program SHALL show information in status bar.
+The program MUST show information in status bar.
 
 ##### Scenario: Show Line and Column
 
@@ -611,9 +611,9 @@ The program SHALL show information in status bar.
 
 ##### Scenario: Show Git Status
 
-**Given**: File is in Git repository
+**Given**: File is in Git folder
 **When**: User opens file
-**Then**: Status bar shows repository name
+**Then**: Status bar shows folder name
 
 ##### Scenario: Show File Path
 
@@ -621,15 +621,15 @@ The program SHALL show information in status bar.
 **When**: User looks at status bar
 **Then**: Status bar shows full file path
 
-#### Requirement: Keyboard Shortcuts
+#### Rule: Keyboard Shortcuts
 
-The program SHALL provide keyboard shortcuts.
+The program MUST give keyboard shortcuts.
 
 ##### Scenario: Use Shortcuts
 
 **Given**: Program is open
 **When**: User presses keyboard shortcut
-**Then**: Action happens immediately
+**Then**: Action happens right away
 
 Common shortcuts:
 - Ctrl+N - New file
@@ -641,9 +641,9 @@ Common shortcuts:
 - Ctrl++ - Zoom in
 - Ctrl+- - Zoom out
 
-#### Requirement: Settings Persistence
+#### Rule: Settings Persistence
 
-The program SHALL remember user settings.
+The program MUST remember user settings.
 
 ##### Scenario: Save Window Size
 
@@ -655,7 +655,7 @@ The program SHALL remember user settings.
 
 **Given**: User opens a file
 **When**: User closes and reopens program
-**Then**: Same file opens automatically
+**Then**: Same file opens on its own
 
 ##### Scenario: Save Theme
 
@@ -663,14 +663,14 @@ The program SHALL remember user settings.
 **When**: User closes and reopens program
 **Then**: Dark mode is still active
 
-#### Requirement: Safe File Saving
+#### Rule: Safe File Saving
 
-The program SHALL save files safely.
+The program MUST save files safely.
 
 ##### Scenario: Atomic Save
 
 **Given**: User saves file
-**When**: Save operation runs
+**When**: Save task runs
 **Then**: Program writes to temp file first, then replaces original
 
 ##### Scenario: Save Error
@@ -679,27 +679,27 @@ The program SHALL save files safely.
 **When**: User tries to save
 **Then**: Program shows error and keeps original file
 
-#### Requirement: Path Security
+#### Rule: Path Security
 
-The program SHALL prevent path attacks.
+The program MUST prevent path attacks.
 
 ##### Scenario: Sanitize Paths
 
-**Given**: User provides file path
+**Given**: User gives file path
 **When**: Program processes path
 **Then**: Program blocks dangerous paths like "../../../etc/passwd"
 
 ---
 
-## Technical Specifications
+## Technical Rules
 
 This covers how the program is built.
 
-### Requirements
+### Rules
 
-#### Requirement: Dependencies
+#### Rule: Dependencies
 
-The program SHALL use these main libraries:
+The program MUST use these main libraries:
 
 - **PySide6** 6.9.0+ - Makes windows and buttons
 - **asciidoc3** 10.2.1+ - Turns AsciiDoc to HTML
@@ -709,12 +709,12 @@ The program SHALL use these main libraries:
 ##### Scenario: Check Dependencies
 
 **Given**: Python 3.11+ is installed
-**When**: User runs `pip install -r requirements.txt`
-**Then**: All dependencies install successfully
+**When**: User runs `pip install -r rules.txt`
+**Then**: All tools install right
 
-#### Requirement: Work in Background
+#### Rule: Work in Background
 
-The program SHALL do slow work in the background.
+The program MUST do slow work in the background.
 
 ##### Scenario: Git in Background
 
@@ -728,9 +728,9 @@ The program SHALL do slow work in the background.
 **When**: Change work starts
 **Then**: Program window still works
 
-#### Requirement: No Double Work
+#### Rule: No Double Work
 
-The program SHALL stop you from doing two things at once.
+The program MUST stop you from doing two things at once.
 
 ##### Scenario: Stop Double Save
 
@@ -746,15 +746,15 @@ The program SHALL stop you from doing two things at once.
 
 ---
 
-## Security Specifications
+## Security Rules
 
 This covers how we keep things safe.
 
-### Requirements
+### Rules
 
-#### Requirement: No Data Collection
+#### Rule: No Data Collection
 
-The program SHALL NOT send data to external servers.
+The program MUST NOT send data to external servers.
 
 ##### Scenario: Check Network
 
@@ -762,24 +762,24 @@ The program SHALL NOT send data to external servers.
 **When**: User monitors network traffic
 **Then**: No data is sent out
 
-#### Requirement: Local Storage Only
+#### Rule: Local Storage Only
 
-The program SHALL store all data locally.
+The program MUST store all data locally.
 
 ##### Scenario: Check Settings
 
 **Given**: User changes settings
 **When**: Program saves settings
-**Then**: Settings file is in local config directory
+**Then**: Settings file is in local config folder
 
 Platform locations:
 - Linux: `~/.config/AsciiDocArtisan/`
 - Windows: `%APPDATA%/AsciiDocArtisan/`
 - Mac: `~/Library/Application Support/AsciiDocArtisan/`
 
-#### Requirement: Safe Git Work
+#### Rule: Safe Git Work
 
-The program SHALL run Git in a safe way.
+The program MUST run Git in a safe way.
 
 ##### Scenario: Use Safe Commands
 
@@ -795,25 +795,25 @@ The program SHALL run Git in a safe way.
 
 ---
 
-## Performance Specifications
+## Performance Rules
 
 This covers how fast it should be.
 
-### Requirements
+### Rules
 
-#### Requirement: Fast Startup
+#### Rule: Fast Startup
 
-The program SHALL start quickly.
+The program MUST start quickly.
 
 ##### Scenario: Measure Startup Time
 
 **Given**: Program is not running
 **When**: User starts program
-**Then**: Window appears within 3 seconds
+**Then**: Window shows within 3 seconds
 
-#### Requirement: Responsive Preview
+#### Rule: Responsive Preview
 
-The program SHALL update preview smoothly.
+The program MUST update preview smoothly.
 
 ##### Scenario: Preview Delay
 
@@ -821,9 +821,9 @@ The program SHALL update preview smoothly.
 **When**: User stops typing
 **Then**: Preview updates within 500 milliseconds
 
-#### Requirement: Handle Large Files
+#### Rule: Handle Large Files
 
-The program SHALL work with big files.
+The program MUST work with big files.
 
 ##### Scenario: Open 1 MB File
 
@@ -837,9 +837,9 @@ The program SHALL work with big files.
 **When**: User opens it
 **Then**: Program loads it but may be slower
 
-#### Requirement: Use Memory Well
+#### Rule: Use Memory Well
 
-The program SHALL use computer memory well.
+The program MUST use computer memory well.
 
 ##### Scenario: No Memory Waste
 
@@ -849,15 +849,15 @@ The program SHALL use computer memory well.
 
 ---
 
-## Testing Specifications
+## Testing Rules
 
 This covers how we test the program.
 
-### Requirements
+### Rules
 
-#### Requirement: Unit Tests
+#### Rule: Unit Tests
 
-The program SHALL have unit tests for all features.
+The program MUST have unit tests for all features.
 
 ##### Scenario: Run Tests
 
@@ -871,25 +871,25 @@ The program SHALL have unit tests for all features.
 **When**: Coverage report is generated
 **Then**: Coverage is 80% or higher
 
-#### Requirement: Integration Tests
+#### Rule: Integration Tests
 
-The program SHALL have integration tests.
+The program MUST have integration tests.
 
 ##### Scenario: Test File Operations
 
 **Given**: Test suite runs
-**When**: File operation tests run
+**When**: File task tests run
 **Then**: New, Open, Save, Save As all work
 
 ##### Scenario: Test Git Operations
 
-**Given**: Test repository exists
+**Given**: Test folder exists
 **When**: Git tests run
 **Then**: Commit, Push, Pull all work
 
-#### Requirement: Platform Tests
+#### Rule: Platform Tests
 
-The program SHALL be tested on all platforms.
+The program MUST be tested on all platforms.
 
 ##### Scenario: Test on Windows
 
@@ -922,8 +922,8 @@ The program SHALL be tested on all platforms.
 - All core features working
 - 71/71 tests passing
 - Full cross-platform support
-- Security features implemented
-- OpenSpec-style specifications
+- Security features added
+- OpenSpec-style rules
 
 **Reading Level**: Grade 5.0
 
@@ -993,4 +993,4 @@ Grade 6.0 - Easy to understand!
 
 ---
 
-**Document Info**: Main specification | Reading level Grade 6.0 | Version 1.1.0 | October 2025
+**Document Info**: Main rule | Reading level Grade 6.0 | Version 1.1.0 | October 2025
