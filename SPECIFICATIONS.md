@@ -11,6 +11,7 @@ This tells you what AsciiDoc Artisan must do. Each part has clear rules and test
 
 **Structure**:
 - Core - What the program is
+- Installation - How to install the program
 - Editor - How you type and edit
 - Preview - How you see your work
 - Git - How you save to version control
@@ -92,6 +93,118 @@ The program SHALL be free to use under MIT License.
 3. **Teachers and Students** - Write papers and reports
 4. **Writers** - Make long documents
 5. **Teams** - Share files and work together
+
+---
+
+## Installation Specifications
+
+This covers how users install and set up the program.
+
+### Requirements
+
+#### Requirement: Automated Installation Scripts
+
+The program SHALL provide automated installation scripts for all supported platforms.
+
+##### Scenario: Mac/Linux Installation
+
+**Given**: User has Mac or Linux computer
+**When**: User runs install-asciidoc-artisan.sh
+**Then**: Script checks Python version, installs dependencies, creates virtual environment, and validates installation
+
+##### Scenario: Windows Installation
+
+**Given**: User has Windows 11 with PowerShell 7
+**When**: User runs Install-AsciiDocArtisan.ps1
+**Then**: Script checks Python version, installs dependencies, creates virtual environment, and validates installation
+
+##### Scenario: Installation Validation
+
+**Given**: User completes automated installation
+**When**: Installation finishes
+**Then**: Script reports all dependencies installed correctly with zero errors
+
+#### Requirement: Dependency Checking
+
+Installation scripts SHALL verify all required dependencies before proceeding.
+
+##### Scenario: Check Python Version
+
+**Given**: User runs installation script
+**When**: Script starts
+**Then**: Script checks for Python 3.11 or higher and reports version found
+
+##### Scenario: Check System Dependencies
+
+**Given**: User runs installation script
+**When**: Script checks dependencies
+**Then**: Script verifies Pandoc and Git are available or offers to install them
+
+##### Scenario: Report Missing Dependencies
+
+**Given**: Required dependency is missing
+**When**: Script detects missing dependency
+**Then**: Script shows clear installation instructions for that dependency
+
+#### Requirement: Virtual Environment Support
+
+Installation scripts SHALL offer to create a Python virtual environment.
+
+##### Scenario: Create Virtual Environment
+
+**Given**: User chooses to create virtual environment
+**When**: Script creates venv
+**Then**: All dependencies install in isolated environment
+
+##### Scenario: Skip Virtual Environment
+
+**Given**: User chooses to skip virtual environment
+**When**: Installation continues
+**Then**: Dependencies install globally with user permission
+
+#### Requirement: Installation Validation
+
+Installation scripts SHALL validate the complete installation after setup.
+
+##### Scenario: Validate Python Packages
+
+**Given**: Installation completes
+**When**: Script runs validation
+**Then**: Script confirms PySide6, asciidoc3, and pypandoc can be imported
+
+##### Scenario: Validate System Commands
+
+**Given**: Installation completes
+**When**: Script runs validation
+**Then**: Script confirms python, pip, pandoc, and git commands are available
+
+##### Scenario: Report Installation Status
+
+**Given**: Installation and validation complete
+**When**: Script finishes
+**Then**: Script shows summary with error count, warning count, and next steps
+
+#### Requirement: Cross-Platform Installation
+
+Installation scripts SHALL support platform-specific package managers.
+
+##### Scenario: Detect macOS Package Manager
+
+**Given**: User runs script on macOS
+**When**: Script needs to install Pandoc
+**Then**: Script uses Homebrew (brew) if available
+
+##### Scenario: Detect Linux Package Manager
+
+**Given**: User runs script on Linux
+**When**: Script needs to install system packages
+**Then**: Script detects and uses apt, dnf, or yum appropriately
+
+##### Scenario: Windows Package Manager
+
+**Given**: User runs script on Windows 11
+**When**: Script needs to install Pandoc
+**Then**: Script offers to use winget for automated installation
 
 ---
 
