@@ -97,6 +97,7 @@ from asciidoc_artisan.ui.dialogs import (
 from asciidoc_artisan.ui.file_handler import FileHandler
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
+from asciidoc_artisan.ui.preview_handler import PreviewHandler
 from asciidoc_artisan.ui.settings_manager import SettingsManager
 from asciidoc_artisan.ui.status_manager import StatusManager
 from asciidoc_artisan.ui.theme_manager import ThemeManager
@@ -282,6 +283,14 @@ class AsciiDocEditor(QMainWindow):
         )
         # Start auto-save
         self.file_handler.start_auto_save(AUTO_SAVE_INTERVAL_MS)
+
+        # Initialize PreviewHandler (Phase 5: Refactoring)
+        self.preview_handler = PreviewHandler(
+            self.editor,
+            self.preview,
+            self
+        )
+        self.preview_handler.start_preview_updates()
 
         # Restore UI settings using manager
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
@@ -1136,7 +1145,12 @@ class AsciiDocEditor(QMainWindow):
 
     @Slot()
     def save_file(self, save_as: bool = False) -> bool:
-        """Save file with Windows-friendly dialog."""
+        """
+        Save file with Windows-friendly dialog.
+
+        Handles both simple AsciiDoc saves and export to other formats.
+        Simple .adoc saves delegate to FileHandler.
+        """
         if save_as or not self._current_file_path:
 
             suggested_name = (
@@ -1698,56 +1712,18 @@ class AsciiDocEditor(QMainWindow):
 
     @Slot()
     def update_preview(self) -> None:
-        """Request preview rendering in background thread with optimization for large files."""
-        source_text = self.editor.toPlainText()
-
-        # Optimize preview for large documents
-        text_size = len(source_text)
-        line_count = source_text.count("\n") + 1
-
-        if text_size > LARGE_FILE_THRESHOLD_BYTES:
-            # Use optimized preview content for large files
-            preview_text = LargeFileHandler.get_preview_content(source_text)
-            truncated_chars = text_size - len(preview_text)
-            logger.info(
-                f"Large file preview: {len(preview_text):,} / {text_size:,} chars "
-                f"({line_count:,} lines, truncated {truncated_chars:,} chars)"
-            )
-            self.request_preview_render.emit(preview_text)
-        else:
-            logger.debug(f"Preview update: {text_size:,} chars, {line_count:,} lines")
-            self.request_preview_render.emit(source_text)
+        """Request preview rendering (delegates to PreviewHandler)."""
+        self.preview_handler.update_preview()
 
     @Slot(str)
     def _handle_preview_complete(self, html_body: str) -> None:
-        """Handle successful preview rendering from worker thread."""
-        full_html = f"""<!doctype html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <style>{self._get_preview_css()}</style>
-</head>
-<body>
-    {html_body}
-</body>
-</html>"""
-        self.preview.setHtml(full_html)
-        logger.debug("Preview updated successfully")
+        """Handle successful preview rendering (delegates to PreviewHandler)."""
+        self.preview_handler.handle_preview_complete(html_body)
 
     @Slot(str)
     def _handle_preview_error(self, error_html: str) -> None:
-        """Handle preview rendering error from worker thread."""
-        full_html = f"""<!doctype html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <style>{self._get_preview_css()}</style>
-</head>
-<body>
-    {error_html}
-</body>
-</html>"""
-        self.preview.setHtml(full_html)
+        """Handle preview rendering error (delegates to PreviewHandler)."""
+        self.preview_handler.handle_preview_error(error_html)
 
     def _convert_asciidoc_to_html_body(self, source_text: str) -> str:
         """
