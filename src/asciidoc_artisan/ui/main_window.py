@@ -1289,7 +1289,7 @@ class AsciiDocEditor(QMainWindow):
             self.status_bar.showMessage("Saving as HTML...")
             try:
                 if self._asciidoc_api is None:
-                    raise RuntimeError("AsciiDoc API not initialized")
+                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
 
                 infile = io.StringIO(content)
                 outfile = io.StringIO()
@@ -1316,7 +1316,7 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             if self._asciidoc_api is None:
-                raise RuntimeError("AsciiDoc API not initialized")
+                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
 
             infile = io.StringIO(content)
             outfile = io.StringIO()
@@ -1478,7 +1478,7 @@ class AsciiDocEditor(QMainWindow):
             self.status_bar.showMessage("Exporting to HTML...")
             try:
                 if self._asciidoc_api is None:
-                    raise RuntimeError("AsciiDoc API not initialized")
+                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
 
                 infile = io.StringIO(content)
                 outfile = io.StringIO()
@@ -1502,7 +1502,7 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             if self._asciidoc_api is None:
-                raise RuntimeError("AsciiDoc API not initialized")
+                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
 
             infile = io.StringIO(content)
             outfile = io.StringIO()
