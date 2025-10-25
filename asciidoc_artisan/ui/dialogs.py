@@ -33,15 +33,22 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from asciidoc_artisan.core import Settings
+from asciidoc_artisan.core import SecureCredentials, Settings
 
-# Check for Claude client availability
+# Check for AI API key availability (Phase 3 security integration)
+_credentials = SecureCredentials()
+ANTHROPIC_API_KEY_AVAILABLE = _credentials.has_anthropic_key()
+
+# Check for legacy Claude client (for backwards compatibility)
 try:
     import claude_client  # noqa: F401
 
     CLAUDE_CLIENT_AVAILABLE = True
 except ImportError:
     CLAUDE_CLIENT_AVAILABLE = False
+
+# AI is available if either secure credentials OR legacy client is present
+AI_AVAILABLE = ANTHROPIC_API_KEY_AVAILABLE or CLAUDE_CLIENT_AVAILABLE
 
 
 class ImportOptionsDialog(QDialog):
@@ -94,16 +101,24 @@ class ImportOptionsDialog(QDialog):
         layout.addWidget(info_label)
 
         self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this import")
-        self.ai_checkbox.setChecked(self.default_use_ai)
-        self.ai_checkbox.setToolTip(
-            "AI conversion preserves complex formatting like nested lists and tables.\n"
-            "Requires ANTHROPIC_API_KEY environment variable and may incur costs."
-        )
+        self.ai_checkbox.setChecked(self.default_use_ai and AI_AVAILABLE)
 
-        if not CLAUDE_CLIENT_AVAILABLE:
+        if AI_AVAILABLE:
+            if ANTHROPIC_API_KEY_AVAILABLE:
+                self.ai_checkbox.setToolTip(
+                    "AI conversion preserves complex formatting like nested lists and tables.\n"
+                    "API key configured securely. Conversion may incur API costs."
+                )
+            else:
+                self.ai_checkbox.setToolTip(
+                    "AI conversion preserves complex formatting like nested lists and tables.\n"
+                    "Using legacy configuration. Consider setting up secure API key via Tools menu."
+                )
+        else:
             self.ai_checkbox.setEnabled(False)
             self.ai_checkbox.setToolTip(
-                "Claude AI is not available (missing anthropic library or API key)"
+                "Claude AI is not available.\n"
+                "Configure API key via Tools > API Keys to enable AI conversion."
             )
 
         layout.addWidget(self.ai_checkbox)
@@ -131,7 +146,7 @@ class ImportOptionsDialog(QDialog):
         Returns:
             True if user chose AI conversion and it's available, False otherwise
         """
-        return self.ai_checkbox.isChecked() if CLAUDE_CLIENT_AVAILABLE else False
+        return self.ai_checkbox.isChecked() if AI_AVAILABLE else False
 
 
 class ExportOptionsDialog(QDialog):
@@ -177,16 +192,24 @@ class ExportOptionsDialog(QDialog):
         layout.addWidget(info_label)
 
         self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this export")
-        self.ai_checkbox.setChecked(self.default_use_ai)
-        self.ai_checkbox.setToolTip(
-            "AI conversion preserves complex formatting like nested lists and tables.\n"
-            "Requires ANTHROPIC_API_KEY environment variable and may incur costs."
-        )
+        self.ai_checkbox.setChecked(self.default_use_ai and AI_AVAILABLE)
 
-        if not CLAUDE_CLIENT_AVAILABLE:
+        if AI_AVAILABLE:
+            if ANTHROPIC_API_KEY_AVAILABLE:
+                self.ai_checkbox.setToolTip(
+                    "AI conversion preserves complex formatting like nested lists and tables.\n"
+                    "API key configured securely. Conversion may incur API costs."
+                )
+            else:
+                self.ai_checkbox.setToolTip(
+                    "AI conversion preserves complex formatting like nested lists and tables.\n"
+                    "Using legacy configuration. Consider setting up secure API key via Tools menu."
+                )
+        else:
             self.ai_checkbox.setEnabled(False)
             self.ai_checkbox.setToolTip(
-                "Claude AI is not available (missing anthropic library or API key)"
+                "Claude AI is not available.\n"
+                "Configure API key via Tools > API Keys to enable AI conversion."
             )
 
         layout.addWidget(self.ai_checkbox)
@@ -214,7 +237,7 @@ class ExportOptionsDialog(QDialog):
         Returns:
             True if user chose AI conversion and it's available, False otherwise
         """
-        return self.ai_checkbox.isChecked() if CLAUDE_CLIENT_AVAILABLE else False
+        return self.ai_checkbox.isChecked() if AI_AVAILABLE else False
 
 
 class PreferencesDialog(QDialog):

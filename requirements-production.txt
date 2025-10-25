@@ -29,6 +29,10 @@ anthropic==0.40.0
 # keyring provides OS-level secure credential storage
 keyring==24.3.0
 
+# System Resource Monitoring (v1.1 Phase 4 feature)
+# psutil provides cross-platform system and process monitoring
+psutil==6.1.0
+
 # Optional but recommended for better performance
 # MarkupSafe provides faster HTML escaping
 MarkupSafe==2.1.3

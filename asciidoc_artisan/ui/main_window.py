@@ -84,6 +84,7 @@ from asciidoc_artisan.core import (
     SUPPORTED_OPEN_FILTER,
     SUPPORTED_SAVE_FILTER,
     GitResult,
+    ResourceMonitor,
     atomic_save_text,
 )
 from asciidoc_artisan.ui.dialogs import (
@@ -147,6 +148,12 @@ class AsciiDocEditor(QMainWindow):
         self.menu_manager = MenuManager(self)
         self.theme_manager = ThemeManager(self)
         self.status_manager = StatusManager(self)
+
+        # Initialize Phase 4 resource monitor
+        self.resource_monitor = ResourceMonitor()
+        logger.info(
+            f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})"
+        )
 
         # Initialize state variables
         self._current_file_path: Optional[Path] = None
@@ -765,10 +772,30 @@ class AsciiDocEditor(QMainWindow):
         logger.info("All worker threads started (Git, Pandoc, Preview)")
 
     def _start_preview_timer(self) -> None:
+        """
+        Start preview update timer with adaptive debouncing.
+
+        Phase 4 Enhancement: Dynamically adjusts debounce interval based on
+        document size. Small documents get fast updates (200ms), while large
+        documents use longer intervals (500-1000ms) to maintain responsiveness.
+        """
         if self._is_opening_file:
             return
         self._unsaved_changes = True
         self.status_manager.update_window_title()
+
+        # Calculate adaptive debounce interval based on document size
+        text = self.editor.toPlainText()
+        debounce_ms = self.resource_monitor.calculate_debounce_interval(text)
+
+        # Update timer interval if it has changed
+        if self._preview_timer.interval() != debounce_ms:
+            self._preview_timer.setInterval(debounce_ms)
+            logger.debug(
+                f"Adaptive debounce: {debounce_ms}ms for {len(text)} chars, "
+                f"{text.count(chr(10)) + 1} lines"
+            )
+
         self._preview_timer.start()
 
     def _update_window_title(self) -> None:

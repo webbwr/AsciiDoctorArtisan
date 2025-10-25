@@ -8,6 +8,7 @@ the application:
 - models: Core data structures (GitResult, etc.)
 - file_operations: Secure file I/O utilities
 - secure_credentials: OS keyring integration for API keys (v1.1 security feature)
+- resource_monitor: System resource and document metrics tracking (v1.1 Phase 4)
 
 Public API exports allow importing directly from asciidoc_artisan.core:
     from asciidoc_artisan.core import Settings, sanitize_path, EDITOR_FONT_SIZE
@@ -51,6 +52,9 @@ from .models import GitResult
 from .secure_credentials import SecureCredentials
 from .settings import Settings
 
+# Performance Monitoring (v1.1 Phase 4)
+from .resource_monitor import DocumentMetrics, ResourceMetrics, ResourceMonitor
+
 __all__ = [
     # Settings
     "Settings",
@@ -58,6 +62,10 @@ __all__ = [
     "GitResult",
     # Security
     "SecureCredentials",
+    # Performance Monitoring
+    "ResourceMonitor",
+    "ResourceMetrics",
+    "DocumentMetrics",
     # File Operations
     "sanitize_path",
     "atomic_save_text",
