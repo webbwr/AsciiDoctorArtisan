@@ -48,7 +48,8 @@ Want to help improve it?
 
 ## Other Helpful Files
 
-- **Main README**: `../README.md` - Quick overview and basics
+- **Main README**: `../README.md` - Quick overview and basics (Grade 6.1)
+- **Specifications**: `../SPECIFICATIONS.md` - What the program must do (Grade 5.8)
 - **Templates**: `../templates/` - Example documents to copy
 - **Old Docs**: `old-docs/` - Previous documentation (for reference)
 

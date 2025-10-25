@@ -1,284 +1,529 @@
-# AsciiDoc Artisan Specifications
+# What AsciiDoc Artisan Must Do
 
-**Reading Level**: Grade 8.0 (Middle School)
+**Reading Level**: Grade 5.8 (Elementary)
+**Version**: 1.1.0
+**Last Updated**: October 2025
 
-This document lists all the specifications (rules and requirements) for building AsciiDoc Artisan.
+This document tells you everything AsciiDoc Artisan needs to do. Think of it like a checklist we use when building the program.
 
-## What Are Specifications?
+## What This Document Is For
 
-Specifications are like a blueprint for building a house. They tell us:
-- What the program must do
-- How it should work
-- What features it needs
-- How to test if it works right
+This explains:
+- What the program does
+- Who uses it
+- What features it has
+- How we know it works
 
-Think of them as a checklist we follow when building the program.
+If you want to understand what we're building, read this!
 
-## Our Specification Files
+## Table of Contents
 
-We have several specification documents. Each one serves a different purpose:
-
-### Main Specifications
-
-| File | Size | Reading Level | Purpose | For Who |
-|------|------|---------------|---------|---------|
-| **SPECIFICATION_SIMPLE.md** | 2,557 lines | Grade 6.4 | Easy-to-read version | Everyone |
-| **SPECIFICATION.md** | 1,261 lines | Grade 13.4 | Technical details | Developers |
-| **project-specification.md** | 503 lines | Grade 9.6 | Current project plan | Team members |
-| **SPECIFICATION_ANALYSIS.md** | 204 lines | Grade 11.6 | How specs changed | Project managers |
-
-### Archived Files
-
-| File | Size | Reading Level | Status |
-|------|------|---------------|--------|
-| **project-specification-v1.0-ARCHIVED.md** | 582 lines | Grade 18.1 | Old version (saved for history) |
-
-## Which One Should You Read?
-
-**If you're new** → Read **SPECIFICATION_SIMPLE.md** (Grade 6.4)
-- Written in simple words
-- Easy to understand
-- Covers all the basics
-- Good starting point
-
-**If you're building the program** → Read **SPECIFICATION.md** (Grade 13.4)
-- Full technical details
-- All requirements listed
-- Testing procedures
-- Security rules
-
-**If you're planning work** → Read **project-specification.md** (Grade 9.6)
-- Current development plan
-- What we're building now
-- Upcoming features
-- Timeline
-
-**If you're checking progress** → Read **SPECIFICATION_ANALYSIS.md** (Grade 11.6)
-- Compares old and new specs
-- Shows what changed
-- Explains why we changed it
-
-## Location of Spec Files
-
-All specification files are in:
-```
-.specify/specs/
-├── SPECIFICATION_SIMPLE.md          (recommended for beginners)
-├── SPECIFICATION.md                 (full technical spec)
-├── project-specification.md         (current plan)
-├── SPECIFICATION_ANALYSIS.md        (change analysis)
-└── project-specification-v1.0-ARCHIVED.md (old version)
-```
-
-## Key Information in the Specs
-
-### Version Information
-- **Current Version**: 1.1.0
-- **Status**: Active development
-- **Last Updated**: October 2024
-
-### What the Program Must Do
-
-The specifications define these main requirements:
-
-**1. Core Features** (Must Have):
-- Live preview of AsciiDoc documents
-- Save and open files
-- Convert documents (Word, PDF to AsciiDoc)
-- Export to multiple formats (HTML, PDF, etc.)
-- Dark mode theme
-- Keyboard shortcuts
-
-**2. Git Features** (Must Have):
-- Commit changes
-- Push to remote
-- Pull from remote
-- Status display
-
-**3. Safety Features** (Must Have):
-- Safe file saving (no data loss)
-- Path security (prevent bad file access)
-- Input validation
-- Error handling
-
-**4. AI Features** (Optional):
-- AI-enhanced document conversion
-- Better quality conversions
-- Automatic fallback to Pandoc
-
-### Technical Requirements
-
-**Programming Language**: Python 3.11 or newer
-
-**Main Libraries**:
-- PySide6 (version 6.9.0+) - Makes windows and buttons
-- asciidoc3 (version 10.2.1+) - Converts AsciiDoc to HTML
-- pypandoc (version 1.13+) - Document conversion
-- Pandoc (system binary) - Required for conversions
-
-**Testing Requirements**:
-- All features must have tests
-- Tests must pass before release
-- Coverage should be 70% or higher
-- Must work on Windows, Mac, and Linux
-
-### Performance Requirements
-
-- Preview updates in less than 500ms
-- Program starts in less than 3 seconds
-- File saves complete in less than 1 second
-- No freezing during operations
-
-### Security Requirements
-
-1. **File Safety**:
-   - Use atomic file saves
-   - Validate all file paths
-   - Check permissions before writing
-
-2. **Input Validation**:
-   - Check all user inputs
-   - Prevent code injection
-   - Validate file formats
-
-3. **Credentials**:
-   - Store API keys securely
-   - Never log sensitive data
-   - Use environment variables
-
-## How We Track Requirements
-
-Each requirement has a code like "FR-001" (Functional Requirement 001) or "NFR-001" (Non-Functional Requirement 001).
-
-**Functional Requirements (FR)**: What the program does
-- FR-001: Open AsciiDoc files
-- FR-002: Save AsciiDoc files
-- FR-003: Live preview
-- And so on...
-
-**Non-Functional Requirements (NFR)**: How it should work
-- NFR-001: Fast performance
-- NFR-002: Easy to use
-- NFR-003: Secure
-- And so on...
-
-## How We Test Against Specs
-
-We check each requirement to make sure it works:
-
-1. **Unit Tests**: Test individual pieces
-2. **Integration Tests**: Test how pieces work together
-3. **Manual Tests**: People try using it
-4. **Platform Tests**: Check on Windows, Mac, Linux
-
-Every requirement in the spec has a matching test.
-
-## Making Changes to Specs
-
-If we need to change a specification:
-
-1. **Discuss** why we need the change
-2. **Document** what will change
-3. **Update** all spec files
-4. **Review** with the team
-5. **Test** the new requirement
-
-Changes are tracked in SPECIFICATION_ANALYSIS.md.
-
-## Reading the Specs
-
-### For Beginners
-
-Start with **SPECIFICATION_SIMPLE.md**:
-1. Read the "Quick Start" section first
-2. Look at "What This Program Does"
-3. Check "User Stories" to see examples
-4. Skip the technical parts for now
-
-### For Developers
-
-Start with **SPECIFICATION.md**:
-1. Read all functional requirements (FR-*)
-2. Check non-functional requirements (NFR-*)
-3. Review technical architecture section
-4. Study testing requirements
-
-### For Project Managers
-
-Start with **project-specification.md**:
-1. Check current status
-2. Review upcoming milestones
-3. Look at resource requirements
-4. Check timeline
-
-## Specification Summary
-
-Here's what each main requirement category covers:
-
-### File Operations (FR-001 to FR-020)
-- Opening files
-- Saving files
-- File formats supported
-- Auto-save features
-
-### Editing Features (FR-021 to FR-040)
-- Text editing
-- Syntax highlighting
-- Find and replace
-- Line numbers
-
-### Preview Features (FR-041 to FR-050)
-- Live HTML preview
-- Synchronized scrolling
-- Preview updates
-- Fallback modes
-
-### Conversion Features (FR-051 to FR-065)
-- Import formats (DOCX, PDF)
-- Export formats (HTML, PDF, etc.)
-- AI conversion
-- Quality checks
-
-### Git Features (FR-066 to FR-075)
-- Commit
-- Push
-- Pull
-- Status display
-
-### UI Features (FR-076 to FR-090)
-- Dark mode
-- Font zoom
-- Window state
-- Keyboard shortcuts
-
-## Questions About Specs?
-
-If you have questions about the specifications:
-
-1. **Read SPECIFICATION_SIMPLE.md first** - Simplest version
-2. **Check the specific requirement** - Find the FR or NFR code
-3. **Look at examples** - User stories show how it works
-4. **Ask on GitHub** - Create an issue with your question
-
-## Keeping Specs Updated
-
-We update specifications when:
-- Adding new features
-- Changing how something works
-- Fixing bugs that need spec changes
-- Getting feedback from users
-
-All changes are documented and reviewed before being accepted.
-
-## Summary
-
-- **5 specification files** total
-- **Average reading level**: Grade 11.8 (varies by file)
-- **Easiest to read**: SPECIFICATION_SIMPLE.md (Grade 6.4)
-- **Most detailed**: SPECIFICATION.md (1,261 lines)
-- **Current version**: 1.1.0
-- **Status**: Active development
+1. [What Is AsciiDoc Artisan?](#what-is-asciidoc-artisan)
+2. [Who Uses This Program?](#who-uses-this-program)
+3. [Main Features](#main-features)
+4. [What It Must Do](#what-it-must-do)
+5. [How We Build It](#how-we-build-it)
+6. [How We Test It](#how-we-test-it)
+7. [Keeping It Safe](#keeping-it-safe)
 
 ---
 
-**Document Info**: Location `.specify/specs/` | Reading level Grade 8.0 | Last updated: 2025
+## What Is AsciiDoc Artisan?
+
+AsciiDoc Artisan helps people write documents. It's a program that:
+
+- **Shows your work** while you type (live preview)
+- **Changes file types** (Word to AsciiDoc, AsciiDoc to PDF, etc.)
+- **Saves to Git** so you can track changes
+- **Works everywhere** (Windows, Mac, Linux)
+
+Think of it like Microsoft Word, but for AsciiDoc files. AsciiDoc is a simple way to format text (like making headings, lists, and bold words).
+
+### Why Use AsciiDoc?
+
+AsciiDoc is:
+- **Plain text** - Works on any computer
+- **Easy to read** - No weird codes
+- **Version friendly** - Works great with Git
+- **Powerful** - Can do everything Word can do
+
+### What Makes This Program Special?
+
+1. **See changes right away** - No need to press a button
+2. **Never loses your work** - Saves files safely
+3. **Works with other programs** - Opens Word files, saves as PDF
+4. **Easy to use** - Simple buttons and menus
+5. **Free and open** - Anyone can use it
+
+---
+
+## Who Uses This Program?
+
+### 1. Technical Writers
+People who write instructions and manuals. They need to see how it looks while they work.
+
+### 2. Software Developers
+Programmers who write README files and documentation. They want Git built in.
+
+### 3. Teachers and Students
+People writing papers and reports. They need to change file types easily.
+
+### 4. Content Creators
+Writers making long documents. They like plain text that works everywhere.
+
+### 5. Documentation Teams
+Groups who share files and work together. They need reliable tools.
+
+---
+
+## Main Features
+
+Here's what the program does:
+
+### 1. Live Preview (See Changes Right Away)
+
+**What it does**:
+- Shows HTML version on the right side
+- Updates as you type (in less than half a second)
+- Scrolls along with where you're typing
+
+**Why it matters**:
+You don't need to save and open in a browser. See your work immediately.
+
+### 2. File Conversion (Change File Types)
+
+**What you can open**:
+- `.adoc` files (AsciiDoc)
+- `.docx` files (Word documents)
+- `.pdf` files (PDF documents - pulls out text)
+
+**What you can save as**:
+- HTML (web pages)
+- PDF (print documents)
+- Word (.docx)
+- Markdown (.md)
+- Plain text (.txt)
+
+**Why it matters**:
+Work with any file type. Share with people using different programs.
+
+### 3. Git Support (Track Changes)
+
+**What you can do**:
+- **Commit** - Save your changes
+- **Push** - Send to GitHub
+- **Pull** - Get newest version
+- **Status** - See what changed
+
+**Why it matters**:
+Keep track of all your changes. Work with teams. Never lose old versions.
+
+### 4. Safe Saving (Never Lose Work)
+
+**How it works**:
+- Saves to a temporary file first
+- Only replaces old file if save works
+- If computer crashes, your file is safe
+
+**Why it matters**:
+Your documents are protected even if something goes wrong.
+
+### 5. Remember Your Setup (Session Memory)
+
+**What it remembers**:
+- Last file you opened
+- Window size and position
+- Light or dark colors
+- Text size (zoom level)
+- Last folder you used
+
+**Why it matters**:
+Start working right away. No need to set everything up again.
+
+### 6. Easy to Use (Simple Interface)
+
+**What's included**:
+- Clear menus (File, Edit, View, Git, Help)
+- Keyboard shortcuts (Ctrl+S to save, etc.)
+- Dark mode option
+- Font zoom (make text bigger or smaller)
+
+**Why it matters**:
+Anyone can learn it quickly. Works like other programs you know.
+
+---
+
+## What It Must Do
+
+Here are all the things the program must be able to do:
+
+### File Operations
+
+**Must have**:
+- ✓ Create new files
+- ✓ Open files (.adoc, .docx, .pdf)
+- ✓ Save files
+- ✓ Save As (pick new name/place)
+- ✓ Remember last file opened
+- ✓ Auto-save every few minutes
+
+**Nice to have**:
+- Recent files list
+- File templates
+
+### Text Editing
+
+**Must have**:
+- ✓ Type and edit text
+- ✓ Copy, cut, paste
+- ✓ Undo and redo
+- ✓ Find text
+- ✓ Go to line number
+- ✓ Show line numbers
+
+**Nice to have**:
+- Find and replace
+- Spell check
+
+### Preview Window
+
+**Must have**:
+- ✓ Show HTML preview
+- ✓ Update as you type
+- ✓ Scroll along with editor
+- ✓ Work even if preview breaks
+
+**Nice to have**:
+- Zoom preview
+- Print preview
+
+### Document Conversion
+
+**Must have**:
+- ✓ Import Word files (.docx)
+- ✓ Import PDFs (.pdf) - text only
+- ✓ Export to HTML
+- ✓ Export to PDF
+- ✓ Keep formatting (headings, lists, etc.)
+
+**Nice to have**:
+- Import Markdown
+- Export to more formats
+
+### Git Features
+
+**Must have**:
+- ✓ Commit changes
+- ✓ Push to remote
+- ✓ Pull from remote
+- ✓ Show status
+
+**Nice to have**:
+- Branch management
+- Conflict resolution
+
+### User Interface
+
+**Must have**:
+- ✓ Light and dark mode
+- ✓ Make text bigger/smaller (zoom)
+- ✓ Keyboard shortcuts
+- ✓ Status bar (shows line number, file name)
+- ✓ Menu bar (File, Edit, View, etc.)
+
+**Nice to have**:
+- Customizable colors
+- Different fonts
+
+### Settings
+
+**Must have**:
+- ✓ Remember window size
+- ✓ Remember dark/light mode
+- ✓ Remember last folder
+- ✓ Remember zoom level
+- ✓ Save settings automatically
+
+**Nice to have**:
+- Custom keyboard shortcuts
+- Editor preferences
+
+---
+
+## How We Build It
+
+### Programming Language
+**Python 3.11 or newer**
+
+Why Python?
+- Easy to read and write
+- Works on all computers
+- Lots of helpful tools available
+
+### Main Tools We Use
+
+**PySide6** (version 6.9.0+)
+- Makes windows and buttons
+- Creates menus
+- Handles clicks and typing
+
+**asciidoc3** (version 10.2.1+)
+- Turns AsciiDoc into HTML
+- Handles all formatting
+- Processes the preview
+
+**pypandoc** (version 1.13+)
+- Changes file types
+- Converts Word to AsciiDoc
+- Exports to different formats
+
+**Pandoc** (system program)
+- Does the actual conversion
+- Must be installed separately
+- Required for file conversion
+
+### How It's Organized
+
+```
+Program Parts:
+├── Main Window (what you see)
+├── Editor (where you type)
+├── Preview (shows HTML)
+├── Git Tools (version control)
+├── File Converter (changes types)
+└── Settings (remembers preferences)
+```
+
+### How It Works
+
+**When you type**:
+1. You type in the editor (left side)
+2. Program waits a moment (so it's not too fast)
+3. Converts AsciiDoc to HTML
+4. Shows HTML in preview (right side)
+
+**When you save**:
+1. Gets text from editor
+2. Writes to temporary file
+3. If successful, replaces old file
+4. Updates window title
+
+**When you convert**:
+1. Pick file to open
+2. Program detects file type
+3. Converts to AsciiDoc
+4. Shows in editor
+
+---
+
+## How We Test It
+
+### What We Test
+
+**Basic Operations**:
+- Can you create a new file?
+- Can you open files?
+- Can you save files?
+- Does typing work?
+
+**Preview**:
+- Does it show HTML?
+- Does it update when you type?
+- Does it scroll correctly?
+- Does it handle errors?
+
+**Conversions**:
+- Can it open Word files?
+- Can it open PDFs?
+- Can it export to PDF?
+- Does formatting stay correct?
+
+**Git**:
+- Can you commit?
+- Can you push?
+- Can you pull?
+- Do errors show up clearly?
+
+**User Interface**:
+- Do buttons work?
+- Do menus work?
+- Do keyboard shortcuts work?
+- Does dark mode work?
+
+### How We Test
+
+**1. Automatic Tests**
+- Computer runs tests
+- Checks if features work
+- Runs every time we change code
+
+**2. Manual Tests**
+- People try using it
+- Click all the buttons
+- Try to break it
+- Check on different computers
+
+**3. Platform Tests**
+- Test on Windows
+- Test on Mac
+- Test on Linux
+- Make sure it works everywhere
+
+### When We Test
+
+- Every time we add a feature
+- Before we release a new version
+- When someone reports a bug
+- Regularly to catch problems early
+
+---
+
+## Keeping It Safe
+
+### File Safety
+
+**How we protect files**:
+- Use safe file saving (atomic saves)
+- Check file paths (prevent bad access)
+- Validate all inputs
+- Handle errors gracefully
+
+**What this means**:
+Your files won't get corrupted. Bad files can't harm your computer.
+
+### Code Safety
+
+**What we do**:
+- Check all user input
+- Validate file names
+- Prevent code injection
+- Use secure libraries
+
+**What this means**:
+The program won't do anything harmful. Your documents stay private.
+
+### Privacy
+
+**What we collect**:
+- Nothing! All data stays on your computer
+
+**What we don't do**:
+- Don't send data to internet
+- Don't track what you do
+- Don't save passwords
+- Don't share your files
+
+**API Keys**:
+If you use AI features, you provide your own API key. We never see it.
+
+---
+
+## Performance Goals
+
+### Speed Requirements
+
+The program should be:
+- **Fast to start** - Opens in 3 seconds or less
+- **Quick to save** - Saves in 1 second or less
+- **Smooth preview** - Updates in half a second or less
+- **Never freeze** - Always responds to clicks
+
+### Memory Use
+
+The program should:
+- Use reasonable memory (not too much)
+- Not slow down over time
+- Clean up after itself
+- Handle large files well
+
+### File Size Limits
+
+Works well with:
+- Files up to 1 MB (typical)
+- Can handle files up to 10 MB (large)
+- May be slow with files over 10 MB
+
+---
+
+## Future Ideas
+
+Things we might add later:
+
+### More Features
+- Spell checking
+- Find and replace
+- More export formats
+- Custom themes
+- Plugin system
+
+### Better Git
+- See file history
+- Compare versions
+- Manage branches
+- Resolve conflicts
+
+### Collaboration
+- Share files with teams
+- Real-time editing
+- Comments and notes
+- Review changes
+
+### AI Improvements
+- Better conversions
+- Writing suggestions
+- Auto-formatting
+- Smart completion
+
+---
+
+## Version History
+
+**Version 1.1.0** (Current)
+- All main features working
+- Tests passing
+- Works on all platforms
+- Safe and secure
+
+**Version 1.0.0** (Previous)
+- First release
+- Basic features
+- Initial testing
+
+---
+
+## Questions?
+
+**Where are the full specifications?**
+Look in `.specify/specs/` folder for detailed technical specs.
+
+**What if I find a bug?**
+Report it on GitHub. Tell us what happened and how to repeat it.
+
+**Can I help build this?**
+Yes! Read [how-to-contribute.md](docs/how-to-contribute.md) to learn how.
+
+**Is this really free?**
+Yes! MIT License means you can use it for anything.
+
+---
+
+## Summary
+
+**What it does**:
+Helps you write AsciiDoc documents with live preview, file conversion, and Git support.
+
+**Who it's for**:
+Writers, developers, students, teachers, and documentation teams.
+
+**Main features**:
+Live preview, file conversion, Git integration, safe saving, easy to use.
+
+**Current status**:
+Version 1.1.0 - Working and stable.
+
+**Reading level**:
+Grade 5.8 (Elementary) - Anyone can understand!
+
+---
+
+**Document Info**: This is the main specification | Reading level Grade 5.8 | Last updated October 2025 | Version 1.1.0

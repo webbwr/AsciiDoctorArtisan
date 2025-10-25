@@ -174,6 +174,7 @@ You can use this program for free! It uses the MIT License.
 Need more help?
 - **[How to Use Guide](docs/how-to-use.md)** - Complete guide to all features
 - **[How to Install Guide](docs/how-to-install.md)** - Detailed installation help
+- **[Specifications](SPECIFICATIONS.md)** - What the program must do (Grade 5.8)
 - **[How to Contribute](docs/how-to-contribute.md)** - Help improve the program
 - Look at issues on GitHub
 - Create a new issue if you find a bug
