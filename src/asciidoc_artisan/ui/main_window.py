@@ -313,7 +313,7 @@ class AsciiDocEditor(QMainWindow):
 
     def _setup_ui(self) -> None:
 
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
         self.setCentralWidget(self.splitter)
