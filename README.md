@@ -1,284 +1,184 @@
 # AsciiDoc Artisan
 
-[![CI](https://github.com/webbwr/AsciiDoctorArtisan/workflows/CI/badge.svg)](https://github.com/webbwr/AsciiDoctorArtisan/actions)
-[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+A simple program that helps you write and edit AsciiDoc documents.
 
-A modern, feature-rich AsciiDoc editor with live preview, built with Python and PySide6.
+## What Does It Do?
 
-## Features
+AsciiDoc Artisan is a writing tool that:
+- Shows you what your document will look like as you type
+- Lets you save and share your work with Git
+- Can change Word documents and PDFs into AsciiDoc files
+- Works on Windows, Mac, and Linux computers
 
-- **Live Preview**: Real-time HTML preview of your AsciiDoc content
-- **Syntax Highlighting**: Clear, monospace editor optimized for AsciiDoc
-- **Document Conversion**: Import PDF and DOCX files; export to Markdown, HTML, LaTeX, RST, and PDF via Pandoc
-- **Git Integration**: Commit, pull, and push directly from the editor
-- **Dark Mode**: Toggle between light and dark themes
-- **Auto-save**: Automatic saving with configurable intervals
-- **Font Zoom**: Easily adjust editor font size
-- **Session Management**: Remembers last opened file and window state
-- **Cross-platform**: Works on Windows, Linux, and macOS
+## What You Need
 
-## Requirements
+Before you start, you need these programs on your computer:
+- **Python 3.11 or newer** - The main program that runs everything
+- **Pandoc** - Helps convert different document types (optional but helpful)
+- **Git** - Helps save and share your work (optional)
 
-- **Python**: 3.11+ (3.12 recommended)
-- **PySide6**: 6.9.0 or higher
-- **asciidoc3**: For AsciiDoc to HTML conversion
-- **pypandoc**: For document format conversion (optional)
-- **pdfplumber**: For PDF text extraction (optional)
-- **Pandoc**: Required for multi-format conversion (install separately)
-- **Git**: Required for version control features (optional)
+## How to Install
 
-## Installation
+### Easy Way (Linux or WSL)
 
-### Quick Setup (Linux/WSL)
-
+1. Open your terminal
+2. Type these commands:
 ```bash
-# Clone the repository
-cd ~/github  # or your preferred location
+cd ~/github
 git clone https://github.com/webbwr/AsciiDoctorArtisan.git
 cd AsciiDoctorArtisan
-
-# Run the setup script
 chmod +x setup.sh
 ./setup.sh
+```
 
-# Verify installation
+3. Test it works:
+```bash
 chmod +x verify.sh
 ./verify.sh
 ```
 
-### Manual Installation
+### Regular Way (Any Computer)
 
+1. Install Python parts:
 ```bash
-# Install Python dependencies
 pip install -r requirements.txt
-
-# Install Pandoc (Ubuntu/Debian)
-sudo apt install pandoc
-
-# Install Pandoc (macOS)
-brew install pandoc
-
-# Install Pandoc (Windows)
-# Download from: https://pandoc.org/installing.html
 ```
 
-### Windows Setup
+2. Install Pandoc:
+   - **Linux**: `sudo apt install pandoc`
+   - **Mac**: `brew install pandoc`
+   - **Windows**: Download from pandoc.org
 
-```powershell
-# Run the PowerShell verification script
-.\AsciiDocArtisanVerify.ps1
+## How to Use It
 
-# This script will:
-# - Check Python installation
-# - Install required packages
-# - Verify Pandoc availability
-# - Fix common PATH issues
-```
+### Starting the Program
 
-## Usage
-
-### Starting the Application
-
+Open your terminal and type:
 ```bash
-# Linux/WSL/macOS
-python3 adp_windows.py
-
-# Windows
-python adp_windows.py
+python3 src/main.py
 ```
 
-### Keyboard Shortcuts
+On Windows, type:
+```bash
+python src\main.py
+```
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+N` | New file |
-| `Ctrl+O` | Open file |
-| `Ctrl+S` | Save file |
-| `Ctrl+Shift+S` | Save As |
-| `Ctrl+Q` | Quit |
-| `Ctrl+F` | Find text |
-| `Ctrl+G` | Go to line |
-| `Ctrl+D` | Toggle dark mode |
-| `Ctrl++` | Zoom in |
-| `Ctrl+-` | Zoom out |
-| `Ctrl+0` | Reset zoom |
+Or just double-click `launch_gui.sh` (Linux/Mac) or `launch_gui.bat` (Windows)
 
-### File Operations
+### Quick Keys
 
-**Supported Formats:**
-- `.adoc` - AsciiDoc files (native)
-- `.asciidoc` - AsciiDoc files (native)
-- `.docx` - Word documents (via Pandoc conversion)
-- `.pdf` - PDF files (via pdfplumber text extraction)
+These shortcuts make things faster:
 
-**Opening Files:**
-1. Click `File → Open` or press `Ctrl+O`
-2. Select an AsciiDoc, DOCX, or PDF file
-3. DOCX and PDF files are automatically converted to AsciiDoc
+| What You Press | What Happens |
+|---------------|--------------|
+| Ctrl+N | Make a new file |
+| Ctrl+O | Open a file |
+| Ctrl+S | Save your work |
+| Ctrl+Q | Close the program |
+| Ctrl+F | Find words in your document |
+| Ctrl+D | Switch between light and dark colors |
+| Ctrl++ | Make text bigger |
+| Ctrl+- | Make text smaller |
 
-**Saving Files:**
-1. Click `File → Save` or press `Ctrl+S`
-2. For new files, choose a location and filename
-3. Files are saved with `.adoc` extension by default
+### Opening and Saving Files
 
-### Git Operations
+**Files You Can Open:**
+- `.adoc` files (AsciiDoc files)
+- `.docx` files (Word documents - will be changed to AsciiDoc)
+- `.pdf` files (PDF documents - text will be pulled out)
 
-**Requirements:**
-- File must be in a Git repository
-- Git must be installed and accessible
+**To Open a File:**
+1. Click `File` menu, then `Open`
+2. Pick your file
+3. Click the Open button
 
-**Available Operations:**
-- `Git → Pull`: Pull latest changes from remote
-- `Git → Commit`: Commit current file changes
-- `Git → Push`: Push commits to remote
+**To Save Your Work:**
+1. Click `File` menu, then `Save`
+2. Type a name for your file
+3. Click the Save button
 
-**Commit Workflow:**
-1. Save your file (`Ctrl+S`)
-2. Select `Git → Commit`
-3. Enter commit message when prompted
-4. File is staged and committed automatically
+### Using Git (Saving to the Cloud)
 
-### Preview Features
+If your file is in a Git folder, you can:
 
-The preview pane shows a live HTML rendering of your AsciiDoc:
-- **Auto-refresh**: Updates as you type (350ms delay)
-- **Synchronized scrolling**: Preview follows editor position
-- **Full AsciiDoc support**: All standard AsciiDoc syntax
-- **Fallback mode**: Shows plain text if asciidoc3 unavailable
+**Pull** (Get the newest version):
+- Click `Git` menu, then `Pull`
 
-## Configuration
+**Commit** (Save your changes):
+1. Click `Git` menu, then `Commit`
+2. Type a short message about what you changed
+3. Click OK
 
-Settings are automatically stored in a platform-appropriate location:
-- **Linux/WSL**: `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
+**Push** (Send to GitHub):
+- Click `Git` menu, then `Push`
+
+## The Preview Window
+
+The right side of the screen shows what your document will look like:
+- Updates as you type (after you stop typing for a moment)
+- Scrolls along with where you're writing
+- Shows all AsciiDoc formatting (bold, lists, headings, etc.)
+
+## Where Files Are Saved
+
+The program remembers your settings in a special file:
+- **Linux**: `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
 - **Windows**: `%APPDATA%/AsciiDocArtisan/AsciiDocArtisan.json`
-- **macOS**: `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.json`
+- **Mac**: `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.json`
 
-**Configuration Format:**
-```json
-{
-  "last_directory": "/path/to/documents",
-  "git_repo_path": "/path/to/repo",
-  "dark_mode": true,
-  "maximized": true,
-  "window_geometry": null
-}
-```
+## Common Problems
 
-**Configuration Options:**
-- `last_directory`: Last opened file location
-- `git_repo_path`: Git repository path (auto-detected)
-- `dark_mode`: Enable/disable dark theme
-- `maximized`: Window maximization state
-- `window_geometry`: Window size/position (when not maximized)
+### "Can't find pypandoc"
+**Fix**: Type `pip install pypandoc` in your terminal
 
-**Note:** The configuration file is created automatically on first run.
+### "Can't find Pandoc"
+**Fix**: Install Pandoc from pandoc.org
 
-## Project Structure
+### "Git doesn't work"
+**Fix**: Make sure your file is in a Git folder (check by typing `git status`)
+
+### "Program won't start on Windows"
+**Fix**: Right-click `launch_gui.bat` and pick "Run as administrator"
+
+## Project Folders
+
+Here's what's in the project:
 
 ```
 AsciiDoctorArtisan/
-├── adp_windows.py                   # Main application
-├── pandoc_integration.py            # Document conversion module
-├── setup.py                         # Package setup
-├── requirements.txt                 # Python dependencies (flexible)
-├── requirements-production.txt      # Pinned production versions
-├── LICENSE                          # MIT License
-├── CHANGELOG.md                     # Version history
-├── CONTRIBUTING.md                  # Contribution guidelines
-├── README.md                        # This file
-├── docs/                            # Documentation
-│   ├── QUICK_START.md
-│   ├── INSTALLATION_COMPLETE.md
-│   ├── ANALYSIS_AND_MVP_PLAN.md
-│   └── ... (guides and release notes)
-├── scripts/                         # Setup and verification scripts
-│   └── AsciiDocArtisanVerify.ps1
-├── .github/                         # GitHub configuration
-│   └── copilot-instructions.md
-└── .gitignore                       # Git exclusions
+├── src/                    # All the program code
+│   ├── main.py            # Main program file
+│   └── asciidoc_artisan/  # Helper code
+├── templates/             # Example documents you can copy
+├── docs/                  # Help files
+│   ├── user/             # Guides for users
+│   └── development/      # Guides for programmers
+├── tests/                # Code tests
+├── README.md             # This file
+└── LICENSE              # Rules for using this program
 ```
 
-## Troubleshooting
+## Want to Help?
 
-### Common Issues
-
-**Issue: "WARNING: 'pypandoc' library not found"**
-- **Solution**: Install pypandoc: `pip install pypandoc`
-- **Note**: DOCX conversion will be disabled without this
-
-**Issue: "WARNING: 'pdfplumber' library not found"**
-- **Solution**: Install pdfplumber: `pip install pdfplumber`
-- **Note**: PDF import will be disabled without this
-
-**Issue: "WARNING: 'asciidoc3' library not found"**
-- **Solution**: Install asciidoc3: `pip install asciidoc3`
-- **Note**: Preview will show plain text without this
-
-**Issue: "Pandoc not found in PATH"**
-- **Solution**: Install Pandoc from https://pandoc.org/installing.html
-- **Linux**: `sudo apt install pandoc`
-- **macOS**: `brew install pandoc`
-
-**Issue: Git operations fail**
-- **Solution**: Ensure file is in a Git repository
-- **Check**: Run `git status` in the file's directory
-
-**Issue: Application won't start on Windows**
-- **Solution**: Run `AsciiDocArtisanVerify.ps1` to diagnose
-- **Common fix**: Disable Microsoft Store Python aliases
-
-### Windows-Specific Issues
-
-See [asciidoc-verification-summary.md](asciidoc-verification-summary.md) for detailed troubleshooting of:
-- PowerShell version issues
-- Python installation problems
-- Missing dependencies
-- PATH configuration
-
-## Development
-
-### Running Tests
-
-```bash
-# Verify installation
-./verify.sh
-
-# Check Python syntax
-python3 -m py_compile adp_windows.py
-
-# Check dependencies
-python3 -c "import PySide6, asciidoc3, pypandoc; print('All OK')"
-```
-
-### Scripts
-
-- `setup.sh`: Automated setup for Linux/WSL
-- `verify.sh`: Verify installation and dependencies
-- `AsciiDocArtisanVerify.ps1`: Windows setup and verification
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+We'd love your help! Here's how:
+1. Make a copy of the project (fork it)
+2. Make your changes
+3. Send us your changes (pull request)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+You can use this program for free! It uses the MIT License.
 
-## Credits
+## More Help
 
-Built with:
-- [PySide6](https://wiki.qt.io/Qt_for_Python) - Qt bindings for Python
-- [asciidoc3](https://github.com/asciidoc-py/asciidoc-py) - AsciiDoc processing
-- [pypandoc](https://github.com/JessicaTegner/pypandoc) - Document conversion
+Need more help?
+- Check the `docs/user/` folder for guides
+- Look at issues on GitHub
+- Create a new issue if you find a bug
 
-## Support
+## Thank You
 
-For issues and questions:
-- Create an issue on GitHub
-- Check [asciidoc-verification-summary.md](asciidoc-verification-summary.md) for common solutions
+This program uses these great tools:
+- **PySide6** - Makes the windows and buttons
+- **asciidoc3** - Turns AsciiDoc into HTML
+- **pypandoc** - Changes document types

@@ -1,55 +1,62 @@
 # AsciiDoc Artisan Documentation
 
-This directory contains project documentation organized into subdirectories.
+Simple guides to help you use and understand AsciiDoc Artisan.
 
-## Directory Structure
-
-### user/
-User-facing documentation:
-- Quick start guides
-- Installation instructions
-- Feature guides (PDF export, conversion, synchronized scrolling, etc.)
-- Project overview
-
-### development/
-Developer documentation:
-- Development guidelines
-- Contributing guide
-- Release checklist
-- Pandoc integration details
-
-### archive/
-Historical documentation:
-- Old session reports
-- Phase completion summaries
-- Development history
-- Release notes and security analyses
-
-## Quick Links
+## Main Guides
 
 ### For Users
-- [Quick Start](user/QUICK_START.md) - Get started quickly
-- [Installation Guide](user/INSTALLATION_COMPLETE.md) - Complete installation instructions
-- [Project Overview](user/PROJECT_OVERVIEW.md) - Understanding the project
+
+**[USER_GUIDE.md](USER_GUIDE.md)** - How to use the program
+- Writing documents
+- Saving and opening files
+- Using Git
+- Tips and tricks
+
+**[INSTALL.md](INSTALL.md)** - How to install the program
+- Step-by-step setup
+- Fixing common problems
+- Checking if it works
 
 ### For Developers
-- [Contributing Guide](development/CONTRIBUTING.md) - How to contribute
-- [Development Guidelines](development/DEVELOPMENT.md) - Development practices
-- [Release Checklist](development/RELEASE_CHECKLIST.md) - Release process
 
-### Templates
-See the [templates/](../templates/) directory for AsciiDoc project templates.
+**[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - How to help improve the program
+- Understanding the code
+- Adding new features
+- Sending your changes
 
-## Documentation Maintenance
+## Quick Start
 
-When adding new documentation:
-1. Place user-facing docs in `user/`
-2. Place developer docs in `development/`
-3. Archive old session/phase reports in `archive/`
-4. Update this README with links to new documents
+New to AsciiDoc Artisan? Read these in order:
 
-## Building Documentation
+1. **INSTALL.md** - Get it running on your computer
+2. **USER_GUIDE.md** - Learn how to use it
+3. Start writing!
 
-The main project README is in the repository root: `../README.md`
+Want to help improve it?
+4. **DEVELOPER_GUIDE.md** - Learn how to make changes
 
-For AsciiDoc template documentation, see: `../templates/default/docs/`
+## What Each File Does
+
+| File | What's In It | Who It's For |
+|------|-------------|--------------|
+| USER_GUIDE.md | How to use all features | Everyone using the program |
+| INSTALL.md | How to set it up | People installing it |
+| DEVELOPER_GUIDE.md | How the code works | People who want to help |
+
+## Other Helpful Files
+
+- **Main README**: `../README.md` - Quick overview and basics
+- **Templates**: `../templates/` - Example documents to copy
+- **Old Docs**: `old-docs/` - Previous documentation (for reference)
+
+## Need Help?
+
+1. Check the guide that matches what you need
+2. Look at issues on GitHub
+3. Create a new issue if you can't find an answer
+
+## Keep It Simple
+
+All our documentation uses simple words (5th grade reading level). This helps everyone understand, no matter their background!
+
+If you see complicated words or confusing parts, please let us know so we can fix them.
