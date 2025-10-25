@@ -237,36 +237,36 @@ class TestEditorActions:
 
     def test_new_action_exists(self, editor):
         """Test new file action exists."""
-        assert editor.new_act is not None
-        assert editor.new_act.text() == "&New"
+        assert editor.action_manager.new_act is not None
+        assert editor.action_manager.new_act.text() == "&New"
 
     def test_open_action_exists(self, editor):
         """Test open file action exists."""
-        assert editor.open_act is not None
-        assert editor.open_act.text() == "&Open..."
+        assert editor.action_manager.open_act is not None
+        assert editor.action_manager.open_act.text() == "&Open..."
 
     def test_save_action_exists(self, editor):
         """Test save file action exists."""
-        assert editor.save_act is not None
-        assert editor.save_act.text() == "&Save"
+        assert editor.action_manager.save_act is not None
+        assert editor.action_manager.save_act.text() == "&Save"
 
     def test_dark_mode_action_exists(self, editor):
         """Test dark mode action exists."""
-        assert editor.dark_mode_act is not None
+        assert editor.action_manager.dark_mode_act is not None
 
     def test_zoom_in_action_exists(self, editor):
         """Test zoom in action exists."""
-        assert editor.zoom_in_act is not None
+        assert editor.action_manager.zoom_in_act is not None
 
     def test_zoom_out_action_exists(self, editor):
         """Test zoom out action exists."""
-        assert editor.zoom_out_act is not None
+        assert editor.action_manager.zoom_out_act is not None
 
     def test_action_triggers(self, editor, qtbot):
         """Test actions can be triggered."""
         # Test zoom in action
         initial_size = editor.editor.font().pointSize()
-        editor.zoom_in_act.trigger()
+        editor.action_manager.zoom_in_act.trigger()
         new_size = editor.editor.font().pointSize()
         assert new_size > initial_size
 

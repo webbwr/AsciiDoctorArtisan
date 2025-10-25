@@ -16,7 +16,7 @@ import platform
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QPlainTextEdit
 
 from asciidoc_artisan.core import (
@@ -28,7 +28,7 @@ from asciidoc_artisan.core import (
 logger = logging.getLogger(__name__)
 
 
-class FileHandler:
+class FileHandler(QObject):
     """Handle all file I/O operations."""
 
     # Signals
@@ -46,6 +46,7 @@ class FileHandler:
             settings_manager: Settings manager instance
             status_manager: Status manager instance
         """
+        super().__init__(parent_window)
         self.editor = editor
         self.window = parent_window
         self.settings_manager = settings_manager

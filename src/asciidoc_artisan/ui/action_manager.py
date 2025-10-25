@@ -1,364 +1,391 @@
 """
-Action Manager - Manage application menu actions.
+Action Manager - Manage all QAction objects for menu and toolbar integration.
 
-This module creates and manages all QAction objects for the application:
-- File actions (New, Open, Save, Export)
-- Edit actions (Undo, Redo, Cut, Copy, Paste)
-- View actions (Zoom, Dark Mode, Sync Scrolling)
-- Git actions (Commit, Pull, Push)
-- Help actions (About, Formats, AI Setup)
+This module handles:
+- Creating all QAction objects for File, Edit, View, Git, Tools, and Help menus
+- Managing action state (enabled/disabled, checked/unchecked)
+- Connecting actions to their handler methods
+- Creating menu structures
 
-Extracted from main_window.py to improve maintainability.
-Splits the massive 240-line _create_actions() function into focused methods.
+Extracted from main_window.py to improve maintainability and testability.
 """
 
 import logging
-from typing import Dict
+from typing import TYPE_CHECKING
 
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import QMainWindow
+
+if TYPE_CHECKING:
+    from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
 
 
 class ActionManager:
-    """Manage all application actions."""
+    """Handle all QAction creation and menu building."""
 
-    def __init__(self, main_window: QMainWindow):
+    def __init__(self, main_window: "AsciiDocEditor"):
         """
         Initialize ActionManager.
 
         Args:
-            main_window: Main window for action creation and connections
+            main_window: Main window instance (for signals and methods)
         """
         self.window = main_window
-        self.actions: Dict[str, QAction] = {}
+        self.editor = main_window.editor
+        self._settings = main_window._settings
+        self._sync_scrolling = main_window._sync_scrolling
 
-    def create_all_actions(self) -> None:
-        """
-        Create all application actions.
+        # Store all actions as instance variables
+        self.new_act: QAction
+        self.open_act: QAction
+        self.save_act: QAction
+        self.save_as_act: QAction
+        self.save_as_adoc_act: QAction
+        self.save_as_md_act: QAction
+        self.save_as_docx_act: QAction
+        self.save_as_html_act: QAction
+        self.save_as_pdf_act: QAction
+        self.exit_act: QAction
+        self.undo_act: QAction
+        self.redo_act: QAction
+        self.cut_act: QAction
+        self.copy_act: QAction
+        self.paste_act: QAction
+        self.convert_paste_act: QAction
+        self.preferences_act: QAction
+        self.zoom_in_act: QAction
+        self.zoom_out_act: QAction
+        self.dark_mode_act: QAction
+        self.sync_scrolling_act: QAction
+        self.maximize_editor_act: QAction
+        self.maximize_preview_act: QAction
+        self.set_repo_act: QAction
+        self.git_commit_act: QAction
+        self.git_pull_act: QAction
+        self.git_push_act: QAction
+        self.pandoc_status_act: QAction
+        self.pandoc_formats_act: QAction
+        self.ai_setup_help_act: QAction
+        self.about_act: QAction
 
-        Splits the original 240-line function into focused methods by category.
-        """
-        self._create_file_actions()
-        self._create_edit_actions()
-        self._create_view_actions()
-        self._create_git_actions()
-        self._create_help_actions()
+    def create_actions(self) -> None:
+        """Create all QAction objects."""
+        logger.debug("Creating actions...")
 
-        logger.info(f"Created {len(self.actions)} actions")
-
-    def get_action(self, name: str) -> QAction:
-        """
-        Get action by name.
-
-        Args:
-            name: Action name (without _act suffix)
-
-        Returns:
-            QAction object
-        """
-        return self.actions.get(name)
-
-    def _create_file_actions(self) -> None:
-        """Create File menu actions."""
-        # New
-        self.window.new_act = QAction(
+        # File menu actions
+        self.new_act = QAction(  # type: ignore[call-overload]
             "&New",
             self.window,
             shortcut=QKeySequence.StandardKey.New,
             statusTip="Create a new file",
             triggered=self.window.new_file,
         )
-        self.actions['new'] = self.window.new_act
 
-        # Open
-        self.window.open_act = QAction(
+        self.open_act = QAction(  # type: ignore[call-overload]
             "&Open...",
             self.window,
             shortcut=QKeySequence.StandardKey.Open,
             statusTip="Open a file",
             triggered=self.window.open_file,
         )
-        self.actions['open'] = self.window.open_act
 
-        # Save
-        self.window.save_act = QAction(
+        self.save_act = QAction(  # type: ignore[call-overload]
             "&Save",
             self.window,
             shortcut=QKeySequence(QKeySequence.StandardKey.Save),
             statusTip="Save the document as AsciiDoc format (.adoc)",
             triggered=self.window.save_file,
         )
-        self.actions['save'] = self.window.save_act
 
-        # Save As
-        self.window.save_as_act = QAction(
+        self.save_as_act = QAction(  # type: ignore[call-overload]
             "Save &As...",
             self.window,
             shortcut=QKeySequence(QKeySequence.StandardKey.SaveAs),
             statusTip="Save with a new name",
             triggered=lambda: self.window.save_file(save_as=True),
         )
-        self.actions['save_as'] = self.window.save_as_act
 
-        # Export submenu actions
-        self.window.save_as_adoc_act = QAction(
+        self.save_as_adoc_act = QAction(  # type: ignore[call-overload]
             "AsciiDoc (*.adoc)",
             self.window,
             statusTip="Save as AsciiDoc file",
             triggered=lambda: self.window.save_file_as_format("adoc"),
         )
-        self.actions['save_as_adoc'] = self.window.save_as_adoc_act
 
-        self.window.save_as_md_act = QAction(
+        self.save_as_md_act = QAction(  # type: ignore[call-overload]
             "GitHub Markdown (*.md)",
             self.window,
             statusTip="Export to GitHub Markdown format",
             triggered=lambda: self.window.save_file_as_format("md"),
         )
-        self.actions['save_as_md'] = self.window.save_as_md_act
 
-        self.window.save_as_docx_act = QAction(
+        self.save_as_docx_act = QAction(  # type: ignore[call-overload]
             "Microsoft Word (*.docx)",
             self.window,
             statusTip="Export to Microsoft Office 365 Word format",
             triggered=lambda: self.window.save_file_as_format("docx"),
         )
-        self.actions['save_as_docx'] = self.window.save_as_docx_act
 
-        self.window.save_as_html_act = QAction(
+        self.save_as_html_act = QAction(  # type: ignore[call-overload]
             "HTML Web Page (*.html)",
             self.window,
             statusTip="Export to HTML format (can print to PDF from browser)",
             triggered=lambda: self.window.save_file_as_format("html"),
         )
-        self.actions['save_as_html'] = self.window.save_as_html_act
 
-        self.window.save_as_pdf_act = QAction(
+        self.save_as_pdf_act = QAction(  # type: ignore[call-overload]
             "Adobe PDF (*.pdf)",
             self.window,
             statusTip="Export to Adobe Acrobat PDF format",
             triggered=lambda: self.window.save_file_as_format("pdf"),
         )
-        self.actions['save_as_pdf'] = self.window.save_as_pdf_act
 
-        # Exit
-        self.window.exit_act = QAction(
+        self.exit_act = QAction(  # type: ignore[call-overload]
             "E&xit",
             self.window,
             shortcut=QKeySequence.StandardKey.Quit,
             statusTip="Exit the application",
             triggered=self.window.close,
         )
-        self.actions['exit'] = self.window.exit_act
 
-        logger.debug("Created File actions (10 actions)")
-
-    def _create_edit_actions(self) -> None:
-        """Create Edit menu actions."""
-        # Undo
-        self.window.undo_act = QAction(
+        # Edit menu actions
+        self.undo_act = QAction(  # type: ignore[call-overload]
             "&Undo",
             self.window,
             shortcut=QKeySequence.StandardKey.Undo,
             statusTip="Undo last action",
-            triggered=self.window.editor.undo,
+            triggered=self.editor.undo,
         )
-        self.actions['undo'] = self.window.undo_act
 
-        # Redo
-        self.window.redo_act = QAction(
+        self.redo_act = QAction(  # type: ignore[call-overload]
             "&Redo",
             self.window,
             shortcut=QKeySequence.StandardKey.Redo,
             statusTip="Redo last action",
-            triggered=self.window.editor.redo,
+            triggered=self.editor.redo,
         )
-        self.actions['redo'] = self.window.redo_act
 
-        # Cut
-        self.window.cut_act = QAction(
+        self.cut_act = QAction(  # type: ignore[call-overload]
             "Cu&t",
             self.window,
             shortcut=QKeySequence.StandardKey.Cut,
             statusTip="Cut selection",
-            triggered=self.window.editor.cut,
+            triggered=self.editor.cut,
         )
-        self.actions['cut'] = self.window.cut_act
 
-        # Copy
-        self.window.copy_act = QAction(
+        self.copy_act = QAction(  # type: ignore[call-overload]
             "&Copy",
             self.window,
             shortcut=QKeySequence.StandardKey.Copy,
             statusTip="Copy selection",
-            triggered=self.window.editor.copy,
+            triggered=self.editor.copy,
         )
-        self.actions['copy'] = self.window.copy_act
 
-        # Paste
-        self.window.paste_act = QAction(
+        self.paste_act = QAction(  # type: ignore[call-overload]
             "&Paste",
             self.window,
             shortcut=QKeySequence.StandardKey.Paste,
             statusTip="Paste from clipboard",
-            triggered=self.window.editor.paste,
+            triggered=self.editor.paste,
         )
-        self.actions['paste'] = self.window.paste_act
 
-        # Convert and Paste
-        self.window.convert_paste_act = QAction(
+        self.convert_paste_act = QAction(  # type: ignore[call-overload]
             "Convert && Paste",
             self.window,
             shortcut="Ctrl+Shift+V",
-            statusTip="Convert clipboard content to AsciiDoc and paste",
+            statusTip="Convert clipboard content to AsciiDoc",
             triggered=self.window.convert_and_paste_from_clipboard,
         )
-        self.actions['convert_paste'] = self.window.convert_paste_act
 
-        logger.debug("Created Edit actions (6 actions)")
+        self.preferences_act = QAction(  # type: ignore[call-overload]
+            "&Preferences...",
+            self.window,
+            shortcut="Ctrl+,",
+            statusTip="Configure application preferences",
+            triggered=self.window._show_preferences_dialog,
+        )
 
-    def _create_view_actions(self) -> None:
-        """Create View menu actions."""
-        # Zoom In
-        self.window.zoom_in_act = QAction(
+        # View menu actions
+        self.zoom_in_act = QAction(  # type: ignore[call-overload]
             "Zoom &In",
             self.window,
             shortcut=QKeySequence.StandardKey.ZoomIn,
             statusTip="Increase font size",
             triggered=lambda: self.window._zoom(1),
         )
-        self.actions['zoom_in'] = self.window.zoom_in_act
 
-        # Zoom Out
-        self.window.zoom_out_act = QAction(
+        self.zoom_out_act = QAction(  # type: ignore[call-overload]
             "Zoom &Out",
             self.window,
             shortcut=QKeySequence.StandardKey.ZoomOut,
             statusTip="Decrease font size",
             triggered=lambda: self.window._zoom(-1),
         )
-        self.actions['zoom_out'] = self.window.zoom_out_act
 
-        # Toggle Dark Mode
-        self.window.dark_mode_act = QAction(
-            "Dark &Mode",
+        self.dark_mode_act = QAction(  # type: ignore[call-overload]
+            "&Dark Mode",
             self.window,
+            checkable=True,
+            checked=self._settings.dark_mode,
             statusTip="Toggle dark mode",
             triggered=self.window._toggle_dark_mode,
-            checkable=True,
         )
-        self.actions['dark_mode'] = self.window.dark_mode_act
 
-        # Toggle Sync Scrolling
-        self.window.sync_scrolling_act = QAction(
-            "&Sync Scrolling",
+        self.sync_scrolling_act = QAction(  # type: ignore[call-overload]
+            "&Synchronized Scrolling",
             self.window,
+            checkable=True,
+            checked=self._sync_scrolling,
             statusTip="Toggle synchronized scrolling between editor and preview",
             triggered=self.window._toggle_sync_scrolling,
-            checkable=True,
         )
-        self.window.sync_scrolling_act.setChecked(True)
-        self.actions['sync_scrolling'] = self.window.sync_scrolling_act
 
-        # Maximize Editor
-        self.window.maximize_editor_act = QAction(
+        self.maximize_editor_act = QAction(  # type: ignore[call-overload]
             "Maximize &Editor",
             self.window,
-            shortcut="Ctrl+E",
-            statusTip="Maximize editor pane",
-            triggered=lambda: self.window._maximize_pane("editor"),
+            shortcut="Ctrl+Shift+E",
+            statusTip="Toggle maximize editor pane",
+            triggered=lambda: self.window._toggle_pane_maximize("editor"),
         )
-        self.actions['maximize_editor'] = self.window.maximize_editor_act
 
-        # Maximize Preview
-        self.window.maximize_preview_act = QAction(
+        self.maximize_preview_act = QAction(  # type: ignore[call-overload]
             "Maximize &Preview",
             self.window,
-            shortcut="Ctrl+P",
-            statusTip="Maximize preview pane",
-            triggered=lambda: self.window._maximize_pane("preview"),
+            shortcut="Ctrl+Shift+R",
+            statusTip="Toggle maximize preview pane",
+            triggered=lambda: self.window._toggle_pane_maximize("preview"),
         )
-        self.actions['maximize_preview'] = self.window.maximize_preview_act
 
-        logger.debug("Created View actions (6 actions)")
+        # Git menu actions
+        self.set_repo_act = QAction(  # type: ignore[call-overload]
+            "Set &Repository...",
+            self.window,
+            statusTip="Select Git repository",
+            triggered=self.window._select_git_repository,
+        )
 
-    def _create_git_actions(self) -> None:
-        """Create Git menu actions."""
-        # Git Commit
-        self.window.git_commit_act = QAction(
+        self.git_commit_act = QAction(  # type: ignore[call-overload]
             "&Commit...",
             self.window,
-            shortcut="Ctrl+G",
-            statusTip="Commit changes to Git",
+            shortcut="Ctrl+Shift+C",
+            statusTip="Commit changes",
             triggered=self.window._trigger_git_commit,
         )
-        self.actions['git_commit'] = self.window.git_commit_act
 
-        # Git Pull
-        self.window.git_pull_act = QAction(
+        self.git_pull_act = QAction(  # type: ignore[call-overload]
             "&Pull",
             self.window,
-            statusTip="Pull from remote repository",
+            shortcut="Ctrl+Shift+P",
+            statusTip="Pull from remote",
             triggered=self.window._trigger_git_pull,
         )
-        self.actions['git_pull'] = self.window.git_pull_act
 
-        # Git Push
-        self.window.git_push_act = QAction(
+        self.git_push_act = QAction(  # type: ignore[call-overload]
             "P&ush",
             self.window,
-            statusTip="Push to remote repository",
+            shortcut="Ctrl+Shift+U",
+            statusTip="Push to remote",
             triggered=self.window._trigger_git_push,
         )
-        self.actions['git_push'] = self.window.git_push_act
 
-        logger.debug("Created Git actions (3 actions)")
+        # Tools menu actions
+        self.pandoc_status_act = QAction(  # type: ignore[call-overload]
+            "&Pandoc Status",
+            self.window,
+            statusTip="Check Pandoc installation status",
+            triggered=self.window._show_pandoc_status,
+        )
 
-    def _create_help_actions(self) -> None:
-        """Create Help menu actions."""
-        # Supported Formats
-        self.window.pandoc_formats_act = QAction(
+        self.pandoc_formats_act = QAction(  # type: ignore[call-overload]
             "Supported &Formats",
             self.window,
-            statusTip="Show supported import/export formats",
+            statusTip="Show supported conversion formats",
             triggered=self.window._show_supported_formats,
         )
-        self.actions['pandoc_formats'] = self.window.pandoc_formats_act
 
-        # AI Setup Help
-        self.window.ai_setup_help_act = QAction(
-            "&AI Setup Help",
+        # Help menu actions
+        self.ai_setup_help_act = QAction(  # type: ignore[call-overload]
+            "&AI Conversion Setup",
             self.window,
-            statusTip="Show help for setting up AI assistant",
+            statusTip="How to set up AI-enhanced conversion",
             triggered=self.window._show_ai_setup_help,
         )
-        self.actions['ai_setup_help'] = self.window.ai_setup_help_act
 
-        # About
-        self.window.about_act = QAction(
+        self.about_act = QAction(  # type: ignore[call-overload]
             "&About",
             self.window,
-            statusTip="About AsciiDoc Artisan",
+            statusTip="About AsciiDoctor Artisan",
             triggered=self.window._show_about,
         )
-        self.actions['about'] = self.window.about_act
 
-        logger.debug("Created Help actions (3 actions)")
+        logger.debug("Actions created successfully")
 
-    def enable_action(self, name: str, enabled: bool) -> None:
-        """
-        Enable or disable an action.
+    def create_menus(self) -> None:
+        """Build menu structure with all actions."""
+        logger.debug("Creating menus...")
+        menubar = self.window.menuBar()
 
-        Args:
-            name: Action name (without _act suffix)
-            enabled: True to enable, False to disable
-        """
-        action = self.get_action(name)
-        if action:
-            action.setEnabled(enabled)
+        # File menu
+        file_menu = menubar.addMenu("&File")
+        file_menu.addAction(self.new_act)
+        file_menu.addAction(self.open_act)
+        file_menu.addSeparator()
+        file_menu.addAction(self.save_act)
+        file_menu.addAction(self.save_as_act)
 
-    def get_all_actions(self) -> Dict[str, QAction]:
-        """Get all actions as a dictionary."""
-        return self.actions.copy()
+        export_menu = file_menu.addMenu("&Export As")
+        export_menu.addAction(self.save_as_adoc_act)
+        export_menu.addAction(self.save_as_md_act)
+        export_menu.addAction(self.save_as_docx_act)
+        export_menu.addAction(self.save_as_html_act)
+        export_menu.addAction(self.save_as_pdf_act)
+
+        file_menu.addSeparator()
+        file_menu.addAction(self.exit_act)
+
+        # Edit menu
+        edit_menu = menubar.addMenu("&Edit")
+        edit_menu.addAction(self.undo_act)
+        edit_menu.addAction(self.redo_act)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.cut_act)
+        edit_menu.addAction(self.copy_act)
+        edit_menu.addAction(self.paste_act)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.convert_paste_act)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.preferences_act)
+
+        # View menu
+        view_menu = menubar.addMenu("&View")
+        view_menu.addAction(self.zoom_in_act)
+        view_menu.addAction(self.zoom_out_act)
+        view_menu.addSeparator()
+        view_menu.addAction(self.dark_mode_act)
+        view_menu.addAction(self.sync_scrolling_act)
+        view_menu.addSeparator()
+        view_menu.addAction(self.maximize_editor_act)
+        view_menu.addAction(self.maximize_preview_act)
+
+        # Git menu
+        git_menu = menubar.addMenu("&Git")
+        git_menu.addAction(self.set_repo_act)
+        git_menu.addSeparator()
+        git_menu.addAction(self.git_commit_act)
+        git_menu.addAction(self.git_pull_act)
+        git_menu.addAction(self.git_push_act)
+
+        # Tools menu
+        tools_menu = menubar.addMenu("&Tools")
+        tools_menu.addAction(self.pandoc_status_act)
+        tools_menu.addAction(self.pandoc_formats_act)
+
+        # Help menu
+        help_menu = menubar.addMenu("&Help")
+        help_menu.addAction(self.ai_setup_help_act)
+        help_menu.addSeparator()
+        help_menu.addAction(self.about_act)
+
+        logger.debug("Menus created successfully")

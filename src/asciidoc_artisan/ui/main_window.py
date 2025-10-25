@@ -95,6 +95,8 @@ from asciidoc_artisan.ui.dialogs import (
     PreferencesDialog,
 )
 from asciidoc_artisan.ui.action_manager import ActionManager
+from asciidoc_artisan.ui.editor_state import EditorState
+from asciidoc_artisan.ui.export_manager import ExportManager
 from asciidoc_artisan.ui.file_handler import FileHandler
 from asciidoc_artisan.ui.git_handler import GitHandler
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
@@ -240,11 +242,6 @@ class AsciiDocEditor(QMainWindow):
         self._unsaved_changes = False
         self._sync_scrolling = True
         self._is_syncing_scroll = False
-        self._maximized_pane: Optional[str] = None
-        self._saved_splitter_sizes: Optional[list[int]] = None
-        self._pending_export_path: Optional[Path] = None
-        self._pending_export_format: Optional[str] = None
-        self._temp_dir = tempfile.TemporaryDirectory()
 
         # Parse window geometry from settings
         if not self._start_maximized:
@@ -301,15 +298,20 @@ class AsciiDocEditor(QMainWindow):
             self.status_manager
         )
 
-        # Initialize ActionManager (Phase 5: Week 2 Refactoring)
+        # Initialize ActionManager (Phase 5: Refactoring)
         self.action_manager = ActionManager(self)
-        self.action_manager.create_all_actions()
+        self.action_manager.create_actions()
+        self.action_manager.create_menus()
+
+        # Initialize ExportManager (Phase 5: Refactoring)
+        self.export_manager = ExportManager(self)
+
+        # Initialize EditorState (Phase 5: Refactoring)
+        self.editor_state = EditorState(self)
 
         # Restore UI settings using manager
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
-        # Phase 2: Use manager classes for menu and theme setup
-        # Note: create_actions() is now handled by ActionManager
-        self.menu_manager.create_menus()
+        # Phase 2: Use manager classes for theme setup
         self.theme_manager.apply_theme()
         self._setup_workers_and_threads()
         self._update_ui_state()
@@ -533,70 +535,6 @@ class AsciiDocEditor(QMainWindow):
                 editor_scrollbar.setValue(editor_value)
         finally:
             self._is_syncing_scroll = False
-
-    def _create_actions(self) -> None:
-        """Create all actions (delegates to ActionManager)."""
-        # Note: Action creation is now handled by ActionManager
-        # This method kept for backward compatibility with menu_manager
-        pass
-
-    def _create_menus(self) -> None:
-        menubar = self.menuBar()
-
-        file_menu = menubar.addMenu("&File")
-        file_menu.addAction(self.new_act)
-        file_menu.addAction(self.open_act)
-        file_menu.addSeparator()
-        file_menu.addAction(self.save_act)
-        file_menu.addAction(self.save_as_act)
-
-        export_menu = file_menu.addMenu("&Export As")
-        export_menu.addAction(self.save_as_adoc_act)
-        export_menu.addAction(self.save_as_md_act)
-        export_menu.addAction(self.save_as_docx_act)
-        export_menu.addAction(self.save_as_html_act)
-        export_menu.addAction(self.save_as_pdf_act)
-
-        file_menu.addSeparator()
-        file_menu.addAction(self.exit_act)
-
-        edit_menu = menubar.addMenu("&Edit")
-        edit_menu.addAction(self.undo_act)
-        edit_menu.addAction(self.redo_act)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.cut_act)
-        edit_menu.addAction(self.copy_act)
-        edit_menu.addAction(self.paste_act)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.convert_paste_act)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.preferences_act)
-
-        view_menu = menubar.addMenu("&View")
-        view_menu.addAction(self.zoom_in_act)
-        view_menu.addAction(self.zoom_out_act)
-        view_menu.addSeparator()
-        view_menu.addAction(self.dark_mode_act)
-        view_menu.addAction(self.sync_scrolling_act)
-        view_menu.addSeparator()
-        view_menu.addAction(self.maximize_editor_act)
-        view_menu.addAction(self.maximize_preview_act)
-
-        git_menu = menubar.addMenu("&Git")
-        git_menu.addAction(self.set_repo_act)
-        git_menu.addSeparator()
-        git_menu.addAction(self.git_commit_act)
-        git_menu.addAction(self.git_pull_act)
-        git_menu.addAction(self.git_push_act)
-
-        tools_menu = menubar.addMenu("&Tools")
-        tools_menu.addAction(self.pandoc_status_act)
-        tools_menu.addAction(self.pandoc_formats_act)
-
-        help_menu = menubar.addMenu("&Help")
-        help_menu.addAction(self.ai_setup_help_act)
-        help_menu.addSeparator()
-        help_menu.addAction(self.about_act)
 
     def _setup_workers_and_threads(self) -> None:
         logger.info("Setting up worker threads...")
@@ -1196,253 +1134,9 @@ class AsciiDocEditor(QMainWindow):
         return True
 
     def save_file_as_format(self, format_type: str) -> bool:
-        """Save/export file in specified format using background conversion."""
+        """Save/export file in specified format (delegates to ExportManager)."""
+        return self.export_manager.save_file_as_format(format_type)
 
-        format_filters = {
-            "adoc": (ADOC_FILTER, ".adoc"),
-            "md": (MD_FILTER, ".md"),
-            "docx": (DOCX_FILTER, ".docx"),
-            "html": (HTML_FILTER, ".html"),
-            "pdf": (PDF_FILTER, ".pdf"),
-        }
-
-        if format_type not in format_filters:
-            self.status_manager.show_message(
-                "warning", "Export Error", f"Unsupported format: {format_type}"
-            )
-            return False
-
-        file_filter, suggested_ext = format_filters[format_type]
-
-        if self._current_file_path:
-            suggested_name = self._current_file_path.stem + suggested_ext
-        else:
-            suggested_name = "document" + suggested_ext
-
-        suggested_path = Path(self._settings.last_directory) / suggested_name
-
-        file_path_str, _ = QFileDialog.getSaveFileName(
-            self,
-            f"Export as {format_type.upper()}",
-            str(suggested_path),
-            file_filter,
-            options=(
-                QFileDialog.Option.DontUseNativeDialog
-                if platform.system() != "Windows"
-                else QFileDialog.Option(0)
-            ),
-        )
-
-        if not file_path_str:
-            return False
-
-        file_path = Path(file_path_str)
-
-        if not file_path.suffix:
-            file_path = file_path.with_suffix(suggested_ext)
-
-        content = self.editor.toPlainText()
-
-        use_ai_for_export = self._settings_manager.get_ai_conversion_preference(
-            self._settings
-        )
-        if format_type in ["md", "docx", "pdf"]:
-            export_dialog = ExportOptionsDialog(format_type, use_ai_for_export, self)
-            if export_dialog.exec() == QDialog.DialogCode.Accepted:
-                use_ai_for_export = export_dialog.get_use_ai()
-            else:
-                return False
-
-        if format_type == "adoc":
-            if atomic_save_text(file_path, content, encoding="utf-8"):
-                self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
-                return True
-            else:
-                self.status_manager.show_message(
-                    "critical",
-                    "Export Error",
-                    f"Failed to save AsciiDoc file: {file_path}",
-                )
-                return False
-
-        if format_type == "html":
-            self.status_bar.showMessage("Exporting to HTML...")
-            try:
-                if self._asciidoc_api is None:
-                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-                infile = io.StringIO(content)
-                outfile = io.StringIO()
-                self._asciidoc_api.execute(infile, outfile, backend="html5")
-                html_content = outfile.getvalue()
-
-                if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                    self.status_bar.showMessage(f"Exported to HTML: {file_path}")
-                    logger.info(f"Successfully exported to HTML: {file_path}")
-                    return True
-                else:
-                    raise IOError(f"Atomic save failed for {file_path}")
-            except Exception as e:
-                logger.exception(f"Failed to export HTML file: {e}")
-                self.status_manager.show_message(
-                    "critical", "Export Error", f"Failed to export HTML file:\n{e}"
-                )
-                return False
-
-        self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
-
-        try:
-            if self._asciidoc_api is None:
-                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-            infile = io.StringIO(content)
-            outfile = io.StringIO()
-            self._asciidoc_api.execute(infile, outfile, backend="html5")
-            html_content = outfile.getvalue()
-        except Exception as e:
-            logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-            self.status_manager.show_message(
-                "critical",
-                "Conversion Error",
-                f"Failed to convert AsciiDoc to HTML:\n{e}",
-            )
-            return False
-
-        temp_html = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
-        try:
-            temp_html.write_text(html_content, encoding="utf-8")
-        except Exception as e:
-            self.status_manager.show_message(
-                "critical", "Export Error", f"Failed to create temporary file:\n{e}"
-            )
-            return False
-
-        self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
-
-        if format_type in ["pdf", "docx"]:
-
-            if format_type == "pdf" and not self._check_pdf_engine_available():
-
-                try:
-
-                    styled_html = self._add_print_css_to_html(html_content)
-                    html_path = file_path.with_suffix(".html")
-
-                    if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
-                        raise IOError(f"Failed to save HTML file: {html_path}")
-
-                    self.status_bar.showMessage(
-                        f"Exported as HTML (PDF-ready): {html_path}"
-                    )
-                    self.status_manager.show_message(
-                        "information",
-                        "PDF Export Alternative",
-                        f"Exported as HTML with print styling: {html_path}\n\n"
-                        f"To create PDF:\n"
-                        f"1. Open this file in your browser\n"
-                        f"2. Press Ctrl+P (or Cmd+P on Mac)\n"
-                        f"3. Select 'Save as PDF'\n\n"
-                        f"The HTML includes print-friendly styling for optimal PDF output.",
-                    )
-                    return True
-                except Exception as e:
-                    logger.exception(f"Failed to save HTML for PDF: {e}")
-
-            self.request_pandoc_conversion.emit(
-                temp_html,
-                format_type,
-                "html",
-                f"Exporting to {format_type.upper()}",
-                file_path,
-                use_ai_for_export,
-            )
-            self._pending_export_path = None
-            self._pending_export_format = None
-        else:
-
-            self.request_pandoc_conversion.emit(
-                temp_html,
-                format_type,
-                "html",
-                f"Exporting to {format_type.upper()}",
-                None,
-                use_ai_for_export,
-            )
-
-            self._pending_export_path = file_path
-            self._pending_export_format = format_type
-
-        return True
-
-    def _check_pdf_engine_available(self) -> bool:
-        """Check if any PDF engine is available."""
-
-        pdf_engines = ["wkhtmltopdf", "weasyprint", "pdflatex", "xelatex", "lualatex"]
-
-        for engine in pdf_engines:
-            try:
-                subprocess.run([engine, "--version"], capture_output=True, check=True)
-                return True
-            except (FileNotFoundError, subprocess.CalledProcessError, Exception):
-                continue
-
-        return False
-
-    def _add_print_css_to_html(self, html_content: str) -> str:
-        """Add print-friendly CSS to HTML for better PDF output."""
-        print_css = """
-        <style type="text/css" media="print">
-            @page {
-                size: letter;
-                margin: 1in;
-            }
-            body {
-                font-family: Georgia, serif;
-                font-size: 11pt;
-                line-height: 1.6;
-                color: #000;
-            }
-            h1, h2, h3, h4, h5, h6 {
-                page-break-after: avoid;
-                font-family: Helvetica, Arial, sans-serif;
-            }
-            pre, code {
-                font-family: Consolas, Monaco, monospace;
-                font-size: 9pt;
-                background-color: #f5f5f5;
-                page-break-inside: avoid;
-            }
-            table {
-                border-collapse: collapse;
-                page-break-inside: avoid;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-            }
-            a {
-                color: #000;
-                text-decoration: underline;
-            }
-            @media screen {
-                body {
-                    max-width: 8.5in;
-                    margin: 0 auto;
-                    padding: 1in;
-                }
-            }
-        </style>
-        """
-
-        if "</head>" in html_content:
-            html_content = html_content.replace("</head>", print_css + "</head>")
-        elif "<html>" in html_content:
-            html_content = html_content.replace("<html>", "<html>" + print_css)
-        else:
-
-            html_content = print_css + html_content
-
-        return html_content
 
     def _auto_save(self) -> None:
         """Auto-save current file if there are unsaved changes using atomic write."""
@@ -1583,126 +1277,25 @@ class AsciiDocEditor(QMainWindow):
             """
 
     def _zoom(self, delta: int) -> None:
-        font = self.editor.font()
-        new_size = max(MIN_FONT_SIZE, font.pointSize() + delta)
-        font.setPointSize(new_size)
-        self.editor.setFont(font)
-        self.preview.zoomIn(delta)
+        """Zoom editor and preview (delegates to EditorState)."""
+        self.editor_state.zoom(delta)
 
     def _toggle_dark_mode(self) -> None:
-        self._settings.dark_mode = self.dark_mode_act.isChecked()
-        self.theme_manager.apply_theme()
-        self.update_preview()
+        """Toggle dark mode (delegates to EditorState)."""
+        self.editor_state.toggle_dark_mode()
 
     def _toggle_sync_scrolling(self) -> None:
-        self._sync_scrolling = self.sync_scrolling_act.isChecked()
-        self.status_bar.showMessage(
-            f"Synchronized scrolling {'enabled' if self._sync_scrolling else 'disabled'}",
-            5000,
-        )
+        """Toggle synchronized scrolling (delegates to EditorState)."""
+        self.editor_state.toggle_sync_scrolling()
 
     def _toggle_pane_maximize(self, pane: str) -> None:
-        """Toggle maximize/restore for a specific pane."""
-        if self._maximized_pane == pane:
-
-            self._restore_panes()
-        elif self._maximized_pane is not None:
-
-            self._maximize_pane(pane)
-        else:
-
-            self._maximize_pane(pane)
-
-    def _maximize_pane(self, pane: str) -> None:
-        """Maximize a specific pane."""
-
-        if self._maximized_pane is None:
-            self._saved_splitter_sizes = self.splitter.sizes()
-
-        if pane == "editor":
-
-            self.splitter.setSizes([self.splitter.width(), 0])
-            self.editor_max_btn.setText("⬛")
-            self.editor_max_btn.setToolTip("Restore editor")
-
-            self.preview_max_btn.setEnabled(True)
-
-            self.preview_max_btn.setText("⬜")
-            self.preview_max_btn.setToolTip("Maximize preview")
-            self.status_bar.showMessage("Editor maximized", 3000)
-        else:
-
-            self.splitter.setSizes([0, self.splitter.width()])
-            self.preview_max_btn.setText("⬛")
-            self.preview_max_btn.setToolTip("Restore preview")
-
-            self.editor_max_btn.setEnabled(True)
-
-            self.editor_max_btn.setText("⬜")
-            self.editor_max_btn.setToolTip("Maximize editor")
-            self.status_bar.showMessage("Preview maximized", 3000)
-
-        self._maximized_pane = pane
-
-    def _restore_panes(self) -> None:
-        """Restore panes to their previous sizes."""
-        if self._saved_splitter_sizes and len(self._saved_splitter_sizes) == 2:
-
-            total = sum(self._saved_splitter_sizes)
-            if total > 0:
-                self.splitter.setSizes(self._saved_splitter_sizes)
-            else:
-
-                width = self.splitter.width()
-                self.splitter.setSizes([width // 2, width // 2])
-        else:
-
-            width = self.splitter.width()
-            self.splitter.setSizes([width // 2, width // 2])
-
-        self.editor_max_btn.setText("⬜")
-        self.editor_max_btn.setToolTip("Maximize editor")
-        self.editor_max_btn.setEnabled(True)
-        self.preview_max_btn.setText("⬜")
-        self.preview_max_btn.setToolTip("Maximize preview")
-        self.preview_max_btn.setEnabled(True)
-
-        self._maximized_pane = None
-        self.status_bar.showMessage("View restored", 3000)
+        """Toggle maximize/restore for a specific pane (delegates to EditorState)."""
+        self.editor_state.toggle_pane_maximize(pane)
 
     def convert_and_paste_from_clipboard(self) -> None:
-        if not self._check_pandoc_availability("Clipboard Conversion"):
-            return
+        """Convert clipboard content to AsciiDoc (delegates to ExportManager)."""
+        self.export_manager.convert_and_paste_from_clipboard()
 
-        clipboard = QGuiApplication.clipboard()
-        mime_data = clipboard.mimeData()
-
-        source_text = None
-        source_format = "markdown"
-
-        if mime_data.hasHtml():
-            source_text = mime_data.html()
-            source_format = "html"
-        elif mime_data.hasText():
-            source_text = mime_data.text()
-
-        if not source_text:
-            self.status_manager.show_message(
-                "info", "Empty Clipboard", "No text or HTML found in clipboard."
-            )
-            return
-
-        self._is_processing_pandoc = True
-        self._update_ui_state()
-        self.status_bar.showMessage("Converting clipboard content...")
-        self.request_pandoc_conversion.emit(
-            source_text,
-            "asciidoc",
-            source_format,
-            "clipboard conversion",
-            None,
-            self._settings_manager.get_ai_conversion_preference(self._settings),
-        )
 
     def _select_git_repository(self) -> None:
         """Select Git repository (delegates to GitHandler)."""
@@ -1734,66 +1327,11 @@ class AsciiDocEditor(QMainWindow):
         self._is_processing_pandoc = False
         self._update_ui_state()
 
-        if context == "clipboard conversion":
-            self.editor.insertPlainText(result)
-            self.status_bar.showMessage("Pasted converted content")
-        elif "Exporting to" in context and (
-            "File saved to:" in result or self._pending_export_path
-        ):
-            # Narrow types - if we're in this block, these should be set
-            if self._pending_export_path is None or self._pending_export_format is None:
-                logger.error("Export paths not set despite being in export context")
-                return
+        # Delegate to ExportManager
+        self.export_manager.handle_pandoc_result(result, context)
 
-            try:
-                if "File saved to:" in result:
-
-                    self.status_bar.showMessage(
-                        f"Exported successfully: {result.split(': ', 1)[1]}"
-                    )
-                elif self._pending_export_format == "pdf":
-
-                    if self._pending_export_path.exists():
-                        self.status_bar.showMessage(
-                            f"Exported to PDF: {self._pending_export_path}"
-                        )
-                    else:
-
-                        if atomic_save_text(
-                            self._pending_export_path, result, encoding="utf-8"
-                        ):
-                            self.status_bar.showMessage(
-                                f"Exported to {self._pending_export_format.upper()}: {self._pending_export_path}"
-                            )
-                        else:
-                            raise IOError(
-                                f"Failed to save: {self._pending_export_path}"
-                            )
-                else:
-
-                    if atomic_save_text(
-                        self._pending_export_path, result, encoding="utf-8"
-                    ):
-                        self.status_bar.showMessage(
-                            f"Saved as {self._pending_export_format.upper()}: {self._pending_export_path}"
-                        )
-                    else:
-                        raise IOError(f"Failed to save: {self._pending_export_path}")
-
-                logger.info(
-                    f"Successfully saved as {self._pending_export_format}: {self._pending_export_path}"
-                )
-            except Exception as e:
-                logger.exception(
-                    f"Failed to save export file: {self._pending_export_path}"
-                )
-                self.status_manager.show_message(
-                    "critical", "Export Error", f"Failed to save exported file:\n{e}"
-                )
-            finally:
-                self._pending_export_path = None
-                self._pending_export_format = None
-        elif self._pending_file_path:
+        # Handle file import operations
+        if self._pending_file_path:
 
             self._load_content_into_editor(result, self._pending_file_path)
             self._pending_file_path = None
@@ -1807,9 +1345,9 @@ class AsciiDocEditor(QMainWindow):
         self._is_processing_pandoc = False
         file_path = self._pending_file_path
         self._pending_file_path = None
-        export_path = self._pending_export_path
-        self._pending_export_path = None
-        self._pending_export_format = None
+        export_path = self.export_manager.pending_export_path
+        self.export_manager.pending_export_path = None
+        self.export_manager.pending_export_format = None
         self._update_ui_state()
         self.status_bar.showMessage(f"Conversion failed: {context}")
 
@@ -1850,22 +1388,22 @@ class AsciiDocEditor(QMainWindow):
 
     def _update_ui_state(self) -> None:
 
-        self.save_act.setEnabled(not self._is_processing_pandoc)
-        self.save_as_act.setEnabled(not self._is_processing_pandoc)
+        self.action_manager.save_act.setEnabled(not self._is_processing_pandoc)
+        self.action_manager.save_as_act.setEnabled(not self._is_processing_pandoc)
 
         export_enabled = not self._is_processing_pandoc
-        self.save_as_adoc_act.setEnabled(export_enabled)
-        self.save_as_md_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
-        self.save_as_docx_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
-        self.save_as_html_act.setEnabled(export_enabled)
-        self.save_as_pdf_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.action_manager.save_as_adoc_act.setEnabled(export_enabled)
+        self.action_manager.save_as_md_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.action_manager.save_as_docx_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.action_manager.save_as_html_act.setEnabled(export_enabled)
+        self.action_manager.save_as_pdf_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
 
         git_ready = bool(self._settings.git_repo_path) and not self._is_processing_git
-        self.git_commit_act.setEnabled(git_ready)
-        self.git_pull_act.setEnabled(git_ready)
-        self.git_push_act.setEnabled(git_ready)
+        self.action_manager.git_commit_act.setEnabled(git_ready)
+        self.action_manager.git_pull_act.setEnabled(git_ready)
+        self.action_manager.git_push_act.setEnabled(git_ready)
 
-        self.convert_paste_act.setEnabled(
+        self.action_manager.convert_paste_act.setEnabled(
             PANDOC_AVAILABLE and not self._is_processing_pandoc
         )
 
@@ -2105,33 +1643,5 @@ class AsciiDocEditor(QMainWindow):
         msg.exec()
 
     def closeEvent(self, event: Any) -> None:
-        """Handle window close event."""
-        if not self.status_manager.prompt_save_before_action("closing"):
-            event.ignore()
-            return
-
-        # Save settings using manager
-        self._settings_manager.save_settings(
-            self._settings, self, self._current_file_path
-        )
-
-        logger.info("Shutting down worker threads...")
-        # Safely shut down threads (defensive for test environments)
-        if self.git_thread and self.git_thread.isRunning():
-            self.git_thread.quit()
-            self.git_thread.wait(1000)
-
-        if self.pandoc_thread and self.pandoc_thread.isRunning():
-            self.pandoc_thread.quit()
-            self.pandoc_thread.wait(1000)
-
-        if self.preview_thread and self.preview_thread.isRunning():
-            self.preview_thread.quit()
-            self.preview_thread.wait(1000)
-
-        try:
-            self._temp_dir.cleanup()
-        except Exception:
-            pass
-
-        event.accept()
+        """Handle window close event (delegates to EditorState)."""
+        self.editor_state.handle_close_event(event)

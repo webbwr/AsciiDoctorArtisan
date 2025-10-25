@@ -14,7 +14,7 @@ Extracted from main_window.py to improve maintainability and testability.
 import logging
 from typing import Optional
 
-from PySide6.QtCore import QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtWidgets import QPlainTextEdit
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
@@ -27,7 +27,7 @@ PREVIEW_NORMAL_INTERVAL_MS = 500  # For medium documents
 PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
 
 
-class PreviewHandler:
+class PreviewHandler(QObject):
     """Handle preview rendering and synchronization."""
 
     # Signals
@@ -43,6 +43,7 @@ class PreviewHandler:
             preview: The web view widget for HTML preview
             parent_window: Main window (for signals and state)
         """
+        super().__init__(parent_window)
         self.editor = editor
         self.preview = preview
         self.window = parent_window
