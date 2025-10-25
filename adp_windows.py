@@ -6,23 +6,13 @@ Enhanced for Windows with proper window management, dynamic screen sizing,
 and improved file navigation.
 """
 
-import html
-import io
-import json
 import logging
-import os
 import platform
-import subprocess
 import sys
-import tempfile
-import uuid
 import warnings
-from dataclasses import asdict, dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Union
 
 try:
-    from claude_client import ConversionFormat, ConversionResult, create_client
+    import claude_client  # noqa: F401
 
     CLAUDE_CLIENT_AVAILABLE = True
 except ImportError:
@@ -37,83 +27,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import from refactored core module
+from PySide6.QtWidgets import (
+    QApplication,
+)
+
 from asciidoc_artisan.core import (
-    ADOC_FILTER,
-    ALL_FILES_FILTER,
-    ALL_FORMATS,
     APP_NAME,
-    COMMON_FORMATS,
-    DEFAULT_FILENAME,
-    DOCX_FILTER,
-    EDITOR_FONT_FAMILY,
-    EDITOR_FONT_SIZE,
-    HTML_FILTER,
-    LATEX_FILTER,
-    MD_FILTER,
-    MIN_FONT_SIZE,
-    ORG_FILTER,
-    PDF_FILTER,
-    PREVIEW_UPDATE_INTERVAL_MS,
-    RST_FILTER,
-    SETTINGS_FILENAME,
-    SUPPORTED_OPEN_FILTER,
-    SUPPORTED_SAVE_FILTER,
-    TEXTILE_FILTER,
-    ZOOM_STEP,
-    GitResult,
-    Settings,
-    atomic_save_json,
-    atomic_save_text,
-    sanitize_path,
 )
 
 # Import from refactored workers module
-from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
-
 # Import from refactored UI module
 from asciidoc_artisan.ui import (
     AsciiDocEditor,
-    ExportOptionsDialog,
-    ImportOptionsDialog,
-    PreferencesDialog,
-)
-
-from PySide6.QtCore import (
-    QObject,
-    QRect,
-    QStandardPaths,
-    Qt,
-    QThread,
-    QTimer,
-    Signal,
-    Slot,
-)
-from PySide6.QtGui import (
-    QAction,
-    QColor,
-    QFont,
-    QGuiApplication,
-    QKeySequence,
-    QPalette,
-)
-from PySide6.QtWidgets import (
-    QApplication,
-    QCheckBox,
-    QDialog,
-    QFileDialog,
-    QGroupBox,
-    QHBoxLayout,
-    QInputDialog,
-    QLabel,
-    QMainWindow,
-    QMessageBox,
-    QPlainTextEdit,
-    QPushButton,
-    QSplitter,
-    QStatusBar,
-    QTextBrowser,
-    QVBoxLayout,
-    QWidget,
 )
 
 try:

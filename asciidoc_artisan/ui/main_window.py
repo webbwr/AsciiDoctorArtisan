@@ -25,16 +25,13 @@ import logging
 import os
 import platform
 import subprocess
-import sys
 import tempfile
 import uuid
 from pathlib import Path
 from typing import Any, Optional
 
 from PySide6.QtCore import (
-    QObject,
     QRect,
-    QStandardPaths,
     Qt,
     QThread,
     QTimer,
@@ -70,28 +67,20 @@ from PySide6.QtWidgets import (
 # Import from refactored modules
 from asciidoc_artisan.core import (
     ADOC_FILTER,
-    ALL_FILES_FILTER,
     APP_NAME,
     DEFAULT_FILENAME,
     DOCX_FILTER,
     EDITOR_FONT_FAMILY,
     EDITOR_FONT_SIZE,
     HTML_FILTER,
-    LATEX_FILTER,
     MD_FILTER,
     MIN_FONT_SIZE,
     PDF_FILTER,
     PREVIEW_UPDATE_INTERVAL_MS,
-    RST_FILTER,
-    SETTINGS_FILENAME,
     SUPPORTED_OPEN_FILTER,
     SUPPORTED_SAVE_FILTER,
-    ZOOM_STEP,
     GitResult,
-    Settings,
-    atomic_save_json,
     atomic_save_text,
-    sanitize_path,
 )
 from asciidoc_artisan.ui.dialogs import (
     ExportOptionsDialog,
@@ -103,7 +92,7 @@ from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
 
 # Check for Claude client availability
 try:
-    from claude_client import ClaudeClient, create_client
+    import claude_client  # noqa: F401
 
     CLAUDE_CLIENT_AVAILABLE = True
 except ImportError:
@@ -875,9 +864,13 @@ class AsciiDocEditor(QMainWindow):
                     )
                     return
 
-                self.status_bar.showMessage(f"Extracting text from PDF: {file_path.name}...")
+                self.status_bar.showMessage(
+                    f"Extracting text from PDF: {file_path.name}..."
+                )
 
-                success, asciidoc_text, error_msg = pdf_extractor.convert_to_asciidoc(file_path)
+                success, asciidoc_text, error_msg = pdf_extractor.convert_to_asciidoc(
+                    file_path
+                )
 
                 if not success:
                     self._show_message(
@@ -1074,7 +1067,9 @@ class AsciiDocEditor(QMainWindow):
 
             if format_type != "adoc":
 
-                use_ai_for_export = self._settings_manager.get_ai_conversion_preference(self._settings)
+                use_ai_for_export = self._settings_manager.get_ai_conversion_preference(
+                    self._settings
+                )
                 if format_type in ["md", "docx", "pdf"]:
                     export_dialog = ExportOptionsDialog(
                         format_type, use_ai_for_export, self
@@ -1323,7 +1318,9 @@ class AsciiDocEditor(QMainWindow):
 
         content = self.editor.toPlainText()
 
-        use_ai_for_export = self._settings_manager.get_ai_conversion_preference(self._settings)
+        use_ai_for_export = self._settings_manager.get_ai_conversion_preference(
+            self._settings
+        )
         if format_type in ["md", "docx", "pdf"]:
             export_dialog = ExportOptionsDialog(format_type, use_ai_for_export, self)
             if export_dialog.exec() == QDialog.DialogCode.Accepted:
@@ -2279,5 +2276,3 @@ class AsciiDocEditor(QMainWindow):
             pass
 
         event.accept()
-
-

@@ -21,6 +21,14 @@ pypandoc==1.11
 # pdfplumber provides robust PDF text extraction
 pdfplumber==0.11.0
 
+# AI Integration (v1.1 feature)
+# anthropic provides Claude API access for AI-enhanced document conversion
+anthropic==0.40.0
+
+# Secure Credential Storage (v1.1 security feature)
+# keyring provides OS-level secure credential storage
+keyring==24.3.0
+
 # Optional but recommended for better performance
 # MarkupSafe provides faster HTML escaping
 MarkupSafe==2.1.3

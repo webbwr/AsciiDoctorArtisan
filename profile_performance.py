@@ -21,10 +21,10 @@ import sys
 import time
 import traceback
 import tracemalloc
-from pathlib import Path
 
 # Set offscreen platform for headless testing
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
 
 def profile_imports():
     """Profile module import times."""
@@ -64,13 +64,15 @@ def profile_startup():
     # Measure class import
     start = time.perf_counter()
     from asciidoc_artisan import AsciiDocEditor
+
     import_time = (time.perf_counter() - start) * 1000
     print(f"AsciiDocEditor import: {import_time:.2f}ms")
 
     # Measure QApplication creation
     start = time.perf_counter()
     from PySide6.QtWidgets import QApplication
-    app = QApplication.instance() or QApplication(sys.argv)
+
+    _ = QApplication.instance() or QApplication(sys.argv)
     qapp_time = (time.perf_counter() - start) * 1000
     print(f"QApplication creation: {qapp_time:.2f}ms")
 
@@ -93,11 +95,11 @@ def profile_startup():
 
         print()
         return editor, {
-            'import_time': import_time,
-            'qapp_time': qapp_time,
-            'init_time': init_time,
-            'total': total_startup,
-            'passes_spec': total_startup < spec_limit
+            "import_time": import_time,
+            "qapp_time": qapp_time,
+            "init_time": init_time,
+            "total": total_startup,
+            "passes_spec": total_startup < spec_limit,
         }
     except Exception as e:
         print(f"❌ FAILED: {e}")
@@ -118,14 +120,24 @@ def profile_preview_rendering(editor):
     # Test documents of varying complexity
     test_docs = [
         ("Simple", "= Simple Document\n\nJust a paragraph."),
-        ("Medium", "= Medium Document\n\n" + "\n\n".join([f"== Section {i}\n\nParagraph {i}" for i in range(10)])),
-        ("Complex", "= Complex Document\n\n" + "\n\n".join([
-            f"== Section {i}\n\n"
-            f"Some text with *bold* and _italic_.\n\n"
-            f"[source,python]\n----\ndef example():\n    return True\n----\n\n"
-            f"[NOTE]\n====\nThis is a note.\n===="
-            for i in range(5)
-        ])),
+        (
+            "Medium",
+            "= Medium Document\n\n"
+            + "\n\n".join([f"== Section {i}\n\nParagraph {i}" for i in range(10)]),
+        ),
+        (
+            "Complex",
+            "= Complex Document\n\n"
+            + "\n\n".join(
+                [
+                    f"== Section {i}\n\n"
+                    f"Some text with *bold* and _italic_.\n\n"
+                    f"[source,python]\n----\ndef example():\n    return True\n----\n\n"
+                    f"[NOTE]\n====\nThis is a note.\n===="
+                    for i in range(5)
+                ]
+            ),
+        ),
     ]
 
     results = []
@@ -139,6 +151,7 @@ def profile_preview_rendering(editor):
             editor.update_preview()
             # Process events to complete rendering
             from PySide6.QtWidgets import QApplication
+
             QApplication.processEvents()
             elapsed = (time.perf_counter() - start) * 1000
             times.append(elapsed)
@@ -150,12 +163,9 @@ def profile_preview_rendering(editor):
         status = "✅ PASS" if passes else "❌ FAIL"
 
         print(f"{name:10s} - Avg: {avg_time:6.2f}ms, P95: {p95_time:6.2f}ms {status}")
-        results.append({
-            'name': name,
-            'avg': avg_time,
-            'p95': p95_time,
-            'passes_spec': passes
-        })
+        results.append(
+            {"name": name, "avg": avg_time, "p95": p95_time, "passes_spec": passes}
+        )
 
     print(f"\nSpec Requirement (NFR-001): < {spec_limit}ms (95th percentile)")
     print()
@@ -175,15 +185,15 @@ def profile_memory_usage(editor):
     tracemalloc.start()
 
     # Load a typical document
-    typical_doc = "= Document\n\n" + "\n\n".join([
-        f"== Section {i}\n\nContent for section {i}."
-        for i in range(50)
-    ])
+    typical_doc = "= Document\n\n" + "\n\n".join(
+        [f"== Section {i}\n\nContent for section {i}." for i in range(50)]
+    )
 
     editor.editor.setPlainText(typical_doc)
     editor.update_preview()
 
     from PySide6.QtWidgets import QApplication
+
     QApplication.processEvents()
 
     current, peak = tracemalloc.get_traced_memory()
@@ -201,11 +211,7 @@ def profile_memory_usage(editor):
     print(f"\nSpec Requirement (NFR-004): < {spec_limit}MB for typical documents")
     print()
 
-    return {
-        'current_mb': current_mb,
-        'peak_mb': peak_mb,
-        'passes_spec': passes
-    }
+    return {"current_mb": current_mb, "peak_mb": peak_mb, "passes_spec": passes}
 
 
 def generate_report(import_results, startup_results, preview_results, memory_results):
@@ -220,27 +226,33 @@ def generate_report(import_results, startup_results, preview_results, memory_res
         print(f"  - Import:    {startup_results['import_time']:.2f}ms")
         print(f"  - QApp:      {startup_results['qapp_time']:.2f}ms")
         print(f"  - Init:      {startup_results['init_time']:.2f}ms")
-        print(f"  Spec Status: {'✅ PASS' if startup_results['passes_spec'] else '❌ FAIL'}")
+        print(
+            f"  Spec Status: {'✅ PASS' if startup_results['passes_spec'] else '❌ FAIL'}"
+        )
 
     # Preview Summary
     if preview_results:
-        print(f"\nPreview Rendering (P95):")
-        all_pass = all(r['passes_spec'] for r in preview_results)
+        print("\nPreview Rendering (P95):")
+        all_pass = all(r["passes_spec"] for r in preview_results)
         for r in preview_results:
-            print(f"  - {r['name']:10s}: {r['p95']:.2f}ms ({'✅' if r['passes_spec'] else '❌'})")
+            print(
+                f"  - {r['name']:10s}: {r['p95']:.2f}ms ({'✅' if r['passes_spec'] else '❌'})"
+            )
         print(f"  Spec Status: {'✅ PASS' if all_pass else '❌ FAIL'}")
 
     # Memory Summary
     if memory_results:
         print(f"\nMemory Usage: {memory_results['peak_mb']:.2f}MB")
-        print(f"  Spec Status: {'✅ PASS' if memory_results['passes_spec'] else '❌ FAIL'}")
+        print(
+            f"  Spec Status: {'✅ PASS' if memory_results['passes_spec'] else '❌ FAIL'}"
+        )
 
     # Overall Compliance
     print(f"\n{'=' * 70}")
     all_tests_pass = (
-        (not startup_results or startup_results['passes_spec']) and
-        (not preview_results or all(r['passes_spec'] for r in preview_results)) and
-        (not memory_results or memory_results['passes_spec'])
+        (not startup_results or startup_results["passes_spec"])
+        and (not preview_results or all(r["passes_spec"] for r in preview_results))
+        and (not memory_results or memory_results["passes_spec"])
     )
 
     if all_tests_pass:
@@ -251,10 +263,10 @@ def generate_report(import_results, startup_results, preview_results, memory_res
     print()
 
     return {
-        'startup': startup_results,
-        'preview': preview_results,
-        'memory': memory_results,
-        'all_pass': all_tests_pass
+        "startup": startup_results,
+        "preview": preview_results,
+        "memory": memory_results,
+        "all_pass": all_tests_pass,
     }
 
 
@@ -278,7 +290,9 @@ def main():
     memory_results = profile_memory_usage(editor) if editor else None
 
     # Generate summary
-    report = generate_report(import_results, startup_results, preview_results, memory_results)
+    report = generate_report(
+        import_results, startup_results, preview_results, memory_results
+    )
 
     # Save results
     print("Performance profiling complete!")

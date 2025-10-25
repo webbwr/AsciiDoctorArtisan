@@ -155,9 +155,13 @@ class ClaudeClient:
                 )
 
                 # Extract text from response, filtering for TextBlock
-                text_blocks = [block for block in response.content if isinstance(block, TextBlock)]
+                text_blocks = [
+                    block for block in response.content if isinstance(block, TextBlock)
+                ]
                 if not text_blocks:
-                    return self._error_result("No text content in API response", start_time)
+                    return self._error_result(
+                        "No text content in API response", start_time
+                    )
 
                 converted_content = text_blocks[0].text
                 processing_time = time.time() - start_time

@@ -61,23 +61,11 @@ Usage:
     from asciidoc_artisan.core import atomic_save_text, sanitize_path
 """
 
-__version__ = "1.1.0"
+__version__ = "1.1.0-beta"
 
 # Main Application
-from .ui import AsciiDocEditor
-
 # Settings & Models
-from .core import GitResult, Settings
-
-# Workers
-from .workers import GitWorker, PandocWorker, PreviewWorker
-
-# UI Dialogs
-from .ui import ExportOptionsDialog, ImportOptionsDialog, PreferencesDialog
-
 # File Operations
-from .core import atomic_save_json, atomic_save_text, sanitize_path
-
 # Constants (most commonly used)
 from .core import (
     APP_NAME,
@@ -86,7 +74,23 @@ from .core import (
     SETTINGS_FILENAME,
     SUPPORTED_OPEN_FILTER,
     SUPPORTED_SAVE_FILTER,
+    GitResult,
+    Settings,
+    atomic_save_json,
+    atomic_save_text,
+    sanitize_path,
 )
+
+# UI Dialogs
+from .ui import (
+    AsciiDocEditor,
+    ExportOptionsDialog,
+    ImportOptionsDialog,
+    PreferencesDialog,
+)
+
+# Workers
+from .workers import GitWorker, PandocWorker, PreviewWorker
 
 __all__ = [
     # Version

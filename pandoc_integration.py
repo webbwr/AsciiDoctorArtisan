@@ -371,7 +371,7 @@ class PDFExtractor:
         if not table or not table[0]:
             return ""
 
-        lines = ["[options=\"header\"]", "|==="]
+        lines = ['[options="header"]', "|==="]
 
         for row_num, row in enumerate(table):
             # Filter out None values and convert to strings

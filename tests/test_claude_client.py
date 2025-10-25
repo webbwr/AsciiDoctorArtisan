@@ -9,6 +9,7 @@ import pytest
 # Try to import, but handle if anthropic not installed
 try:
     from claude_client import ClaudeClient, ConversionFormat, ConversionResult
+
     CLAUDE_AVAILABLE = True
 except ImportError:
     CLAUDE_AVAILABLE = False
@@ -76,6 +77,7 @@ class TestClaudeClient:
         mock_anthropic.return_value = mock_client
 
         from anthropic.types import TextBlock
+
         mock_message = MagicMock()
         text_block = TextBlock(text="Converted", type="text")
         mock_message.content = [text_block]
@@ -110,9 +112,7 @@ class TestClaudeClient:
         # Create APIError with required request parameter
         mock_request = MagicMock()
         mock_client.messages.create.side_effect = APIError(
-            "API error",
-            request=mock_request,
-            body=None
+            "API error", request=mock_request, body=None
         )
 
         client = ClaudeClient(api_key="test_key")
@@ -138,6 +138,7 @@ class TestClaudeClient:
 
         # First call raises RateLimitError, second succeeds
         from anthropic.types import TextBlock
+
         mock_message = MagicMock()
         text_block = TextBlock(text="Success after retry", type="text")
         mock_message.content = [text_block]
@@ -146,9 +147,7 @@ class TestClaudeClient:
         mock_response = MagicMock()
         mock_response.status_code = 429
         rate_limit_error = RateLimitError(
-            "Rate limit",
-            response=mock_response,
-            body=None
+            "Rate limit", response=mock_response, body=None
         )
 
         mock_client.messages.create.side_effect = [

@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 # Check for Claude client availability
 try:
-    from claude_client import ClaudeClient
+    import claude_client  # noqa: F401
 
     CLAUDE_CLIENT_AVAILABLE = True
 except ImportError:

@@ -37,7 +37,7 @@ from asciidoc_artisan.core import Settings
 
 # Check for Claude client availability
 try:
-    from claude_client import create_client
+    import claude_client  # noqa: F401
 
     CLAUDE_CLIENT_AVAILABLE = True
 except ImportError:

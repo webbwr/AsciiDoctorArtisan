@@ -4,11 +4,8 @@ Tests for PDF extraction functionality.
 
 import builtins
 import sys
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
-
-import pytest
 
 from pandoc_integration import PDFExtractor
 
@@ -157,7 +154,7 @@ class TestPDFExtractor:
             assert success is True
             assert "Text before table" in text
             assert "// Table extracted:" in text
-            assert "[options=\"header\"]" in text
+            assert '[options="header"]' in text
             assert "|===" in text
             assert "Header 1" in text
             assert "Row 1 Col 1" in text
@@ -223,7 +220,7 @@ class TestPDFExtractor:
 
         result = PDFExtractor._format_table_as_asciidoc(table)
 
-        assert "[options=\"header\"]" in result
+        assert '[options="header"]' in result
         assert "|===" in result
         assert "Col1" in result
         assert "Data1" in result
@@ -238,7 +235,7 @@ class TestPDFExtractor:
 
         result = PDFExtractor._format_table_as_asciidoc(table)
 
-        assert "[options=\"header\"]" in result
+        assert '[options="header"]' in result
         assert "|===" in result
         # None values should be converted to empty strings
         assert "| Header1 |  | Header3" in result
@@ -273,7 +270,7 @@ class TestPDFExtractor:
             assert success is True
             assert error == ""
             # Check for document header
-            assert f"= Document from test.pdf" in asciidoc_text
+            assert "= Document from test.pdf" in asciidoc_text
             assert ":toc:" in asciidoc_text
             assert ":toc-placement: preamble" in asciidoc_text
             assert "// Extracted from PDF" in asciidoc_text

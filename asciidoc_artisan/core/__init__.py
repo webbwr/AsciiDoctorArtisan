@@ -7,20 +7,14 @@ the application:
 - settings: Settings dataclass and persistence
 - models: Core data structures (GitResult, etc.)
 - file_operations: Secure file I/O utilities
+- secure_credentials: OS keyring integration for API keys (v1.1 security feature)
 
 Public API exports allow importing directly from asciidoc_artisan.core:
     from asciidoc_artisan.core import Settings, sanitize_path, EDITOR_FONT_SIZE
+    from asciidoc_artisan.core import SecureCredentials
 """
 
 # Settings
-from .settings import Settings
-
-# Models
-from .models import GitResult
-
-# File Operations
-from .file_operations import atomic_save_json, atomic_save_text, sanitize_path
-
 # Constants - import commonly used ones
 from .constants import (
     ADOC_FILTER,
@@ -47,11 +41,23 @@ from .constants import (
     ZOOM_STEP,
 )
 
+# File Operations
+from .file_operations import atomic_save_json, atomic_save_text, sanitize_path
+
+# Models
+from .models import GitResult
+
+# Security (v1.1)
+from .secure_credentials import SecureCredentials
+from .settings import Settings
+
 __all__ = [
     # Settings
     "Settings",
     # Models
     "GitResult",
+    # Security
+    "SecureCredentials",
     # File Operations
     "sanitize_path",
     "atomic_save_text",

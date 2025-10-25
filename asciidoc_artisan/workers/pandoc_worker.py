@@ -26,7 +26,7 @@ import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Callable, Optional, Union
+from typing import Optional, Union
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -190,7 +190,11 @@ class PandocWorker(QObject):
                         logger.info(f"Using PDF engine: {engine}")
                         pdf_engine_found = True
                         break
-                    except (FileNotFoundError, subprocess.CalledProcessError, Exception):
+                    except (
+                        FileNotFoundError,
+                        subprocess.CalledProcessError,
+                        Exception,
+                    ):
                         continue
 
                 if not pdf_engine_found:

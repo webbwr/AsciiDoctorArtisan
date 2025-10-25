@@ -3,11 +3,9 @@ Unit tests for GitWorker class.
 """
 
 import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6.QtCore import QThread
 
 from adp_windows import GitResult, GitWorker
 

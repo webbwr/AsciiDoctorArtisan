@@ -163,7 +163,7 @@ class TestPandocWorker:
             success=True,
             content="AI converted content",
             used_ai=True,
-            processing_time=0.1
+            processing_time=0.1,
         )
         mock_create_client.return_value = mock_client_instance
 
