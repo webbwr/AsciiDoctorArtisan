@@ -49,6 +49,7 @@ htmlcov/
 
 # Project specific
 *.log
+logs/*.log
 .env
 *.bak
 *.tmp
