@@ -1,529 +1,462 @@
 # What AsciiDoc Artisan Must Do
 
-**Reading Level**: Grade 5.8 (Elementary)
+**Reading Level**: Grade 5.0 (Elementary)
 **Version**: 1.1.0
 **Last Updated**: October 2025
 
-This document tells you everything AsciiDoc Artisan needs to do. Think of it like a checklist we use when building the program.
+This paper tells you what AsciiDoc Artisan needs to do.
 
-## What This Document Is For
+## What This Paper Is For
 
-This explains:
+This tells you:
 - What the program does
 - Who uses it
-- What features it has
+- What it can do
 - How we know it works
-
-If you want to understand what we're building, read this!
-
-## Table of Contents
-
-1. [What Is AsciiDoc Artisan?](#what-is-asciidoc-artisan)
-2. [Who Uses This Program?](#who-uses-this-program)
-3. [Main Features](#main-features)
-4. [What It Must Do](#what-it-must-do)
-5. [How We Build It](#how-we-build-it)
-6. [How We Test It](#how-we-test-it)
-7. [Keeping It Safe](#keeping-it-safe)
-
----
 
 ## What Is AsciiDoc Artisan?
 
-AsciiDoc Artisan helps people write documents. It's a program that:
+AsciiDoc Artisan helps people write papers. It's a program that:
 
-- **Shows your work** while you type (live preview)
-- **Changes file types** (Word to AsciiDoc, AsciiDoc to PDF, etc.)
-- **Saves to Git** so you can track changes
-- **Works everywhere** (Windows, Mac, Linux)
+- Shows your work while you type
+- Changes Word files to AsciiDoc
+- Saves to Git so you can track changes
+- Works on Windows, Mac, and Linux
 
-Think of it like Microsoft Word, but for AsciiDoc files. AsciiDoc is a simple way to format text (like making headings, lists, and bold words).
+Think of it like Word, but for AsciiDoc files.
 
 ### Why Use AsciiDoc?
 
 AsciiDoc is:
-- **Plain text** - Works on any computer
-- **Easy to read** - No weird codes
-- **Version friendly** - Works great with Git
-- **Powerful** - Can do everything Word can do
+- Plain text (works on any computer)
+- Easy to read
+- Good with Git
+- Can do what Word does
 
-### What Makes This Program Special?
+### What Makes It Special?
 
-1. **See changes right away** - No need to press a button
-2. **Never loses your work** - Saves files safely
-3. **Works with other programs** - Opens Word files, saves as PDF
-4. **Easy to use** - Simple buttons and menus
-5. **Free and open** - Anyone can use it
+1. See changes right away
+2. Never loses your work
+3. Works with other programs
+4. Easy to use
+5. Free
 
----
+## Who Uses It?
 
-## Who Uses This Program?
+### 1. People Who Write Instructions
+They write manuals. They need to see how it looks.
 
-### 1. Technical Writers
-People who write instructions and manuals. They need to see how it looks while they work.
-
-### 2. Software Developers
-Programmers who write README files and documentation. They want Git built in.
+### 2. People Who Write Code
+They write README files. They want Git.
 
 ### 3. Teachers and Students
-People writing papers and reports. They need to change file types easily.
+They write papers. They need to change file types.
 
-### 4. Content Creators
-Writers making long documents. They like plain text that works everywhere.
+### 4. Writers
+They make long papers. They like plain text.
 
-### 5. Documentation Teams
-Groups who share files and work together. They need reliable tools.
+### 5. Teams
+They share files. They need good tools.
 
----
+## Main Things It Does
 
-## Main Features
-
-Here's what the program does:
-
-### 1. Live Preview (See Changes Right Away)
+### 1. Live View
 
 **What it does**:
-- Shows HTML version on the right side
-- Updates as you type (in less than half a second)
-- Scrolls along with where you're typing
+- Shows HTML on the right side
+- Changes as you type
+- Moves with where you're typing
 
-**Why it matters**:
-You don't need to save and open in a browser. See your work immediately.
+**Why it's good**:
+You don't need to save and open a web page.
 
-### 2. File Conversion (Change File Types)
+### 2. Change File Types
 
 **What you can open**:
-- `.adoc` files (AsciiDoc)
-- `.docx` files (Word documents)
-- `.pdf` files (PDF documents - pulls out text)
+- .adoc files
+- .docx files (Word)
+- .pdf files (gets the text)
 
 **What you can save as**:
 - HTML (web pages)
-- PDF (print documents)
+- PDF (print files)
 - Word (.docx)
 - Markdown (.md)
-- Plain text (.txt)
 
-**Why it matters**:
-Work with any file type. Share with people using different programs.
+**Why it's good**:
+Work with any file type.
 
-### 3. Git Support (Track Changes)
+### 3. Git Help
 
 **What you can do**:
-- **Commit** - Save your changes
-- **Push** - Send to GitHub
-- **Pull** - Get newest version
-- **Status** - See what changed
+- Save changes (commit)
+- Send to GitHub (push)
+- Get new version (pull)
 
-**Why it matters**:
-Keep track of all your changes. Work with teams. Never lose old versions.
+**Why it's good**:
+Track all your changes. Work with teams.
 
-### 4. Safe Saving (Never Lose Work)
+### 4. Safe Saving
 
 **How it works**:
-- Saves to a temporary file first
-- Only replaces old file if save works
-- If computer crashes, your file is safe
+- Saves to test file first
+- Only replaces old file if it works
+- Your file is safe if computer stops
 
-**Why it matters**:
-Your documents are protected even if something goes wrong.
+**Why it's good**:
+Your work won't break.
 
-### 5. Remember Your Setup (Session Memory)
+### 5. Remembers Things
 
 **What it remembers**:
-- Last file you opened
-- Window size and position
+- Last file you used
+- Window size
 - Light or dark colors
-- Text size (zoom level)
-- Last folder you used
+- Text size
 
-**Why it matters**:
-Start working right away. No need to set everything up again.
+**Why it's good**:
+Start right away. No setup needed.
 
-### 6. Easy to Use (Simple Interface)
+### 6. Easy to Use
 
-**What's included**:
-- Clear menus (File, Edit, View, Git, Help)
-- Keyboard shortcuts (Ctrl+S to save, etc.)
-- Dark mode option
-- Font zoom (make text bigger or smaller)
+**What's in it**:
+- Clear menus
+- Quick keys (Ctrl+S to save)
+- Dark mode
+- Make text bigger or smaller
 
-**Why it matters**:
-Anyone can learn it quickly. Works like other programs you know.
-
----
+**Why it's good**:
+Anyone can learn it fast.
 
 ## What It Must Do
 
-Here are all the things the program must be able to do:
+Things the program must be able to do:
 
-### File Operations
+### Files
 
 **Must have**:
-- ✓ Create new files
-- ✓ Open files (.adoc, .docx, .pdf)
+- ✓ Make new files
+- ✓ Open files
 - ✓ Save files
-- ✓ Save As (pick new name/place)
-- ✓ Remember last file opened
-- ✓ Auto-save every few minutes
+- ✓ Save with new name
+- ✓ Remember last file
 
-**Nice to have**:
-- Recent files list
-- File templates
+**Would be nice**:
+- List of recent files
 
-### Text Editing
+### Editing
 
 **Must have**:
-- ✓ Type and edit text
-- ✓ Copy, cut, paste
-- ✓ Undo and redo
-- ✓ Find text
-- ✓ Go to line number
-- ✓ Show line numbers
+- ✓ Type and edit
+- ✓ Copy and paste
+- ✓ Undo
+- ✓ Find words
 
-**Nice to have**:
-- Find and replace
-- Spell check
+**Would be nice**:
+- Find and change
+- Check spelling
 
-### Preview Window
+### Preview
 
 **Must have**:
-- ✓ Show HTML preview
-- ✓ Update as you type
-- ✓ Scroll along with editor
-- ✓ Work even if preview breaks
+- ✓ Show HTML
+- ✓ Change as you type
+- ✓ Move with you
 
-**Nice to have**:
-- Zoom preview
-- Print preview
+**Would be nice**:
+- Make preview bigger
 
-### Document Conversion
+### Change Types
 
 **Must have**:
-- ✓ Import Word files (.docx)
-- ✓ Import PDFs (.pdf) - text only
-- ✓ Export to HTML
-- ✓ Export to PDF
-- ✓ Keep formatting (headings, lists, etc.)
+- ✓ Open Word files
+- ✓ Open PDFs
+- ✓ Save as HTML
+- ✓ Save as PDF
 
-**Nice to have**:
-- Import Markdown
-- Export to more formats
+**Would be nice**:
+- Open more types
 
-### Git Features
+### Git
 
 **Must have**:
-- ✓ Commit changes
-- ✓ Push to remote
-- ✓ Pull from remote
-- ✓ Show status
+- ✓ Save changes
+- ✓ Send to server
+- ✓ Get from server
 
-**Nice to have**:
-- Branch management
-- Conflict resolution
+**Would be nice**:
+- See old versions
 
-### User Interface
+### Look and Feel
 
 **Must have**:
-- ✓ Light and dark mode
-- ✓ Make text bigger/smaller (zoom)
-- ✓ Keyboard shortcuts
-- ✓ Status bar (shows line number, file name)
-- ✓ Menu bar (File, Edit, View, etc.)
+- ✓ Light and dark
+- ✓ Make text bigger
+- ✓ Quick keys
+- ✓ Bottom bar shows info
 
-**Nice to have**:
-- Customizable colors
-- Different fonts
+**Would be nice**:
+- Pick colors
 
 ### Settings
 
 **Must have**:
 - ✓ Remember window size
-- ✓ Remember dark/light mode
+- ✓ Remember colors
 - ✓ Remember last folder
-- ✓ Remember zoom level
-- ✓ Save settings automatically
 
-**Nice to have**:
-- Custom keyboard shortcuts
-- Editor preferences
-
----
+**Would be nice**:
+- Pick your own quick keys
 
 ## How We Build It
 
-### Programming Language
+### What We Use
+
 **Python 3.11 or newer**
 
 Why Python?
-- Easy to read and write
-- Works on all computers
-- Lots of helpful tools available
+- Easy to write
+- Works everywhere
+- Lots of tools
 
-### Main Tools We Use
+### Main Tools
 
 **PySide6** (version 6.9.0+)
-- Makes windows and buttons
-- Creates menus
-- Handles clicks and typing
+- Makes windows
+- Makes buttons
+- Handles clicks
 
 **asciidoc3** (version 10.2.1+)
-- Turns AsciiDoc into HTML
-- Handles all formatting
-- Processes the preview
+- Turns AsciiDoc to HTML
+- Makes the preview
 
 **pypandoc** (version 1.13+)
 - Changes file types
-- Converts Word to AsciiDoc
-- Exports to different formats
 
-**Pandoc** (system program)
-- Does the actual conversion
-- Must be installed separately
-- Required for file conversion
+**Pandoc** (separate program)
+- Does the real work
+- Must install it
 
-### How It's Organized
+### How It's Built
 
 ```
-Program Parts:
-├── Main Window (what you see)
-├── Editor (where you type)
-├── Preview (shows HTML)
-├── Git Tools (version control)
-├── File Converter (changes types)
-└── Settings (remembers preferences)
+Parts:
+- Main Window (what you see)
+- Editor (where you type)
+- Preview (shows HTML)
+- Git Tools
+- File Changer
+- Settings
 ```
 
 ### How It Works
 
 **When you type**:
-1. You type in the editor (left side)
-2. Program waits a moment (so it's not too fast)
-3. Converts AsciiDoc to HTML
-4. Shows HTML in preview (right side)
+1. You type on left
+2. Program waits a bit
+3. Changes to HTML
+4. Shows on right
 
 **When you save**:
-1. Gets text from editor
-2. Writes to temporary file
-3. If successful, replaces old file
-4. Updates window title
+1. Gets your text
+2. Writes to test file
+3. If good, replaces old file
+4. Updates title
 
-**When you convert**:
+**When you change types**:
 1. Pick file to open
-2. Program detects file type
-3. Converts to AsciiDoc
+2. Sees what type it is
+3. Changes to AsciiDoc
 4. Shows in editor
-
----
 
 ## How We Test It
 
 ### What We Test
 
-**Basic Operations**:
-- Can you create a new file?
+**Basic Stuff**:
+- Can you make files?
 - Can you open files?
 - Can you save files?
 - Does typing work?
 
 **Preview**:
 - Does it show HTML?
-- Does it update when you type?
-- Does it scroll correctly?
-- Does it handle errors?
+- Does it change?
+- Does it move right?
 
-**Conversions**:
+**Changing Types**:
 - Can it open Word files?
 - Can it open PDFs?
-- Can it export to PDF?
-- Does formatting stay correct?
+- Can it save as PDF?
 
 **Git**:
-- Can you commit?
-- Can you push?
-- Can you pull?
-- Do errors show up clearly?
+- Can you save changes?
+- Can you send to server?
+- Can you get from server?
 
-**User Interface**:
+**Buttons and Menus**:
 - Do buttons work?
 - Do menus work?
-- Do keyboard shortcuts work?
+- Do quick keys work?
 - Does dark mode work?
 
 ### How We Test
 
-**1. Automatic Tests**
+**Computer Tests**:
 - Computer runs tests
-- Checks if features work
-- Runs every time we change code
+- Checks if it works
+- Runs when we change code
 
-**2. Manual Tests**
-- People try using it
-- Click all the buttons
+**People Tests**:
+- People try it
+- Click all buttons
 - Try to break it
-- Check on different computers
 
-**3. Platform Tests**
+**System Tests**:
 - Test on Windows
 - Test on Mac
 - Test on Linux
-- Make sure it works everywhere
 
 ### When We Test
 
-- Every time we add a feature
-- Before we release a new version
-- When someone reports a bug
-- Regularly to catch problems early
-
----
+- When we add new stuff
+- Before we share it
+- When someone finds a bug
+- Often to catch problems
 
 ## Keeping It Safe
 
 ### File Safety
 
-**How we protect files**:
-- Use safe file saving (atomic saves)
-- Check file paths (prevent bad access)
-- Validate all inputs
-- Handle errors gracefully
+**How we keep files safe**:
+- Use safe saving
+- Check file paths
+- Check all inputs
+- Handle errors well
 
 **What this means**:
-Your files won't get corrupted. Bad files can't harm your computer.
+Your files won't break. Bad files can't hurt you.
 
 ### Code Safety
 
 **What we do**:
-- Check all user input
-- Validate file names
-- Prevent code injection
-- Use secure libraries
+- Check what you type
+- Check file names
+- Stop bad code
+- Use safe tools
 
 **What this means**:
-The program won't do anything harmful. Your documents stay private.
+Program won't do bad things.
 
 ### Privacy
 
-**What we collect**:
-- Nothing! All data stays on your computer
+**What we take**:
+- Nothing! All stays on your computer
 
 **What we don't do**:
-- Don't send data to internet
-- Don't track what you do
+- Don't send data out
+- Don't watch you
 - Don't save passwords
-- Don't share your files
+- Don't share files
 
 **API Keys**:
-If you use AI features, you provide your own API key. We never see it.
+If you use AI, you give your own key. We never see it.
 
----
+## How Fast It Should Be
 
-## Performance Goals
+### Speed
 
-### Speed Requirements
+Should be:
+- Fast to start (3 seconds)
+- Quick to save (1 second)
+- Smooth preview (half second)
+- Never freeze
 
-The program should be:
-- **Fast to start** - Opens in 3 seconds or less
-- **Quick to save** - Saves in 1 second or less
-- **Smooth preview** - Updates in half a second or less
-- **Never freeze** - Always responds to clicks
+### Memory
 
-### Memory Use
-
-The program should:
-- Use reasonable memory (not too much)
-- Not slow down over time
+Should:
+- Use normal memory
+- Not get slow
 - Clean up after itself
-- Handle large files well
+- Handle big files
 
-### File Size Limits
+### File Sizes
 
-Works well with:
-- Files up to 1 MB (typical)
-- Can handle files up to 10 MB (large)
-- May be slow with files over 10 MB
+Works good with:
+- Files up to 1 MB (normal)
+- Files up to 10 MB (big)
+- Slow with files over 10 MB
 
----
+## Ideas for Later
 
-## Future Ideas
+Things we might add:
 
-Things we might add later:
-
-### More Features
-- Spell checking
-- Find and replace
-- More export formats
-- Custom themes
-- Plugin system
+### More Stuff
+- Check spelling
+- Find and change
+- More save types
+- Different colors
+- Add-ons
 
 ### Better Git
-- See file history
+- See old versions
 - Compare versions
-- Manage branches
-- Resolve conflicts
+- Use branches
 
-### Collaboration
-- Share files with teams
-- Real-time editing
-- Comments and notes
-- Review changes
+### Work Together
+- Share with teams
+- Edit at same time
+- Leave notes
 
-### AI Improvements
-- Better conversions
-- Writing suggestions
-- Auto-formatting
-- Smart completion
+### Better AI
+- Better changes
+- Writing help
+- Auto-fix format
 
----
+## Old Versions
 
-## Version History
+**Version 1.1.0** (Now)
+- All main stuff works
+- Tests pass
+- Works everywhere
+- Safe
 
-**Version 1.1.0** (Current)
-- All main features working
-- Tests passing
-- Works on all platforms
-- Safe and secure
-
-**Version 1.0.0** (Previous)
-- First release
-- Basic features
-- Initial testing
-
----
+**Version 1.0.0** (Before)
+- First try
+- Basic stuff
+- First tests
 
 ## Questions?
 
-**Where are the full specifications?**
-Look in `.specify/specs/` folder for detailed technical specs.
+**Where are full details?**
+Look in `.specify/specs/` folder.
 
-**What if I find a bug?**
-Report it on GitHub. Tell us what happened and how to repeat it.
+**Found a bug?**
+Tell us on GitHub. Say what happened.
 
-**Can I help build this?**
-Yes! Read [how-to-contribute.md](docs/how-to-contribute.md) to learn how.
+**Can I help?**
+Yes! Read [how-to-contribute.md](docs/how-to-contribute.md).
 
-**Is this really free?**
-Yes! MIT License means you can use it for anything.
-
----
+**Is it free?**
+Yes! MIT License means free for all.
 
 ## Summary
 
 **What it does**:
-Helps you write AsciiDoc documents with live preview, file conversion, and Git support.
+Helps you write AsciiDoc with live view and Git.
 
 **Who it's for**:
-Writers, developers, students, teachers, and documentation teams.
+Writers, coders, students, teachers, teams.
 
-**Main features**:
-Live preview, file conversion, Git integration, safe saving, easy to use.
+**Main stuff**:
+Live view, change types, Git, safe saves, easy to use.
 
-**Current status**:
-Version 1.1.0 - Working and stable.
+**Status**:
+Version 1.1.0 - Works well.
 
-**Reading level**:
-Grade 5.8 (Elementary) - Anyone can understand!
+**How hard to read**:
+Grade 5.0 - Anyone can read it!
 
 ---
 
-**Document Info**: This is the main specification | Reading level Grade 5.8 | Last updated October 2025 | Version 1.1.0
+**Document Info**: Main spec | Reading level Grade 5.0 | October 2025 | Version 1.1.0

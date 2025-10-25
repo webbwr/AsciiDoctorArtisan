@@ -1,270 +1,235 @@
-# Installation Guide
+# How to Install
 
-**Reading Level**: Grade 5.4 (Elementary)
+**Reading Level**: Grade 5.0 (Elementary)
 
-This guide shows you how to install AsciiDoc Artisan on your computer.
+This guide shows you how to put AsciiDoc Artisan on your computer.
 
-## Before You Start
+## What You Need
 
-You need these things first:
-- A computer with Windows, Mac, or Linux
-- Internet connection to download files
-- About 10 minutes of time
+Before you start:
+- A computer (Windows, Mac, or Linux)
+- Internet to download files
+- About 10 minutes
 
-## Step-by-Step Installation
+## Step 1: Get Python
 
-### Step 1: Install Python
+Python makes the program work.
 
-Python is the main program that runs AsciiDoc Artisan.
+**Do you have Python?**
+1. Open a black window (called terminal or command prompt)
+2. Type: `python3 --version` and press Enter
+3. If you see "Python 3.11" or bigger, skip to Step 2!
 
-**Check if you have Python**:
-1. Open terminal (Mac/Linux) or Command Prompt (Windows)
-2. Type: `python3 --version` (or just `python --version` on Windows)
-3. If you see "Python 3.11" or higher, you're good! Skip to Step 2.
+**Get Python if you need it**:
 
-**If you need to install Python**:
-
-**Windows**:
+**On Windows**:
 1. Go to python.org
 2. Click "Downloads"
 3. Click "Download Python 3.12"
-4. Run the installer
-5. **Important**: Check the box that says "Add Python to PATH"
+4. Open the file you downloaded
+5. Check the box "Add Python to PATH" (very important!)
 6. Click "Install Now"
 
-**Mac**:
+**On Mac**:
 1. Open Terminal
 2. Type: `brew install python3`
-3. If you don't have Homebrew, get it from brew.sh first
+3. (If that doesn't work, get Homebrew from brew.sh first)
 
-**Linux**:
+**On Linux**:
 ```bash
 sudo apt update
 sudo apt install python3 python3-pip
 ```
 
-### Step 2: Download AsciiDoc Artisan
+## Step 2: Get the Program
 
-**Using Git** (easier for updates):
+**Easy way (if you have Git)**:
 1. Open terminal
-2. Go to where you want the program:
+2. Type these lines:
 ```bash
 cd ~/github
-```
-3. Download it:
-```bash
 git clone https://github.com/webbwr/AsciiDoctorArtisan.git
 cd AsciiDoctorArtisan
 ```
 
-**Without Git** (download zip file):
+**Other way (if you don't have Git)**:
 1. Go to github.com/webbwr/AsciiDoctorArtisan
 2. Click the green "Code" button
 3. Click "Download ZIP"
 4. Unzip the file
 5. Remember where you put it!
 
-### Step 3: Install Python Parts
+## Step 3: Add Python Tools
 
-The program needs some extra Python tools.
+The program needs extra tools.
 
-**Easy Way** (Linux/Mac):
+**On Linux or Mac**:
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
 
-**Regular Way** (any computer):
+**On any computer**:
 ```bash
 pip install -r requirements.txt
 ```
 
-Wait a few minutes while it downloads and installs everything.
+Wait a few minutes. It's downloading things.
 
-### Step 4: Install Pandoc (Optional but Helpful)
+## Step 4: Add Pandoc (You Can Skip This)
 
-Pandoc helps change document types (Word to AsciiDoc, etc.)
+Pandoc changes Word files to AsciiDoc. It helps but isn't required.
 
-**Windows**:
+**On Windows**:
 1. Go to pandoc.org/installing.html
-2. Download the Windows installer
-3. Run it
-4. Click through the steps
+2. Get the Windows file
+3. Open it
+4. Click the buttons to install
 
-**Mac**:
+**On Mac**:
 ```bash
 brew install pandoc
 ```
 
-**Linux**:
+**On Linux**:
 ```bash
 sudo apt install pandoc
 ```
 
-### Step 5: Test It Works
+## Step 5: Test It
 
-**Linux/Mac**:
+Make sure it works!
+
+**On Linux or Mac**:
 ```bash
 chmod +x verify.sh
 ./verify.sh
 ```
 
-**Windows**:
+**On Windows**:
 Right-click `AsciiDocArtisanVerify.ps1` and pick "Run with PowerShell"
 
-**Or test manually**:
+**Or test yourself**:
 ```bash
-python3 -c "import PySide6; print('PySide6 OK')"
-python3 -c "import asciidoc3; print('asciidoc3 OK')"
-python3 -c "import pypandoc; print('pypandoc OK')"
+python3 -c "import PySide6; print('Works!')"
+python3 -c "import asciidoc3; print('Works!')"
 ```
 
-If all say "OK", you're ready!
+If you see "Works!" both times, you're done!
 
-## Starting the Program
+## Start the Program
 
-### Quick Start
+**Easy way**:
+- **Windows**: Double-click `launch_gui.bat`
+- **Mac/Linux**: Double-click `launch_gui.sh`
 
-**Windows**:
-- Double-click `launch_gui.bat`
-
-**Linux/Mac**:
-- Double-click `launch_gui.sh`
-
-### Command Line Start
-
-**Windows**:
-```bash
-python src\main.py
-```
-
-**Linux/Mac**:
+**Other way**:
 ```bash
 python3 src/main.py
 ```
 
-## Common Installation Problems
+## Problems?
 
-### Problem: "Python is not recognized"
+### "Python not found"
 
-**Windows Fix**:
+**On Windows**:
 1. Uninstall Python
-2. Install again
-3. Make sure to check "Add Python to PATH"
+2. Install it again
+3. Check "Add Python to PATH" this time
 
-### Problem: "pip: command not found"
+### "pip not found"
 
-**Fix**:
+Type this:
 ```bash
 python3 -m ensurepip --upgrade
 ```
 
-### Problem: "Permission denied" on Linux/Mac
+### "Can't run scripts" (on Linux/Mac)
 
-**Fix**:
+Type this:
 ```bash
 chmod +x setup.sh verify.sh launch_gui.sh
 ```
 
-### Problem: "Can't install packages"
+### "Can't run scripts" (on Windows)
 
-**Fix** - Try using a virtual environment:
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### Problem: "Qt platform plugin could not be initialized"
-
-**Linux Fix**:
-```bash
-sudo apt install libxcb-xinerama0 libxcb-cursor0
-```
-
-### Problem: Windows says "Can't run scripts"
-
-**Fix** - Open PowerShell as Administrator:
+Open PowerShell as boss (right-click, pick "Run as administrator"):
 ```powershell
 Set-ExecutionPolicy RemoteSigned
 ```
 
+### Still doesn't work?
+
+Try this:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## What Got Installed
 
-Here's what you installed:
+**Main stuff** (required):
+- Python 3.11+ (runs everything)
+- PySide6 (makes windows)
+- asciidoc3 (makes HTML)
 
-**Core Parts** (required):
-- **Python 3.11+**: Runs everything
-- **PySide6**: Makes the windows and buttons
-- **asciidoc3**: Turns AsciiDoc into HTML
+**Extra stuff** (helpful):
+- pypandoc (changes files)
+- pdfplumber (reads PDFs)
+- Pandoc (converts documents)
 
-**Extra Parts** (optional but useful):
-- **pypandoc**: Changes document types
-- **pdfplumber**: Reads text from PDFs
-- **Pandoc**: Helps with conversions
+## Check Everything
 
-## Checking Your Installation
-
-Run these commands to check everything:
+Type these to check:
 
 ```bash
-# Check Python version
 python3 --version
-
-# Check if all parts are installed
-python3 -c "import PySide6, asciidoc3, pypandoc; print('All parts OK!')"
-
-# Check Pandoc
+python3 -c "import PySide6, asciidoc3; print('All good!')"
 pandoc --version
-
-# Try starting the program
 python3 src/main.py
 ```
 
-## Updating Later
+## Update Later
 
-### Update with Git
-
-If you used Git to install:
+**If you used Git**:
 ```bash
 cd AsciiDoctorArtisan
 git pull
 pip install -r requirements.txt --upgrade
 ```
 
-### Update without Git
-
-1. Download the new ZIP file
+**If you downloaded ZIP**:
+1. Download new ZIP
 2. Unzip it
-3. Copy your files to the new folder
-4. Run: `pip install -r requirements.txt --upgrade`
+3. Type: `pip install -r requirements.txt --upgrade`
 
-## Uninstalling
+## Remove It
 
-To remove AsciiDoc Artisan:
+To delete everything:
 
 1. Delete the program folder
-2. Remove Python packages (if you want):
-```bash
-pip uninstall PySide6 asciidoc3 pypandoc pdfplumber
-```
+2. Type: `pip uninstall PySide6 asciidoc3 pypandoc`
 
-Your settings file stays at:
+Your settings are in a hidden folder. Find it at:
 - **Windows**: `%APPDATA%/AsciiDocArtisan/`
 - **Mac**: `~/Library/Application Support/AsciiDocArtisan/`
 - **Linux**: `~/.config/AsciiDocArtisan/`
 
-Delete this folder if you want to remove all settings.
+Delete that folder to remove all settings.
 
-## Next Steps
+## What's Next?
 
-Now that it's installed:
-1. Read the USER_GUIDE.md file
-2. Try opening the example files in `templates/`
+Now that it works:
+1. Read [how-to-use.md](how-to-use.md) to learn how to use it
+2. Look at examples in `templates/`
 3. Start writing!
 
 ## Need Help?
 
-- Check the troubleshooting section in README.md
-- Look at GitHub issues
-- Create a new issue with your problem
+- Check README.md for more help
+- Look at issues on GitHub
+- Create a new issue if you find a problem
+
+---
+**Document Info**: Reading level Grade 5.0 | Last updated: 2025
