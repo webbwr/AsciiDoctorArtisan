@@ -94,6 +94,7 @@ from asciidoc_artisan.ui.dialogs import (
     ImportOptionsDialog,
     PreferencesDialog,
 )
+from asciidoc_artisan.ui.action_manager import ActionManager
 from asciidoc_artisan.ui.file_handler import FileHandler
 from asciidoc_artisan.ui.git_handler import GitHandler
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
@@ -300,10 +301,14 @@ class AsciiDocEditor(QMainWindow):
             self.status_manager
         )
 
+        # Initialize ActionManager (Phase 5: Week 2 Refactoring)
+        self.action_manager = ActionManager(self)
+        self.action_manager.create_all_actions()
+
         # Restore UI settings using manager
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
         # Phase 2: Use manager classes for menu and theme setup
-        self.menu_manager.create_actions()
+        # Note: create_actions() is now handled by ActionManager
         self.menu_manager.create_menus()
         self.theme_manager.apply_theme()
         self._setup_workers_and_threads()
@@ -530,246 +535,10 @@ class AsciiDocEditor(QMainWindow):
             self._is_syncing_scroll = False
 
     def _create_actions(self) -> None:
-
-        self.new_act = QAction(  # type: ignore[call-overload]  # type: ignore[call-overload]
-            "&New",
-            self,
-            shortcut=QKeySequence.StandardKey.New,
-            statusTip="Create a new file",
-            triggered=self.new_file,
-        )
-
-        self.open_act = QAction(  # type: ignore[call-overload]
-            "&Open...",
-            self,
-            shortcut=QKeySequence.StandardKey.Open,
-            statusTip="Open a file",
-            triggered=self.open_file,
-        )
-
-        self.save_act = QAction(  # type: ignore[call-overload]
-            "&Save",
-            self,
-            shortcut=QKeySequence(QKeySequence.StandardKey.Save),
-            statusTip="Save the document as AsciiDoc format (.adoc)",
-            triggered=self.save_file,
-        )
-
-        self.save_as_act = QAction(  # type: ignore[call-overload]
-            "Save &As...",
-            self,
-            shortcut=QKeySequence(QKeySequence.StandardKey.SaveAs),
-            statusTip="Save with a new name",
-            triggered=lambda: self.save_file(save_as=True),
-        )
-
-        self.save_as_adoc_act = QAction(  # type: ignore[call-overload]
-            "AsciiDoc (*.adoc)",
-            self,
-            statusTip="Save as AsciiDoc file",
-            triggered=lambda: self.save_file_as_format("adoc"),
-        )
-
-        self.save_as_md_act = QAction(  # type: ignore[call-overload]
-            "GitHub Markdown (*.md)",
-            self,
-            statusTip="Export to GitHub Markdown format",
-            triggered=lambda: self.save_file_as_format("md"),
-        )
-
-        self.save_as_docx_act = QAction(  # type: ignore[call-overload]
-            "Microsoft Word (*.docx)",
-            self,
-            statusTip="Export to Microsoft Office 365 Word format",
-            triggered=lambda: self.save_file_as_format("docx"),
-        )
-
-        self.save_as_html_act = QAction(  # type: ignore[call-overload]
-            "HTML Web Page (*.html)",
-            self,
-            statusTip="Export to HTML format (can print to PDF from browser)",
-            triggered=lambda: self.save_file_as_format("html"),
-        )
-
-        self.save_as_pdf_act = QAction(  # type: ignore[call-overload]
-            "Adobe PDF (*.pdf)",
-            self,
-            statusTip="Export to Adobe Acrobat PDF format",
-            triggered=lambda: self.save_file_as_format("pdf"),
-        )
-
-        self.exit_act = QAction(  # type: ignore[call-overload]
-            "E&xit",
-            self,
-            shortcut=QKeySequence.StandardKey.Quit,
-            statusTip="Exit the application",
-            triggered=self.close,
-        )
-
-        self.undo_act = QAction(  # type: ignore[call-overload]
-            "&Undo",
-            self,
-            shortcut=QKeySequence.StandardKey.Undo,
-            statusTip="Undo last action",
-            triggered=self.editor.undo,
-        )
-
-        self.redo_act = QAction(  # type: ignore[call-overload]
-            "&Redo",
-            self,
-            shortcut=QKeySequence.StandardKey.Redo,
-            statusTip="Redo last action",
-            triggered=self.editor.redo,
-        )
-
-        self.cut_act = QAction(  # type: ignore[call-overload]
-            "Cu&t",
-            self,
-            shortcut=QKeySequence.StandardKey.Cut,
-            statusTip="Cut selection",
-            triggered=self.editor.cut,
-        )
-
-        self.copy_act = QAction(  # type: ignore[call-overload]
-            "&Copy",
-            self,
-            shortcut=QKeySequence.StandardKey.Copy,
-            statusTip="Copy selection",
-            triggered=self.editor.copy,
-        )
-
-        self.paste_act = QAction(  # type: ignore[call-overload]
-            "&Paste",
-            self,
-            shortcut=QKeySequence.StandardKey.Paste,
-            statusTip="Paste from clipboard",
-            triggered=self.editor.paste,
-        )
-
-        self.convert_paste_act = QAction(  # type: ignore[call-overload]
-            "Convert && Paste",
-            self,
-            shortcut="Ctrl+Shift+V",
-            statusTip="Convert clipboard content to AsciiDoc",
-            triggered=self.convert_and_paste_from_clipboard,
-        )
-
-        self.preferences_act = QAction(  # type: ignore[call-overload]
-            "&Preferences...",
-            self,
-            shortcut="Ctrl+,",
-            statusTip="Configure application preferences",
-            triggered=self._show_preferences_dialog,
-        )
-
-        self.zoom_in_act = QAction(  # type: ignore[call-overload]
-            "Zoom &In",
-            self,
-            shortcut=QKeySequence.StandardKey.ZoomIn,
-            statusTip="Increase font size",
-            triggered=lambda: self._zoom(1),
-        )
-
-        self.zoom_out_act = QAction(  # type: ignore[call-overload]
-            "Zoom &Out",
-            self,
-            shortcut=QKeySequence.StandardKey.ZoomOut,
-            statusTip="Decrease font size",
-            triggered=lambda: self._zoom(-1),
-        )
-
-        self.dark_mode_act = QAction(  # type: ignore[call-overload]
-            "&Dark Mode",
-            self,
-            checkable=True,
-            checked=self._settings.dark_mode,
-            statusTip="Toggle dark mode",
-            triggered=self._toggle_dark_mode,
-        )
-
-        self.sync_scrolling_act = QAction(  # type: ignore[call-overload]
-            "&Synchronized Scrolling",
-            self,
-            checkable=True,
-            checked=self._sync_scrolling,
-            statusTip="Toggle synchronized scrolling between editor and preview",
-            triggered=self._toggle_sync_scrolling,
-        )
-
-        self.maximize_editor_act = QAction(  # type: ignore[call-overload]
-            "Maximize &Editor",
-            self,
-            shortcut="Ctrl+Shift+E",
-            statusTip="Toggle maximize editor pane",
-            triggered=lambda: self._toggle_pane_maximize("editor"),
-        )
-
-        self.maximize_preview_act = QAction(  # type: ignore[call-overload]
-            "Maximize &Preview",
-            self,
-            shortcut="Ctrl+Shift+R",
-            statusTip="Toggle maximize preview pane",
-            triggered=lambda: self._toggle_pane_maximize("preview"),
-        )
-
-        self.set_repo_act = QAction(  # type: ignore[call-overload]
-            "Set &Repository...",
-            self,
-            statusTip="Select Git repository",
-            triggered=self._select_git_repository,
-        )
-
-        self.git_commit_act = QAction(  # type: ignore[call-overload]
-            "&Commit...",
-            self,
-            shortcut="Ctrl+Shift+C",
-            statusTip="Commit changes",
-            triggered=self._trigger_git_commit,
-        )
-
-        self.git_pull_act = QAction(  # type: ignore[call-overload]
-            "&Pull",
-            self,
-            shortcut="Ctrl+Shift+P",
-            statusTip="Pull from remote",
-            triggered=self._trigger_git_pull,
-        )
-
-        self.git_push_act = QAction(  # type: ignore[call-overload]
-            "P&ush",
-            self,
-            shortcut="Ctrl+Shift+U",
-            statusTip="Push to remote",
-            triggered=self._trigger_git_push,
-        )
-
-        self.pandoc_status_act = QAction(  # type: ignore[call-overload]
-            "&Pandoc Status",
-            self,
-            statusTip="Check Pandoc installation status",
-            triggered=self._show_pandoc_status,
-        )
-
-        self.pandoc_formats_act = QAction(  # type: ignore[call-overload]
-            "Supported &Formats",
-            self,
-            statusTip="Show supported conversion formats",
-            triggered=self._show_supported_formats,
-        )
-
-        self.ai_setup_help_act = QAction(  # type: ignore[call-overload]
-            "&AI Conversion Setup",
-            self,
-            statusTip="How to set up AI-enhanced conversion",
-            triggered=self._show_ai_setup_help,
-        )
-
-        self.about_act = QAction(  # type: ignore[call-overload]
-            "&About",
-            self,
-            statusTip="About AsciiDoctor Artisan",
-            triggered=self._show_about,
-        )
+        """Create all actions (delegates to ActionManager)."""
+        # Note: Action creation is now handled by ActionManager
+        # This method kept for backward compatibility with menu_manager
+        pass
 
     def _create_menus(self) -> None:
         menubar = self.menuBar()
