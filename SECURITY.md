@@ -1,73 +1,78 @@
-# Security Policy
+# How We Keep You Safe
 
-## Supported Versions
+## Which Versions We Help
 
-Currently supported versions with security updates:
+We fix safety problems in these versions:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| Version | We Help? |
+| ------- | -------- |
+| 1.0.x   | ✓ Yes    |
+| < 1.0   | ✗ No     |
 
-## Reporting a Vulnerability
+## Found a Safety Problem?
 
-If you discover a security vulnerability in AsciiDoc Artisan, please report it by:
+If you find something unsafe, please tell us:
 
-1. **Do NOT** open a public issue
-2. Email the maintainer directly (check GitHub profile for contact)
-3. Include:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Suggested fix (if available)
+1. **Don't** write about it in public
+2. Email the person who runs this project
+3. Tell us:
+   - What the problem is
+   - How to see the problem
+   - What bad things could happen
+   - How to fix it (if you know)
 
-### Response Timeline
+### When We Will Answer
 
-- Initial response: Within 48 hours
-- Status update: Within 7 days
-- Fix timeline: Depends on severity
-  - Critical: Within 7 days
-  - High: Within 30 days
-  - Medium: Within 90 days
-  - Low: Next release cycle
+- First answer: In 2 days
+- Updates: Every week
+- Fix time: Depends how bad it is
+  - Very bad: In 7 days
+  - Bad: In 30 days
+  - Not too bad: In 90 days
+  - Small: Next version
 
-### What to Expect
+### What Happens Next
 
-- Acknowledgment of your report
-- Regular updates on fix progress
-- Credit in release notes (if desired)
-- Notification when fix is released
+- We say thank you for telling us
+- We tell you how the fix is going
+- We say your name in the notes (if you want)
+- We tell you when it's fixed
 
-## Security Best Practices
+## How to Stay Safe
 
-When using AsciiDoc Artisan:
+When you use AsciiDoc Artisan:
 
-1. **Keep Updated**: Always use the latest version
-2. **Dependencies**: Regularly update dependencies
-3. **File Sources**: Only open AsciiDoc files from trusted sources
-4. **Git Operations**: Review git commands before execution
-5. **Pandoc**: Ensure Pandoc is from official sources
+1. **Use New Versions**: Get the newest version
+2. **Update Tools**: Keep tools up to date
+3. **Trust Files**: Only open files you trust
+4. **Check Git**: Look at git commands before you run them
+5. **Get Real Tools**: Get Pandoc from the real website
 
-## Known Security Considerations
+## Things to Know
 
-### Git Integration
-- Git operations execute shell commands
-- Only use in trusted repositories
-- Review commit messages before pushing
+### Git Features
+- Git runs commands on your computer
+- Only use with files you trust
+- Read messages before you save
 
-### File Operations
-- Files are read/written with user permissions
-- Auto-save creates temporary files
-- Session state is stored locally
+### Files
+- Program reads and writes files
+- Auto-save makes extra files
+- Your choices save on your computer
 
-### External Dependencies
-- asciidoc3: Processes markup (potential XSS in preview)
-- pypandoc: Executes Pandoc (shell command execution)
-- PySide6: Qt framework (inherits Qt security model)
+### Other Tools
+- asciidoc3: Shows your work (could show bad things)
+- pypandoc: Changes files (runs commands)
+- PySide6: Makes windows (uses Qt safety rules)
 
-## Security Updates
+## Safety Updates
 
-Security updates are released as:
-- Patch versions for critical issues
-- Announced in CHANGELOG.md
-- Tagged with `security` label in releases
+We tell you about safety fixes in:
+- New version numbers
+- CHANGELOG.md file
+- Release notes with `security` tag
+
+---
+
+**Reading Level**: Grade 5.0
+**Last Updated**: October 2025

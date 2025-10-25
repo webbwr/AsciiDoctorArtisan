@@ -1,134 +1,134 @@
-# OpenSpec Directory
+# OpenSpec Folder
 
-**Reading Level**: Grade 6.0
-**Based On**: OpenSpec framework
+**Reading Level**: Grade 5.0
 
 ## What This Is
 
-This folder holds our specification system. It helps us plan and track changes to AsciiDoc Artisan.
+This folder helps us plan new features. We write down ideas before we build them.
 
-## Structure
+## What's Inside
 
 ```
 openspec/
-├── changes/         (Proposed changes - things we want to add)
-│   ├── _template/   (Copy this to start a new change)
-│   └── spell-checker/ (Example: adding spell check feature)
-├── archive/         (Completed changes - things we already did)
+├── changes/         (New ideas we want to add)
+│   ├── _template/   (Copy this to start)
+│   └── spell-checker/ (Example idea)
+├── archive/         (Old ideas we already built)
 └── README.md        (This file)
 ```
 
-**Note**: The main spec file is `SPECIFICATIONS.md` in the root directory.
+**Main Rules**: See `SPECIFICATIONS.md` in the main folder.
 
-## How to Use This
+## How to Add a New Idea
 
-### To Propose a New Feature
+### Step 1: Copy the Template
 
-1. **Copy the template**:
-   ```bash
-   cp -r openspec/changes/_template openspec/changes/your-feature-name
-   ```
+```bash
+cp -r openspec/changes/_template openspec/changes/my-idea
+```
 
-2. **Fill out the files**:
-   - `proposal.md` - Why we need it, how it works
-   - `tasks.md` - What work needs to be done
-   - `design.md` - Technical details
-   - `specs/` - What requirements change
+### Step 2: Fill Out Files
 
-3. **Get feedback**:
-   - Share with team
-   - Discuss and improve
-   - Get approval
+- `proposal.md` - Why we need it
+- `tasks.md` - What work to do
+- `design.md` - How it works
+- `specs/` - What rules change
 
-4. **Build it**:
-   - Follow the tasks
-   - Check off items as you go
-   - Test everything
+### Step 3: Get Help
 
-5. **Archive it**:
-   - Move to `archive/YYYY-MM-feature-name/`
-   - Update main `SPECIFICATIONS.md`
-   - Close related issues
+- Show other people
+- Talk about it
+- Make it better
+- Get OK to build it
 
-### To View Changes
+### Step 4: Build It
 
-**See all proposed changes**:
+- Do the tasks
+- Check them off
+- Test it all
+
+### Step 5: Save It
+
+- Move to `archive/`
+- Update main rules
+- Close related notes
+
+## See What's Planned
+
+**See new ideas**:
 ```bash
 ls openspec/changes/
 ```
 
-**See completed changes**:
+**See finished ideas**:
 ```bash
 ls openspec/archive/
 ```
 
-## File Templates
+## What Goes in Each File
 
 ### proposal.md
-- Problem statement
-- Proposed solution
-- Examples
-- Benefits and risks
-- Open questions
+- What problem it fixes
+- How it will work
+- Why it's good
+- What could go wrong
 
 ### tasks.md
-- Planning tasks
-- Design tasks
-- Code tasks
-- Testing tasks
-- Review and deploy tasks
+- Things to plan
+- Things to design
+- Things to code
+- Things to test
+- Things to check
 
 ### design.md
-- How it works
-- What components change
-- UI mockups
-- API changes
-- Testing strategy
+- How it works inside
+- What parts change
+- Pictures of screens
+- How to test it
 
 ### specs/*.md
-- ADDED requirements
-- MODIFIED requirements
-- REMOVED requirements
-- Uses Given/When/Then format
+- New rules we add
+- Old rules we change
+- Rules we remove
+- Uses Given/When/Then words
 
-## Validation
+## Check Your Work
 
-Check if spec follows our format:
+Test if your spec is good:
 
 ```bash
-./scripts/validate-spec.sh
+./scripts/validate-specifications.sh
 ```
 
 This checks:
-- SHALL/MUST language
-- Given/When/Then scenarios
-- All domain sections present
-- Version metadata
-- Reading level
+- Uses SHALL words
+- Has Given/When/Then tests
+- Has all parts
+- Has version number
+- Easy to read
 
 ## Example
 
-Look at `openspec/changes/spell-checker/` to see a complete example of how to propose a feature.
+Look at `openspec/changes/spell-checker/` to see how to do it.
 
-## Reading Level
+## Write Simple
 
-All files in openspec should be written at Grade 6.0 level or below. Use:
+All files should use Grade 5.0 words:
 - Short sentences
 - Simple words
-- Active voice
 - Clear examples
 
-Test with:
+Test it:
 ```bash
-python3 check_readability.py openspec/changes/your-feature/proposal.md
+python3 check_readability.py openspec/changes/my-idea/proposal.md
 ```
 
-## Questions?
+## Need Help?
 
-- See main `SPECIFICATIONS.md` for current requirements
-- See `SPEC_IMPROVEMENT_PLAN.md` for why we organized it this way
-- See `OPENSPEC_ANALYSIS.md` for analysis of the OpenSpec framework
+- See `SPECIFICATIONS.md` for current rules
+- Ask on GitHub
 
 ---
 
-**Document Info**: OpenSpec directory guide | Reading level Grade 6.0 | October 2025
+**Reading Level**: Grade 5.0
+**Last Updated**: October 2025

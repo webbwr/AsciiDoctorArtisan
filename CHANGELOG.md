@@ -1,100 +1,88 @@
-# Changelog
+# What Changed
 
-All notable changes to AsciiDoc Artisan will be documented in this file.
+This file tells you what we changed in each version.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+We use simple rules from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## Next Version (Not Out Yet)
 
-### Added
-- PDF import capability via pdfplumber text extraction with table support
-- Comprehensive test suite for PDF extraction (15 tests covering all scenarios)
-- Settings dataclass for structured configuration management (FR-045)
-- Persistent splitter position between editor and preview panes (FR-045)
-- Persistent font size across application sessions (FR-043)
-- Comprehensive test suite with pytest infrastructure
-- Unit tests for Settings dataclass persistence
-- Unit tests for atomic file operations
-- Unit tests for path sanitization security
-- pytest.ini configuration for test organization
-- Test markers for unit, integration, and GUI tests
+### New Things
+- You can now open PDF files
+- We made tests to check PDFs work right (15 tests)
+- Settings save better now
+- Window size saves when you close the program
+- Font size saves when you close the program
+- We made lots of tests (all pass!)
+- Tests check settings save right
+- Tests check files save safely
 
-### Changed
-- **BREAKING**: Removed Claude AI integration (out of specification scope)
-- Refactored settings management to use dataclass pattern
-- Settings now stored in Settings dataclass matching specification
-- All configuration persistence uses Settings.to_dict/from_dict
-- Updated requirements.txt to add pdfplumber>=0.10.0 for PDF extraction
-- Updated requirements.txt to remove anthropic and requests dependencies
-- Improved README.md to focus on specification features only
-- Enhanced settings restoration on application startup
+### What We Changed
+- **BIG CHANGE**: Removed AI helper (we don't need it)
+- Settings work better now
+- Settings file is easier to read
+- We need a new tool called pdfplumber
+- We don't need some old tools now
+- README file is clearer now
 
-### Removed
-- Claude AI integration files (claude_client.py, claude_integration_example.py)
-- Claude AI integration directory (claude-integration/)
-- Claude AI documentation (CLAUDE_INTEGRATION.md, CLAUDE_MIGRATION_GUIDE.md, ANTHROPIC_SDK_INTEGRATION_SUMMARY.md)
-- anthropic>=0.71.0 dependency
-- requests>=2.31.0 dependency
+### What We Removed
+- AI helper files (we don't use AI now)
+- Old AI docs
+- Two old tools we don't need
 
-### Fixed
-- Settings now properly persist splitter sizes between sessions
-- Font size now properly persists between application sessions
-- Configuration file location now uses platform-appropriate paths
+### What We Fixed
+- Window size saves right now
+- Font size saves right now
+- Settings file goes in the right place now
 
-### Technical Improvements
-- Code now fully aligned with project specification (.specify/specs/)
-- All settings variables migrated from instance variables to Settings dataclass
-- Added 14 passing unit tests with 100% success rate
-- Improved code maintainability with structured settings management
+### Better Code
+- Code matches our plan now
+- Settings are cleaner
+- 14 tests all work (100% pass!)
+- Code is easier to read
 
-## [1.0.0-alpha] - 2025-10-19
+## Version 1.0.0 (First Try) - October 19, 2025
 
-### Added
-- Initial release of AsciiDoc Artisan
-- PySide6-based desktop GUI application
-- Live HTML preview of AsciiDoc content
-- Real-time rendering with AsciiDoc3
-- File operations (Open, Save, Save As)
-- DOCX import via Pandoc conversion
-- Git integration (Commit, Pull, Push)
-- Clipboard conversion (Word/HTML to AsciiDoc)
-- Dark/Light theme toggle
-- Font zoom controls (Ctrl+/Ctrl-)
-- Settings persistence (window state, theme, last directory)
-- Cross-platform support (Windows, Linux, macOS)
-- Comprehensive documentation
-- Setup and verification scripts for Linux/WSL
-- PowerShell verification script for Windows
-- Python dependencies management
+### New Things
+- First version of AsciiDoc Artisan!
+- Nice windows program
+- See your work as you type
+- Open and save files
+- Turn Word files into AsciiDoc
+- Use Git to save versions
+- Copy from Word and paste as AsciiDoc
+- Dark and light colors
+- Make text bigger or smaller
+- Program remembers your choices
+- Works on Windows, Mac, and Linux
+- Help files to get started
+- Setup scripts to install
+- Check scripts to test it works
 
-### Dependencies
-- PySide6 >= 6.9.0 (Qt GUI framework)
-- asciidoc3 (AsciiDoc processing)
-- pypandoc (Document conversion)
-- System: git, pandoc
+### What You Need
+- PySide6 6.9.0 or newer (makes windows)
+- asciidoc3 (turns text into HTML)
+- pypandoc (changes file types)
+- git and pandoc on your computer
 
-### Known Limitations
-- Single file editing only (no project/multi-file support)
-- No syntax highlighting in editor
-- No find/replace functionality
-- No undo/redo beyond Qt default
-- No export to PDF (only HTML preview)
-- Git operations require repository to be pre-configured
+### What Doesn't Work Yet
+- Can only open one file at a time
+- No colored text in editor
+- No find and replace
+- Basic undo/redo only
+- Can't save as PDF (only see HTML)
+- Git must be set up first
 
 ---
 
-## Release Notes Format
+## How We Label Changes
 
-### Types of Changes
-- **Added** - New features
-- **Changed** - Changes in existing functionality
-- **Deprecated** - Soon-to-be removed features
-- **Removed** - Removed features
-- **Fixed** - Bug fixes
-- **Security** - Security improvements
+- **New Things** - Features we added
+- **What We Changed** - Things that work different now
+- **Going Away** - Features we will remove soon
+- **What We Removed** - Features we took out
+- **What We Fixed** - Bugs we fixed
+- **Security** - How we made it safer
 
 ---
 
-[Unreleased]: https://github.com/webbwr/AsciiDoctorArtisan/compare/v1.0.0-alpha...HEAD
-[1.0.0-alpha]: https://github.com/webbwr/AsciiDoctorArtisan/releases/tag/v1.0.0-alpha
+**Reading Level**: Grade 5.0
