@@ -4,19 +4,23 @@ Main Window - AsciiDocEditor application window.
 This module contains the AsciiDocEditor class, the main application window
 for AsciiDoc Artisan. This is the central UI controller that manages:
 - Editor and preview panes
-- Menu system and actions
 - File operations (open, save, import, export)
 - Git integration
 - Settings persistence
 - Worker thread coordination
-- Theme management
 
 The AsciiDocEditor implements the complete application UI per specification
 requirements FR-001 to FR-053.
 
-This is a large class (~2,300 lines) that coordinates all application
-functionality. Future refactoring could break it into smaller components
-(MenuManager, EditorActions, etc.) but current implementation is functional.
+Phase 2 Refactoring (v1.1.0-beta):
+The class now delegates menu, theme, and status management to specialized
+manager classes for improved modularity:
+- MenuManager: Handles menu creation and actions
+- ThemeManager: Manages dark/light mode and color palettes
+- StatusManager: Coordinates window title, status bar, and message dialogs
+
+This architectural improvement reduces complexity while maintaining full
+backward compatibility.
 """
 
 import html
@@ -87,7 +91,10 @@ from asciidoc_artisan.ui.dialogs import (
     ImportOptionsDialog,
     PreferencesDialog,
 )
+from asciidoc_artisan.ui.menu_manager import MenuManager
 from asciidoc_artisan.ui.settings_manager import SettingsManager
+from asciidoc_artisan.ui.status_manager import StatusManager
+from asciidoc_artisan.ui.theme_manager import ThemeManager
 from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
 
 # Check for Claude client availability
@@ -135,6 +142,11 @@ class AsciiDocEditor(QMainWindow):
 
         # Load settings
         self._settings = self._settings_manager.load_settings()
+
+        # Initialize Phase 2 managers
+        self.menu_manager = MenuManager(self)
+        self.theme_manager = ThemeManager(self)
+        self.status_manager = StatusManager(self)
 
         # Initialize state variables
         self._current_file_path: Optional[Path] = None
@@ -186,9 +198,10 @@ class AsciiDocEditor(QMainWindow):
         self._setup_ui()
         # Restore UI settings using manager
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
-        self._create_actions()
-        self._create_menus()
-        self._apply_theme()
+        # Phase 2: Use manager classes for menu and theme setup
+        self.menu_manager.create_actions()
+        self.menu_manager.create_menus()
+        self.theme_manager.apply_theme()
         self._setup_workers_and_threads()
         self._update_ui_state()
 
@@ -755,7 +768,7 @@ class AsciiDocEditor(QMainWindow):
         if self._is_opening_file:
             return
         self._unsaved_changes = True
-        self._update_window_title()
+        self.status_manager.update_window_title()
         self._preview_timer.start()
 
     def _update_window_title(self) -> None:
@@ -807,26 +820,26 @@ class AsciiDocEditor(QMainWindow):
     def new_file(self) -> None:
         """Create a new file."""
         if self._unsaved_changes:
-            if not self._prompt_save_before_action("creating a new file"):
+            if not self.status_manager.prompt_save_before_action("creating a new file"):
                 return
 
         self.editor.clear()
         self._current_file_path = None
         self._unsaved_changes = False
-        self._update_window_title()
+        self.status_manager.update_window_title()
         self.status_bar.showMessage("New file created")
 
     @Slot()
     def open_file(self) -> None:
         """Open a file with proper Windows dialog."""
         if self._is_processing_pandoc:
-            self._show_message(
+            self.status_manager.show_message(
                 "warning", "Busy", "Already processing a file conversion."
             )
             return
 
         if self._unsaved_changes:
-            if not self._prompt_save_before_action("opening a new file"):
+            if not self.status_manager.prompt_save_before_action("opening a new file"):
                 return
 
         file_path_str, _ = QFileDialog.getOpenFileName(
@@ -854,7 +867,7 @@ class AsciiDocEditor(QMainWindow):
                 from pandoc_integration import pdf_extractor
 
                 if not pdf_extractor.is_available():
-                    self._show_message(
+                    self.status_manager.show_message(
                         "warning",
                         "PDF Support Unavailable",
                         "PDF text extraction requires pdfplumber.\n\n"
@@ -873,7 +886,7 @@ class AsciiDocEditor(QMainWindow):
                 )
 
                 if not success:
-                    self._show_message(
+                    self.status_manager.show_message(
                         "critical",
                         "PDF Extraction Failed",
                         f"Failed to extract text from PDF:\n\n{error_msg}\n\n"
@@ -966,7 +979,9 @@ class AsciiDocEditor(QMainWindow):
 
         except Exception as e:
             logger.exception(f"Failed to open file: {file_path}")
-            self._show_message("critical", "Error", f"Failed to open file:\n{e}")
+            self.status_manager.show_message(
+                "critical", "Error", f"Failed to open file:\n{e}"
+            )
 
     def _load_content_into_editor(self, content: str, file_path: Path) -> None:
         self._is_opening_file = True
@@ -975,7 +990,7 @@ class AsciiDocEditor(QMainWindow):
             self.editor.setPlainText(content)
             self._current_file_path = file_path
             self._unsaved_changes = False
-            self._update_window_title()
+            self.status_manager.update_window_title()
 
             if file_path.suffix.lower() in [
                 ".md",
@@ -1104,12 +1119,12 @@ class AsciiDocEditor(QMainWindow):
             self._current_file_path = file_path
             self._settings.last_directory = str(file_path.parent)
             self._unsaved_changes = False
-            self._update_window_title()
+            self.status_manager.update_window_title()
             self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
             logger.info(f"Saved file: {file_path}")
             return True
         else:
-            self._show_message(
+            self.status_manager.show_message(
                 "critical",
                 "Save Error",
                 f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.",
@@ -1140,11 +1155,11 @@ class AsciiDocEditor(QMainWindow):
                 self._current_file_path = file_path
                 self._settings.last_directory = str(file_path.parent)
                 self._unsaved_changes = False
-                self._update_window_title()
+                self.status_manager.update_window_title()
                 self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
                 return True
             else:
-                self._show_message(
+                self.status_manager.show_message(
                     "critical",
                     "Save Error",
                     f"Failed to save AsciiDoc file: {file_path}",
@@ -1170,7 +1185,7 @@ class AsciiDocEditor(QMainWindow):
                     raise IOError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to save HTML file: {e}")
-                self._show_message(
+                self.status_manager.show_message(
                     "critical", "Save Error", f"Failed to save HTML file:\n{e}"
                 )
                 return False
@@ -1190,7 +1205,7 @@ class AsciiDocEditor(QMainWindow):
             html_content = outfile.getvalue()
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-            self._show_message(
+            self.status_manager.show_message(
                 "critical",
                 "Conversion Error",
                 f"Failed to convert AsciiDoc to HTML:\n{e}",
@@ -1201,7 +1216,7 @@ class AsciiDocEditor(QMainWindow):
         try:
             temp_html.write_text(html_content, encoding="utf-8")
         except Exception as e:
-            self._show_message(
+            self.status_manager.show_message(
                 "critical", "Save Error", f"Failed to create temporary file:\n{e}"
             )
             return False
@@ -1223,7 +1238,7 @@ class AsciiDocEditor(QMainWindow):
                     self.status_bar.showMessage(
                         f"Saved as HTML (PDF-ready): {html_path}"
                     )
-                    self._show_message(
+                    self.status_manager.show_message(
                         "information",
                         "PDF Export Alternative",
                         f"Saved as HTML with print styling: {html_path}\n\n"
@@ -1266,7 +1281,7 @@ class AsciiDocEditor(QMainWindow):
             self._current_file_path = file_path
             self._settings.last_directory = str(file_path.parent)
             self._unsaved_changes = False
-            self._update_window_title()
+            self.status_manager.update_window_title()
 
         return True
 
@@ -1282,7 +1297,7 @@ class AsciiDocEditor(QMainWindow):
         }
 
         if format_type not in format_filters:
-            self._show_message(
+            self.status_manager.show_message(
                 "warning", "Export Error", f"Unsupported format: {format_type}"
             )
             return False
@@ -1333,7 +1348,7 @@ class AsciiDocEditor(QMainWindow):
                 self.status_bar.showMessage(f"Saved as AsciiDoc: {file_path}")
                 return True
             else:
-                self._show_message(
+                self.status_manager.show_message(
                     "critical",
                     "Export Error",
                     f"Failed to save AsciiDoc file: {file_path}",
@@ -1359,7 +1374,7 @@ class AsciiDocEditor(QMainWindow):
                     raise IOError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to export HTML file: {e}")
-                self._show_message(
+                self.status_manager.show_message(
                     "critical", "Export Error", f"Failed to export HTML file:\n{e}"
                 )
                 return False
@@ -1376,7 +1391,7 @@ class AsciiDocEditor(QMainWindow):
             html_content = outfile.getvalue()
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-            self._show_message(
+            self.status_manager.show_message(
                 "critical",
                 "Conversion Error",
                 f"Failed to convert AsciiDoc to HTML:\n{e}",
@@ -1387,7 +1402,7 @@ class AsciiDocEditor(QMainWindow):
         try:
             temp_html.write_text(html_content, encoding="utf-8")
         except Exception as e:
-            self._show_message(
+            self.status_manager.show_message(
                 "critical", "Export Error", f"Failed to create temporary file:\n{e}"
             )
             return False
@@ -1409,7 +1424,7 @@ class AsciiDocEditor(QMainWindow):
                     self.status_bar.showMessage(
                         f"Exported as HTML (PDF-ready): {html_path}"
                     )
-                    self._show_message(
+                    self.status_manager.show_message(
                         "information",
                         "PDF Export Alternative",
                         f"Exported as HTML with print styling: {html_path}\n\n"
@@ -1656,7 +1671,7 @@ class AsciiDocEditor(QMainWindow):
 
     def _toggle_dark_mode(self) -> None:
         self._settings.dark_mode = self.dark_mode_act.isChecked()
-        self._apply_theme()
+        self.theme_manager.apply_theme()
         self.update_preview()
 
     def _toggle_sync_scrolling(self) -> None:
@@ -1752,7 +1767,7 @@ class AsciiDocEditor(QMainWindow):
             source_text = mime_data.text()
 
         if not source_text:
-            self._show_message(
+            self.status_manager.show_message(
                 "info", "Empty Clipboard", "No text or HTML found in clipboard."
             )
             return
@@ -1781,7 +1796,7 @@ class AsciiDocEditor(QMainWindow):
             return
 
         if not (Path(dir_path) / ".git").is_dir():
-            self._show_message(
+            self.status_manager.show_message(
                 "warning",
                 "Not a Git Repository",
                 "Selected directory is not a Git repository.",
@@ -1839,12 +1854,14 @@ class AsciiDocEditor(QMainWindow):
 
     def _ensure_git_ready(self) -> bool:
         if not self._settings.git_repo_path:
-            self._show_message(
+            self.status_manager.show_message(
                 "info", "No Repository", "Please set a Git repository first."
             )
             return False
         if self._is_processing_git:
-            self._show_message("warning", "Busy", "Git operation in progress.")
+            self.status_manager.show_message(
+                "warning", "Busy", "Git operation in progress."
+            )
             return False
         return True
 
@@ -1863,9 +1880,11 @@ class AsciiDocEditor(QMainWindow):
         self._update_ui_state()
 
         if result.success:
-            self._show_message("info", "Success", result.user_message)
+            self.status_manager.show_message("info", "Success", result.user_message)
         else:
-            self._show_message("critical", "Git Error", result.user_message)
+            self.status_manager.show_message(
+                "critical", "Git Error", result.user_message
+            )
 
         self._last_git_operation = ""
         self._pending_commit_message = None
@@ -1928,7 +1947,7 @@ class AsciiDocEditor(QMainWindow):
                 logger.exception(
                     f"Failed to save export file: {self._pending_export_path}"
                 )
-                self._show_message(
+                self.status_manager.show_message(
                     "critical", "Export Error", f"Failed to save exported file:\n{e}"
                 )
             finally:
@@ -1975,7 +1994,7 @@ class AsciiDocEditor(QMainWindow):
                     f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
                 )
 
-            self._show_message("critical", "Export Error", error_msg)
+            self.status_manager.show_message("critical", "Export Error", error_msg)
             return
 
         self.editor.clear()
@@ -1987,7 +2006,7 @@ class AsciiDocEditor(QMainWindow):
         if file_path:
             error_msg += f"\n\nFile: {file_path}"
 
-        self._show_message("critical", "Conversion Error", error_msg)
+        self.status_manager.show_message("critical", "Conversion Error", error_msg)
 
     def _update_ui_state(self) -> None:
 
@@ -2013,7 +2032,7 @@ class AsciiDocEditor(QMainWindow):
     def _check_pandoc_availability(self, context: str) -> bool:
         """Check if Pandoc is available for document conversion."""
         if not PANDOC_AVAILABLE:
-            self._show_message(
+            self.status_manager.show_message(
                 "critical",
                 "Pandoc Not Available",
                 f"{context} requires Pandoc and pypandoc.\n"
@@ -2044,7 +2063,7 @@ class AsciiDocEditor(QMainWindow):
             status += "1. Install pandoc from https://pandoc.org\n"
             status += "2. Run: pip install pypandoc"
 
-        self._show_message("info", "Pandoc Status", status)
+        self.status_manager.show_message("info", "Pandoc Status", status)
 
     def _show_supported_formats(self) -> None:
         """Show supported input and output formats."""
@@ -2065,9 +2084,9 @@ class AsciiDocEditor(QMainWindow):
             message += "  • pdf (via PDF engine)\n"
             message += "\nNote: Pandoc supports 40+ formats total.\n"
             message += "See https://pandoc.org for complete list."
-            self._show_message("info", "Supported Formats", message)
+            self.status_manager.show_message("info", "Supported Formats", message)
         else:
-            self._show_message(
+            self.status_manager.show_message(
                 "warning",
                 "Format Information Unavailable",
                 "Pandoc is not properly configured.\n\n"
@@ -2247,7 +2266,7 @@ class AsciiDocEditor(QMainWindow):
 
     def closeEvent(self, event: Any) -> None:
         """Handle window close event."""
-        if not self._prompt_save_before_action("closing"):
+        if not self.status_manager.prompt_save_before_action("closing"):
             event.ignore()
             return
 
