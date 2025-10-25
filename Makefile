@@ -1,52 +1,85 @@
-.PHONY: help install install-dev test lint format clean build run
+# AsciiDoc Artisan Makefile
 
-help:
-	@echo "Available commands:"
-	@echo "  make install      - Install production dependencies"
-	@echo "  make install-dev  - Install development dependencies"
-	@echo "  make test         - Run tests"
-	@echo "  make lint         - Run linters"
-	@echo "  make format       - Format code"
-	@echo "  make clean        - Clean build artifacts"
-	@echo "  make build        - Build package"
-	@echo "  make run          - Run the application"
+# Variables
+ASCIIDOCTOR = asciidoctor
+ASCIIDOCTOR_PDF = asciidoctor-pdf
+DOCS_DIR = docs
+OUTPUT_DIR = output
+IMAGES_DIR = images
 
-install:
-	pip install -r requirements-production.txt
+# Source files
+MAIN_DOC = $(DOCS_DIR)/index.adoc
+ALL_DOCS = $(wildcard $(DOCS_DIR)/*.adoc)
 
-install-dev:
-	pip install -r requirements.txt
-	pip install -e ".[dev]"
-	pre-commit install
+# Output files
+HTML_OUTPUT = $(OUTPUT_DIR)/index.html
+PDF_OUTPUT = $(OUTPUT_DIR)/index.pdf
 
-test:
-	pytest tests/ -v --cov=. --cov-report=term-missing --cov-report=html
+# Default target
+.PHONY: all
+all: html
 
-lint:
-	ruff check .
-	black --check .
-	isort --check-only .
-	mypy . || true
+# Build HTML
+.PHONY: html
+html: $(HTML_OUTPUT)
 
-format:
-	black .
-	isort .
-	ruff check --fix .
+$(HTML_OUTPUT): $(ALL_DOCS)
+	@echo "Building HTML documentation..."
+	@mkdir -p $(OUTPUT_DIR)
+	$(ASCIIDOCTOR) $(MAIN_DOC) -o $(HTML_OUTPUT)
+	@echo "HTML documentation built: $(HTML_OUTPUT)"
 
+# Build PDF
+.PHONY: pdf
+pdf: $(PDF_OUTPUT)
+
+$(PDF_OUTPUT): $(ALL_DOCS)
+	@echo "Building PDF documentation..."
+	@mkdir -p $(OUTPUT_DIR)
+	$(ASCIIDOCTOR_PDF) $(MAIN_DOC) -o $(PDF_OUTPUT)
+	@echo "PDF documentation built: $(PDF_OUTPUT)"
+
+# Build both HTML and PDF
+.PHONY: both
+both: html pdf
+
+# Clean output directory
+.PHONY: clean
 clean:
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info
-	rm -rf .pytest_cache
-	rm -rf .coverage
-	rm -rf htmlcov/
-	rm -rf .mypy_cache
-	rm -rf .ruff_cache
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
+	@echo "Cleaning output directory..."
+	rm -rf $(OUTPUT_DIR)/*
+	@echo "Output directory cleaned"
 
-build: clean
-	python -m build
+# Watch for changes and rebuild HTML
+.PHONY: watch
+watch:
+	@echo "Watching for changes (press Ctrl+C to stop)..."
+	@while true; do \
+		inotifywait -q -e modify $(DOCS_DIR)/*.adoc; \
+		make html; \
+	done
 
-run:
-	python adp_windows.py
+# Open HTML in browser
+.PHONY: open
+open: html
+	@if command -v xdg-open > /dev/null; then \
+		xdg-open $(HTML_OUTPUT); \
+	elif command -v open > /dev/null; then \
+		open $(HTML_OUTPUT); \
+	else \
+		echo "Please open $(HTML_OUTPUT) manually"; \
+	fi
+
+# Help
+.PHONY: help
+help:
+	@echo "AsciiDoc Artisan Build System"
+	@echo ""
+	@echo "Available targets:"
+	@echo "  make html    - Build HTML documentation (default)"
+	@echo "  make pdf     - Build PDF documentation"
+	@echo "  make both    - Build both HTML and PDF"
+	@echo "  make clean   - Remove all generated files"
+	@echo "  make watch   - Watch for changes and rebuild HTML"
+	@echo "  make open    - Build HTML and open in browser"
+	@echo "  make help    - Show this help message"

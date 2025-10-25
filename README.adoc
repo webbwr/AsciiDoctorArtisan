@@ -1,0 +1,62 @@
+= AsciiDoc Artisan Project
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+
+== Overview
+
+Welcome to the AsciiDoc Artisan project. This is a default template for creating professional documentation using AsciiDoc.
+
+== Project Structure
+
+[source,plaintext]
+----
+asciidoc-artisan/
+├── docs/           # Main documentation files
+├── images/         # Images and diagrams
+├── themes/         # Custom themes and stylesheets
+├── output/         # Generated output (HTML, PDF, etc.)
+└── README.adoc     # This file
+----
+
+== Getting Started
+
+=== Prerequisites
+
+* AsciiDoctor installed
+* Ruby (for AsciiDoctor)
+* Optional: asciidoctor-pdf for PDF generation
+
+=== Building Documentation
+
+To convert AsciiDoc files to HTML:
+
+[source,bash]
+----
+asciidoctor docs/index.adoc -o output/index.html
+----
+
+To convert to PDF:
+
+[source,bash]
+----
+asciidoctor-pdf docs/index.adoc -o output/index.pdf
+----
+
+== Features
+
+* Clean, semantic markup
+* Multiple output formats (HTML, PDF, EPUB)
+* Code syntax highlighting
+* Customizable themes
+* Table of contents generation
+* Cross-references and includes
+
+== Documentation
+
+See the `docs/` directory for additional documentation files.
+
+== License
+
+Your license information here.

@@ -1,0 +1,37 @@
+= Chapter 1: Getting Started
+:toc:
+:icons: font
+
+== Overview
+
+This is the first chapter of your documentation. Use this as a template for additional chapters.
+
+== Section 1.1
+
+Content for section 1.1 goes here.
+
+=== Subsection 1.1.1
+
+More detailed content in a subsection.
+
+=== Subsection 1.1.2
+
+Additional subsection content.
+
+== Section 1.2
+
+Content for section 1.2 goes here.
+
+[source,bash]
+----
+# Example command
+echo "Hello from Chapter 1"
+----
+
+== Summary
+
+Key points from this chapter:
+
+* Point 1
+* Point 2
+* Point 3

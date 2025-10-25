@@ -1,0 +1,197 @@
+= AsciiDoc Artisan Documentation
+Author Name <author@example.com>
+v1.0, {docdate}
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+:imagesdir: ../images
+:sectanchors:
+:sectlinks:
+
+== Introduction
+
+This is the main documentation page for your AsciiDoc Artisan project. AsciiDoc is a lightweight markup language for authoring notes, articles, documentation, books, and more.
+
+== Why AsciiDoc?
+
+AsciiDoc offers several advantages:
+
+* *Readability*: Plain text format that's easy to read and write
+* *Flexibility*: Convert to multiple formats (HTML, PDF, EPUB, DocBook)
+* *Power*: Rich feature set for technical documentation
+* *Version Control*: Works seamlessly with Git
+
+== Basic Syntax
+
+=== Text Formatting
+
+You can use *bold*, _italic_, `monospace`, and ^superscript^ or ~subscript~ text.
+
+=== Lists
+
+Unordered list:
+
+* First item
+* Second item
+** Nested item
+** Another nested item
+* Third item
+
+Ordered list:
+
+. First step
+. Second step
+. Third step
+
+=== Code Blocks
+
+AsciiDoc supports syntax-highlighted code blocks:
+
+[source,python]
+----
+def hello_world():
+    """A simple Python function."""
+    print("Hello, World!")
+    return True
+
+if __name__ == "__main__":
+    hello_world()
+----
+
+[source,javascript]
+----
+function greet(name) {
+    console.log(`Hello, ${name}!`);
+}
+
+greet("AsciiDoc");
+----
+
+=== Tables
+
+[cols="1,2,3"]
+|===
+|Column 1 |Column 2 |Column 3
+
+|Data 1
+|Data 2
+|Data 3
+
+|Data 4
+|Data 5
+|Data 6
+|===
+
+=== Admonitions
+
+NOTE: This is a note with important information.
+
+TIP: This is a helpful tip for the reader.
+
+IMPORTANT: This is something you should pay attention to.
+
+CAUTION: Be careful when doing this.
+
+WARNING: This could cause problems if not handled correctly.
+
+=== Images
+
+You can include images in your documentation:
+
+[source,asciidoc]
+----
+image::diagram.png[Diagram, 600]
+----
+
+=== Links
+
+External link: https://asciidoctor.org[AsciiDoctor Official Site]
+
+Internal link: <<Basic Syntax>>
+
+== Advanced Features
+
+=== Include Files
+
+You can break your documentation into multiple files and include them:
+
+[source,asciidoc]
+----
+include::chapter1.adoc[]
+include::chapter2.adoc[]
+----
+
+=== Custom Attributes
+
+Define custom attributes for reusable content:
+
+:product-name: AsciiDoc Artisan
+:version: 1.0
+
+This is {product-name} version {version}.
+
+=== Conditional Content
+
+You can show/hide content based on attributes:
+
+[source,asciidoc]
+----
+ifdef::production[]
+Production-only content
+endif::[]
+
+ifndef::draft[]
+Non-draft content
+endif::[]
+----
+
+== Building Your Documentation
+
+=== HTML Output
+
+To generate HTML output:
+
+[source,bash]
+----
+asciidoctor docs/index.adoc -o output/index.html
+----
+
+=== PDF Output
+
+To generate PDF output (requires asciidoctor-pdf):
+
+[source,bash]
+----
+asciidoctor-pdf docs/index.adoc -o output/index.pdf
+----
+
+=== Watch Mode
+
+For continuous building during development:
+
+[source,bash]
+----
+# Using a file watcher
+while inotifywait -e modify docs/*.adoc; do
+    asciidoctor docs/index.adoc -o output/index.html
+done
+----
+
+== Resources
+
+* https://asciidoctor.org/docs/[AsciiDoctor Documentation]
+* https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/[Quick Reference]
+* https://docs.asciidoctor.org/asciidoc/latest/[AsciiDoc Language Documentation]
+
+== Next Steps
+
+. Customize this template for your needs
+. Add your own content in the `docs/` directory
+. Place images in the `images/` directory
+. Customize themes in the `themes/` directory
+. Build and share your documentation
+
+---
+
+[small]#Last updated: {docdate} | Version {revnumber}#

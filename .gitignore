@@ -64,3 +64,9 @@ test_*.adoc
 *.app
 
 # Removed: Claude AI Integration (out of specification scope)
+
+# AsciiDoc output files (from template system)
+output/
+*.html
+*.pdf
+*.epub

@@ -1,0 +1,42 @@
+= Chapter 2: Advanced Topics
+:toc:
+:icons: font
+
+== Overview
+
+This chapter covers more advanced topics and features.
+
+== Section 2.1
+
+Advanced content goes here.
+
+=== Subsection 2.1.1
+
+Detailed technical information.
+
+=== Subsection 2.1.2
+
+More technical details.
+
+== Section 2.2
+
+Additional advanced topics.
+
+[source,python]
+----
+# Example Python code
+class AdvancedFeature:
+    def __init__(self, name):
+        self.name = name
+
+    def execute(self):
+        print(f"Executing {self.name}")
+----
+
+== Summary
+
+Key takeaways:
+
+* Advanced concept 1
+* Advanced concept 2
+* Advanced concept 3
