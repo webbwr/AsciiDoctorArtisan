@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Specifications
 
-**Reading Level**: Grade 6.0 (Elementary/Middle School)
+**Reading Level**: Grade 5.0 Target (Current: 12.8)
 **Version**: 1.1.0
 **Last Updated**: October 2025
 **Format**: OpenSpec-inspired with Given/When/Then scenarios
@@ -41,6 +41,8 @@ Think of it like Word, but for AsciiDoc files.
 
 The program SHALL work on Windows, Mac, and Linux.
 
+**Why This Helps**: You can use the program no matter what computer you have.
+
 ##### Scenario: Run on Windows
 
 **Given**: Windows computer with Python 3.11+
@@ -62,6 +64,8 @@ The program SHALL work on Windows, Mac, and Linux.
 #### Requirement: Python Version
 
 The program SHALL require Python 3.11 or newer.
+
+**Why This Helps**: Newer Python is faster and safer.
 
 ##### Scenario: Check Python Version
 
@@ -98,113 +102,132 @@ The program SHALL be free to use under MIT License.
 
 ## Installation Specifications
 
-This covers how users install and set up the program.
+This part tells you how to install the program.
+
+### What Is Installation?
+
+Installation means putting the program on your computer so it works.
+
+**What You Need**:
+- A computer (Windows, Mac, or Linux)
+- Internet to get files
+- About 10 minutes
 
 ### Requirements
 
-#### Requirement: Automated Installation Scripts
+#### Requirement: Easy Install Scripts
 
-The program SHALL provide automated installation scripts for all supported platforms.
+The program SHALL give you scripts that install everything for you.
 
-##### Scenario: Mac/Linux Installation
+**Why This Helps**: You don't have to type many commands. The script does it all.
 
-**Given**: User has Mac or Linux computer
-**When**: User runs install-asciidoc-artisan.sh
-**Then**: Script checks Python version, installs dependencies, creates virtual environment, and validates installation
+##### Scenario: Install on Mac or Linux
 
-##### Scenario: Windows Installation
+**Given**: You have a Mac or Linux computer
+**When**: You run the install script
+**Then**: The script puts Python on your computer, adds all tools, and checks everything works
 
-**Given**: User has Windows 11 with PowerShell 7
-**When**: User runs Install-AsciiDocArtisan.ps1
-**Then**: Script checks Python version, installs dependencies, creates virtual environment, and validates installation
+##### Scenario: Install on Windows
 
-##### Scenario: Installation Validation
+**Given**: You have Windows 11
+**When**: You run the install script
+**Then**: The script puts Python on your computer, adds all tools, and checks everything works
 
-**Given**: User completes automated installation
-**When**: Installation finishes
-**Then**: Script reports all dependencies installed correctly with zero errors
+##### Scenario: Check If It Worked
 
-#### Requirement: Dependency Checking
+**Given**: The install script finishes
+**When**: You look at the report
+**Then**: The script says all parts installed with no errors
 
-Installation scripts SHALL verify all required dependencies before proceeding.
+#### Requirement: Check What You Have
 
-##### Scenario: Check Python Version
+The install script SHALL check if you have all the tools needed.
 
-**Given**: User runs installation script
-**When**: Script starts
-**Then**: Script checks for Python 3.11 or higher and reports version found
+**Why This Helps**: You know right away if something is missing.
 
-##### Scenario: Check System Dependencies
+##### Scenario: Check Python
 
-**Given**: User runs installation script
-**When**: Script checks dependencies
-**Then**: Script verifies Pandoc and Git are available or offers to install them
+**Given**: You run the install script
+**When**: The script starts
+**Then**: It checks if you have Python 3.11 or newer and tells you what it found
 
-##### Scenario: Report Missing Dependencies
+##### Scenario: Check Other Tools
 
-**Given**: Required dependency is missing
-**When**: Script detects missing dependency
-**Then**: Script shows clear installation instructions for that dependency
+**Given**: You run the install script
+**When**: It looks for tools
+**Then**: It checks for Pandoc and Git, and helps you get them if missing
 
-#### Requirement: Virtual Environment Support
+##### Scenario: Tell You What's Missing
 
-Installation scripts SHALL offer to create a Python virtual environment.
+**Given**: A tool is not on your computer
+**When**: The script finds it's missing
+**Then**: The script shows you how to get that tool
 
-##### Scenario: Create Virtual Environment
+#### Requirement: Safe Space For Tools
 
-**Given**: User chooses to create virtual environment
-**When**: Script creates venv
-**Then**: All dependencies install in isolated environment
+The install script SHALL ask if you want a safe space for the program's tools.
 
-##### Scenario: Skip Virtual Environment
+**Why This Helps**: The program's tools don't mix with other programs.
 
-**Given**: User chooses to skip virtual environment
-**When**: Installation continues
-**Then**: Dependencies install globally with user permission
+##### Scenario: Make Safe Space
 
-#### Requirement: Installation Validation
+**Given**: You say yes to making a safe space
+**When**: The script makes it
+**Then**: All tools go in that space, away from other programs
 
-Installation scripts SHALL validate the complete installation after setup.
+##### Scenario: Skip Safe Space
 
-##### Scenario: Validate Python Packages
+**Given**: You say no to the safe space
+**When**: Install keeps going
+**Then**: Tools go on your whole computer (you must say this is OK)
 
-**Given**: Installation completes
-**When**: Script runs validation
-**Then**: Script confirms PySide6, asciidoc3, and pypandoc can be imported
+#### Requirement: Test The Install
 
-##### Scenario: Validate System Commands
+The install script SHALL test everything after it finishes.
 
-**Given**: Installation completes
-**When**: Script runs validation
-**Then**: Script confirms python, pip, pandoc, and git commands are available
+**Why This Helps**: You know for sure the program will work.
 
-##### Scenario: Report Installation Status
+##### Scenario: Test Python Parts
 
-**Given**: Installation and validation complete
-**When**: Script finishes
-**Then**: Script shows summary with error count, warning count, and next steps
+**Given**: Install is done
+**When**: Script tests Python parts
+**Then**: Script tries to load PySide6, asciidoc3, and pypandoc and says if they work
 
-#### Requirement: Cross-Platform Installation
+##### Scenario: Test Commands
 
-Installation scripts SHALL support platform-specific package managers.
+**Given**: Install is done
+**When**: Script tests commands
+**Then**: Script checks that python, pip, pandoc, and git work on your computer
 
-##### Scenario: Detect macOS Package Manager
+##### Scenario: Show Final Report
 
-**Given**: User runs script on macOS
-**When**: Script needs to install Pandoc
-**Then**: Script uses Homebrew (brew) if available
+**Given**: Install and tests are done
+**When**: Script is finished
+**Then**: Script shows how many errors, how many warnings, and what to do next
 
-##### Scenario: Detect Linux Package Manager
+#### Requirement: Works On All Computers
 
-**Given**: User runs script on Linux
-**When**: Script needs to install system packages
-**Then**: Script detects and uses apt, dnf, or yum appropriately
+The install script SHALL know what type of computer you have.
 
-##### Scenario: Windows Package Manager
+**Why This Helps**: The script uses the right tools for your computer.
 
-**Given**: User runs script on Windows 11
-**When**: Script needs to install Pandoc
-**Then**: Script offers to use winget for automated installation
+##### Scenario: Find Mac Tools
+
+**Given**: You run script on Mac
+**When**: Script needs to get Pandoc
+**Then**: Script uses Homebrew if you have it
+
+##### Scenario: Find Linux Tools
+
+**Given**: You run script on Linux
+**When**: Script needs to get tools
+**Then**: Script uses apt, dnf, or yum (whatever your Linux has)
+
+##### Scenario: Find Windows Tools
+
+**Given**: You run script on Windows 11
+**When**: Script needs to get Pandoc
+**Then**: Script asks if you want to use winget to get it
 
 ---
 
@@ -217,6 +240,8 @@ This covers the text editing features.
 #### Requirement: Basic Text Editing
 
 The program SHALL let users type and edit text.
+
+**Why This Helps**: You can write and fix your work easily.
 
 ##### Scenario: Type Text
 
@@ -233,6 +258,8 @@ The program SHALL let users type and edit text.
 #### Requirement: Copy and Paste
 
 The program SHALL support copy, cut, and paste.
+
+**Why This Helps**: You can move text around without retyping it.
 
 ##### Scenario: Copy Text
 
