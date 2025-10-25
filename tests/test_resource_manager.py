@@ -1,0 +1,268 @@
+"""
+Tests for ResourceManager.
+
+Tests temp file/directory tracking and cleanup.
+"""
+
+import os
+import tempfile
+import pytest
+
+from asciidoc_artisan.core.resource_manager import (
+    ResourceManager,
+    TempFileContext,
+    TempDirectoryContext,
+)
+
+
+class TestResourceManager:
+    """Test ResourceManager."""
+
+    def setup_method(self):
+        """Create fresh ResourceManager for each test."""
+        # Reset singleton
+        ResourceManager._instance = None
+        self.rm = ResourceManager.get_instance()
+
+    def teardown_method(self):
+        """Clean up after each test."""
+        if hasattr(self, 'rm'):
+            self.rm.cleanup_all()
+
+    def test_singleton_instance(self):
+        """Test singleton pattern."""
+        rm1 = ResourceManager.get_instance()
+        rm2 = ResourceManager.get_instance()
+
+        assert rm1 is rm2
+
+    def test_create_temp_file(self):
+        """Test creating temp file."""
+        path = self.rm.create_temp_file(suffix='.txt')
+
+        assert os.path.exists(path)
+        assert path.endswith('.txt')
+        assert path in self.rm._temp_files
+
+    def test_create_temp_directory(self):
+        """Test creating temp directory."""
+        path = self.rm.create_temp_directory()
+
+        assert os.path.exists(path)
+        assert os.path.isdir(path)
+        assert path in self.rm._temp_directories
+
+    def test_register_temp_file(self):
+        """Test registering existing file."""
+        # Create file manually
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+
+        # Register it
+        self.rm.register_temp_file(path)
+
+        assert path in self.rm._temp_files
+
+    def test_register_temp_directory(self):
+        """Test registering existing directory."""
+        # Create directory manually
+        path = tempfile.mkdtemp()
+
+        # Register it
+        self.rm.register_temp_directory(path)
+
+        assert path in self.rm._temp_directories
+
+    def test_unregister_temp_file(self):
+        """Test unregistering file."""
+        path = self.rm.create_temp_file()
+
+        assert path in self.rm._temp_files
+
+        self.rm.unregister_temp_file(path)
+
+        assert path not in self.rm._temp_files
+
+        # File still exists (not cleaned up)
+        assert os.path.exists(path)
+
+        # Manual cleanup
+        os.remove(path)
+
+    def test_cleanup_file(self):
+        """Test cleaning up specific file."""
+        path = self.rm.create_temp_file()
+
+        assert os.path.exists(path)
+
+        # Cleanup
+        result = self.rm.cleanup_file(path)
+
+        assert result is True
+        assert not os.path.exists(path)
+        assert path not in self.rm._temp_files
+
+    def test_cleanup_directory(self):
+        """Test cleaning up specific directory."""
+        path = self.rm.create_temp_directory()
+
+        assert os.path.exists(path)
+
+        # Cleanup
+        result = self.rm.cleanup_directory(path)
+
+        assert result is True
+        assert not os.path.exists(path)
+        assert path not in self.rm._temp_directories
+
+    def test_cleanup_all(self):
+        """Test cleaning up all resources."""
+        # Create multiple resources
+        file1 = self.rm.create_temp_file()
+        file2 = self.rm.create_temp_file()
+        dir1 = self.rm.create_temp_directory()
+        dir2 = self.rm.create_temp_directory()
+
+        # All should exist
+        assert os.path.exists(file1)
+        assert os.path.exists(file2)
+        assert os.path.exists(dir1)
+        assert os.path.exists(dir2)
+
+        # Cleanup all
+        self.rm.cleanup_all()
+
+        # All should be gone
+        assert not os.path.exists(file1)
+        assert not os.path.exists(file2)
+        assert not os.path.exists(dir1)
+        assert not os.path.exists(dir2)
+
+        # Sets should be empty
+        assert len(self.rm._temp_files) == 0
+        assert len(self.rm._temp_directories) == 0
+
+    def test_get_statistics(self):
+        """Test getting statistics."""
+        # Create resources
+        self.rm.create_temp_file()
+        self.rm.create_temp_file()
+        self.rm.create_temp_directory()
+
+        stats = self.rm.get_statistics()
+
+        assert stats['temp_files'] == 2
+        assert stats['temp_directories'] == 1
+        assert stats['cleaned_up'] is False
+
+        # Cleanup
+        self.rm.cleanup_all()
+
+        stats = self.rm.get_statistics()
+        assert stats['cleaned_up'] is True
+
+    def test_cleanup_nonexistent_file(self):
+        """Test cleanup of nonexistent file."""
+        path = self.rm.create_temp_file()
+
+        # Delete file manually
+        os.remove(path)
+
+        # Cleanup should still succeed
+        result = self.rm.cleanup_file(path)
+
+        assert result is True
+        assert path not in self.rm._temp_files
+
+    def test_cleanup_all_idempotent(self):
+        """Test cleanup_all can be called multiple times."""
+        path = self.rm.create_temp_file()
+
+        self.rm.cleanup_all()
+        assert not os.path.exists(path)
+
+        # Call again - should not error
+        self.rm.cleanup_all()
+
+        assert self.rm._cleaned_up is True
+
+
+class TestTempFileContext:
+    """Test TempFileContext."""
+
+    def test_temp_file_context(self):
+        """Test temp file context manager."""
+        temp_path = None
+
+        with TempFileContext(suffix='.txt') as path:
+            temp_path = path
+
+            # File should exist
+            assert os.path.exists(path)
+            assert path.endswith('.txt')
+
+            # Write to file
+            with open(path, 'w') as f:
+                f.write('test content')
+
+        # File should be cleaned up
+        assert not os.path.exists(temp_path)
+
+    def test_temp_file_context_exception(self):
+        """Test temp file cleanup on exception."""
+        temp_path = None
+
+        try:
+            with TempFileContext() as path:
+                temp_path = path
+                assert os.path.exists(path)
+
+                # Raise exception
+                raise ValueError("Test exception")
+        except ValueError:
+            pass
+
+        # File should still be cleaned up
+        assert not os.path.exists(temp_path)
+
+
+class TestTempDirectoryContext:
+    """Test TempDirectoryContext."""
+
+    def test_temp_directory_context(self):
+        """Test temp directory context manager."""
+        temp_path = None
+
+        with TempDirectoryContext() as path:
+            temp_path = path
+
+            # Directory should exist
+            assert os.path.exists(path)
+            assert os.path.isdir(path)
+
+            # Create file in directory
+            file_path = os.path.join(path, 'test.txt')
+            with open(file_path, 'w') as f:
+                f.write('test content')
+
+            assert os.path.exists(file_path)
+
+        # Directory and contents should be cleaned up
+        assert not os.path.exists(temp_path)
+
+    def test_temp_directory_context_exception(self):
+        """Test temp directory cleanup on exception."""
+        temp_path = None
+
+        try:
+            with TempDirectoryContext() as path:
+                temp_path = path
+                assert os.path.exists(path)
+
+                # Raise exception
+                raise ValueError("Test exception")
+        except ValueError:
+            pass
+
+        # Directory should still be cleaned up
+        assert not os.path.exists(temp_path)
