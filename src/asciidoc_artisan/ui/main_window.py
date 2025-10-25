@@ -92,6 +92,7 @@ from asciidoc_artisan.ui.dialogs import (
     ImportOptionsDialog,
     PreferencesDialog,
 )
+from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
 from asciidoc_artisan.ui.settings_manager import SettingsManager
 from asciidoc_artisan.ui.status_manager import StatusManager
@@ -297,7 +298,7 @@ class AsciiDocEditor(QMainWindow):
 
         editor_layout.addWidget(editor_toolbar)
 
-        self.editor = QPlainTextEdit(self)
+        self.editor = LineNumberPlainTextEdit(self)
         font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
         self.editor.setFont(font)
         self.editor.textChanged.connect(self._start_preview_timer)

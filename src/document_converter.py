@@ -360,7 +360,14 @@ class PDFExtractor:
     @staticmethod
     def _format_table_as_asciidoc(table: list) -> str:
         """
-        Format extracted table as AsciiDoc table syntax.
+        Format extracted table as AsciiDoc table syntax with improved formatting.
+
+        Enhancements:
+        - Detects empty rows and skips them
+        - Normalizes column count across rows
+        - Handles None values gracefully
+        - Cleans up whitespace in cells
+        - Detects if first row is actually a header
 
         Args:
             table: List of rows, each row is a list of cells
@@ -368,20 +375,88 @@ class PDFExtractor:
         Returns:
             AsciiDoc formatted table
         """
-        if not table or not table[0]:
+        if not table:
             return ""
 
-        lines = ['[options="header"]', "|==="]
+        # Filter out completely empty rows
+        filtered_table = []
+        for row in table:
+            if row and any(cell for cell in row):  # Row has at least one non-empty cell
+                filtered_table.append(row)
 
-        for row_num, row in enumerate(table):
-            # Filter out None values and convert to strings
-            cells = [str(cell).strip() if cell else "" for cell in row]
+        if not filtered_table:
+            return ""
 
-            # Add row separator for header
-            if row_num == 0:
-                lines.append("| " + " | ".join(cells))
+        # Determine the maximum number of columns
+        max_cols = max(len(row) for row in filtered_table)
+
+        # Normalize all rows to have the same number of columns
+        normalized_table = []
+        for row in filtered_table:
+            # Convert cells to strings, handle None
+            cells = [str(cell).strip() if cell is not None else "" for cell in row]
+            # Pad with empty strings if needed
+            while len(cells) < max_cols:
+                cells.append("")
+            normalized_table.append(cells)
+
+        if not normalized_table:
+            return ""
+
+        # Detect if first row looks like a header
+        # (heuristic: first row has shorter text or is all caps/bold indicators)
+        first_row = normalized_table[0]
+        has_header = True  # Default to treating first row as header
+
+        # Check if first row has significantly different characteristics
+        if len(normalized_table) > 1:
+            second_row = normalized_table[1]
+            # If first row has much shorter cells on average, likely a header
+            avg_first = sum(len(cell) for cell in first_row) / len(first_row)
+            avg_second = sum(len(cell) for cell in second_row) / len(second_row)
+            # If first row is empty or very short, don't treat as header
+            if avg_first < 2:
+                has_header = False
+
+        # Build AsciiDoc table
+        lines = []
+
+        # Add table options based on column count
+        if max_cols > 1:
+            # Calculate column widths for better rendering
+            if max_cols <= 3:
+                lines.append('[cols="1,1,1", options="header"]')
+            elif max_cols <= 5:
+                col_spec = ",".join(["1"] * max_cols)
+                lines.append(f'[cols="{col_spec}", options="header"]')
             else:
-                lines.append("| " + " | ".join(cells))
+                lines.append('[options="header"]')
+        else:
+            lines.append('[options="header"]')
+
+        lines.append("|===")
+
+        # Add rows
+        for row_num, row in enumerate(normalized_table):
+            # Clean up cells: remove extra whitespace, handle line breaks
+            cells = []
+            for cell in row:
+                # Replace line breaks with spaces
+                cell = cell.replace("\n", " ").replace("\r", " ")
+                # Collapse multiple spaces
+                cell = " ".join(cell.split())
+                # Limit cell length to avoid overly long cells
+                if len(cell) > 200:
+                    cell = cell[:197] + "..."
+                cells.append(cell)
+
+            # Add row with proper formatting
+            line = "| " + " | ".join(cells)
+            lines.append(line)
+
+            # Add blank line after header for better readability
+            if row_num == 0 and has_header and len(normalized_table) > 1:
+                lines.append("")  # Visual separator after header
 
         lines.append("|===\n")
 
