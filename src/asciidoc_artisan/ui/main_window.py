@@ -94,6 +94,7 @@ from asciidoc_artisan.ui.dialogs import (
     ImportOptionsDialog,
     PreferencesDialog,
 )
+from asciidoc_artisan.ui.file_handler import FileHandler
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
 from asciidoc_artisan.ui.settings_manager import SettingsManager
@@ -271,6 +272,17 @@ class AsciiDocEditor(QMainWindow):
             )
 
         self._setup_ui()
+
+        # Initialize FileHandler (Phase 5: Refactoring)
+        self.file_handler = FileHandler(
+            self.editor,
+            self,
+            self._settings_manager,
+            self.status_manager
+        )
+        # Start auto-save
+        self.file_handler.start_auto_save(AUTO_SAVE_INTERVAL_MS)
+
         # Restore UI settings using manager
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
         # Phase 2: Use manager classes for menu and theme setup
@@ -279,10 +291,6 @@ class AsciiDocEditor(QMainWindow):
         self.theme_manager.apply_theme()
         self._setup_workers_and_threads()
         self._update_ui_state()
-
-        self._auto_save_timer = QTimer(self)
-        self._auto_save_timer.timeout.connect(self._auto_save)
-        self._auto_save_timer.start(AUTO_SAVE_INTERVAL_MS)
 
     def _initialize_asciidoc(self) -> Optional[AsciiDoc3API]:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
@@ -913,16 +921,8 @@ class AsciiDocEditor(QMainWindow):
         QApplication.setPalette(palette)
 
     def new_file(self) -> None:
-        """Create a new file."""
-        if self._unsaved_changes:
-            if not self.status_manager.prompt_save_before_action("creating a new file"):
-                return
-
-        self.editor.clear()
-        self._current_file_path = None
-        self._unsaved_changes = False
-        self.status_manager.update_window_title()
-        self.status_bar.showMessage("New file created")
+        """Create a new file (delegates to FileHandler)."""
+        self.file_handler.new_file()
 
     @Slot()
     def open_file(self) -> None:
