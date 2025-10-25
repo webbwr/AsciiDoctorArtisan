@@ -64,7 +64,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pandoc libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 \
             libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 \
-            libxcb-xfixes0 x11-utils libxcb-cursor0 libegl1-mesa libgl1-mesa-glx
+            libxcb-xfixes0 x11-utils libxcb-cursor0 libegl1 libgl1 libdbus-1-3
           # Install Xvfb for headless Qt testing
           sudo apt-get install -y xvfb
 
@@ -91,6 +91,8 @@ jobs:
 
       - name: Run tests (macOS and Windows)
         if: runner.os != 'Linux'
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: |
           pytest tests/ -v --cov=asciidoc_artisan --cov-report=xml --cov-report=term-missing
 
