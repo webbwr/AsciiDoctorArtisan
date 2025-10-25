@@ -132,6 +132,64 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# CONSTANTS
+# ============================================================================
+
+# Window Settings
+MIN_WINDOW_WIDTH = 800
+MIN_WINDOW_HEIGHT = 600
+
+# Auto-save Settings
+AUTO_SAVE_INTERVAL_MS = 300000  # 5 minutes
+
+# Preview Timer Settings
+PREVIEW_FAST_INTERVAL_MS = 200  # For small documents
+PREVIEW_NORMAL_INTERVAL_MS = 500  # For medium documents
+PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
+
+# File Size Thresholds
+LARGE_FILE_THRESHOLD_BYTES = 100000  # 100 KB
+
+# Color Values
+SEPARATOR_BACKGROUND_COLOR = "rgba(128, 128, 128, 0.1)"
+SEPARATOR_BORDER_COLOR = "#888"
+EDITOR_HIGHLIGHT_COLOR_ADD = "rgba(74, 222, 128, 0.2)"
+EDITOR_HIGHLIGHT_HOVER_ADD = "rgba(74, 222, 128, 0.3)"
+PREVIEW_HIGHLIGHT_COLOR_ADD = "rgba(74, 158, 255, 0.2)"
+PREVIEW_HIGHLIGHT_HOVER_ADD = "rgba(74, 158, 255, 0.3)"
+DARK_THEME_LINK_COLOR = QColor(42, 130, 218)
+DARK_THEME_HIGHLIGHT_COLOR = QColor(42, 130, 218)
+
+# Status Messages
+MSG_SAVED_ASCIIDOC = "Saved as AsciiDoc: {}"
+MSG_SAVED_HTML = "Saved as HTML: {}"
+MSG_SAVED_HTML_PDF_READY = "Saved as HTML (PDF-ready): {}"
+MSG_PDF_IMPORTED = "PDF imported successfully: {}"
+MSG_LOADING_LARGE_FILE = "Loading large file ({:.1f} KB) - preview will be deferred"
+
+# Error Messages
+ERR_ASCIIDOC_NOT_INITIALIZED = "AsciiDoc API not initialized"
+ERR_ATOMIC_SAVE_FAILED = "Atomic save failed for {}"
+ERR_FAILED_SAVE_HTML = "Failed to save HTML file: {}"
+ERR_FAILED_CREATE_TEMP = "Failed to create temporary file:\n{}"
+
+# Dialog Titles
+DIALOG_OPEN_FILE = "Open File"
+DIALOG_SAVE_FILE = "Save File"
+DIALOG_SAVE_ERROR = "Save Error"
+DIALOG_CONVERSION_ERROR = "Conversion Error"
+
+# Menu Labels
+MENU_FILE = "&File"
+
+# Status Tip Text
+STATUS_TIP_EXPORT_OFFICE365 = "Export to Microsoft Office 365 Word format"
+
+# Message Display Duration
+STATUS_MESSAGE_DURATION_MS = 5000
+
+
 class AsciiDocEditor(QMainWindow):
     request_git_command = Signal(list, str)
     request_pandoc_conversion = Signal(object, str, str, str, object, bool)
