@@ -907,8 +907,8 @@ class AsciiDocEditor(QMainWindow):
         palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
         palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
         palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
-        palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
-        palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+        palette.setColor(QPalette.ColorRole.Link, DARK_THEME_LINK_COLOR)
+        palette.setColor(QPalette.ColorRole.Highlight, DARK_THEME_HIGHLIGHT_COLOR)
         palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
         QApplication.setPalette(palette)
 
