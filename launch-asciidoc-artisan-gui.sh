@@ -286,58 +286,146 @@ check_gpu_support() {
     return 0
 }
 
-# Try Method 1: WSLg (Windows 11)
-echo "Checking WSLg..."
-if [ -S /tmp/.X11-unix/X0 ]; then
-    export DISPLAY=:0
-    export XDG_RUNTIME_DIR=/tmp/runtime-wsl
-    export WAYLAND_DISPLAY=wayland-0
-    echo "✓ WSLg detected, using DISPLAY=$DISPLAY"
-    X_METHOD="WSLg"
-elif [ -n "$WAYLAND_DISPLAY" ]; then
-    echo "✓ Wayland display detected: $WAYLAND_DISPLAY"
-    X_METHOD="Wayland"
-else
-    # Try Method 2: External X Server
-    echo "WSLg not detected, trying external X Server..."
-    export DISPLAY=$(grep nameserver /etc/resolv.conf | awk '{print $2}'):0.0
-    export LIBGL_ALWAYS_INDIRECT=1
+# Run dependency checks
+echo ""
+log_info "=== Running Pre-flight Checks ==="
+echo ""
 
-    if test_x_connection; then
-        echo "✓ External X Server connected at $DISPLAY"
-        X_METHOD="External X Server"
+CHECKS_FAILED=false
+
+if ! check_python_version; then
+    CHECKS_FAILED=true
+fi
+
+if ! check_virtual_env; then
+    CHECKS_FAILED=true
+fi
+
+if ! check_dependencies; then
+    CHECKS_FAILED=true
+fi
+
+if ! check_system_dependencies; then
+    CHECKS_FAILED=true
+fi
+
+check_gpu_support
+
+if [ "$CHECKS_FAILED" = true ]; then
+    log_error "Pre-flight checks failed, cannot launch application"
+    exit 1
+fi
+
+if [ "$CHECK_ONLY" = true ]; then
+    log_info "All checks passed (--check-only mode, exiting)"
+    exit 0
+fi
+
+echo ""
+log_info "=== Configuring Display ==="
+echo ""
+
+# Configure display mode
+if [ "$HEADLESS_MODE" = true ]; then
+    log_info "Running in headless mode (--headless)"
+    export QT_QPA_PLATFORM=offscreen
+    X_METHOD="Headless"
+else
+    # Try Method 1: WSLg (Windows 11)
+    log_info "Checking WSLg..."
+    if [ -S /tmp/.X11-unix/X0 ]; then
+        export DISPLAY=:0
+        export XDG_RUNTIME_DIR=/tmp/runtime-wsl
+        export WAYLAND_DISPLAY=wayland-0
+        log_info "✓ WSLg detected, using DISPLAY=$DISPLAY"
+        X_METHOD="WSLg"
+    elif [ -n "$WAYLAND_DISPLAY" ]; then
+        log_info "✓ Wayland display detected: $WAYLAND_DISPLAY"
+        X_METHOD="Wayland"
     else
-        echo "✗ No display available"
-        echo ""
-        echo "Solutions:"
-        echo ""
-        echo "Option A - Windows 11 WSLg (Recommended):"
-        echo "  1. Ensure Windows 11 is up to date"
-        echo "  2. Run: wsl --update"
-        echo "  3. Restart WSL: wsl --shutdown"
-        echo ""
-        echo "Option B - External X Server:"
-        echo "  1. Install VcXsrv: https://sourceforge.net/projects/vcxsrv/"
-        echo "  2. Run XLaunch with 'Disable access control' checked"
-        echo "  3. Allow in Windows Firewall if prompted"
-        echo ""
-        echo "Option C - Run in headless mode (for testing):"
-        echo "  export QT_QPA_PLATFORM=offscreen"
-        echo "  python3 adp_windows.py"
-        echo ""
-        exit 1
+        # Try Method 2: External X Server
+        log_info "WSLg not detected, trying external X Server..."
+        export DISPLAY=$(grep nameserver /etc/resolv.conf | awk '{print $2}'):0.0
+        export LIBGL_ALWAYS_INDIRECT=1
+
+        if test_x_connection; then
+            log_info "✓ External X Server connected at $DISPLAY"
+            X_METHOD="External X Server"
+        else
+            log_error "No display available"
+            echo ""
+            echo "Solutions:"
+            echo ""
+            echo "Option A - Windows 11 WSLg (Recommended):"
+            echo "  1. Ensure Windows 11 is up to date"
+            echo "  2. Run: wsl --update"
+            echo "  3. Restart WSL: wsl --shutdown"
+            echo ""
+            echo "Option B - External X Server:"
+            echo "  1. Install VcXsrv: https://sourceforge.net/projects/vcxsrv/"
+            echo "  2. Run XLaunch with 'Disable access control' checked"
+            echo "  3. Allow in Windows Firewall if prompted"
+            echo ""
+            echo "Option C - Run in headless mode (for testing):"
+            echo "  $0 --headless"
+            echo ""
+            exit 1
+        fi
     fi
 fi
 
-echo "Display configured: $DISPLAY"
-echo "Method: $X_METHOD"
+log_info "Display configured: ${DISPLAY:-N/A}"
+log_info "Method: $X_METHOD"
 echo ""
-echo "Launching AsciiDoc Artisan..."
+
+# Activate virtual environment
+log_info "Activating virtual environment..."
+source "$VENV_DIR/bin/activate"
+log_info "✓ Virtual environment activated"
+
+# Change to project directory
+cd "$PROJECT_DIR" || {
+    log_error "Failed to change to project directory: $PROJECT_DIR"
+    exit 1
+}
+
 echo ""
+log_info "=== Launching AsciiDoc Artisan ==="
+echo ""
+
+# Set error handler
+trap 'handle_error $? $LINENO' ERR
+
+handle_error() {
+    local exit_code=$1
+    local line_number=$2
+    log_error "Application exited with error code $exit_code at line $line_number"
+    log_error "Check $LOG_FILE for details"
+    exit $exit_code
+}
 
 # Launch the application
-cd /home/webbp/github/AsciiDoctorArtisan
-python3 src/main.py
+log_info "Starting application from: $MAIN_SCRIPT"
+log_debug "Working directory: $(pwd)"
+log_debug "Python: $(which python3)"
+log_debug "DISPLAY: ${DISPLAY:-N/A}"
+log_debug "QT_QPA_PLATFORM: ${QT_QPA_PLATFORM:-N/A}"
+
+if [ "$DEBUG_MODE" = true ]; then
+    log_info "Debug mode enabled, output will be verbose"
+    python3 "$MAIN_SCRIPT" 2>&1 | tee -a "$LOG_FILE"
+else
+    python3 "$MAIN_SCRIPT" 2>> "$LOG_FILE"
+fi
+
+EXIT_CODE=$?
 
 echo ""
-echo "Application closed."
+if [ $EXIT_CODE -eq 0 ]; then
+    log_info "Application closed normally"
+else
+    log_error "Application exited with code $EXIT_CODE"
+    log_info "Check $LOG_FILE for details"
+fi
+
+exit $EXIT_CODE
