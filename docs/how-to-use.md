@@ -92,7 +92,7 @@ https://www.example.com[Click Here]
 
 ### Save Your Work
 
-Two ways to save:
+Two ways to save.
 
 **Save** (Ctrl+S):
 - Saves same file
