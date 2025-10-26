@@ -468,4 +468,4 @@ These two changes give 2-5x overall speed with little work.
 
 ---
 
-**Document Info**: GPU/NPU Plan | Grade 5.0 | v1.0 | October 2025
+**Document Info**: GPU/NPU Plan | Grade 5.0 | v1.1 | October 2025 | Updated with Tier 1.1 completion
