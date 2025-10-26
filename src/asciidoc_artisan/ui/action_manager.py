@@ -70,7 +70,6 @@ class ActionManager:
         self.git_push_act: QAction
         self.pandoc_status_act: QAction
         self.pandoc_formats_act: QAction
-        self.ai_setup_help_act: QAction
         self.about_act: QAction
 
     def create_actions(self) -> None:
@@ -309,13 +308,6 @@ class ActionManager:
         )
 
         # Help menu actions
-        self.ai_setup_help_act = QAction(  # type: ignore[call-overload]
-            "&AI Conversion Setup",
-            self.window,
-            statusTip="How to set up AI-enhanced conversion",
-            triggered=self.window._show_ai_setup_help,
-        )
-
         self.about_act = QAction(  # type: ignore[call-overload]
             "&About",
             self.window,
@@ -387,8 +379,6 @@ class ActionManager:
 
         # Help menu
         help_menu = menubar.addMenu("&Help")
-        help_menu.addAction(self.ai_setup_help_act)
-        help_menu.addSeparator()
         help_menu.addAction(self.about_act)
 
         logger.debug("Menus created successfully")
