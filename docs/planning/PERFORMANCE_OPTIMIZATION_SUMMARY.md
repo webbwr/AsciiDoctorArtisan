@@ -209,6 +209,7 @@ INFO - PyMuPDF version: 1.26.5 (when used)
 | CPU Usage (preview) | 100% | 50-70% | 30-50% less | ✅ Done |
 | PDF Extraction | Baseline | 3-5x faster | 300-500% | ✅ Done |
 | Cell Processing | Baseline | 10-50x faster | 1000-5000% | ✅ Done* |
+| Text Splitting | Baseline | 5-10x faster | 500-1000% | ✅ Done* |
 | Overall App Speed | Baseline | 2-50x faster | 200-5000% | ✅ Done |
 
 *With Numba installed; gracefully falls back without it
