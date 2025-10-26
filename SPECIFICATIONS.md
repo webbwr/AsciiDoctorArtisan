@@ -15,6 +15,7 @@ Each rule says what MUST happen.
 This program helps you write papers.
 
 It:
+
 - Shows your work as you type
 - Opens Word, PDF, Markdown files
 - Saves to Word, PDF, Markdown
@@ -131,11 +132,9 @@ The program MUST show line numbers.
 
 ---
 
-## Preview Rules
-
 ### Rule: Show Preview
 
-The program MUST show HTML preview.
+The program MUST show HTML preview as true "what you see is what you get" (WYSIWYG).
 
 **Test**: Type text. Wait 1 second. Preview must update.
 
@@ -324,6 +323,7 @@ The program MUST have keyboard shortcuts.
 **Test**: Press Ctrl+Q. Program must close.
 
 Fast keys:
+
 - Ctrl+N = New file
 - Ctrl+O = Open file
 - Ctrl+S = Save
@@ -364,6 +364,7 @@ The program MUST stop dangerous paths.
 ### Rule: Use Right Tools
 
 The program MUST use:
+
 - PySide6 6.9.0+ for windows
 - asciidoc3 3.2.0+ for HTML
 - pypandoc 1.11+ for file changes
@@ -409,6 +410,7 @@ The program MUST save everything on your computer.
 **Test**: Check settings file. Must be in local folder.
 
 Settings save here:
+
 - Linux: `~/.config/AsciiDocArtisan/`
 - Windows: `%APPDATA%/AsciiDocArtisan/`
 - Mac: `~/Library/Application Support/AsciiDocArtisan/`
@@ -491,6 +493,7 @@ The program MUST be tested on all types.
 **Date**: October 2025
 
 **What's New**:
+
 - All parts work
 - 71 tests pass
 - Works on all computers
@@ -503,6 +506,7 @@ The program MUST be tested on all types.
 **Date**: 2024
 
 **What It Had**:
+
 - Basic edit
 - Basic preview
 - First tests
@@ -514,29 +518,34 @@ The program MUST be tested on all types.
 Things for later:
 
 ### Edit
+
 - Check spelling
 - Find and replace
 - Auto-complete
 - Color text
 
 ### Preview
+
 - Zoom preview
 - Print preview
 - Change colors
 
 ### Git
+
 - See old versions
 - Compare versions
 - Use branches
 - Merge help
 
 ### Teams
+
 - Share files
 - Edit together
 - Add notes
 - Team rooms
 
 ### AI
+
 - Better file changes
 - Writing help
 - Auto-format
@@ -556,7 +565,7 @@ Writers, coders, students, teachers, teams.
 Live preview, file changes, Git, works everywhere, safe.
 
 **Status**:
-Version 1.1.0 - Ready to use.
+Version 1.2.0 - Ready to use.
 
 **Reading Level**:
 Grade 5.0 - Easy to read!
