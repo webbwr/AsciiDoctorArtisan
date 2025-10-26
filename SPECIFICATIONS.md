@@ -565,7 +565,7 @@ Writers, coders, students, teachers, teams.
 Live preview, file changes, Git, works everywhere, safe.
 
 **Status**:
-Version 1.2.0 - Ready to use.
+Version 1.1.0-beta - Testing phase.
 
 **Reading Level**:
 Grade 5.0 - Easy to read!
