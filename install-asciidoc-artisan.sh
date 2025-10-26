@@ -166,25 +166,38 @@ esac
 
 print_info "Package manager: $PACKAGE_MANAGER"
 
-# Step 2: Check Python installation
+################################################################################
+# STEP 2: CHECK PYTHON INSTALLATION
+# Finds suitable Python version (3.11+) and sets PYTHON_CMD variable
+################################################################################
 print_header "Step 2: Checking Python Installation"
 
+# Variable to store the Python command to use
 PYTHON_CMD=""
+
+# Try common Python commands in order of preference
+# Prefer specific versions (3.12, 3.11) over generic (python3, python)
 for cmd in python3.12 python3.11 python3 python; do
+    # Check if command exists
     if command -v $cmd &> /dev/null; then
+        # Get version string (e.g., "Python 3.12.0")
         PYTHON_VERSION=$($cmd --version 2>&1 | awk '{print $2}')
+        # Extract major.minor (e.g., "3.12")
         PYTHON_MAJOR_MINOR=$(echo $PYTHON_VERSION | cut -d. -f1,2)
 
+        # Check if version meets minimum requirement
         if version_ge "$PYTHON_MAJOR_MINOR" "$PYTHON_MIN_VERSION"; then
             PYTHON_CMD=$cmd
             print_success "Found Python $PYTHON_VERSION at $(which $cmd)"
-            break
+            break  # Found suitable version, stop searching
         else
+            # Found Python but version is too old
             print_warning "Found Python $PYTHON_VERSION (too old, need >= $PYTHON_MIN_VERSION)"
         fi
     fi
 done
 
+# If no suitable Python found, show installation instructions and exit
 if [ -z "$PYTHON_CMD" ]; then
     print_error "Python $PYTHON_MIN_VERSION or higher not found"
     echo ""
