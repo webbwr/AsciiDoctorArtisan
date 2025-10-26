@@ -872,6 +872,9 @@ class AsciiDocEditor(QMainWindow):
             self._unsaved_changes = False
             self.status_manager.update_window_title()
 
+            # Update document metrics after loading content
+            self.status_manager.update_document_metrics()
+
             if file_path.suffix.lower() in [
                 ".md",
                 ".markdown",
