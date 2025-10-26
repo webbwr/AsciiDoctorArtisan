@@ -1,6 +1,10 @@
 """
 Adaptive Debouncer - Smart timing for preview updates.
 
+Implements:
+- NFR-001: Preview update latency optimization (<350ms target)
+- NFR-004: Memory usage optimization (adaptive resource management)
+
 This module provides adaptive debouncing that adjusts preview delays based on:
 - Document size (larger docs = longer delays)
 - System CPU load (high load = longer delays)
