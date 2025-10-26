@@ -71,7 +71,7 @@ class ActionManager:
         self.pandoc_status_act: QAction
         self.pandoc_formats_act: QAction
         self.ollama_status_act: QAction
-        self.ollama_models_act: QAction
+        self.ollama_settings_act: QAction
         self.about_act: QAction
 
     def create_actions(self) -> None:
