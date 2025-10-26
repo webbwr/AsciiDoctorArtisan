@@ -306,43 +306,61 @@ else
     echo "  Install from: https://git-scm.com/downloads"
 fi
 
-# Step 5: Create virtual environment (optional but recommended)
+################################################################################
+# STEP 5: VIRTUAL ENVIRONMENT SETUP
+# Creates isolated Python environment (recommended to avoid conflicts)
+################################################################################
 print_header "Step 5: Virtual Environment Setup"
 
+# Ask user if they want to create a virtual environment
 read -p "Create virtual environment? (recommended) [Y/n]: " -n 1 -r
 echo
+
+# If user didn't say 'n' or 'N', create venv
 if [[ ! $REPLY =~ ^[Nn]$ ]]; then
     print_info "Creating virtual environment in ./venv"
+    # Create venv using Python's built-in venv module
     $PYTHON_CMD -m venv venv
 
-    # Activate virtual environment
+    # Try to activate the virtual environment
     if [ -f venv/bin/activate ]; then
         source venv/bin/activate
         print_success "Virtual environment created and activated"
-        PYTHON_CMD="python"  # Use venv python
+        # From now on, use "python" (from venv) instead of system Python
+        PYTHON_CMD="python"
     else
         print_error "Failed to create virtual environment"
         exit 1
     fi
 else
+    # User declined venv - packages will be installed globally
     print_warning "Skipping virtual environment (installing globally)"
 fi
 
-# Step 6: Install Python dependencies
+################################################################################
+# STEP 6: INSTALL PYTHON DEPENDENCIES
+# Installs all required Python packages using pip
+################################################################################
 print_header "Step 6: Installing Python Dependencies"
 
+# First upgrade pip to latest version
 print_info "Upgrading pip..."
 $PYTHON_CMD -m pip install --upgrade pip --quiet
 
+# Install packages from requirements file if available
+# Priority: requirements-production.txt > requirements.txt > REQUIRED_PACKAGES
 if [ -f "requirements-production.txt" ]; then
+    # Production requirements (minimal set for running the app)
     print_info "Installing from requirements-production.txt..."
     $PYTHON_CMD -m pip install -r requirements-production.txt --quiet
     print_success "Production dependencies installed"
 elif [ -f "requirements.txt" ]; then
+    # Full requirements (includes dev dependencies)
     print_info "Installing from requirements.txt..."
     $PYTHON_CMD -m pip install -r requirements.txt --quiet
     print_success "Dependencies installed"
 else
+    # No requirements file - install packages from array
     print_info "Installing core packages..."
     for package in "${REQUIRED_PYTHON_PACKAGES[@]}"; do
         print_info "Installing $package..."
