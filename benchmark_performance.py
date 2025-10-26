@@ -58,6 +58,8 @@ def benchmark_numba():
         print(f"✓ Numba available")
 
         # Test cell cleaning (hot path)
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent / "src"))
         from document_converter import DocumentConverter
 
         test_cell = "  Test   content\nwith\nnewlines  " * 10
