@@ -1,48 +1,74 @@
 # GPU Acceleration Quick Start Guide
 
-**5-Minute Implementation for 2-5x Speedup**
+**Architecture Note - October 2025**
 
 ---
 
-## Fastest Win: Enable GPU Preview
+## Current Status
 
-Add these 4 lines to make your app 2-5x faster:
+**IMPORTANT**: This app uses `QTextBrowser`, not `QWebEngineView`.
 
-### Step 1: Open File
+QTextBrowser does not support GPU acceleration the same way.
 
-```bash
-src/asciidoc_artisan/ui/preview_handler.py
-```
+To enable GPU acceleration, the app would need to:
+1. Switch from QTextBrowser to QWebEngineView
+2. Add QWebEngine dependencies
+3. Update all preview rendering code
 
-### Step 2: Add Import
+This is a larger change than originally planned.
 
-```python
-from PySide6.QtWebEngineCore import QWebEngineSettings
-```
+---
 
-### Step 3: Add GPU Settings
+## Alternative: Migrate to QWebEngineView
 
-Find the `__init__` method (around line 46) and add:
+### What You Need
 
-```python
-def __init__(self, editor, preview, parent_window):
-    super().__init__(parent_window)
+1. **Add Dependency**
+   ```txt
+   # In requirements-production.txt
+   PySide6-WebEngine>=6.9.0
+   ```
 
-    # Enable GPU acceleration (ADD THIS)
-    settings = QWebEngineSettings.globalSettings()
-    settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
-    settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
+2. **Change Preview Widget**
+   ```python
+   # File: src/asciidoc_artisan/ui/main_window.py:456
+   # Replace:
+   self.preview = QTextBrowser(self)
 
-    # ... rest of code
-```
+   # With:
+   from PySide6.QtWebEngineWidgets import QWebEngineView
+   self.preview = QWebEngineView(self)
+   ```
 
-### Step 4: Test
+3. **Update Preview Handler**
+   ```python
+   # File: src/asciidoc_artisan/ui/preview_handler.py
+   # In __init__ method, add:
 
-```bash
-python src/main.py
-```
+   from PySide6.QtWebEngineCore import QWebEngineSettings
 
-Open a document. Preview should be faster!
+   # Enable GPU acceleration
+   settings = self.preview.page().settings()
+   settings.setAttribute(
+       QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True
+   )
+   settings.setAttribute(
+       QWebEngineSettings.WebAttribute.WebGLEnabled, True
+   )
+   logger.info("GPU acceleration enabled")
+   ```
+
+4. **Update Rendering Method**
+   ```python
+   # Change from setText() to setHtml()
+   # QWebEngineView uses setHtml(), not setHtml() with base URL
+   ```
+
+### Time Needed
+
+- 1-2 days for full migration
+- Requires testing all preview features
+- May need to update tests
 
 ---
 
