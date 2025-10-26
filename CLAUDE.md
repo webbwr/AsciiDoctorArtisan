@@ -10,9 +10,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - PySide6 6.9.0+ (Qt GUI framework)
 - asciidoc3 10.2.1+ (AsciiDoc to HTML rendering)
 - pypandoc 1.13+ (document format conversion)
+- wkhtmltopdf (PDF creation)
 - Python 3.11+ (3.12 recommended)
 
 **Version:** 1.1.0-beta
+
+**Key Features:**
+- Universal format support (open and save any format)
+- No conversion dialogs (Pandoc is default)
+- AI conversion is optional setting
+- Background conversion threads
 
 ## Installation & Setup
 
@@ -94,8 +101,9 @@ src/asciidoc_artisan/
 │   ├── theme_manager.py        # Dark/light mode theming
 │   ├── status_manager.py       # Status bar and messages
 │   ├── file_handler.py         # File open/save logic
+│   ├── export_manager.py       # Export and format conversion
 │   ├── preview_handler.py      # Preview pane management
-│   └── dialogs.py              # Custom dialogs
+│   └── dialogs.py              # Custom dialogs (PreferencesDialog only)
 ├── workers/        # Background thread workers
 │   ├── git_worker.py           # Git operations (pull/commit/push)
 │   ├── pandoc_worker.py        # Document conversion + AI
@@ -110,7 +118,10 @@ src/asciidoc_artisan/
 Long-running operations use Qt's QThread pattern:
 
 - **GitWorker**: Handles `git pull`, `git commit`, `git push` via subprocess
-- **PandocWorker**: Converts DOCX/PDF → AsciiDoc using pypandoc
+- **PandocWorker**: Universal format conversion (any format to any format)
+  - Supports: AsciiDoc, Markdown, DOCX, HTML, PDF
+  - Optional AI enhancement via Claude API
+  - Automatic fallback to Pandoc if AI fails
 - **PreviewWorker**: Renders AsciiDoc → HTML for live preview
 
 **Communication Pattern:**
@@ -242,12 +253,18 @@ Editor state is managed in src/asciidoc_artisan/ui/main_window.py:145
 ## External Dependencies
 
 **System Requirements:**
-- **Pandoc**: Required for DOCX/PDF conversion
-  - Linux: `sudo apt install pandoc`
-  - Mac: `brew install pandoc`
-  - Windows: Download from pandoc.org
+- **Pandoc**: Required for format conversion
+  - Linux: `sudo apt install pandoc wkhtmltopdf`
+  - Mac: `brew install pandoc wkhtmltopdf`
+  - Windows: Get from pandoc.org and wkhtmltopdf.org
 
-- **Git**: Required for version control features
+- **wkhtmltopdf**: Required for PDF creation
+  - Included in commands above
+  - Linux: `sudo apt install wkhtmltopdf`
+  - Mac: `brew install wkhtmltopdf`
+  - Windows: Get from wkhtmltopdf.org
+
+- **Git**: Optional for version control
   - Must be in PATH
   - Verify: `git --version`
 
@@ -266,6 +283,13 @@ pip install pypandoc
 
 **"Can't find Pandoc"**
 - Install Pandoc system binary (see External Dependencies)
+
+**"PDF conversion fails"**
+```bash
+# Install wkhtmltopdf
+sudo apt install wkhtmltopdf  # Linux
+brew install wkhtmltopdf      # Mac
+```
 
 **"Git doesn't work"**
 - Ensure file is in a Git repository

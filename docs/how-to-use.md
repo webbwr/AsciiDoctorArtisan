@@ -21,7 +21,9 @@ A simple guide to help you use AsciiDoc Artisan.
 AsciiDoc Artisan is a program that helps you write documents using AsciiDoc. Think of it like a special word processor that:
 - Shows you what your document looks like while you write
 - Helps you save your work online with Git
-- Can turn Word files and PDFs into AsciiDoc
+- Can open many file types (Word, PDF, Markdown, HTML)
+- Can save to many file types (Word, PDF, Markdown, HTML)
+- Changes file types for you in the background
 
 ### First Time Setup
 
@@ -108,8 +110,12 @@ There are two ways to save:
 ### File Types You Can Open
 
 - **`.adoc` files**: Regular AsciiDoc files
+- **`.md` files**: Markdown files (changes to AsciiDoc)
 - **`.docx` files**: Word documents (changes to AsciiDoc)
+- **`.html` files**: Web pages (changes to AsciiDoc)
 - **`.pdf` files**: PDF files (pulls out the text)
+
+All files open right away. No questions asked.
 
 ## Using Git
 
@@ -153,33 +159,48 @@ Good commit messages are short and clear:
 
 ## Changing Document Types
 
-### Converting TO AsciiDoc
+### Opening Different Types
 
-The program can turn other files into AsciiDoc:
+The program can open many file types:
 
 **From Word (.docx)**:
 1. Click `File` → `Open`
 2. Pick a .docx file
-3. The program changes it to AsciiDoc
+3. Opens as AsciiDoc right away
+
+**From Markdown (.md)**:
+1. Click `File` → `Open`
+2. Pick a .md file
+3. Opens as AsciiDoc right away
+
+**From HTML (.html)**:
+1. Click `File` → `Open`
+2. Pick an .html file
+3. Opens as AsciiDoc right away
 
 **From PDF (.pdf)**:
 1. Click `File` → `Open`
 2. Pick a .pdf file
-3. The program pulls out the text
+3. Pulls out the text
 
-### Exporting FROM AsciiDoc
+All files change to AsciiDoc. No questions asked.
 
-You can turn your AsciiDoc into other types:
+### Saving to Different Types
+
+You can save to any type:
 
 1. Click `File` menu
-2. Click `Export`
+2. Click `Save As`
 3. Pick what type you want:
-   - HTML (web pages)
-   - PDF (print documents)
+   - AsciiDoc (.adoc)
+   - Markdown (.md)
    - Word (.docx)
-   - Markdown
-4. Pick where to save it
+   - Web page (.html)
+   - PDF (.pdf)
+4. Type a file name
 5. Click Save
+
+The program changes it for you. No questions asked.
 
 ## Settings and Preferences
 

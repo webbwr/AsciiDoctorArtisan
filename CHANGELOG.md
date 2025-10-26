@@ -4,17 +4,67 @@ This tells what we did.
 
 ## Next Update (Not Out Yet)
 
-We added PDF files. You can open them now. We made tests to check PDFs work. All tests pass!
+### File Types - Big News!
+
+You can now open many file types:
+- Word files (.docx)
+- Markdown files (.md)
+- Web pages (.html)
+- PDF files (.pdf)
+- AsciiDoc files (.adoc)
+
+You can save to many types too:
+- Word (.docx)
+- Markdown (.md)
+- Web pages (.html)
+- PDF (.pdf)
+- AsciiDoc (.adoc)
+
+All files open right away. No questions asked!
+
+### Easier to Use
+
+We took out the pop-up questions. The program just works now.
+
+When you open a file, it changes to AsciiDoc. No waiting. No asking.
+
+When you save a file, it changes the type for you. No pop-ups. No choices to make.
+
+### What We Removed
+
+We took out two dialog boxes:
+- ImportOptionsDialog (no more import questions)
+- ExportOptionsDialog (no more export questions)
+
+This made the program simpler. It removed 186 lines of code we don't need.
+
+### AI Helper is Now Optional
+
+AI help is in Settings now. You don't see it every time.
+
+Want AI help? Turn it on in Settings.
+Don't want it? Just use Pandoc. It works great!
+
+### New Tools You Need
+
+You need wkhtmltopdf now. It makes PDF files.
+
+Get it here:
+- Linux: `sudo apt install wkhtmltopdf`
+- Mac: `brew install wkhtmltopdf`
+- Windows: Get from wkhtmltopdf.org
+
+### What We Fixed
+
+Files save better now. All types work right.
+
+Binary files (like DOCX) work now. We fixed a bug there.
+
+PDF making works great. If you don't have the PDF tool, we save HTML instead.
 
 Settings work better. The window size saves. The font size saves too.
 
-We took out the AI helper. We don't need it. This makes the program simpler.
-
-We need a new tool called pdfplumber. We don't need some old tools now.
-
-We fixed how settings save. Everything saves right now.
-
-The code is cleaner. It fits our plan better. We have 14 tests. They all work!
+The code is cleaner. It fits our plan better. We have 71 tests. They all work!
 
 ## First Version - October 19, 2025
 

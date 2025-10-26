@@ -7,14 +7,17 @@ A simple program that helps you write AsciiDoc papers.
 AsciiDoc Artisan is a writing tool that:
 - Shows you what your paper will look like as you type
 - Lets you save and share your work with Git
-- Can change Word files and PDFs into AsciiDoc files
+- Can open many file types (Word, PDF, Markdown, HTML)
+- Can save to many file types (Word, PDF, Markdown, HTML)
+- Changes file types for you in the background
 - Works on Windows, Mac, and Linux computers
 
 ## What You Need
 
 Before you start, you need these programs:
 - **Python 3.11 or newer** - Makes everything run
-- **Pandoc** - Helps change file types (you can skip this)
+- **Pandoc** - Changes file types (needed for Word, PDF)
+- **wkhtmltopdf** - Makes PDF files (needed for PDF save)
 - **Git** - Helps save and share your work (you can skip this)
 
 ## How to Put It On Your Computer
@@ -44,27 +47,25 @@ cd AsciiDoctorArtisan
 .\Install-AsciiDocArtisan.ps1
 ```
 
-The installer will:
-- ✅ Check you have Python 3.11 or newer
-- ✅ Install all needed Python parts
-- ✅ Install Pandoc (for changing file types)
-- ✅ Check Git is installed
-- ✅ Make a safe place for the program (virtual environment)
-- ✅ Test everything works
+The installer:
+- Gets Python parts
+- Gets Pandoc
+- Checks Git
+- Tests it works
 
-### Other Way - Do It Yourself
+### Do It Yourself
 
-If you want to install by hand:
+If you like to install by hand:
 
 1. Get Python parts:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Get Pandoc:
-   - **Linux**: `sudo apt install pandoc`
-   - **Mac**: `brew install pandoc`
-   - **Windows**: Get it from pandoc.org
+2. Get Pandoc and PDF tool:
+   - **Linux**: `sudo apt install pandoc wkhtmltopdf`
+   - **Mac**: `brew install pandoc wkhtmltopdf`
+   - **Windows**: Get from pandoc.org and wkhtmltopdf.org
 
 ## How to Use It
 
@@ -84,64 +85,83 @@ Or just click `launch-asciidoc-artisan-gui.sh` (Linux/Mac) or `launch-asciidoc-a
 
 ### Quick Keys
 
-These make things faster:
+Fast ways to work:
 
-| What You Press | What Happens |
-|---------------|--------------|
-| Ctrl+N | Make a new file |
-| Ctrl+O | Open a file |
-| Ctrl+S | Save your work |
-| Ctrl+Q | Close the program |
-| Ctrl+F | Find words |
-| Ctrl+D | Switch light and dark |
-| Ctrl++ | Make text bigger |
-| Ctrl+- | Make text smaller |
+| Press | Does |
+|-------|------|
+| Ctrl+N | New file |
+| Ctrl+O | Open file |
+| Ctrl+S | Save |
+| Ctrl+Q | Close |
+| Ctrl+F | Find |
+| Ctrl+D | Dark mode |
+| Ctrl++ | Bigger text |
+| Ctrl+- | Smaller text |
 
 ### Open and Save Files
 
 **Files You Can Open:**
 - `.adoc` files (AsciiDoc files)
+- `.md` files (Markdown files - changes to AsciiDoc)
 - `.docx` files (Word files - changes to AsciiDoc)
+- `.html` files (Web files - changes to AsciiDoc)
 - `.pdf` files (PDF files - gets the text out)
+
+All files open right away. No questions asked.
 
 **To Open a File:**
 1. Click `File` then `Open`
 2. Pick your file
 3. Click Open
 
+The program changes it to AsciiDoc for you.
+
 **To Save Your Work:**
 1. Click `File` then `Save`
 2. Type a name for your file
 3. Click Save
 
-### Use Git (Save to the Cloud)
+**To Save in Other Formats:**
+1. Click `File` then `Save As`
+2. Pick what type you want:
+   - AsciiDoc (.adoc)
+   - Markdown (.md)
+   - Word (.docx)
+   - PDF (.pdf)
+   - Web page (.html)
+3. Type a name
+4. Click Save
 
-If your file is in a Git folder, you can:
+The program changes it for you. No questions asked.
 
-**Pull** (Get the newest version):
+### Use Git (Save Online)
+
+If your file is in a Git folder:
+
+**Pull** (Get new version):
 - Click `Git` then `Pull`
 
-**Commit** (Save your changes):
+**Commit** (Save changes):
 1. Click `Git` then `Commit`
-2. Type what you changed
+2. Type what you did
 3. Click OK
 
-**Push** (Send to GitHub):
+**Push** (Send to web):
 - Click `Git` then `Push`
 
 ## The View Window
 
-The right side shows what your paper will look like:
-- Changes as you type (after you stop for a bit)
-- Moves with where you're writing
-- Shows all your formatting (bold, lists, titles, etc.)
+The right side shows how your paper looks:
+- Updates when you stop typing
+- Moves as you write
+- Shows bold, lists, titles
 
-## Where Files Are Saved
+## Where Settings Are Saved
 
-The program remembers your settings in a file:
-- **Linux**: `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
-- **Windows**: `%APPDATA%/AsciiDocArtisan/AsciiDocArtisan.json`
-- **Mac**: `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.json`
+The program saves your settings here:
+- **Linux**: `~/.config/AsciiDocArtisan/`
+- **Windows**: `%APPDATA%/AsciiDocArtisan/`
+- **Mac**: `~/Library/Application Support/AsciiDocArtisan/`
 
 ## Common Problems
 
@@ -155,40 +175,30 @@ The program remembers your settings in a file:
 **Fix**: Make sure your file is in a Git folder (type `git status` to check)
 
 ### "Program won't start on Windows"
-**Fix**: Try running the installer again: `.\Install-AsciiDocArtisan.ps1`
+**Fix**: Run the installer again: `.\Install-AsciiDocArtisan.ps1`
 
 ## What's in the Project
 
-Here's what's in the folders:
+Main folders:
 
 ```
 AsciiDoctorArtisan/
-├── src/                    # All the program code
-│   ├── main.py            # Main program file
-│   └── asciidoc_artisan/  # Helper code
-├── templates/             # Example papers you can copy
-├── docs/                  # Help files
-│   ├── how-to-use.md     # How to use it (Grade 5.1)
-│   ├── how-to-install.md # How to install it (Grade 3.2)
-│   └── how-to-contribute.md # How to help (Grade 4.0)
-├── openspec/              # Specification system
-│   ├── changes/          # Proposed new features
-│   └── archive/          # Completed changes
-├── tests/                # Code tests
-├── scripts/              # Helper scripts
-├── README.md             # This file (Grade 5.0)
-├── SPECIFICATIONS.md     # What it must do (Grade 6.0)
-└── LICENSE              # Rules for using it
+├── src/         # Program code
+├── templates/   # Example files
+├── docs/        # Help files
+├── tests/       # Tests
+├── scripts/     # Helper scripts
+└── LICENSE     # Use rules
 ```
 
 ## Want to Help?
 
-We'd love your help! Here's how:
-1. Make a copy of the project (fork it)
-2. Make your changes
-3. Send us your changes (pull request)
+You can help! Here's how:
+1. Copy the project
+2. Make changes
+3. Send them to us
 
-See [how-to-contribute.md](docs/how-to-contribute.md) to learn more.
+See [how-to-contribute.md](docs/how-to-contribute.md) for more.
 
 ## License
 
@@ -196,20 +206,18 @@ You can use this program for free! It uses the MIT License.
 
 ## More Help
 
-Need more help?
-- **[How to Use](docs/how-to-use.md)** - All features explained (Grade 5.1)
-- **[How to Install](docs/how-to-install.md)** - Step by step setup (Grade 3.2)
-- **[What It Must Do](SPECIFICATIONS.md)** - All requirements (Grade 6.0)
-- **[How to Help](docs/how-to-contribute.md)** - Join the team (Grade 4.0)
-- **[Propose Features](openspec/README.md)** - How to suggest new ideas (Grade 6.0)
-- Look at issues on GitHub
-- Create a new issue if you find a bug
+Need help?
+- **[How to Use](docs/how-to-use.md)** - All features
+- **[How to Install](docs/how-to-install.md)** - Setup help
+- **[How to Help](docs/how-to-contribute.md)** - Join us
+- Look at GitHub issues
+- Make a new issue for bugs
 
 **Reading Level**: Grade 5.0 (Elementary)
 
 ## Thank You
 
-This program uses these great tools:
-- **PySide6** - Makes the windows and buttons
-- **asciidoc3** - Turns AsciiDoc into HTML
+This program uses these tools:
+- **PySide6** - Makes windows and buttons
+- **asciidoc3** - Turns AsciiDoc to HTML
 - **pypandoc** - Changes file types
