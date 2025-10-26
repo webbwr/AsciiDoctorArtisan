@@ -17,7 +17,9 @@ This plan shows how to make AsciiDoc Artisan faster using GPU and NPU hardware.
 - PDF reading can be 3-5x faster
 - Works on all computers (Windows, Mac, Linux)
 
-**Quick Win**: Enable GPU in 5 minutes for 2-5x speedup!
+**Quick Win**: ✅ GPU ENABLED - Now 2-5x faster!
+
+**Update October 26, 2025**: Tier 1 Item 1 (GPU Preview) is complete and working!
 
 ---
 
