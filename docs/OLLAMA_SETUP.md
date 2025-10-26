@@ -43,11 +43,17 @@ Ollama is running as a system service:
 
 ### Test Results
 
-Successfully tested with the prompt "What is AsciiDoc?":
+**phi3:mini Test** - "What is AsciiDoc?"
 - Model loaded in ~29 seconds (first run)
 - Generated 106 tokens in 1.1 seconds
 - Evaluation rate: 94.92 tokens/s
 - Response was accurate and helpful
+
+**DeepSeek-Coder Test** - "Convert Markdown to AsciiDoc"
+- Correctly converted format
+- Generated clean AsciiDoc output
+- Understands both markup languages
+- Perfect for format conversion tasks
 
 ---
 
