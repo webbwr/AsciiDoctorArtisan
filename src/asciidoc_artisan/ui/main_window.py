@@ -1514,6 +1514,119 @@ class AsciiDocEditor(QMainWindow):
                 "• And many more...",
             )
 
+    def _show_ollama_status(self) -> None:
+        """Show Ollama service and installation status."""
+        status = "Ollama Status:\n\n"
+
+        try:
+            import ollama
+
+            # Try to connect to Ollama service
+            try:
+                # Test connection by listing models
+                models = ollama.list()
+                status += "✅ Ollama service: Running\n"
+                status += f"API endpoint: http://127.0.0.1:11434\n"
+                status += f"Models installed: {len(models.get('models', []))}\n"
+
+                # Check for GPU
+                try:
+                    import subprocess
+
+                    result = subprocess.run(
+                        ["nvidia-smi"],
+                        capture_output=True,
+                        text=True,
+                        timeout=2,
+                    )
+                    if result.returncode == 0:
+                        status += "GPU: ✅ NVIDIA GPU detected\n"
+                    else:
+                        status += "GPU: ⚠️ Not detected (CPU mode)\n"
+                except (FileNotFoundError, subprocess.TimeoutExpired):
+                    status += "GPU: ⚠️ Not detected (CPU mode)\n"
+
+            except Exception as e:
+                status += "❌ Ollama service: Not running\n"
+                status += f"Error: {str(e)}\n\n"
+                status += "To start Ollama:\n"
+                status += "  Linux/Mac: systemctl start ollama\n"
+                status += "  Windows: Start Ollama application\n"
+
+        except ImportError:
+            status += "❌ Ollama Python library not installed\n\n"
+            status += "To install:\n"
+            status += "  pip install ollama>=0.4.0\n\n"
+            status += "To install Ollama itself:\n"
+            status += "  Visit: https://ollama.com/download\n"
+
+        self.status_manager.show_message("info", "Ollama Status", status)
+
+    def _show_ollama_models(self) -> None:
+        """Show installed Ollama models with details."""
+        try:
+            import ollama
+
+            # Get list of installed models
+            try:
+                response = ollama.list()
+                models = response.get("models", [])
+
+                if not models:
+                    self.status_manager.show_message(
+                        "info",
+                        "No Models Installed",
+                        "No Ollama models are currently installed.\n\n"
+                        "To install a model:\n"
+                        "  ollama pull phi3:mini\n"
+                        "  ollama pull deepseek-coder:6.7b\n\n"
+                        "Recommended models:\n"
+                        "  • phi3:mini - Fast, general purpose (2.2GB)\n"
+                        "  • deepseek-coder:6.7b - Code specialist (3.8GB)",
+                    )
+                    return
+
+                message = f"Installed Ollama Models ({len(models)}):\n\n"
+
+                for model in models:
+                    name = model.get("name", "Unknown")
+                    size_bytes = model.get("size", 0)
+                    size_gb = size_bytes / (1024**3) if size_bytes else 0
+                    modified = model.get("modified_at", "Unknown")
+
+                    message += f"📦 {name}\n"
+                    message += f"   Size: {size_gb:.1f} GB\n"
+                    message += f"   Modified: {modified[:10] if isinstance(modified, str) else 'Unknown'}\n\n"
+
+                message += "\nTo use a model:\n"
+                message += "  ollama run <model-name>\n\n"
+                message += "Example:\n"
+                message += "  ollama run phi3:mini \"What is AsciiDoc?\""
+
+                self.status_manager.show_message("info", "Installed Models", message)
+
+            except Exception as e:
+                self.status_manager.show_message(
+                    "warning",
+                    "Cannot Access Models",
+                    f"Error accessing Ollama models:\n{str(e)}\n\n"
+                    "Make sure Ollama service is running:\n"
+                    "  systemctl status ollama\n\n"
+                    "Or start it with:\n"
+                    "  systemctl start ollama",
+                )
+
+        except ImportError:
+            self.status_manager.show_message(
+                "warning",
+                "Ollama Not Installed",
+                "Ollama Python library is not installed.\n\n"
+                "To install:\n"
+                "  pip install ollama>=0.4.0\n\n"
+                "To install Ollama itself:\n"
+                "  Visit: https://ollama.com/download",
+            )
+
     def _show_message(self, level: str, title: str, text: str) -> None:
         icon_map = {
             "info": QMessageBox.Icon.Information,
