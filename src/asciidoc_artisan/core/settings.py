@@ -58,6 +58,8 @@ class Settings:
     auto_save_enabled: bool = True
     auto_save_interval: int = 300
     ai_conversion_enabled: bool = False
+    ollama_enabled: bool = False
+    ollama_model: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """
