@@ -119,35 +119,46 @@ version_ge() {
     [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
 }
 
-# Step 1: Detect OS
+################################################################################
+# STEP 1: DETECT OPERATING SYSTEM
+# Determines OS type and available package manager for system dependencies
+################################################################################
 print_header "Step 1: Detecting Operating System"
 
+# Get OS type from uname command
 OS_TYPE=$(uname -s)
+
+# Detect OS and set package manager
 case "$OS_TYPE" in
     Darwin*)
+        # macOS detected
         OS_NAME="macOS"
-        PACKAGE_MANAGER="brew"
+        PACKAGE_MANAGER="brew"  # Homebrew is standard on macOS
         print_success "Detected: macOS"
         ;;
     Linux*)
+        # Linux detected - get distribution name
         OS_NAME="Linux"
         if [ -f /etc/os-release ]; then
+            # Read OS name from standard file
             . /etc/os-release
-            OS_NAME="$NAME"
+            OS_NAME="$NAME"  # e.g., "Ubuntu", "Fedora", "Debian"
         fi
-        # Detect package manager
+
+        # Detect which package manager is available
         if command -v apt-get &> /dev/null; then
-            PACKAGE_MANAGER="apt"
+            PACKAGE_MANAGER="apt"  # Debian/Ubuntu
         elif command -v dnf &> /dev/null; then
-            PACKAGE_MANAGER="dnf"
+            PACKAGE_MANAGER="dnf"  # Fedora/RHEL 8+
         elif command -v yum &> /dev/null; then
-            PACKAGE_MANAGER="yum"
+            PACKAGE_MANAGER="yum"  # RHEL/CentOS 7
         else
-            PACKAGE_MANAGER="unknown"
+            PACKAGE_MANAGER="unknown"  # Will require manual installation
         fi
         print_success "Detected: $OS_NAME"
         ;;
     *)
+        # Unsupported OS (e.g., BSD, other Unix variants)
         print_error "Unsupported operating system: $OS_TYPE"
         exit 1
         ;;
