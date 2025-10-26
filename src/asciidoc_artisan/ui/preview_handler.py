@@ -18,6 +18,7 @@ from typing import Any, Optional
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtWidgets import QPlainTextEdit
 from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWebEngineCore import QWebEngineSettings
 
 try:
     from asciidoc_artisan.core.adaptive_debouncer import AdaptiveDebouncer, DebounceConfig
