@@ -573,42 +573,13 @@ class AsciiDocEditor(QMainWindow):
         """
         Synchronize editor scroll position with preview.
 
-        Implements FR-043 with loop detection and coalescing.
+        Note: QWebEngineView does not provide scrollbar signals.
+        Preview-to-editor sync is primarily handled via editor-to-preview.
+        This method is kept for compatibility but has limited functionality.
         """
-        if not self._sync_scrolling or self._is_syncing_scroll:
-            return
-
-        # Skip if value hasn't changed significantly (coalesce events)
-        if abs(value - self._last_preview_scroll) < 2:
-            return
-
-        self._last_preview_scroll = value
-
-        # Detect potential scroll loops
-        self._scroll_sync_count += 1
-        if self._scroll_sync_count > 100:
-            logger.warning("Scroll loop detected, resetting")
-            self._scroll_sync_count = 0
-            return
-
-        self._is_syncing_scroll = True
-        try:
-            editor_scrollbar = self.editor.verticalScrollBar()
-            preview_scrollbar = self.preview.verticalScrollBar()
-
-            preview_max = preview_scrollbar.maximum()
-            if preview_max > 0:
-                scroll_percentage = value / preview_max
-                editor_value = int(editor_scrollbar.maximum() * scroll_percentage)
-
-                # Only update if value actually changed
-                if editor_scrollbar.value() != editor_value:
-                    editor_scrollbar.setValue(editor_value)
-
-            # Reset counter on successful sync
-            self._scroll_sync_count = max(0, self._scroll_sync_count - 1)
-        finally:
-            self._is_syncing_scroll = False
+        # QWebEngineView doesn't provide scroll events in the same way
+        # Primary sync direction is editor -> preview
+        pass
 
     def _setup_workers_and_threads(self) -> None:
         logger.info("Setting up worker threads...")
