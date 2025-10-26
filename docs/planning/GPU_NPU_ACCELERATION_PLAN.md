@@ -1,9 +1,9 @@
 # GPU/NPU Acceleration Plan for AsciiDoc Artisan
 
-**Version**: 1.1
+**Version**: 1.2
 **Date**: October 26, 2025
 **Reading Level**: Grade 5.0
-**Status**: ✅ Tier 1 Item 1 COMPLETE - GPU Preview Enabled!
+**Status**: ✅ Tier 1 COMPLETE + Tier 2.1 COMPLETE!
 
 ---
 
