@@ -1562,69 +1562,17 @@ class AsciiDocEditor(QMainWindow):
 
         self.status_manager.show_message("info", "Ollama Status", status)
 
-    def _show_ollama_models(self) -> None:
-        """Show installed Ollama models with details."""
-        try:
-            import ollama
+    def _show_ollama_settings(self) -> None:
+        """Show Ollama AI settings dialog with model selection."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
-            # Get list of installed models
-            try:
-                response = ollama.list()
-                models = response.get("models", [])
-
-                if not models:
-                    self.status_manager.show_message(
-                        "info",
-                        "No Models Installed",
-                        "No Ollama models are currently installed.\n\n"
-                        "To install a model:\n"
-                        "  ollama pull phi3:mini\n"
-                        "  ollama pull deepseek-coder:6.7b\n\n"
-                        "Recommended models:\n"
-                        "  • phi3:mini - Fast, general purpose (2.2GB)\n"
-                        "  • deepseek-coder:6.7b - Code specialist (3.8GB)",
-                    )
-                    return
-
-                message = f"Installed Ollama Models ({len(models)}):\n\n"
-
-                for model in models:
-                    name = model.get("name", "Unknown")
-                    size_bytes = model.get("size", 0)
-                    size_gb = size_bytes / (1024**3) if size_bytes else 0
-                    modified = model.get("modified_at", "Unknown")
-
-                    message += f"📦 {name}\n"
-                    message += f"   Size: {size_gb:.1f} GB\n"
-                    message += f"   Modified: {modified[:10] if isinstance(modified, str) else 'Unknown'}\n\n"
-
-                message += "\nTo use a model:\n"
-                message += "  ollama run <model-name>\n\n"
-                message += "Example:\n"
-                message += "  ollama run phi3:mini \"What is AsciiDoc?\""
-
-                self.status_manager.show_message("info", "Installed Models", message)
-
-            except Exception as e:
-                self.status_manager.show_message(
-                    "warning",
-                    "Cannot Access Models",
-                    f"Error accessing Ollama models:\n{str(e)}\n\n"
-                    "Make sure Ollama service is running:\n"
-                    "  systemctl status ollama\n\n"
-                    "Or start it with:\n"
-                    "  systemctl start ollama",
-                )
-
-        except ImportError:
-            self.status_manager.show_message(
-                "warning",
-                "Ollama Not Installed",
-                "Ollama Python library is not installed.\n\n"
-                "To install:\n"
-                "  pip install ollama>=0.4.0\n\n"
-                "To install Ollama itself:\n"
-                "  Visit: https://ollama.com/download",
+        dialog = OllamaSettingsDialog(self._settings, self)
+        if dialog.exec():
+            self._settings = dialog.get_settings()
+            self._save_settings()
+            logger.info(
+                f"Ollama settings updated: enabled={self._settings.ollama_enabled}, "
+                f"model={self._settings.ollama_model}"
             )
 
     def _show_message(self, level: str, title: str, text: str) -> None:
