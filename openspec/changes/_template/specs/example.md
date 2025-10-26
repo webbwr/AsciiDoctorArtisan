@@ -1,54 +1,54 @@
-# Specification Changes for [Feature Name]
+# Spec Changes for [Feature Name]
 
-**Reading Level**: Grade 6.0
+**Reading Level**: Grade 5.0
 **Status**: Draft
 
 ## Overview
 
-This shows what requirements change for [Feature Name].
+This shows what rules change for [Feature Name].
 
-## ADDED Requirements
+## ADDED Rules
 
-### Requirement: [New Requirement Name]
+### Rule: [New Rule Name]
 
 The program SHALL [do something new].
 
-#### Scenario: [Test Case Name]
+#### Test: [Test Case Name]
 
 **Given**: [Starting state]
 **When**: [Action happens]
-**Then**: [Expected result]
+**Then**: [What should happen]
 
-#### Scenario: [Another Test Case]
-
-**Given**: [Starting state]
-**When**: [Action happens]
-**Then**: [Expected result]
-
-## MODIFIED Requirements
-
-### Requirement: [Changed Requirement Name]
-
-**Old**: The program SHALL [old behavior].
-
-**New**: The program SHALL [new behavior].
-
-#### Scenario: [Updated Test Case]
+#### Test: [Another Test Case]
 
 **Given**: [Starting state]
 **When**: [Action happens]
-**Then**: [New expected result]
+**Then**: [What should happen]
 
-**Why changed**: [Explanation of why this changed]
+## CHANGED Rules
 
-## REMOVED Requirements
+### Rule: [Changed Rule Name]
 
-### Requirement: [Deleted Requirement Name]
+**Old**: The program SHALL [old way].
 
-**Was**: The program SHALL [old behavior].
+**New**: The program SHALL [new way].
 
-**Why removed**: [Explanation of why we removed this]
+####Test: [Updated Test Case]
+
+**Given**: [Starting state]
+**When**: [Action happens]
+**Then**: [New result]
+
+**Why changed**: [Why we changed this]
+
+## REMOVED Rules
+
+### Rule: [Deleted Rule Name]
+
+**Was**: The program SHALL [old way].
+
+**Why removed**: [Why we removed this]
 
 ---
 
-**Document Info**: Spec changes template | Reading level Grade 6.0 | OpenSpec format
+**Reading level Grade 5.0 | OpenSpec format**

@@ -3,9 +3,9 @@
 **Status**: Draft
 **Author**: [Your Name]
 **Date**: [Today's Date]
-**Reading Level**: Grade 6.0
+**Reading Level**: Grade 5.0
 
-## Overview
+## What We Build
 
 Quick summary of what we're building.
 
@@ -13,7 +13,7 @@ Quick summary of what we're building.
 
 ## How It Works
 
-### User Flow
+### User Steps
 
 1. User does [action 1]
 2. Program does [response 1]
@@ -22,17 +22,17 @@ Quick summary of what we're building.
 5. Program does [response 2]
 6. User sees [result 2]
 
-### Technical Flow
+### Tech Flow
 
 ```
-[Component 1] → [Component 2] → [Component 3]
-     ↓               ↓               ↓
-  [Action 1]     [Action 2]     [Action 3]
+[Part 1] → [Part 2] → [Part 3]
+   ↓         ↓         ↓
+[Do 1]   [Do 2]   [Do 3]
 ```
 
-## Components Changed
+## Parts Changed
 
-### Component 1: [Name]
+### Part 1: [Name]
 
 **File**: `path/to/file.py`
 
@@ -41,9 +41,9 @@ Quick summary of what we're building.
 - [Change 2]
 
 **Why it changes**:
-[Explanation]
+[Reason]
 
-### Component 2: [Name]
+### Part 2: [Name]
 
 **File**: `path/to/file.py`
 
@@ -52,7 +52,7 @@ Quick summary of what we're building.
 - [Change 2]
 
 **Why it changes**:
-[Explanation]
+[Reason]
 
 ## Data Flow
 
@@ -76,20 +76,20 @@ Input → Process → Output
 ### Before
 
 ```
-[Current UI description or sketch]
+[How it looks now]
 ```
 
 ### After
 
 ```
-[New UI description or sketch]
+[How it will look]
 ```
 
 ### Mockups
 
-[Add images or sketches here]
+[Add images here]
 
-## API Changes
+## Code Changes
 
 ### New Functions
 
@@ -103,7 +103,7 @@ def new_function(param1, param2):
         param2: Description
 
     Returns:
-        Description of return value
+        What it returns
     """
     pass
 ```
@@ -126,16 +126,6 @@ def existing_function(new_param1, new_param2):
     pass
 ```
 
-## Database Changes
-
-### New Tables
-
-[If applicable]
-
-### Changed Tables
-
-[If applicable]
-
 ## Settings Changes
 
 ### New Settings
@@ -147,43 +137,39 @@ def existing_function(new_param1, new_param2):
 }
 ```
 
-### Changed Settings
-
-[If applicable]
-
 ## Error Handling
 
 ### New Errors
 
 **Error**: `FeatureError`
 
-**When it happens**: [Description]
+**When it happens**: [Why]
 
 **What user sees**: [Error message]
 
 **How to fix**: [Solution]
 
-## Security Considerations
+## Security
 
-- [Security consideration 1]
-- [Security consideration 2]
+- [Security thing 1]
+- [Security thing 2]
 
-## Performance Impact
+## Speed Impact
 
 **Expected**:
 - [Impact on speed]
 - [Impact on memory]
-- [Impact on disk space]
+- [Impact on disk]
 
-## Testing Strategy
+## Testing Plan
 
 ### Unit Tests
 
-- [ ] Test [component 1]
-- [ ] Test [component 2]
-- [ ] Test [error handling]
+- [ ] Test [part 1]
+- [ ] Test [part 2]
+- [ ] Test [errors]
 
-### Integration Tests
+### Full Tests
 
 - [ ] Test [full workflow]
 - [ ] Test [edge cases]
@@ -199,28 +185,28 @@ def existing_function(new_param1, new_param2):
 - [Question 1]?
 - [Question 2]?
 
-## Alternatives Considered
+## Other Ways
 
-### Alternative 1: [Name]
-
-**What**: [Description]
-
-**Pros**: [Benefits]
-
-**Cons**: [Drawbacks]
-
-**Why not chosen**: [Reason]
-
-### Alternative 2: [Name]
+### Way 1: [Name]
 
 **What**: [Description]
 
-**Pros**: [Benefits]
+**Good**: [Benefits]
 
-**Cons**: [Drawbacks]
+**Bad**: [Drawbacks]
 
-**Why not chosen**: [Reason]
+**Why not**: [Reason]
+
+### Way 2: [Name]
+
+**What**: [Description]
+
+**Good**: [Benefits]
+
+**Bad**: [Drawbacks]
+
+**Why not**: [Reason]
 
 ---
 
-**Document Info**: Design template | Reading level Grade 6.0 | OpenSpec format
+**Reading level Grade 5.0 | OpenSpec format**

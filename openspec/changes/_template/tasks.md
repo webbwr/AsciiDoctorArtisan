@@ -1,37 +1,37 @@
 # Tasks for [Feature Name]
 
 **Status**: Draft
-**Reading Level**: Grade 6.0
+**Reading Level**: Grade 5.0
 
 ## Planning
 
-- [ ] Write proposal
+- [ ] Write plan
 - [ ] Get team feedback
-- [ ] Update proposal based on feedback
-- [ ] Get final approval
+- [ ] Update plan
+- [ ] Get OK to start
 
 ## Design
 
-- [ ] Create mockups (if UI changes)
-- [ ] Write technical design
-- [ ] Review design with team
-- [ ] Update design based on feedback
+- [ ] Make mockups (if UI changes)
+- [ ] Write tech design
+- [ ] Review with team
+- [ ] Update design
 
 ## Code Changes
 
 ### Backend
 
-- [ ] [Task 1: Description]
-- [ ] [Task 2: Description]
-- [ ] [Task 3: Description]
+- [ ] [Task 1: What to do]
+- [ ] [Task 2: What to do]
+- [ ] [Task 3: What to do]
 
-### Frontend/UI
+### UI
 
-- [ ] [Task 1: Description]
-- [ ] [Task 2: Description]
-- [ ] [Task 3: Description]
+- [ ] [Task 1: What to do]
+- [ ] [Task 2: What to do]
+- [ ] [Task 3: What to do]
 
-### Documentation
+### Docs
 
 - [ ] Update SPECIFICATIONS.md
 - [ ] Update README.md
@@ -41,33 +41,33 @@
 ## Testing
 
 - [ ] Write unit tests
-- [ ] Write integration tests
-- [ ] Manual testing on Windows
-- [ ] Manual testing on Linux
-- [ ] Manual testing on Mac
+- [ ] Write full tests
+- [ ] Test on Windows
+- [ ] Test on Linux
+- [ ] Test on Mac
 - [ ] Test with real users
 
 ## Review
 
 - [ ] Code review
 - [ ] Test review
-- [ ] Documentation review
-- [ ] Final approval
+- [ ] Doc review
+- [ ] Final OK
 
 ## Deploy
 
-- [ ] Merge to main branch
-- [ ] Create release notes
+- [ ] Merge to main
+- [ ] Make release notes
 - [ ] Tag version
-- [ ] Announce to users
+- [ ] Tell users
 
 ## Archive
 
-- [ ] Move to archive folder
+- [ ] Move to archive
 - [ ] Update main specs
-- [ ] Close all related issues
-- [ ] Document lessons learned
+- [ ] Close all issues
+- [ ] Write what we learned
 
 ---
 
-**Document Info**: Tasks template | Reading level Grade 6.0 | OpenSpec format
+**Reading level Grade 5.0 | OpenSpec format**

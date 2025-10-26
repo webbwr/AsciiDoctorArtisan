@@ -3,7 +3,7 @@
 **Status**: Draft
 **Author**: [Your Name]
 **Date**: [Today's Date]
-**Reading Level**: Grade 6.0
+**Reading Level**: Grade 5.0
 
 ## Problem
 
@@ -45,13 +45,13 @@ Show how it works:
 [What it will look like]
 ```
 
-## Benefits
+## Why Good
 
 Why is this good:
 
-1. [Benefit 1]
-2. [Benefit 2]
-3. [Benefit 3]
+1. [Good thing 1]
+2. [Good thing 2]
+3. [Good thing 3]
 
 ## Risks
 
@@ -70,4 +70,4 @@ What we need to decide:
 
 ---
 
-**Document Info**: Proposal template | Reading level Grade 6.0 | OpenSpec format
+**Reading level Grade 5.0 | OpenSpec format**

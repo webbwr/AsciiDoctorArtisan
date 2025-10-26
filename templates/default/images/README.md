@@ -1,15 +1,15 @@
-# Images Directory
+# Images
 
-Place your images, diagrams, and screenshots in this directory.
+Put your pictures here.
 
-## Supported Formats
+## What Works
 
 - PNG
 - JPEG/JPG
 - SVG
 - GIF
 
-## Usage in AsciiDoc
+## How to Use
 
 ```asciidoc
 image::filename.png[Alt Text, width]
@@ -18,5 +18,5 @@ image::filename.png[Alt Text, width]
 Example:
 
 ```asciidoc
-image::diagram.png[System Architecture Diagram, 800]
+image::diagram.png[System Diagram, 800]
 ```
