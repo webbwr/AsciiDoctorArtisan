@@ -373,7 +373,6 @@ The program MUST use:
 - anthropic 0.40.0+ for AI help
 - keyring 24.0.0+ for safe keys
 - psutil 5.9.0+ for system check
-- numba 0.58.0+ for speed (optional, 10-50x faster)
 - Pandoc for conversions
 - wkhtmltopdf for PDF
 
@@ -475,11 +474,11 @@ The program MUST read PDFs fast.
 
 ### Rule: Smart Speed Boosts (NEW v1.1)
 
-The program MAY use Numba JIT if installed.
+The program uses GPU-accelerated preview and optimized PDF reading.
 
-**Test**: Install Numba. Table processing 10-50x faster.
+**Test**: Preview updates 2-5x faster with GPU acceleration.
 
-**Test**: No Numba? Must work at normal speed.
+**Test**: PDF extraction 3-5x faster with PyMuPDF.
 
 ---
 
@@ -524,9 +523,9 @@ The program MUST be tested on all types.
 
 - GPU speed (2-5x faster preview)
 - Fast PDF reading (3-5x faster)
-- Smart table processing (10-50x faster with Numba)
+- Optimized Python code for all operations
 - All parts work
-- 71 tests pass
+- 400+ tests pass
 - Works on all computers
 - Safe and secure
 - Simple rules

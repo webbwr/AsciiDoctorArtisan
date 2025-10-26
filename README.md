@@ -150,7 +150,7 @@ If in a Git folder:
 This app is fast:
 - **GPU speed**: Uses your graphics card (2-5x faster view)
 - **Fast PDF**: Opens PDF files 3-5x faster
-- **Smart code**: Uses JIT for 10-50x faster tables
+- **Smart code**: Uses best Python methods for all operations
 - **Auto-works**: Falls back if GPU not there
 - **All computers**: Works on Windows, Mac, Linux
 
