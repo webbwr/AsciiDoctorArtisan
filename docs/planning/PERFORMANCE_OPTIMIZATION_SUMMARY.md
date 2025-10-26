@@ -289,6 +289,12 @@ pymupdf>=1.23.0
    - Lines 21-23: PyMuPDF dependency
    - Lines 37-40: Optional Numba dependency
 
+5. `src/asciidoc_artisan/workers/incremental_renderer.py`
+   - Lines 20-23: Performance optimization notes
+   - Lines 42-54: Numba JIT setup
+   - Lines 173-202: JIT-optimized heading detection
+   - Lines 247-267: Updated split algorithm
+
 ### New Files
 - `docs/planning/GPU_QUICK_START.md` - Updated with implementation status
 - `docs/planning/GPU_IMPLEMENTATION_SUMMARY.md` - GPU details
