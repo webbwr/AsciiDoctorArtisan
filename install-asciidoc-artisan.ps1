@@ -259,63 +259,86 @@ if ($osInfo.BuildNumber -lt 22000) {
     Write-WarningMsg "Windows 11 recommended (Build 22000+), detected Build $($osInfo.BuildNumber)"
 }
 
-# Step 3: Check Python Installation
+################################################################################
+# STEP 3: CHECK PYTHON INSTALLATION
+# Finds suitable Python version (3.11+) and sets $PythonCommand variable
+################################################################################
 Write-Header "Step 3: Checking Python Installation"
 
+# Variables to track Python discovery
 $pythonFound = $false
 $pythonExecutable = ""
 $pythonVersion = ""
 
-# Try the specified Python command first
+################################################################################
+# Try the user-specified Python command first (from -PythonCommand parameter)
+################################################################################
 if (Test-CommandExists $PythonCommand) {
     try {
+        # Get version string (e.g., "Python 3.12.0")
         $versionOutput = & $PythonCommand --version 2>&1
+
+        # Extract version number using regex
         if ($versionOutput -match "Python (\d+\.\d+\.\d+)") {
-            $pythonVersion = $matches[1]
+            $pythonVersion = $matches[1]  # e.g., "3.12.0"
+            # Get major.minor version (e.g., "3.12")
             $pythonMajorMinor = $pythonVersion.Substring(0, $pythonVersion.LastIndexOf('.'))
 
+            # Check if version meets minimum requirement
             if (Compare-Version $pythonMajorMinor $PYTHON_MIN_VERSION) {
                 $pythonExecutable = (Get-Command $PythonCommand).Source
                 $pythonFound = $true
                 Write-Success "Found Python $pythonVersion at $pythonExecutable"
             }
             else {
+                # Found Python but version is too old
                 Write-WarningMsg "Python $pythonVersion is too old (need >= $PYTHON_MIN_VERSION)"
             }
         }
     }
     catch {
+        # Command failed to execute
         Write-WarningMsg "Could not determine Python version for '$PythonCommand'"
     }
 }
 
-# Try alternative Python commands
+################################################################################
+# If specified command didn't work, try common Python commands
+################################################################################
 if (-not $pythonFound) {
+    # Try common Python commands in order of preference
+    # Prefer specific versions (3.12, 3.11) over generic (python3, py)
     $pythonCommands = @("python3.12", "python3.11", "python3", "py")
+
     foreach ($cmd in $pythonCommands) {
         if (Test-CommandExists $cmd) {
             try {
                 $versionOutput = & $cmd --version 2>&1
+
                 if ($versionOutput -match "Python (\d+\.\d+\.\d+)") {
                     $pythonVersion = $matches[1]
                     $pythonMajorMinor = $pythonVersion.Substring(0, $pythonVersion.LastIndexOf('.'))
 
                     if (Compare-Version $pythonMajorMinor $PYTHON_MIN_VERSION) {
                         $pythonExecutable = (Get-Command $cmd).Source
-                        $PythonCommand = $cmd
+                        $PythonCommand = $cmd  # Update parameter with working command
                         $pythonFound = $true
                         Write-Success "Found Python $pythonVersion at $pythonExecutable"
-                        break
+                        break  # Found suitable version, stop searching
                     }
                 }
             }
             catch {
+                # This command didn't work, try next one
                 continue
             }
         }
     }
 }
 
+################################################################################
+# If no suitable Python found, show installation instructions and exit
+################################################################################
 if (-not $pythonFound) {
     Write-ErrorMsg "Python $PYTHON_MIN_VERSION or higher not found"
     Write-Host "`nInstallation options:" -ForegroundColor Yellow
