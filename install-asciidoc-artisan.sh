@@ -245,17 +245,26 @@ fi
 PIP_VERSION=$($PYTHON_CMD -m pip --version 2>&1 | awk '{print $2}')
 print_success "pip $PIP_VERSION found"
 
-# Step 4: Check system dependencies
+################################################################################
+# STEP 4: CHECK SYSTEM DEPENDENCIES
+# Verifies and installs system-level tools (Pandoc, Git)
+################################################################################
 print_header "Step 4: Checking System Dependencies"
 
-# Check Pandoc
+################################################################################
+# Check Pandoc (REQUIRED for document conversion)
+################################################################################
 if command -v pandoc &> /dev/null; then
+    # Pandoc already installed - get version
     PANDOC_VERSION=$(pandoc --version | head -n1 | awk '{print $2}')
     print_success "Pandoc $PANDOC_VERSION found"
 else
+    # Pandoc not found - attempt to install
     print_warning "Pandoc not found (required for document conversion)"
     echo ""
     echo "Installing Pandoc..."
+
+    # Install using appropriate package manager
     if [ "$OS_NAME" = "macOS" ]; then
         if command -v brew &> /dev/null; then
             brew install pandoc
@@ -263,28 +272,36 @@ else
             print_error "Homebrew not found. Install from: https://pandoc.org/installing.html"
         fi
     elif [ "$PACKAGE_MANAGER" = "apt" ]; then
+        # Debian/Ubuntu
         sudo apt update
         sudo apt install pandoc -y
     elif [ "$PACKAGE_MANAGER" = "dnf" ] || [ "$PACKAGE_MANAGER" = "yum" ]; then
+        # Fedora/RHEL/CentOS
         sudo $PACKAGE_MANAGER install pandoc -y
     else
+        # Unknown package manager - manual installation required
         print_warning "Please install Pandoc manually from: https://pandoc.org/installing.html"
     fi
 
-    # Verify installation
+    # Verify Pandoc was successfully installed
     if command -v pandoc &> /dev/null; then
         PANDOC_VERSION=$(pandoc --version | head -n1 | awk '{print $2}')
         print_success "Pandoc $PANDOC_VERSION installed successfully"
     else
+        # Installation failed - app will have limited functionality
         print_warning "Pandoc installation failed - document conversion features will be limited"
     fi
 fi
 
-# Check Git (optional but recommended)
+################################################################################
+# Check Git (OPTIONAL but recommended for version control features)
+################################################################################
 if command -v git &> /dev/null; then
+    # Git already installed
     GIT_VERSION=$(git --version | awk '{print $3}')
     print_success "Git $GIT_VERSION found"
 else
+    # Git not found - warn user but don't install automatically
     print_warning "Git not found (optional - needed for Git integration features)"
     echo "  Install from: https://git-scm.com/downloads"
 fi
