@@ -25,13 +25,21 @@ Ollama is running as a system service:
 - **Status**: Active and running
 - **GPU**: NVIDIA GPU detected and available
 
-### Model Installed
+### Models Installed
 
-**phi3:mini** - A fast, efficient model:
+### phi3:mini - General Purpose
 - **Size**: 2.2 GB
 - **Parameters**: 3.8B
 - **Speed**: ~95 tokens/second
-- **Purpose**: Fast local AI for document assistance
+- **Purpose**: Fast local AI for general text tasks
+- **Use For**: Grammar, text improvement, general questions
+
+### deepseek-coder:6.7b - Code & Format Specialist
+- **Size**: 3.8 GB
+- **Parameters**: 6.7B
+- **Speed**: ~60 tokens/second
+- **Purpose**: Code generation and format conversion
+- **Use For**: Markdown↔AsciiDoc conversion, code snippets, technical docs
 
 ### Test Results
 
