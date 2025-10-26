@@ -1,27 +1,27 @@
-# OpenSpec Folder
+# Ideas Folder
 
 ## What This Is
 
-We plan new things here. We write ideas first. Then we build them.
+We plan new things here.
+
+First we write ideas. Then we build them.
 
 ## What's Inside
 
 ```
 openspec/
 ├── changes/      (New ideas)
-├── archive/      (Built ideas)
+├── archive/      (Done ideas)
 └── README.md     (This file)
 ```
 
-See `SPECIFICATIONS.md` for rules.
+See `SPECIFICATIONS.md` for all the rules.
 
 ## Add an Idea
 
 ### Step 1: Copy
 
-```bash
-cp -r openspec/changes/_template openspec/changes/my-idea
-```
+Copy the template folder to your idea name.
 
 ### Step 2: Fill Files
 
@@ -30,11 +30,11 @@ cp -r openspec/changes/_template openspec/changes/my-idea
 - `design.md` - How
 - `specs/` - Rules
 
-### Step 3: Get Help
+### Step 3: Get OK
 
-- Show people
+- Show it
 - Talk
-- Fix it
+- Fix
 - Get OK
 
 ### Step 4: Build
@@ -51,56 +51,42 @@ cp -r openspec/changes/_template openspec/changes/my-idea
 
 ## See Ideas
 
-**New ones**:
-```bash
-ls openspec/changes/
-```
+**New**: Look in `openspec/changes/`
 
-**Old ones**:
-```bash
-ls openspec/archive/
-```
+**Done**: Look in `openspec/archive/`
 
-## File Info
+## Files
 
-### proposal.md
+**proposal.md**
 - Problem
 - Fix
-- Good parts
-- Bad parts
+- Good
+- Bad
 
-### tasks.md
+**tasks.md**
 - Plan
 - Design
 - Code
 - Test
 - Check
 
-### design.md
-- How works
+**design.md**
+- How
 - Changes
 - Pics
 - Tests
 
-### specs/*.md
+**specs/*.md**
 - New rules
 - Changed rules
 - Removed rules
-- Given/When/Then
 
 ## Check Work
 
-Test:
-
-```bash
-./scripts/validate-specifications.sh
-```
-
-Checks:
-- Has SHALL
-- Has Given/When/Then
-- Has parts
-- Has version
+Run the test script. It checks:
+- Rules
+- Tests
+- All parts
 - Easy read
 
 ## Example
@@ -109,17 +95,14 @@ See `openspec/changes/spell-checker/`.
 
 ## Write Simple
 
-Use Grade 5.0:
+Use Grade 5.0 words:
 - Short
 - Simple
 - Clear
 
-Test:
-```bash
-python3 check_readability.py openspec/changes/my-idea/proposal.md
-```
+Test it with the read test script.
 
-## Help?
+## Need Help?
 
 - See `SPECIFICATIONS.md`
 - Ask on GitHub

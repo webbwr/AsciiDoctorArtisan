@@ -1,996 +1,562 @@
-# AsciiDoc Artisan Rules
+# Program Rules
 
-**Reading Level**: Grade 5.0 Target (Current: 12.8)
+**Reading Level**: Grade 5.0
 **Version**: 1.1.0
 **Last Updated**: October 2025
-**Format**: OpenSpec-inspired with Given/When/Then scenarios
 
-## Overview
+## What This Is
 
-This tells you what AsciiDoc Artisan must do. Each part has clear rules and test cases.
+This tells you what the program must do.
 
-**Structure**:
-- Core - What the program is
-- Installation - How to install the program
-- Editor - How you type and edit
-- Preview - How you see your work
-- Git - How you save to version control
-- Conversion - How you change file types
-- User Interface - How it looks and works
+Each rule says what MUST happen.
+
+## What The Program Does
+
+This program helps you write papers.
+
+It:
+- Shows your work as you type
+- Opens Word, PDF, Markdown files
+- Saves to Word, PDF, Markdown
+- Uses Git to save versions
+- Works on all computers
+
+Think of it like Word, but for AsciiDoc.
+
+## Who Uses It
+
+- People who write manuals
+- People who write code
+- Teachers and students
+- Writers
+- Teams
 
 ---
 
 ## Core Rules
 
-This covers what AsciiDoc Artisan is and what it does.
-
-### What Is AsciiDoc Artisan?
-
-AsciiDoc Artisan helps people write papers. It's a program that:
-
-- Shows your work while you type
-- Changes Word files to AsciiDoc
-- Saves to Git so you can track changes
-- Works on Windows, Mac, and Linux
-
-Think of it like Word, but for AsciiDoc files.
-
-### Rules
-
-#### Rule: Cross-Platform Support
+### Rule: Works On All Computers
 
 The program MUST work on Windows, Mac, and Linux.
 
-**Why This Helps**: You can use the program no matter what computer you have.
+**Test**: Run on each type. It must start with no errors.
 
-##### Scenario: Run on Windows
+### Rule: Needs Python 3.11
 
-**Given**: Windows computer with Python 3.11+
-**When**: User runs the program
-**Then**: Program starts without errors
+The program MUST need Python 3.11 or newer.
 
-##### Scenario: Run on Mac
+**Test**: Try with Python 3.10. It must show an error.
 
-**Given**: Mac computer with Python 3.11+
-**When**: User runs the program
-**Then**: Program starts without errors
+**Test**: Use Python 3.11. It must work.
 
-##### Scenario: Run on Linux
+### Rule: Free To Use
 
-**Given**: Linux computer with Python 3.11+
-**When**: User runs the program
-**Then**: Program starts without errors
+The program MUST be free. MIT License.
 
-#### Rule: Python Version
-
-The program MUST require Python 3.11 or newer.
-
-**Why This Helps**: Newer Python is faster and safer.
-
-##### Scenario: Check Python Version
-
-**Given**: Python 3.11 or higher installed
-**When**: Program starts
-**Then**: Program runs right
-
-##### Scenario: Reject Old Python
-
-**Given**: Python 3.10 or lower installed
-**When**: User tries to start program
-**Then**: Program shows error about Python version
-
-#### Rule: Free and Open Source
-
-The program MUST be free to use under MIT License.
-
-##### Scenario: Check License
-
-**Given**: User downloads program
-**When**: User checks LICENSE file
-**Then**: File shows MIT License
-
-### Who Uses It
-
-**Target Users**:
-1. **People Who Write Instructions** - Write manuals and docs
-2. **People Who Write Code** - Write README files
-3. **Teachers and Students** - Write papers and reports
-4. **Writers** - Make long documents
-5. **Teams** - Share files and work together
+**Test**: Check LICENSE file. It must say MIT.
 
 ---
 
-## Installation Rules
+## Install Rules
 
-This part tells you how to install the program.
+### Rule: Easy Install
 
-### What Is Installation?
+The program MUST have install scripts.
 
-Installation means putting the program on your computer so it works.
+**Test**: Run the script. It must install all parts.
 
-**What You Need**:
-- A computer (Windows, Mac, or Linux)
-- Internet to get files
-- About 10 minutes
+### Rule: Check What You Have
 
-### Rules
+The install script MUST check for Python, Pandoc, Git.
 
-#### Rule: Easy Install Scripts
+**Test**: Run without Pandoc. Script must tell you.
 
-The program MUST give you scripts that install everything for you.
+### Rule: Make Safe Space
 
-**Why This Helps**: You don't have to type many commands. The script does it all.
+The install script MUST offer to make a safe space for tools.
 
-##### Scenario: Install on Mac or Linux
+**Test**: Say yes. Tools go in that space.
 
-**Given**: You have a Mac or Linux computer
-**When**: You run the install script
-**Then**: The script puts Python on your computer, adds all tools, and checks everything works
+**Test**: Say no. Tools go on your computer.
 
-##### Scenario: Install on Windows
+### Rule: Test After Install
 
-**Given**: You have Windows 11
-**When**: You run the install script
-**Then**: The script puts Python on your computer, adds all tools, and checks everything works
+The install script MUST test everything.
 
-##### Scenario: Check If It Worked
-
-**Given**: The install script finishes
-**When**: You look at the report
-**Then**: The script says all parts installed with no errors
-
-#### Rule: Check What You Have
-
-The install script MUST check if you have all the tools needed.
-
-**Why This Helps**: You know right away if something is missing.
-
-##### Scenario: Check Python
-
-**Given**: You run the install script
-**When**: The script starts
-**Then**: It checks if you have Python 3.11 or newer and tells you what it found
-
-##### Scenario: Check Other Tools
-
-**Given**: You run the install script
-**When**: It looks for tools
-**Then**: It checks for Pandoc and Git, and helps you get them if missing
-
-##### Scenario: Tell You What's Missing
-
-**Given**: A tool is not on your computer
-**When**: The script finds it's missing
-**Then**: The script shows you how to get that tool
-
-#### Rule: Safe Space For Tools
-
-The install script MUST ask if you want a safe space for the program's tools.
-
-**Why This Helps**: The program's tools don't mix with other programs.
-
-##### Scenario: Make Safe Space
-
-**Given**: You say yes to making a safe space
-**When**: The script makes it
-**Then**: All tools go in that space, away from other programs
-
-##### Scenario: Skip Safe Space
-
-**Given**: You say no to the safe space
-**When**: Install keeps going
-**Then**: Tools go on your whole computer (you must say this is OK)
-
-#### Rule: Test The Install
-
-The install script MUST test everything after it finishes.
-
-**Why This Helps**: You know for sure the program will work.
-
-##### Scenario: Test Python Parts
-
-**Given**: Install is done
-**When**: Script tests Python parts
-**Then**: Script tries to load PySide6, asciidoc3, and pypandoc and says if they work
-
-##### Scenario: Test Commands
-
-**Given**: Install is done
-**When**: Script tests commands
-**Then**: Script checks that python, pip, pandoc, and git work on your computer
-
-##### Scenario: Show Final Report
-
-**Given**: Install and tests are done
-**When**: Script is finished
-**Then**: Script shows how many errors, how many warnings, and what to do next
-
-#### Rule: Works On All Computers
-
-The install script MUST know what type of computer you have.
-
-**Why This Helps**: The script uses the right tools for your computer.
-
-##### Scenario: Find Mac Tools
-
-**Given**: You run script on Mac
-**When**: Script needs to get Pandoc
-**Then**: Script uses Homebrew if you have it
-
-##### Scenario: Find Linux Tools
-
-**Given**: You run script on Linux
-**When**: Script needs to get tools
-**Then**: Script uses apt, dnf, or yum (whatever your Linux has)
-
-##### Scenario: Find Windows Tools
-
-**Given**: You run script on Windows 11
-**When**: Script needs to get Pandoc
-**Then**: Script asks if you want to use winget to get it
+**Test**: After install, script must check all parts work.
 
 ---
 
-## Editor Rules
+## Edit Rules
 
-This covers the text editing features.
+### Rule: Type Text
 
-### Rules
+The program MUST let you type.
 
-#### Rule: Basic Text Editing
+**Test**: Type "Hello". It must show in the editor.
 
-The program MUST let users type and edit text.
+### Rule: Copy And Paste
 
-**Why This Helps**: You can write and fix your work easily.
+The program MUST let you copy, cut, paste.
 
-##### Scenario: Type Text
+**Test**: Press Ctrl+C. Text must copy.
 
-**Given**: Program is open
-**When**: User types "Hello World"
-**Then**: Text shows in editor
+**Test**: Press Ctrl+V. Text must paste.
 
-##### Scenario: Edit Text
+### Rule: Undo And Redo
 
-**Given**: Text exists in editor
-**When**: User changes text
-**Then**: Changes appear right away
+The program MUST let you undo.
 
-#### Rule: Copy and Paste
+**Test**: Make a change. Press Ctrl+Z. Change must go away.
 
-The program MUST support copy, cut, and paste.
+**Test**: Press Ctrl+Y. Change must come back.
 
-**Why This Helps**: You can move text around without retyping it.
+### Rule: Find Words
 
-##### Scenario: Copy Text
+The program MUST let you find words.
 
-**Given**: Text is selected
-**When**: User presses Ctrl+C
-**Then**: Text is copied to clipboard
+**Test**: Search for "hello". Program must find it.
 
-##### Scenario: Paste Text
+### Rule: Go To Line
 
-**Given**: Text is in clipboard
-**When**: User presses Ctrl+V
-**Then**: Text is pasted at cursor
+The program MUST let you jump to a line.
 
-#### Rule: Undo and Redo
+**Test**: Go to line 50. Cursor must move there.
 
-The program MUST support undo and redo.
-
-##### Scenario: Undo Change
-
-**Given**: User made a change
-**When**: User presses Ctrl+Z
-**Then**: Change is undone
-
-##### Scenario: Redo Change
-
-**Given**: User undid a change
-**When**: User presses Ctrl+Y
-**Then**: Change is redone
-
-#### Rule: Find Text
-
-The program MUST let users find words.
-
-##### Scenario: Find Word
-
-**Given**: Document has "hello"
-**When**: User searches for "hello"
-**Then**: Program highlights "hello"
-
-#### Rule: Go to Line
-
-The program MUST let users jump to a line number.
-
-##### Scenario: Jump to Line
-
-**Given**: Document has 100 lines
-**When**: User goes to line 50
-**Then**: Cursor moves to line 50
-
-#### Rule: Line Numbers
+### Rule: Show Line Numbers
 
 The program MUST show line numbers.
 
-##### Scenario: View Line Numbers
-
-**Given**: Program is open
-**When**: User looks at editor
-**Then**: Line numbers show on left side
+**Test**: Open program. Line numbers must show on left.
 
 ---
 
 ## Preview Rules
 
-This covers the live HTML preview feature.
+### Rule: Show Preview
 
-### Rules
+The program MUST show HTML preview.
 
-#### Rule: Live HTML Preview
+**Test**: Type text. Wait 1 second. Preview must update.
 
-The program MUST show HTML preview of AsciiDoc text.
+### Rule: Move Together
 
-##### Scenario: Show Preview
+The editor and preview MUST move together.
 
-**Given**: User types AsciiDoc text
-**When**: User stops typing for 350 milliseconds
-**Then**: HTML preview updates on right side
+**Test**: Scroll editor. Preview must scroll too.
 
-##### Scenario: Preview Updates
+**Test**: Scroll preview. Editor must scroll too.
 
-**Given**: Preview is showing content
-**When**: User changes text
-**Then**: Preview updates after short delay
+### Rule: Wait To Update
 
-#### Rule: Move Together
+The preview MUST wait before it updates.
 
-The program MUST move editor and preview together.
+**Test**: Type fast. Preview must wait until you stop.
 
-##### Scenario: Move Editor
+### Rule: Show Plain Text On Error
 
-**Given**: Paper is long
-**When**: User moves in editor
-**Then**: Preview moves to same spot
+If HTML fails, program MUST show plain text.
 
-##### Scenario: Move Preview
-
-**Given**: Paper is long
-**When**: User moves in preview
-**Then**: Editor moves to same spot
-
-#### Rule: Wait to Update
-
-The program MUST wait before it updates the preview.
-
-##### Scenario: Wait for Typing
-
-**Given**: User types fast
-**When**: User types many letters quick
-**Then**: Preview waits for typing to stop
-
-#### Rule: Show Plain Text
-
-The program MUST show plain text if HTML fails.
-
-##### Scenario: Fix Errors
-
-**Given**: HTML making fails
-**When**: Error happens
-**Then**: Program shows plain text with line numbers
+**Test**: Break the HTML. Program must show text, not crash.
 
 ---
 
 ## Git Rules
 
-This covers version control integration.
+### Rule: Commit Changes
 
-### Rules
+The program MUST let you commit.
 
-#### Rule: Git Commit
+**Test**: In Git folder, commit must work.
 
-The program MUST let users commit changes.
+**Test**: Not in Git folder, must show error.
 
-##### Scenario: Commit Changes
+### Rule: Push Changes
 
-**Given**: File is in Git folder
-**When**: User clicks Git > Commit and enters message
-**Then**: Changes are committed with that message
+The program MUST let you push.
 
-##### Scenario: Commit Without Repository
+**Test**: Push must send commits to server.
 
-**Given**: File is not in Git folder
-**When**: User tries to commit
-**Then**: Program shows error message
+**Test**: No server set up, must show error.
 
-#### Rule: Git Push
+### Rule: Pull Changes
 
-The program MUST let users push to remote.
+The program MUST let you pull.
 
-##### Scenario: Push Changes
+**Test**: Pull must get new commits.
 
-**Given**: Repository has remote set upd
-**When**: User clicks Git > Push
-**Then**: Commits are sent to remote server
+**Test**: If clash, must show message.
 
-##### Scenario: Push Without Remote
+### Rule: Show Git Status
 
-**Given**: Repository has no remote
-**When**: User tries to push
-**Then**: Program shows error message
+The program MUST show Git status.
 
-#### Rule: Git Pull
+**Test**: In Git folder, status bar shows folder name.
 
-The program MUST let users pull from remote.
-
-##### Scenario: Pull Changes
-
-**Given**: Remote has new commits
-**When**: User clicks Git > Pull
-**Then**: New changes download to local folder
-
-##### Scenario: Pull Clash
-
-**Given**: Your copy and server copy both changed
-**When**: User pulls
-**Then**: Program shows clash message
-
-#### Rule: Git Status Display
-
-The program MUST show Git status in status bar.
-
-##### Scenario: Show Repository Status
-
-**Given**: File is in Git folder
-**When**: User opens file
-**Then**: Status bar shows folder name
-
-##### Scenario: Show Non-Repository Status
-
-**Given**: File is not in Git folder
-**When**: User opens file
-**Then**: Status bar shows "Not in Git folder"
+**Test**: Not in Git folder, shows "Not in Git".
 
 ---
 
-## Conversion Rules
+## File Change Rules
 
-This covers document format conversion.
+### Rule: Open Word Files
 
-### Rules
+The program MUST open .docx files.
 
-#### Rule: Import Word Files
+**Test**: Open Word file. It must change to AsciiDoc.
 
-The program MUST convert Word files to AsciiDoc.
+**Test**: Bad Word file must show error.
 
-##### Scenario: Open Word File
+### Rule: Open PDF Files
 
-**Given**: User has .docx file
-**When**: User opens the file
-**Then**: Program converts it to AsciiDoc
+The program MUST open .pdf files.
 
-##### Scenario: Handle Conversion Error
+**Test**: Open PDF. It must get text out.
 
-**Given**: Word file is corrupted
-**When**: User tries to open it
-**Then**: Program shows error message
+### Rule: Open Markdown Files
 
-#### Rule: Import PDF Files
+The program MUST open .md files.
 
-The program MUST extract text from PDF files.
+**Test**: Open Markdown. It must change to AsciiDoc.
 
-##### Scenario: Open PDF File
+### Rule: Open HTML Files
 
-**Given**: User has .pdf file
-**When**: User opens the file
-**Then**: Program extracts text to editor
+The program MUST open .html files.
 
-##### Scenario: PDF With Tables
+**Test**: Open HTML. It must change to AsciiDoc.
 
-**Given**: PDF has tables
-**When**: User opens it
-**Then**: Tables are formatted in AsciiDoc
+### Rule: Save To HTML
 
-#### Rule: Export to HTML
+The program MUST save to .html.
 
-The program MUST export to HTML format.
+**Test**: Click Save As HTML. It must make HTML file.
 
-##### Scenario: Export HTML
+### Rule: Save To PDF
 
-**Given**: User has AsciiDoc document
-**When**: User clicks File > Export > HTML
-**Then**: Program creates HTML file
+The program MUST save to .pdf.
 
-#### Rule: Export to PDF
+**Test**: Click Save As PDF. It must make PDF file.
 
-The program MUST export to PDF format.
+### Rule: Save To Word
 
-##### Scenario: Export PDF
+The program MUST save to .docx.
 
-**Given**: User has AsciiDoc document
-**When**: User clicks File > Export > PDF
-**Then**: Program creates PDF file
+**Test**: Click Save As Word. It must make Word file.
 
-#### Rule: Export to Word
+### Rule: Save To Markdown
 
-The program MUST export to Word format.
+The program MUST save to .md.
 
-##### Scenario: Export Word
+**Test**: Click Save As Markdown. It must make MD file.
 
-**Given**: User has AsciiDoc document
-**When**: User clicks File > Export > Word
-**Then**: Program creates .docx file
+### Rule: Paste From Copy
 
-#### Rule: Paste from Copy
+The program MUST paste from copy area.
 
-The program MUST paste HTML from copy area.
+**Test**: Copy HTML. Paste it. Must change to AsciiDoc.
 
-##### Scenario: Paste HTML
+### Rule: No Questions
 
-**Given**: User copies HTML stuff
-**When**: User clicks File > Import > Clipboard
-**Then**: Program changes HTML to AsciiDoc
+The program MUST NOT ask questions on open or save.
+
+**Test**: Open any file. No pop-ups.
+
+**Test**: Save As any type. No pop-ups.
 
 ---
 
-## User Interface Rules
+## Look And Feel Rules
 
-This covers how the program looks and works.
+### Rule: New File
 
-### Rules
+The program MUST let you make new files.
 
-#### Rule: File Operations
+**Test**: Press Ctrl+N. Editor must clear.
 
-The program MUST give file menu tasks.
+### Rule: Open File
 
-##### Scenario: New File
+The program MUST let you open files.
 
-**Given**: Program is open
-**When**: User presses Ctrl+N
-**Then**: Editor clears and shows new blank file
+**Test**: Press Ctrl+O. File picker must show.
 
-##### Scenario: Open File
+### Rule: Save File
 
-**Given**: User has .adoc file
-**When**: User presses Ctrl+O and selects file
-**Then**: File content shows in editor
+The program MUST let you save.
 
-##### Scenario: Save File
+**Test**: Press Ctrl+S. File must save.
 
-**Given**: User edited text
-**When**: User presses Ctrl+S
-**Then**: File is saved to disk
+### Rule: Save As
 
-##### Scenario: Save As
+The program MUST let you save as new name.
 
-**Given**: User has new file
-**When**: User clicks File > Save As
-**Then**: Program asks for file name and saves
+**Test**: Click Save As. Must ask for name.
 
-#### Rule: Dark Mode
+### Rule: Dark Mode
 
-The program MUST support dark color scheme.
+The program MUST have dark mode.
 
-##### Scenario: Toggle Dark Mode
+**Test**: Press Ctrl+D. Colors must change to dark.
 
-**Given**: Program is in light mode
-**When**: User presses Ctrl+D
-**Then**: Colors change to dark theme
+**Test**: Restart. Dark mode must stay on.
 
-##### Scenario: Remember Dark Mode
+### Rule: Change Text Size
 
-**Given**: User enabled dark mode
-**When**: User restarts program
-**Then**: Dark mode is still on
+The program MUST let you zoom text.
 
-#### Rule: Font Zoom
+**Test**: Press Ctrl++. Text must get bigger.
 
-The program MUST let users change text size.
+**Test**: Press Ctrl+-. Text must get smaller.
 
-##### Scenario: Zoom In
+### Rule: Status Bar
 
-**Given**: Editor shows normal text
-**When**: User presses Ctrl++
-**Then**: Text gets bigger
+The program MUST show info in status bar.
 
-##### Scenario: Zoom Out
+**Test**: Look at status bar. Must show line number.
 
-**Given**: Editor shows normal text
-**When**: User presses Ctrl+-
-**Then**: Text gets smaller
+**Test**: Look at status bar. Must show file path.
 
-#### Rule: Status Bar
+### Rule: Fast Keys
 
-The program MUST show information in status bar.
+The program MUST have keyboard shortcuts.
 
-##### Scenario: Show Line and Column
+**Test**: Press Ctrl+N. New file must open.
 
-**Given**: User is typing
-**When**: User looks at status bar
-**Then**: Status bar shows line and column number
+**Test**: Press Ctrl+Q. Program must close.
 
-##### Scenario: Show Git Status
+Fast keys:
+- Ctrl+N = New file
+- Ctrl+O = Open file
+- Ctrl+S = Save
+- Ctrl+Q = Close
+- Ctrl+F = Find
+- Ctrl+D = Dark mode
+- Ctrl++ = Big text
+- Ctrl+- = Small text
 
-**Given**: File is in Git folder
-**When**: User opens file
-**Then**: Status bar shows folder name
+### Rule: Remember Settings
 
-##### Scenario: Show File Path
+The program MUST save your settings.
 
-**Given**: File is open
-**When**: User looks at status bar
-**Then**: Status bar shows full file path
+**Test**: Make window big. Close. Open. Window must be big.
 
-#### Rule: Keyboard Shortcuts
+**Test**: Open a file. Close. Open. Same file must open.
 
-The program MUST give keyboard shortcuts.
+**Test**: Turn on dark mode. Close. Open. Dark mode must be on.
 
-##### Scenario: Use Shortcuts
+### Rule: Save Files Safely
 
-**Given**: Program is open
-**When**: User presses keyboard shortcut
-**Then**: Action happens right away
+The program MUST save files with no risk.
 
-Common shortcuts:
-- Ctrl+N - New file
-- Ctrl+O - Open file
-- Ctrl+S - Save file
-- Ctrl+Q - Quit program
-- Ctrl+F - Find text
-- Ctrl+D - Dark mode
-- Ctrl++ - Zoom in
-- Ctrl+- - Zoom out
+**Test**: Save file. Program must write to temp first, then replace.
 
-#### Rule: Settings Persistence
+**Test**: Disk full. Must show error and keep old file.
 
-The program MUST remember user settings.
+### Rule: Block Bad Paths
 
-##### Scenario: Save Window Size
+The program MUST stop dangerous paths.
 
-**Given**: User resizes window
-**When**: User closes and reopens program
-**Then**: Window is same size
-
-##### Scenario: Save Last File
-
-**Given**: User opens a file
-**When**: User closes and reopens program
-**Then**: Same file opens on its own
-
-##### Scenario: Save Theme
-
-**Given**: User changes to dark mode
-**When**: User closes and reopens program
-**Then**: Dark mode is still active
-
-#### Rule: Safe File Saving
-
-The program MUST save files safely.
-
-##### Scenario: Atomic Save
-
-**Given**: User saves file
-**When**: Save task runs
-**Then**: Program writes to temp file first, then replaces original
-
-##### Scenario: Save Error
-
-**Given**: Disk is full
-**When**: User tries to save
-**Then**: Program shows error and keeps original file
-
-#### Rule: Path Security
-
-The program MUST prevent path attacks.
-
-##### Scenario: Sanitize Paths
-
-**Given**: User gives file path
-**When**: Program processes path
-**Then**: Program blocks dangerous paths like "../../../etc/passwd"
+**Test**: Try path like "../../../etc/passwd". Must block it.
 
 ---
 
-## Technical Rules
+## Build Rules
 
-This covers how the program is built.
+### Rule: Use Right Tools
 
-### Rules
+The program MUST use:
+- PySide6 6.9.0+ for windows
+- asciidoc3 10.2.1+ for HTML
+- pypandoc 1.13+ for file changes
+- Pandoc for conversions
+- wkhtmltopdf for PDF
 
-#### Rule: Dependencies
+**Test**: Install tools. All must work.
 
-The program MUST use these main libraries:
+### Rule: Work In Background
 
-- **PySide6** 6.9.0+ - Makes windows and buttons
-- **asciidoc3** 10.2.1+ - Turns AsciiDoc to HTML
-- **pypandoc** 1.13+ - Changes file types
-- **Pandoc** (separate program) - Does the conversion work
+The program MUST do slow work in background.
 
-##### Scenario: Check Dependencies
+**Test**: Save to Git. Window must still work.
 
-**Given**: Python 3.11+ is installed
-**When**: User runs `pip install -r rules.txt`
-**Then**: All tools install right
+**Test**: Open big Word file. Window must still work.
 
-#### Rule: Work in Background
+### Rule: No Double Work
 
-The program MUST do slow work in the background.
+The program MUST stop two things at once.
 
-##### Scenario: Git in Background
+**Test**: While saving, save button must turn off.
 
-**Given**: User saves a big file to Git
-**When**: Git work starts
-**Then**: Program window still works
-
-##### Scenario: Change Files in Background
-
-**Given**: User changes a big Word file
-**When**: Change work starts
-**Then**: Program window still works
-
-#### Rule: No Double Work
-
-The program MUST stop you from doing two things at once.
-
-##### Scenario: Stop Double Save
-
-**Given**: Git save is running
-**When**: User tries to save again
-**Then**: Save button turns off
-
-##### Scenario: Stop Double Change
-
-**Given**: File change is running
-**When**: User tries another change
-**Then**: Program waits for first to finish
+**Test**: While changing file, must wait for finish.
 
 ---
 
-## Security Rules
+## Safety Rules
 
-This covers how we keep things safe.
+### Rule: No Data Sent Out
 
-### Rules
+The program MUST NOT send data anywhere.
 
-#### Rule: No Data Collection
+**Test**: Watch network. No data must go out.
 
-The program MUST NOT send data to external servers.
+### Rule: Save Local Only
 
-##### Scenario: Check Network
+The program MUST save everything on your computer.
 
-**Given**: Program is running
-**When**: User monitors network traffic
-**Then**: No data is sent out
+**Test**: Check settings file. Must be in local folder.
 
-#### Rule: Local Storage Only
-
-The program MUST store all data locally.
-
-##### Scenario: Check Settings
-
-**Given**: User changes settings
-**When**: Program saves settings
-**Then**: Settings file is in local config folder
-
-Platform locations:
+Settings save here:
 - Linux: `~/.config/AsciiDocArtisan/`
 - Windows: `%APPDATA%/AsciiDocArtisan/`
 - Mac: `~/Library/Application Support/AsciiDocArtisan/`
 
-#### Rule: Safe Git Work
+### Rule: Safe Git Commands
 
-The program MUST run Git in a safe way.
+The program MUST run Git safely.
 
-##### Scenario: Use Safe Commands
+**Test**: Run Git command. Must use safe method.
 
-**Given**: Program runs Git command
-**When**: Command starts
-**Then**: Program uses safe method
-
-##### Scenario: Check Repository First
-
-**Given**: User tries Git work
-**When**: Program checks
-**Then**: Program makes sure file is in Git first
+**Test**: Try Git without Git folder. Must check first.
 
 ---
 
-## Performance Rules
+## Speed Rules
 
-This covers how fast it should be.
+### Rule: Start Fast
 
-### Rules
+The program MUST start quick.
 
-#### Rule: Fast Startup
+**Test**: Time it. Must show window in 3 seconds.
 
-The program MUST start quickly.
+### Rule: Update Preview Fast
 
-##### Scenario: Measure Startup Time
+The preview MUST update smooth.
 
-**Given**: Program is not running
-**When**: User starts program
-**Then**: Window shows within 3 seconds
+**Test**: Type text. Preview must update in 500ms.
 
-#### Rule: Responsive Preview
-
-The program MUST update preview smoothly.
-
-##### Scenario: Preview Delay
-
-**Given**: User types in editor
-**When**: User stops typing
-**Then**: Preview updates within 500 milliseconds
-
-#### Rule: Handle Large Files
+### Rule: Handle Big Files
 
 The program MUST work with big files.
 
-##### Scenario: Open 1 MB File
+**Test**: Open 1 MB file. Must load smooth.
 
-**Given**: User has 1 MB .adoc file
-**When**: User opens it
-**Then**: Program loads it smoothly
+**Test**: Open 10 MB file. May be slow, but must work.
 
-##### Scenario: Open 10 MB File
+### Rule: Use Memory Well
 
-**Given**: User has 10 MB .adoc file
-**When**: User opens it
-**Then**: Program loads it but may be slower
+The program MUST not waste memory.
 
-#### Rule: Use Memory Well
-
-The program MUST use computer memory well.
-
-##### Scenario: No Memory Waste
-
-**Given**: Program runs for 8 hours
-**When**: User checks memory use
-**Then**: Memory use stays the same
+**Test**: Run 8 hours. Memory use must stay same.
 
 ---
 
-## Testing Rules
+## Test Rules
 
-This covers how we test the program.
+### Rule: Unit Tests
 
-### Rules
+The program MUST have tests for all parts.
 
-#### Rule: Unit Tests
+**Test**: Run `make test`. All must pass.
 
-The program MUST have unit tests for all features.
+**Test**: Check coverage. Must be 80% or more.
 
-##### Scenario: Run Tests
+### Rule: Full Tests
 
-**Given**: Developer has code
-**When**: Developer runs `make test`
-**Then**: All tests pass
+The program MUST test real use.
 
-##### Scenario: Test Coverage
+**Test**: Test New, Open, Save, Save As. All must work.
 
-**Given**: Tests are complete
-**When**: Coverage report is generated
-**Then**: Coverage is 80% or higher
+**Test**: Test Commit, Push, Pull. All must work.
 
-#### Rule: Integration Tests
+### Rule: Test All Computers
 
-The program MUST have integration tests.
+The program MUST be tested on all types.
 
-##### Scenario: Test File Operations
+**Test**: Run tests on Windows. All must pass.
 
-**Given**: Test suite runs
-**When**: File task tests run
-**Then**: New, Open, Save, Save As all work
+**Test**: Run tests on Linux. All must pass.
 
-##### Scenario: Test Git Operations
-
-**Given**: Test folder exists
-**When**: Git tests run
-**Then**: Commit, Push, Pull all work
-
-#### Rule: Platform Tests
-
-The program MUST be tested on all platforms.
-
-##### Scenario: Test on Windows
-
-**Given**: Windows test environment
-**When**: Tests run
-**Then**: All tests pass
-
-##### Scenario: Test on Linux
-
-**Given**: Linux test environment
-**When**: Tests run
-**Then**: All tests pass
-
-##### Scenario: Test on Mac
-
-**Given**: Mac test environment
-**When**: Tests run
-**Then**: All tests pass
+**Test**: Run tests on Mac. All must pass.
 
 ---
 
 ## Version History
 
-### Version 1.1.0 (Current)
+### Version 1.1.0 (Now)
 
-**Status**: Stable
+**Status**: Works
 **Date**: October 2025
 
-**Features**:
-- All core features working
-- 71/71 tests passing
-- Full cross-platform support
-- Security features added
-- OpenSpec-style rules
+**What's New**:
+- All parts work
+- 71 tests pass
+- Works on all computers
+- Safe and secure
+- Simple rules
 
-**Reading Level**: Grade 5.0
+### Version 1.0.0 (Old)
 
-### Version 1.0.0 (Previous)
-
-**Status**: Legacy
+**Status**: First try
 **Date**: 2024
 
-**Features**:
-- Initial release
-- Basic editing and preview
-- First test suite
+**What It Had**:
+- Basic edit
+- Basic preview
+- First tests
 
 ---
 
-## Future Enhancements
+## What We Might Add
 
-Things we might add later:
+Things for later:
 
-### Editor Enhancements
-- Spell checking
+### Edit
+- Check spelling
 - Find and replace
 - Auto-complete
-- Syntax highlighting
+- Color text
 
-### Preview Enhancements
+### Preview
 - Zoom preview
 - Print preview
-- Custom CSS themes
+- Change colors
 
-### Git Enhancements
-- View commit history
+### Git
+- See old versions
 - Compare versions
-- Branch management
-- Merge tools
+- Use branches
+- Merge help
 
-### Collaboration Features
-- Share documents
-- Real-time editing
-- Comments and notes
-- Team workspaces
+### Teams
+- Share files
+- Edit together
+- Add notes
+- Team rooms
 
-### AI Enhancements
-- Better conversion quality
-- Writing suggestions
-- Auto-formatting
-- Content generation
+### AI
+- Better file changes
+- Writing help
+- Auto-format
+- Make content
 
 ---
 
 ## Summary
 
 **What It Does**:
-Helps you write AsciiDoc with live preview, Git, and file conversion.
+Helps you write AsciiDoc. Shows preview. Uses Git. Changes file types.
 
 **Who It's For**:
 Writers, coders, students, teachers, teams.
 
-**Main Features**:
-Live preview, file conversion, Git integration, cross-platform, safe and secure.
+**Main Parts**:
+Live preview, file changes, Git, works everywhere, safe.
 
 **Status**:
-Version 1.1.0 - Production ready.
+Version 1.1.0 - Ready to use.
 
 **Reading Level**:
-Grade 6.0 - Easy to understand!
+Grade 5.0 - Easy to read!
 
 ---
 
-**Document Info**: Main rule | Reading level Grade 6.0 | Version 1.1.0 | October 2025
+**Doc Info**: Main rules | Grade 5.0 | v1.1.0 | October 2025
