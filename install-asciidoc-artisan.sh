@@ -67,7 +67,12 @@ REQUIRED_PYTHON_PACKAGES=(
 ERRORS=0    # Critical issues that prevent installation
 WARNINGS=0  # Non-critical issues that may affect functionality
 
-# Helper functions
+################################################################################
+# HELPER FUNCTIONS
+################################################################################
+
+# Print a blue header for major installation steps
+# Usage: print_header "Step 1: Description"
 print_header() {
     echo ""
     echo -e "${BLUE}========================================${NC}"
@@ -76,25 +81,40 @@ print_header() {
     echo ""
 }
 
+# Print a success message with green checkmark
+# Usage: print_success "Python installed"
 print_success() {
     echo -e "${GREEN}✓${NC} $1"
 }
 
+# Print an error message with red X and increment error counter
+# Usage: print_error "Python not found"
 print_error() {
     echo -e "${RED}✗${NC} $1"
     ERRORS=$((ERRORS + 1))
 }
 
+# Print a warning message with yellow warning symbol and increment warning counter
+# Usage: print_warning "Git not found (optional)"
 print_warning() {
     echo -e "${YELLOW}⚠${NC} $1"
     WARNINGS=$((WARNINGS + 1))
 }
 
+# Print an info message with blue info symbol
+# Usage: print_info "Installing packages..."
 print_info() {
     echo -e "${BLUE}ℹ${NC} $1"
 }
 
-# Version comparison function
+# Compare two version numbers
+# Returns 0 (true) if $1 >= $2, otherwise 1 (false)
+# Usage: if version_ge "3.12" "3.11"; then ...
+# How it works:
+#   1. Print both versions separated by newline
+#   2. Sort them with version sort (-V)
+#   3. Get the first (smaller) version
+#   4. If smaller version equals $2, then $1 >= $2
 version_ge() {
     [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
 }
