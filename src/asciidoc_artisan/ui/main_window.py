@@ -1570,6 +1570,10 @@ class AsciiDocEditor(QMainWindow):
         if dialog.exec():
             self._settings = dialog.get_settings()
             self._save_settings()
+
+            # Update status bar with model name
+            self._update_ai_status_bar()
+
             logger.info(
                 f"Ollama settings updated: enabled={self._settings.ollama_enabled}, "
                 f"model={self._settings.ollama_model}"
