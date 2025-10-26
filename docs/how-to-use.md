@@ -1,334 +1,337 @@
-# How to Use AsciiDoc Artisan
+# How to Use
 
-**Reading Level**: Grade 5.1 (Elementary)
+**Reading Level**: Grade 5.0
 
-A simple guide to help you use AsciiDoc Artisan.
+Learn to use AsciiDoc Artisan.
 
-## Table of Contents
+## Quick Links
 
-1. [Getting Started](#getting-started)
-2. [Writing Documents](#writing-documents)
-3. [Saving and Opening Files](#saving-and-opening-files)
-4. [Using Git](#using-git)
-5. [Changing Document Types](#changing-document-types)
-6. [Settings and Preferences](#settings-and-preferences)
-7. [Tips and Tricks](#tips-and-tricks)
+1. [Get Started](#get-started)
+2. [Write Docs](#write-docs)
+3. [Save and Open](#save-and-open)
+4. [Use Git](#use-git)
+5. [Change Types](#change-types)
+6. [Settings](#settings)
+7. [Tips](#tips)
 
-## Getting Started
+## Get Started
 
-### What is AsciiDoc Artisan?
+### What Is This?
 
-AsciiDoc Artisan is a program that helps you write documents using AsciiDoc. Think of it like a special word processor that:
-- Shows you what your document looks like while you write
-- Helps you save your work online with Git
-- Can open many file types (Word, PDF, Markdown, HTML)
-- Can save to many file types (Word, PDF, Markdown, HTML)
-- Changes file types for you in the background
+It helps you write. It uses AsciiDoc.
 
-### First Time Setup
+**What it does:**
+- Shows doc as you type
+- Saves to Git
+- Opens Word and PDF
+- Saves to Word and PDF
+- Changes file types
 
-1. **Install the program** (see [how-to-install.md](how-to-install.md) for steps)
-2. **Start the program** by double-clicking the launch file
-3. The program opens with two windows:
-   - Left side: Where you type
-   - Right side: Shows what it looks like
+### First Time
 
-## Writing Documents
+1. **Install** (see how-to-install.md)
+2. **Start** - Click start file
+3. Two sides:
+   - Left: Type here
+   - Right: See result
 
-### Basic Writing
+## Write Docs
 
-Just start typing! Everything you type appears on the left side.
+### Type Words
 
-### Making Text Look Different
+Just type! Words show on left side.
 
-**Bold Text**: Put stars around words
+### Make Text Bold
+
+**Bold**: Use stars
 ```
-*This text is bold*
-```
-
-**Italic Text**: Put underscores around words
-```
-_This text is italic_
+*This is bold*
 ```
 
-**Big Headings**: Use equal signs
+**Italic**: Use lines
+```
+_This is italic_
+```
+
+**Big Titles**: Use equal signs
 ```
 = Big Title
-== Medium Heading
-=== Small Heading
+== Medium
+=== Small
 ```
 
-### Making Lists
+### Make Lists
 
-**Simple List**: Start lines with a star
+**Simple list**: Use stars
 ```
-* First thing
-* Second thing
-* Third thing
-```
-
-**Numbered List**: Start lines with a number and dot
-```
-1. First step
-2. Second step
-3. Third step
+* First
+* Second
+* Third
 ```
 
-### Adding Links
+**Number list**: Use numbers
+```
+1. First
+2. Second
+3. Third
+```
 
-**Web Links**: Just type the address
+### Add Links
+
+**Web link**: Type the address
 ```
 https://www.example.com
 ```
 
-**Named Links**: Put the address and name together
+**Named link**: Add a name
 ```
 https://www.example.com[Click Here]
 ```
 
-## Saving and Opening Files
+## Save and Open
 
-### Saving Your Work
+### Save Your Work
 
-There are two ways to save:
+Two ways to save:
 
 **Save** (Ctrl+S):
-- Saves to the same file
-- Use this most of the time
+- Saves same file
+- Use this most
 
 **Save As** (Ctrl+Shift+S):
-- Saves to a new file
-- Lets you pick a new name and place
+- Makes new file
+- Pick new name
 
-### Opening Files
+### Open Files
 
-1. Click `File` menu
-2. Click `Open` (or press Ctrl+O)
-3. Find your file
-4. Click the Open button
+1. Click `File`
+2. Click `Open` (or Ctrl+O)
+3. Find file
+4. Click Open
 
-### File Types You Can Open
+### Types You Can Open
 
-- **`.adoc` files**: Regular AsciiDoc files
-- **`.md` files**: Markdown files (changes to AsciiDoc)
-- **`.docx` files**: Word documents (changes to AsciiDoc)
-- **`.html` files**: Web pages (changes to AsciiDoc)
-- **`.pdf` files**: PDF files (pulls out the text)
+- **`.adoc`**: AsciiDoc
+- **`.md`**: Markdown (turns to AsciiDoc)
+- **`.docx`**: Word (turns to AsciiDoc)
+- **`.html`**: Web (turns to AsciiDoc)
+- **`.pdf`**: PDF (gets text)
 
-All files open right away. No questions asked.
+All open fast.
 
-## Using Git
+## Use Git
 
-Git helps you save your work online and keep track of changes.
+Git saves work online.
 
 ### What You Need
 
-Your file must be in a Git folder. To check:
-1. Open terminal/command prompt
-2. Go to your file's folder
+File must be in Git folder.
+
+**To check:**
+1. Open terminal
+2. Go to folder
 3. Type: `git status`
 
-If you see an error, you're not in a Git folder yet.
+If error, not in Git yet.
 
 ### Git Actions
 
-**Pull** (Get newest version):
-1. Click `Git` menu
+**Pull** (Get new):
+1. Click `Git`
 2. Click `Pull`
-3. Your file updates with any changes from online
+3. File updates
 
-**Commit** (Save your changes):
-1. Save your file first (Ctrl+S)
-2. Click `Git` menu
+**Commit** (Save):
+1. Save first (Ctrl+S)
+2. Click `Git`
 3. Click `Commit`
-4. Type a message about what you changed
+4. Type what changed
 5. Click OK
 
-**Push** (Send to online):
-1. Click `Git` menu
+**Push** (Send):
+1. Click `Git`
 2. Click `Push`
-3. Your changes go to GitHub or your Git server
+3. Goes online
 
-### Commit Messages
+### Commit Notes
 
-Good commit messages are short and clear:
-- ✓ "Fix spelling in chapter 2"
-- ✓ "Add new section about cats"
-- ✗ "Made changes"
+Good notes are short:
+- ✓ "Fix spelling"
+- ✓ "Add cats"
+- ✗ "Changes"
 - ✗ "asdf"
 
-## Changing Document Types
+## Change Types
 
-### Opening Different Types
+### Open Types
 
-The program can open many file types:
+Opens many types.
 
-**From Word (.docx)**:
-1. Click `File` → `Open`
-2. Pick a .docx file
-3. Opens as AsciiDoc right away
+**From Word**:
+1. `File` → `Open`
+2. Pick .docx
+3. Opens
 
-**From Markdown (.md)**:
-1. Click `File` → `Open`
-2. Pick a .md file
-3. Opens as AsciiDoc right away
+**From Markdown**:
+1. `File` → `Open`
+2. Pick .md
+3. Opens
 
-**From HTML (.html)**:
-1. Click `File` → `Open`
-2. Pick an .html file
-3. Opens as AsciiDoc right away
+**From HTML**:
+1. `File` → `Open`
+2. Pick .html
+3. Opens
 
-**From PDF (.pdf)**:
-1. Click `File` → `Open`
-2. Pick a .pdf file
-3. Pulls out the text
+**From PDF**:
+1. `File` → `Open`
+2. Pick .pdf
+3. Gets text
 
-All files change to AsciiDoc. No questions asked.
+All turn to AsciiDoc.
 
-### Saving to Different Types
+### Save to Types
 
-You can save to any type:
+Save to any type.
 
-1. Click `File` menu
+1. Click `File`
 2. Click `Save As`
-3. Pick what type you want:
-   - AsciiDoc (.adoc)
-   - Markdown (.md)
-   - Word (.docx)
-   - Web page (.html)
-   - PDF (.pdf)
-4. Type a file name
+3. Pick type:
+   - AsciiDoc
+   - Markdown
+   - Word
+   - HTML
+   - PDF
+4. Type name
 5. Click Save
 
-The program changes it for you. No questions asked.
+Changes for you.
 
-## Settings and Preferences
+## Settings
 
 ### Dark Mode
 
-Switch between light and dark colors:
+Switch colors:
 - Press Ctrl+D
-- Or click `View` → `Toggle Dark Mode`
+- Or `View` → `Dark Mode`
 
 ### Text Size
 
-Make text bigger or smaller:
-- **Bigger**: Press Ctrl and +
-- **Smaller**: Press Ctrl and -
-- **Normal size**: Press Ctrl and 0
+Change text size:
+- **Big**: Ctrl and +
+- **Small**: Ctrl and -
+- **Normal**: Ctrl and 0
 
 ### Auto-Save
 
-The program saves your work automatically every few minutes. You can still save anytime with Ctrl+S.
+Saves every few minutes. Press Ctrl+S any time.
 
-## Tips and Tricks
+## Tips
 
-### Preview Window
+### Preview
 
-The right side shows what your document looks like:
-- **Updates as you type**: Wait a second after you stop typing
-- **Scrolls with you**: The preview follows where you're writing
-- **Shows all formatting**: Bold, lists, headings, everything
+Right side shows doc:
+- **Updates fast**: Wait one second
+- **Scrolls with you**: Follows you
+- **Shows all**: Bold, lists, all
 
-### Keyboard Shortcuts
+### Shortcuts
 
-Learn these to work faster:
+Work fast:
 
-| Press This | To Do This |
-|-----------|-----------|
-| Ctrl+N | Make new file |
-| Ctrl+O | Open file |
+| Press | Does |
+|-------|------|
+| Ctrl+N | New |
+| Ctrl+O | Open |
 | Ctrl+S | Save |
-| Ctrl+F | Find words |
-| Ctrl+G | Jump to line number |
-| Ctrl+D | Dark mode on/off |
-| Ctrl++ | Bigger text |
-| Ctrl+- | Smaller text |
-| Ctrl+Q | Close program |
+| Ctrl+F | Find |
+| Ctrl+G | Go to line |
+| Ctrl+D | Dark |
+| Ctrl++ | Bigger |
+| Ctrl+- | Smaller |
+| Ctrl+Q | Close |
 
-### Find and Replace
+### Find Words
 
-Look for specific words:
+Look for words:
 1. Press Ctrl+F
-2. Type the word you want to find
-3. Press Enter to find it
-4. Press Enter again to find the next one
+2. Type word
+3. Press Enter
+4. Press Enter for next
 
 ### Go to Line
 
-Jump to a specific line:
+Jump to line:
 1. Press Ctrl+G
-2. Type the line number
+2. Type number
 3. Press Enter
 
-### The Status Bar
+### Status Bar
 
-At the bottom of the screen, you see:
-- Current line number
-- File name
-- Whether file has been changed since last save
-- Git status
+Bottom shows:
+- Line
+- File
+- If changed
+- Git
 
-## Common Questions
+## Questions
 
-### How do I make a table?
+### How to Make Table
 
-Use pipes and lines:
+Use pipes:
 ```
 |===
-| Name | Age | City
+| Name | Age
 
-| Alice | 25 | Boston
-| Bob | 30 | Seattle
+| Alice | 25
+| Bob | 30
 |===
 ```
 
-### How do I add pictures?
+### How to Add Pictures
 
-Type this:
+Type:
 ```
-image::picture.png[Picture description]
+image::pic.png[Picture]
 ```
-The picture file must be in the same folder as your document.
+Pic must be in same folder.
 
-### How do I add code?
+### How to Add Code
 
-Put code in a special box:
+Put in box:
 ```
 [source,python]
 ----
-print("Hello World")
+print("Hello")
 ----
 ```
 
-### What if the preview doesn't update?
+### If Preview Broke
 
-The preview updates after you stop typing for a moment. If it still doesn't work:
-1. Make sure `asciidoc3` is installed
-2. Try clicking in the preview window
-3. Save your file and reopen it
+Wait after you type. If still broke:
+1. Check `asciidoc3` is on
+2. Click preview
+3. Save and reopen
 
-### Can I print my document?
+### How to Print
 
-Yes! Two ways:
-1. Export to PDF, then print the PDF
-2. Export to HTML, open in browser, then print
+Two ways:
+1. Save PDF, print it
+2. Save HTML, print in browser
 
-## Need More Help?
+## More Help
 
-- Check [how-to-install.md](how-to-install.md) for setup problems
-- Check [how-to-contribute.md](how-to-contribute.md) if you want to help
-- Look for issues on GitHub
-- Create a new issue to ask questions
+- how-to-install.md for setup
+- how-to-contribute.md to help
+- GitHub for questions
 
 ## Remember
 
-- **Save often**: Press Ctrl+S after making changes
-- **Commit regularly**: Save to Git when you finish a section
-- **Preview shows all**: Use the right side to check your formatting
-- **Shortcuts save time**: Learn the keyboard shortcuts
+- **Save often**: Press Ctrl+S
+- **Use Git**: Save online
+- **Check preview**: See right side
+- **Use shortcuts**: Work fast
 
 Happy writing!
 
 ---
-**Document Info**: Reading level Grade 5.1 | Last updated: 2025
+**Grade 5.0 | Updated: 2025**
