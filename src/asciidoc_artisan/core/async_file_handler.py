@@ -1,6 +1,11 @@
 """
 Async File Handler - Non-blocking file operations.
 
+Implements:
+- NFR-003: Large file handling (>10MB with streaming)
+- NFR-004: Memory usage optimization (chunked I/O)
+- NFR-005: Background threading for long operations
+
 This module provides asynchronous file I/O:
 - Async read/write operations
 - Streaming for large files
