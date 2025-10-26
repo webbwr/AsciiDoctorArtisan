@@ -1,6 +1,42 @@
 <#
+################################################################################
+# AsciiDoc Artisan - Full Clean Installation Script for Windows
+#
+# PURPOSE:
+#   Automates complete installation of AsciiDoc Artisan on Windows with:
+#   - PowerShell 7.0+ verification
+#   - Python 3.11+ verification
+#   - Virtual environment creation
+#   - All dependencies (Python packages + system tools)
+#   - Installation validation
+#
+# USAGE:
+#   .\install-asciidoc-artisan.ps1
+#   .\install-asciidoc-artisan.ps1 -PythonCommand python3
+#   .\install-asciidoc-artisan.ps1 -SkipVirtualEnv
+#
+# WHAT IT DOES:
+#   1. Checks PowerShell version (needs 7.0+)
+#   2. Checks Windows version
+#   3. Checks Python version (needs 3.11+)
+#   4. Verifies pip is installed
+#   5. Installs system dependencies (Pandoc, Git)
+#   6. Creates virtual environment (optional)
+#   7. Installs Python packages
+#   8. Runs post-install tasks
+#   9. Validates installation
+#   10. Shows summary
+#
+# EXIT CODES:
+#   0 = Success
+#   1 = Error (missing dependencies or failed installation)
+#
+# AUTHOR: AsciiDoc Artisan Team
+# VERSION: 1.2.0
+################################################################################
+
 .SYNOPSIS
-    AsciiDoc Artisan - Full Clean Installation Script for Windows 11
+    AsciiDoc Artisan - Full Clean Installation Script for Windows
 
 .DESCRIPTION
     This script performs a complete installation of AsciiDoc Artisan with all
@@ -8,18 +44,27 @@
 
 .PARAMETER PythonCommand
     Python command to use (default: 'python')
+    Examples: 'python', 'python3', 'python3.12', 'py'
 
 .PARAMETER SkipVirtualEnv
     Skip virtual environment creation
+    Use this flag to install packages globally instead of in a venv
 
 .EXAMPLE
-    .\Install-AsciiDocArtisan.ps1
+    .\install-asciidoc-artisan.ps1
+    Standard installation with virtual environment
 
 .EXAMPLE
-    .\Install-AsciiDocArtisan.ps1 -PythonCommand python3
+    .\install-asciidoc-artisan.ps1 -PythonCommand python3
+    Use specific Python command
+
+.EXAMPLE
+    .\install-asciidoc-artisan.ps1 -SkipVirtualEnv
+    Install globally without virtual environment
 
 .NOTES
     Author:      AsciiDoc Artisan Team
+    Version:     1.2.0
     Requires:    PowerShell 7.0+, Python 3.11+
 #>
 
