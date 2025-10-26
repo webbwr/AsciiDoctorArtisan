@@ -49,20 +49,21 @@ class StatusManager:
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets after status bar is created."""
         # Create permanent status bar widgets (right side)
-        self.version_label = QLabel("")
         self.word_count_label = QLabel("Words: 0")
+        self.version_label = QLabel("")
         self.grade_level_label = QLabel("Grade: --")
         self.ai_status_label = QLabel("")
 
         # Style the labels
-        for label in [self.version_label, self.word_count_label,
+        for label in [self.word_count_label, self.version_label,
                      self.grade_level_label, self.ai_status_label]:
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setMinimumWidth(80)
 
         # Add widgets to status bar (right side, permanent)
-        self.editor.status_bar.addPermanentWidget(self.version_label)
+        # Order: Word Count | Version | Grade Level | AI Status
         self.editor.status_bar.addPermanentWidget(self.word_count_label)
+        self.editor.status_bar.addPermanentWidget(self.version_label)
         self.editor.status_bar.addPermanentWidget(self.grade_level_label)
         self.editor.status_bar.addPermanentWidget(self.ai_status_label)
 
