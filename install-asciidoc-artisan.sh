@@ -1,30 +1,71 @@
 #!/bin/bash
+################################################################################
 # AsciiDoc Artisan - Full Clean Installation Script for Mac/Linux
-# This script performs a complete installation with dependency validation
+#
+# PURPOSE:
+#   Automates complete installation of AsciiDoc Artisan with:
+#   - Python 3.11+ verification
+#   - Virtual environment creation
+#   - All dependencies (Python packages + system tools)
+#   - Installation validation
+#
+# USAGE:
+#   chmod +x install-asciidoc-artisan.sh
+#   ./install-asciidoc-artisan.sh
+#
+# WHAT IT DOES:
+#   1. Detects OS and package manager
+#   2. Checks Python version (needs 3.11+)
+#   3. Verifies pip is installed
+#   4. Installs system dependencies (Pandoc, Git)
+#   5. Creates virtual environment (optional)
+#   6. Installs Python packages
+#   7. Runs post-install tasks
+#   8. Validates installation
+#   9. Shows summary
+#
+# EXIT CODES:
+#   0 = Success
+#   1 = Error (missing dependencies or failed installation)
+#
+# AUTHOR: AsciiDoc Artisan Team
+# VERSION: 1.2.0
+################################################################################
 
-set -e  # Exit on error
+set -e  # Exit immediately if any command fails
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+################################################################################
+# COLOR CODES
+# Used for colorful terminal output
+################################################################################
+RED='\033[0;31m'     # Error messages
+GREEN='\033[0;32m'   # Success messages
+YELLOW='\033[1;33m'  # Warning messages
+BLUE='\033[0;34m'    # Info and headers
+NC='\033[0m'         # No Color (reset)
 
-# Configuration
+################################################################################
+# CONFIGURATION
+################################################################################
+
+# Minimum Python version required (Major.Minor)
 PYTHON_MIN_VERSION="3.11"
+
+# Required Python packages with minimum versions
+# These are the core dependencies needed to run AsciiDoc Artisan
 REQUIRED_PYTHON_PACKAGES=(
-    "PySide6>=6.9.0"
-    "asciidoc3>=3.2.0"
-    "pypandoc>=1.11"
-    "pdfplumber>=0.10.0"
-    "keyring>=24.0.0"
-    "psutil>=5.9.0"
+    "PySide6>=6.9.0"      # Qt GUI framework with GPU support
+    "asciidoc3>=3.2.0"    # AsciiDoc to HTML conversion
+    "pypandoc>=1.11"      # Document format conversion wrapper
+    "pdfplumber>=0.10.0"  # PDF text extraction (legacy fallback)
+    "keyring>=24.0.0"     # Secure credential storage
+    "psutil>=5.9.0"       # System and process utilities
 )
 
-# Track validation results
-ERRORS=0
-WARNINGS=0
+# Validation counters
+# These track issues found during installation
+ERRORS=0    # Critical issues that prevent installation
+WARNINGS=0  # Non-critical issues that may affect functionality
 
 # Helper functions
 print_header() {
