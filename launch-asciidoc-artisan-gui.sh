@@ -5,9 +5,88 @@
 # 1. WSLg (Windows 11 built-in) - auto-detected
 # 2. VcXsrv/X410/Xming (external X Server on Windows)
 # 3. QT_QPA_PLATFORM=offscreen (headless mode for testing)
+#
+# Usage: ./launch-asciidoc-artisan-gui.sh [OPTIONS]
+# Options:
+#   --debug       Enable debug mode with verbose logging
+#   --headless    Run in headless mode (no display)
+#   --check-only  Only check dependencies, don't launch
+#   --help        Show this help message
+
+set -euo pipefail
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$SCRIPT_DIR"
+LOG_DIR="$PROJECT_DIR/logs"
+LOG_FILE="$LOG_DIR/launcher.log"
+VENV_DIR="$PROJECT_DIR/venv"
+MAIN_SCRIPT="$PROJECT_DIR/src/main.py"
+
+# Parse command line arguments
+DEBUG_MODE=false
+HEADLESS_MODE=false
+CHECK_ONLY=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --debug)
+            DEBUG_MODE=true
+            shift
+            ;;
+        --headless)
+            HEADLESS_MODE=true
+            shift
+            ;;
+        --check-only)
+            CHECK_ONLY=true
+            shift
+            ;;
+        --help)
+            echo "AsciiDoc Artisan GUI Launcher"
+            echo ""
+            echo "Usage: $0 [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --debug       Enable debug mode with verbose logging"
+            echo "  --headless    Run in headless mode (no display)"
+            echo "  --check-only  Only check dependencies, don't launch"
+            echo "  --help        Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Setup logging
+mkdir -p "$LOG_DIR"
+echo "=== Launch attempt at $(date) ===" >> "$LOG_FILE"
+
+log_info() {
+    echo "[INFO] $1" | tee -a "$LOG_FILE"
+}
+
+log_error() {
+    echo "[ERROR] $1" | tee -a "$LOG_FILE" >&2
+}
+
+log_debug() {
+    if [ "$DEBUG_MODE" = true ]; then
+        echo "[DEBUG] $1" | tee -a "$LOG_FILE"
+    fi
+}
 
 echo "=== AsciiDoc Artisan GUI Launcher ==="
 echo ""
+
+log_info "Script directory: $SCRIPT_DIR"
+log_info "Project directory: $PROJECT_DIR"
+log_debug "Debug mode: $DEBUG_MODE"
+log_debug "Headless mode: $HEADLESS_MODE"
 
 # Function to test X connection
 test_x_connection() {
@@ -17,6 +96,194 @@ test_x_connection() {
         fi
     fi
     return 1
+}
+
+# Function to check Python version
+check_python_version() {
+    log_info "Checking Python version..."
+
+    if ! command -v python3 &> /dev/null; then
+        log_error "Python 3 not found"
+        return 1
+    fi
+
+    PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+    PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f1)
+    PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d'.' -f2)
+
+    log_info "Python version: $PYTHON_VERSION"
+
+    if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 11 ]); then
+        log_error "Python 3.11+ required, found $PYTHON_VERSION"
+        return 1
+    fi
+
+    log_info "✓ Python version OK"
+    return 0
+}
+
+# Function to check virtual environment
+check_virtual_env() {
+    log_info "Checking virtual environment..."
+
+    if [ ! -d "$VENV_DIR" ]; then
+        log_error "Virtual environment not found at: $VENV_DIR"
+        log_info "Run: python3 -m venv venv && source venv/bin/activate && pip install -r requirements-production.txt"
+        return 1
+    fi
+
+    if [ ! -f "$VENV_DIR/bin/activate" ]; then
+        log_error "Virtual environment activation script not found"
+        return 1
+    fi
+
+    log_info "✓ Virtual environment found"
+    return 0
+}
+
+# Function to check required Python packages
+check_dependencies() {
+    log_info "Checking Python dependencies..."
+
+    # Activate virtual environment
+    source "$VENV_DIR/bin/activate"
+
+    REQUIRED_PACKAGES=("PySide6" "asciidoc3" "pypandoc" "pymupdf")
+    OPTIONAL_PACKAGES=("numba")
+    MISSING_PACKAGES=()
+    MISSING_OPTIONAL=()
+
+    for package in "${REQUIRED_PACKAGES[@]}"; do
+        log_debug "Checking for $package..."
+        if ! python3 -c "import ${package,,}" &> /dev/null; then
+            MISSING_PACKAGES+=("$package")
+            log_error "Missing required package: $package"
+        else
+            log_debug "✓ $package found"
+        fi
+    done
+
+    for package in "${OPTIONAL_PACKAGES[@]}"; do
+        log_debug "Checking for optional package: $package..."
+        if ! python3 -c "import ${package,,}" &> /dev/null; then
+            MISSING_OPTIONAL+=("$package")
+            log_info "Optional package not installed: $package (performance may be reduced)"
+        else
+            log_debug "✓ $package found"
+        fi
+    done
+
+    if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
+        log_error "Missing required packages: ${MISSING_PACKAGES[*]}"
+        log_info "Install with: pip install -r requirements-production.txt"
+        return 1
+    fi
+
+    log_info "✓ All required dependencies installed"
+    if [ ${#MISSING_OPTIONAL[@]} -gt 0 ]; then
+        log_info "Note: Optional packages missing: ${MISSING_OPTIONAL[*]}"
+    fi
+
+    return 0
+}
+
+# Function to check system dependencies
+check_system_dependencies() {
+    log_info "Checking system dependencies..."
+
+    MISSING_SYSTEM=()
+
+    # Check pandoc
+    if ! command -v pandoc &> /dev/null; then
+        MISSING_SYSTEM+=("pandoc")
+        log_error "pandoc not found"
+    else
+        PANDOC_VERSION=$(pandoc --version | head -n1)
+        log_info "✓ $PANDOC_VERSION"
+    fi
+
+    # Check wkhtmltopdf
+    if ! command -v wkhtmltopdf &> /dev/null; then
+        MISSING_SYSTEM+=("wkhtmltopdf")
+        log_error "wkhtmltopdf not found (PDF export will not work)"
+    else
+        log_info "✓ wkhtmltopdf found"
+    fi
+
+    # Check git (optional)
+    if command -v git &> /dev/null; then
+        GIT_VERSION=$(git --version)
+        log_info "✓ $GIT_VERSION"
+    else
+        log_info "Git not found (version control features disabled)"
+    fi
+
+    if [ ${#MISSING_SYSTEM[@]} -gt 0 ]; then
+        log_error "Missing system dependencies: ${MISSING_SYSTEM[*]}"
+        log_info "Install with: sudo apt install ${MISSING_SYSTEM[*]}"
+        return 1
+    fi
+
+    log_info "✓ System dependencies OK"
+    return 0
+}
+
+# Function to detect GPU capabilities
+check_gpu_support() {
+    log_info "Checking GPU capabilities..."
+
+    GPU_AVAILABLE=false
+    GPU_INFO=""
+
+    # Check for NVIDIA GPU
+    if command -v nvidia-smi &> /dev/null; then
+        GPU_INFO=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -n1)
+        if [ -n "$GPU_INFO" ]; then
+            GPU_AVAILABLE=true
+            log_info "✓ NVIDIA GPU detected: $GPU_INFO"
+        fi
+    fi
+
+    # Check for AMD GPU
+    if [ "$GPU_AVAILABLE" = false ] && command -v rocm-smi &> /dev/null; then
+        GPU_INFO=$(rocm-smi --showproductname 2>/dev/null | grep "GPU" | head -n1)
+        if [ -n "$GPU_INFO" ]; then
+            GPU_AVAILABLE=true
+            log_info "✓ AMD GPU detected: $GPU_INFO"
+        fi
+    fi
+
+    # Check for Intel GPU
+    if [ "$GPU_AVAILABLE" = false ] && [ -d "/sys/class/drm" ]; then
+        if ls /sys/class/drm/card*/device/vendor 2>/dev/null | xargs cat 2>/dev/null | grep -q "0x8086"; then
+            GPU_AVAILABLE=true
+            GPU_INFO="Intel GPU"
+            log_info "✓ Intel GPU detected"
+        fi
+    fi
+
+    # Check OpenGL support
+    if command -v glxinfo &> /dev/null; then
+        OPENGL_VERSION=$(glxinfo 2>/dev/null | grep "OpenGL version" | cut -d':' -f2 | xargs)
+        if [ -n "$OPENGL_VERSION" ]; then
+            log_info "✓ OpenGL version: $OPENGL_VERSION"
+            export QT_OPENGL=desktop
+        else
+            log_info "OpenGL not available, using software rendering"
+            export QT_OPENGL=software
+        fi
+    else
+        log_debug "glxinfo not available, cannot check OpenGL support"
+    fi
+
+    if [ "$GPU_AVAILABLE" = true ]; then
+        log_info "✓ GPU acceleration available"
+        export QT_ENABLE_HIGHDPI_SCALING=1
+    else
+        log_info "No GPU detected, using software rendering"
+    fi
+
+    return 0
 }
 
 # Try Method 1: WSLg (Windows 11)
