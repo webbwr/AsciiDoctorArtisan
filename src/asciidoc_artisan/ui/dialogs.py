@@ -1,21 +1,19 @@
 """
-UI Dialogs - Import/Export options and Preferences dialogs.
+UI Dialogs - Preferences dialog.
 
 This module contains QDialog subclasses for user interaction:
-- ImportOptionsDialog: Per-import AI conversion choice
-- ExportOptionsDialog: Per-export AI conversion choice
 - PreferencesDialog: Application preferences (AI settings)
 
-All dialogs implement FR-055: AI-Enhanced Conversion user configuration.
+Implements FR-055: AI-Enhanced Conversion user configuration.
 
 Usage Example:
     ```python
-    from asciidoc_artisan.ui.dialogs import ImportOptionsDialog
+    from asciidoc_artisan.ui.dialogs import PreferencesDialog
 
-    dialog = ImportOptionsDialog("docx", "document.docx", default_use_ai=True)
+    dialog = PreferencesDialog(self.settings)
     if dialog.exec():
-        use_ai = dialog.get_use_ai()
-        # Proceed with import using AI if enabled
+        self.settings = dialog.get_settings()
+        self._save_settings()
     ```
 """
 
@@ -33,211 +31,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from asciidoc_artisan.core import SecureCredentials, Settings
-
-# Check for AI API key availability (Phase 3 security integration)
-_credentials = SecureCredentials()
-ANTHROPIC_API_KEY_AVAILABLE = _credentials.has_anthropic_key()
-
-# Check for AI client availability
-try:
-    import ai_client  # noqa: F401
-
-    AI_CLIENT_AVAILABLE = True
-except ImportError:
-    AI_CLIENT_AVAILABLE = False
-
-# AI is available if either secure credentials OR legacy client is present
-AI_AVAILABLE = ANTHROPIC_API_KEY_AVAILABLE or AI_CLIENT_AVAILABLE
-
-
-class ImportOptionsDialog(QDialog):
-    """
-    Import options dialog for per-operation AI conversion choice.
-
-    Allows user to override default AI conversion setting for a specific
-    import operation. Displays file information and AI availability status.
-
-    Implements FR-055: AI-Enhanced Conversion option with per-operation override.
-
-    Args:
-        format_type: Source format (e.g., "docx", "markdown")
-        filename: Name of file being imported
-        default_use_ai: Default AI setting from Settings
-        parent: Parent QWidget (optional)
-
-    Example:
-        ```python
-        dialog = ImportOptionsDialog("docx", "document.docx", default_use_ai=True)
-        if dialog.exec():
-            use_ai = dialog.get_use_ai()
-        ```
-    """
-
-    def __init__(
-        self,
-        format_type: str,
-        filename: str,
-        default_use_ai: bool,
-        parent: Optional[QWidget] = None,
-    ) -> None:
-        """Initialize import options dialog."""
-        super().__init__(parent)
-        self.format_type = format_type
-        self.filename = filename
-        self.default_use_ai = default_use_ai
-        self._init_ui()
-
-    def _init_ui(self) -> None:
-        """Initialize the import options UI."""
-        self.setWindowTitle(f"Import {self.format_type.upper()}")
-        self.setMinimumWidth(400)
-
-        layout = QVBoxLayout(self)
-
-        info_label = QLabel(
-            f"Converting '{self.filename}' from {self.format_type.upper()} to AsciiDoc."
-        )
-        layout.addWidget(info_label)
-
-        self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this import")
-        self.ai_checkbox.setChecked(self.default_use_ai and AI_AVAILABLE)
-
-        if AI_AVAILABLE:
-            if ANTHROPIC_API_KEY_AVAILABLE:
-                self.ai_checkbox.setToolTip(
-                    "AI conversion preserves complex formatting like nested lists and tables.\n"
-                    "API key configured securely. Conversion may incur API costs."
-                )
-            else:
-                self.ai_checkbox.setToolTip(
-                    "AI conversion preserves complex formatting like nested lists and tables.\n"
-                    "Using legacy configuration. Consider setting up secure API key via Tools menu."
-                )
-        else:
-            self.ai_checkbox.setEnabled(False)
-            self.ai_checkbox.setToolTip(
-                "Claude AI is not available.\n"
-                "Configure API key via Tools > API Keys to enable AI conversion."
-            )
-
-        layout.addWidget(self.ai_checkbox)
-
-        layout.addStretch()
-
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-
-        ok_button = QPushButton("Import")
-        ok_button.setDefault(True)
-        ok_button.clicked.connect(self.accept)
-        button_layout.addWidget(ok_button)
-
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_button)
-
-        layout.addLayout(button_layout)
-
-    def get_use_ai(self) -> bool:
-        """
-        Get the user's choice for AI conversion.
-
-        Returns:
-            True if user chose AI conversion and it's available, False otherwise
-        """
-        return self.ai_checkbox.isChecked() if AI_AVAILABLE else False
-
-
-class ExportOptionsDialog(QDialog):
-    """
-    Export options dialog for per-operation AI conversion choice.
-
-    Allows user to override default AI conversion setting for a specific
-    export operation. Displays format information and AI availability status.
-
-    Implements FR-055: AI-Enhanced Conversion option with per-operation override.
-
-    Args:
-        format_type: Target format (e.g., "markdown", "html")
-        default_use_ai: Default AI setting from Settings
-        parent: Parent QWidget (optional)
-
-    Example:
-        ```python
-        dialog = ExportOptionsDialog("markdown", default_use_ai=False)
-        if dialog.exec():
-            use_ai = dialog.get_use_ai()
-        ```
-    """
-
-    def __init__(
-        self, format_type: str, default_use_ai: bool, parent: Optional[QWidget] = None
-    ) -> None:
-        """Initialize export options dialog."""
-        super().__init__(parent)
-        self.format_type = format_type
-        self.default_use_ai = default_use_ai
-        self.use_ai = default_use_ai
-        self._init_ui()
-
-    def _init_ui(self) -> None:
-        """Initialize the export options UI."""
-        self.setWindowTitle(f"Export to {self.format_type.upper()}")
-        self.setMinimumWidth(400)
-
-        layout = QVBoxLayout(self)
-
-        info_label = QLabel(f"Exporting document to {self.format_type.upper()} format.")
-        layout.addWidget(info_label)
-
-        self.ai_checkbox = QCheckBox("Use AI-enhanced conversion for this export")
-        self.ai_checkbox.setChecked(self.default_use_ai and AI_AVAILABLE)
-
-        if AI_AVAILABLE:
-            if ANTHROPIC_API_KEY_AVAILABLE:
-                self.ai_checkbox.setToolTip(
-                    "AI conversion preserves complex formatting like nested lists and tables.\n"
-                    "API key configured securely. Conversion may incur API costs."
-                )
-            else:
-                self.ai_checkbox.setToolTip(
-                    "AI conversion preserves complex formatting like nested lists and tables.\n"
-                    "Using legacy configuration. Consider setting up secure API key via Tools menu."
-                )
-        else:
-            self.ai_checkbox.setEnabled(False)
-            self.ai_checkbox.setToolTip(
-                "Claude AI is not available.\n"
-                "Configure API key via Tools > API Keys to enable AI conversion."
-            )
-
-        layout.addWidget(self.ai_checkbox)
-
-        layout.addStretch()
-
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-
-        ok_button = QPushButton("Export")
-        ok_button.setDefault(True)
-        ok_button.clicked.connect(self.accept)
-        button_layout.addWidget(ok_button)
-
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_button)
-
-        layout.addLayout(button_layout)
-
-    def get_use_ai(self) -> bool:
-        """
-        Get the user's choice for AI conversion.
-
-        Returns:
-            True if user chose AI conversion and it's available, False otherwise
-        """
-        return self.ai_checkbox.isChecked() if AI_AVAILABLE else False
+from asciidoc_artisan.core import Settings
 
 
 class PreferencesDialog(QDialog):

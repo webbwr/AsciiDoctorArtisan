@@ -33,7 +33,6 @@ from asciidoc_artisan.core import (
     PDF_FILTER,
     atomic_save_text,
 )
-from asciidoc_artisan.ui.dialogs import ExportOptionsDialog
 
 if TYPE_CHECKING:
     from asciidoc_artisan.ui.main_window import AsciiDocEditor
@@ -141,16 +140,10 @@ class ExportManager(QObject):
 
         content = self.editor.toPlainText()
 
-        # Check if AI conversion should be used
+        # Use settings preference for AI conversion (defaults to Pandoc)
         use_ai_for_export = self.settings_manager.get_ai_conversion_preference(
             self._settings
         )
-        if format_type in ["md", "docx", "pdf"]:
-            export_dialog = ExportOptionsDialog(format_type, use_ai_for_export, self.window)
-            if export_dialog.exec() == QDialog.DialogCode.Accepted:
-                use_ai_for_export = export_dialog.get_use_ai()
-            else:
-                return False
 
         # Handle direct AsciiDoc save
         if format_type == "adoc":

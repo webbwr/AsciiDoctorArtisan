@@ -26,8 +26,6 @@ Complete Public API:
     - PreviewWorker: AsciiDoc HTML rendering
 
     # UI Dialogs
-    - ImportOptionsDialog: Per-import AI conversion choice
-    - ExportOptionsDialog: Per-export AI conversion choice
     - PreferencesDialog: Application preferences
 
     # File Operations (Security Features)
@@ -84,8 +82,6 @@ from .core import (
 # UI Dialogs
 from .ui import (
     AsciiDocEditor,
-    ExportOptionsDialog,
-    ImportOptionsDialog,
     PreferencesDialog,
 )
 
@@ -105,8 +101,6 @@ __all__ = [
     "PandocWorker",
     "PreviewWorker",
     # UI Dialogs
-    "ImportOptionsDialog",
-    "ExportOptionsDialog",
     "PreferencesDialog",
     # File Operations
     "sanitize_path",

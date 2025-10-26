@@ -90,8 +90,6 @@ from asciidoc_artisan.core import (
 )
 from asciidoc_artisan.core.large_file_handler import LargeFileHandler
 from asciidoc_artisan.ui.dialogs import (
-    ExportOptionsDialog,
-    ImportOptionsDialog,
     PreferencesDialog,
 )
 from asciidoc_artisan.ui.action_manager import ActionManager
@@ -228,6 +226,9 @@ class AsciiDocEditor(QMainWindow):
 
         # Initialize progress dialog for large file loading
         self._progress_dialog: Optional[QProgressDialog] = None
+
+        # Initialize temporary directory for file conversions
+        self._temp_dir = tempfile.TemporaryDirectory()
 
         # Initialize state variables
         self._current_file_path: Optional[Path] = None
@@ -461,6 +462,10 @@ class AsciiDocEditor(QMainWindow):
 
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 1)
+
+        # Set default 50/50 split - ensure both panes visible
+        # This will be overridden by saved settings if they exist
+        QTimer.singleShot(0, lambda: self.splitter.setSizes([400, 400]))
 
         self._setup_synchronized_scrolling()
 
@@ -748,16 +753,10 @@ class AsciiDocEditor(QMainWindow):
 
                 input_format, file_type = format_map.get(suffix, ("markdown", "text"))
 
+                # Use settings preference for AI conversion (defaults to Pandoc)
                 use_ai_for_import = self._settings_manager.get_ai_conversion_preference(
                     self._settings
                 )
-                import_dialog = ImportOptionsDialog(
-                    input_format, file_path.name, use_ai_for_import, self
-                )
-                if import_dialog.exec() == QDialog.DialogCode.Accepted:
-                    use_ai_for_import = import_dialog.get_use_ai()
-                else:
-                    return
 
                 self._is_processing_pandoc = True
                 self._pending_file_path = file_path
@@ -930,17 +929,10 @@ class AsciiDocEditor(QMainWindow):
 
             if format_type != "adoc":
 
+                # Use settings preference for AI conversion (defaults to Pandoc)
                 use_ai_for_export = self._settings_manager.get_ai_conversion_preference(
                     self._settings
                 )
-                if format_type in ["md", "docx", "pdf"]:
-                    export_dialog = ExportOptionsDialog(
-                        format_type, use_ai_for_export, self
-                    )
-                    if export_dialog.exec() == QDialog.DialogCode.Accepted:
-                        use_ai_for_export = export_dialog.get_use_ai()
-                    else:
-                        return False
 
                 logger.info(
                     f"Calling _save_as_format_internal with file_path={file_path}, format_type={format_type}, use_ai={use_ai_for_export}"
@@ -1043,80 +1035,85 @@ class AsciiDocEditor(QMainWindow):
 
         self.status_bar.showMessage(f"Saving as {format_type.upper()}...")
 
-        try:
-            if self._asciidoc_api is None:
-                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
+        # Determine source format from current file
+        source_format = "asciidoc"  # default
+        temp_source_file = None
 
-            infile = io.StringIO(content)
-            outfile = io.StringIO()
-            self._asciidoc_api.execute(infile, outfile, backend="html5")
-            html_content = outfile.getvalue()
-        except Exception as e:
-            logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-            self.status_manager.show_message(
-                "critical",
-                "Conversion Error",
-                f"Failed to convert AsciiDoc to HTML:\n{e}",
-            )
-            return False
+        if self._current_file_path:
+            suffix = self._current_file_path.suffix.lower()
+            format_map = {
+                ".md": "markdown",
+                ".markdown": "markdown",
+                ".docx": "docx",
+                ".pdf": "markdown",  # PDF was converted to text, treat as markdown
+                ".html": "html",
+                ".htm": "html",
+            }
+            source_format = format_map.get(suffix, "asciidoc")
 
-        temp_html = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
-        try:
-            temp_html.write_text(html_content, encoding="utf-8")
-        except Exception as e:
-            self.status_manager.show_message(
-                "critical", "Save Error", f"Failed to create temporary file:\n{e}"
-            )
-            return False
+        # If source is AsciiDoc, convert to HTML first (legacy path)
+        if source_format == "asciidoc":
+            try:
+                if self._asciidoc_api is None:
+                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
+
+                infile = io.StringIO(content)
+                outfile = io.StringIO()
+                self._asciidoc_api.execute(infile, outfile, backend="html5")
+                html_content = outfile.getvalue()
+
+                temp_source_file = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
+                temp_source_file.write_text(html_content, encoding="utf-8")
+                source_format = "html"
+            except Exception as e:
+                logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
+                self.status_manager.show_message(
+                    "critical",
+                    "Conversion Error",
+                    f"Failed to convert AsciiDoc to HTML:\n{e}",
+                )
+                return False
+        else:
+            # For non-AsciiDoc sources, save content to temp file for Pandoc
+            ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
+            temp_ext = ext_map.get(source_format, ".txt")
+            temp_source_file = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
+            try:
+                temp_source_file.write_text(content, encoding="utf-8")
+            except Exception as e:
+                self.status_manager.show_message(
+                    "critical", "Save Error", f"Failed to create temporary file:\n{e}"
+                )
+                return False
 
         self.status_bar.showMessage(f"Saving as {format_type.upper()}...")
 
+        # Set export manager pending paths for result handling
+        self.export_manager.pending_export_path = file_path
+        self.export_manager.pending_export_format = format_type
+
         if format_type in ["pdf", "docx"]:
-
-            if format_type == "pdf" and not self._check_pdf_engine_available():
-
-                try:
-
-                    styled_html = self._add_print_css_to_html(html_content)
-                    html_path = file_path.with_suffix(".html")
-
-                    if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
-                        raise IOError(f"Failed to save HTML file: {html_path}")
-
-                    self.status_bar.showMessage(
-                        f"Saved as HTML (PDF-ready): {html_path}"
-                    )
-                    self.status_manager.show_message(
-                        "information",
-                        "PDF Export Alternative",
-                        f"Saved as HTML with print styling: {html_path}\n\n"
-                        f"To create PDF:\n"
-                        f"1. Open this file in your browser\n"
-                        f"2. Press Ctrl+P (or Cmd+P on Mac)\n"
-                        f"3. Select 'Save as PDF'\n\n"
-                        f"The HTML includes print-friendly styling for optimal PDF output.",
-                    )
-                    return False
-                except Exception as e:
-                    logger.exception(f"Failed to save HTML for PDF: {e}")
-
+            # Use Pandoc for PDF and DOCX conversion - pass output file directly
             logger.info(
-                f"Emitting pandoc conversion request for {format_type} - temp_html: {temp_html}, output: {file_path}"
+                f"Emitting pandoc conversion request for {format_type} - source: {temp_source_file} ({source_format}), output: {file_path}"
             )
             self.request_pandoc_conversion.emit(
-                temp_html,
+                temp_source_file,
                 format_type,
-                "html",
+                source_format,
                 f"Exporting to {format_type.upper()}",
                 file_path,
                 use_ai,
             )
         else:
-
+            # For other formats, let worker return the content
+            logger.info(
+                f"Emitting pandoc conversion request for {format_type} - source: {temp_source_file} ({source_format})"
+            )
             self.request_pandoc_conversion.emit(
-                temp_html,
+                temp_source_file,
                 format_type,
-                "html",
+                source_format,
                 f"Exporting to {format_type.upper()}",
                 None,
                 use_ai,

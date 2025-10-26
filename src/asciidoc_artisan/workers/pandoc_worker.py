@@ -198,9 +198,13 @@ class PandocWorker(QObject):
                         continue
 
                 if not pdf_engine_found:
-                    # No PDF engine available, will use HTML as intermediate
-                    logger.warning(
-                        "No PDF engine found. Will use HTML as intermediate format."
+                    # No PDF engine available - this should not happen in production
+                    logger.error(
+                        "No PDF engine found. Install wkhtmltopdf, weasyprint, or pdflatex."
+                    )
+                    raise RuntimeError(
+                        "PDF conversion requires a PDF engine. "
+                        "Install wkhtmltopdf: sudo apt-get install wkhtmltopdf"
                     )
             elif to_format == "docx":
                 # DOCX-specific arguments (currently none)
@@ -237,15 +241,36 @@ class PandocWorker(QObject):
                 # Text output (load into editor)
                 if isinstance(source, Path):
                     source_content = source.read_text(encoding="utf-8")
+                    converted = pypandoc.convert_text(
+                        source=source_content,
+                        to=to_format,
+                        format=from_format,
+                        extra_args=extra_args,
+                    )
+                elif isinstance(source, bytes):
+                    # Binary content (like DOCX) - save to temp file and use convert_file
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{from_format}") as tmp:
+                        tmp.write(source)
+                        tmp_path = tmp.name
+                    try:
+                        converted = pypandoc.convert_file(
+                            source_file=tmp_path,
+                            to=to_format,
+                            format=from_format,
+                            extra_args=extra_args,
+                        )
+                    finally:
+                        import os
+                        os.unlink(tmp_path)
                 else:
                     source_content = str(source)
-
-                converted = pypandoc.convert_text(
-                    source=source_content,
-                    to=to_format,
-                    format=from_format,
-                    extra_args=extra_args,
-                )
+                    converted = pypandoc.convert_text(
+                        source=source_content,
+                        to=to_format,
+                        format=from_format,
+                        extra_args=extra_args,
+                    )
                 if isinstance(converted, bytes):
                     result_text = converted.decode("utf-8")
                 else:

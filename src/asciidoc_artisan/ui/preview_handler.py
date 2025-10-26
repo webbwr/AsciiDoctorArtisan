@@ -179,6 +179,22 @@ class PreviewHandler(QObject):
         Args:
             error: Error message
         """
+        # Check dark mode for error display
+        dark_mode = False
+        if hasattr(self.window, '_settings') and hasattr(self.window._settings, 'dark_mode'):
+            dark_mode = self.window._settings.dark_mode
+
+        if dark_mode:
+            bg_color = '#3a2a1a'
+            text_color = '#ffcc99'
+            heading_color = '#ff6666'
+            pre_bg = '#2a2a2a'
+        else:
+            bg_color = '#fff3cd'
+            text_color = '#856404'
+            heading_color = '#dc3545'
+            pre_bg = '#f8f9fa'
+
         error_html = f"""
         <html>
         <head>
@@ -186,15 +202,16 @@ class PreviewHandler(QObject):
                 body {{
                     font-family: Arial, sans-serif;
                     padding: 20px;
-                    background-color: #fff3cd;
-                    color: #856404;
+                    background-color: {bg_color};
+                    color: {text_color};
                 }}
-                h2 {{ color: #dc3545; }}
+                h2 {{ color: {heading_color}; }}
                 pre {{
-                    background-color: #f8f9fa;
+                    background-color: {pre_bg};
                     padding: 10px;
                     border-radius: 5px;
                     overflow-x: auto;
+                    color: {text_color};
                 }}
             </style>
         </head>
@@ -263,53 +280,81 @@ class PreviewHandler(QObject):
         Returns:
             CSS content as string
         """
+        # Check if dark mode is enabled
+        dark_mode = False
+        if hasattr(self.window, '_settings') and hasattr(self.window._settings, 'dark_mode'):
+            dark_mode = self.window._settings.dark_mode
+
+        # Set colors based on theme
+        if dark_mode:
+            text_color = '#e0e0e0'
+            bg_color = '#1a1a1a'
+            heading_color = '#ffffff'
+            border_color = '#404040'
+            code_bg = '#2a2a2a'
+            table_bg = '#2a2a2a'
+            link_color = '#66b3ff'
+            quote_color = '#a0a0a0'
+            quote_border = '#505050'
+        else:
+            text_color = '#333'
+            bg_color = '#fff'
+            heading_color = '#000'
+            border_color = '#eaecef'
+            code_bg = '#f6f8fa'
+            table_bg = '#f6f8fa'
+            link_color = '#0366d6'
+            quote_color = '#6a737d'
+            quote_border = '#dfe2e5'
+
         # Basic responsive CSS for AsciiDoc preview
-        return """
-            body {
+        return f"""
+            body {{
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 line-height: 1.6;
                 max-width: 900px;
                 margin: 0 auto;
                 padding: 20px;
-                color: #333;
-                background-color: #fff;
-            }
+                color: {text_color};
+                background-color: {bg_color};
+            }}
 
-            h1, h2, h3, h4, h5, h6 {
+            h1, h2, h3, h4, h5, h6 {{
                 margin-top: 24px;
                 margin-bottom: 16px;
                 font-weight: 600;
                 line-height: 1.25;
-            }
+                color: {heading_color};
+            }}
 
-            h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-            h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-            h3 { font-size: 1.25em; }
-            h4 { font-size: 1em; }
-            h5 { font-size: 0.875em; }
-            h6 { font-size: 0.85em; color: #6a737d; }
+            h1 {{ font-size: 2em; border-bottom: 1px solid {border_color}; padding-bottom: 0.3em; }}
+            h2 {{ font-size: 1.5em; border-bottom: 1px solid {border_color}; padding-bottom: 0.3em; }}
+            h3 {{ font-size: 1.25em; }}
+            h4 {{ font-size: 1em; }}
+            h5 {{ font-size: 0.875em; }}
+            h6 {{ font-size: 0.85em; color: {quote_color}; }}
 
-            p { margin-bottom: 16px; }
+            p {{ margin-bottom: 16px; }}
 
-            code {
+            code {{
                 padding: 0.2em 0.4em;
                 margin: 0;
                 font-size: 85%;
-                background-color: #f6f8fa;
+                background-color: {code_bg};
                 border-radius: 3px;
                 font-family: 'Courier New', Courier, monospace;
-            }
+            }}
 
-            pre {
+            pre {{
                 padding: 16px;
                 overflow: auto;
                 font-size: 85%;
                 line-height: 1.45;
-                background-color: #f6f8fa;
+                background-color: {code_bg};
                 border-radius: 3px;
-            }
+            }}
 
-            pre code {
+            pre code {{
                 display: inline;
                 padding: 0;
                 margin: 0;
@@ -317,66 +362,66 @@ class PreviewHandler(QObject):
                 line-height: inherit;
                 background-color: transparent;
                 border: 0;
-            }
+            }}
 
-            blockquote {
+            blockquote {{
                 padding: 0 1em;
-                color: #6a737d;
-                border-left: 0.25em solid #dfe2e5;
+                color: {quote_color};
+                border-left: 0.25em solid {quote_border};
                 margin: 0 0 16px 0;
-            }
+            }}
 
-            table {
+            table {{
                 border-spacing: 0;
                 border-collapse: collapse;
                 margin-bottom: 16px;
                 width: 100%;
-            }
+            }}
 
-            table th, table td {
+            table th, table td {{
                 padding: 6px 13px;
-                border: 1px solid #dfe2e5;
-            }
+                border: 1px solid {border_color};
+            }}
 
-            table th {
+            table th {{
                 font-weight: 600;
-                background-color: #f6f8fa;
-            }
+                background-color: {table_bg};
+            }}
 
-            table tr:nth-child(2n) {
-                background-color: #f6f8fa;
-            }
+            table tr:nth-child(2n) {{
+                background-color: {table_bg};
+            }}
 
-            ul, ol {
+            ul, ol {{
                 padding-left: 2em;
                 margin-bottom: 16px;
-            }
+            }}
 
-            li + li {
+            li + li {{
                 margin-top: 0.25em;
-            }
+            }}
 
-            a {
-                color: #0366d6;
+            a {{
+                color: {link_color};
                 text-decoration: none;
-            }
+            }}
 
-            a:hover {
+            a:hover {{
                 text-decoration: underline;
-            }
+            }}
 
-            img {
+            img {{
                 max-width: 100%;
                 height: auto;
-            }
+            }}
 
-            hr {
+            hr {{
                 height: 0.25em;
                 padding: 0;
                 margin: 24px 0;
-                background-color: #e1e4e8;
+                background-color: {border_color};
                 border: 0;
-            }
+            }}
         """
 
     def enable_sync_scrolling(self, enabled: bool) -> None:

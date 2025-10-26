@@ -1,196 +1,295 @@
-# Guide for Claude Code
+# CLAUDE.md
 
-This file helps Claude Code work with this project.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What Is This Program?
 
-**AsciiDoc Artisan** helps you write AsciiDoc files. You see your work as you type.
+**AsciiDoc Artisan** is a desktop editor for AsciiDoc files with live preview. Users see rendered output as they type.
 
-**What It Uses:**
-- PySide6 6.9.0 or newer (makes windows)
-- asciidoc3 10.2.1 or newer (shows HTML)
-- pypandoc 1.13 or newer (changes files)
-- Python 3.11 or newer (we like 3.12 best)
+**Key Technologies:**
+- PySide6 6.9.0+ (Qt GUI framework)
+- asciidoc3 10.2.1+ (AsciiDoc to HTML rendering)
+- pypandoc 1.13+ (document format conversion)
+- Python 3.11+ (3.12 recommended)
 
-**Version:** 1.1.0
+**Version:** 1.1.0-beta
 
-**What Works:**
-- All tests pass (71 out of 71)
-- All features work
-- Files save safely
-- Code has type hints
-- Lots of help docs
+## Installation & Setup
 
-## How to Install
+### Quick Install (Recommended)
 
-### Easy Way (Best Choice)
-
-**On Mac or Linux:**
+**Linux/Mac:**
 ```bash
 ./install-asciidoc-artisan.sh
 ```
 
-**On Windows 11:**
+**Windows:**
 ```powershell
 .\Install-AsciiDocArtisan.ps1
 ```
 
-The install script does this:
-- Checks you have Python 3.11 or newer
-- Gets Pandoc and Git if you need them
-- Makes a safe space for tools
-- Puts all tools on your computer
-- Runs setup tasks
-- Tests everything works
-
-### Do It Yourself
+### Manual Install
 
 ```bash
-# Get main tools
+# Install production dependencies
 make install
 
-# Get tools for making code
+# Install development dependencies
 make install-dev
 ```
 
-## How to Run It
+## Running & Testing
+
+### Start Application
 
 ```bash
 make run
+# Or: python src/main.py
 ```
 
-Or type:
-```bash
-python src/main.py
-```
-
-## How to Test It
+### Run Tests
 
 ```bash
 # Run all tests
 make test
 
-# Run one test file
+# Run specific test file
 pytest tests/test_file_operations.py -v
 
-# Run one test
+# Run single test
 pytest tests/test_settings.py::test_settings_save_load -v
+
+# Run with coverage
+pytest tests/ -v --cov=src --cov-report=term-missing
 ```
 
-## How to Check Code
+### Code Quality
 
 ```bash
-# Check code (don't change it)
+# Check code (non-destructive)
 make lint
 
-# Fix code style
+# Auto-format code
 make format
 ```
 
-## How Code Is Set Up
+## Architecture
 
-The program has many parts:
+### Module Structure
 
-**Main Parts:**
-- `src/asciidoc_artisan/core/` - Main code
-- `src/asciidoc_artisan/ui/` - Windows and buttons
-- `src/asciidoc_artisan/workers/` - Background tasks
-- `src/main.py` - Starts the program
+The codebase follows a modular architecture (v1.1.0 refactoring):
 
-**Tests:**
-- `tests/` - All test files
+```
+src/asciidoc_artisan/
+├── core/           # Business logic and data models
+│   ├── settings.py             # Settings persistence
+│   ├── models.py               # Data models (Settings, GitResult)
+│   ├── file_operations.py      # Secure file I/O
+│   ├── constants.py            # App-wide constants
+│   ├── resource_manager.py     # Memory/CPU monitoring
+│   └── secure_credentials.py   # API key management
+├── ui/             # User interface components
+│   ├── main_window.py          # Main application window
+│   ├── menu_manager.py         # Menu creation and actions
+│   ├── theme_manager.py        # Dark/light mode theming
+│   ├── status_manager.py       # Status bar and messages
+│   ├── file_handler.py         # File open/save logic
+│   ├── preview_handler.py      # Preview pane management
+│   └── dialogs.py              # Custom dialogs
+├── workers/        # Background thread workers
+│   ├── git_worker.py           # Git operations (pull/commit/push)
+│   ├── pandoc_worker.py        # Document conversion + AI
+│   ├── preview_worker.py       # AsciiDoc rendering
+│   └── incremental_renderer.py # Performance optimization
+└── conversion/     # Format conversion utilities
+└── git/           # Git integration utilities
+```
 
-**Docs:**
-- `README.md` - Main help file
-- `docs/` - How-to guides
-- `SPECIFICATIONS.md` - What program must do
+### Threading Model
 
-## Important Files
+Long-running operations use Qt's QThread pattern:
 
-| File | What It Does |
-|------|--------------|
-| `src/main.py` | Starts program |
-| `src/asciidoc_artisan/ui/main_window.py` | Main window |
-| `src/asciidoc_artisan/core/settings.py` | Saves your choices |
-| `requirements.txt` | Tools for making code |
-| `requirements-production.txt` | Tools users need |
-| `Makefile` | Quick commands |
+- **GitWorker**: Handles `git pull`, `git commit`, `git push` via subprocess
+- **PandocWorker**: Converts DOCX/PDF → AsciiDoc using pypandoc
+- **PreviewWorker**: Renders AsciiDoc → HTML for live preview
 
-## Settings Files
+**Communication Pattern:**
+- Main thread → Worker: Emit signals (`request_git_command`, `request_pandoc_conversion`)
+- Worker → Main thread: Emit result signals (`git_result`, `pandoc_result`)
+- Use `@Slot` decorators for signal handlers
 
-Your choices save here:
-- **Linux**: `~/.config/AsciiDocArtisan/`
-- **Windows**: `%APPDATA%/AsciiDocArtisan/`
-- **Mac**: `~/Library/Application Support/AsciiDocArtisan/`
+**Important Guards:**
+- `_is_processing_git`: Prevents concurrent Git operations
+- `_is_processing_pandoc`: Prevents concurrent Pandoc operations
+- `_is_opening_file`: Prevents re-entry during file loads
 
-## How to Add Features
+Respect these flags when adding new operations.
 
-1. Read `SPECIFICATIONS.md` first
+### Security Features
+
+Per specification FR-016 and FR-015:
+
+```python
+from asciidoc_artisan.core import sanitize_path, atomic_save_text
+
+# Path traversal prevention (FR-016)
+safe_path = sanitize_path(user_input)
+
+# Atomic file writes (FR-015)
+atomic_save_text(filepath, content)
+```
+
+**Git command safety:**
+- Use list-form subprocess arguments (not shell strings)
+- Example: `subprocess.run(["git", "commit", "-m", message])`
+
+### Settings Persistence
+
+Settings save to platform-specific locations:
+- **Linux**: `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
+- **Windows**: `%APPDATA%/AsciiDocArtisan/AsciiDocArtisan.json`
+- **Mac**: `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.json`
+
+Managed by `Settings` dataclass and `QStandardPaths`.
+
+## Development Workflow
+
+### Making Changes
+
+1. Read `SPECIFICATIONS.md` for requirements
 2. Make your changes
 3. Run tests: `make test`
-4. Check code: `make lint`
-5. Make it look nice: `make format`
+4. Check code quality: `make lint`
+5. Format code: `make format`
+6. Update docs if needed
 
-## Common Tasks
+### Common Tasks
 
-**Run program:**
 ```bash
+# Run application
 make run
-```
 
-**Test everything:**
-```bash
+# Run tests with coverage
 make test
-```
 
-**Check code style:**
-```bash
+# Check code style
 make lint
-```
 
-**Fix code style:**
-```bash
+# Auto-format code
 make format
-```
 
-**Clean up:**
-```bash
+# Clean build artifacts
 make clean
 ```
 
-## Where Things Are
+### High-Risk Areas
+
+**Be careful when modifying:**
+- Worker thread lifecycle in `main_window.py` (startup/shutdown in `closeEvent`)
+- Git subprocess commands (security-sensitive)
+- Pandoc invocation (environment-sensitive)
+- Settings load/save (cross-platform path handling)
+
+**Low-risk changes:**
+- UI text updates
+- CSS/styling tweaks
+- Adding logging statements
+- Documentation updates
+
+### File References
+
+When referencing code, use the pattern `file_path:line_number`:
 
 ```
-AsciiDoctorArtisan/
-├── src/                    # Program code
-│   ├── main.py            # Start here
-│   └── asciidoc_artisan/  # Main code
-│       ├── core/          # Basic parts
-│       ├── ui/            # Windows
-│       └── workers/       # Background tasks
-├── tests/                 # Test code
-├── docs/                  # Help files
-├── templates/             # Example files
-└── scripts/               # Helper scripts
+Editor state is managed in src/asciidoc_artisan/ui/main_window.py:145
 ```
 
-## Need Help?
+## Key Files
 
-1. Read README.md first
-2. Check docs/ folder
-3. Look at SPECIFICATIONS.md
-4. Ask on GitHub
+| File | Purpose |
+|------|---------|
+| `src/main.py` | Application entry point |
+| `src/asciidoc_artisan/ui/main_window.py` | Main window controller |
+| `src/asciidoc_artisan/core/settings.py` | Settings persistence |
+| `src/asciidoc_artisan/workers/git_worker.py` | Git integration |
+| `src/asciidoc_artisan/workers/pandoc_worker.py` | Format conversion |
+| `requirements.txt` | Development dependencies |
+| `requirements-production.txt` | Production dependencies |
+| `Makefile` | Build automation |
+| `pyproject.toml` | Project metadata and tool config |
+| `SPECIFICATIONS.md` | Complete requirements (OpenSpec format) |
 
-## Key Rules
+## Project Standards
 
-- Always test your changes
-- Keep code simple
-- Write at Grade 5.0 level
-- Add tests for new features
-- Update docs when you change things
+### Code Style
+- Line length: 88 characters (Black formatter)
+- Type hints required (mypy checked)
+- All functions/classes must be documented
+- Target Python 3.11+ (3.12 recommended)
+
+### Testing
+- Framework: pytest + pytest-qt
+- Coverage target: 100% (currently 71/71 tests passing)
+- Test all new features
+- Test all security-critical functions
+
+### Documentation
+- Keep README.md updated
+- Update SPECIFICATIONS.md for requirement changes
+- Document all public APIs
+- Writing level: Grade 5.0 (elementary school reading level)
+
+## External Dependencies
+
+**System Requirements:**
+- **Pandoc**: Required for DOCX/PDF conversion
+  - Linux: `sudo apt install pandoc`
+  - Mac: `brew install pandoc`
+  - Windows: Download from pandoc.org
+
+- **Git**: Required for version control features
+  - Must be in PATH
+  - Verify: `git --version`
+
+**Python Packages:**
+- See `requirements-production.txt` for runtime deps
+- See `requirements.txt` for dev deps
+
+## Troubleshooting
+
+### Common Issues
+
+**"Can't find pypandoc"**
+```bash
+pip install pypandoc
+```
+
+**"Can't find Pandoc"**
+- Install Pandoc system binary (see External Dependencies)
+
+**"Git doesn't work"**
+- Ensure file is in a Git repository
+- Verify: `git status`
+
+**Tests fail**
+```bash
+# Check test output for details
+pytest tests/ -v
+
+# Run single failing test
+pytest tests/test_name.py::test_function -v
+```
+
+## Additional Resources
+
+- **README.md** - User-facing documentation
+- **SPECIFICATIONS.md** - Complete requirements (Grade 6.0)
+- **docs/** - User guides and how-tos
+- **.github/copilot-instructions.md** - AI assistant guidance
+- **GitHub Issues** - Bug reports and feature requests
 
 ---
 
 **Reading Level**: Grade 5.0
-**For**: Developers and AI helpers
+**For**: Claude Code and developers
 **Last Updated**: October 2025

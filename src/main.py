@@ -81,10 +81,10 @@ except ImportError:
 
 
 # ============================================================================
-# REFACTORING NOTE: Dialog classes (ImportOptionsDialog, ExportOptionsDialog,
-# PreferencesDialog) have been extracted to asciidoc_artisan.ui.dialogs module
-# (Phase 3 of architectural refactoring to resolve technical debt per
-# specification line 1197). These are now imported above from asciidoc_artisan.ui.dialogs.
+# REFACTORING NOTE: Dialog class (PreferencesDialog) has been extracted to
+# asciidoc_artisan.ui.dialogs module (Phase 3 of architectural refactoring to
+# resolve technical debt per specification line 1197). This is now imported
+# above from asciidoc_artisan.ui.dialogs.
 # ============================================================================
 
 # ============================================================================

@@ -277,8 +277,13 @@ class SettingsManager:
         # Restore splitter sizes (delayed to ensure layout complete)
         if settings.splitter_sizes and len(settings.splitter_sizes) == 2:
             sizes = list(settings.splitter_sizes)
-            QTimer.singleShot(100, lambda: splitter.setSizes(sizes))
-            logger.info(f"Restoring splitter sizes: {settings.splitter_sizes}")
+            # Only restore if both panes have reasonable sizes (not maximized)
+            # Ensure both panes are visible by requiring both > 0
+            if all(s > 0 for s in sizes):
+                QTimer.singleShot(100, lambda: splitter.setSizes(sizes))
+                logger.info(f"Restoring splitter sizes: {settings.splitter_sizes}")
+            else:
+                logger.info(f"Ignoring maximized splitter sizes: {settings.splitter_sizes}")
 
         # Restore font size
         if settings.font_size and settings.font_size != EDITOR_FONT_SIZE:

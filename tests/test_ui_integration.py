@@ -176,26 +176,6 @@ class TestEditorDialogs:
                 window.preview_thread.quit()
                 window.preview_thread.wait(1000)
 
-    def test_import_options_dialog(self, qtbot):
-        """Test import options dialog creation."""
-        from asciidoc_artisan import ImportOptionsDialog
-
-        dialog = ImportOptionsDialog("docx", "test.docx", False)
-        qtbot.addWidget(dialog)
-
-        assert dialog.windowTitle() == "Import DOCX"
-        assert not dialog.get_use_ai()
-
-    def test_export_options_dialog(self, qtbot):
-        """Test export options dialog creation."""
-        from asciidoc_artisan import ExportOptionsDialog
-
-        dialog = ExportOptionsDialog("pdf", True)
-        qtbot.addWidget(dialog)
-
-        assert dialog.windowTitle() == "Export to PDF"
-        assert dialog.get_use_ai()
-
     def test_preferences_dialog(self, qtbot):
         """Test preferences dialog creation."""
         from asciidoc_artisan import PreferencesDialog, Settings

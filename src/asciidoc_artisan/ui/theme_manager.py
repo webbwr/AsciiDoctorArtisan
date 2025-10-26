@@ -85,4 +85,9 @@ class ThemeManager:
         """Toggle between dark and light mode."""
         self.editor._settings.dark_mode = self.editor.dark_mode_act.isChecked()
         self.apply_theme()
+
+        # Clear CSS cache so preview regenerates with new theme colors
+        if hasattr(self.editor, 'preview_handler'):
+            self.editor.preview_handler.clear_css_cache()
+
         self.editor.update_preview()
