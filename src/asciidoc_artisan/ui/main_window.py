@@ -525,6 +525,7 @@ class AsciiDocEditor(QMainWindow):
         Synchronize preview scroll position with editor.
 
         Implements FR-043 with loop detection and coalescing.
+        Uses JavaScript for QWebEngineView scrolling.
         """
         if not self._sync_scrolling or self._is_syncing_scroll:
             return
@@ -545,16 +546,23 @@ class AsciiDocEditor(QMainWindow):
         self._is_syncing_scroll = True
         try:
             editor_scrollbar = self.editor.verticalScrollBar()
-            preview_scrollbar = self.preview.verticalScrollBar()
-
             editor_max = editor_scrollbar.maximum()
+
             if editor_max > 0:
                 scroll_percentage = value / editor_max
-                preview_value = int(preview_scrollbar.maximum() * scroll_percentage)
 
-                # Only update if value actually changed
-                if preview_scrollbar.value() != preview_value:
-                    preview_scrollbar.setValue(preview_value)
+                # Use JavaScript to scroll QWebEngineView
+                js_code = f"""
+                    var body = document.body;
+                    var html = document.documentElement;
+                    var height = Math.max(
+                        body.scrollHeight, body.offsetHeight,
+                        html.clientHeight, html.scrollHeight, html.offsetHeight
+                    );
+                    var maxScroll = height - window.innerHeight;
+                    window.scrollTo(0, maxScroll * {scroll_percentage});
+                """
+                self.preview.page().runJavaScript(js_code)
 
             # Reset counter on successful sync
             self._scroll_sync_count = max(0, self._scroll_sync_count - 1)
