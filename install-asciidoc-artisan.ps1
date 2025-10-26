@@ -106,6 +106,13 @@ $script:Warnings = 0    # Non-critical issues that may affect functionality
 ################################################################################
 # HELPER FUNCTIONS
 ################################################################################
+
+<#
+.SYNOPSIS
+    Print a blue header for major installation steps
+.PARAMETER Message
+    The step description to display
+#>
 function Write-Header {
     param([string]$Message)
     Write-Host "`n========================================" -ForegroundColor Blue
@@ -113,49 +120,105 @@ function Write-Header {
     Write-Host "========================================`n" -ForegroundColor Blue
 }
 
+<#
+.SYNOPSIS
+    Print a success message with green checkmark
+.PARAMETER Message
+    The success message to display
+#>
 function Write-Success {
     param([string]$Message)
     Write-Host "✓ $Message" -ForegroundColor Green
 }
 
+<#
+.SYNOPSIS
+    Print an error message with red X and increment error counter
+.PARAMETER Message
+    The error message to display
+#>
 function Write-ErrorMsg {
     param([string]$Message)
     Write-Host "✗ $Message" -ForegroundColor Red
     $script:Errors++
 }
 
+<#
+.SYNOPSIS
+    Print a warning message with yellow symbol and increment warning counter
+.PARAMETER Message
+    The warning message to display
+#>
 function Write-WarningMsg {
     param([string]$Message)
     Write-Host "⚠ $Message" -ForegroundColor Yellow
     $script:Warnings++
 }
 
+<#
+.SYNOPSIS
+    Print an info message with cyan info symbol
+.PARAMETER Message
+    The info message to display
+#>
 function Write-InfoMsg {
     param([string]$Message)
     Write-Host "ℹ $Message" -ForegroundColor Cyan
 }
 
+<#
+.SYNOPSIS
+    Compare two version numbers
+.DESCRIPTION
+    Returns $true if Version1 >= Version2, otherwise $false
+.PARAMETER Version1
+    First version string (e.g., "3.12.0")
+.PARAMETER Version2
+    Second version string (e.g., "3.11")
+.EXAMPLE
+    if (Compare-Version "3.12.0" "3.11") { ... }
+#>
 function Compare-Version {
     param(
         [string]$Version1,
         [string]$Version2
     )
+    # PowerShell [version] type handles version comparison
     $v1 = [version]$Version1
     $v2 = [version]$Version2
     return $v1 -ge $v2
 }
 
+<#
+.SYNOPSIS
+    Test if a command exists and is not a stub
+.DESCRIPTION
+    Checks if a command is available in PATH
+    Also detects and rejects Microsoft Store Python stub on Windows
+.PARAMETER CommandName
+    Name of the command to check
+.EXAMPLE
+    if (Test-CommandExists "python") { ... }
+#>
 function Test-CommandExists {
     param([string]$CommandName)
+
+    # Try to get command info
     $commandInfo = Get-Command $CommandName -ErrorAction SilentlyContinue
+
     if ($commandInfo) {
-        # Check for Microsoft Store stub
+        # Special handling for Python commands
+        # Microsoft Store installs a stub that opens the Store, not real Python
         if (($CommandName -eq 'python' -or $CommandName -eq 'python3') -and
             ($commandInfo.Source -like "*Microsoft\WindowsApps*")) {
+            # This is the Store stub, not real Python
             return $false
         }
+        # Command exists and is real
         return $true
     }
+
+    # Command not found
     return $false
 }
 
