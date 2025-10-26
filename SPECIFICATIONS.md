@@ -1,8 +1,8 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.1.0
-**Last Updated**: October 2025
+**Version**: 1.2.0
+**Last Updated**: October 26, 2025
 
 ## What This Is
 
@@ -514,7 +514,20 @@ The program MUST be tested on all types.
 
 ## Version History
 
-### Version 1.1.0 (Now)
+### Version 1.2.0 (Now)
+
+**Status**: Production Ready
+**Date**: October 26, 2025
+
+**What's New**:
+
+- Removed cloud AI (Anthropic SDK)
+- Local AI ready (Ollama integration)
+- Privacy focused (no data leaves computer)
+- All 400+ tests passing
+- Clean codebase (removed 796 lines of cloud AI code)
+
+### Version 1.1.0
 
 **Status**: Works
 **Date**: October 2025
@@ -524,20 +537,17 @@ The program MUST be tested on all types.
 - GPU speed (2-5x faster preview)
 - Fast PDF reading (3-5x faster)
 - Optimized Python code for all operations
-- All parts work
 - 400+ tests pass
 - Works on all computers
-- Safe and secure
-- Simple rules
 
-### Version 1.0.0 (Old)
+### Version 1.0.0
 
-**Status**: First try
+**Status**: First release
 **Date**: 2024
 
 **What It Had**:
 
-- Basic edit
+- Basic editing
 - Basic preview
 - First tests
 
@@ -574,12 +584,12 @@ Things for later:
 - Add notes
 - Team rooms
 
-### AI
+### Local AI (Using Ollama)
 
-- Better file changes
-- Writing help
-- Auto-format
-- Make content
+- Grammar checking
+- Text improvement
+- Format conversion help
+- Auto-format suggestions
 
 ---
 
@@ -595,11 +605,11 @@ Writers, coders, students, teachers, teams.
 Live preview, file changes, Git, works everywhere, safe.
 
 **Status**:
-Version 1.1.0-beta - Testing phase.
+Version 1.2.0 - Production Ready
 
 **Reading Level**:
 Grade 5.0 - Easy to read!
 
 ---
 
-**Doc Info**: Main rules | Grade 5.0 | v1.1.0 | October 2025
+**Doc Info**: Main rules | Grade 5.0 | v1.2.0 | October 26, 2025

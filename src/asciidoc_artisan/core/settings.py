@@ -25,10 +25,9 @@ class Settings:
     """
     Application settings with persistence support.
 
-    Attributes match the specification in .specify/specs/SPECIFICATION.md
-    Data Model section (lines 478-520).
+    Attributes match the specification in SPECIFICATIONS.md (v1.2.0).
 
-    All 11 fields are spec-compliant:
+    All 11 fields:
     - last_directory: Last directory used for file operations
     - last_file: Last opened document path
     - git_repo_path: Detected Git repository root
@@ -39,11 +38,11 @@ class Settings:
     - font_size: Persisted editor font size
     - auto_save_enabled: Auto-save feature toggle
     - auto_save_interval: Auto-save interval in seconds
-    - ai_conversion_enabled: AI-enhanced conversion option (FR-055)
+    - ai_conversion_enabled: Deprecated (cloud AI removed in v1.2.0)
 
-    Security Note (FR-061):
-        API keys (for Claude AI) are NOT stored here for security reasons.
-        API keys must be provided via ANTHROPIC_API_KEY environment variable.
+    Security Note:
+        Settings are stored locally only. No data is sent to cloud services.
+        Use Ollama for local AI features (see docs/OLLAMA_SETUP.md).
     """
 
     last_directory: str = field(default_factory=lambda: str(Path.home()))
