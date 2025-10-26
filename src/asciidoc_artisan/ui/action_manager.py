@@ -394,7 +394,7 @@ class ActionManager:
         # AI Status submenu
         ai_status_menu = tools_menu.addMenu("&AI Status")
         ai_status_menu.addAction(self.ollama_status_act)
-        ai_status_menu.addAction(self.ollama_models_act)
+        ai_status_menu.addAction(self.ollama_settings_act)
 
         # Pandoc items
         tools_menu.addAction(self.pandoc_status_act)
