@@ -452,12 +452,19 @@ These two changes give 2-5x overall speed with little work.
 
 ## Next Steps
 
-1. Review this plan
-2. Get approval
-3. Start with GPU preview (5 minutes)
-4. Test and measure
-5. Continue to PyMuPDF swap
-6. Celebrate faster app!
+**Completed**:
+1. ✅ Review this plan - **Done**
+2. ✅ Get approval - **Done**
+3. ✅ Start with GPU preview - **COMPLETE October 26, 2025**
+4. ✅ Test and measure - **Verified working**
+
+**Next Actions**:
+5. ⏳ Continue to PyMuPDF swap - **Ready to start (1 day)**
+6. 📋 Celebrate faster app! - **After PyMuPDF**
+
+**Current Status**: Tier 1 Item 1 complete, Item 2 ready to start
+
+**For Details**: See `GPU_IMPLEMENTATION_SUMMARY.md` for complete technical documentation
 
 ---
 
