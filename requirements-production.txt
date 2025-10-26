@@ -4,13 +4,10 @@
 
 # Core GUI Framework
 # PySide6 is the official Qt for Python binding
+# Note: PySide6-Addons includes QWebEngineView for GPU-accelerated HTML preview
 PySide6==6.9.0
 PySide6-Addons==6.9.0
 PySide6-Essentials==6.9.0
-
-# Web Engine for GPU-Accelerated Preview (v1.1 GPU feature)
-# QWebEngineView provides hardware-accelerated HTML rendering (2-5x speedup)
-PySide6-WebEngine>=6.9.0
 
 # AsciiDoc Processing
 # asciidoc3 is the Python 3 port of AsciiDoc
