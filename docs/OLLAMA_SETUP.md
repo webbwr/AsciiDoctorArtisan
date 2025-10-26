@@ -165,12 +165,21 @@ print(response['response'])
 
 ## Models Available
 
-### Small & Fast (Good Start)
+### Coding & Format Conversion
+
+- **deepseek-coder:6.7b** (6.7B) - ✅ Installed ⭐ RECOMMENDED
+  - Size: 3.8GB
+  - Speed: Fast (~60 tokens/s)
+  - Quality: Excellent for code and formats
+  - Use: Markdown↔AsciiDoc, code generation
+
+### Small & Fast (General Purpose)
 
 - **phi3:mini** (3.8B) - ✅ Installed
   - Size: 2.2GB
   - Speed: Very fast (~95 tokens/s)
   - Quality: Good for basic tasks
+  - Use: Grammar, general text
 
 ### Medium (Better Quality)
 
@@ -178,6 +187,7 @@ print(response['response'])
   - Size: ~4.7GB
   - Speed: Medium (~50 tokens/s)
   - Quality: Better understanding
+  - Use: Complex text tasks
 
 ### Large (Best Quality)
 
@@ -186,6 +196,7 @@ print(response['response'])
   - Speed: Slow (~10 tokens/s)
   - Quality: Excellent
   - Requires: 64GB+ RAM
+  - Use: Advanced tasks only
 
 ---
 
