@@ -213,26 +213,35 @@ if [ -z "$PYTHON_CMD" ]; then
     exit 1
 fi
 
-# Step 3: Check pip
+################################################################################
+# STEP 3: CHECK PIP INSTALLATION
+# Verifies pip (Python package manager) is available, installs if missing
+################################################################################
 print_header "Step 3: Checking pip Installation"
 
+# Check if pip module is available for the selected Python
 if ! $PYTHON_CMD -m pip --version &> /dev/null; then
     print_error "pip not found for $PYTHON_CMD"
     echo ""
     echo "Installing pip..."
+
+    # Install pip using OS-specific method
     if [ "$OS_NAME" = "macOS" ]; then
+        # macOS: Use Python's built-in ensurepip module
         $PYTHON_CMD -m ensurepip --upgrade
     elif [ "$PACKAGE_MANAGER" = "apt" ]; then
+        # Debian/Ubuntu: Install from package manager
         sudo apt install python3-pip
     fi
 
-    # Verify pip installation
+    # Verify pip was successfully installed
     if ! $PYTHON_CMD -m pip --version &> /dev/null; then
         print_error "Failed to install pip"
         exit 1
     fi
 fi
 
+# Get and display pip version
 PIP_VERSION=$($PYTHON_CMD -m pip --version 2>&1 | awk '{print $2}')
 print_success "pip $PIP_VERSION found"
 
