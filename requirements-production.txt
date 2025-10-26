@@ -34,6 +34,11 @@ keyring>=24.3.0
 # psutil provides cross-platform system and process monitoring
 psutil>=5.9.0
 
+# JIT Compilation for Performance (v1.1 Tier 2 optimization) - OPTIONAL
+# numba provides 10-50x speedup for numerical operations and loops
+# Falls back gracefully if not installed - all features work without it
+# numba>=0.58.0
+
 # Optional but recommended for better performance
 # MarkupSafe provides faster HTML escaping
 MarkupSafe==2.1.3
