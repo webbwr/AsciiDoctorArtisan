@@ -316,11 +316,11 @@ class ActionManager:
             triggered=self.window._show_ollama_status,
         )
 
-        self.ollama_models_act = QAction(  # type: ignore[call-overload]
-            "Installed &Models",
+        self.ollama_settings_act = QAction(  # type: ignore[call-overload]
+            "&Settings...",
             self.window,
-            statusTip="Show installed Ollama AI models",
-            triggered=self.window._show_ollama_models,
+            statusTip="Configure Ollama AI integration and select model",
+            triggered=self.window._show_ollama_settings,
         )
 
         # Help menu actions
