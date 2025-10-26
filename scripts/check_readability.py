@@ -5,16 +5,20 @@ Check readability of documentation files.
 Validates that documentation meets Grade 5.0 reading level requirement (NFR-018).
 Uses Flesch-Kincaid Grade Level metric.
 
+Technical documents (for developers) are excluded from scoring by default since
+Flesch-Kincaid penalizes necessary technical vocabulary.
+
 Usage:
     python scripts/check_readability.py                    # Check all docs
     python scripts/check_readability.py SPECIFICATIONS.md  # Check specific file
     python scripts/check_readability.py --max-grade 6.0    # Custom threshold
+    python scripts/check_readability.py --include-technical # Include technical docs
 """
 
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Set
 
 try:
     import textstat
@@ -23,19 +27,45 @@ except ImportError:
     print("Install with: pip install textstat")
     sys.exit(1)
 
+# Default technical documents (excluded from readability scoring)
+# These are developer-focused and appropriately use technical vocabulary
+DEFAULT_TECHNICAL_DOCS = {
+    "CLAUDE.md",
+    "CONTRIBUTING.md",
+    "how-to-contribute.md",
+    "DEVELOPMENT.md",
+    "ARCHITECTURE.md",
+    "API.md",
+}
+
 
 class ReadabilityChecker:
     """Check readability of markdown documentation."""
 
-    def __init__(self, max_grade: float = 5.0):
+    def __init__(self, max_grade: float = 5.0, exclude_technical: bool = True):
         """
         Initialize checker.
 
         Args:
             max_grade: Maximum acceptable Flesch-Kincaid grade level
+            exclude_technical: Skip technical documents from scoring
         """
         self.max_grade = max_grade
-        self.results: List[Tuple[Path, float, bool]] = []
+        self.exclude_technical = exclude_technical
+        self.results: List[Tuple[Path, float, bool, bool]] = []  # Added is_technical flag
+        self.skipped: List[Path] = []
+
+    def is_technical_doc(self, file_path: Path) -> bool:
+        """
+        Check if file is a technical document.
+
+        Args:
+            file_path: Path to check
+
+        Returns:
+            True if file is technical (developer-focused)
+        """
+        return file_path.name in DEFAULT_TECHNICAL_DOCS
 
     def check_file(self, file_path: Path) -> Tuple[float, bool]:
         """
@@ -48,6 +78,14 @@ class ReadabilityChecker:
             Tuple of (grade_level, passed)
         """
         try:
+            # Check if this is a technical document
+            is_technical = self.is_technical_doc(file_path)
+
+            # Skip technical docs if exclude_technical is True
+            if is_technical and self.exclude_technical:
+                self.skipped.append(file_path)
+                return 0.0, True  # Not scored, but not failed
+
             text = file_path.read_text(encoding="utf-8")
 
             # Remove markdown syntax that interferes with readability scoring
@@ -58,7 +96,7 @@ class ReadabilityChecker:
 
             passed = grade_level <= self.max_grade
 
-            self.results.append((file_path, grade_level, passed))
+            self.results.append((file_path, grade_level, passed, is_technical))
 
             return grade_level, passed
 
@@ -127,15 +165,27 @@ class ReadabilityChecker:
         print("=" * 70)
         print(f"Target: Flesch-Kincaid Grade {self.max_grade} or below\n")
 
-        passed_count = sum(1 for _, _, passed in self.results if passed)
+        # Print skipped technical documents first
+        if self.skipped:
+            print("Technical documents (skipped):")
+            for file_path in sorted(self.skipped):
+                print(f"  ⊘ SKIP  {file_path.name:30s}  (developer-focused)")
+            print()
+
+        passed_count = sum(1 for _, _, passed, _ in self.results if passed)
         total_count = len(self.results)
 
-        for file_path, grade_level, passed in sorted(self.results):
-            status = "✓ PASS" if passed else "✗ FAIL"
-            print(f"{status}  {file_path.name:30s}  Grade {grade_level:.1f}")
+        if self.results:
+            print("User-facing documents:")
+            for file_path, grade_level, passed, is_technical in sorted(self.results):
+                status = "✓ PASS" if passed else "✗ FAIL"
+                tech_marker = " [TECH]" if is_technical else ""
+                print(f"{status}  {file_path.name:30s}  Grade {grade_level:.1f}{tech_marker}")
 
         print("\n" + "=" * 70)
-        print(f"Results: {passed_count}/{total_count} files passed")
+        print(f"Results: {passed_count}/{total_count} user-facing files passed")
+        if self.skipped:
+            print(f"Skipped: {len(self.skipped)} technical documents")
         print("=" * 70)
 
         if passed_count < total_count:
@@ -143,7 +193,9 @@ class ReadabilityChecker:
             print("   Simplify language in failed files to meet NFR-018.")
             return False
         else:
-            print("\n✓  All files meet readability requirements!")
+            print("\n✓  All user-facing files meet readability requirements!")
+            if self.skipped:
+                print("   Technical documents are appropriately detailed for developers.")
             return True
 
 
@@ -162,6 +214,11 @@ def main():
         type=float,
         default=5.0,
         help="Maximum acceptable grade level (default: 5.0)",
+    )
+    parser.add_argument(
+        "--include-technical",
+        action="store_true",
+        help="Include technical documents in scoring (default: exclude)",
     )
 
     args = parser.parse_args()
@@ -191,7 +248,10 @@ def main():
         return 1
 
     # Run readability checks
-    checker = ReadabilityChecker(max_grade=args.max_grade)
+    checker = ReadabilityChecker(
+        max_grade=args.max_grade,
+        exclude_technical=not args.include_technical
+    )
 
     for file_path in files_to_check:
         checker.check_file(file_path)
