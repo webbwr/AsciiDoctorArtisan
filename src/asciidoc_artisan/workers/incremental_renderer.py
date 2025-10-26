@@ -245,10 +245,10 @@ class DocumentBlockSplitter:
         block_start_line = 0
 
         for line_num, line in enumerate(lines):
-            # Check if this is a heading
-            heading_match = DocumentBlockSplitter.HEADING_PATTERN.match(line)
+            # Check if this is a heading (JIT-optimized when Numba available)
+            heading_level = count_leading_equals(line)
 
-            if heading_match:
+            if heading_level > 0:
                 # Save previous block if exists
                 if current_block_lines:
                     block = DocumentBlockSplitter._create_block(
@@ -260,7 +260,7 @@ class DocumentBlockSplitter:
                     blocks.append(block)
 
                 # Start new block
-                current_level = len(heading_match.group(1))
+                current_level = heading_level
                 current_block_lines = [line]
                 block_start_line = line_num
             else:
