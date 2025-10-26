@@ -1,78 +1,79 @@
-# Keep Safe
+# Security
 
-## Which Versions We Fix
+## Supported Versions
 
-We fix bugs in these versions:
+We fix security bugs in these versions:
 
-| Version | We Fix? |
-| ------- | ------- |
-| 1.0.x   | ✓ Yes   |
-| < 1.0   | ✗ No    |
+| Version | Supported |
+| ------- | --------- |
+| 1.0.x   | ✓ Yes     |
+| < 1.0   | ✗ No      |
 
-## Found a Bug?
+## Report a Bug
 
-If you find a safety bug:
+If you find a security bug, please help us fix it.
 
-1. **Don't** post it
-2. Email us
-3. Tell us:
-   - What is wrong
-   - How to see it
-   - What breaks
-   - How to fix (if you know)
+### How to Report
 
-### When We Answer
+1. **Do not** post it publicly
+2. Send us an email instead
+3. Tell us these things:
+   - What the bug does
+   - How to make it happen
+   - What could break
+   - How to fix it (if you know)
 
-- First reply: 2 days
-- Updates: Every week
-- Fix time:
-  - Very bad: 7 days
-  - Bad: 30 days
-  - Small: 90 days
-  - Tiny: Next time
+### Our Response Times
 
-### What We Do
+We will reply within 2 days. We send updates every week.
 
-- Say thanks
-- Tell you progress
-- Add your name (if you want)
-- Tell you when fixed
+Fix times depend on how bad the bug is:
+- Critical bugs get fixed in 7 days
+- High bugs get fixed in 30 days
+- Medium bugs get fixed in 90 days
+- Low bugs get fixed in next release
 
-## Be Safe
+### What We Will Do
 
-When you use this:
+- Thank you for the report
+- Keep you informed of our progress
+- Give you credit if you want it
+- Tell you when we release the fix
 
-1. **Get New**: Use new version
-2. **Update**: Keep tools new
-3. **Trust Files**: Open safe files only
-4. **Check Git**: Look first
-5. **Get Real**: Get Pandoc from real site
+## Stay Secure
 
-## Know This
+Follow these tips to stay safe.
 
-### Git
-- Git runs on your computer
-- Use with safe files
-- Read before you save
+Use the latest version. Always update to the newest one.
 
-### Files
-- Program reads files
-- Auto-save makes extra files
-- Your stuff saves local
+Keep all tools up to date. This keeps you safe.
 
-### Tools
-- asciidoc3: Shows work
-- pypandoc: Changes files
-- PySide6: Makes windows
+Only open files you trust. Bad files can cause problems.
 
-## How We Tell You
+Review changes before you commit them. Check what Git will do.
 
-We tell you in:
-- New version numbers
-- CHANGELOG file
-- Notes with `security` tag
+Download tools from official sites only. Get Pandoc from pandoc.org.
+
+## Security Notes
+
+### Git Commands
+Git runs on your computer. Only use it with safe files. Review all changes before you save.
+
+### File Operations
+The program reads and writes files. Auto-save makes backup files. Your files stay on your computer.
+
+### External Tools
+The program uses these tools. All are open source and safe.
+
+- asciidoc3 renders your content
+- pypandoc converts file formats
+- PySide6 creates the windows
+
+## Security Updates
+
+We announce security fixes in three ways. We update the version numbers. We update the CHANGELOG file. We add release notes with a security tag.
 
 ---
 
-**Reading**: Grade 5.0
-**Updated**: October 2025
+**Reading Level**: Grade 5.0
+**Last Updated**: October 2025

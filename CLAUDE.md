@@ -2,24 +2,25 @@
 
 This file helps Claude Code work with this code.
 
-## What Is This Program?
+## What Is This?
 
-**AsciiDoc Artisan** is a desktop editor for AsciiDoc files. Users see output as they type.
+**AsciiDoc Artisan** is a desktop editor. It lets users write AsciiDoc files. Users see output as they type.
 
 **Key Tech:**
 - PySide6 6.9.0+ (Qt GUI)
-- asciidoc3 3.2.0+ (AsciiDoc to HTML)
-- pypandoc 1.13+ (file changes)
-- wkhtmltopdf (PDF making)
+- asciidoc3 3.2.0+ (turns AsciiDoc to HTML)
+- pypandoc 1.13+ (changes files)
+- wkhtmltopdf (makes PDF)
 - Python 3.11+ (3.12 best)
 
 **Version:** 1.1.0-beta
 
 **Key Features:**
-- Open and save any format
+- Opens any format
+- Saves any format
 - No pop-ups (Pandoc is default)
 - AI help is optional
-- Background threads
+- Uses background threads
 
 ## Install
 
@@ -57,16 +58,16 @@ make run
 ### Run Tests
 
 ```bash
-# Run all tests
+# Run all
 make test
 
-# Run one test file
+# Run one file
 pytest tests/test_file_operations.py -v
 
 # Run single test
 pytest tests/test_settings.py::test_settings_save_load -v
 
-# Run with coverage
+# With coverage
 pytest tests/ -v --cov=src --cov-report=term-missing
 ```
 
@@ -76,7 +77,7 @@ pytest tests/ -v --cov=src --cov-report=term-missing
 # Check code
 make lint
 
-# Auto-format code
+# Format code
 make format
 ```
 
@@ -84,7 +85,7 @@ make format
 
 ### Module Layout
 
-The code is split into parts (v1.1.0):
+Code is split into parts (v1.1.0):
 
 ```
 src/asciidoc_artisan/
@@ -134,7 +135,7 @@ Long tasks use Qt threads:
 - `_is_processing_pandoc`: Stops multiple Pandoc tasks
 - `_is_opening_file`: Stops re-entry during file loads
 
-Use these flags when adding new work.
+Use these flags when you add new work.
 
 ### Security
 
@@ -163,7 +164,7 @@ Settings save to:
 
 Managed by `Settings` class and `QStandardPaths`.
 
-## Making Changes
+## Make Changes
 
 ### Steps
 
@@ -240,7 +241,7 @@ Editor state is in src/asciidoc_artisan/ui/main_window.py:145
 
 ### Testing
 - Use: pytest + pytest-qt
-- Goal: 100% coverage (now 71/71 tests pass)
+- Goal: 100% coverage (now 371 tests)
 - Test all new features
 - Test all security functions
 
@@ -306,7 +307,7 @@ pytest tests/test_name.py::test_function -v
 ## More Help
 
 - **README.md** - User docs
-- **SPECIFICATIONS.md** - Full rules (Grade 6.0)
+- **SPECIFICATIONS.md** - Full rules
 - **docs/** - User guides
 - **.github/copilot-instructions.md** - AI help
 - **GitHub Issues** - Bug reports
