@@ -1,6 +1,6 @@
 # User Testing Guide
 
-**Version**: 1.1.0
+**Version**: 1.2.0
 **Date**: October 26, 2025
 **Reading Level**: Grade 5.0
 **For**: Testing and validation
@@ -257,9 +257,63 @@ python src/asciidoc_artisan/core/hardware_detection.py
 
 ---
 
+### Test 10: Ollama AI Conversions (v1.2 Feature)
+
+**What**: AI-powered format conversions
+
+**Steps**:
+1. Install Ollama: `curl -fsSL https://ollama.com/install.sh | sh`
+2. Get a model: `ollama pull phi3:mini`
+3. Open app
+4. Go to Tools → AI Status → Settings
+5. Check "Enable Ollama AI integration"
+6. Select "phi3:mini" model
+7. Click OK
+
+**Expected**:
+- ✓ Status bar shows "AI: phi3:mini"
+- ✓ Settings dialog shows 2+ models
+- ✓ Service status shows "✅ Ollama service running"
+
+**Test Conversion**:
+1. Type some Markdown:
+```
+# Hello
+This is **bold** text.
+```
+2. File → Export As → Markdown
+3. Check logs
+
+**Expected**:
+- ✓ Logs show "Ollama AI conversion"
+- ✓ Export completes successfully
+- ✓ Output is well-formatted
+
+**Test Fallback**:
+1. Stop Ollama: `sudo systemctl stop ollama`
+2. Try export again
+
+**Expected**:
+- ✓ Logs show "falling back to Pandoc"
+- ✓ Export still works
+- ✓ No errors shown to user
+
+**Status Bar Test**:
+1. Toggle Ollama off in settings
+
+**Expected**:
+- ✓ Status bar immediately shows "Conversion: Pandoc"
+
+2. Toggle Ollama back on
+
+**Expected**:
+- ✓ Status bar immediately shows "AI: phi3:mini"
+
+---
+
 ## Performance Benchmarks
 
-### Expected Speeds (v1.1)
+### Expected Speeds (v1.2)
 
 | Operation | Time | Notes |
 |-----------|------|-------|
@@ -269,6 +323,9 @@ python src/asciidoc_artisan/core/hardware_detection.py
 | Preview update | <350ms | With GPU |
 | PDF export | <3 seconds | Depends on size |
 | PDF import | 3-5x faster | vs v1.0 |
+| AI conversion | 5-15 seconds | First time (model load) |
+| AI conversion | 2-5 seconds | Cached model |
+| Pandoc fallback | <1 second | If AI unavailable |
 
 ### System Requirements Met
 

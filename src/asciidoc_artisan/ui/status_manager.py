@@ -54,18 +54,29 @@ class StatusManager:
         self.grade_level_label = QLabel("Grade: --")
         self.ai_status_label = QLabel("")
 
-        # Style the labels
-        for label in [self.word_count_label, self.version_label,
-                     self.grade_level_label, self.ai_status_label]:
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            label.setMinimumWidth(80)
+        # Style the labels with balanced widths
+        # Word count: wider for larger numbers
+        self.word_count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.word_count_label.setMinimumWidth(100)
+
+        # Version: narrower, often short
+        self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.version_label.setMinimumWidth(60)
+
+        # Grade level: medium width
+        self.grade_level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.grade_level_label.setMinimumWidth(90)
+
+        # AI status: wider for model names
+        self.ai_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ai_status_label.setMinimumWidth(150)
 
         # Add widgets to status bar (right side, permanent)
-        # Order: Word Count | Version | Grade Level | AI Status
+        # Order: Word Count | Grade Level | AI Status | Version
         self.editor.status_bar.addPermanentWidget(self.word_count_label)
-        self.editor.status_bar.addPermanentWidget(self.version_label)
         self.editor.status_bar.addPermanentWidget(self.grade_level_label)
         self.editor.status_bar.addPermanentWidget(self.ai_status_label)
+        self.editor.status_bar.addPermanentWidget(self.version_label)
 
     def update_window_title(self) -> None:
         """Update the window title based on current file and save status."""
@@ -258,13 +269,17 @@ class StatusManager:
         """Set AI model name in status bar.
 
         Args:
-            model_name: Name of the active AI model, or None to clear
+            model_name: Name of the active AI model, "Pandoc" for standard conversion, or None to clear
         """
         if model_name:
-            # Show just the model name (without tag if present)
-            # Example: "phi3:mini" -> "phi3:mini"
-            self.ai_status_label.setText(f"AI: {model_name}")
-            self.ai_status_label.setToolTip(f"Ollama model: {model_name}")
+            if model_name == "Pandoc":
+                # Show Pandoc as the conversion method
+                self.ai_status_label.setText("Conversion: Pandoc")
+                self.ai_status_label.setToolTip("Using Pandoc for document conversion")
+            else:
+                # Show Ollama model name
+                self.ai_status_label.setText(f"AI: {model_name}")
+                self.ai_status_label.setToolTip(f"Ollama model: {model_name}")
         else:
             self.ai_status_label.setText("")
             self.ai_status_label.setToolTip("")

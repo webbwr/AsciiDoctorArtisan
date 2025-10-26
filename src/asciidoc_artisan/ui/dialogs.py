@@ -205,6 +205,7 @@ class OllamaSettingsDialog(QDialog):
 
         self.model_combo = QComboBox()
         self.model_combo.setToolTip("Select which AI model to use for conversions")
+        self.model_combo.currentIndexChanged.connect(self._on_model_changed)
         model_layout.addWidget(self.model_combo)
 
         ollama_layout.addLayout(model_layout)
@@ -302,6 +303,27 @@ class OllamaSettingsDialog(QDialog):
         """Handle enable/disable checkbox state change."""
         enabled = self.ollama_enabled_checkbox.isChecked()
         self.model_combo.setEnabled(enabled and len(self.models) > 0)
+
+        # Update parent window's status bar immediately
+        self._update_parent_status_bar()
+
+    def _on_model_changed(self) -> None:
+        """Handle model selection change."""
+        # Update parent window's status bar immediately
+        self._update_parent_status_bar()
+
+    def _update_parent_status_bar(self) -> None:
+        """Update parent window's status bar with current settings."""
+        if self.parent() and hasattr(self.parent(), '_update_ai_status_bar'):
+            # Temporarily update settings
+            self.settings.ollama_enabled = self.ollama_enabled_checkbox.isChecked()
+            if self.models and self.model_combo.currentIndex() >= 0:
+                self.settings.ollama_model = self.model_combo.currentText()
+            else:
+                self.settings.ollama_model = None
+
+            # Update parent's status bar
+            self.parent()._update_ai_status_bar()
 
     def get_settings(self) -> Settings:
         """

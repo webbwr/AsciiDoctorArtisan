@@ -591,6 +591,13 @@ class AsciiDocEditor(QMainWindow):
         self.pandoc_thread = QThread(self)
         self.pandoc_worker = PandocWorker()
         self.pandoc_worker.moveToThread(self.pandoc_thread)
+
+        # Initialize Ollama configuration from settings
+        self.pandoc_worker.set_ollama_config(
+            getattr(self._settings, "ollama_enabled", False),
+            getattr(self._settings, "ollama_model", None)
+        )
+
         self.request_pandoc_conversion.connect(self.pandoc_worker.run_pandoc_conversion)
         self.pandoc_worker.conversion_complete.connect(self._handle_pandoc_result)
         self.pandoc_worker.conversion_error.connect(self._handle_pandoc_error_result)
@@ -1452,9 +1459,11 @@ class AsciiDocEditor(QMainWindow):
     def _update_ai_status_bar(self) -> None:
         """Update AI model name in status bar based on settings."""
         if self._settings.ollama_enabled and self._settings.ollama_model:
+            # Show selected Ollama model
             self.status_manager.set_ai_model(self._settings.ollama_model)
         else:
-            self.status_manager.set_ai_model(None)
+            # Show Pandoc as fallback conversion method
+            self.status_manager.set_ai_model("Pandoc")
 
     def _check_pandoc_availability(self, context: str) -> bool:
         """Check if Pandoc is available for document conversion."""
@@ -1528,6 +1537,25 @@ class AsciiDocEditor(QMainWindow):
         """Show Ollama service and installation status."""
         status = "Ollama Status:\n\n"
 
+        # Check if Ollama is enabled in settings
+        if not self._settings.ollama_enabled:
+            status += "⚠️ Ollama AI: Disabled in settings\n\n"
+            status += "Current conversion method: Pandoc (standard)\n\n"
+            status += "To enable Ollama AI:\n"
+            status += "1. Go to Tools → AI Status → Settings...\n"
+            status += "2. Check 'Enable Ollama AI integration'\n"
+            status += "3. Select an AI model\n"
+            status += "4. Click OK\n"
+            self.status_manager.show_message("info", "Ollama Status", status)
+            return
+
+        # Ollama is enabled, check service status
+        status += f"✅ Ollama AI: Enabled\n"
+        if self._settings.ollama_model:
+            status += f"Selected model: {self._settings.ollama_model}\n\n"
+        else:
+            status += "⚠️ No model selected\n\n"
+
         try:
             import ollama
 
@@ -1583,6 +1611,11 @@ class AsciiDocEditor(QMainWindow):
 
             # Update status bar with model name
             self._update_ai_status_bar()
+
+            # Update PandocWorker with new Ollama configuration
+            self.pandoc_worker.set_ollama_config(
+                self._settings.ollama_enabled, self._settings.ollama_model
+            )
 
             logger.info(
                 f"Ollama settings updated: enabled={self._settings.ollama_enabled}, "

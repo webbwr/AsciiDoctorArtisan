@@ -315,19 +315,29 @@ class SettingsManager:
         Get AI conversion preference with availability check.
 
         Returns True only if:
-        - Claude client is available (can be imported)
-        - Settings have AI conversion enabled
-        - API key should be present in environment (checked by ClaudeClient)
+        - Ollama is enabled in settings
+        - A model is selected
+        - Ollama library can be imported
 
         Args:
-            settings: Settings object with ai_conversion_enabled field
+            settings: Settings object with ollama_enabled and ollama_model fields
 
         Returns:
-            True if AI conversion should be used, False otherwise
+            True if Ollama AI conversion should be used, False otherwise (use Pandoc)
 
         Requirements:
-            FR-055: AI-Enhanced Conversion option
+            FR-055: AI-Enhanced Conversion option (updated for Ollama)
         """
-        if not AI_CLIENT_AVAILABLE:
+        # Check if Ollama is enabled and a model is selected
+        if not getattr(settings, "ollama_enabled", False):
             return False
-        return settings.ai_conversion_enabled
+
+        if not getattr(settings, "ollama_model", None):
+            return False
+
+        # Check if Ollama library is available
+        try:
+            import ollama
+            return True
+        except ImportError:
+            return False

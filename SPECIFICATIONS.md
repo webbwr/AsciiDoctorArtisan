@@ -249,6 +249,40 @@ The program MUST save to .md.
 
 **Test**: Click Save As Markdown. It must make MD file.
 
+### Rule: AI Conversion Option
+
+The program MUST let you choose AI or Pandoc for conversions.
+
+**Test**: Go to Tools → AI Status → Settings. Toggle Ollama on/off.
+
+**Test**: With Ollama on: Status bar shows "AI: model-name".
+
+**Test**: With Ollama off: Status bar shows "Conversion: Pandoc".
+
+### Rule: AI Model Selection
+
+The program MUST let you pick which AI model to use.
+
+**Test**: Open AI Status → Settings. See list of installed models.
+
+**Test**: Pick a model. Status bar must update right away.
+
+### Rule: AI Conversion Works
+
+When Ollama is on, the program MUST use AI for conversions.
+
+**Test**: Turn on Ollama. Export to Markdown. Check logs show "Ollama AI conversion".
+
+**Test**: If AI fails, must fall back to Pandoc.
+
+### Rule: Pandoc Fallback
+
+The program MUST use Pandoc if AI is off or fails.
+
+**Test**: Turn off Ollama. Export must still work with Pandoc.
+
+**Test**: Break Ollama service. Export must fall back to Pandoc.
+
 ### Rule: Paste From Copy
 
 The program MUST paste from copy area.
@@ -521,8 +555,11 @@ The program MUST be tested on all types.
 
 **What's New**:
 
+- ✅ Ollama AI conversions (fully working)
+- ✅ AI Status menu with model selection
+- ✅ Real-time status bar (shows active AI model)
+- ✅ Automatic Pandoc fallback
 - Removed cloud AI (Anthropic SDK)
-- Local AI ready (Ollama integration)
 - Privacy focused (no data leaves computer)
 - All 400+ tests passing
 - Clean codebase (removed 796 lines of cloud AI code)
@@ -584,12 +621,19 @@ Things for later:
 - Add notes
 - Team rooms
 
-### Local AI (Using Ollama)
+### Local AI (Ollama) - ✅ IMPLEMENTED
 
+**Current Features**:
+- ✅ AI-powered format conversions (all formats)
+- ✅ Model selection from installed Ollama models
+- ✅ Real-time status bar updates
+- ✅ Automatic Pandoc fallback
+
+**Future Features**:
 - Grammar checking
 - Text improvement
-- Format conversion help
 - Auto-format suggestions
+- Content summarization
 
 ---
 

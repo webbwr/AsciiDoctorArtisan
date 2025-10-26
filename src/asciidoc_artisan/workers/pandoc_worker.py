@@ -48,7 +48,7 @@ class PandocWorker(QObject):
     """
     Background worker for document format conversion.
 
-    Supports both Pandoc and AI-enhanced conversion via Claude API.
+    Supports both Pandoc and Ollama AI-enhanced conversion.
     Runs in separate QThread to prevent UI blocking.
 
     Signals:
@@ -77,6 +77,23 @@ class PandocWorker(QObject):
     conversion_complete = Signal(str, str)
     conversion_error = Signal(str, str)
     progress_update = Signal(str)
+
+    def __init__(self):
+        """Initialize PandocWorker."""
+        super().__init__()
+        self.ollama_model = None
+        self.ollama_enabled = False
+
+    def set_ollama_config(self, enabled: bool, model: Optional[str]) -> None:
+        """
+        Set Ollama configuration for AI conversions.
+
+        Args:
+            enabled: Whether Ollama AI conversion is enabled
+            model: Name of Ollama model to use
+        """
+        self.ollama_enabled = enabled
+        self.ollama_model = model
 
     @Slot(object, str, str, str, object, bool)
     def run_pandoc_conversion(
@@ -107,12 +124,58 @@ class PandocWorker(QObject):
             progress_update: Progress messages during operation
 
         Conversion Strategy:
-            1. Use Pandoc for conversion
-            2. Post-process AsciiDoc output for quality
+            1. If use_ai_conversion=True -> Try Ollama AI conversion
+            2. If Ollama fails or disabled -> Fallback to Pandoc
+            3. Post-process AsciiDoc output for quality
         """
-        # AI conversion removed - using Ollama for local AI features instead
+        # Try Ollama AI conversion first if requested
+        if use_ai_conversion and self.ollama_enabled and self.ollama_model:
+            # Get source content as string
+            if isinstance(source, Path):
+                source_content = source.read_text(encoding="utf-8")
+            elif isinstance(source, bytes):
+                source_content = source.decode("utf-8", errors="replace")
+            else:
+                source_content = str(source)
 
-        # Pandoc conversion path
+            # Try Ollama conversion
+            try:
+                ollama_result = self._try_ollama_conversion(
+                    source_content, from_format, to_format
+                )
+
+                if ollama_result:
+                    # Ollama conversion succeeded
+                    logger.info("Using Ollama AI conversion result")
+
+                    # Handle output
+                    if output_file and to_format in ["pdf", "docx"]:
+                        # For binary formats, save the text and convert with Pandoc
+                        # (Ollama can't directly create PDF/DOCX binaries)
+                        logger.info(
+                            f"Ollama produced {to_format} markup, using Pandoc for binary output"
+                        )
+                        # Continue to Pandoc with Ollama's result as source
+                        source = ollama_result
+                    else:
+                        # Text output - use Ollama result directly
+                        if to_format.lower() in ["asciidoc", "adoc"]:
+                            # Apply AsciiDoc post-processing
+                            ollama_result = self._post_process_asciidoc(ollama_result)
+
+                        self.conversion_complete.emit(ollama_result, context)
+                        return
+
+                else:
+                    logger.warning(
+                        "Ollama conversion returned no result, falling back to Pandoc"
+                    )
+
+            except Exception as e:
+                logger.warning(f"Ollama conversion failed, falling back to Pandoc: {e}")
+                # Continue to Pandoc fallback
+
+        # Pandoc conversion path (fallback or primary if AI not requested)
         if not PANDOC_AVAILABLE or not pypandoc:
             err = "Pandoc/pypandoc not available for conversion."
             logger.error(err)
@@ -313,3 +376,145 @@ class PandocWorker(QObject):
         text = re.sub(r"(?m)^(NOTE|TIP|IMPORTANT|WARNING|CAUTION):\s*", r"\n\1: ", text)
 
         return text
+
+    def _try_ollama_conversion(
+        self, source: str, from_format: str, to_format: str
+    ) -> Optional[str]:
+        """
+        Attempt document conversion using Ollama AI.
+
+        Args:
+            source: Source document content
+            from_format: Source format (e.g., "markdown", "docx", "html")
+            to_format: Target format (e.g., "asciidoc", "markdown")
+
+        Returns:
+            Converted document text if successful, None if failed
+
+        Raises:
+            Exception: If Ollama conversion fails (caller should fallback to Pandoc)
+        """
+        if not self.ollama_enabled or not self.ollama_model:
+            logger.debug("Ollama conversion not enabled or model not set")
+            return None
+
+        try:
+            import ollama
+
+            logger.info(
+                f"Attempting Ollama AI conversion: {from_format} -> {to_format} using {self.ollama_model}"
+            )
+            self.progress_update.emit(
+                f"Converting with AI ({self.ollama_model})..."
+            )
+
+            # Create conversion prompt
+            prompt = self._create_conversion_prompt(source, from_format, to_format)
+
+            # Call Ollama API
+            response = ollama.generate(model=self.ollama_model, prompt=prompt)
+
+            if not response or "response" not in response:
+                logger.warning("Ollama returned empty or invalid response")
+                return None
+
+            converted_text = response["response"].strip()
+
+            # Validate conversion
+            if not converted_text or len(converted_text) < 10:
+                logger.warning("Ollama conversion produced insufficient output")
+                return None
+
+            logger.info(
+                f"Ollama conversion successful ({len(converted_text)} characters)"
+            )
+            return converted_text
+
+        except ImportError:
+            logger.error("Ollama library not available")
+            return None
+        except Exception as e:
+            logger.error(f"Ollama conversion failed: {e}")
+            return None
+
+    def _create_conversion_prompt(
+        self, source: str, from_format: str, to_format: str
+    ) -> str:
+        """
+        Create a prompt for Ollama to convert between document formats.
+
+        Args:
+            source: Source document content
+            from_format: Source format
+            to_format: Target format
+
+        Returns:
+            Formatted prompt for Ollama
+        """
+        # Map format names to readable names
+        format_names = {
+            "markdown": "Markdown",
+            "md": "Markdown",
+            "asciidoc": "AsciiDoc",
+            "adoc": "AsciiDoc",
+            "html": "HTML",
+            "docx": "Microsoft Word",
+            "rst": "reStructuredText",
+            "latex": "LaTeX",
+            "org": "Org Mode",
+        }
+
+        from_name = format_names.get(from_format.lower(), from_format)
+        to_name = format_names.get(to_format.lower(), to_format)
+
+        # Create format-specific instructions
+        if to_format.lower() in ["asciidoc", "adoc"]:
+            format_instructions = """
+AsciiDoc formatting rules:
+- Use = for document title (level 0)
+- Use == for level 1 headings, === for level 2, etc.
+- Use *bold* for bold, _italic_ for italic
+- Use [source,language] blocks for code
+- Use `backticks` for inline code
+- Use * or - for unordered lists
+- Use . for ordered lists
+- Use |=== for tables
+- Use image::path[] for images
+- Use link:url[text] for links
+"""
+        elif to_format.lower() in ["markdown", "md"]:
+            format_instructions = """
+Markdown formatting rules:
+- Use # for h1, ## for h2, ### for h3, etc.
+- Use **bold** for bold, *italic* for italic
+- Use ```language blocks for code
+- Use `backticks` for inline code
+- Use - or * for unordered lists
+- Use 1. for ordered lists
+- Use | for tables
+- Use ![alt](path) for images
+- Use [text](url) for links
+"""
+        else:
+            format_instructions = f"Follow standard {to_name} formatting conventions."
+
+        prompt = f"""You are a document format conversion expert. Convert the following {from_name} document to {to_name} format.
+
+{format_instructions}
+
+IMPORTANT INSTRUCTIONS:
+1. Convert ALL content from the source document
+2. Preserve the document structure and hierarchy
+3. Maintain all formatting (bold, italic, code, links, etc.)
+4. Keep all tables, lists, and code blocks
+5. Do NOT add explanations or comments
+6. Output ONLY the converted document
+7. Do NOT wrap the output in code blocks or markdown
+8. Start immediately with the converted content
+
+SOURCE DOCUMENT ({from_name}):
+{source}
+
+CONVERTED DOCUMENT ({to_name}):"""
+
+        return prompt

@@ -9,9 +9,10 @@ This program:
 - Saves your work with Git
 - Opens Word, PDF, Markdown, HTML files (3-5x faster)
 - Saves to Word, PDF, Markdown, HTML
-- Changes file types for you
+- Changes file types with AI or Pandoc
 - Works on all computers
 - Uses GPU for speed (optional)
+- Uses local AI for smart conversions (optional)
 - Smart caching saves time
 
 ## What You Need
@@ -20,7 +21,8 @@ You need these programs:
 - **Python 3.11** - Makes it run
 - **Pandoc** - Changes file types
 - **wkhtmltopdf** - Makes PDF files
-- **Git** - Saves work online (not required)
+- **Git** - Saves work online (optional)
+- **Ollama** - AI file changes (optional, from ollama.com)
 
 ## Install It
 
@@ -155,6 +157,26 @@ This app is fast:
 - **All computers**: Works on Windows, Mac, Linux
 
 No setup needed. It just works.
+
+## AI Features (New in v1.2!)
+
+Smart file changes with AI:
+- **Ollama AI**: Use local AI for better conversions
+- **Pick your model**: Choose from installed AI models
+- **Shows in status bar**: See which method is active
+- **Auto fallback**: Uses Pandoc if AI not working
+- **Privacy first**: AI runs on your computer only
+
+### Turn On AI
+
+1. Install Ollama from ollama.com
+2. Get a model: `ollama pull phi3:mini`
+3. In app: Tools → AI Status → Settings
+4. Turn on "Enable Ollama AI"
+5. Pick your model
+6. Status bar shows "AI: your-model"
+
+Now all file changes use AI!
 
 ## The Right Side
 
