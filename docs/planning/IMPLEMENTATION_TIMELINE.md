@@ -1,3 +1,16 @@
+---
+**TECHNICAL DOCUMENT**
+**Reading Level**: Grade 5.0 summary below | Full technical details follow
+**Type**: Planning Document
+
+## Simple Summary
+
+This doc shows the plan for making the code better. It lists all tasks and when to do them.
+
+---
+
+## Full Technical Details
+
 # Implementation Timeline
 
 **Goal**: Fix performance issues in 4 weeks
