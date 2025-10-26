@@ -33,13 +33,8 @@ from asciidoc_artisan.core import (
 
 logger = logging.getLogger(__name__)
 
-# Check for AI client availability
-try:
-    import ai_client  # noqa: F401
-
-    AI_CLIENT_AVAILABLE = True
-except ImportError:
-    AI_CLIENT_AVAILABLE = False
+# AI client removed - using Ollama for local AI features instead
+AI_CLIENT_AVAILABLE = False
 
 
 class SettingsManager:

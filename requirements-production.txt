@@ -22,10 +22,6 @@ pypandoc==1.11
 # PyMuPDF provides 3-5x faster PDF extraction with GPU acceleration
 pymupdf>=1.23.0
 
-# AI Integration (v1.1 feature)
-# anthropic provides Claude API access for AI-enhanced document conversion
-anthropic==0.40.0
-
 # Secure Credential Storage (v1.1 security feature)
 # keyring provides OS-level secure credential storage
 keyring>=24.3.0

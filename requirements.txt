@@ -13,9 +13,6 @@ pypandoc>=1.11
 # PDF text extraction
 pdfplumber>=0.10.0
 
-# AI-enhanced format conversion
-anthropic>=0.40.0
-
 # Secure credential storage
 keyring>=24.0.0
 

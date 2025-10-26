@@ -370,11 +370,11 @@ The program MUST use:
 - asciidoc3 3.2.0+ for HTML
 - pypandoc 1.11+ for file changes
 - pymupdf 1.23.0+ for PDF reading (3-5x faster)
-- anthropic 0.40.0+ for AI help
 - keyring 24.0.0+ for safe keys
 - psutil 5.9.0+ for system check
 - Pandoc for conversions
 - wkhtmltopdf for PDF
+- Ollama (optional) for local AI features
 
 **Test**: Install tools. All must work.
 

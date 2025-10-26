@@ -40,7 +40,6 @@ $REQUIRED_PACKAGES = @(
     @{ Name = "asciidoc3";   VersionSpec = ">=3.2.0" }
     @{ Name = "pypandoc";    VersionSpec = ">=1.11" }
     @{ Name = "pdfplumber";  VersionSpec = ">=0.10.0" }
-    @{ Name = "anthropic";   VersionSpec = ">=0.40.0" }
     @{ Name = "keyring";     VersionSpec = ">=24.0.0" }
     @{ Name = "psutil";      VersionSpec = ">=5.9.0" }
 )

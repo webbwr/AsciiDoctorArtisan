@@ -18,7 +18,6 @@ REQUIRED_PYTHON_PACKAGES=(
     "asciidoc3>=3.2.0"
     "pypandoc>=1.11"
     "pdfplumber>=0.10.0"
-    "anthropic>=0.40.0"
     "keyring>=24.0.0"
     "psutil>=5.9.0"
 )

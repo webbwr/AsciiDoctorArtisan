@@ -151,48 +151,7 @@ class TestPandocWorker:
         assert result is not None
         assert "File saved to:" in result or str(output_path) in result
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
-    @patch("asciidoc_artisan.workers.pandoc_worker.create_client")
-    def test_ai_conversion_attempt(self, mock_create_client, mock_pypandoc):
-        """Test AI conversion attempt when enabled."""
-        from claude_client import ConversionResult
-
-        # Mock Claude client with successful conversion
-        mock_client_instance = MagicMock()
-        mock_client_instance.convert_document.return_value = ConversionResult(
-            success=True,
-            content="AI converted content",
-            used_ai=True,
-            processing_time=0.1,
-        )
-        mock_create_client.return_value = mock_client_instance
-
-        # Mock pypandoc as fallback (should not be called if AI succeeds)
-        mock_pypandoc.convert_text.return_value = "Fallback content"
-
-        worker = PandocWorker()
-        result = None
-
-        def capture_result(text, ctx):
-            nonlocal result
-            result = text
-
-        worker.conversion_complete.connect(capture_result)
-
-        # This should attempt AI conversion
-        worker.run_pandoc_conversion(
-            source="Complex document",
-            to_format="markdown",
-            from_format="asciidoc",
-            context="ai test",
-            output_file=None,
-            use_ai_conversion=True,
-        )
-
-        # Verify AI conversion was attempted
-        assert mock_create_client.called
-        assert mock_client_instance.convert_document.called
-        assert result == "AI converted content"
+    # AI conversion test removed - using Ollama for local AI features instead
 
 
 @pytest.mark.unit
