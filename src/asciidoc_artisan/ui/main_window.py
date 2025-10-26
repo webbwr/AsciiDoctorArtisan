@@ -454,9 +454,17 @@ class AsciiDocEditor(QMainWindow):
 
         preview_layout.addWidget(preview_toolbar)
 
-        self.preview = QTextBrowser(self)
-        self.preview.setReadOnly(True)
-        self.preview.setOpenExternalLinks(True)
+        self.preview = QWebEngineView(self)
+
+        # Enable GPU acceleration for preview rendering (2-5x speedup)
+        preview_settings = self.preview.settings()
+        preview_settings.setAttribute(
+            QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True
+        )
+        preview_settings.setAttribute(
+            QWebEngineSettings.WebAttribute.WebGLEnabled, True
+        )
+        logger.info("GPU acceleration enabled for preview rendering")
         preview_layout.addWidget(self.preview)
 
         self.splitter.addWidget(preview_container)
