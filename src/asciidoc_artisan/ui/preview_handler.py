@@ -57,12 +57,6 @@ class PreviewHandler(QObject):
         self.preview = preview
         self.window = parent_window
 
-        # Enable GPU acceleration for faster rendering (2-5x speedup)
-        settings = self.preview.settings()
-        settings.setAttribute(QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True)
-        logger.info("GPU acceleration enabled for preview rendering")
-
         # Preview state
         self.sync_scrolling_enabled = True
         self.is_syncing_scroll = False
