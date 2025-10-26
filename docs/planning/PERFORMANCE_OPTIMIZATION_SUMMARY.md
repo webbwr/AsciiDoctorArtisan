@@ -250,9 +250,9 @@ pymupdf>=1.23.0
 - **Progress**: 100% (2 of 2 items done)
 
 ### Phase 2: Advanced
-- ✅ **Item 2.1**: Numba JIT (10-50x faster) - COMPLETE
-- ⏳ **Item 2.2**: Incremental renderer optimization - PENDING
-- **Progress**: 50% (1 of 2 items done)
+- ✅ **Item 2.1**: Numba JIT cell processing (10-50x faster) - COMPLETE
+- ✅ **Item 2.2**: Numba JIT text splitting (5-10x faster) - COMPLETE
+- **Progress**: 100% (2 of 2 items done)
 
 ### Phase 3: Future
 - 📋 Local AI with NPU - NOT STARTED
