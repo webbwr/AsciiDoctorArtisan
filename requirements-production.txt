@@ -1,6 +1,6 @@
 # AsciiDoc Artisan - Production Requirements
 # These are the exact versions tested and verified for production use
-# Last updated: 2025-10-19
+# Last updated: 2025-10-26
 
 # Core GUI Framework
 # PySide6 is the official Qt for Python binding
