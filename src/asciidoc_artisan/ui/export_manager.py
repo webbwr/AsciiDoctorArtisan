@@ -11,7 +11,6 @@ This module handles:
 Extracted from main_window.py to improve maintainability and testability.
 """
 
-import html
 import io
 import logging
 import platform
@@ -21,9 +20,9 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QGuiApplication
-from PySide6.QtWidgets import QDialog, QFileDialog
+from PySide6.QtWidgets import QFileDialog
 
 from asciidoc_artisan.core import (
     ADOC_FILTER,

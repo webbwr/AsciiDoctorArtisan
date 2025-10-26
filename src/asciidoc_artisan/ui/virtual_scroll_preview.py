@@ -23,7 +23,6 @@ Design Goals:
 import logging
 from dataclasses import dataclass
 from typing import Optional, Tuple
-from PySide6.QtCore import QPoint, QRect
 from PySide6.QtWidgets import QWidget
 
 logger = logging.getLogger(__name__)

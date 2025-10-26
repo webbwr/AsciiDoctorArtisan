@@ -64,8 +64,14 @@ class EditorState:
         new_size = max(MIN_FONT_SIZE, font.pointSize() + delta)
         font.setPointSize(new_size)
         self.editor.setFont(font)
-        self.preview.zoomIn(delta)
-        logger.debug(f"Zoom changed: {delta}, new size: {new_size}")
+
+        # Update preview zoom factor (QWebEngineView uses setZoomFactor)
+        current_zoom = self.preview.zoomFactor()
+        zoom_delta = 0.1 * delta  # Convert delta to zoom factor change
+        new_zoom = max(0.25, min(5.0, current_zoom + zoom_delta))
+        self.preview.setZoomFactor(new_zoom)
+
+        logger.debug(f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}")
 
     def toggle_dark_mode(self) -> None:
         """Toggle dark mode on/off."""

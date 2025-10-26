@@ -24,10 +24,9 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import IntEnum
-from queue import PriorityQueue, Empty
 from threading import Lock, Event
-from typing import Any, Callable, Optional, Dict, Set
-from PySide6.QtCore import QRunnable, QThreadPool, QObject, Signal, Slot
+from typing import Any, Callable, Optional, Dict
+from PySide6.QtCore import QRunnable, QThreadPool, QObject, Signal
 
 logger = logging.getLogger(__name__)
 

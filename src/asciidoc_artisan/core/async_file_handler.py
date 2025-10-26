@@ -25,12 +25,11 @@ Design Goals:
 - Simple API
 """
 
-import asyncio
 import logging
 from pathlib import Path
-from typing import Optional, Callable, List
+from typing import Optional, List
 from dataclasses import dataclass
-from PySide6.QtCore import QObject, Signal, QThread, Slot
+from PySide6.QtCore import QObject, Signal, QThread
 
 logger = logging.getLogger(__name__)
 

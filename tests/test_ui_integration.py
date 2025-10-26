@@ -139,14 +139,14 @@ class TestAsciiDocEditorUI:
     def test_new_file_action(self, editor, qtbot):
         """Test new file action clears editor."""
         editor.editor.setPlainText("Old content")
-        editor._unsaved_changes = False  # Mark as saved
+        editor.file_handler.unsaved_changes = False  # Mark as saved
 
         # Trigger new file
         editor.new_file()
 
         # Should clear content
         assert editor.editor.toPlainText() == ""
-        assert editor._current_file_path is None
+        assert editor.file_handler.current_file_path is None
 
 
 @pytest.mark.integration

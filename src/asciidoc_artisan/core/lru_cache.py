@@ -20,7 +20,7 @@ Features:
 
 import logging
 from collections import OrderedDict
-from typing import Any, Generic, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 

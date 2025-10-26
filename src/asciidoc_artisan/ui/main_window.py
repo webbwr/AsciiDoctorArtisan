@@ -28,7 +28,6 @@ import io
 import logging
 import os
 import platform
-import subprocess
 import tempfile
 import uuid
 from pathlib import Path
@@ -43,11 +42,9 @@ from PySide6.QtCore import (
     Slot,
 )
 from PySide6.QtGui import (
-    QAction,
     QColor,
     QFont,
     QGuiApplication,
-    QKeySequence,
     QPalette,
 )
 from PySide6.QtWidgets import (
@@ -55,11 +52,9 @@ from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
     QHBoxLayout,
-    QInputDialog,
     QLabel,
     QMainWindow,
     QMessageBox,
-    QPlainTextEdit,
     QProgressDialog,
     QPushButton,
     QSplitter,
@@ -72,7 +67,6 @@ from PySide6.QtWebEngineCore import QWebEngineSettings
 
 # Import from refactored modules
 from asciidoc_artisan.core import (
-    ADOC_FILTER,
     APP_NAME,
     DEFAULT_FILENAME,
     DOCX_FILTER,
@@ -80,7 +74,6 @@ from asciidoc_artisan.core import (
     EDITOR_FONT_SIZE,
     HTML_FILTER,
     MD_FILTER,
-    MIN_FONT_SIZE,
     PDF_FILTER,
     PREVIEW_UPDATE_INTERVAL_MS,
     SUPPORTED_OPEN_FILTER,

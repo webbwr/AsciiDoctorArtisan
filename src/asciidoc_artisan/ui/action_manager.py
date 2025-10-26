@@ -18,7 +18,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from PySide6.QtGui import QAction, QKeySequence
-from PySide6.QtWidgets import QMainWindow
 
 if TYPE_CHECKING:
     from asciidoc_artisan.ui.main_window import AsciiDocEditor

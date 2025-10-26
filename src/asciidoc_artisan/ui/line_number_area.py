@@ -6,7 +6,7 @@ Implements specification requirement: Line Numbers (Editor Specifications).
 """
 
 from PySide6.QtCore import QRect, QSize, Qt
-from PySide6.QtGui import QColor, QPainter, QTextBlock
+from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QPlainTextEdit, QWidget
 
 

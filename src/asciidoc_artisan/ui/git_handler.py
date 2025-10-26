@@ -14,7 +14,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import Signal, Slot
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFileDialog, QInputDialog
 
 from asciidoc_artisan.core import GitResult

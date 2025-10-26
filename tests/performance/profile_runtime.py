@@ -96,21 +96,20 @@ def profile_asciidoc_conversion():
         doc_size_kb = len(doc_content) / 1024
 
         # Measure conversion
-        from asciidoc3 import asciidoc3
-        asciidoc_api = AsciiDoc3API(asciidoc3.__file__)
+        asciidoc_api = AsciiDoc3API()
         asciidoc_api.options("--no-header-footer")
         asciidoc_api.attributes["icons"] = "font"
         asciidoc_api.attributes["source-highlighter"] = "highlight.js"
 
+        # Warm up (avoid cold start bias)
+        infile_warmup = io.StringIO(doc_content)
+        outfile_warmup = io.StringIO()
+        asciidoc_api.execute(infile_warmup, outfile_warmup, backend="html5")
+
+        # Actual measurement
         infile = io.StringIO(doc_content)
         outfile = io.StringIO()
 
-        # Warm up (avoid cold start bias)
-        asciidoc_api.execute(infile, outfile, backend="html5")
-        infile.seek(0)
-        outfile = io.StringIO()
-
-        # Actual measurement
         start_memory = process.memory_info().rss / 1024 / 1024
         start_time = time.perf_counter()
 
@@ -225,8 +224,7 @@ def profile_memory_usage():
 
     # Test memory with conversion (if available)
     if ASCIIDOC_AVAILABLE:
-        from asciidoc3 import asciidoc3
-        asciidoc_api = AsciiDoc3API(asciidoc3.__file__)
+        asciidoc_api = AsciiDoc3API()
         asciidoc_api.options("--no-header-footer")
 
         for size in [100, 1000, 5000]:
