@@ -224,12 +224,12 @@ N/A = Not applicable
 
 ### Before and After
 
-| What | Now | With GPU | How Much Faster | Priority |
-|------|-----|----------|-----------------|----------|
-| HTML Preview | Varies | 2-5x | High | **Tier 1** |
-| PDF Reading | Slow | 3-5x | Medium | **Tier 1** |
-| Table Format | Slow | 10-50x | Medium | **Tier 2** |
-| Text Splitting | Fast | 5-10x | Low | **Tier 2** |
+| What | Now | With GPU | How Much Faster | Priority | Status |
+|------|-----|----------|-----------------|----------|--------|
+| HTML Preview | Varies | 2-5x | High | **Tier 1** | ✅ Done |
+| PDF Reading | Slow | 3-5x | Medium | **Tier 1** | ⏳ Next |
+| Table Format | Slow | 10-50x | Medium | **Tier 2** | 📋 Planned |
+| Text Splitting | Fast | 5-10x | Low | **Tier 2** | 📋 Planned |
 
 ---
 
