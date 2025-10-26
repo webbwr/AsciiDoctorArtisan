@@ -1446,6 +1446,16 @@ class AsciiDocEditor(QMainWindow):
             PANDOC_AVAILABLE and not self._is_processing_pandoc
         )
 
+        # Update AI status bar
+        self._update_ai_status_bar()
+
+    def _update_ai_status_bar(self) -> None:
+        """Update AI model name in status bar based on settings."""
+        if self._settings.ollama_enabled and self._settings.ollama_model:
+            self.status_manager.set_ai_model(self._settings.ollama_model)
+        else:
+            self.status_manager.set_ai_model(None)
+
     def _check_pandoc_availability(self, context: str) -> bool:
         """Check if Pandoc is available for document conversion."""
         if not PANDOC_AVAILABLE:
