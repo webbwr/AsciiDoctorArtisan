@@ -254,15 +254,27 @@ class StatusManager:
         else:
             self.grade_level_label.setText("Grade: --")
 
+    def set_ai_model(self, model_name: Optional[str] = None) -> None:
+        """Set AI model name in status bar.
+
+        Args:
+            model_name: Name of the active AI model, or None to clear
+        """
+        if model_name:
+            # Show just the model name (without tag if present)
+            # Example: "phi3:mini" -> "phi3:mini"
+            self.ai_status_label.setText(f"AI: {model_name}")
+            self.ai_status_label.setToolTip(f"Ollama model: {model_name}")
+        else:
+            self.ai_status_label.setText("")
+            self.ai_status_label.setToolTip("")
+
     def set_ai_active(self, active: bool) -> None:
-        """Set AI status indicator.
+        """Deprecated: Use set_ai_model() instead.
 
         Args:
             active: True if AI is active, False otherwise
         """
-        if active:
-            self.ai_status_label.setText("🤖 AI")
-            self.ai_status_label.setToolTip("Local AI (Ollama) is active")
-        else:
-            self.ai_status_label.setText("")
-            self.ai_status_label.setToolTip("")
+        # This method is kept for backward compatibility but does nothing
+        # Use set_ai_model() to set the model name instead
+        pass
