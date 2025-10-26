@@ -1565,6 +1565,282 @@ for attempt in range(3):
 
 ---
 
+### FR-063 to FR-074: Performance Enhancements (v1.1.0-beta)
+
+**Category**: Optional Performance Features
+**Version Added**: 1.1.0-beta
+**Status**: Implemented
+
+These requirements document the performance optimization features added in v1.1.0-beta. They are optional enhancements that significantly improve application performance but are not core functionality.
+
+#### FR-063: Incremental Preview Rendering
+**Intent**: Dramatically faster preview updates for large documents
+
+**Specification**:
+- The system SHOULD implement block-based incremental rendering
+- MUST cache rendered blocks using content-based hashing
+- MUST detect changes using diff algorithm
+- SHOULD only re-render modified blocks
+- MUST maintain LRU cache of up to 100 rendered blocks
+- SHOULD achieve 3-5x speedup vs full re-render
+
+**Implementation**: `src/asciidoc_artisan/workers/incremental_renderer.py`
+
+**Test Criteria**:
+- Large document (1000+ lines) → partial edit → <100ms update
+- Cache hit rate >90% for typical editing
+- Memory usage <50MB for cached blocks
+- Measured speedup ≥3x vs full render
+
+**Related**: NFR-001 (Preview Latency), NFR-004 (Memory)
+
+---
+
+#### FR-064: Adaptive Debouncing
+**Intent**: Smart delay adjustment based on system state
+
+**Specification**:
+- The system SHOULD adjust debounce delays dynamically
+- MUST consider document size (small: 200ms, large: 1000ms)
+- MUST monitor CPU load (high load → longer delays)
+- MUST track typing speed (fast typing → longer delays)
+- MUST track render times (slow renders → longer delays)
+- SHOULD maintain 200-1000ms delay range
+
+**Implementation**: `src/asciidoc_artisan/core/adaptive_debouncer.py`
+
+**Test Criteria**:
+- Small doc (100 lines) → 200-350ms delay
+- Large doc (5000+ lines) → 600-1000ms delay
+- High CPU load → increased delay
+- Fast typing (>60 WPM) → increased delay
+
+**Related**: NFR-001 (Preview Latency), NFR-004 (Memory)
+
+---
+
+#### FR-065: Lazy Module Loading
+**Intent**: Faster application startup via deferred imports
+
+**Specification**:
+- The system SHOULD defer heavy module imports until needed
+- MUST profile import times to identify slow imports
+- SHOULD defer modules: pdfplumber, anthropic, keyring
+- MUST load PySide6, asciidoc3 immediately (required for UI)
+- SHOULD achieve 50-70% startup time reduction
+
+**Implementation**: `src/asciidoc_artisan/core/lazy_importer.py`
+
+**Test Criteria**:
+- Startup time without lazy loading: baseline
+- Startup time with lazy loading: <50% of baseline
+- Deferred modules load on first use
+- No functionality broken by lazy loading
+
+**Related**: NFR-002 (Startup Time)
+
+---
+
+#### FR-066: Resource Manager
+**Intent**: Automatic cleanup of temporary resources
+
+**Specification**:
+- The system SHOULD track temporary files and directories
+- MUST cleanup on application exit
+- MUST implement proper __del__ methods for resource cleanup
+- SHOULD monitor memory usage and provide warnings
+- MUST cleanup abandoned preview temp files
+
+**Implementation**: `src/asciidoc_artisan/core/resource_manager.py`
+
+**Test Criteria**:
+- Create temp files → exit app → files cleaned up
+- Memory usage monitored and logged
+- No resource leaks after 1000 operations
+- Temp directory cleaned on startup
+
+**Related**: NFR-004 (Memory Usage), NFR-013 (Reliability)
+
+---
+
+#### FR-067: LRU Cache System
+**Intent**: Bounded caches with automatic eviction
+
+**Specification**:
+- The system SHOULD implement LRU caches for:
+  - Rendered preview blocks (max 100 items)
+  - CSS stylesheets (max 10 items)
+  - File metadata (max 50 items)
+- MUST automatically evict least recently used items
+- MUST provide cache statistics (hits, misses, size)
+- SHOULD achieve >80% cache hit rate for typical usage
+
+**Implementation**: `src/asciidoc_artisan/core/lru_cache.py`
+
+**Test Criteria**:
+- Cache respects size limits
+- LRU eviction works correctly
+- Cache hit rate >80% for repeated operations
+- Memory usage bounded
+
+**Related**: NFR-004 (Memory Usage), NFR-001 (Performance)
+
+---
+
+#### FR-068: Async File Handler
+**Intent**: Non-blocking file I/O for large files
+
+**Specification**:
+- The system SHOULD implement async file operations
+- MUST support streaming read/write for files >10MB
+- MUST integrate with Qt signals for progress updates
+- SHOULD achieve 2-3x faster batch I/O
+- MUST not block UI thread during file operations
+
+**Implementation**: `src/asciidoc_artisan/core/async_file_handler.py`
+
+**Test Criteria**:
+- Large file (50MB) → async read → UI responsive
+- Batch operations (10 files) → 2-3x faster than sync
+- Progress signals emitted correctly
+- Error handling for I/O failures
+
+**Related**: NFR-003 (Large Files), NFR-005 (Threading)
+
+---
+
+#### FR-069: Optimized Worker Pool
+**Intent**: Efficient task scheduling and coalescing
+
+**Specification**:
+- The system SHOULD implement advanced worker pool
+- MUST support 5 priority levels (Critical, High, Normal, Low, Background)
+- MUST coalesce duplicate tasks (deduplicate by task ID)
+- SHOULD support task cancellation
+- SHOULD achieve 90% reduction in duplicate work
+
+**Implementation**: `src/asciidoc_artisan/workers/optimized_worker_pool.py`
+
+**Test Criteria**:
+- High priority tasks execute first
+- Duplicate tasks coalesced (e.g., rapid preview requests → 1 execution)
+- Task cancellation works
+- Worker pool scales to CPU count
+
+**Related**: NFR-005 (Threading), NFR-001 (Performance)
+
+---
+
+#### FR-070: Virtual Scroll Preview
+**Intent**: Memory-efficient preview for huge documents
+
+**Specification**:
+- The system SHOULD implement viewport-based rendering
+- MUST render only visible preview portion + buffer
+- SHOULD support documents up to 50,000 lines
+- MUST calculate visible viewport from scroll position
+- SHOULD achieve 99%+ memory savings vs full render
+
+**Implementation**: `src/asciidoc_artisan/ui/virtual_scroll_preview.py`
+
+**Test Criteria**:
+- Huge document (50K lines) → preview opens
+- Memory usage <100MB (vs 5GB+ for full render)
+- Smooth scrolling maintained
+- Viewport calculation accurate
+
+**Related**: NFR-003 (Large Files), NFR-004 (Memory)
+
+---
+
+#### FR-071: Secure Credentials Manager
+**Intent**: OS-level secure credential storage
+
+**Specification**:
+- The system SHOULD use OS keyring for credential storage
+- MUST support Windows Credential Manager, macOS Keychain, Linux Secret Service
+- MUST fallback to environment variables if keyring unavailable
+- SHOULD never store credentials in plaintext files
+- MUST encrypt credentials at rest
+
+**Implementation**: `src/asciidoc_artisan/core/secure_credentials.py`
+
+**Test Criteria**:
+- Store API key → retrieved from OS keyring
+- Keyring unavailable → fallback to env vars
+- No plaintext credentials in config files
+- Credentials persist across app restarts
+
+**Related**: NFR-012 (API Key Handling), NFR-006 (Security)
+
+---
+
+#### FR-072: Performance Profiler
+**Intent**: Development tool for performance analysis
+
+**Specification**:
+- The system SHOULD include performance profiling tools
+- MUST measure: startup time, render time, memory usage
+- SHOULD generate performance reports
+- MUST support benchmarking preview rendering
+- SHOULD validate NFR-001, NFR-002, NFR-004 compliance
+
+**Implementation**: `src/performance_profiler.py`
+
+**Test Criteria**:
+- Profile startup → report <3s
+- Profile render → report <350ms
+- Profile memory → report <500MB
+- Generate comparison reports
+
+**Related**: NFR-001, NFR-002, NFR-004 (All performance NFRs)
+
+---
+
+#### FR-073: Enhanced Document Converter
+**Intent**: Advanced PDF table extraction
+
+**Specification**:
+- The system SHOULD extract tables from PDF files
+- MUST use pdfplumber for table detection
+- MUST convert tables to AsciiDoc table syntax
+- SHOULD preserve table structure and headers
+- MUST handle merged cells and complex layouts
+
+**Implementation**: `src/document_converter.py:283-493`
+
+**Test Criteria**:
+- PDF with tables → extract → AsciiDoc table markup
+- Table headers preserved
+- Cell merging handled
+- Complex layouts extracted accurately
+
+**Related**: FR-024 (Import PDF), FR-021-030 (Conversion)
+
+---
+
+#### FR-074: Lazy Utilities
+**Intent**: Infrastructure for lazy loading patterns
+
+**Specification**:
+- The system SHOULD provide lazy property decorators
+- MUST support lazy imports with tracking
+- SHOULD provide deferred initialization utilities
+- MUST cache computed properties per instance
+- SHOULD provide statistics on lazy operations
+
+**Implementation**: `src/asciidoc_artisan/core/lazy_utils.py`
+
+**Test Criteria**:
+- Lazy property computed once per instance
+- Lazy imports tracked with statistics
+- Deferred initialization reduces startup time
+- Memory efficient (no unnecessary allocations)
+
+**Related**: FR-065 (Lazy Loading), NFR-002 (Startup)
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-001: Preview Update Latency
@@ -2423,6 +2699,6 @@ mypy>=1.8.0
 
 **Document Status**: Complete
 **Specification Format**: OpenSpec + Microsoft Spec-Kit Compatible
-**Total Requirements**: 85 (62 Functional, 23 Non-Functional)
+**Total Requirements**: 97 (74 Functional, 23 Non-Functional)
 **Coverage**: 100% of implemented features
 **Reverse Engineered**: October 26, 2025

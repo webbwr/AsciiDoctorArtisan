@@ -10,19 +10,20 @@ Complete, detailed specification reverse-engineered from the codebase.
 
 **Format**: OpenSpec + Microsoft Spec-Kit compatible
 **Coverage**: 100% of implemented features
-**Requirements**: 85 total (62 Functional, 23 Non-Functional)
+**Requirements**: 97 total (74 Functional, 23 Non-Functional)
 
 **Contents**:
 - Product intent and vision
 - User personas
 - Feature categories
-- **62 Functional Requirements (FR-001 to FR-062)**
+- **74 Functional Requirements (FR-001 to FR-074)**
   - FR-001-010: Core Editor Features
   - FR-011-020: File Operations
   - FR-021-030: Document Conversion
   - FR-031-040: Git Integration
   - FR-041-053: User Interface
   - FR-054-062: AI-Enhanced Conversion
+  - FR-063-074: Performance Enhancements (v1.1.0-beta)
 - **23 Non-Functional Requirements (NFR-001 to NFR-023)**
   - Performance (NFR-001-005)
   - Security (NFR-006-012)
@@ -114,6 +115,7 @@ When adding features:
 - Git integration: FR-031-040
 - UI features: FR-041-053
 - AI features: FR-054-062
+- Performance: FR-063-074 (v1.1.0-beta enhancements)
 
 **Find by Quality**:
 - Performance: NFR-001-005

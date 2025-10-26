@@ -497,17 +497,42 @@ class AsciiDocEditor(QMainWindow):
                 self.showMaximized()
 
     def _setup_synchronized_scrolling(self) -> None:
-        """Set up synchronized scrolling between editor and preview."""
+        """
+        Set up synchronized scrolling between editor and preview.
 
+        Implements FR-043 with scroll loop protection and event coalescing.
+        """
         editor_scrollbar = self.editor.verticalScrollBar()
         preview_scrollbar = self.preview.verticalScrollBar()
 
         editor_scrollbar.valueChanged.connect(self._sync_editor_to_preview)
         preview_scrollbar.valueChanged.connect(self._sync_preview_to_editor)
 
+        # Initialize scroll sync tracking
+        self._last_editor_scroll = 0
+        self._last_preview_scroll = 0
+        self._scroll_sync_count = 0
+
     def _sync_editor_to_preview(self, value: int) -> None:
-        """Synchronize preview scroll position with editor."""
+        """
+        Synchronize preview scroll position with editor.
+
+        Implements FR-043 with loop detection and coalescing.
+        """
         if not self._sync_scrolling or self._is_syncing_scroll:
+            return
+
+        # Skip if value hasn't changed significantly (coalesce events)
+        if abs(value - self._last_editor_scroll) < 2:
+            return
+
+        self._last_editor_scroll = value
+
+        # Detect potential scroll loops
+        self._scroll_sync_count += 1
+        if self._scroll_sync_count > 100:
+            logger.warning("Scroll loop detected, resetting")
+            self._scroll_sync_count = 0
             return
 
         self._is_syncing_scroll = True
@@ -519,13 +544,36 @@ class AsciiDocEditor(QMainWindow):
             if editor_max > 0:
                 scroll_percentage = value / editor_max
                 preview_value = int(preview_scrollbar.maximum() * scroll_percentage)
-                preview_scrollbar.setValue(preview_value)
+
+                # Only update if value actually changed
+                if preview_scrollbar.value() != preview_value:
+                    preview_scrollbar.setValue(preview_value)
+
+            # Reset counter on successful sync
+            self._scroll_sync_count = max(0, self._scroll_sync_count - 1)
         finally:
             self._is_syncing_scroll = False
 
     def _sync_preview_to_editor(self, value: int) -> None:
-        """Synchronize editor scroll position with preview."""
+        """
+        Synchronize editor scroll position with preview.
+
+        Implements FR-043 with loop detection and coalescing.
+        """
         if not self._sync_scrolling or self._is_syncing_scroll:
+            return
+
+        # Skip if value hasn't changed significantly (coalesce events)
+        if abs(value - self._last_preview_scroll) < 2:
+            return
+
+        self._last_preview_scroll = value
+
+        # Detect potential scroll loops
+        self._scroll_sync_count += 1
+        if self._scroll_sync_count > 100:
+            logger.warning("Scroll loop detected, resetting")
+            self._scroll_sync_count = 0
             return
 
         self._is_syncing_scroll = True
@@ -537,7 +585,13 @@ class AsciiDocEditor(QMainWindow):
             if preview_max > 0:
                 scroll_percentage = value / preview_max
                 editor_value = int(editor_scrollbar.maximum() * scroll_percentage)
-                editor_scrollbar.setValue(editor_value)
+
+                # Only update if value actually changed
+                if editor_scrollbar.value() != editor_value:
+                    editor_scrollbar.setValue(editor_value)
+
+            # Reset counter on successful sync
+            self._scroll_sync_count = max(0, self._scroll_sync_count - 1)
         finally:
             self._is_syncing_scroll = False
 
