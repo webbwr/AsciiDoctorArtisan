@@ -16,9 +16,9 @@ Learn to use AsciiDoc Artisan.
 
 ## Get Started
 
-### What Is This?
+### What Is This
 
-It helps you write. It uses AsciiDoc.
+It helps you write docs.
 
 **What it does:**
 - Shows doc as you type
@@ -29,8 +29,8 @@ It helps you write. It uses AsciiDoc.
 
 ### First Time
 
-1. **Install** (see how-to-install.md)
-2. **Start** - Click start file
+1. Install (see how-to-install.md)
+2. Start - Click start file
 3. Two sides:
    - Left: Type here
    - Right: See result
