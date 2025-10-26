@@ -264,13 +264,6 @@ class MenuManager:
             triggered=self.editor._show_supported_formats,
         )
 
-        self.editor.ai_setup_help_act = QAction(  # type: ignore[call-overload]
-            "&AI Conversion Setup",
-            self.editor,
-            statusTip="How to set up AI-enhanced conversion",
-            triggered=self.editor._show_ai_setup_help,
-        )
-
         # Help actions
         self.editor.about_act = QAction(  # type: ignore[call-overload]
             "&About",
@@ -338,8 +331,6 @@ class MenuManager:
         tools_menu = menubar.addMenu("&Tools")
         tools_menu.addAction(self.editor.pandoc_status_act)
         tools_menu.addAction(self.editor.pandoc_formats_act)
-        tools_menu.addSeparator()
-        tools_menu.addAction(self.editor.ai_setup_help_act)
 
         # Help menu
         help_menu = menubar.addMenu("&Help")
