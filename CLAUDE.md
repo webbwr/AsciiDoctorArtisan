@@ -8,7 +8,7 @@ This file helps Claude Code work with this code.
 
 **Key Tech:**
 - PySide6 6.9.0+ (Qt GUI)
-- asciidoc3 10.2.1+ (AsciiDoc to HTML)
+- asciidoc3 3.2.0+ (AsciiDoc to HTML)
 - pypandoc 1.13+ (file changes)
 - wkhtmltopdf (PDF making)
 - Python 3.11+ (3.12 best)

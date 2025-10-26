@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
-from pandoc_integration import PDFExtractor
+from document_converter import PDFExtractor
 
 
 class TestPDFExtractor:
