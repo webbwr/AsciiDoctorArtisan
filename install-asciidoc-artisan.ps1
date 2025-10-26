@@ -71,29 +71,41 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
+    # Python command to use (tries this first, then falls back to alternatives)
     [Parameter(Mandatory = $false)]
     [string]$PythonCommand = "python",
 
+    # Skip virtual environment creation (install globally instead)
     [Parameter(Mandatory = $false)]
     [switch]$SkipVirtualEnv
 )
 
-# Configuration
+################################################################################
+# CONFIGURATION
+################################################################################
+
+# Minimum Python version required (Major.Minor)
 $PYTHON_MIN_VERSION = "3.11"
+
+# Required Python packages with minimum versions
+# These are the core dependencies needed to run AsciiDoc Artisan
 $REQUIRED_PACKAGES = @(
-    @{ Name = "PySide6";     VersionSpec = ">=6.9.0" }
-    @{ Name = "asciidoc3";   VersionSpec = ">=3.2.0" }
-    @{ Name = "pypandoc";    VersionSpec = ">=1.11" }
-    @{ Name = "pdfplumber";  VersionSpec = ">=0.10.0" }
-    @{ Name = "keyring";     VersionSpec = ">=24.0.0" }
-    @{ Name = "psutil";      VersionSpec = ">=5.9.0" }
+    @{ Name = "PySide6";     VersionSpec = ">=6.9.0" }   # Qt GUI framework with GPU support
+    @{ Name = "asciidoc3";   VersionSpec = ">=3.2.0" }   # AsciiDoc to HTML conversion
+    @{ Name = "pypandoc";    VersionSpec = ">=1.11" }    # Document format conversion wrapper
+    @{ Name = "pdfplumber";  VersionSpec = ">=0.10.0" }  # PDF text extraction (legacy fallback)
+    @{ Name = "keyring";     VersionSpec = ">=24.0.0" }  # Secure credential storage
+    @{ Name = "psutil";      VersionSpec = ">=5.9.0" }   # System and process utilities
 )
 
-# Track validation
-$script:Errors = 0
-$script:Warnings = 0
+# Validation counters
+# Script-level variables to track issues found during installation
+$script:Errors = 0      # Critical issues that prevent installation
+$script:Warnings = 0    # Non-critical issues that may affect functionality
 
-# Helper Functions
+################################################################################
+# HELPER FUNCTIONS
+################################################################################
 function Write-Header {
     param([string]$Message)
     Write-Host "`n========================================" -ForegroundColor Blue
