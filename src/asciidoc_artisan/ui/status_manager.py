@@ -40,6 +40,14 @@ class StatusManager:
         """Initialize the StatusManager with a reference to the main editor."""
         self.editor = editor
 
+        # Widgets will be created later when status bar is ready
+        self.version_label = None
+        self.word_count_label = None
+        self.grade_level_label = None
+        self.ai_status_label = None
+
+    def initialize_widgets(self) -> None:
+        """Initialize status bar widgets after status bar is created."""
         # Create permanent status bar widgets (right side)
         self.version_label = QLabel("")
         self.word_count_label = QLabel("Words: 0")
@@ -221,6 +229,10 @@ class StatusManager:
 
     def update_document_metrics(self) -> None:
         """Update all document metrics in status bar."""
+        # Skip if widgets not yet initialized
+        if not self.version_label:
+            return
+
         text = self.editor.editor.toPlainText()
 
         # Update version

@@ -474,6 +474,9 @@ class AsciiDocEditor(QMainWindow):
         self.status_bar = QStatusBar(self)
         self.setStatusBar(self.status_bar)
 
+        # Initialize status manager widgets now that status bar exists
+        self.status_manager.initialize_widgets()
+
         self._setup_dynamic_sizing()
 
     def _setup_dynamic_sizing(self) -> None:
