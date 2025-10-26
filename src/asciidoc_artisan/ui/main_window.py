@@ -734,9 +734,9 @@ class AsciiDocEditor(QMainWindow):
                     self.status_manager.show_message(
                         "warning",
                         "PDF Support Unavailable",
-                        "PDF text extraction requires pdfplumber.\n\n"
+                        "PDF text extraction requires PyMuPDF.\n\n"
                         "To install:\n"
-                        "  pip install pdfplumber\n\n"
+                        "  pip install pymupdf\n\n"
                         "After installation, restart the application.",
                     )
                     return
