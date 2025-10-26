@@ -1,0 +1,98 @@
+Requirement ID,Title,Spec Reference,Code Files,Status
+FR-001,Plain Text Editing,src/asciidoc_artisan/ui/main_window.py:401,src/asciidoc_artisan/__init__.py; src/asciidoc_artisan/core/adaptive_debouncer.py; src/asciidoc_artisan/ui/main_window.py; src/asciidoc_artisan/workers/incremental_renderer.py; src/asciidoc_artisan/workers/preview_worker.py; src/performance_profiler.py,TRACED
+FR-002,Live HTML Preview,src/asciidoc_artisan/workers/preview_worker.py,src/asciidoc_artisan/core/lazy_importer.py; src/asciidoc_artisan/workers/preview_worker.py; src/performance_profiler.py,TRACED
+FR-003,Automatic Preview Updates,"src/asciidoc_artisan/ui/main_window.py:404,579-604",src/asciidoc_artisan/core/async_file_handler.py; src/asciidoc_artisan/workers/incremental_renderer.py; src/asciidoc_artisan/workers/preview_worker.py,TRACED
+FR-004,Debounced Updates,src/asciidoc_artisan/ui/line_number_area.py,src/asciidoc_artisan/core/adaptive_debouncer.py; src/asciidoc_artisan/core/async_file_handler.py; src/asciidoc_artisan/core/constants.py; src/asciidoc_artisan/workers/incremental_renderer.py; src/asciidoc_artisan/workers/preview_worker.py; src/performance_profiler.py,TRACED
+FR-005,Line Numbers,src/asciidoc_artisan/ui/line_number_area.py,src/asciidoc_artisan/core/async_file_handler.py; src/asciidoc_artisan/workers/__init__.py; src/asciidoc_artisan/workers/git_worker.py; src/asciidoc_artisan/workers/pandoc_worker.py; src/asciidoc_artisan/workers/preview_worker.py,TRACED
+FR-006,Copy/Cut/Paste,src/asciidoc_artisan/ui/main_window.py,src/asciidoc_artisan/core/file_operations.py,TRACED
+FR-007,Undo/Redo,src/asciidoc_artisan/ui/main_window.py,src/asciidoc_artisan/core/file_operations.py,TRACED
+FR-008,Find Text,src/asciidoc_artisan/ui/main_window.py,src/asciidoc_artisan/workers/git_worker.py,TRACED
+FR-009,Go To Line,src/asciidoc_artisan/ui/main_window.py,src/asciidoc_artisan/core/file_operations.py,TRACED
+FR-010,Background Rendering,src/asciidoc_artisan/ui/main_window.py:401,src/asciidoc_artisan/workers/git_worker.py; src/asciidoc_artisan/workers/pandoc_worker.py; src/asciidoc_artisan/workers/preview_worker.py,TRACED
+FR-011,New File,src/asciidoc_artisan/ui/file_handler.py,,TRACED
+FR-012,Open File,src/asciidoc_artisan/ui/main_window.py:657-815,,TRACED
+FR-013,Save File,src/asciidoc_artisan/ui/main_window.py:861-973,,TRACED
+FR-014,Save As,src/asciidoc_artisan/ui/main_window.py:861-973,,TRACED
+FR-015,Atomic File Writes,src/asciidoc_artisan/ui/main_window.py:861-973,src/asciidoc_artisan/__init__.py; src/asciidoc_artisan/core/file_operations.py,TRACED
+FR-016,Path Sanitization,src/asciidoc_artisan/core/file_operations.py:27-62,src/asciidoc_artisan/__init__.py; src/asciidoc_artisan/core/file_operations.py; src/asciidoc_artisan/core/secure_credentials.py,TRACED
+FR-017,Auto-Save,src/asciidoc_artisan/ui/file_handler.py,src/asciidoc_artisan/__init__.py,TRACED
+FR-018,Unsaved Changes Warning,src/asciidoc_artisan/ui/main_window.py:1488-1506,,TRACED
+FR-019,Large File Handling,src/asciidoc_artisan/core/large_file_handler.py,src/asciidoc_artisan/__init__.py,TRACED
+FR-020,Last File Restoration,src/asciidoc_artisan/ui/file_handler.py,,TRACED
+FR-021,Import Markdown,src/asciidoc_artisan/ui/main_window.py:861-973,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-022,Import DOCX,src/asciidoc_artisan/workers/pandoc_worker.py:154-159,,TRACED
+FR-023,Import HTML,src/asciidoc_artisan/workers/pandoc_worker.py,,TRACED
+FR-024,Import PDF,src/asciidoc_artisan/ui/main_window.py:861-973,,TRACED
+FR-025,Export HTML,src/asciidoc_artisan/ui/main_window.py:1009-1031,,TRACED
+FR-026,Export PDF,src/asciidoc_artisan/workers/pandoc_worker.py:162-208,,TRACED
+FR-027,Export DOCX,src/asciidoc_artisan/workers/pandoc_worker.py:209-211,,TRACED
+FR-028,Export Markdown,src/asciidoc_artisan/workers/pandoc_worker.py:212-217,,TRACED
+FR-029,Clipboard Conversion,src/asciidoc_artisan/ui/main_window.py:1292-1294,,TRACED
+FR-030,No Conversion Prompts,src/asciidoc_artisan/workers/pandoc_worker.py,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-031,Select Git Repository,src/asciidoc_artisan/ui/git_handler.py,src/asciidoc_artisan/workers/git_worker.py,TRACED
+FR-032,Git Commit,src/asciidoc_artisan/workers/git_worker.py,,TRACED
+FR-033,Git Push,src/asciidoc_artisan/workers/git_worker.py,,TRACED
+FR-034,Git Pull,src/asciidoc_artisan/workers/git_worker.py,,TRACED
+FR-035,Git Status Display,src/asciidoc_artisan/ui/status_manager.py,,TRACED
+FR-036,Background Git Operations,src/asciidoc_artisan/workers/git_worker.py,,TRACED
+FR-037,Git Error Handling,src/asciidoc_artisan/workers/git_worker.py:134-162,,TRACED
+FR-038,Auto-Save Before Commit,src/asciidoc_artisan/ui/git_handler.py,,TRACED
+FR-039,Git Repository Detection,src/asciidoc_artisan/ui/git_handler.py,,TRACED
+FR-040,Git Command Validation,src/asciidoc_artisan/ui/git_handler.py,src/asciidoc_artisan/workers/git_worker.py,TRACED
+FR-041,Dark Mode,src/asciidoc_artisan/ui/theme_manager.py,src/asciidoc_artisan/ui/theme_manager.py,TRACED
+FR-042,Font Size Control,src/asciidoc_artisan/ui/editor_state.py,,TRACED
+FR-043,Synchronized Scrolling,src/asciidoc_artisan/ui/main_window.py:499-542,src/asciidoc_artisan/ui/main_window.py,TRACED
+FR-044,Pane Maximization,src/asciidoc_artisan/ui/editor_state.py,,TRACED
+FR-045,Status Bar,src/asciidoc_artisan/ui/status_manager.py,src/asciidoc_artisan/ui/status_manager.py,TRACED
+FR-046,Window State Persistence,src/asciidoc_artisan/core/settings.py:54-55,,TRACED
+FR-047,Splitter Position Persistence,src/asciidoc_artisan/core/settings.py:55,,TRACED
+FR-048,Keyboard Shortcuts,src/asciidoc_artisan/ui/action_manager.py,src/asciidoc_artisan/ui/action_manager.py,TRACED
+FR-049,Cross-Platform Support,src/asciidoc_artisan/ui/settings_manager.py,,TRACED
+FR-050,Settings Persistence,src/asciidoc_artisan/ui/settings_manager.py,,TRACED
+FR-051,Window Title,src/asciidoc_artisan/ui/status_manager.py,src/asciidoc_artisan/ui/status_manager.py,TRACED
+FR-052,Progress Indicators,src/asciidoc_artisan/ui/main_window.py:1148-1180,,TRACED
+FR-053,Complete Keyboard Shortcuts,src/asciidoc_artisan/ui/theme_manager.py,src/asciidoc_artisan/ui/action_manager.py; src/asciidoc_artisan/ui/main_window.py,TRACED
+FR-054,Claude API Integration,src/ai_client.py,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-055,AI Conversion Preference,src/ai_client.py:229-252,src/asciidoc_artisan/core/settings.py; src/asciidoc_artisan/ui/dialogs.py; src/asciidoc_artisan/ui/main_window.py; src/asciidoc_artisan/ui/settings_manager.py; src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-056,Complex Structure Preservation,src/ai_client.py:229-252,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-057,Automatic Fallback,src/asciidoc_artisan/workers/pandoc_worker.py:120-133,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-058,API Key Validation,src/ai_client.py:89-104,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-059,Progress Indicators,src/asciidoc_artisan/workers/pandoc_worker.py:372-432,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-060,Error Handling & Retry,src/ai_client.py:143-217,src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-061,API Key Security,src/asciidoc_artisan/workers/pandoc_worker.py:372-432,src/asciidoc_artisan/core/settings.py,TRACED
+FR-062,Rate Limiting,src/ai_client.py,src/asciidoc_artisan/__init__.py; src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+FR-063,Incremental Preview Rendering,src/asciidoc_artisan/workers/incremental_renderer.py,,TRACED
+FR-064,Adaptive Debouncing,src/asciidoc_artisan/core/adaptive_debouncer.py,,TRACED
+FR-065,Lazy Module Loading,src/asciidoc_artisan/core/lazy_importer.py,,TRACED
+FR-066,Resource Manager,src/asciidoc_artisan/core/resource_manager.py,,TRACED
+FR-067,LRU Cache System,src/asciidoc_artisan/core/lru_cache.py,,TRACED
+FR-068,Async File Handler,src/asciidoc_artisan/core/async_file_handler.py,,TRACED
+FR-069,Optimized Worker Pool,src/asciidoc_artisan/workers/optimized_worker_pool.py,,TRACED
+FR-070,Virtual Scroll Preview,src/asciidoc_artisan/ui/virtual_scroll_preview.py,,TRACED
+FR-071,Secure Credentials Manager,src/asciidoc_artisan/core/secure_credentials.py,,TRACED
+FR-072,Performance Profiler,src/performance_profiler.py,,TRACED
+FR-073,Enhanced Document Converter,src/document_converter.py:283-493,,TRACED
+FR-074,Lazy Utilities,src/asciidoc_artisan/workers/incremental_renderer.py,,TRACED
+NFR-001,Preview Update Latency,src/asciidoc_artisan/core/adaptive_debouncer.py,src/asciidoc_artisan/core/adaptive_debouncer.py; src/asciidoc_artisan/workers/incremental_renderer.py; src/asciidoc_artisan/workers/preview_worker.py; src/performance_profiler.py,TRACED
+NFR-002,Application Startup Time,src/asciidoc_artisan/core/resource_manager.py,src/asciidoc_artisan/core/lazy_importer.py; src/performance_profiler.py,TRACED
+NFR-003,Large File Handling,src/asciidoc_artisan/core/settings.py:50,src/asciidoc_artisan/core/async_file_handler.py; src/asciidoc_artisan/workers/incremental_renderer.py,TRACED
+NFR-004,Memory Usage,src/asciidoc_artisan/core/adaptive_debouncer.py,src/asciidoc_artisan/core/adaptive_debouncer.py; src/asciidoc_artisan/core/async_file_handler.py; src/asciidoc_artisan/workers/incremental_renderer.py; src/performance_profiler.py,TRACED
+NFR-005,Background Threading,src/asciidoc_artisan/ui/file_handler.py,src/asciidoc_artisan/core/async_file_handler.py; src/asciidoc_artisan/workers/__init__.py; src/asciidoc_artisan/workers/git_worker.py; src/asciidoc_artisan/workers/pandoc_worker.py; src/asciidoc_artisan/workers/preview_worker.py,TRACED
+NFR-006,Atomic File Operations,src/asciidoc_artisan/core/file_operations.py:27-62,src/asciidoc_artisan/core/file_operations.py,TRACED
+NFR-007,Data Integrity,src/asciidoc_artisan/core/file_operations.py:27-62,src/asciidoc_artisan/core/file_operations.py,TRACED
+NFR-008,Safe Git Operations,src/asciidoc_artisan/workers/git_worker.py:11,src/asciidoc_artisan/workers/git_worker.py,TRACED
+NFR-009,Path Traversal Protection,src/asciidoc_artisan/ui/file_handler.py,src/asciidoc_artisan/core/file_operations.py,TRACED
+NFR-010,Subprocess Security,src/asciidoc_artisan/workers/git_worker.py:94-103,src/asciidoc_artisan/workers/git_worker.py; src/asciidoc_artisan/workers/pandoc_worker.py,TRACED
+NFR-011,No Telemetry,src/asciidoc_artisan/core/settings.py:44-46,,TRACED
+NFR-012,API Key Handling,src/ai_client.py:229-252,,TRACED
+NFR-013,Error Recovery,src/asciidoc_artisan/core/lru_cache.py,,TRACED
+NFR-014,Auto-Save,src/asciidoc_artisan/ui/file_handler.py,,TRACED
+NFR-015,Crash Recovery,src/asciidoc_artisan/core/settings.py:50,,TRACED
+NFR-016,Type Hints,src/../tests/,src/asciidoc_artisan/__init__.py,TRACED
+NFR-017,Documentation,src/../tests/,src/asciidoc_artisan/__init__.py,TRACED
+NFR-018,Reading Level,src/../tests/,,TRACED
+NFR-019,Test Coverage,src/../tests/,src/asciidoc_artisan/__init__.py,TRACED
+NFR-020,Accessibility,setup.py,,TRACED
+NFR-021,Python Version,setup.py,,TRACED
+NFR-022,Platform Support,src/asciidoc_artisan/ui/settings_manager.py,,TRACED
+NFR-023,Dependency Management,requirements-production.txt,,TRACED

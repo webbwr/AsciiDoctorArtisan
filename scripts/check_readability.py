@@ -78,9 +78,13 @@ class ReadabilityChecker:
         """
         import re
 
-        # Remove code blocks
-        text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+        # Remove code blocks (including language specifiers)
+        text = re.sub(r"```[^\n]*\n.*?```", "", text, flags=re.DOTALL)
         text = re.sub(r"`[^`]+`", "", text)
+
+        # Remove table structures
+        text = re.sub(r"\|[-\s\|]+\|", "", text)  # Table separators
+        text = re.sub(r"\|", " ", text)  # Remaining pipes
 
         # Remove headers (keep the text)
         text = re.sub(r"^#+\s+", "", text, flags=re.MULTILINE)
@@ -88,21 +92,31 @@ class ReadabilityChecker:
         # Remove links but keep text
         text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)
 
-        # Remove bold/italic
+        # Remove images
+        text = re.sub(r"!\[([^\]]*)\]\([^\)]+\)", "", text)
+
+        # Remove bold/italic markers (keep text)
         text = re.sub(r"\*\*([^\*]+)\*\*", r"\1", text)
         text = re.sub(r"\*([^\*]+)\*", r"\1", text)
         text = re.sub(r"__([^_]+)__", r"\1", text)
         text = re.sub(r"_([^_]+)_", r"\1", text)
 
-        # Remove lists markers
+        # Remove list markers
         text = re.sub(r"^[\*\-\+]\s+", "", text, flags=re.MULTILINE)
         text = re.sub(r"^\d+\.\s+", "", text, flags=re.MULTILINE)
+
+        # Remove checkboxes
+        text = re.sub(r"- \[[ x]\]\s+", "", text)
 
         # Remove horizontal rules
         text = re.sub(r"^[\-\*\_]{3,}$", "", text, flags=re.MULTILINE)
 
+        # Remove HTML tags
+        text = re.sub(r"<[^>]+>", "", text)
+
         # Remove extra whitespace
         text = re.sub(r"\n\n+", "\n\n", text)
+        text = re.sub(r"  +", " ", text)
 
         return text.strip()
 
