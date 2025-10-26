@@ -62,14 +62,14 @@ _This is italic_
 
 ### Make Lists
 
-**Simple list**: Use stars
+**Simple list** - Use stars:
 ```
 * First
 * Second
 * Third
 ```
 
-**Number list**: Use numbers
+**Number list** - Use numbers:
 ```
 1. First
 2. Second
@@ -78,12 +78,12 @@ _This is italic_
 
 ### Add Links
 
-**Web link**: Type the address
+**Web link** - Type address:
 ```
 https://www.example.com
 ```
 
-**Named link**: Add a name
+**Named link** - Add name:
 ```
 https://www.example.com[Click Here]
 ```
