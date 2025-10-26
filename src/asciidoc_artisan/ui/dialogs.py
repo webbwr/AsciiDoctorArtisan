@@ -141,3 +141,182 @@ class PreferencesDialog(QDialog):
         """
         self.settings.ai_conversion_enabled = self.ai_enabled_checkbox.isChecked()
         return self.settings
+
+
+class OllamaSettingsDialog(QDialog):
+    """
+    Ollama AI settings dialog with model selection.
+
+    Allows users to:
+    - Enable/disable Ollama AI integration
+    - Select which AI model to use for conversions
+    - View service status and installed models
+
+    Args:
+        settings: Current Settings instance to edit
+        parent: Parent QWidget (optional)
+
+    Example:
+        ```python
+        dialog = OllamaSettingsDialog(self.settings)
+        if dialog.exec():
+            self.settings = dialog.get_settings()
+            self._save_settings()
+        ```
+    """
+
+    def __init__(self, settings: Settings, parent: Optional[QWidget] = None) -> None:
+        """Initialize Ollama settings dialog."""
+        super().__init__(parent)
+        self.settings = settings
+        self.models = []
+        self._init_ui()
+        self._load_models()
+
+    def _init_ui(self) -> None:
+        """Initialize the Ollama settings UI."""
+        self.setWindowTitle("Ollama AI Settings")
+        self.setMinimumWidth(500)
+
+        layout = QVBoxLayout(self)
+
+        # Ollama Settings Group
+        ollama_group = QGroupBox("Ollama AI Configuration")
+        ollama_layout = QVBoxLayout()
+
+        # Enable/Disable Toggle
+        self.ollama_enabled_checkbox = QCheckBox("Enable Ollama AI integration")
+        self.ollama_enabled_checkbox.setChecked(
+            getattr(self.settings, "ollama_enabled", False)
+        )
+        self.ollama_enabled_checkbox.setToolTip(
+            "Use local Ollama AI for document conversions\n"
+            "Runs on your computer - no cloud services required"
+        )
+        self.ollama_enabled_checkbox.stateChanged.connect(
+            self._on_enabled_changed
+        )
+        ollama_layout.addWidget(self.ollama_enabled_checkbox)
+
+        # Model Selection
+        model_layout = QHBoxLayout()
+        model_label = QLabel("AI Model:")
+        model_layout.addWidget(model_label)
+
+        self.model_combo = QComboBox()
+        self.model_combo.setToolTip("Select which AI model to use for conversions")
+        model_layout.addWidget(self.model_combo)
+
+        ollama_layout.addLayout(model_layout)
+
+        # Service Status
+        self.status_label = QLabel("Checking Ollama service...")
+        self.status_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
+        ollama_layout.addWidget(self.status_label)
+
+        # Information Label
+        info_label = QLabel(
+            "• Ollama runs locally on your computer\n"
+            "• No API keys or cloud services required\n"
+            "• Install models with: ollama pull <model-name>\n"
+            "• See docs/OLLAMA_SETUP.md for more information"
+        )
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
+        ollama_layout.addWidget(info_label)
+
+        ollama_group.setLayout(ollama_layout)
+        layout.addWidget(ollama_group)
+
+        # Dialog Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(self.accept)
+        button_layout.addWidget(ok_button)
+
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+
+        layout.addLayout(button_layout)
+
+        # Update enabled state of controls
+        self._on_enabled_changed()
+
+    def _load_models(self) -> None:
+        """Load available Ollama models from the service."""
+        try:
+            import ollama
+
+            try:
+                response = ollama.list()
+                models_data = response.get("models", [])
+
+                if not models_data:
+                    self.status_label.setText("⚠️ No models installed")
+                    self.status_label.setStyleSheet(
+                        "QLabel { color: orange; font-size: 10pt; }"
+                    )
+                    self.model_combo.addItem("No models available")
+                    self.model_combo.setEnabled(False)
+                    return
+
+                # Extract model names properly
+                self.models = []
+                for model in models_data:
+                    # The model name is in the 'name' or 'model' field
+                    name = model.get("name") or model.get("model", "Unknown")
+                    self.models.append(name)
+                    self.model_combo.addItem(name)
+
+                # Select the previously chosen model or first one
+                saved_model = getattr(self.settings, "ollama_model", None)
+                if saved_model and saved_model in self.models:
+                    index = self.models.index(saved_model)
+                    self.model_combo.setCurrentIndex(index)
+
+                self.status_label.setText(
+                    f"✅ Ollama service running - {len(self.models)} model(s) available"
+                )
+                self.status_label.setStyleSheet(
+                    "QLabel { color: green; font-size: 10pt; }"
+                )
+
+            except Exception as e:
+                self.status_label.setText(f"❌ Ollama service not running: {str(e)}")
+                self.status_label.setStyleSheet(
+                    "QLabel { color: red; font-size: 10pt; }"
+                )
+                self.model_combo.addItem("Service not available")
+                self.model_combo.setEnabled(False)
+
+        except ImportError:
+            self.status_label.setText("❌ Ollama library not installed")
+            self.status_label.setStyleSheet("QLabel { color: red; font-size: 10pt; }")
+            self.model_combo.addItem("Library not installed")
+            self.model_combo.setEnabled(False)
+
+    def _on_enabled_changed(self) -> None:
+        """Handle enable/disable checkbox state change."""
+        enabled = self.ollama_enabled_checkbox.isChecked()
+        self.model_combo.setEnabled(enabled and len(self.models) > 0)
+
+    def get_settings(self) -> Settings:
+        """
+        Get updated settings from dialog.
+
+        Returns:
+            Settings instance with updated Ollama configuration
+        """
+        # Store Ollama enabled state
+        self.settings.ollama_enabled = self.ollama_enabled_checkbox.isChecked()
+
+        # Store selected model if available
+        if self.models and self.model_combo.currentIndex() >= 0:
+            self.settings.ollama_model = self.model_combo.currentText()
+        else:
+            self.settings.ollama_model = None
+
+        return self.settings
