@@ -92,7 +92,9 @@ preview_settings.setAttribute(
 
 ---
 
-#### 2. Better PDF Reader
+#### 2. Better PDF Reader ⏳ NEXT
+
+**Status**: ⏳ **READY TO IMPLEMENT**
 
 **What It Does**: Uses PyMuPDF instead of pdfplumber
 
