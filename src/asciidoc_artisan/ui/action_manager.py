@@ -309,6 +309,20 @@ class ActionManager:
             triggered=self.window._show_supported_formats,
         )
 
+        self.ollama_status_act = QAction(  # type: ignore[call-overload]
+            "&Ollama Status",
+            self.window,
+            statusTip="Check Ollama service and installation status",
+            triggered=self.window._show_ollama_status,
+        )
+
+        self.ollama_models_act = QAction(  # type: ignore[call-overload]
+            "Installed &Models",
+            self.window,
+            statusTip="Show installed Ollama AI models",
+            triggered=self.window._show_ollama_models,
+        )
+
         # Help menu actions
         self.about_act = QAction(  # type: ignore[call-overload]
             "&About",
