@@ -1,29 +1,29 @@
-# Keeping You Safe
+# Keep Safe
 
 ## Which Versions We Fix
 
-We fix safety bugs in these versions:
+We fix bugs in these versions:
 
-| Version | We Fix It? |
-| ------- | ---------- |
-| 1.0.x   | ✓ Yes      |
-| < 1.0   | ✗ No       |
+| Version | We Fix? |
+| ------- | ------- |
+| 1.0.x   | ✓ Yes   |
+| < 1.0   | ✗ No    |
 
 ## Found a Bug?
 
-If you find a safety bug, tell us:
+If you find a safety bug:
 
-1. **Don't** post it in public
-2. Email the main person
+1. **Don't** post it
+2. Email us
 3. Tell us:
    - What is wrong
    - How to see it
-   - What could break
-   - How to fix it (if you know)
+   - What breaks
+   - How to fix (if you know)
 
 ### When We Answer
 
-- First reply: In 2 days
+- First reply: 2 days
 - Updates: Every week
 - Fix time:
   - Very bad: 7 days
@@ -33,46 +33,46 @@ If you find a safety bug, tell us:
 
 ### What We Do
 
-- We say thanks
-- We tell you about progress
-- We add your name (if you want)
-- We tell you when it's fixed
+- Say thanks
+- Tell you progress
+- Add your name (if you want)
+- Tell you when fixed
 
-## How to Be Safe
+## Be Safe
 
-When you use this program:
+When you use this:
 
-1. **Get New Ones**: Use the new version
-2. **Update Stuff**: Keep tools new
-3. **Trust Files**: Only open safe files
-4. **Check Git**: Look at git first
-5. **Get Real Tools**: Get Pandoc from the real site
+1. **Get New**: Use new version
+2. **Update**: Keep tools new
+3. **Trust Files**: Open safe files only
+4. **Check Git**: Look first
+5. **Get Real**: Get Pandoc from real site
 
-## Things to Know
+## Know This
 
-### Git Stuff
+### Git
 - Git runs on your computer
-- Use with safe files only
+- Use with safe files
 - Read before you save
 
 ### Files
 - Program reads files
 - Auto-save makes extra files
-- Your stuff saves on your computer
+- Your stuff saves local
 
-### Other Tools
-- asciidoc3: Shows your work
+### Tools
+- asciidoc3: Shows work
 - pypandoc: Changes files
 - PySide6: Makes windows
 
 ## How We Tell You
 
-We tell you about fixes in:
+We tell you in:
 - New version numbers
-- What Changed file
+- CHANGELOG file
 - Notes with `security` tag
 
 ---
 
-**Reading Level**: Grade 5.0
-**Last Updated**: October 2025
+**Reading**: Grade 5.0
+**Updated**: October 2025

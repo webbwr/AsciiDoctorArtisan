@@ -1,97 +1,93 @@
 # AsciiDoc Templates
 
-This directory contains AsciiDoc project templates for creating documentation.
+This folder has templates for docs.
 
-## Available Templates
+## What's Here
 
 ### default/
 
-The default AsciiDoc project template includes:
+Default template has:
 
-- **docs/** - Documentation source files (index.adoc, chapter1.adoc, chapter2.adoc)
-- **images/** - Image assets directory
-- **themes/** - Custom themes and stylesheets
-- **output/** - Generated output (HTML, PDF)
-- **build.sh** - Build script for generating documentation
-- **Makefile** - Build automation
-- **asciidoc-config.yml** - Configuration file
-- **README.adoc** - Template README
+- **docs/** - Doc files
+- **images/** - Pictures
+- **themes/** - Looks
+- **output/** - Made files
+- **build.sh** - Build script
+- **Makefile** - Build help
+- **asciidoc-config.yml** - Settings
+- **README.adoc** - Info
 
-## Using Templates
+## How to Use
 
-### Option 1: Copy Template to New Location
+### Way 1: Copy
 
 ```bash
-# Copy the default template to your project
+# Copy it
 cp -r templates/default/* /path/to/your/project/
 
-# Navigate to your project
+# Go there
 cd /path/to/your/project/
 
-# Build documentation
+# Build
 ./build.sh html
 # or
 make html
 ```
 
-### Option 2: Build from Repository
+### Way 2: Build Here
 
 ```bash
-# Build template HTML
+# Build HTML
 make template-html
 
-# Build template PDF
+# Build PDF
 make template-pdf
 
-# Clean template output
+# Clean
 make template-clean
 ```
 
-## Creating New Templates
+## Make New
 
-To create a new template:
+To make new:
 
-1. Copy the `default/` directory
-2. Customize the structure and content
-3. Update configuration files
-4. Test the build process
+1. Copy `default/`
+2. Change files
+3. Update settings
+4. Test
 
-## Template Structure
+## Parts
 
 ```
 template-name/
-├── docs/                   # Documentation source
-│   ├── index.adoc         # Main document
-│   ├── chapter1.adoc      # Sample chapter
-│   └── chapter2.adoc      # Sample chapter
-├── images/                # Image assets
-├── themes/                # Custom themes
-├── output/                # Generated output
-├── build.sh              # Build script
-├── Makefile              # Build automation
-├── asciidoc-config.yml   # Configuration
-└── README.adoc           # Template README
+├── docs/       # Docs
+├── images/     # Pics
+├── themes/     # Looks
+├── output/     # Made
+├── build.sh   # Script
+├── Makefile   # Help
+└── README.adoc # Info
 ```
 
 ## Build Tools
 
-Templates include multiple build options:
+Build with:
 
-- **build.sh** - Bash script for Linux/WSL/macOS
-- **Makefile** - Make-based build system
-- Direct asciidoctor commands
+- **build.sh** - Bash
+- **Makefile** - Make
+- Direct commands
 
-## Output Formats
+## Output Types
 
-Templates support generating:
+Make:
 
-- HTML (single page or chunked)
-- PDF (via asciidoctor-pdf)
-- EPUB (via asciidoctor-epub3)
-- DocBook (for further processing)
+- HTML
+- PDF
+- EPUB
+- DocBook
 
-## Resources
+## Help
 
-- [AsciiDoctor Documentation](https://asciidoctor.org/docs/)
-- [AsciiDoc Syntax Quick Reference](https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/)
-- [AsciiDoc Language Documentation](https://docs.asciidoctor.org/asciidoc/latest/)
+- [Docs](https://asciidoctor.org/docs/)
+- [Quick Help](https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/)
+- [Language](https://docs.asciidoctor.org/asciidoc/latest/)

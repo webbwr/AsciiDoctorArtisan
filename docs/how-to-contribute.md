@@ -2,7 +2,7 @@
 
 **Reading Level**: Grade 4.0 (Elementary)
 
-A guide for people who want to help improve AsciiDoc Artisan or understand how it works.
+A guide for people who want to help make AsciiDoc Artisan better.
 
 ## Table of Contents
 
@@ -17,32 +17,32 @@ A guide for people who want to help improve AsciiDoc Artisan or understand how i
 
 ### What You Need
 
-Before you start coding:
+Before you start:
 - Python 3.11 or newer
-- Git (for getting the code and saving changes)
-- A code editor (like VS Code, PyCharm, or any you like)
-- Basic Python knowledge
+- Git (for getting code)
+- A code editor (like VS Code)
+- Basic Python skills
 
 ### Getting the Code
 
 1. **Fork the project**:
    - Go to github.com/webbwr/AsciiDoctorArtisan
-   - Click "Fork" button (top right)
+   - Click "Fork" button
    - This makes your own copy
 
-2. **Download your copy**:
+2. **Get your copy**:
 ```bash
 cd ~/github
 git clone https://github.com/YOUR-USERNAME/AsciiDoctorArtisan.git
 cd AsciiDoctorArtisan
 ```
 
-3. **Install everything**:
+3. **Install all**:
 ```bash
 # Install basic parts
 pip install -r requirements.txt
 
-# Install developer tools
+# Install dev tools
 pip install -r requirements-dev.txt
 
 # Or use Make
@@ -53,30 +53,30 @@ make install-dev
 
 ### Main Folders
 
-Here's where everything lives:
+Here's where things live:
 
 ```
 src/
-├── main.py                     # Start here - main program
-├── ai_client.py               # Talks to AI services
-├── document_converter.py       # Changes document types
-├── performance_profiler.py     # Checks how fast things run
-└── asciidoc_artisan/          # Main code package
-    ├── core/                  # Basic stuff all parts need
-    │   ├── constants.py       # Numbers and text that don't change
-    │   ├── models.py          # Data structures
+├── main.py                     # Start here
+├── ai_client.py               # Talks to AI
+├── document_converter.py       # Changes files
+├── performance_profiler.py     # Checks speed
+└── asciidoc_artisan/          # Main code
+    ├── core/                  # Basic stuff
+    │   ├── constants.py       # Fixed numbers
+    │   ├── models.py          # Data shapes
     │   ├── settings.py        # User settings
-    │   └── file_operations.py # Reading and writing files safely
-    ├── ui/                    # Windows and buttons
-    │   ├── main_window.py     # Main program window
-    │   ├── dialogs.py         # Pop-up windows
-    │   └── *_manager.py       # Helpers for different parts
+    │   └── file_operations.py # Read/write files
+    ├── ui/                    # Windows
+    │   ├── main_window.py     # Main window
+    │   ├── dialogs.py         # Pop-ups
+    │   └── *_manager.py       # Helpers
     ├── workers/               # Background tasks
-    │   ├── git_worker.py      # Git operations
-    │   ├── pandoc_worker.py   # Document conversion
-    │   └── preview_worker.py  # Updates the preview
+    │   ├── git_worker.py      # Git stuff
+    │   ├── pandoc_worker.py   # Change files
+    │   └── preview_worker.py  # Updates view
     ├── git/                   # Git tools
-    └── conversion/            # Document conversion tools
+    └── conversion/            # File changes
 ```
 
 ### Important Files
@@ -84,22 +84,23 @@ src/
 **main.py**:
 - Starts the program
 - Sets up the window
-- Connects all the parts
+- Connects all parts
 
 **ui/main_window.py**:
-- The main window you see
-- Has the editor and preview
+- The main window
+- Has the editor
+- Has the preview
 - Handles menu clicks
 
 **workers/*.py**:
-- Run tasks in the background
-- Don't freeze the program
+- Run tasks in background
+- Don't freeze program
 - Send messages when done
 
 **core/settings.py**:
-- Saves user preferences
-- Remembers last file opened
-- Stores window size and position
+- Saves what you like
+- Remembers last file
+- Stores window size
 
 ## How Things Work
 
@@ -108,55 +109,55 @@ src/
 When you run the program:
 
 1. `main.py` starts
-2. Creates the main window
-3. Loads settings from last time
-4. Opens last file (if there was one)
+2. Makes the main window
+3. Loads settings
+4. Opens last file
 5. Shows the window
 
-### Typing in the Editor
+### Typing in Editor
 
 When you type:
 
-1. Text goes in the editor (left side)
-2. Timer waits 350ms (in case you type more)
-3. Timer triggers preview update
-4. Preview worker turns AsciiDoc into HTML
-5. HTML shows in preview (right side)
+1. Text goes in editor
+2. Timer waits 350ms
+3. Timer starts preview
+4. Preview worker makes HTML
+5. HTML shows on right
 
 ### Saving Files
 
 When you save:
 
 1. Get text from editor
-2. Write to a temp file first (for safety)
+2. Write to temp file first
 3. If that works, replace old file
 4. Show "saved" message
 5. Update window title
 
-### Git Operations
+### Git Work
 
 When you commit:
 
-1. Get commit message from you
-2. Run git commands in background
-3. Show progress message
-4. Show success or error
-5. Enable buttons again
+1. Get commit message
+2. Run git in background
+3. Show progress
+4. Show done or error
+5. Turn buttons back on
 
 ## Making Changes
 
 ### Code Style
 
 We use these rules:
-- **Line length**: 88 characters max
-- **Formatting**: Black formatter
+- **Line length**: 88 max
+- **Format**: Black
 - **Imports**: Sorted with isort
-- **Type hints**: Add them to functions
-- **Comments**: Explain the "why", not the "what"
+- **Type hints**: Add to functions
+- **Comments**: Explain the "why"
 
 ### Before You Code
 
-1. **Create a branch**:
+1. **Make a branch**:
 ```bash
 git checkout -b my-new-feature
 ```
@@ -166,27 +167,27 @@ git checkout -b my-new-feature
    - Keep commits small
    - Test as you go
 
-3. **Write clear commit messages**:
+3. **Write clear messages**:
 ```
-Good: "Add dark mode to settings dialog"
+Good: "Add dark mode to settings"
 Bad: "Fixed stuff"
 ```
 
-### Adding a New Feature
+### Adding New Features
 
-Let's say you want to add a "word count" feature:
+Say you want to add "word count":
 
-1. **Plan it out**:
+1. **Plan it**:
    - Where does it show? (status bar)
    - When does it update? (when you type)
-   - What does it count? (words, characters)
+   - What does it count? (words)
 
 2. **Write the code**:
 ```python
 # In main_window.py
 
 def update_word_count(self):
-    """Count words in the document."""
+    """Count words."""
     text = self.editor.toPlainText()
     words = len(text.split())
     self.status_bar.showMessage(f"Words: {words}")
@@ -203,9 +204,9 @@ self.editor.textChanged.connect(self.update_word_count)
    - Type some words
    - Check the count is right
    - Try empty file
-   - Try very large file
+   - Try big file
 
-### Code Formatting
+### Code Format
 
 Before you commit:
 
@@ -213,12 +214,12 @@ Before you commit:
 # Format all code
 make format
 
-# Or do it manually
+# Or do it by hand
 black src/
 isort src/
 ```
 
-### Checking Your Code
+### Check Your Code
 
 ```bash
 # Check for problems
@@ -234,50 +235,50 @@ mypy src/
 
 Always test these:
 1. Start the program
-2. Create new file
+2. Make new file
 3. Type some text
 4. Save the file
-5. Close and reopen
+5. Close and open again
 6. Check preview works
 7. Try dark mode
-8. Try Git features (if in Git folder)
+8. Try Git (if in Git folder)
 
-### Test Checklist
+### Test List
 
-- [ ] Program starts without errors
-- [ ] Can type in editor
+- [ ] Program starts
+- [ ] Can type
 - [ ] Preview updates
-- [ ] Can save file
-- [ ] Can open file
+- [ ] Can save
+- [ ] Can open
 - [ ] Dark mode works
-- [ ] Keyboard shortcuts work
-- [ ] Git commands work
-- [ ] Settings save correctly
+- [ ] Keys work
+- [ ] Git works
+- [ ] Settings save
 
-### Testing on Different Systems
+### Test on Different Systems
 
 If you can, test on:
 - Windows
 - Mac
 - Linux
 
-Each system might act differently!
+Each system acts different!
 
 ## Sending Your Changes
 
 ### Getting Ready
 
-1. **Make sure everything works**:
+1. **Make sure it works**:
 ```bash
 make lint
 make format
-python3 src/main.py  # Test it runs
+python3 src/main.py
 ```
 
 2. **Commit your changes**:
 ```bash
 git add .
-git commit -m "Add word count feature"
+git commit -m "Add word count"
 ```
 
 3. **Push to GitHub**:
@@ -285,39 +286,39 @@ git commit -m "Add word count feature"
 git push origin my-new-feature
 ```
 
-### Creating a Pull Request
+### Making a Pull Request
 
 1. Go to GitHub
 2. Click "Pull requests"
 3. Click "New pull request"
 4. Pick your branch
-5. Write a clear description:
+5. Write what you did:
    - What did you change?
    - Why did you change it?
    - How do you test it?
 6. Click "Create pull request"
 
-### Pull Request Description Template
+### Pull Request Template
 
 ```markdown
 ## What This Does
 
-Add word count feature to status bar
+Add word count to status bar
 
 ## Why
 
-Users asked for a way to see how many words they've written
+Users asked for word count
 
 ## How to Test
 
 1. Open the program
 2. Type some words
-3. Look at bottom of window
+3. Look at bottom
 4. Should see "Words: X"
 
 ## Screenshots
 
-(Add a picture if it helps)
+(Add a picture)
 ```
 
 ## Common Tasks
@@ -338,13 +339,13 @@ view_menu.addAction(self.word_count_act)
 
 ### Adding a Dialog
 
-1. Create new class in ui/dialogs.py:
+1. Make new class in ui/dialogs.py:
 ```python
 class WordCountDialog(QDialog):
     def __init__(self, word_count, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Word Count")
-        # Add widgets here
+        # Add stuff here
 ```
 
 2. Use it in main_window.py:
@@ -357,7 +358,7 @@ def show_word_count(self):
 
 ### Adding a Setting
 
-1. Add to Settings model in core/models.py:
+1. Add to Settings in core/models.py:
 ```python
 @dataclass
 class Settings:
@@ -374,16 +375,16 @@ if self._settings.show_word_count:
 
 Stuck? Try these:
 
-1. **Read the code**: Look at similar features
-2. **Check issues**: Someone might have asked before
-3. **Ask questions**: Create a GitHub issue
-4. **Read documentation**: Check docs/ folder
+1. **Read the code**: Look at similar parts
+2. **Check issues**: Someone might have asked
+3. **Ask questions**: Make a GitHub issue
+4. **Read docs**: Check docs/ folder
 
 ## Code Review Tips
 
 When your pull request is reviewed:
-- Don't take it personally - we all learn!
-- Ask questions if you don't understand
+- Don't take it hard - we all learn!
+- Ask questions if unclear
 - Make the changes they suggest
 - Say thanks!
 
@@ -393,13 +394,13 @@ When your pull request is reviewed:
 - **Small commits**: One feature at a time
 - **Clear messages**: Explain what and why
 - **Ask for help**: No question is too small
-- **Have fun**: We're building something cool!
+- **Have fun**: We're making something cool!
 
 ## Next Steps
 
-1. Look at "good first issue" tags on GitHub
+1. Look at "good first issue" tags
 2. Fix a small bug
 3. Add a simple feature
-4. Help improve documentation
+4. Help with docs
 
 Welcome to the team!
