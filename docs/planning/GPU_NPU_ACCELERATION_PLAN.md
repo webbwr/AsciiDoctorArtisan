@@ -46,7 +46,9 @@ The app is already fast:
 
 ### Tier 1: Easy Wins (Do First!)
 
-#### 1. Turn On GPU for Preview
+#### 1. Turn On GPU for Preview ✅ COMPLETE
+
+**Status**: ✅ **IMPLEMENTED - October 26, 2025**
 
 **What It Does**: Uses your graphics card to show HTML faster
 
@@ -56,20 +58,37 @@ The app is already fast:
 
 **Works On**: All computers with any GPU
 
-**Code Change**:
+**What Was Done**:
+- ✅ Replaced QTextBrowser with QWebEngineView
+- ✅ Enabled GPU acceleration in main_window.py (lines 459-467)
+- ✅ Added GPU settings in preview_handler.py (lines 61-79)
+- ✅ Updated scroll synchronization for QWebEngineView
+- ✅ Tested and verified working
+
+**Implementation Details**:
 ```python
-# File: src/asciidoc_artisan/ui/preview_handler.py
-# Add this in __init__ method
+# File: src/asciidoc_artisan/ui/main_window.py (line 457-467)
+self.preview = QWebEngineView(self)
 
-from PySide6.QtWebEngineCore import QWebEngineSettings
-
-# Turn on GPU acceleration
-settings = QWebEngineSettings.globalSettings()
-settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
-settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
+# Enable GPU acceleration
+preview_settings = self.preview.settings()
+preview_settings.setAttribute(
+    QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True
+)
+preview_settings.setAttribute(
+    QWebEngineSettings.WebAttribute.WebGLEnabled, True
+)
 ```
 
-**Time Needed**: 5 minutes
+**Time Taken**: 1 hour (full migration + testing)
+
+**Results**:
+- Application launches successfully
+- GPU acceleration confirmed in logs
+- No breaking changes
+- Falls back to software rendering if GPU unavailable
+
+**See**: `GPU_IMPLEMENTATION_SUMMARY.md` for complete details
 
 ---
 
