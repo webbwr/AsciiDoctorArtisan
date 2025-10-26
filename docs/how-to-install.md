@@ -27,7 +27,7 @@ chmod +x install-asciidoc-artisan.sh
 ./install-asciidoc-artisan.sh
 ```
 
-### For Windows 11:
+### For Windows:
 
 ```powershell
 # Get it
@@ -78,7 +78,7 @@ Python makes it work.
 **On Mac**:
 1. Open Terminal
 2. Type: `brew install python3`
-3. (No brew? Get from brew.sh first)
+3. No brew? Get it from brew.sh first
 
 **On Linux**:
 ```bash
@@ -99,7 +99,7 @@ cd AsciiDoctorArtisan
 
 **Other way (no Git)**:
 1. Go to github.com/webbwr/AsciiDoctorArtisan
-2. Click green "Code" button
+2. Click green "Code"
 3. Click "Download ZIP"
 4. Unzip file
 5. Remember where!
@@ -175,7 +175,7 @@ python3 src/main.py
 
 **If used installer**:
 ```bash
-# Turn on space
+# Turn on
 source venv/bin/activate    # Mac/Linux
 # OR
 .\venv\Scripts\Activate.ps1  # Windows
