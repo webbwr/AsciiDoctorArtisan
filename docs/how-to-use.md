@@ -43,17 +43,17 @@ Just type. Words show on left.
 
 ### Make Text Bold
 
-**Bold** - Use stars:
+**Bold** - Use stars
 ```
 *This is bold*
 ```
 
-**Italic** - Use lines:
+**Italic** - Use lines
 ```
-_This is italic_
+_This is italic*
 ```
 
-**Big Titles** - Use equal signs:
+**Big Titles** - Use equal signs
 ```
 = Big Title
 == Medium
@@ -62,14 +62,14 @@ _This is italic_
 
 ### Make Lists
 
-**Simple list** - Use stars:
+**Simple list** - Use stars
 ```
 * First
 * Second
 * Third
 ```
 
-**Number list** - Use numbers:
+**Number list** - Use numbers
 ```
 1. First
 2. Second
@@ -78,12 +78,12 @@ _This is italic_
 
 ### Add Links
 
-**Web link** - Type address:
+**Web link** - Type address
 ```
 https://www.example.com
 ```
 
-**Named link** - Add name:
+**Named link** - Add name
 ```
 https://www.example.com[Click Here]
 ```
