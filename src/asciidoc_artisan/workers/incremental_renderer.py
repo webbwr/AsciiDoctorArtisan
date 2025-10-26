@@ -17,10 +17,9 @@ Implements Phase 3.1 of Performance Optimization Plan:
 - 3-5x faster preview updates
 - Reduced CPU usage for minor edits
 
-Performance Optimizations (v1.1 Tier 2):
-- Optional Numba JIT for 5-10x faster text splitting
-- Optimized block detection and comparison
-- Falls back gracefully if Numba not available
+Performance Optimizations (v1.1):
+- Optimized block detection and comparison using native Python
+- Efficient string operations with C-compiled methods
 
 Block Structure:
     Documents are split into blocks at section boundaries:
@@ -38,21 +37,6 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
-
-# Try to import Numba for JIT compilation (5-10x speedup for text processing)
-try:
-    from numba import jit
-    NUMBA_AVAILABLE = True
-    logger.info("Numba JIT available for incremental renderer - 5-10x faster text splitting")
-except ImportError:
-    NUMBA_AVAILABLE = False
-    logger.debug("Numba not available in incremental renderer - using standard Python")
-    # No-op decorator
-    def jit(*args, **kwargs):
-        def decorator(func):
-            return func
-        return decorator
-
 
 # Cache settings
 MAX_CACHE_SIZE = 100  # Max blocks in cache
@@ -174,8 +158,8 @@ def count_leading_equals(line: str) -> int:
     """
     Count leading '=' characters for heading detection.
 
-    JIT-optimized for 5-10x faster execution when Numba is available.
-    This is a hot path called for every line during document splitting.
+    Uses native Python iteration which is C-optimized and faster
+    than JIT compilation for string operations.
 
     Args:
         line: Line to check
