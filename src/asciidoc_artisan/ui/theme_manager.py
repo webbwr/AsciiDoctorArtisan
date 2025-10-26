@@ -1,6 +1,9 @@
 """
 Theme Manager - Handles theme and appearance management for AsciiDoc Artisan.
 
+Implements:
+- FR-041: Dark mode toggle (Ctrl+D) with persistence
+
 This module manages dark/light theme switching and color palette configuration,
 extracted from main_window.py as part of Phase 2 architectural refactoring.
 

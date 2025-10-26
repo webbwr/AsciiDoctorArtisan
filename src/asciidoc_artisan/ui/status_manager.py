@@ -1,6 +1,10 @@
 """
 Status Manager - Handles status bar and UI feedback for AsciiDoc Artisan.
 
+Implements:
+- FR-045: Status bar with contextual messages
+- FR-051: Window title (filename with unsaved indicator)
+
 This module manages status messages, window titles, and user notifications,
 extracted from main_window.py as part of Phase 2 architectural refactoring.
 

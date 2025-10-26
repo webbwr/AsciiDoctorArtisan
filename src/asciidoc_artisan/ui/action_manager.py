@@ -1,6 +1,10 @@
 """
 Action Manager - Manage all QAction objects for menu and toolbar integration.
 
+Implements:
+- FR-048: Keyboard shortcuts (platform-appropriate)
+- FR-053: Complete keyboard shortcut list
+
 This module handles:
 - Creating all QAction objects for File, Edit, View, Git, Tools, and Help menus
 - Managing action state (enabled/disabled, checked/unchecked)
