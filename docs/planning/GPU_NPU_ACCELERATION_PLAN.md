@@ -283,10 +283,12 @@ N/A = Not applicable
 
 ### Tier 1 Changes
 
-1. **Enable GPU Preview**
+1. **Enable GPU Preview** - ✅ **COMPLETE**
+   - File: `src/asciidoc_artisan/ui/main_window.py`
+   - Lines: 70-71 (imports), 457-467 (GPU settings)
    - File: `src/asciidoc_artisan/ui/preview_handler.py`
-   - Line: 46-58 (in `__init__` method)
-   - Change: Add GPU settings
+   - Lines: 21 (import), 61-79 (GPU settings with type check)
+   - Status: Implemented and tested October 26, 2025
 
 2. **Better PDF Reader**
    - File: `src/document_converter.py`
