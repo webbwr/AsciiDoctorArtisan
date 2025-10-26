@@ -39,21 +39,21 @@ It helps you write docs.
 
 ### Type Words
 
-Just type! Words show on left side.
+Just type. Words show on left.
 
 ### Make Text Bold
 
-**Bold**: Use stars
+**Bold** - Use stars:
 ```
 *This is bold*
 ```
 
-**Italic**: Use lines
+**Italic** - Use lines:
 ```
 _This is italic_
 ```
 
-**Big Titles**: Use equal signs
+**Big Titles** - Use equal signs:
 ```
 = Big Title
 == Medium
