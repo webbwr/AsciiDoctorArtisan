@@ -64,10 +64,11 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSplitter,
     QStatusBar,
-    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWebEngineCore import QWebEngineSettings
 
 # Import from refactored modules
 from asciidoc_artisan.core import (
