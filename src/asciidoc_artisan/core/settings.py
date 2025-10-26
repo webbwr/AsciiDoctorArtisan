@@ -27,7 +27,7 @@ class Settings:
 
     Attributes match the specification in SPECIFICATIONS.md (v1.2.0).
 
-    All 11 fields:
+    All 13 fields:
     - last_directory: Last directory used for file operations
     - last_file: Last opened document path
     - git_repo_path: Detected Git repository root
@@ -39,6 +39,8 @@ class Settings:
     - auto_save_enabled: Auto-save feature toggle
     - auto_save_interval: Auto-save interval in seconds
     - ai_conversion_enabled: Deprecated (cloud AI removed in v1.2.0)
+    - ollama_enabled: Enable Ollama AI integration (v1.1+)
+    - ollama_model: Selected Ollama AI model name (v1.1+)
 
     Security Note:
         Settings are stored locally only. No data is sent to cloud services.
