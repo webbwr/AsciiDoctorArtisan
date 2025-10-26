@@ -222,11 +222,17 @@ function Test-CommandExists {
     return $false
 }
 
-# Main Installation Process
+################################################################################
+# MAIN INSTALLATION PROCESS
+################################################################################
 
-# Step 1: Check PowerShell Version
+################################################################################
+# STEP 1: CHECK POWERSHELL VERSION
+# Requires PowerShell 7.0+ for modern cmdlets and error handling
+################################################################################
 Write-Header "Step 1: Checking PowerShell Version"
 
+# Check if PowerShell version meets minimum requirement
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-ErrorMsg "This script requires PowerShell 7.0 or higher"
     Write-Host "`nCurrent version: $($PSVersionTable.PSVersion)" -ForegroundColor Red
@@ -236,13 +242,19 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
 Write-Success "PowerShell $($PSVersionTable.PSVersion) detected"
 
-# Step 2: Check Windows Version
+################################################################################
+# STEP 2: CHECK WINDOWS VERSION
+# Detects Windows version and warns if not Windows 11
+################################################################################
 Write-Header "Step 2: Checking Windows Version"
 
+# Get OS information using CIM (Common Information Model)
 $osInfo = Get-CimInstance Win32_OperatingSystem
-$osVersion = $osInfo.Caption
+$osVersion = $osInfo.Caption  # e.g., "Microsoft Windows 11 Pro"
 Write-Success "$osVersion detected"
 
+# Warn if not Windows 11 (build 22000+)
+# App should work on Windows 10, but Windows 11 is recommended
 if ($osInfo.BuildNumber -lt 22000) {
     Write-WarningMsg "Windows 11 recommended (Build 22000+), detected Build $($osInfo.BuildNumber)"
 }
