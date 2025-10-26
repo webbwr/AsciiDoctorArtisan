@@ -365,8 +365,12 @@ The program MUST stop dangerous paths.
 
 The program MUST use:
 - PySide6 6.9.0+ for windows
-- asciidoc3 10.2.1+ for HTML
-- pypandoc 1.13+ for file changes
+- asciidoc3 3.2.0+ for HTML
+- pypandoc 1.11+ for file changes
+- pdfplumber 0.10.0+ for PDF reading
+- anthropic 0.40.0+ for AI help
+- keyring 24.0.0+ for safe keys
+- psutil 5.9.0+ for system check
 - Pandoc for conversions
 - wkhtmltopdf for PDF
 

@@ -5,16 +5,22 @@
 PySide6>=6.9.0
 
 # AsciiDoc rendering engine
-asciidoc3
+asciidoc3>=3.2.0
 
 # Document conversion (DOCX, clipboard, etc.)
-pypandoc
+pypandoc>=1.11
 
 # PDF text extraction
 pdfplumber>=0.10.0
 
 # AI-enhanced format conversion
 anthropic>=0.40.0
+
+# Secure credential storage
+keyring>=24.0.0
+
+# System resource monitoring
+psutil>=5.9.0
 
 # Testing (development)
 pytest>=7.4.0
