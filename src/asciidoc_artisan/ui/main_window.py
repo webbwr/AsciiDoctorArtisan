@@ -510,12 +510,10 @@ class AsciiDocEditor(QMainWindow):
         Set up synchronized scrolling between editor and preview.
 
         Implements FR-043 with scroll loop protection and event coalescing.
+        Note: QWebEngineView uses JavaScript for scroll synchronization.
         """
         editor_scrollbar = self.editor.verticalScrollBar()
-        preview_scrollbar = self.preview.verticalScrollBar()
-
         editor_scrollbar.valueChanged.connect(self._sync_editor_to_preview)
-        preview_scrollbar.valueChanged.connect(self._sync_preview_to_editor)
 
         # Initialize scroll sync tracking
         self._last_editor_scroll = 0
