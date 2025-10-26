@@ -4,6 +4,8 @@ Status Manager - Handles status bar and UI feedback for AsciiDoc Artisan.
 Implements:
 - FR-045: Status bar with contextual messages
 - FR-051: Window title (filename with unsaved indicator)
+- Document metrics: version, word count, grade level
+- AI status indicator
 
 This module manages status messages, window titles, and user notifications,
 extracted from main_window.py as part of Phase 2 architectural refactoring.
@@ -11,9 +13,11 @@ extracted from main_window.py as part of Phase 2 architectural refactoring.
 The StatusManager provides centralized UI feedback management.
 """
 
-from typing import TYPE_CHECKING
+import re
+from typing import TYPE_CHECKING, Optional
 
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QLabel, QMessageBox
 
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME
 
@@ -26,7 +30,7 @@ class StatusManager:
     """Manages status display and UI feedback for AsciiDoc Artisan.
 
     This class encapsulates all status bar, window title, and message dialog
-    functionality.
+    functionality, plus document metrics display.
 
     Args:
         editor: Reference to the main AsciiDocEditor window
@@ -35,6 +39,24 @@ class StatusManager:
     def __init__(self, editor: "AsciiDocEditor") -> None:
         """Initialize the StatusManager with a reference to the main editor."""
         self.editor = editor
+
+        # Create permanent status bar widgets (right side)
+        self.version_label = QLabel("")
+        self.word_count_label = QLabel("Words: 0")
+        self.grade_level_label = QLabel("Grade: --")
+        self.ai_status_label = QLabel("")
+
+        # Style the labels
+        for label in [self.version_label, self.word_count_label,
+                     self.grade_level_label, self.ai_status_label]:
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setMinimumWidth(80)
+
+        # Add widgets to status bar (right side, permanent)
+        self.editor.status_bar.addPermanentWidget(self.version_label)
+        self.editor.status_bar.addPermanentWidget(self.word_count_label)
+        self.editor.status_bar.addPermanentWidget(self.grade_level_label)
+        self.editor.status_bar.addPermanentWidget(self.ai_status_label)
 
     def update_window_title(self) -> None:
         """Update the window title based on current file and save status."""
@@ -107,3 +129,127 @@ class StatusManager:
             return True
         else:
             return False
+
+    def extract_document_version(self, text: str) -> Optional[str]:
+        """Extract document version from AsciiDoc attributes.
+
+        Looks for :revnumber:, :version:, or :rev: attributes.
+
+        Args:
+            text: AsciiDoc document content
+
+        Returns:
+            Version string or None if not found
+        """
+        # Try various version attribute patterns
+        patterns = [
+            r'^:revnumber:\s*(.+)$',
+            r'^:version:\s*(.+)$',
+            r'^:rev:\s*(.+)$',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text, re.MULTILINE | re.IGNORECASE)
+            if match:
+                return match.group(1).strip()
+
+        return None
+
+    def count_words(self, text: str) -> int:
+        """Count words in document content.
+
+        Args:
+            text: Document content
+
+        Returns:
+            Word count
+        """
+        # Remove AsciiDoc attributes and comments
+        text = re.sub(r'^:.*?:.*?$', '', text, flags=re.MULTILINE)
+        text = re.sub(r'^//.*?$', '', text, flags=re.MULTILINE)
+
+        # Split on whitespace and count
+        words = text.split()
+        return len(words)
+
+    def calculate_grade_level(self, text: str) -> float:
+        """Calculate Flesch-Kincaid grade level.
+
+        Args:
+            text: Document content
+
+        Returns:
+            Grade level (e.g., 5.23 = 5th grade reading level)
+        """
+        # Remove AsciiDoc markup
+        text = re.sub(r'^:.*?:.*?$', '', text, flags=re.MULTILINE)
+        text = re.sub(r'^//.*?$', '', text, flags=re.MULTILINE)
+        text = re.sub(r'^\[.*?\]$', '', text, flags=re.MULTILINE)
+        text = re.sub(r'\*\*|__|\*|_|`', '', text)
+
+        # Count sentences (. ! ?)
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        num_sentences = len(sentences)
+
+        if num_sentences == 0:
+            return 0.0
+
+        # Count words
+        words = text.split()
+        num_words = len(words)
+
+        if num_words == 0:
+            return 0.0
+
+        # Count syllables (simplified: vowel groups)
+        num_syllables = 0
+        for word in words:
+            word = word.lower()
+            syllable_count = len(re.findall(r'[aeiouy]+', word))
+            # Adjust for silent e
+            if word.endswith('e'):
+                syllable_count -= 1
+            # Minimum 1 syllable per word
+            num_syllables += max(1, syllable_count)
+
+        # Flesch-Kincaid Grade Level formula
+        # 0.39 * (total words / total sentences) + 11.8 * (total syllables / total words) - 15.59
+        grade = 0.39 * (num_words / num_sentences) + 11.8 * (num_syllables / num_words) - 15.59
+
+        return round(max(0.0, grade), 2)
+
+    def update_document_metrics(self) -> None:
+        """Update all document metrics in status bar."""
+        text = self.editor.editor.toPlainText()
+
+        # Update version
+        version = self.extract_document_version(text)
+        if version:
+            self.version_label.setText(f"v{version}")
+        else:
+            self.version_label.setText("")
+
+        # Update word count
+        word_count = self.count_words(text)
+        self.word_count_label.setText(f"Words: {word_count}")
+
+        # Update grade level
+        if word_count > 0:
+            grade = self.calculate_grade_level(text)
+            self.grade_level_label.setText(f"Grade: {grade}")
+        else:
+            self.grade_level_label.setText("Grade: --")
+
+    def set_ai_active(self, active: bool) -> None:
+        """Set AI status indicator.
+
+        Args:
+            active: True if AI is active, False otherwise
+        """
+        if active:
+            self.ai_status_label.setText("🤖 AI")
+            self.ai_status_label.setToolTip("Local AI (Ollama) is active")
+        else:
+            self.ai_status_label.setText("")
+            self.ai_status_label.setToolTip("")

@@ -622,6 +622,9 @@ class AsciiDocEditor(QMainWindow):
         self._unsaved_changes = True
         self.status_manager.update_window_title()
 
+        # Update document metrics (version, word count, grade level)
+        self.status_manager.update_document_metrics()
+
         # Calculate adaptive debounce interval based on document size
         text = self.editor.toPlainText()
         debounce_ms = self.resource_monitor.calculate_debounce_interval(text)
