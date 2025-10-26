@@ -15,8 +15,12 @@ NC='\033[0m' # No Color
 PYTHON_MIN_VERSION="3.11"
 REQUIRED_PYTHON_PACKAGES=(
     "PySide6>=6.9.0"
-    "asciidoc3>=10.2.1"
-    "pypandoc>=1.13"
+    "asciidoc3>=3.2.0"
+    "pypandoc>=1.11"
+    "pdfplumber>=0.10.0"
+    "anthropic>=0.40.0"
+    "keyring>=24.0.0"
+    "psutil>=5.9.0"
 )
 
 # Track validation results

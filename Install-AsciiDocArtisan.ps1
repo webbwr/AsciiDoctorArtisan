@@ -36,9 +36,13 @@ param(
 # Configuration
 $PYTHON_MIN_VERSION = "3.11"
 $REQUIRED_PACKAGES = @(
-    @{ Name = "PySide6";   VersionSpec = ">=6.9.0" }
-    @{ Name = "asciidoc3"; VersionSpec = ">=10.2.1" }
-    @{ Name = "pypandoc";  VersionSpec = ">=1.13" }
+    @{ Name = "PySide6";     VersionSpec = ">=6.9.0" }
+    @{ Name = "asciidoc3";   VersionSpec = ">=3.2.0" }
+    @{ Name = "pypandoc";    VersionSpec = ">=1.11" }
+    @{ Name = "pdfplumber";  VersionSpec = ">=0.10.0" }
+    @{ Name = "anthropic";   VersionSpec = ">=0.40.0" }
+    @{ Name = "keyring";     VersionSpec = ">=24.0.0" }
+    @{ Name = "psutil";      VersionSpec = ">=5.9.0" }
 )
 
 # Track validation
