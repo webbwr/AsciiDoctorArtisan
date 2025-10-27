@@ -148,14 +148,17 @@ check_dependencies() {
     # Activate virtual environment
     source "$VENV_DIR/bin/activate"
 
-    REQUIRED_PACKAGES=("PySide6" "asciidoc3" "pypandoc" "pymupdf")
-    OPTIONAL_PACKAGES=("numba")
+    # Map of package names to their import names
+    # Format: "package_name:import_name"
+    REQUIRED_PACKAGES=("PySide6:PySide6" "asciidoc3:asciidoc3" "pypandoc:pypandoc" "pymupdf:fitz")
+    OPTIONAL_PACKAGES=("numba:numba")
     MISSING_PACKAGES=()
     MISSING_OPTIONAL=()
 
-    for package in "${REQUIRED_PACKAGES[@]}"; do
-        log_debug "Checking for $package..."
-        if ! python3 -c "import ${package,,}" &> /dev/null; then
+    for package_spec in "${REQUIRED_PACKAGES[@]}"; do
+        IFS=':' read -r package import_name <<< "$package_spec"
+        log_debug "Checking for $package (import as $import_name)..."
+        if ! python3 -c "import $import_name" &> /dev/null; then
             MISSING_PACKAGES+=("$package")
             log_error "Missing required package: $package"
         else
@@ -163,9 +166,10 @@ check_dependencies() {
         fi
     done
 
-    for package in "${OPTIONAL_PACKAGES[@]}"; do
-        log_debug "Checking for optional package: $package..."
-        if ! python3 -c "import ${package,,}" &> /dev/null; then
+    for package_spec in "${OPTIONAL_PACKAGES[@]}"; do
+        IFS=':' read -r package import_name <<< "$package_spec"
+        log_debug "Checking for optional package: $package (import as $import_name)..."
+        if ! python3 -c "import $import_name" &> /dev/null; then
             MISSING_OPTIONAL+=("$package")
             log_info "Optional package not installed: $package (performance may be reduced)"
         else
