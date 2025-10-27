@@ -1,52 +1,85 @@
 # AsciiDoc Artisan - Production Requirements
-# These are the exact versions tested and verified for production use
-# Last updated: 2025-10-26
+# Version: 1.4.0-beta
+# Last updated: 2025-10-27
+# Python 3.11+ required
+#
+# These are pinned versions tested and verified for production use.
+# For development, use requirements.txt with flexible version ranges.
 
-# Core GUI Framework
+# ============================================================================
+# CORE GUI FRAMEWORK
+# ============================================================================
 # PySide6 is the official Qt for Python binding
-# Note: PySide6-Addons includes QWebEngineView for GPU-accelerated HTML preview
+# PySide6-Addons includes QWebEngineView (GPU-accelerated preview rendering)
+# PySide6-Essentials includes core Qt modules
+# GPU acceleration is automatic with proper graphics drivers installed
+
 PySide6==6.9.0
 PySide6-Addons==6.9.0
 PySide6-Essentials==6.9.0
 
+# ============================================================================
+# DOCUMENT PROCESSING
+# ============================================================================
+
 # AsciiDoc Processing
-# asciidoc3 is the Python 3 port of AsciiDoc
 asciidoc3==3.2.3
 
-# Document Conversion
-# pypandoc provides Python wrapper for Pandoc
-pypandoc>=1.13
-# Note: Pandoc itself must be installed separately via system package manager
+# Document Conversion (requires Pandoc system binary)
+pypandoc==1.13
 
-# PDF Text Extraction (v1.1 GPU optimization)
-# PyMuPDF provides 3-5x faster PDF extraction with GPU acceleration
-pymupdf>=1.23.0
+# PDF Text Extraction (GPU optimized)
+pymupdf==1.23.0
 
-# Secure Credential Storage (v1.1 security feature)
-# keyring provides OS-level secure credential storage
-keyring>=24.3.0
+# ============================================================================
+# SYSTEM INTEGRATION
+# ============================================================================
 
-# System Resource Monitoring (v1.1 Phase 4 feature)
-# psutil provides cross-platform system and process monitoring
-psutil>=5.9.0
+# Secure Credential Storage (OS keyring)
+keyring==24.3.0
 
-# Local AI Integration (v1.1 Ollama feature)
-# ollama provides Python client for Ollama local AI
-ollama>=0.4.0
+# System Resource Monitoring
+psutil==5.9.0
 
-# Optional but recommended for better performance
-# MarkupSafe provides faster HTML escaping
+# Local AI Integration (document conversion)
+# Note: Requires Ollama system binary
+ollama==0.4.0
+
+# ============================================================================
+# PERFORMANCE OPTIMIZATION
+# ============================================================================
+
+# Faster HTML escaping
 MarkupSafe==2.1.3
 
-# For development/testing (optional)
-# pytest==7.4.3
-# pytest-qt==4.2.0
-# pytest-cov==4.1.0
-
-# For building executables (optional)
-# pyinstaller==6.3.0
-
-# For code quality (optional)
-# black==23.12.0
-# ruff==0.1.9
-# mypy==1.8.0
+# ============================================================================
+# SYSTEM DEPENDENCIES (Install separately)
+# ============================================================================
+#
+# Required system packages:
+# - pandoc (document conversion): sudo apt install pandoc
+# - wkhtmltopdf (PDF export): sudo apt install wkhtmltopdf
+# - git (version control): sudo apt install git
+#
+# Optional system packages:
+# - ollama (AI features): curl https://ollama.ai/install.sh | sh
+#
+# GPU/NPU Acceleration (v1.4.0):
+# Hardware acceleration is automatic when graphics drivers are installed:
+# - NVIDIA: Windows NVIDIA drivers (WSL2 with GPU passthrough)
+# - AMD: ROCm drivers (sudo apt install rocm-smi)
+# - Intel GPU: Mesa drivers (typically pre-installed)
+# - Intel NPU: OpenVINO toolkit (optional, for AI acceleration)
+#
+# Verify GPU: nvidia-smi (NVIDIA), rocm-smi (AMD), glxinfo (Intel)
+#
+# ============================================================================
+# REMOVED DEPENDENCIES
+# ============================================================================
+#
+# As of v1.4.0, grammar checking has been removed:
+# - language-tool-python (removed 2025-10-27)
+#
+# Reasoning: Grammar functionality caused performance issues and has been
+# deprecated in favor of external tools.
+#

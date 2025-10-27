@@ -1,31 +1,71 @@
 # AsciiDoc Artisan Python Dependencies
-# Python 3.11+ recommended for best PySide6 compatibility
+# Version: 1.4.0-beta
+# Last updated: 2025-10-27
+# Python 3.11+ required
 
-# Core Qt bindings for GUI
+# ============================================================================
+# CORE DEPENDENCIES (Required for all installations)
+# ============================================================================
+
+# Core Qt bindings for GUI (PySide6 6.9.0+ required for latest features)
 PySide6>=6.9.0
 
 # AsciiDoc rendering engine
 asciidoc3>=3.2.0
 
 # Document conversion (DOCX, clipboard, etc.)
-pypandoc>=1.11
+# Note: Requires Pandoc system binary (install via: sudo apt install pandoc)
+pypandoc>=1.13
 
 # PDF text extraction (v1.1 GPU optimization)
 # PyMuPDF provides 3-5x faster PDF extraction with GPU acceleration
 pymupdf>=1.23.0
 
-# Secure credential storage
+# Secure credential storage (OS keyring integration)
 keyring>=24.0.0
 
-# System resource monitoring
+# System resource monitoring (CPU, memory tracking)
 psutil>=5.9.0
 
-# Grammar checking (LanguageTool + Ollama integration)
-language-tool-python>=2.9.0
-ollama>=0.1.0
+# AI document conversion (Ollama integration)
+# Note: Requires Ollama system binary for local AI features
+ollama>=0.4.0
 
-# Testing (development)
+# ============================================================================
+# DEVELOPMENT DEPENDENCIES (Optional - for testing and code quality)
+# ============================================================================
+
+# Testing framework
 pytest>=7.4.0
 pytest-qt>=4.2.0
 pytest-cov>=4.1.0
 pytest-mock>=3.12.0
+
+# Code formatting and linting
+black>=23.0.0
+ruff>=0.1.0
+isort>=5.12.0
+
+# Type checking
+mypy>=1.5.0
+types-setuptools>=68.0.0
+
+# Pre-commit hooks
+pre-commit>=3.0.0
+
+# ============================================================================
+# NOTES
+# ============================================================================
+#
+# GPU/NPU ACCELERATION (v1.4.0):
+# Hardware acceleration is built into PySide6 and automatically detected.
+# No additional Python packages required. System requirements:
+# - NVIDIA GPU: Windows NVIDIA drivers (WSL2 GPU passthrough)
+# - AMD GPU: ROCm drivers
+# - Intel GPU/NPU: Mesa drivers, OpenVINO (optional)
+#
+# REMOVED FUNCTIONALITY:
+# - Grammar checking (language-tool-python) removed as of v1.4.0
+#
+# For production use, see requirements-production.txt for pinned versions
+#

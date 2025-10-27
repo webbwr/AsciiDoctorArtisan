@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asciidoc-artisan"
-version = "1.3.0-beta"
-description = "A modern, feature-rich AsciiDoc editor with live preview"
+version = "1.4.0-beta"
+description = "A modern AsciiDoc editor with GPU-accelerated live preview and AI-powered document conversion"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "webbwr", email = "webbwr@users.noreply.github.com"}
 ]
-keywords = ["asciidoc", "editor", "documentation", "markdown", "preview"]
+keywords = ["asciidoc", "editor", "documentation", "markdown", "preview", "gpu", "hardware-acceleration"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -31,9 +31,10 @@ dependencies = [
     "PySide6>=6.9.0",
     "asciidoc3>=3.2.0",
     "pypandoc>=1.13",
-    "pdfplumber>=0.10.0",
+    "pymupdf>=1.23.0",
     "keyring>=24.0.0",
     "psutil>=5.9.0",
+    "ollama>=0.4.0",
 ]
 
 [project.optional-dependencies]
