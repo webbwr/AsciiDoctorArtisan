@@ -29,7 +29,7 @@ asciidoc3==3.2.3
 pypandoc==1.13
 
 # PDF Text Extraction (GPU optimized)
-pymupdf==1.23.0
+pymupdf==1.26.5
 
 # ============================================================================
 # SYSTEM INTEGRATION
