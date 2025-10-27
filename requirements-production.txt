@@ -11,11 +11,11 @@ PySide6-Essentials==6.9.0
 
 # AsciiDoc Processing
 # asciidoc3 is the Python 3 port of AsciiDoc
-asciidoc3==3.2.0
+asciidoc3==3.2.3
 
 # Document Conversion
 # pypandoc provides Python wrapper for Pandoc
-pypandoc==1.11
+pypandoc>=1.13
 # Note: Pandoc itself must be installed separately via system package manager
 
 # PDF Text Extraction (v1.1 GPU optimization)

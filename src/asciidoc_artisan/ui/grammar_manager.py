@@ -277,7 +277,7 @@ class GrammarManager:
     def _load_ollama_config(self):
         """Load Ollama configuration from settings."""
         try:
-            settings = self.editor.settings_manager.settings
+            settings = self.editor._settings
             ollama_enabled = getattr(settings, "ollama_grammar_enabled", False)
             ollama_model = getattr(settings, "ollama_model", "gnokit/improve-grammar")
 
@@ -292,6 +292,63 @@ class GrammarManager:
     # ========================================================================
     # PUBLIC API - ENABLE/DISABLE
     # ========================================================================
+
+    def check_now(self):
+        """Manually trigger grammar check immediately."""
+        if not self._enabled:
+            self.enable_grammar_checking(True)
+        self._trigger_languagetool_check()
+        logger.info("Manual grammar check triggered")
+
+    def toggle_auto_check(self, checked: bool):
+        """Toggle automatic grammar checking on/off.
+
+        Args:
+            checked: True to enable auto-checking, False to disable
+        """
+        self.enable_grammar_checking(checked)
+
+    def navigate_to_next_issue(self):
+        """Navigate cursor to next grammar issue."""
+        if not self._current_suggestions:
+            self._update_status("No grammar issues to navigate", timeout=2000)
+            return
+
+        cursor = self.editor.editor.textCursor()
+        current_pos = cursor.position()
+
+        # Find next suggestion after current position
+        next_suggestion = None
+        for suggestion in self._current_suggestions:
+            if suggestion.start > current_pos:
+                next_suggestion = suggestion
+                break
+
+        # If no suggestion after cursor, wrap to first
+        if not next_suggestion and self._current_suggestions:
+            next_suggestion = self._current_suggestions[0]
+
+        if next_suggestion:
+            # Move cursor to suggestion
+            cursor.setPosition(next_suggestion.start)
+            cursor.setPosition(next_suggestion.end, QTextCursor.MoveMode.KeepAnchor)
+            self.editor.editor.setTextCursor(cursor)
+            self.editor.editor.ensureCursorVisible()
+
+            # Show tooltip
+            self.show_suggestion_at_cursor()
+            logger.debug(f"Navigated to issue at position {next_suggestion.start}")
+
+    def ignore_current_suggestion(self):
+        """Ignore grammar suggestion at current cursor position."""
+        cursor = self.editor.editor.textCursor()
+        pos = cursor.position()
+
+        suggestion = self._find_suggestion_at_position(pos)
+        if suggestion:
+            self._ignore_suggestion(suggestion)
+        else:
+            self._update_status("No grammar issue at cursor", timeout=2000)
 
     def enable_grammar_checking(self, enabled: bool):
         """Enable or disable grammar checking.
