@@ -416,7 +416,7 @@ class PDFExtractor:
 
         Enhancements (v1.1):
         - GPU-accelerated when PyMuPDF is used
-        - JIT-optimized cell processing (10-50x faster with Numba)
+        - Optimized cell processing with native Python
         - Detects empty rows and skips them
         - Normalizes column count across rows
         - Handles None values gracefully

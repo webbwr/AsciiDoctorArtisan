@@ -11,7 +11,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **asciidoc3 3.2.0+**: AsciiDoc to HTML conversion
 - **pypandoc 1.13+**: Multi-format document conversion (requires Pandoc system binary)
 - **pymupdf 1.23.0+**: Fast PDF reading (3-5x faster than pdfplumber)
-- **numba 0.58.0+**: Optional JIT compilation for performance-critical loops (10-50x speedup)
 - **wkhtmltopdf**: System binary for PDF generation
 - **Python 3.11+**: Minimum version (3.12 recommended for best performance)
 
@@ -125,7 +124,7 @@ src/asciidoc_artisan/
 │   ├── git_worker.py           # Git operations (pull, commit, push)
 │   ├── pandoc_worker.py        # Document format conversion
 │   ├── preview_worker.py       # AsciiDoc → HTML rendering
-│   ├── incremental_renderer.py # Partial document rendering (Numba-optimized)
+│   ├── incremental_renderer.py # Partial document rendering (optimized)
 │   └── optimized_worker_pool.py # Worker thread pool management
 ├── conversion/                 # Format conversion utilities
 ├── git/                        # Git integration utilities
@@ -249,7 +248,7 @@ Hooks run: black, isort, ruff, trailing whitespace checks
 - **Subprocess:** Git commands in `git_worker.py`
 - **Format conversion:** Pandoc calls in `pandoc_worker.py`
 - **Settings I/O:** Load/save in `settings.py`
-- **Performance hot paths:** GPU settings (`preview_handler.py`), PyMuPDF (`document_converter.py`), Numba JIT functions
+- **Performance hot paths:** GPU settings (`preview_handler.py`), PyMuPDF (`document_converter.py`)
 - **Reentrancy guards:** Any code modifying `_is_processing_*` flags
 
 **Medium-risk areas:**
@@ -279,19 +278,17 @@ The application includes several performance-critical code paths:
 - **Tech:** Uses `fitz.open()` (PyMuPDF) instead of pdfplumber
 - **Benefits:** Faster parsing, lower memory usage, GPU acceleration where supported
 
-**3. Numba JIT Compilation (10-50x speedup)**
+**3. Optimized String Processing**
 - **Table cell processing:** `src/document_converter.py:387-426` (`_clean_cell()`)
 - **Text splitting:** `workers/incremental_renderer.py:173-202` (`count_leading_equals()`)
-- **Requirements:** Numba must be installed and function must be Numba-compatible
-- **Fallback:** Pure Python implementation if Numba unavailable
+- **Tech:** Native Python string operations (C-optimized)
 - **Note:** Called in tight loops (every table cell, every line)
 
 **When modifying hot paths:**
 1. Profile before/after changes
-2. Test with Numba installed and uninstalled
-3. Verify GPU fallback still works
-4. Check logs show correct optimization status
-5. Run benchmark scripts: `benchmark_performance.py`, `benchmark_numba.py`
+2. Verify GPU fallback still works
+3. Check logs show correct optimization status
+4. Run benchmark scripts: `benchmark_performance.py`
 
 ## Important Files Reference
 
@@ -424,7 +421,7 @@ make format                  # Auto-fix formatting issues
 
 - **Verbose logging:** Set `logging.basicConfig(level=logging.DEBUG)` in `main.py`
 - **Qt debug:** Run with `QT_LOGGING_RULES="*.debug=true"`
-- **Profile performance:** Use `benchmark_performance.py` or `benchmark_numba.py`
+- **Profile performance:** Use `benchmark_performance.py`
 - **Memory profiling:** Use `memory_profile.py`
 
 ## Additional Resources

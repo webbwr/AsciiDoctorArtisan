@@ -191,9 +191,9 @@ class DocumentBlockSplitter:
     Split AsciiDoc document into blocks for incremental rendering.
 
     Optimized (v1.1 Tier 2):
-    - JIT-compiled heading detection (5-10x faster with Numba)
     - Efficient line-by-line processing
     - Minimal regex usage
+    - C-optimized native Python string operations
 
     Splits on:
     - Document title (= Title)

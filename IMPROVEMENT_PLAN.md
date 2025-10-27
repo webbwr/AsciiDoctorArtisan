@@ -62,7 +62,7 @@ python -c "import asciidoc_artisan; print(asciidoc_artisan.__file__)"
 ### 2. Add Missing Dependencies to Requirements
 
 **Status:** CRITICAL
-**Issue:** `pymupdf` and `numba` imported but not in requirements files
+**Issue:** `pymupdf` imported but not in requirements files
 
 **Files Affected:**
 - `requirements-production.txt`
@@ -72,9 +72,6 @@ python -c "import asciidoc_artisan; print(asciidoc_artisan.__file__)"
 ```python
 # src/document_converter.py:299
 import fitz  # PyMuPDF - NOT IN REQUIREMENTS
-
-# src/asciidoc_artisan/workers/incremental_renderer.py:173
-from numba import jit  # NOT IN REQUIREMENTS
 ```
 
 **Solution:**
@@ -85,17 +82,16 @@ Edit `requirements-production.txt`:
  asciidoc3>=3.2.0
  pypandoc>=1.15
 +pymupdf>=1.23.0  # Fast PDF reading (3-5x speedup)
-+numba>=0.58.0    # Optional: JIT compilation (10-50x speedup for tables)
  keyring>=25.6.0
  psutil>=7.1.2
  ollama>=0.6.0    # Optional: Local AI conversions
 ```
 
-**Estimated Time:** 30 minutes
+**Estimated Time:** 15 minutes
 **Validation:**
 ```bash
 pip install -r requirements-production.txt
-python -c "import fitz, numba; print('All dependencies installed')"
+python -c "import fitz; print('PyMuPDF installed')"
 ```
 
 ---
@@ -118,9 +114,16 @@ Edit `requirements.txt`:
  ollama>=0.6.0
 ```
 
+Edit `requirements-production.txt`:
+```diff
+-pymupdf>=1.23.0
++PyMuPDF>=1.23.0  # Correct package name
+```
+
 **Validation:**
 ```bash
 grep -r "import anthropic" src/  # Should return 0 results
+pip install -r requirements-production.txt  # Should work
 ```
 
 **Estimated Time:** 15 minutes
@@ -150,6 +153,7 @@ make lint
 - Import sorting (8 files)
 - F-string cleanup (3 files)
 - Black formatting (42 files)
+- Remove numba references (code and docs)
 
 ---
 
