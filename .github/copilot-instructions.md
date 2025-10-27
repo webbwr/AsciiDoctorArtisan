@@ -1,52 +1,95 @@
 <!-- .github/copilot-instructions.md: guidance for AI coding agents -->
 # Copilot instructions — AsciiDoc Artisan
 
-These notes give an AI coding assistant the minimal, actionable context needed to be productive in this repository.
+⚠️ **This file is outdated.** The application has been refactored from a monolithic `adp.py` file into a modular package structure.
 
-1) Big picture
-- Single-file PySide6 desktop app: main UI and logic live in `adp.py` (approx. 1k lines).
-- Responsibilities in `adp.py`: UI (Qt widgets), background workers (Git, Pandoc), settings, file I/O, AsciiDoc -> HTML preview.
-- External/system integrations: Pandoc (system binary, used via `pypandoc`), Git (via subprocess), `asciidoc3` for preview rendering.
+**Please refer to the current documentation:**
+- **[CLAUDE.md](../CLAUDE.md)** — Comprehensive developer guide (architecture, commands, best practices)
+- **[README.md](../README.md)** — User-facing installation and usage guide
+- **[SPECIFICATIONS.md](../SPECIFICATIONS.md)** — Complete functional requirements
 
-2) Important files and folders
-- `adp.py` — the authoritative source for app behavior. Search here for any UI, Git, or conversion logic.
-- `README.md` — installation, platform notes, and usage examples (start app with `python adp.py`).
-- `requirements.txt` — Python deps (PySide6, asciidoc3, pypandoc).
-- `setup.sh`, `verify.sh`, `AsciiDocArtisanVerify.ps1` — platform install/verify flows (Linux/WSL and Windows).
-- `asciidoc-verification-summary.md` — Windows troubleshooting details for Pandoc/Python.
+---
 
-3) Developer workflows (how humans run & debug)
-- Run the app: `python adp.py` (Windows and Unix). The README contains platform-specific setup steps.
-- Verify environment: `./verify.sh` on Linux/WSL, `AsciiDocArtisanVerify.ps1` on Windows.
-- Quick syntax check: `python -m py_compile adp.py`.
-- No unit tests or CI present; be conservative when changing global behavior in `adp.py`.
+## Quick Reference (Updated)
 
-4) Project-specific conventions & patterns
-- Threading model: long-running work is delegated to QThread workers (`GitWorker`, `PandocWorker`) — use signals (`Signal`) and slots (`@Slot`) to communicate results.
-- Git is invoked with `subprocess.run([...])` in the Git worker; error handling maps stderr text to user-friendly messages (see `GitWorker.run_git_command`).
-- Pandoc conversions use `pypandoc` in `PandocWorker.run_pandoc_conversion`. DOCX->AsciiDoc prepends TOC directives.
-- Settings are persisted as JSON using a platform-appropriate location via `QStandardPaths` (`AsciiDocArtisan.json`).
-- UI state is guarded by flags: `_is_processing_git`, `_is_processing_pandoc`, `_is_opening_file` — respect these when adding new operations.
+### Current Architecture (v1.4.0-beta)
 
-5) Common edits and low-risk changes
-- Small UI changes, CSS tweaks, or text edits in `README.md` are safe.
-- Add logging: converting `print()` to the `logging` module is low-risk and recommended.
-- Add input sanitization for Git commit messages (use `shlex.quote` or pass list args — see `request_git_command.emit(["git","commit","-m", msg], path)`).
+The application is now organized as a modular Python package:
 
-6) High-risk areas (review before changing)
-- Refactoring `adp.py` into modules affects application startup and QThread lifecycle — preserve `main()` behavior and thread startup/shutdown in `closeEvent`.
-- Git subprocess commands and Pandoc invocation are security- and environment-sensitive — validate changes manually on Windows and Linux.
-- Settings loading/saving (`_load_settings`, `_save_settings`) — malformed JSON handling and path selection are important for cross-platform behavior.
+```
+src/
+├── main.py                          # Entry point
+├── document_converter.py            # PDF/document conversion utilities
+└── asciidoc_artisan/               # Main package
+    ├── core/                        # Business logic & utilities
+    ├── ui/                          # UI components (managers + main window)
+    ├── workers/                     # QThread worker classes
+    ├── conversion/                  # Format conversion utilities
+    ├── git/                         # Git integration utilities
+    └── claude/                      # Claude AI integration (future)
+```
 
-7) Tests & CI
-- None present. When adding tests prefer `pytest` and `pytest-qt` for GUI logic. Keep tests focused and isolated (file I/O, workers) to avoid launching full GUI in CI.
+### Key Files (Updated Locations)
 
-8) Examples (copy/paste ready)
-- Start app locally: `python adp.py` (Windows: same command; ensure Python 3.11+ and Pandoc on PATH for DOCX features).
-- Convert clipboard HTML to AsciiDoc (runtime behavior): `AsciiDocEditor.convert_and_paste_from_clipboard()` uses `request_pandoc_conversion.emit(..., 'asciidoc','html', 'clipboard conversion')`.
+| Old Location | New Location | Purpose |
+|--------------|--------------|---------|
+| `adp.py` (monolithic) | **Refactored into:** | |
+| | `src/main.py` | Entry point (127 lines) |
+| | `src/asciidoc_artisan/ui/main_window.py` | Main window controller (1714 lines) |
+| | `src/asciidoc_artisan/core/*.py` | Core utilities (settings, file ops, models) |
+| | `src/asciidoc_artisan/workers/*.py` | Background workers (Git, Pandoc, Preview) |
+| | `src/asciidoc_artisan/ui/*_manager.py` | UI managers (menu, theme, status, etc.) |
 
-9) Where to look for follow-ups
-- If unsure about behavior, search `adp.py` for symbols: `GitWorker`, `PandocWorker`, `_check_pandoc_availability`, `_trigger_git_commit`, `_load_content_into_editor`.
-- Use `README.md` and `asciidoc-verification-summary.md` for platform-specific setup notes.
+### Common Commands (Updated)
 
-If any section is unclear or you'd like more detailed editing rules (e.g., coding style, preferred refactor plan), tell me which area to expand and I'll update this file.
+```bash
+# Run the application
+make run
+# or
+python src/main.py
+
+# Run tests
+make test
+pytest tests/ -v
+
+# Lint and format
+make lint
+make format
+
+# Clean build artifacts
+make clean
+```
+
+### Developer Workflows
+
+1. **Read CLAUDE.md first** — Contains complete architecture documentation
+2. **Follow manager pattern** — Don't put UI logic in main_window.py; use specialized managers
+3. **Respect reentrancy guards** — Check `_is_processing_git`, `_is_processing_pandoc` flags
+4. **Use atomic file operations** — Import from `asciidoc_artisan.core.file_operations`
+5. **Never use shell=True** — Always pass list args to subprocess.run()
+
+### Testing Notes
+
+- **Framework:** pytest + pytest-qt
+- **Coverage:** 34 test files, 481+ tests
+- **GUI Testing:** Use `qtbot` fixture for widget interactions
+- **Run single test:** `pytest tests/test_file_operations.py -v`
+
+### High-Risk Areas (Review Before Changing)
+
+1. **Threading:** Worker initialization/shutdown in `ui/main_window.py`
+2. **Subprocess calls:** Git commands in `workers/git_worker.py`
+3. **Format conversion:** Pandoc + Ollama in `workers/pandoc_worker.py`
+4. **Settings I/O:** Atomic writes in `core/settings.py`
+5. **Performance paths:** Incremental rendering in `workers/incremental_renderer.py`
+6. **WSLg compatibility:** Preview widget in `ui/main_window.py` and `ui/preview_handler.py`
+
+### New Features (v1.2+)
+
+- **Ollama AI Integration:** Local AI for document conversion (phi3:mini, llama2, mistral)
+- **Incremental Rendering:** Block-based caching for 3-5x faster preview updates
+- **WSLg Compatibility:** Uses QTextBrowser instead of QWebEngineView
+
+---
+
+**For complete documentation, see [CLAUDE.md](../CLAUDE.md)**

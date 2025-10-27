@@ -106,6 +106,19 @@ def main() -> None:
 
     warnings.filterwarnings("ignore", category=SyntaxWarning)
 
+    # Enable GPU acceleration for Qt
+    # Must be set BEFORE creating QApplication
+    import os
+    os.environ.setdefault("QT_OPENGL", "desktop")
+    os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
+    os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-gpu-rasterization --enable-zero-copy --enable-hardware-overlays --enable-features=VaapiVideoDecoder,VaapiVideoEncoder --use-gl=desktop --disable-gpu-driver-bug-workarounds")
+
+    # Enable NPU/AI acceleration if available
+    os.environ.setdefault("OPENCV_DNN_BACKEND", "5")  # OpenVINO backend
+    os.environ.setdefault("OPENCV_DNN_TARGET", "6")  # NPU target
+
+    logger.info("GPU acceleration flags set for Qt")
+
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setOrganizationName("AsciiDoc Artisan")

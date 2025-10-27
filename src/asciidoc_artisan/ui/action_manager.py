@@ -73,11 +73,6 @@ class ActionManager:
         self.ollama_status_act: QAction
         self.ollama_settings_act: QAction
         self.about_act: QAction
-        # Grammar actions (v1.3)
-        self.grammar_check_act: QAction
-        self.grammar_toggle_act: QAction
-        self.grammar_next_act: QAction
-        self.grammar_ignore_act: QAction
 
     def create_actions(self) -> None:
         """Create all QAction objects."""
@@ -328,40 +323,6 @@ class ActionManager:
             triggered=self.window._show_ollama_settings,
         )
 
-        # Grammar menu actions (v1.3: Legendary Grammar System)
-        self.grammar_check_act = QAction(  # type: ignore[call-overload]
-            "&Check Grammar Now",
-            self.window,
-            shortcut="F7",
-            statusTip="Run grammar check on current document",
-            triggered=self.window.grammar_manager.check_now,
-        )
-
-        self.grammar_toggle_act = QAction(  # type: ignore[call-overload]
-            "&Auto-Check",
-            self.window,
-            statusTip="Toggle automatic grammar checking",
-            checkable=True,
-            checked=True,
-            triggered=self.window.grammar_manager.toggle_auto_check,
-        )
-
-        self.grammar_next_act = QAction(  # type: ignore[call-overload]
-            "&Next Issue",
-            self.window,
-            shortcut="Ctrl+.",
-            statusTip="Navigate to next grammar issue",
-            triggered=self.window.grammar_manager.navigate_to_next_issue,
-        )
-
-        self.grammar_ignore_act = QAction(  # type: ignore[call-overload]
-            "&Ignore Suggestion",
-            self.window,
-            shortcut="Ctrl+I",
-            statusTip="Ignore current grammar suggestion",
-            triggered=self.window.grammar_manager.ignore_current_suggestion,
-        )
-
         # Help menu actions
         self.about_act = QAction(  # type: ignore[call-overload]
             "&About",
@@ -426,14 +387,6 @@ class ActionManager:
         git_menu.addAction(self.git_commit_act)
         git_menu.addAction(self.git_pull_act)
         git_menu.addAction(self.git_push_act)
-
-        # Grammar menu (v1.3: Legendary Grammar System)
-        grammar_menu = menubar.addMenu("&Grammar")
-        grammar_menu.addAction(self.grammar_check_act)
-        grammar_menu.addAction(self.grammar_toggle_act)
-        grammar_menu.addSeparator()
-        grammar_menu.addAction(self.grammar_next_act)
-        grammar_menu.addAction(self.grammar_ignore_act)
 
         # Tools menu (sorted alphabetically)
         tools_menu = menubar.addMenu("&Tools")

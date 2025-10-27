@@ -316,31 +316,37 @@ class SettingsManager:
         """
         Get AI conversion preference with availability check.
 
+        PERFORMANCE NOTE: AI conversion is disabled by default for file imports
+        because Ollama conversions can take 30-60 seconds per file. Users should
+        manually trigger AI conversion when needed via the menu.
+
         Returns True only if:
         - Ollama is enabled in settings
         - A model is selected
         - Ollama library can be imported
+        - DISABLED: Always returns False for now (performance)
 
         Args:
             settings: Settings object with ollama_enabled and ollama_model fields
 
         Returns:
-            True if Ollama AI conversion should be used, False otherwise (use Pandoc)
+            False to use fast Pandoc conversion (AI conversion disabled for imports)
 
         Requirements:
             FR-055: AI-Enhanced Conversion option (updated for Ollama)
         """
-        # Check if Ollama is enabled and a model is selected
-        if not getattr(settings, "ollama_enabled", False):
-            return False
+        # PERFORMANCE FIX: Disable automatic AI conversion on file open
+        # Ollama takes 30-60 seconds per file, making file opening too slow
+        # Users can manually trigger AI conversion when needed
+        return False
 
-        if not getattr(settings, "ollama_model", None):
-            return False
-
-        # Check if Ollama library is available
-        try:
-            import ollama
-
-            return True
-        except ImportError:
-            return False
+        # Original logic (disabled for performance):
+        # if not getattr(settings, "ollama_enabled", False):
+        #     return False
+        # if not getattr(settings, "ollama_model", None):
+        #     return False
+        # try:
+        #     import ollama
+        #     return True
+        # except ImportError:
+        #     return False

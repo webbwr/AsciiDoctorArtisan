@@ -281,10 +281,24 @@ check_gpu_support() {
     fi
 
     if [ "$GPU_AVAILABLE" = true ]; then
-        log_info "✓ GPU acceleration available"
+        log_info "✓ GPU acceleration available - enabling full hardware acceleration"
+
+        # Enable GPU acceleration for Qt
         export QT_ENABLE_HIGHDPI_SCALING=1
+        export QT_OPENGL=desktop
+        export QT_XCB_GL_INTEGRATION=xcb_egl
+
+        # Enable Chromium GPU acceleration for QWebEngine
+        export QTWEBENGINE_CHROMIUM_FLAGS="--enable-gpu-rasterization --enable-zero-copy --enable-hardware-overlays --enable-features=VaapiVideoDecoder,VaapiVideoEncoder --use-gl=desktop --disable-gpu-driver-bug-workarounds --enable-accelerated-video-decode"
+
+        # Enable NPU/AI acceleration if available
+        export OPENCV_DNN_BACKEND=5  # OpenVINO backend
+        export OPENCV_DNN_TARGET=6   # NPU target
+
+        log_debug "GPU environment variables set"
     else
         log_info "No GPU detected, using software rendering"
+        export QT_OPENGL=software
     fi
 
     return 0
@@ -397,6 +411,14 @@ echo ""
 log_info "=== Launching AsciiDoc Artisan ==="
 echo ""
 
+# Configure Qt and WebEngine for WSLg (disable GPU to prevent black screen)
+export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu --no-sandbox --single-process"
+export QTWEBENGINE_DISABLE_SANDBOX=1
+export QT_XCB_GL_INTEGRATION=none
+export QT_QUICK_BACKEND=software
+export LIBGL_ALWAYS_SOFTWARE=1
+log_info "Qt configured for software rendering (WSLg compatibility)"
+
 # Set error handler
 trap 'handle_error $? $LINENO' ERR
 
@@ -414,6 +436,7 @@ log_debug "Working directory: $(pwd)"
 log_debug "Python: $(which python3)"
 log_debug "DISPLAY: ${DISPLAY:-N/A}"
 log_debug "QT_QPA_PLATFORM: ${QT_QPA_PLATFORM:-N/A}"
+log_debug "QTWEBENGINE_CHROMIUM_FLAGS: ${QTWEBENGINE_CHROMIUM_FLAGS}"
 
 if [ "$DEBUG_MODE" = true ]; then
     log_info "Debug mode enabled, output will be verbose"

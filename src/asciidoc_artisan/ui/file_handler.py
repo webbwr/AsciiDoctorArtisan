@@ -183,6 +183,9 @@ class FileHandler(QObject):
             # Emit signal
             self.file_opened.emit(file_path)
 
+            # Update document metrics (version, word count, grade level)
+            self.status_manager.update_document_metrics()
+
             logger.info(f"Opened file: {file_path}")
 
         finally:
@@ -246,6 +249,9 @@ class FileHandler(QObject):
 
                 # Emit signal
                 self.file_saved.emit(save_path)
+
+                # Update document metrics (version, word count, grade level)
+                self.status_manager.update_document_metrics()
 
                 logger.info(f"Saved file: {save_path}")
                 return True

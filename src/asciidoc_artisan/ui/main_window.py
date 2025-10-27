@@ -46,8 +46,13 @@ from PySide6.QtGui import (
     QGuiApplication,
     QPalette,
 )
-from PySide6.QtWebEngineCore import QWebEngineSettings
-from PySide6.QtWebEngineWidgets import QWebEngineView
+# QWebEngine with GPU acceleration - auto-detected by preview_handler_gpu
+try:
+    from PySide6.QtWebEngineCore import QWebEngineSettings
+    from PySide6.QtWebEngineWidgets import QWebEngineView
+    WEBENGINE_AVAILABLE = True
+except ImportError:
+    WEBENGINE_AVAILABLE = False
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -60,6 +65,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSplitter,
     QStatusBar,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
@@ -90,10 +96,12 @@ from asciidoc_artisan.ui.editor_state import EditorState
 from asciidoc_artisan.ui.export_manager import ExportManager
 from asciidoc_artisan.ui.file_handler import FileHandler
 from asciidoc_artisan.ui.git_handler import GitHandler
-from asciidoc_artisan.ui.grammar_manager import GrammarManager
+# Grammar functionality removed - no longer needed
+# from asciidoc_artisan.ui.grammar_manager import GrammarManager
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
-from asciidoc_artisan.ui.preview_handler import PreviewHandler
+# GPU-accelerated preview handler (auto-detects and uses GPU when available)
+from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandler
 from asciidoc_artisan.ui.settings_manager import SettingsManager
 from asciidoc_artisan.ui.status_manager import StatusManager
 from asciidoc_artisan.ui.theme_manager import ThemeManager
@@ -282,14 +290,9 @@ class AsciiDocEditor(QMainWindow):
         # Initialize GitHandler (Phase 5: Refactoring)
         self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)
 
-        # Initialize GrammarManager (v1.3: Legendary Grammar System)
-        # Must be initialized BEFORE ActionManager since actions reference it
-        self.grammar_manager = GrammarManager(self)
-        # Connect grammar manager's status signal to status manager
-        self.grammar_manager.status_update_requested.connect(
-            lambda msg, timeout: self.status_manager.show_status(msg, timeout)
-        )
-        logger.info("GrammarManager initialized with LanguageTool + Ollama workers")
+        # Grammar functionality removed - no longer needed
+        # self.grammar_manager = GrammarManager(self)
+        self.grammar_manager = None  # Placeholder for compatibility
 
         # Initialize ActionManager (Phase 5: Refactoring)
         self.action_manager = ActionManager(self)
@@ -445,17 +448,10 @@ class AsciiDocEditor(QMainWindow):
 
         preview_layout.addWidget(preview_toolbar)
 
-        self.preview = QWebEngineView(self)
-
-        # Enable GPU acceleration for preview rendering (2-5x speedup)
-        preview_settings = self.preview.settings()
-        preview_settings.setAttribute(
-            QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True
-        )
-        preview_settings.setAttribute(
-            QWebEngineSettings.WebAttribute.WebGLEnabled, True
-        )
-        logger.info("GPU acceleration enabled for preview rendering")
+        # WSLg FIX: Use QTextBrowser instead of QWebEngineView for better compatibility
+        self.preview = QTextBrowser(self)
+        self.preview.setOpenExternalLinks(True)
+        logger.info("Using QTextBrowser for WSLg compatibility (no WebEngine)")
         preview_layout.addWidget(self.preview)
 
         self.splitter.addWidget(preview_container)
@@ -615,11 +611,10 @@ class AsciiDocEditor(QMainWindow):
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
         self.preview_thread.start()
 
-        # Start grammar worker threads (v1.3: Legendary Grammar System)
-        # Must be started here (not in __init__) to avoid Qt threading issues
-        self.grammar_manager.start_workers()
+        # Grammar functionality removed - no longer needed
+        # self.grammar_manager.start_workers()
 
-        logger.info("All worker threads started (Git, Pandoc, Preview, Grammar)")
+        logger.info("All worker threads started (Git, Pandoc, Preview)")
 
     def _start_preview_timer(self) -> None:
         """

@@ -16,9 +16,10 @@ import time
 from typing import Any, Optional
 
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
-from PySide6.QtWebEngineCore import QWebEngineSettings
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QPlainTextEdit
+# QWebEngine disabled for WSLg compatibility
+# from PySide6.QtWebEngineCore import QWebEngineSettings
+# from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 
 try:
     from asciidoc_artisan.core.adaptive_debouncer import (
@@ -48,13 +49,13 @@ class PreviewHandler(QObject):
     preview_updated = Signal(str)  # Emitted when preview HTML is updated
     preview_error = Signal(str)  # Emitted on preview error
 
-    def __init__(self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window):
+    def __init__(self, editor: QPlainTextEdit, preview: QTextBrowser, parent_window):
         """
         Initialize PreviewHandler.
 
         Args:
             editor: The text editor widget
-            preview: The web view widget for HTML preview
+            preview: The QTextBrowser widget for HTML preview (WSLg compatible)
             parent_window: Main window (for signals and state)
         """
         super().__init__(parent_window)
@@ -62,23 +63,8 @@ class PreviewHandler(QObject):
         self.preview = preview
         self.window = parent_window
 
-        # Enable GPU acceleration for faster rendering (2-5x speedup)
-        # Note: GPU settings are also applied in main_window.py during widget creation
-        # This ensures they persist across preview updates
-        if isinstance(self.preview, QWebEngineView):
-            settings = self.preview.settings()
-            settings.setAttribute(
-                QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True
-            )
-            settings.setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True)
-            # Additional GPU optimizations
-            settings.setAttribute(
-                QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, False
-            )
-            settings.setAttribute(
-                QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True
-            )
-            logger.info("GPU acceleration enabled in PreviewHandler")
+        # WSLg FIX: Using QTextBrowser instead of QWebEngineView for better compatibility
+        logger.info("PreviewHandler initialized with QTextBrowser (WSLg compatible)")
 
         # Preview state
         self.sync_scrolling_enabled = True

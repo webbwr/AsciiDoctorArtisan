@@ -72,11 +72,11 @@ class StatusManager:
         self.ai_status_label.setMinimumWidth(150)
 
         # Add widgets to status bar (right side, permanent)
-        # Order: Word Count | Grade Level | AI Status | Version
+        # Order: Version | Word Count | Grade Level | AI Status
+        self.editor.status_bar.addPermanentWidget(self.version_label)
         self.editor.status_bar.addPermanentWidget(self.word_count_label)
         self.editor.status_bar.addPermanentWidget(self.grade_level_label)
         self.editor.status_bar.addPermanentWidget(self.ai_status_label)
-        self.editor.status_bar.addPermanentWidget(self.version_label)
 
     def update_window_title(self) -> None:
         """Update the window title based on current file and save status."""
@@ -151,9 +151,11 @@ class StatusManager:
             return False
 
     def extract_document_version(self, text: str) -> Optional[str]:
-        """Extract document version from AsciiDoc attributes.
+        """Extract document version from AsciiDoc attributes or text.
 
-        Looks for :revnumber:, :version:, or :rev: attributes.
+        Looks for:
+        - AsciiDoc attributes: :revnumber:, :version:, :rev:
+        - Text patterns: *Version*:, Version:, v1.2.3
 
         Args:
             text: AsciiDoc document content
@@ -161,17 +163,35 @@ class StatusManager:
         Returns:
             Version string or None if not found
         """
-        # Try various version attribute patterns
+        # Try various version patterns (order matters - most specific first)
+        # Allow optional leading whitespace for all patterns
         patterns = [
-            r"^:revnumber:\s*(.+)$",
-            r"^:version:\s*(.+)$",
-            r"^:rev:\s*(.+)$",
+            # AsciiDoc attributes (most specific)
+            r"^\s*:revnumber:\s*(.+)$",
+            r"^\s*:version:\s*(.+)$",
+            r"^\s*:rev:\s*(.+)$",
+            # Text-based version labels with colon (bold or plain)
+            r"^\s*\*Version\*:\s*(.+)$",
+            r"^\s*\*version\*:\s*(.+)$",
+            r"^\s*Version:\s*(.+)$",
+            r"^\s*version:\s*(.+)$",
+            # Version in title/heading (e.g., "AsciiDoc Artisan v1.4.0" or "Version 1.4.0")
+            r"\bv(\d+\.\d+(?:\.\d+)?)\b",
+            r"\bVersion\s+(\d+\.\d+(?:\.\d+)?)\b",
+            r"\bversion\s+(\d+\.\d+(?:\.\d+)?)\b",
+            # Standalone version with v prefix (e.g., "v1.2.3")
+            r"^\s*v(\d+\.\d+(?:\.\d+)?)$",
+            # Standalone version without v prefix (e.g., "1.3.0")
+            r"^\s*(\d+\.\d+(?:\.\d+)?)$",
         ]
 
         for pattern in patterns:
             match = re.search(pattern, text, re.MULTILINE | re.IGNORECASE)
             if match:
-                return match.group(1).strip()
+                version = match.group(1).strip()
+                # Clean up any trailing markup
+                version = re.sub(r'\*+$', '', version)  # Remove trailing asterisks
+                return version
 
         return None
 
@@ -256,7 +276,7 @@ class StatusManager:
         if version:
             self.version_label.setText(f"v{version}")
         else:
-            self.version_label.setText("")
+            self.version_label.setText("None")
 
         # Update word count
         word_count = self.count_words(text)

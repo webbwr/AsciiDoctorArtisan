@@ -14,13 +14,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **wkhtmltopdf**: System binary for PDF generation
 - **Python 3.11+**: Minimum version (3.12 recommended for best performance)
 
-**Version:** 1.1.0-beta
+**Version:** 1.4.0-beta
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane
 - Multi-threaded: UI on main thread, Git/Pandoc/Preview on worker threads
 - Event-driven with Qt signals/slots for thread communication
-- Modular design: UI managers separated from business logic (v1.1 refactoring)
+- Modular design: UI managers separated from business logic (v1.1+ refactoring)
+- Package structure: `asciidoc_artisan.{core, ui, workers, conversion, git, claude}`
+
+**Architectural Evolution:**
+- **v1.0**: Monolithic `adp.py` file (~1000+ lines)
+- **v1.1+**: Refactored into modular package structure
+  - Phase 1: Core utilities → `core/` module
+  - Phase 2: Workers → `workers/` module
+  - Phase 3: Dialogs → `ui/dialogs.py`
+  - Phase 4: Main window → `ui/main_window.py`
+  - Phase 5: UI managers → `ui/{menu,theme,status,file,export,git,preview,action,settings,editor_state}_manager.py`
+- **Current**: Highly modular with delegate pattern for separation of concerns
 
 ## Development Setup
 
@@ -72,7 +83,7 @@ pytest tests/test_settings.py::test_settings_save_load -v  # Specific test
 pytest tests/ --cov=src --cov-report=html   # HTML coverage report
 ```
 
-**Current test coverage:** 28 test files, 371+ tests
+**Current test coverage:** 34 test files, 481+ tests
 
 ### Code Quality & Formatting
 
@@ -105,26 +116,31 @@ src/asciidoc_artisan/
 │   ├── large_file_handler.py   # Streaming file I/O for large docs
 │   ├── lru_cache.py            # Custom LRU cache implementation
 │   ├── adaptive_debouncer.py   # Dynamic debounce for preview updates
-│   └── hardware_detection.py   # GPU/CPU capability detection
+│   ├── hardware_detection.py   # GPU/CPU capability detection
+│   ├── async_file_handler.py   # Asynchronous file operations
+│   ├── lazy_importer.py        # Lazy module loading for performance
+│   └── lazy_utils.py           # Utility functions for lazy evaluation
 ├── ui/                         # UI components (Qt widgets)
-│   ├── main_window.py          # AsciiDocEditor (main window controller)
+│   ├── main_window.py          # AsciiDocEditor (main window controller, 1714 lines)
 │   ├── menu_manager.py         # Menu bar creation and actions
 │   ├── theme_manager.py        # Dark/light theme management
 │   ├── status_manager.py       # Status bar, window title, message boxes
 │   ├── file_handler.py         # File open/save/import dialogs
 │   ├── export_manager.py       # Export to DOCX/PDF/HTML/MD
-│   ├── preview_handler.py      # QWebEngineView preview (GPU-accelerated)
+│   ├── preview_handler.py      # QTextBrowser preview (WSLg-compatible)
 │   ├── git_handler.py          # Git UI operations
 │   ├── action_manager.py       # QAction creation and management
 │   ├── settings_manager.py     # Settings UI and persistence
 │   ├── line_number_area.py     # Editor with line numbers
 │   ├── editor_state.py         # Editor state tracking
-│   └── dialogs.py              # Custom dialogs (preferences, etc.)
+│   ├── dialogs.py              # Custom dialogs (preferences, etc.)
+│   ├── api_key_dialog.py       # API key management dialog
+│   └── virtual_scroll_preview.py # Virtual scrolling optimization
 ├── workers/                    # QThread worker classes
 │   ├── git_worker.py           # Git operations (pull, commit, push)
-│   ├── pandoc_worker.py        # Document format conversion
+│   ├── pandoc_worker.py        # Document format conversion (Ollama + Pandoc)
 │   ├── preview_worker.py       # AsciiDoc → HTML rendering
-│   ├── incremental_renderer.py # Partial document rendering (optimized)
+│   ├── incremental_renderer.py # Partial document rendering (block-based cache)
 │   └── optimized_worker_pool.py # Worker thread pool management
 ├── conversion/                 # Format conversion utilities
 ├── git/                        # Git integration utilities
@@ -267,28 +283,101 @@ Hooks run: black, isort, ruff, trailing whitespace checks
 
 The application includes several performance-critical code paths:
 
-**1. GPU-Accelerated Preview (2-5x speedup)**
-- **Location:** `ui/preview_handler.py:61-79`, `ui/main_window.py:457-467`
-- **Tech:** QWebEngineView with `Accelerated2dCanvas` and `WebGL` enabled
-- **Fallback:** Automatically falls back to CPU rendering if GPU unavailable
-- **Detection:** `hardware_detection.py` checks GPU capability at startup
+**1. Preview Rendering (WSLg-Compatible)**
+- **Location:** `ui/preview_handler.py`, `ui/main_window.py`
+- **Tech:** QTextBrowser (WSLg-compatible, replaces QWebEngineView)
+- **Reason:** QWebEngineView doesn't work reliably in WSLg environments
+- **Note:** GPU acceleration disabled in current implementation for stability
+- **Detection:** `hardware_detection.py` still checks GPU capability for future use
 
 **2. PyMuPDF PDF Reading (3-5x speedup)**
 - **Location:** `src/document_converter.py:283-365`
 - **Tech:** Uses `fitz.open()` (PyMuPDF) instead of pdfplumber
 - **Benefits:** Faster parsing, lower memory usage, GPU acceleration where supported
 
-**3. Optimized String Processing**
-- **Table cell processing:** `src/document_converter.py:387-426` (`_clean_cell()`)
-- **Text splitting:** `workers/incremental_renderer.py:173-202` (`count_leading_equals()`)
+**3. Incremental Rendering with Block Cache**
+- **Location:** `workers/incremental_renderer.py` (460 lines)
+- **Tech:** Block-based document splitting with LRU cache
+- **How it works:**
+  1. Split document into blocks by heading levels (=, ==, ===)
+  2. Hash each block with MD5 for change detection
+  3. Cache rendered HTML for unchanged blocks (LRU, 100 blocks max)
+  4. Only re-render blocks that changed
+  5. Assemble final HTML from cached + newly rendered blocks
+- **Performance:** 3-5x faster for minor edits, enabled for docs >1000 chars
+- **Cache:** `BlockCache` class with LRU eviction
+
+**4. Optimized String Processing**
+- **Table cell processing:** `src/document_converter.py` (`_clean_cell()`)
+- **Heading detection:** `workers/incremental_renderer.py` (`count_leading_equals()`)
 - **Tech:** Native Python string operations (C-optimized)
 - **Note:** Called in tight loops (every table cell, every line)
 
 **When modifying hot paths:**
 1. Profile before/after changes
-2. Verify GPU fallback still works
+2. Test in both native and WSLg environments
 3. Check logs show correct optimization status
 4. Run benchmark scripts: `benchmark_performance.py`
+
+### Ollama AI Integration (v1.2+)
+
+The application integrates with Ollama for AI-powered document conversion:
+
+**Location:** `workers/pandoc_worker.py` (Ollama logic), `ui/dialogs.py` (settings UI)
+
+**Features:**
+- Local AI processing (no cloud, privacy-focused)
+- Model selection via UI (Tools → AI Status → Settings)
+- Automatic fallback to Pandoc if Ollama unavailable or conversion fails
+- Real-time status indicator in status bar
+
+**Supported Models:**
+- `phi3:mini` (recommended, fast, lightweight)
+- `llama2` (better quality, slower)
+- `mistral` (balanced performance)
+- `codellama` (best for code-heavy documents)
+
+**Conversion Flow:**
+1. User enables Ollama in preferences
+2. User selects model from dropdown
+3. On import/export, PandocWorker tries Ollama first
+4. If Ollama fails or unavailable, falls back to Pandoc
+5. Status bar shows active conversion method
+
+**Settings Storage:**
+```python
+# In Settings dataclass
+ollama_enabled: bool = False
+ollama_model: Optional[str] = None
+```
+
+**Testing:**
+- Test with Ollama installed and running
+- Test with Ollama disabled (fallback to Pandoc)
+- Test with invalid model name (should show error and fallback)
+
+### WSLg Compatibility Notes
+
+**Critical for WSL2 environments:**
+
+1. **QWebEngineView Issues:**
+   - QWebEngineView doesn't work reliably in WSLg (Windows Subsystem for Linux GUI)
+   - Application uses QTextBrowser instead for preview rendering
+   - Tradeoff: No GPU acceleration, but stable and reliable
+
+2. **Testing in WSLg:**
+   - Always test GUI changes in WSLg environment
+   - Check that preview updates correctly
+   - Verify HTML rendering in QTextBrowser
+
+3. **Code Locations:**
+   - Preview widget creation: `ui/main_window.py:446-449`
+   - Preview updates: `ui/preview_handler.py`
+
+4. **Future Considerations:**
+   - If QWebEngineView support improves in WSLg, can switch back
+   - Keep hardware detection code for GPU capability checking
+   - Document any WSLg-specific workarounds in code comments
 
 ## Important Files Reference
 
@@ -424,13 +513,120 @@ make format                  # Auto-fix formatting issues
 - **Profile performance:** Use `benchmark_performance.py`
 - **Memory profiling:** Use `memory_profile.py`
 
+## Common Pitfalls & Best Practices
+
+### Threading Mistakes
+
+**❌ Bad: Direct UI update from worker thread**
+```python
+class PreviewWorker(QObject):
+    def render_preview(self, text):
+        html = self.render(text)
+        self.preview_widget.setHtml(html)  # WRONG: Not thread-safe!
+```
+
+**✅ Good: Use signals to communicate results**
+```python
+class PreviewWorker(QObject):
+    render_complete = Signal(str)
+
+    def render_preview(self, text):
+        html = self.render(text)
+        self.render_complete.emit(html)  # Main thread handles UI update
+```
+
+### Reentrancy Issues
+
+**❌ Bad: No guard against concurrent operations**
+```python
+def _trigger_git_commit(self):
+    self.request_git_command.emit(["git", "commit", ...])
+    # User clicks again before first completes → corruption!
+```
+
+**✅ Good: Use reentrancy guards**
+```python
+def _trigger_git_commit(self):
+    if self._is_processing_git:
+        return  # Already processing
+
+    self._is_processing_git = True
+    self.request_git_command.emit(["git", "commit", ...])
+    # Reset flag in handler after completion
+```
+
+### Subprocess Security
+
+**❌ Bad: Shell injection vulnerability**
+```python
+message = user_input
+subprocess.run(f"git commit -m {message}", shell=True)  # DANGEROUS!
+```
+
+**✅ Good: Always use list form**
+```python
+message = user_input
+subprocess.run(["git", "commit", "-m", message], shell=False)
+```
+
+### File Operations
+
+**❌ Bad: Non-atomic write (data loss on crash)**
+```python
+with open(filepath, 'w') as f:
+    f.write(content)  # If crash happens here, file is corrupted
+```
+
+**✅ Good: Atomic write pattern**
+```python
+from asciidoc_artisan.core import atomic_save_text
+atomic_save_text(filepath, content)  # Temp file + atomic rename
+```
+
+### Manager Pattern
+
+**❌ Bad: Main window doing everything**
+```python
+class MainWindow:
+    def __init__(self):
+        self._create_menus()
+        self._setup_theme()
+        self._init_status_bar()
+        # ... 2000+ lines of mixed concerns
+```
+
+**✅ Good: Delegate to specialized managers**
+```python
+class MainWindow:
+    def __init__(self):
+        self.menu_manager = MenuManager(self)
+        self.theme_manager = ThemeManager(self)
+        self.status_manager = StatusManager(self)
+        # Each manager handles its own domain
+```
+
+### Preview Updates
+
+**❌ Bad: Update on every keystroke (slow for large docs)**
+```python
+self.editor.textChanged.connect(self.update_preview)  # Too frequent!
+```
+
+**✅ Good: Use adaptive debouncing**
+```python
+self.editor.textChanged.connect(self._start_preview_timer)
+# Timer delay adapts based on document size
+```
+
 ## Additional Resources
 
 - **README.md** — User-facing installation and usage guide
 - **SPECIFICATIONS.md** — Complete functional requirements (FR-001 to FR-053)
-- **DOCUMENTATION.md** — Additional developer documentation
-- **.github/copilot-instructions.md** — Notes for AI coding assistants
+- **ROADMAP_v1.4.0.md** — Feature roadmap and planned improvements
+- **RELEASE_NOTES_v1.3.0.md** — Version history and changelog
 - **GitHub Issues** — Bug reports and feature requests
+
+**Note:** `.github/copilot-instructions.md` is outdated (references old `adp.py` monolithic file). The application has been refactored into modular architecture. Use this CLAUDE.md for current guidance.
 
 ---
 
