@@ -90,6 +90,7 @@ from asciidoc_artisan.ui.editor_state import EditorState
 from asciidoc_artisan.ui.export_manager import ExportManager
 from asciidoc_artisan.ui.file_handler import FileHandler
 from asciidoc_artisan.ui.git_handler import GitHandler
+from asciidoc_artisan.ui.grammar_manager import GrammarManager
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
 from asciidoc_artisan.ui.preview_handler import PreviewHandler
@@ -291,6 +292,10 @@ class AsciiDocEditor(QMainWindow):
 
         # Initialize EditorState (Phase 5: Refactoring)
         self.editor_state = EditorState(self)
+
+        # Initialize GrammarManager (v1.3: Legendary Grammar System)
+        self.grammar_manager = GrammarManager(self)
+        logger.info("GrammarManager initialized with LanguageTool + Ollama workers")
 
         # Restore UI settings using manager
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
@@ -605,7 +610,10 @@ class AsciiDocEditor(QMainWindow):
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
         self.preview_thread.start()
 
-        logger.info("All worker threads started (Git, Pandoc, Preview)")
+        # Setup grammar worker threads (v1.3: Legendary Grammar System)
+        self.grammar_manager.setup_worker_threads()
+
+        logger.info("All worker threads started (Git, Pandoc, Preview, Grammar)")
 
     def _start_preview_timer(self) -> None:
         """

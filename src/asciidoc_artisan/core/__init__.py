@@ -9,10 +9,13 @@ the application:
 - file_operations: Secure file I/O utilities
 - secure_credentials: OS keyring integration for API keys (v1.1 security feature)
 - resource_monitor: System resource and document metrics tracking (v1.1 Phase 4)
+- grammar_models: Type-safe grammar checking data structures (v1.3)
+- grammar_config: Grammar checking configuration and constants (v1.3)
 
 Public API exports allow importing directly from asciidoc_artisan.core:
     from asciidoc_artisan.core import Settings, sanitize_path, EDITOR_FONT_SIZE
     from asciidoc_artisan.core import SecureCredentials
+    from asciidoc_artisan.core import GrammarSuggestion, GrammarResult
 """
 
 # Settings
@@ -48,6 +51,16 @@ from .file_operations import atomic_save_json, atomic_save_text, sanitize_path
 # Models
 from .models import GitResult
 
+# Grammar System (v1.3)
+from .grammar_models import (
+    AggregatedGrammarResult,
+    GrammarCategory,
+    GrammarResult,
+    GrammarSeverity,
+    GrammarSource,
+    GrammarSuggestion,
+)
+
 # Performance Monitoring (v1.1 Phase 4)
 from .resource_monitor import DocumentMetrics, ResourceMetrics, ResourceMonitor
 
@@ -60,6 +73,13 @@ __all__ = [
     "Settings",
     # Models
     "GitResult",
+    # Grammar System
+    "GrammarSuggestion",
+    "GrammarResult",
+    "GrammarCategory",
+    "GrammarSeverity",
+    "GrammarSource",
+    "AggregatedGrammarResult",
     # Security
     "SecureCredentials",
     # Performance Monitoring
