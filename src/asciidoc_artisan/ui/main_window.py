@@ -26,7 +26,6 @@ backward compatibility.
 import html
 import io
 import logging
-import os
 import platform
 import tempfile
 import uuid
@@ -47,6 +46,8 @@ from PySide6.QtGui import (
     QGuiApplication,
     QPalette,
 )
+from PySide6.QtWebEngineCore import QWebEngineSettings
+from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -62,8 +63,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWebEngineCore import QWebEngineSettings
 
 # Import from refactored modules
 from asciidoc_artisan.core import (
@@ -83,10 +82,10 @@ from asciidoc_artisan.core import (
     atomic_save_text,
 )
 from asciidoc_artisan.core.large_file_handler import LargeFileHandler
+from asciidoc_artisan.ui.action_manager import ActionManager
 from asciidoc_artisan.ui.dialogs import (
     PreferencesDialog,
 )
-from asciidoc_artisan.ui.action_manager import ActionManager
 from asciidoc_artisan.ui.editor_state import EditorState
 from asciidoc_artisan.ui.export_manager import ExportManager
 from asciidoc_artisan.ui.file_handler import FileHandler
@@ -270,28 +269,17 @@ class AsciiDocEditor(QMainWindow):
 
         # Initialize FileHandler (Phase 5: Refactoring)
         self.file_handler = FileHandler(
-            self.editor,
-            self,
-            self._settings_manager,
-            self.status_manager
+            self.editor, self, self._settings_manager, self.status_manager
         )
         # Start auto-save
         self.file_handler.start_auto_save(AUTO_SAVE_INTERVAL_MS)
 
         # Initialize PreviewHandler (Phase 5: Refactoring)
-        self.preview_handler = PreviewHandler(
-            self.editor,
-            self.preview,
-            self
-        )
+        self.preview_handler = PreviewHandler(self.editor, self.preview, self)
         self.preview_handler.start_preview_updates()
 
         # Initialize GitHandler (Phase 5: Refactoring)
-        self.git_handler = GitHandler(
-            self,
-            self._settings_manager,
-            self.status_manager
-        )
+        self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)
 
         # Initialize ActionManager (Phase 5: Refactoring)
         self.action_manager = ActionManager(self)
@@ -595,7 +583,7 @@ class AsciiDocEditor(QMainWindow):
         # Initialize Ollama configuration from settings
         self.pandoc_worker.set_ollama_config(
             getattr(self._settings, "ollama_enabled", False),
-            getattr(self._settings, "ollama_model", None)
+            getattr(self._settings, "ollama_model", None),
         )
 
         self.request_pandoc_conversion.connect(self.pandoc_worker.run_pandoc_conversion)
@@ -838,13 +826,13 @@ class AsciiDocEditor(QMainWindow):
                 )
             else:
                 # Use optimized loading for large files
-                file_size = file_path.stat().st_size
+                file_path.stat().st_size
                 category = LargeFileHandler.get_file_size_category(file_path)
 
                 if category in ["medium", "large"]:
                     logger.info(f"Loading {category} file with optimizations")
-                    success, content, error = self.large_file_handler.load_file_optimized(
-                        file_path
+                    success, content, error = (
+                        self.large_file_handler.load_file_optimized(file_path)
                     )
                     if not success:
                         raise Exception(error)
@@ -868,9 +856,7 @@ class AsciiDocEditor(QMainWindow):
             is_large_file = content_size > LARGE_FILE_THRESHOLD_BYTES
 
             if is_large_file:
-                logger.info(
-                    MSG_LOADING_LARGE_FILE.format(content_size / 1024)
-                )
+                logger.info(MSG_LOADING_LARGE_FILE.format(content_size / 1024))
 
             # QPlainTextEdit handles large documents efficiently with internal lazy loading
             # It only renders visible blocks, so setPlainText is still fast
@@ -1111,7 +1097,9 @@ class AsciiDocEditor(QMainWindow):
                 self._asciidoc_api.execute(infile, outfile, backend="html5")
                 html_content = outfile.getvalue()
 
-                temp_source_file = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
+                temp_source_file = (
+                    Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
+                )
                 temp_source_file.write_text(html_content, encoding="utf-8")
                 source_format = "html"
             except Exception as e:
@@ -1126,7 +1114,9 @@ class AsciiDocEditor(QMainWindow):
             # For non-AsciiDoc sources, save content to temp file for Pandoc
             ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
             temp_ext = ext_map.get(source_format, ".txt")
-            temp_source_file = Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
+            temp_source_file = (
+                Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
+            )
             try:
                 temp_source_file.write_text(content, encoding="utf-8")
             except Exception as e:
@@ -1182,7 +1172,6 @@ class AsciiDocEditor(QMainWindow):
     def save_file_as_format(self, format_type: str) -> bool:
         """Save/export file in specified format (delegates to ExportManager)."""
         return self.export_manager.save_file_as_format(format_type)
-
 
     def _auto_save(self) -> None:
         """Auto-save current file if there are unsaved changes using atomic write."""
@@ -1342,7 +1331,6 @@ class AsciiDocEditor(QMainWindow):
         """Convert clipboard content to AsciiDoc (delegates to ExportManager)."""
         self.export_manager.convert_and_paste_from_clipboard()
 
-
     def _select_git_repository(self) -> None:
         """Select Git repository (delegates to GitHandler)."""
         self.git_handler.select_repository()
@@ -1439,10 +1427,16 @@ class AsciiDocEditor(QMainWindow):
 
         export_enabled = not self._is_processing_pandoc
         self.action_manager.save_as_adoc_act.setEnabled(export_enabled)
-        self.action_manager.save_as_md_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
-        self.action_manager.save_as_docx_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.action_manager.save_as_md_act.setEnabled(
+            export_enabled and PANDOC_AVAILABLE
+        )
+        self.action_manager.save_as_docx_act.setEnabled(
+            export_enabled and PANDOC_AVAILABLE
+        )
         self.action_manager.save_as_html_act.setEnabled(export_enabled)
-        self.action_manager.save_as_pdf_act.setEnabled(export_enabled and PANDOC_AVAILABLE)
+        self.action_manager.save_as_pdf_act.setEnabled(
+            export_enabled and PANDOC_AVAILABLE
+        )
 
         git_ready = bool(self._settings.git_repo_path) and not self._is_processing_git
         self.action_manager.git_commit_act.setEnabled(git_ready)
@@ -1550,7 +1544,7 @@ class AsciiDocEditor(QMainWindow):
             return
 
         # Ollama is enabled, check service status
-        status += f"✅ Ollama AI: Enabled\n"
+        status += "✅ Ollama AI: Enabled\n"
         if self._settings.ollama_model:
             status += f"Selected model: {self._settings.ollama_model}\n\n"
         else:
@@ -1564,7 +1558,7 @@ class AsciiDocEditor(QMainWindow):
                 # Test connection by listing models
                 models = ollama.list()
                 status += "✅ Ollama service: Running\n"
-                status += f"API endpoint: http://127.0.0.1:11434\n"
+                status += "API endpoint: http://127.0.0.1:11434\n"
                 status += f"Models installed: {len(models.get('models', []))}\n"
 
                 # Check for GPU
@@ -1671,7 +1665,6 @@ class AsciiDocEditor(QMainWindow):
             logger.info(
                 f"AI conversion preference updated: {self._settings.ai_conversion_enabled}"
             )
-
 
     def _show_about(self) -> None:
         """Show about dialog."""

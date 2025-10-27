@@ -293,7 +293,10 @@ class PandocWorker(QObject):
                 elif isinstance(source, bytes):
                     # Binary content (like DOCX) - save to temp file and use convert_file
                     import tempfile
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{from_format}") as tmp:
+
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=f".{from_format}"
+                    ) as tmp:
                         tmp.write(source)
                         tmp_path = tmp.name
                     try:
@@ -305,6 +308,7 @@ class PandocWorker(QObject):
                         )
                     finally:
                         import os
+
                         os.unlink(tmp_path)
                 else:
                     source_content = str(source)
@@ -404,9 +408,7 @@ class PandocWorker(QObject):
             logger.info(
                 f"Attempting Ollama AI conversion: {from_format} -> {to_format} using {self.ollama_model}"
             )
-            self.progress_update.emit(
-                f"Converting with AI ({self.ollama_model})..."
-            )
+            self.progress_update.emit(f"Converting with AI ({self.ollama_model})...")
 
             # Create conversion prompt
             prompt = self._create_conversion_prompt(source, from_format, to_format)

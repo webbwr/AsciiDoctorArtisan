@@ -25,8 +25,8 @@ from typing import Generic, Optional, TypeVar
 logger = logging.getLogger(__name__)
 
 
-K = TypeVar('K')  # Key type
-V = TypeVar('V')  # Value type
+K = TypeVar("K")  # Key type
+V = TypeVar("V")  # Value type
 
 
 class LRUCache(Generic[K, V]):
@@ -59,7 +59,7 @@ class LRUCache(Generic[K, V]):
         cache.clear()
     """
 
-    def __init__(self, max_size: int = 100, name: str = 'LRUCache'):
+    def __init__(self, max_size: int = 100, name: str = "LRUCache"):
         """
         Initialize LRU cache.
 
@@ -121,8 +121,7 @@ class LRUCache(Generic[K, V]):
             evicted_key, evicted_value = self._cache.popitem(last=False)
             self._evictions += 1
             logger.debug(
-                f"{self.name}: Evicted {evicted_key} "
-                f"(size={len(self._cache)})"
+                f"{self.name}: Evicted {evicted_key} " f"(size={len(self._cache)})"
             )
 
     def delete(self, key: K) -> bool:
@@ -196,14 +195,14 @@ class LRUCache(Generic[K, V]):
         hit_rate = (self._hits / total * 100) if total > 0 else 0
 
         return {
-            'name': self.name,
-            'size': len(self._cache),
-            'max_size': self.max_size,
-            'hits': self._hits,
-            'misses': self._misses,
-            'evictions': self._evictions,
-            'hit_rate': round(hit_rate, 2),
-            'fill_rate': round(len(self._cache) / self.max_size * 100, 2)
+            "name": self.name,
+            "size": len(self._cache),
+            "max_size": self.max_size,
+            "hits": self._hits,
+            "misses": self._misses,
+            "evictions": self._evictions,
+            "hit_rate": round(hit_rate, 2),
+            "fill_rate": round(len(self._cache) / self.max_size * 100, 2),
         }
 
     def resize(self, new_max_size: int) -> None:
@@ -259,7 +258,7 @@ class SizeAwareLRUCache(LRUCache[K, V]):
         self,
         max_size: int = 100,
         max_total_size: Optional[int] = None,
-        name: str = 'SizeAwareLRUCache'
+        name: str = "SizeAwareLRUCache",
     ):
         """
         Initialize size-aware LRU cache.
@@ -290,7 +289,7 @@ class SizeAwareLRUCache(LRUCache[K, V]):
             try:
                 # Try to get size for common types
                 if isinstance(value, str):
-                    size = len(value.encode('utf-8'))
+                    size = len(value.encode("utf-8"))
                 elif isinstance(value, bytes):
                     size = len(value)
                 elif isinstance(value, (int, float, bool)):
@@ -309,9 +308,9 @@ class SizeAwareLRUCache(LRUCache[K, V]):
 
         # Evict items if needed to make room
         # (either by count or by total size)
-        while (len(self._cache) >= self.max_size or
-               (self.max_total_size and
-                self._total_size + size > self.max_total_size)):
+        while len(self._cache) >= self.max_size or (
+            self.max_total_size and self._total_size + size > self.max_total_size
+        ):
 
             if len(self._cache) == 0:
                 break
@@ -344,15 +343,14 @@ class SizeAwareLRUCache(LRUCache[K, V]):
     def get_stats(self) -> dict:
         """Get cache statistics including size info."""
         stats = super().get_stats()
-        stats['total_size'] = self._total_size
-        stats['max_total_size'] = self.max_total_size
+        stats["total_size"] = self._total_size
+        stats["max_total_size"] = self.max_total_size
 
         if self.max_total_size:
-            stats['size_fill_rate'] = round(
-                self._total_size / self.max_total_size * 100,
-                2
+            stats["size_fill_rate"] = round(
+                self._total_size / self.max_total_size * 100, 2
             )
         else:
-            stats['size_fill_rate'] = 0
+            stats["size_fill_rate"] = 0
 
         return stats

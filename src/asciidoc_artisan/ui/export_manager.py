@@ -164,7 +164,9 @@ class ExportManager(QObject):
             return self._export_html(file_path, content)
 
         # Handle Pandoc-based exports (asynchronous)
-        return self._export_via_pandoc(file_path, format_type, content, use_ai_for_export)
+        return self._export_via_pandoc(
+            file_path, format_type, content, use_ai_for_export
+        )
 
     def _export_html(self, file_path: Path, content: str) -> bool:
         """

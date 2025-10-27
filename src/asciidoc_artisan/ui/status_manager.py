@@ -163,9 +163,9 @@ class StatusManager:
         """
         # Try various version attribute patterns
         patterns = [
-            r'^:revnumber:\s*(.+)$',
-            r'^:version:\s*(.+)$',
-            r'^:rev:\s*(.+)$',
+            r"^:revnumber:\s*(.+)$",
+            r"^:version:\s*(.+)$",
+            r"^:rev:\s*(.+)$",
         ]
 
         for pattern in patterns:
@@ -185,8 +185,8 @@ class StatusManager:
             Word count
         """
         # Remove AsciiDoc attributes and comments
-        text = re.sub(r'^:.*?:.*?$', '', text, flags=re.MULTILINE)
-        text = re.sub(r'^//.*?$', '', text, flags=re.MULTILINE)
+        text = re.sub(r"^:.*?:.*?$", "", text, flags=re.MULTILINE)
+        text = re.sub(r"^//.*?$", "", text, flags=re.MULTILINE)
 
         # Split on whitespace and count
         words = text.split()
@@ -202,13 +202,13 @@ class StatusManager:
             Grade level (e.g., 5.23 = 5th grade reading level)
         """
         # Remove AsciiDoc markup
-        text = re.sub(r'^:.*?:.*?$', '', text, flags=re.MULTILINE)
-        text = re.sub(r'^//.*?$', '', text, flags=re.MULTILINE)
-        text = re.sub(r'^\[.*?\]$', '', text, flags=re.MULTILINE)
-        text = re.sub(r'\*\*|__|\*|_|`', '', text)
+        text = re.sub(r"^:.*?:.*?$", "", text, flags=re.MULTILINE)
+        text = re.sub(r"^//.*?$", "", text, flags=re.MULTILINE)
+        text = re.sub(r"^\[.*?\]$", "", text, flags=re.MULTILINE)
+        text = re.sub(r"\*\*|__|\*|_|`", "", text)
 
         # Count sentences (. ! ?)
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         sentences = [s.strip() for s in sentences if s.strip()]
         num_sentences = len(sentences)
 
@@ -226,16 +226,20 @@ class StatusManager:
         num_syllables = 0
         for word in words:
             word = word.lower()
-            syllable_count = len(re.findall(r'[aeiouy]+', word))
+            syllable_count = len(re.findall(r"[aeiouy]+", word))
             # Adjust for silent e
-            if word.endswith('e'):
+            if word.endswith("e"):
                 syllable_count -= 1
             # Minimum 1 syllable per word
             num_syllables += max(1, syllable_count)
 
         # Flesch-Kincaid Grade Level formula
         # 0.39 * (total words / total sentences) + 11.8 * (total syllables / total words) - 15.59
-        grade = 0.39 * (num_words / num_sentences) + 11.8 * (num_syllables / num_words) - 15.59
+        grade = (
+            0.39 * (num_words / num_sentences)
+            + 11.8 * (num_syllables / num_words)
+            - 15.59
+        )
 
         return round(max(0.0, grade), 2)
 

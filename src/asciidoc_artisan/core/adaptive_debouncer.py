@@ -25,9 +25,10 @@ Design Goals:
 
 import logging
 import time
-from typing import Optional
-import psutil
 from dataclasses import dataclass
+from typing import Optional
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class SystemMetrics:
     Uses __slots__ for memory efficiency.
     Created frequently during system monitoring.
     """
+
     cpu_percent: float
     memory_percent: float
     timestamp: float
@@ -111,9 +113,7 @@ class SystemMonitor:
             memory_percent = psutil.virtual_memory().percent
 
             metrics = SystemMetrics(
-                cpu_percent=cpu_percent,
-                memory_percent=memory_percent,
-                timestamp=now
+                cpu_percent=cpu_percent, memory_percent=memory_percent, timestamp=now
             )
 
             self._last_metrics = metrics
@@ -122,11 +122,7 @@ class SystemMonitor:
         except Exception as exc:
             logger.warning(f"Failed to get system metrics: {exc}")
             # Return safe defaults
-            return SystemMetrics(
-                cpu_percent=50.0,
-                memory_percent=50.0,
-                timestamp=now
-            )
+            return SystemMetrics(cpu_percent=50.0, memory_percent=50.0, timestamp=now)
 
     def get_cpu_load_category(self, config: DebounceConfig) -> str:
         """
@@ -142,13 +138,13 @@ class SystemMonitor:
         cpu = metrics.cpu_percent
 
         if cpu < config.low_cpu_threshold:
-            return 'low'
+            return "low"
         elif cpu < config.medium_cpu_threshold:
-            return 'medium'
+            return "medium"
         elif cpu < config.high_cpu_threshold:
-            return 'high'
+            return "high"
         else:
-            return 'very_high'
+            return "very_high"
 
 
 class AdaptiveDebouncer:
@@ -196,9 +192,7 @@ class AdaptiveDebouncer:
         self._max_history = 100
 
     def calculate_delay(
-        self,
-        document_size: int,
-        last_render_time: Optional[float] = None
+        self, document_size: int, last_render_time: Optional[float] = None
     ) -> int:
         """
         Calculate adaptive delay for preview update.
@@ -263,10 +257,10 @@ class AdaptiveDebouncer:
         cpu_category = self.system_monitor.get_cpu_load_category(self.config)
 
         multipliers = {
-            'low': 0.8,      # Faster when CPU available
-            'medium': 1.0,   # Normal
-            'high': 1.5,     # Slower when busy
-            'very_high': 2.0 # Much slower when very busy
+            "low": 0.8,  # Faster when CPU available
+            "medium": 1.0,  # Normal
+            "high": 1.5,  # Slower when busy
+            "very_high": 2.0,  # Much slower when very busy
         }
 
         return multipliers.get(cpu_category, 1.0)
@@ -276,14 +270,12 @@ class AdaptiveDebouncer:
         now = time.time()
 
         # Clean old keystrokes (older than 2 seconds)
-        self._keystroke_times = [
-            t for t in self._keystroke_times
-            if now - t < 2.0
-        ]
+        self._keystroke_times = [t for t in self._keystroke_times if now - t < 2.0]
 
         # Fast typing = more than 2 keystrokes in last 0.5s
         recent = [
-            t for t in self._keystroke_times
+            t
+            for t in self._keystroke_times
             if now - t < self.config.fast_typing_interval
         ]
 
@@ -299,7 +291,9 @@ class AdaptiveDebouncer:
             return 1.0
 
         # Average recent render times
-        avg_render_time = sum(self._recent_render_times) / len(self._recent_render_times)
+        avg_render_time = sum(self._recent_render_times) / len(
+            self._recent_render_times
+        )
 
         # If renders are slow, increase delay
         if avg_render_time > self.config.slow_render_threshold:
@@ -341,22 +335,23 @@ class AdaptiveDebouncer:
         """
         if not self._delay_history:
             return {
-                'avg_delay': 0,
-                'min_delay': 0,
-                'max_delay': 0,
-                'total_adjustments': 0
+                "avg_delay": 0,
+                "min_delay": 0,
+                "max_delay": 0,
+                "total_adjustments": 0,
             }
 
         return {
-            'avg_delay': sum(self._delay_history) / len(self._delay_history),
-            'min_delay': min(self._delay_history),
-            'max_delay': max(self._delay_history),
-            'total_adjustments': len(self._delay_history),
-            'current_cpu': self.system_monitor.get_metrics().cpu_percent,
-            'avg_render_time': (
+            "avg_delay": sum(self._delay_history) / len(self._delay_history),
+            "min_delay": min(self._delay_history),
+            "max_delay": max(self._delay_history),
+            "total_adjustments": len(self._delay_history),
+            "current_cpu": self.system_monitor.get_metrics().cpu_percent,
+            "avg_render_time": (
                 sum(self._recent_render_times) / len(self._recent_render_times)
-                if self._recent_render_times else 0
-            )
+                if self._recent_render_times
+                else 0
+            ),
         }
 
     def reset(self) -> None:

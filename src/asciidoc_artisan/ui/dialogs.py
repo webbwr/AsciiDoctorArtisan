@@ -193,9 +193,7 @@ class OllamaSettingsDialog(QDialog):
             "Use local Ollama AI for document conversions\n"
             "Runs on your computer - no cloud services required"
         )
-        self.ollama_enabled_checkbox.stateChanged.connect(
-            self._on_enabled_changed
-        )
+        self.ollama_enabled_checkbox.stateChanged.connect(self._on_enabled_changed)
         ollama_layout.addWidget(self.ollama_enabled_checkbox)
 
         # Model Selection
@@ -314,7 +312,7 @@ class OllamaSettingsDialog(QDialog):
 
     def _update_parent_status_bar(self) -> None:
         """Update parent window's status bar with current settings."""
-        if self.parent() and hasattr(self.parent(), '_update_ai_status_bar'):
+        if self.parent() and hasattr(self.parent(), "_update_ai_status_bar"):
             # Temporarily update settings
             self.settings.ollama_enabled = self.ollama_enabled_checkbox.isChecked()
             if self.models and self.model_combo.currentIndex() >= 0:

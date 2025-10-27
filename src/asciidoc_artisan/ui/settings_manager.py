@@ -278,7 +278,9 @@ class SettingsManager:
                 QTimer.singleShot(100, lambda: splitter.setSizes(sizes))
                 logger.info(f"Restoring splitter sizes: {settings.splitter_sizes}")
             else:
-                logger.info(f"Ignoring maximized splitter sizes: {settings.splitter_sizes}")
+                logger.info(
+                    f"Ignoring maximized splitter sizes: {settings.splitter_sizes}"
+                )
 
         # Restore font size
         if settings.font_size and settings.font_size != EDITOR_FONT_SIZE:
@@ -338,6 +340,7 @@ class SettingsManager:
         # Check if Ollama library is available
         try:
             import ollama
+
             return True
         except ImportError:
             return False

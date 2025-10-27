@@ -26,10 +26,11 @@ Design Goals:
 """
 
 import logging
-from pathlib import Path
-from typing import Optional, List
 from dataclasses import dataclass
-from PySide6.QtCore import QObject, Signal, QThread
+from pathlib import Path
+from typing import List, Optional
+
+from PySide6.QtCore import QObject, QThread, Signal
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class FileOperationResult:
 
     Uses __slots__ for memory efficiency.
     """
+
     success: bool
     path: str
     error: Optional[str] = None
@@ -103,28 +105,23 @@ class AsyncFileHandler(QObject):
         """
         # Run in thread pool
         from concurrent.futures import ThreadPoolExecutor
+
         executor = ThreadPoolExecutor(max_workers=1)
 
         def read_task():
             try:
                 path = Path(file_path)
                 if not path.exists():
-                    self.read_error.emit(
-                        file_path,
-                        f"File not found: {file_path}"
-                    )
+                    self.read_error.emit(file_path, f"File not found: {file_path}")
                     return
 
                 # Read file
                 logger.debug(f"Reading file: {file_path}")
-                content = path.read_text(encoding='utf-8')
+                content = path.read_text(encoding="utf-8")
                 size = len(content)
 
                 result = FileOperationResult(
-                    success=True,
-                    path=file_path,
-                    data=content,
-                    bytes_processed=size
+                    success=True, path=file_path, data=content, bytes_processed=size
                 )
 
                 self.read_complete.emit(result)
@@ -149,6 +146,7 @@ class AsyncFileHandler(QObject):
             write_error: On failure
         """
         from concurrent.futures import ThreadPoolExecutor
+
         executor = ThreadPoolExecutor(max_workers=1)
 
         def write_task():
@@ -160,13 +158,11 @@ class AsyncFileHandler(QObject):
 
                 # Write file
                 logger.debug(f"Writing file: {file_path}")
-                path.write_text(content, encoding='utf-8')
+                path.write_text(content, encoding="utf-8")
                 size = len(content)
 
                 result = FileOperationResult(
-                    success=True,
-                    path=file_path,
-                    bytes_processed=size
+                    success=True, path=file_path, bytes_processed=size
                 )
 
                 self.write_complete.emit(result)
@@ -178,11 +174,7 @@ class AsyncFileHandler(QObject):
 
         executor.submit(write_task)
 
-    def read_file_streaming(
-        self,
-        file_path: str,
-        chunk_size: int = 8192
-    ) -> None:
+    def read_file_streaming(self, file_path: str, chunk_size: int = 8192) -> None:
         """
         Read large file in chunks (streaming).
 
@@ -196,6 +188,7 @@ class AsyncFileHandler(QObject):
             read_error: On failure
         """
         from concurrent.futures import ThreadPoolExecutor
+
         executor = ThreadPoolExecutor(max_workers=1)
 
         def stream_task():
@@ -210,12 +203,10 @@ class AsyncFileHandler(QObject):
                 bytes_read = 0
                 chunks = []
 
-                logger.debug(
-                    f"Streaming read: {file_path} ({file_size} bytes)"
-                )
+                logger.debug(f"Streaming read: {file_path} ({file_size} bytes)")
 
                 # Read in chunks
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, "r", encoding="utf-8") as f:
                     while True:
                         chunk = f.read(chunk_size)
                         if not chunk:
@@ -228,13 +219,13 @@ class AsyncFileHandler(QObject):
                         self.progress.emit("read", bytes_read, file_size)
 
                 # Combine chunks
-                content = ''.join(chunks)
+                content = "".join(chunks)
 
                 result = FileOperationResult(
                     success=True,
                     path=file_path,
                     data=content,
-                    bytes_processed=bytes_read
+                    bytes_processed=bytes_read,
                 )
 
                 self.read_complete.emit(result)
@@ -247,10 +238,7 @@ class AsyncFileHandler(QObject):
         executor.submit(stream_task)
 
     def write_file_streaming(
-        self,
-        file_path: str,
-        content: str,
-        chunk_size: int = 8192
+        self, file_path: str, content: str, chunk_size: int = 8192
     ) -> None:
         """
         Write large file in chunks (streaming).
@@ -266,6 +254,7 @@ class AsyncFileHandler(QObject):
             write_error: On failure
         """
         from concurrent.futures import ThreadPoolExecutor
+
         executor = ThreadPoolExecutor(max_workers=1)
 
         def stream_task():
@@ -276,15 +265,13 @@ class AsyncFileHandler(QObject):
                 total_size = len(content)
                 bytes_written = 0
 
-                logger.debug(
-                    f"Streaming write: {file_path} ({total_size} bytes)"
-                )
+                logger.debug(f"Streaming write: {file_path} ({total_size} bytes)")
 
                 # Write in chunks
-                with open(path, 'w', encoding='utf-8') as f:
+                with open(path, "w", encoding="utf-8") as f:
                     offset = 0
                     while offset < total_size:
-                        chunk = content[offset:offset + chunk_size]
+                        chunk = content[offset : offset + chunk_size]
                         f.write(chunk)
 
                         bytes_written += len(chunk)
@@ -294,9 +281,7 @@ class AsyncFileHandler(QObject):
                         self.progress.emit("write", bytes_written, total_size)
 
                 result = FileOperationResult(
-                    success=True,
-                    path=file_path,
-                    bytes_processed=bytes_written
+                    success=True, path=file_path, bytes_processed=bytes_written
                 )
 
                 self.write_complete.emit(result)
@@ -343,7 +328,7 @@ class FileStreamReader:
 
     def __enter__(self):
         """Context manager entry."""
-        self._file = open(self.file_path, 'r', encoding='utf-8')
+        self._file = open(self.file_path, "r", encoding="utf-8")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -409,7 +394,7 @@ class FileStreamWriter:
         # Create parent directories
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        self._file = open(self.file_path, 'w', encoding='utf-8')
+        self._file = open(self.file_path, "w", encoding="utf-8")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -483,8 +468,7 @@ class BatchFileOperations:
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all tasks
             future_to_path = {
-                executor.submit(self._read_one, path): path
-                for path in file_paths
+                executor.submit(self._read_one, path): path for path in file_paths
             }
 
             # Collect results as they complete
@@ -495,18 +479,15 @@ class BatchFileOperations:
                     results.append(result)
                 except Exception as exc:
                     logger.error(f"Batch read failed for {path}: {exc}")
-                    results.append(FileOperationResult(
-                        success=False,
-                        path=path,
-                        error=str(exc)
-                    ))
+                    results.append(
+                        FileOperationResult(success=False, path=path, error=str(exc))
+                    )
 
         logger.info(f"Batch read complete: {len(results)} files")
         return results
 
     def write_files(
-        self,
-        file_data: List[tuple[str, str]]
+        self, file_data: List[tuple[str, str]]
     ) -> List[FileOperationResult]:
         """
         Write multiple files in parallel.
@@ -536,11 +517,9 @@ class BatchFileOperations:
                     results.append(result)
                 except Exception as exc:
                     logger.error(f"Batch write failed for {path}: {exc}")
-                    results.append(FileOperationResult(
-                        success=False,
-                        path=path,
-                        error=str(exc)
-                    ))
+                    results.append(
+                        FileOperationResult(success=False, path=path, error=str(exc))
+                    )
 
         logger.info(f"Batch write complete: {len(results)} files")
         return results
@@ -550,19 +529,12 @@ class BatchFileOperations:
         """Read single file."""
         try:
             file_path = Path(path)
-            content = file_path.read_text(encoding='utf-8')
+            content = file_path.read_text(encoding="utf-8")
             return FileOperationResult(
-                success=True,
-                path=path,
-                data=content,
-                bytes_processed=len(content)
+                success=True, path=path, data=content, bytes_processed=len(content)
             )
         except Exception as exc:
-            return FileOperationResult(
-                success=False,
-                path=path,
-                error=str(exc)
-            )
+            return FileOperationResult(success=False, path=path, error=str(exc))
 
     @staticmethod
     def _write_one(path: str, content: str) -> FileOperationResult:
@@ -570,15 +542,9 @@ class BatchFileOperations:
         try:
             file_path = Path(path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
-            file_path.write_text(content, encoding='utf-8')
+            file_path.write_text(content, encoding="utf-8")
             return FileOperationResult(
-                success=True,
-                path=path,
-                bytes_processed=len(content)
+                success=True, path=path, bytes_processed=len(content)
             )
         except Exception as exc:
-            return FileOperationResult(
-                success=False,
-                path=path,
-                error=str(exc)
-            )
+            return FileOperationResult(success=False, path=path, error=str(exc))

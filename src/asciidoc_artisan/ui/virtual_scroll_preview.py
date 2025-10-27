@@ -23,6 +23,7 @@ Design Goals:
 import logging
 from dataclasses import dataclass
 from typing import Optional, Tuple
+
 from PySide6.QtWidgets import QWidget
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class Viewport:
 
     Uses __slots__ for memory efficiency.
     """
+
     # Scroll position (pixels)
     scroll_x: int
     scroll_y: int
@@ -92,6 +94,7 @@ class VirtualScrollConfig:
 
     Uses __slots__ for memory efficiency.
     """
+
     # Buffer size (lines above/below viewport)
     buffer_lines: int = 10
 
@@ -179,14 +182,10 @@ class VirtualScrollPreview:
         if not self._enabled:
             return False
 
-        line_count = source_text.count('\n') + 1
+        line_count = source_text.count("\n") + 1
         return line_count >= self.config.min_lines_for_virtual
 
-    def render_viewport(
-        self,
-        source_text: str,
-        viewport: Viewport
-    ) -> Tuple[str, int]:
+    def render_viewport(self, source_text: str, viewport: Viewport) -> Tuple[str, int]:
         """
         Render only visible viewport.
 
@@ -203,13 +202,11 @@ class VirtualScrollPreview:
             html = self._render_full(source_text)
             return (html, 0)
 
-        lines = source_text.split('\n')
+        lines = source_text.split("\n")
         self._total_lines = len(lines)
 
         # Calculate visible range
-        start_line, end_line = viewport.get_visible_line_range(
-            self.config.buffer_lines
-        )
+        start_line, end_line = viewport.get_visible_line_range(self.config.buffer_lines)
 
         # Clamp to document bounds
         start_line = max(0, start_line)
@@ -217,7 +214,7 @@ class VirtualScrollPreview:
 
         # Extract visible lines
         visible_lines = lines[start_line:end_line]
-        visible_source = '\n'.join(visible_lines)
+        visible_source = "\n".join(visible_lines)
 
         self._rendered_lines = len(visible_lines)
 
@@ -253,7 +250,7 @@ class VirtualScrollPreview:
             # Render using AsciiDoc API
             infile = io.StringIO(source)
             outfile = io.StringIO()
-            self.asciidoc_api.execute(infile, outfile, backend='html5')
+            self.asciidoc_api.execute(infile, outfile, backend="html5")
             result = outfile.getvalue()
 
             # Wrap in container with line number attribute for debugging
@@ -280,12 +277,12 @@ class VirtualScrollPreview:
         try:
             infile = io.StringIO(source)
             outfile = io.StringIO()
-            self.asciidoc_api.execute(infile, outfile, backend='html5')
+            self.asciidoc_api.execute(infile, outfile, backend="html5")
             return outfile.getvalue()
 
         except Exception as exc:
             logger.error(f"Full render failed: {exc}")
-            return f'<pre>{html.escape(source)}</pre>'
+            return f"<pre>{html.escape(source)}</pre>"
 
     def update_line_height(self, measured_height: int) -> None:
         """
@@ -305,17 +302,16 @@ class VirtualScrollPreview:
             Dictionary with stats
         """
         render_ratio = (
-            self._rendered_lines / self._total_lines
-            if self._total_lines > 0 else 0
+            self._rendered_lines / self._total_lines if self._total_lines > 0 else 0
         )
 
         return {
-            'enabled': self._enabled,
-            'total_lines': self._total_lines,
-            'rendered_lines': self._rendered_lines,
-            'render_ratio': round(render_ratio * 100, 2),
-            'estimated_line_height': self.config.estimated_line_height,
-            'actual_line_height': self._actual_line_height
+            "enabled": self._enabled,
+            "total_lines": self._total_lines,
+            "rendered_lines": self._rendered_lines,
+            "render_ratio": round(render_ratio * 100, 2),
+            "estimated_line_height": self.config.estimated_line_height,
+            "actual_line_height": self._actual_line_height,
         }
 
 
@@ -328,9 +324,7 @@ class ViewportCalculator:
 
     @staticmethod
     def calculate_from_widget(
-        widget: QWidget,
-        document_height: int,
-        line_height: int = 20
+        widget: QWidget, document_height: int, line_height: int = 20
     ) -> Viewport:
         """
         Calculate viewport from Qt widget.
@@ -351,7 +345,7 @@ class ViewportCalculator:
         scroll_y = 0
 
         # Try to get scroll area if available
-        from PySide6.QtWidgets import QScrollArea, QAbstractScrollArea
+        from PySide6.QtWidgets import QAbstractScrollArea, QScrollArea
 
         parent = widget.parent()
         while parent:
@@ -376,7 +370,7 @@ class ViewportCalculator:
             height=geometry.height(),
             document_width=geometry.width(),
             document_height=document_height,
-            line_height=line_height
+            line_height=line_height,
         )
 
     @staticmethod
@@ -385,7 +379,7 @@ class ViewportCalculator:
         height: int,
         scroll_y: int = 0,
         document_height: int = 0,
-        line_height: int = 20
+        line_height: int = 20,
     ) -> Viewport:
         """
         Calculate viewport from values.
@@ -407,5 +401,5 @@ class ViewportCalculator:
             height=height,
             document_width=width,
             document_height=document_height or height,
-            line_height=line_height
+            line_height=line_height,
         )

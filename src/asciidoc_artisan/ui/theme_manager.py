@@ -90,7 +90,7 @@ class ThemeManager:
         self.apply_theme()
 
         # Clear CSS cache so preview regenerates with new theme colors
-        if hasattr(self.editor, 'preview_handler'):
+        if hasattr(self.editor, "preview_handler"):
             self.editor.preview_handler.clear_css_cache()
 
         self.editor.update_preview()

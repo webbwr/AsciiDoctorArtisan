@@ -26,8 +26,8 @@ import importlib
 import logging
 import sys
 import time
-from typing import Any, Optional, Dict, List
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,7 @@ class ImportStats:
 
     Uses __slots__ for memory efficiency.
     """
+
     module_name: str
     import_time: float
     deferred: bool = False
@@ -88,17 +89,14 @@ class LazyModule:
             start = time.time()
             try:
                 self._module = importlib.import_module(
-                    self._module_name,
-                    package=self._package
+                    self._module_name, package=self._package
                 )
                 self._import_time = time.time() - start
                 self._first_access = time.time()
 
                 # Track actual import
                 _import_tracker.record_import(
-                    self._module_name,
-                    self._import_time,
-                    deferred=True
+                    self._module_name, self._import_time, deferred=True
                 )
 
                 logger.debug(
@@ -156,6 +154,7 @@ class ImportProfiler:
     def __enter__(self):
         """Start profiling imports."""
         import builtins
+
         self._original_import = builtins.__import__
 
         def profiled_import(name, *args, **kwargs):
@@ -180,6 +179,7 @@ class ImportProfiler:
         """Stop profiling imports."""
         if self._original_import:
             import builtins
+
             builtins.__import__ = self._original_import
 
     def get_statistics(self) -> dict:
@@ -190,35 +190,29 @@ class ImportProfiler:
             Dictionary with stats
         """
         if not self._import_times:
-            return {
-                'total_imports': 0,
-                'total_time': 0,
-                'slowest': [],
-                'fastest': []
-            }
+            return {"total_imports": 0, "total_time": 0, "slowest": [], "fastest": []}
 
         # Sort by time
         sorted_imports = sorted(
-            self._import_times.items(),
-            key=lambda x: x[1],
-            reverse=True
+            self._import_times.items(), key=lambda x: x[1], reverse=True
         )
 
         total_time = sum(self._import_times.values())
         total_imports = len(self._import_times)
 
         return {
-            'total_imports': total_imports,
-            'total_time': total_time * 1000,  # Convert to ms
-            'slowest': [(name, time_ms * 1000) for name, time_ms in sorted_imports[:10]],
-            'fastest': [(name, time_ms * 1000) for name, time_ms in sorted_imports[-10:]],
-            'all_imports': {
-                name: {
-                    'time_ms': time_ms * 1000,
-                    'count': self._import_counts[name]
-                }
+            "total_imports": total_imports,
+            "total_time": total_time * 1000,  # Convert to ms
+            "slowest": [
+                (name, time_ms * 1000) for name, time_ms in sorted_imports[:10]
+            ],
+            "fastest": [
+                (name, time_ms * 1000) for name, time_ms in sorted_imports[-10:]
+            ],
+            "all_imports": {
+                name: {"time_ms": time_ms * 1000, "count": self._import_counts[name]}
                 for name, time_ms in self._import_times.items()
-            }
+            },
         }
 
     def print_report(self, top_n: int = 10) -> None:
@@ -239,7 +233,7 @@ class ImportProfiler:
 
         print(f"Top {top_n} slowest imports:")
         print("-" * 60)
-        for name, time_ms in stats['slowest'][:top_n]:
+        for name, time_ms in stats["slowest"][:top_n]:
             print(f"  {name:40s} {time_ms:8.2f}ms")
         print()
 
@@ -251,7 +245,7 @@ class ImportTracker:
     Singleton that tracks both eager and lazy imports.
     """
 
-    _instance: Optional['ImportTracker'] = None
+    _instance: Optional["ImportTracker"] = None
 
     def __new__(cls):
         """Singleton pattern."""
@@ -279,10 +273,7 @@ class ImportTracker:
         self._lazy_modules.add(module_name)
 
     def record_import(
-        self,
-        module_name: str,
-        import_time: float,
-        deferred: bool = False
+        self, module_name: str, import_time: float, deferred: bool = False
     ) -> None:
         """
         Record import.
@@ -294,9 +285,7 @@ class ImportTracker:
         """
         if module_name not in self._imports:
             self._imports[module_name] = ImportStats(
-                module_name=module_name,
-                import_time=import_time,
-                deferred=deferred
+                module_name=module_name, import_time=import_time, deferred=deferred
             )
         else:
             # Update stats
@@ -310,27 +299,23 @@ class ImportTracker:
         Returns:
             Dictionary with stats
         """
-        eager_imports = [
-            s for s in self._imports.values()
-            if not s.deferred
-        ]
-        lazy_imports = [
-            s for s in self._imports.values()
-            if s.deferred
-        ]
+        eager_imports = [s for s in self._imports.values() if not s.deferred]
+        lazy_imports = [s for s in self._imports.values() if s.deferred]
 
         total_eager_time = sum(s.import_time for s in eager_imports)
         total_lazy_time = sum(s.import_time for s in lazy_imports)
 
         return {
-            'total_imports': len(self._imports),
-            'eager_imports': len(eager_imports),
-            'lazy_imports': len(lazy_imports),
-            'total_eager_time': total_eager_time * 1000,
-            'total_lazy_time': total_lazy_time * 1000,
-            'time_saved': total_lazy_time * 1000,  # Time saved at startup
-            'registered_lazy': len(self._lazy_modules),
-            'not_yet_loaded': len(self._lazy_modules - set(s.module_name for s in lazy_imports))
+            "total_imports": len(self._imports),
+            "eager_imports": len(eager_imports),
+            "lazy_imports": len(lazy_imports),
+            "total_eager_time": total_eager_time * 1000,
+            "total_lazy_time": total_lazy_time * 1000,
+            "time_saved": total_lazy_time * 1000,  # Time saved at startup
+            "registered_lazy": len(self._lazy_modules),
+            "not_yet_loaded": len(
+                self._lazy_modules - set(s.module_name for s in lazy_imports)
+            ),
         }
 
     def print_report(self) -> None:
@@ -345,7 +330,7 @@ class ImportTracker:
         print(f"  Lazy: {stats['lazy_imports']}")
         print(f"  Not yet loaded: {stats['not_yet_loaded']}")
         print()
-        print(f"Import times:")
+        print("Import times:")
         print(f"  Eager (at startup): {stats['total_eager_time']:.2f}ms")
         print(f"  Lazy (deferred): {stats['total_lazy_time']:.2f}ms")
         print(f"  Time saved at startup: {stats['time_saved']:.2f}ms")
@@ -399,6 +384,7 @@ def profile_imports(func: callable) -> callable:
         main()
         # Prints import report at end
     """
+
     def wrapper(*args, **kwargs):
         profiler = ImportProfiler()
 
@@ -443,9 +429,18 @@ class ImportOptimizer:
     def __init__(self):
         """Initialize optimizer."""
         self._heavy_modules = {
-            'pandas', 'numpy', 'matplotlib', 'scipy',
-            'sklearn', 'tensorflow', 'torch', 'PIL',
-            'cv2', 'pygame', 'django', 'flask'
+            "pandas",
+            "numpy",
+            "matplotlib",
+            "scipy",
+            "sklearn",
+            "tensorflow",
+            "torch",
+            "PIL",
+            "cv2",
+            "pygame",
+            "django",
+            "flask",
         }
 
     def analyze_module(self, module_name: str) -> List[str]:
@@ -466,13 +461,12 @@ class ImportOptimizer:
                 module = importlib.import_module(module_name)
 
             # Check for heavy imports
-            if hasattr(module, '__dict__'):
+            if hasattr(module, "__dict__"):
                 for name, obj in module.__dict__.items():
-                    if hasattr(obj, '__module__'):
+                    if hasattr(obj, "__module__"):
                         obj_module = obj.__module__
                         if obj_module and any(
-                            heavy in obj_module
-                            for heavy in self._heavy_modules
+                            heavy in obj_module for heavy in self._heavy_modules
                         ):
                             suggestions.append(
                                 f"Consider lazy loading '{obj_module}' "

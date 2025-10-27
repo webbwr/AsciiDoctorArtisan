@@ -121,9 +121,7 @@ class LargeFileHandler(QObject):
             logger.error(f"Failed to load file {file_path}: {e}")
             return False, "", f"Failed to load file: {e}"
 
-    def _load_small_file(
-        self, file_path: Path, encoding: str
-    ) -> Tuple[bool, str, str]:
+    def _load_small_file(self, file_path: Path, encoding: str) -> Tuple[bool, str, str]:
         """Load small file normally (< 1MB)."""
         try:
             with open(file_path, "r", encoding=encoding, errors="replace") as f:

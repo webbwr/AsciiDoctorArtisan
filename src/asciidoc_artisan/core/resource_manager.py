@@ -51,7 +51,7 @@ class ResourceManager:
         # Automatic cleanup on exit (via atexit)
     """
 
-    _instance: Optional['ResourceManager'] = None
+    _instance: Optional["ResourceManager"] = None
 
     def __init__(self):
         """Initialize ResourceManager."""
@@ -65,7 +65,7 @@ class ResourceManager:
         logger.debug("ResourceManager initialized")
 
     @classmethod
-    def get_instance(cls) -> 'ResourceManager':
+    def get_instance(cls) -> "ResourceManager":
         """
         Get singleton instance.
 
@@ -78,10 +78,10 @@ class ResourceManager:
 
     def create_temp_file(
         self,
-        suffix: str = '',
-        prefix: str = 'asciidoc_artisan_',
+        suffix: str = "",
+        prefix: str = "asciidoc_artisan_",
         dir: Optional[str] = None,
-        text: bool = True
+        text: bool = True,
     ) -> str:
         """
         Create tracked temporary file.
@@ -96,12 +96,7 @@ class ResourceManager:
             Path to temporary file
         """
         # Create temp file
-        fd, path = tempfile.mkstemp(
-            suffix=suffix,
-            prefix=prefix,
-            dir=dir,
-            text=text
-        )
+        fd, path = tempfile.mkstemp(suffix=suffix, prefix=prefix, dir=dir, text=text)
 
         # Close file descriptor (caller will open file)
         os.close(fd)
@@ -114,9 +109,9 @@ class ResourceManager:
 
     def create_temp_directory(
         self,
-        suffix: str = '',
-        prefix: str = 'asciidoc_artisan_',
-        dir: Optional[str] = None
+        suffix: str = "",
+        prefix: str = "asciidoc_artisan_",
+        dir: Optional[str] = None,
     ) -> str:
         """
         Create tracked temporary directory.
@@ -130,11 +125,7 @@ class ResourceManager:
             Path to temporary directory
         """
         # Create temp directory
-        path = tempfile.mkdtemp(
-            suffix=suffix,
-            prefix=prefix,
-            dir=dir
-        )
+        path = tempfile.mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
 
         # Track directory
         self._temp_directories.add(path)
@@ -266,9 +257,9 @@ class ResourceManager:
             Dictionary with resource counts
         """
         return {
-            'temp_files': len(self._temp_files),
-            'temp_directories': len(self._temp_directories),
-            'cleaned_up': self._cleaned_up
+            "temp_files": len(self._temp_files),
+            "temp_directories": len(self._temp_directories),
+            "cleaned_up": self._cleaned_up,
         }
 
     def __del__(self):
@@ -290,10 +281,10 @@ class TempFileContext:
 
     def __init__(
         self,
-        suffix: str = '',
-        prefix: str = 'asciidoc_artisan_',
+        suffix: str = "",
+        prefix: str = "asciidoc_artisan_",
         dir: Optional[str] = None,
-        text: bool = True
+        text: bool = True,
     ):
         """
         Initialize temp file context.
@@ -319,10 +310,7 @@ class TempFileContext:
             Path to temp file
         """
         self.path = self.rm.create_temp_file(
-            suffix=self.suffix,
-            prefix=self.prefix,
-            dir=self.dir,
-            text=self.text
+            suffix=self.suffix, prefix=self.prefix, dir=self.dir, text=self.text
         )
         return self.path
 
@@ -348,9 +336,9 @@ class TempDirectoryContext:
 
     def __init__(
         self,
-        suffix: str = '',
-        prefix: str = 'asciidoc_artisan_',
-        dir: Optional[str] = None
+        suffix: str = "",
+        prefix: str = "asciidoc_artisan_",
+        dir: Optional[str] = None,
     ):
         """
         Initialize temp directory context.
@@ -374,9 +362,7 @@ class TempDirectoryContext:
             Path to temp directory
         """
         self.path = self.rm.create_temp_directory(
-            suffix=self.suffix,
-            prefix=self.prefix,
-            dir=self.dir
+            suffix=self.suffix, prefix=self.prefix, dir=self.dir
         )
         return self.path
 

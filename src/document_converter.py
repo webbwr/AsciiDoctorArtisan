@@ -360,7 +360,9 @@ class PDFExtractor:
                 )
 
             full_text = "\n".join(extracted_text)
-            logger.info(f"Successfully extracted {len(full_text)} characters from PDF (PyMuPDF)")
+            logger.info(
+                f"Successfully extracted {len(full_text)} characters from PDF (PyMuPDF)"
+            )
 
             return True, full_text, ""
 
@@ -405,7 +407,7 @@ class PDFExtractor:
 
         # Limit cell length
         if len(cell) > max_length:
-            cell = cell[:max_length - 3] + "..."
+            cell = cell[: max_length - 3] + "..."
 
         return cell
 
@@ -467,7 +469,7 @@ class PDFExtractor:
             second_row = normalized_table[1]
             # If first row has much shorter cells on average, likely a header
             avg_first = sum(len(cell) for cell in first_row) / len(first_row)
-            avg_second = sum(len(cell) for cell in second_row) / len(second_row)
+            sum(len(cell) for cell in second_row) / len(second_row)
             # If first row is empty or very short, don't treat as header
             if avg_first < 2:
                 has_header = False

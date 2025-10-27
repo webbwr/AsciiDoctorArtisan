@@ -16,12 +16,16 @@ import time
 from typing import Any, Optional
 
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
-from PySide6.QtWidgets import QPlainTextEdit
-from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineSettings
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import QPlainTextEdit
 
 try:
-    from asciidoc_artisan.core.adaptive_debouncer import AdaptiveDebouncer, DebounceConfig
+    from asciidoc_artisan.core.adaptive_debouncer import (
+        AdaptiveDebouncer,
+        DebounceConfig,
+    )
+
     ADAPTIVE_DEBOUNCER_AVAILABLE = True
 except ImportError:
     AdaptiveDebouncer = None
@@ -66,9 +70,7 @@ class PreviewHandler(QObject):
             settings.setAttribute(
                 QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True
             )
-            settings.setAttribute(
-                QWebEngineSettings.WebAttribute.WebGLEnabled, True
-            )
+            settings.setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True)
             # Additional GPU optimizations
             settings.setAttribute(
                 QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, False
@@ -131,9 +133,7 @@ class PreviewHandler(QObject):
             self._adaptive_debouncer.on_text_changed()
 
             # Calculate adaptive delay
-            delay = self._adaptive_debouncer.calculate_delay(
-                document_size=text_size
-            )
+            delay = self._adaptive_debouncer.calculate_delay(document_size=text_size)
         else:
             # Fall back to simple size-based delay
             if text_size < 10000:  # < 10KB
@@ -160,7 +160,7 @@ class PreviewHandler(QObject):
         self._last_render_start = time.time()
 
         # Emit signal to worker for rendering
-        if hasattr(self.window, 'request_preview_render'):
+        if hasattr(self.window, "request_preview_render"):
             self.window.request_preview_render.emit(source_text)
 
         logger.debug(f"Preview update requested ({len(source_text)} chars)")
@@ -202,19 +202,21 @@ class PreviewHandler(QObject):
         """
         # Check dark mode for error display
         dark_mode = False
-        if hasattr(self.window, '_settings') and hasattr(self.window._settings, 'dark_mode'):
+        if hasattr(self.window, "_settings") and hasattr(
+            self.window._settings, "dark_mode"
+        ):
             dark_mode = self.window._settings.dark_mode
 
         if dark_mode:
-            bg_color = '#3a2a1a'
-            text_color = '#ffcc99'
-            heading_color = '#ff6666'
-            pre_bg = '#2a2a2a'
+            bg_color = "#3a2a1a"
+            text_color = "#ffcc99"
+            heading_color = "#ff6666"
+            pre_bg = "#2a2a2a"
         else:
-            bg_color = '#fff3cd'
-            text_color = '#856404'
-            heading_color = '#dc3545'
-            pre_bg = '#f8f9fa'
+            bg_color = "#fff3cd"
+            text_color = "#856404"
+            heading_color = "#dc3545"
+            pre_bg = "#f8f9fa"
 
         error_html = f"""
         <html>
@@ -303,30 +305,32 @@ class PreviewHandler(QObject):
         """
         # Check if dark mode is enabled
         dark_mode = False
-        if hasattr(self.window, '_settings') and hasattr(self.window._settings, 'dark_mode'):
+        if hasattr(self.window, "_settings") and hasattr(
+            self.window._settings, "dark_mode"
+        ):
             dark_mode = self.window._settings.dark_mode
 
         # Set colors based on theme
         if dark_mode:
-            text_color = '#e0e0e0'
-            bg_color = '#1a1a1a'
-            heading_color = '#ffffff'
-            border_color = '#404040'
-            code_bg = '#2a2a2a'
-            table_bg = '#2a2a2a'
-            link_color = '#66b3ff'
-            quote_color = '#a0a0a0'
-            quote_border = '#505050'
+            text_color = "#e0e0e0"
+            bg_color = "#1a1a1a"
+            heading_color = "#ffffff"
+            border_color = "#404040"
+            code_bg = "#2a2a2a"
+            table_bg = "#2a2a2a"
+            link_color = "#66b3ff"
+            quote_color = "#a0a0a0"
+            quote_border = "#505050"
         else:
-            text_color = '#333'
-            bg_color = '#fff'
-            heading_color = '#000'
-            border_color = '#eaecef'
-            code_bg = '#f6f8fa'
-            table_bg = '#f6f8fa'
-            link_color = '#0366d6'
-            quote_color = '#6a737d'
-            quote_border = '#dfe2e5'
+            text_color = "#333"
+            bg_color = "#fff"
+            heading_color = "#000"
+            border_color = "#eaecef"
+            code_bg = "#f6f8fa"
+            table_bg = "#f6f8fa"
+            link_color = "#0366d6"
+            quote_color = "#6a737d"
+            quote_border = "#dfe2e5"
 
         # Basic responsive CSS for AsciiDoc preview
         return f"""

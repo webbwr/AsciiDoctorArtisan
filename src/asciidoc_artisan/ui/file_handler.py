@@ -36,7 +36,9 @@ class FileHandler(QObject):
     file_saved = Signal(Path)  # Emitted when file is saved
     file_modified = Signal(bool)  # Emitted when unsaved changes state changes
 
-    def __init__(self, editor: QPlainTextEdit, parent_window, settings_manager, status_manager):
+    def __init__(
+        self, editor: QPlainTextEdit, parent_window, settings_manager, status_manager
+    ):
         """
         Initialize FileHandler.
 
@@ -90,7 +92,7 @@ class FileHandler(QObject):
         self.current_file_path = None
         self.unsaved_changes = False
         self.status_manager.update_window_title()
-        if hasattr(self.window, 'status_bar'):
+        if hasattr(self.window, "status_bar"):
             self.window.status_bar.showMessage("New file created")
 
         logger.info("New file created")
@@ -111,7 +113,9 @@ class FileHandler(QObject):
         # Show file dialog if no path provided
         if not file_path:
             settings = self.settings_manager.load_settings()
-            last_dir = settings.last_directory if hasattr(settings, 'last_directory') else ""
+            last_dir = (
+                settings.last_directory if hasattr(settings, "last_directory") else ""
+            )
 
             file_path_str, _ = QFileDialog.getOpenFileName(
                 self.window,
@@ -156,7 +160,7 @@ class FileHandler(QObject):
 
         try:
             # Read file
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Load into editor
@@ -168,7 +172,7 @@ class FileHandler(QObject):
 
             # Update UI
             self.status_manager.update_window_title()
-            if hasattr(self.window, 'status_bar'):
+            if hasattr(self.window, "status_bar"):
                 self.window.status_bar.showMessage(f"Opened: {file_path.name}")
 
             # Save as last directory
@@ -198,7 +202,9 @@ class FileHandler(QObject):
         # Determine save path
         if save_as or not self.current_file_path:
             settings = self.settings_manager.load_settings()
-            last_dir = settings.last_directory if hasattr(settings, 'last_directory') else ""
+            last_dir = (
+                settings.last_directory if hasattr(settings, "last_directory") else ""
+            )
 
             file_path_str, _ = QFileDialog.getSaveFileName(
                 self.window,
@@ -230,7 +236,7 @@ class FileHandler(QObject):
 
                 # Update UI
                 self.status_manager.update_window_title()
-                if hasattr(self.window, 'status_bar'):
+                if hasattr(self.window, "status_bar"):
                     self.window.status_bar.showMessage(f"Saved: {save_path.name}")
 
                 # Save as last directory

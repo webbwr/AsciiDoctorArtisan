@@ -24,9 +24,10 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import IntEnum
-from threading import Lock, Event
-from typing import Any, Callable, Optional, Dict
-from PySide6.QtCore import QRunnable, QThreadPool, QObject, Signal
+from threading import Event, Lock
+from typing import Any, Callable, Dict, Optional
+
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +38,12 @@ class TaskPriority(IntEnum):
 
     Lower number = higher priority.
     """
+
     CRITICAL = 0  # Must run immediately
-    HIGH = 1      # User-facing tasks
-    NORMAL = 2    # Regular tasks
-    LOW = 3       # Background tasks
-    IDLE = 4      # Run when nothing else to do
+    HIGH = 1  # User-facing tasks
+    NORMAL = 2  # Regular tasks
+    LOW = 3  # Background tasks
+    IDLE = 4  # Run when nothing else to do
 
 
 @dataclass(slots=True)
@@ -51,6 +53,7 @@ class TaskMetadata:
 
     Uses __slots__ for memory efficiency.
     """
+
     task_id: str
     priority: TaskPriority
     created_at: float
@@ -66,6 +69,7 @@ class PrioritizedTask:
     Uses __slots__ for memory efficiency.
     Ordered by priority for PriorityQueue.
     """
+
     priority: int
     created_at: float = field(compare=True)
     task_id: str = field(compare=False)
@@ -80,13 +84,7 @@ class CancelableRunnable(QRunnable):
     Checks cancellation flag before and during execution.
     """
 
-    def __init__(
-        self,
-        func: Callable,
-        task_id: str,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, func: Callable, task_id: str, *args, **kwargs):
         """
         Initialize cancelable runnable.
 
@@ -166,9 +164,10 @@ class CancelableRunnable(QRunnable):
 
 class TaskSignals(QObject):
     """Signals for task events."""
-    task_started = Signal(str)    # task_id
-    task_finished = Signal(str)   # task_id
-    task_canceled = Signal(str)   # task_id
+
+    task_started = Signal(str)  # task_id
+    task_finished = Signal(str)  # task_id
+    task_canceled = Signal(str)  # task_id
     task_failed = Signal(str, str)  # task_id, error
 
 
@@ -227,12 +226,12 @@ class OptimizedWorkerPool:
 
         # Statistics
         self._stats = {
-            'submitted': 0,
-            'started': 0,
-            'completed': 0,
-            'canceled': 0,
-            'failed': 0,
-            'coalesced': 0
+            "submitted": 0,
+            "started": 0,
+            "completed": 0,
+            "canceled": 0,
+            "failed": 0,
+            "coalesced": 0,
         }
         self._stats_lock = Lock()
 
@@ -249,7 +248,7 @@ class OptimizedWorkerPool:
         coalescable: bool = False,
         coalesce_key: Optional[str] = None,
         task_id: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Submit task to worker pool.
@@ -279,23 +278,21 @@ class OptimizedWorkerPool:
                 # Check if there's already a pending task with this key
                 if coalesce_key in self._coalesce_keys:
                     existing_task_id = self._coalesce_keys[coalesce_key]
-                    logger.debug(
-                        f"Coalescing task {task_id} into {existing_task_id}"
-                    )
+                    logger.debug(f"Coalescing task {task_id} into {existing_task_id}")
                     with self._stats_lock:
-                        self._stats['coalesced'] += 1
+                        self._stats["coalesced"] += 1
                     return existing_task_id
 
         # Create runnable
         runnable = CancelableRunnable(func, task_id, *args, **kwargs)
 
         # Create metadata
-        metadata = TaskMetadata(
+        TaskMetadata(
             task_id=task_id,
             priority=priority,
             created_at=time.time(),
             coalescable=coalescable,
-            coalesce_key=coalesce_key
+            coalesce_key=coalesce_key,
         )
 
         with self._task_lock:
@@ -310,11 +307,9 @@ class OptimizedWorkerPool:
         self._thread_pool.start(runnable)
 
         with self._stats_lock:
-            self._stats['submitted'] += 1
+            self._stats["submitted"] += 1
 
-        logger.debug(
-            f"Submitted task {task_id} with priority {priority.name}"
-        )
+        logger.debug(f"Submitted task {task_id} with priority {priority.name}")
 
         return task_id
 
@@ -345,7 +340,7 @@ class OptimizedWorkerPool:
                         del self._coalesce_keys[key]
 
                 with self._stats_lock:
-                    self._stats['canceled'] += 1
+                    self._stats["canceled"] += 1
 
                 self.signals.task_canceled.emit(task_id)
                 return True
@@ -410,26 +405,20 @@ class OptimizedWorkerPool:
             stats = self._stats.copy()
 
         with self._task_lock:
-            stats['active_tasks'] = len(self._active_tasks)
-            stats['active_threads'] = self.active_thread_count()
-            stats['max_threads'] = self.max_threads
+            stats["active_tasks"] = len(self._active_tasks)
+            stats["active_threads"] = self.active_thread_count()
+            stats["max_threads"] = self.max_threads
 
         # Calculate efficiency
-        total = stats['submitted']
+        total = stats["submitted"]
         if total > 0:
-            stats['completion_rate'] = (
-                stats['completed'] / total * 100
-            )
-            stats['cancellation_rate'] = (
-                stats['canceled'] / total * 100
-            )
-            stats['coalesce_rate'] = (
-                stats['coalesced'] / total * 100
-            )
+            stats["completion_rate"] = stats["completed"] / total * 100
+            stats["cancellation_rate"] = stats["canceled"] / total * 100
+            stats["coalesce_rate"] = stats["coalesced"] / total * 100
         else:
-            stats['completion_rate'] = 0
-            stats['cancellation_rate'] = 0
-            stats['coalesce_rate'] = 0
+            stats["completion_rate"] = 0
+            stats["cancellation_rate"] = 0
+            stats["coalesce_rate"] = 0
 
         return stats
 
@@ -437,12 +426,12 @@ class OptimizedWorkerPool:
         """Reset statistics counters."""
         with self._stats_lock:
             self._stats = {
-                'submitted': 0,
-                'started': 0,
-                'completed': 0,
-                'canceled': 0,
-                'failed': 0,
-                'coalesced': 0
+                "submitted": 0,
+                "started": 0,
+                "completed": 0,
+                "canceled": 0,
+                "failed": 0,
+                "coalesced": 0,
             }
 
     def clear(self) -> None:

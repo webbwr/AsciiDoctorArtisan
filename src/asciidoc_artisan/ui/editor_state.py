@@ -71,7 +71,9 @@ class EditorState:
         new_zoom = max(0.25, min(5.0, current_zoom + zoom_delta))
         self.preview.setZoomFactor(new_zoom)
 
-        logger.debug(f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}")
+        logger.debug(
+            f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}"
+        )
 
     def toggle_dark_mode(self) -> None:
         """Toggle dark mode on/off."""
@@ -218,11 +220,11 @@ class EditorState:
         """Clean up temporary files."""
         try:
             # Cleanup export manager temp dir
-            if hasattr(self.window, 'export_manager'):
+            if hasattr(self.window, "export_manager"):
                 self.window.export_manager.cleanup()
 
             # Legacy temp dir cleanup (for backward compatibility)
-            if hasattr(self.window, '_temp_dir'):
+            if hasattr(self.window, "_temp_dir"):
                 self.window._temp_dir.cleanup()
         except Exception as e:
             logger.warning(f"Failed to cleanup temp files: {e}")

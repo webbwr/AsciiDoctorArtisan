@@ -59,6 +59,7 @@ class DocumentBlock:
         rendered_html: Cached rendered HTML
         level: Heading level (0=title, 1=section, etc.)
     """
+
     id: str
     start_line: int
     end_line: int
@@ -68,7 +69,7 @@ class DocumentBlock:
 
     def compute_id(self) -> str:
         """Compute hash ID from content."""
-        content_hash = hashlib.md5(self.content.encode('utf-8')).hexdigest()
+        content_hash = hashlib.md5(self.content.encode("utf-8")).hexdigest()
         return content_hash[:BLOCK_HASH_LENGTH]
 
 
@@ -147,10 +148,10 @@ class BlockCache:
         hit_rate = (self._hits / total * 100) if total > 0 else 0
 
         return {
-            'size': len(self._cache),
-            'hits': self._hits,
-            'misses': self._misses,
-            'hit_rate': round(hit_rate, 2)
+            "size": len(self._cache),
+            "hits": self._hits,
+            "misses": self._misses,
+            "hit_rate": round(hit_rate, 2),
         }
 
 
@@ -172,9 +173,9 @@ def count_leading_equals(line: str) -> int:
 
     count = 0
     for char in line:
-        if char == '=':
+        if char == "=":
             count += 1
-        elif char in (' ', '\t'):
+        elif char in (" ", "\t"):
             # Found space after equals - valid heading
             if count > 0:
                 return count
@@ -203,10 +204,10 @@ class DocumentBlockSplitter:
     """
 
     # Regex patterns for block boundaries (used as fallback)
-    TITLE_PATTERN = re.compile(r'^=\s+\S+', re.MULTILINE)
-    SECTION_PATTERN = re.compile(r'^==\s+\S+', re.MULTILINE)
-    SUBSECTION_PATTERN = re.compile(r'^===\s+\S+', re.MULTILINE)
-    HEADING_PATTERN = re.compile(r'^(={1,6})\s+(.+)$', re.MULTILINE)
+    TITLE_PATTERN = re.compile(r"^=\s+\S+", re.MULTILINE)
+    SECTION_PATTERN = re.compile(r"^==\s+\S+", re.MULTILINE)
+    SUBSECTION_PATTERN = re.compile(r"^===\s+\S+", re.MULTILINE)
+    HEADING_PATTERN = re.compile(r"^(={1,6})\s+(.+)$", re.MULTILINE)
 
     @staticmethod
     def split(source_text: str) -> List[DocumentBlock]:
@@ -222,7 +223,7 @@ class DocumentBlockSplitter:
         if not source_text.strip():
             return []
 
-        lines = source_text.split('\n')
+        lines = source_text.split("\n")
         blocks: List[DocumentBlock] = []
         current_block_lines: List[str] = []
         current_level = 0
@@ -239,7 +240,7 @@ class DocumentBlockSplitter:
                         current_block_lines,
                         block_start_line,
                         line_num - 1,
-                        current_level
+                        current_level,
                     )
                     blocks.append(block)
 
@@ -253,10 +254,7 @@ class DocumentBlockSplitter:
         # Add final block
         if current_block_lines:
             block = DocumentBlockSplitter._create_block(
-                current_block_lines,
-                block_start_line,
-                len(lines) - 1,
-                current_level
+                current_block_lines, block_start_line, len(lines) - 1, current_level
             )
             blocks.append(block)
 
@@ -265,19 +263,16 @@ class DocumentBlockSplitter:
 
     @staticmethod
     def _create_block(
-        lines: List[str],
-        start_line: int,
-        end_line: int,
-        level: int
+        lines: List[str], start_line: int, end_line: int, level: int
     ) -> DocumentBlock:
         """Create DocumentBlock from lines."""
-        content = '\n'.join(lines)
+        content = "\n".join(lines)
         block = DocumentBlock(
-            id='',
+            id="",
             start_line=start_line,
             end_line=end_line,
             content=content,
-            level=level
+            level=level,
         )
         block.id = block.compute_id()
         return block
@@ -343,8 +338,7 @@ class IncrementalPreviewRenderer:
 
         # Detect changes
         changed_blocks, unchanged_blocks = self._detect_changes(
-            self.previous_blocks,
-            current_blocks
+            self.previous_blocks, current_blocks
         )
 
         logger.debug(
@@ -371,14 +365,13 @@ class IncrementalPreviewRenderer:
         self.previous_blocks = current_blocks
 
         # Assemble final HTML
-        html_parts = [block.rendered_html for block in current_blocks
-                     if block.rendered_html]
-        return '\n'.join(html_parts)
+        html_parts = [
+            block.rendered_html for block in current_blocks if block.rendered_html
+        ]
+        return "\n".join(html_parts)
 
     def _detect_changes(
-        self,
-        previous: List[DocumentBlock],
-        current: List[DocumentBlock]
+        self, previous: List[DocumentBlock], current: List[DocumentBlock]
     ) -> Tuple[List[DocumentBlock], List[DocumentBlock]]:
         """
         Detect which blocks changed.
@@ -420,7 +413,7 @@ class IncrementalPreviewRenderer:
             # Render using AsciiDoc API
             infile = io.StringIO(block.content)
             outfile = io.StringIO()
-            self.asciidoc_api.execute(infile, outfile, backend='html5')
+            self.asciidoc_api.execute(infile, outfile, backend="html5")
             return outfile.getvalue()
 
         except Exception as exc:
@@ -444,7 +437,7 @@ class IncrementalPreviewRenderer:
         try:
             infile = io.StringIO(source_text)
             outfile = io.StringIO()
-            self.asciidoc_api.execute(infile, outfile, backend='html5')
+            self.asciidoc_api.execute(infile, outfile, backend="html5")
             return outfile.getvalue()
 
         except Exception as exc:

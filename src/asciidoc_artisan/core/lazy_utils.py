@@ -22,12 +22,12 @@ Features:
 import functools
 import importlib
 import logging
-from typing import Any, Callable, Optional, TypeVar, Generic
+from typing import Any, Callable, Generic, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class lazy_property(Generic[T]):
@@ -65,7 +65,7 @@ class lazy_property(Generic[T]):
             func: Function to compute property value
         """
         self.func = func
-        self.attr_name = f'_lazy_{func.__name__}'
+        self.attr_name = f"_lazy_{func.__name__}"
         functools.update_wrapper(self, func)
 
     def __get__(self, obj: Any, owner: type) -> T:
@@ -201,7 +201,7 @@ def defer_method(func: Callable) -> Callable:
 
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
-        if not hasattr(self, '_deferred_calls'):
+        if not hasattr(self, "_deferred_calls"):
             self._deferred_calls = []
 
         def deferred_call():
@@ -314,13 +314,12 @@ class LazyInitializer:
         pending = total - initialized
 
         return {
-            'total': total,
-            'initialized': initialized,
-            'pending': pending,
-            'components': {
-                name: (name in self._initialized)
-                for name in self._initializers.keys()
-            }
+            "total": total,
+            "initialized": initialized,
+            "pending": pending,
+            "components": {
+                name: (name in self._initialized) for name in self._initializers.keys()
+            },
         }
 
 

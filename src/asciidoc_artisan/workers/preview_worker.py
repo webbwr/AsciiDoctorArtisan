@@ -37,6 +37,7 @@ except ImportError:
 # Import incremental renderer
 try:
     from asciidoc_artisan.workers.incremental_renderer import IncrementalPreviewRenderer
+
     INCREMENTAL_RENDERER_AVAILABLE = True
 except ImportError:
     IncrementalPreviewRenderer = None
@@ -168,9 +169,11 @@ class PreviewWorker(QObject):
                 return
 
             # Use incremental renderer if available and enabled
-            if (self._use_incremental and
-                self._incremental_renderer is not None and
-                len(source_text) > 1000):  # Only for larger docs
+            if (
+                self._use_incremental
+                and self._incremental_renderer is not None
+                and len(source_text) > 1000
+            ):  # Only for larger docs
                 html_body = self._incremental_renderer.render(source_text)
                 logger.debug("PreviewWorker: Incremental rendering successful")
             else:
