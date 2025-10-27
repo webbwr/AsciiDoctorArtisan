@@ -19,7 +19,7 @@ asynchronously, emitting signals when rendering completes or fails.
 import html
 import io
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -40,7 +40,7 @@ try:
 
     INCREMENTAL_RENDERER_AVAILABLE = True
 except ImportError:
-    IncrementalPreviewRenderer = None
+    IncrementalPreviewRenderer = None  # type: ignore[assignment, misc]
     INCREMENTAL_RENDERER_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class PreviewWorker(QObject):
                 self._asciidoc_api.attributes["imagesdir"] = "."
 
                 # Initialize incremental renderer if available
-                if INCREMENTAL_RENDERER_AVAILABLE and IncrementalPreviewRenderer:
+                if INCREMENTAL_RENDERER_AVAILABLE and IncrementalPreviewRenderer:  # type: ignore[truthy-function]
                     self._incremental_renderer = IncrementalPreviewRenderer(
                         self._asciidoc_api
                     )

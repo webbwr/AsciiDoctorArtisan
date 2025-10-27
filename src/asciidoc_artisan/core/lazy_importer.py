@@ -27,7 +27,7 @@ import logging
 import sys
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -157,9 +157,9 @@ class ImportProfiler:
 
         self._original_import = builtins.__import__
 
-        def profiled_import(name, *args, **kwargs):
+        def profiled_import(name, *args, **kwargs):  # type: ignore[no-untyped-def]
             start = time.time()
-            module = self._original_import(name, *args, **kwargs)
+            module = self._original_import(name, *args, **kwargs)  # type: ignore[misc]
             elapsed = time.time() - start
 
             # Track import time
@@ -246,6 +246,7 @@ class ImportTracker:
     """
 
     _instance: Optional["ImportTracker"] = None
+    _initialized: bool
 
     def __new__(cls):
         """Singleton pattern."""
@@ -364,7 +365,7 @@ def lazy_import(module_name: str, package: Optional[str] = None) -> LazyModule:
     return LazyModule(module_name, package)
 
 
-def profile_imports(func: callable) -> callable:
+def profile_imports(func: Callable) -> Callable:
     """
     Decorator to profile imports.
 
@@ -385,11 +386,11 @@ def profile_imports(func: callable) -> callable:
         # Prints import report at end
     """
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
         profiler = ImportProfiler()
 
         with profiler:
-            result = func(*args, **kwargs)
+            result = func(*args, **kwargs)  # type: ignore[misc]
 
         profiler.print_report()
         return result

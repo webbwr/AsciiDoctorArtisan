@@ -368,7 +368,7 @@ class AggregatedGrammarResult:
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get detailed statistics about the results."""
-        stats = {
+        stats: Dict[str, Any] = {
             "total_suggestions": self.suggestion_count,
             "languagetool_suggestions": self.languagetool_count,
             "ollama_suggestions": self.ollama_count,

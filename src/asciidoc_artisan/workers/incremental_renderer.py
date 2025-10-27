@@ -34,7 +34,7 @@ import logging
 import re
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,7 @@ class BlockCache:
         self._hits = 0
         self._misses = 0
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> Dict[str, Union[int, float]]:
         """
         Get cache statistics.
 
@@ -444,7 +444,7 @@ class IncrementalPreviewRenderer:
             logger.error(f"Full render failed: {exc}")
             return f"<pre>{html.escape(source_text)}</pre>"
 
-    def get_cache_stats(self) -> Dict[str, int]:
+    def get_cache_stats(self) -> Dict[str, Union[int, float]]:
         """
         Get cache statistics.
 

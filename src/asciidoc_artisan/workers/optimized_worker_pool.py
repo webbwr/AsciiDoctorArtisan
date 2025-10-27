@@ -25,7 +25,7 @@ import time
 from dataclasses import dataclass, field
 from enum import IntEnum
 from threading import Event, Lock
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Union
 
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
@@ -394,7 +394,7 @@ class OptimizedWorkerPool:
         with self._task_lock:
             return task_id in self._active_tasks
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> Dict[str, Union[int, float]]:
         """
         Get worker pool statistics.
 
@@ -402,7 +402,7 @@ class OptimizedWorkerPool:
             Dictionary with stats
         """
         with self._stats_lock:
-            stats = self._stats.copy()
+            stats: Dict[str, Union[int, float]] = dict(self._stats)
 
         with self._task_lock:
             stats["active_tasks"] = len(self._active_tasks)

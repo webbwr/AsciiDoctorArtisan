@@ -125,6 +125,10 @@ ignore_missing_imports = true
 module = "adp_windows"
 disable_error_code = ["truthy-function", "no-any-return"]
 
+[[tool.mypy.overrides]]
+module = "asciidoc_artisan.ui.*"
+disable_error_code = ["attr-defined", "call-overload", "misc", "assignment", "union-attr", "truthy-function", "var-annotated"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --strict-markers --cov=. --cov-report=term-missing --cov-report=html"

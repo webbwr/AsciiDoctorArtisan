@@ -28,7 +28,7 @@ Design Goals:
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, TextIO
 
 from PySide6.QtCore import QObject, QThread, Signal
 
@@ -324,7 +324,7 @@ class FileStreamReader:
         """
         self.file_path = Path(file_path)
         self.chunk_size = chunk_size
-        self._file = None
+        self._file: Optional[TextIO] = None
 
     def __enter__(self):
         """Context manager entry."""
@@ -386,7 +386,7 @@ class FileStreamWriter:
         """
         self.file_path = Path(file_path)
         self.chunk_size = chunk_size
-        self._file = None
+        self._file: Optional[TextIO] = None
         self.bytes_written = 0
 
     def __enter__(self):

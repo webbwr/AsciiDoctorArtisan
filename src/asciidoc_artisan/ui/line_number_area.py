@@ -31,7 +31,7 @@ class LineNumberArea(QWidget):
 
     def sizeHint(self) -> QSize:
         """Return the recommended size for this widget."""
-        return QSize(self.editor.line_number_area_width(), 0)
+        return QSize(self.editor.line_number_area_width(), 0)  # type: ignore[attr-defined]
 
     def paintEvent(self, event):
         """
@@ -40,7 +40,7 @@ class LineNumberArea(QWidget):
         Args:
             event: Paint event
         """
-        self.editor.line_number_area_paint_event(event)
+        self.editor.line_number_area_paint_event(event)  # type: ignore[attr-defined]
 
 
 class LineNumberMixin:
@@ -56,11 +56,11 @@ class LineNumberMixin:
 
     def setup_line_numbers(self):
         """Set up line number area and connect signals."""
-        self.line_number_area = LineNumberArea(self)
+        self.line_number_area = LineNumberArea(self)  # type: ignore[arg-type]
 
         # Connect signals for auto-update
-        self.blockCountChanged.connect(self.update_line_number_area_width)
-        self.updateRequest.connect(self.update_line_number_area)
+        self.blockCountChanged.connect(self.update_line_number_area_width)  # type: ignore[attr-defined]
+        self.updateRequest.connect(self.update_line_number_area)  # type: ignore[attr-defined]
 
         # Set initial width
         self.update_line_number_area_width(0)
@@ -73,13 +73,13 @@ class LineNumberMixin:
             Width in pixels for line number area
         """
         digits = 1
-        max_num = max(1, self.blockCount())
+        max_num = max(1, self.blockCount())  # type: ignore[attr-defined]
         while max_num >= 10:
             max_num //= 10
             digits += 1
 
         # Width = 3px padding + digit width + 3px padding
-        space = 3 + self.fontMetrics().horizontalAdvance("9") * digits + 3
+        space = 3 + self.fontMetrics().horizontalAdvance("9") * digits + 3  # type: ignore[attr-defined]
         return space
 
     def update_line_number_area_width(self, _):

@@ -66,7 +66,7 @@ class lazy_property(Generic[T]):
         """
         self.func = func
         self.attr_name = f"_lazy_{func.__name__}"
-        functools.update_wrapper(self, func)
+        functools.update_wrapper(self, func)  # type: ignore[arg-type]
 
     def __get__(self, obj: Any, owner: type) -> T:
         """
@@ -349,7 +349,7 @@ class cached_property:
         """
         self.func = func
         self.attrname: Optional[str] = None
-        functools.update_wrapper(self, func)
+        functools.update_wrapper(self, func)  # type: ignore[arg-type]
 
     def __set_name__(self, owner: type, name: str) -> None:
         """
@@ -361,7 +361,7 @@ class cached_property:
         """
         self.attrname = name
 
-    def __get__(self, obj: Any, owner: type = None) -> Any:
+    def __get__(self, obj: Any, owner: Optional[type] = None) -> Any:
         """Get property value."""
         if obj is None:
             return self

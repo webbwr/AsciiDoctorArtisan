@@ -159,10 +159,6 @@ class PandocWorker(QObject):
                         source = ollama_result
                     else:
                         # Text output - use Ollama result directly
-                        if to_format.lower() in ["asciidoc", "adoc"]:
-                            # Apply AsciiDoc post-processing
-                            ollama_result = self._post_process_asciidoc(ollama_result)
-
                         self.conversion_complete.emit(ollama_result, context)
                         return
 

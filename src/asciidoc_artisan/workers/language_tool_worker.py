@@ -33,7 +33,7 @@ import re
 import time
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Pattern, Set, Tuple
+from typing import Any, Dict, List, Optional, Pattern, Set, Tuple
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -703,7 +703,7 @@ class LanguageToolWorker(QObject):
         """
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
-    def get_statistics(self) -> Dict[str, any]:
+    def get_statistics(self) -> Dict[str, Any]:
         """Get worker statistics.
 
         Returns:

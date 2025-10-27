@@ -228,7 +228,7 @@ class OllamaSuggestionParser:
         Returns:
             List of GrammarSuggestion objects
         """
-        suggestions = []
+        suggestions: list = []
 
         try:
             # Extract JSON from response (handle extra text)
