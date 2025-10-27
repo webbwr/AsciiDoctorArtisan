@@ -347,20 +347,27 @@ class OllamaSettingsDialog(QDialog):
 
     def _load_models(self) -> None:
         """Load available Ollama models from the service."""
+        import logging
+        logger = logging.getLogger(__name__)
+
         try:
             import ollama
 
             try:
                 response = ollama.list()
+                logger.info(f"Ollama API response type: {type(response)}")
 
                 # Handle both old API (dict with "models" key) and new API (direct list)
                 if isinstance(response, dict):
                     models_data = response.get("models", [])
+                    logger.info(f"Using dict API - found {len(models_data)} models")
                 elif hasattr(response, 'models'):
                     models_data = response.models if isinstance(response.models, list) else list(response.models)
+                    logger.info(f"Using new API with .models attribute - found {len(models_data)} models")
                 else:
                     # Assume response is the models list directly
                     models_data = response if isinstance(response, list) else []
+                    logger.info(f"Using direct list API - found {len(models_data)} models")
 
                 if not models_data:
                     self.status_label.setText("⚠️ No models installed")
