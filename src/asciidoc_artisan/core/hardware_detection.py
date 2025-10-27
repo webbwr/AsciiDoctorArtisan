@@ -83,7 +83,12 @@ class HardwareDetector:
                         return GPUInfo(
                             vendor="NVIDIA", model=model, memory_mb=memory_mb
                         )
-        except (FileNotFoundError, subprocess.TimeoutExpired, ValueError) as e:
+        except (
+            FileNotFoundError,
+            PermissionError,
+            subprocess.TimeoutExpired,
+            ValueError,
+        ) as e:
             logger.debug(f"NVIDIA GPU detection failed: {e}")
 
         return None
@@ -104,7 +109,7 @@ class HardwareDetector:
                 model = result.stdout.strip().split("\n")[0]
                 logger.info(f"Detected AMD GPU: {model}")
                 return GPUInfo(vendor="AMD", model=model)
-        except (FileNotFoundError, subprocess.TimeoutExpired):
+        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
             pass
 
         # Try lspci as fallback
@@ -119,7 +124,7 @@ class HardwareDetector:
                         model = line.split(":")[-1].strip()
                         logger.info(f"Detected AMD GPU (via lspci): {model}")
                         return GPUInfo(vendor="AMD", model=model)
-        except (FileNotFoundError, subprocess.TimeoutExpired):
+        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
             pass
 
         return None
@@ -138,7 +143,7 @@ class HardwareDetector:
                         model = line.split(":")[-1].strip()
                         logger.info(f"Detected Intel GPU: {model}")
                         return GPUInfo(vendor="Intel", model=model)
-        except (FileNotFoundError, subprocess.TimeoutExpired):
+        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
             pass
 
         return None
