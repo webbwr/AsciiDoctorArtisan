@@ -201,6 +201,15 @@ class EditorState:
 
     def _shutdown_threads(self) -> None:
         """Safely shut down worker threads."""
+        # Cleanup grammar manager threads first
+        if hasattr(self.window, "grammar_manager"):
+            try:
+                logger.debug("Cleaning up grammar manager threads...")
+                self.window.grammar_manager.cleanup()
+            except Exception as e:
+                logger.warning(f"Failed to cleanup grammar manager: {e}")
+
+        # Shutdown main worker threads
         threads = [
             ("git_thread", self.window.git_thread),
             ("pandoc_thread", self.window.pandoc_thread),
