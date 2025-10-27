@@ -352,7 +352,15 @@ class OllamaSettingsDialog(QDialog):
 
             try:
                 response = ollama.list()
-                models_data = response.get("models", [])
+
+                # Handle both old API (dict with "models" key) and new API (direct list)
+                if isinstance(response, dict):
+                    models_data = response.get("models", [])
+                elif hasattr(response, 'models'):
+                    models_data = response.models if isinstance(response.models, list) else list(response.models)
+                else:
+                    # Assume response is the models list directly
+                    models_data = response if isinstance(response, list) else []
 
                 if not models_data:
                     self.status_label.setText("⚠️ No models installed")
@@ -366,8 +374,16 @@ class OllamaSettingsDialog(QDialog):
                 # Extract model names properly
                 self.models = []
                 for model in models_data:
-                    # The model name is in the 'name' or 'model' field
-                    name = model.get("name") or model.get("model", "Unknown")
+                    # Handle both dict (old API) and object (new API) formats
+                    if isinstance(model, dict):
+                        name = model.get("name") or model.get("model", "Unknown")
+                    elif hasattr(model, 'model'):
+                        name = model.model
+                    elif hasattr(model, 'name'):
+                        name = model.name
+                    else:
+                        name = str(model)
+
                     self.models.append(name)
                     self.model_combo.addItem(name)
 
