@@ -22,6 +22,7 @@ from .constants import (
     ALL_FILES_FILTER,
     ALL_FORMATS,
     APP_NAME,
+    APP_VERSION,
     COMMON_FORMATS,
     DEFAULT_FILENAME,
     DOCX_FILTER,
@@ -72,6 +73,7 @@ __all__ = [
     "atomic_save_json",
     # Constants
     "APP_NAME",
+    "APP_VERSION",
     "DEFAULT_FILENAME",
     "SETTINGS_FILENAME",
     "PREVIEW_UPDATE_INTERVAL_MS",
