@@ -160,23 +160,62 @@ No setup needed. It just works.
 
 ## AI Features (New in v1.2!)
 
-Smart file changes with AI:
-- **Ollama AI**: Use local AI for better conversions
-- **Pick your model**: Choose from installed AI models
-- **Shows in status bar**: See which method is active
-- **Auto fallback**: Uses Pandoc if AI not working
-- **Privacy first**: AI runs on your computer only
+Smart document conversions with local AI:
+
+**What it does:**
+- **Smarter conversions**: AI understands document structure better than rule-based tools
+- **Local AI**: Uses Ollama running on your computer (no cloud, no data leaves your machine)
+- **Pick your model**: Choose from installed models (phi3, llama2, mistral, etc.)
+- **Auto fallback**: Uses Pandoc if AI not available or if conversion fails
+- **Real-time status**: Status bar shows which method is active
+
+**Why use AI?**
+- Better preserves document formatting and structure
+- Understands context (e.g., code blocks, tables, lists)
+- Handles complex documents with nested elements
+- Improves quality of Markdown ↔ AsciiDoc conversions
 
 ### Turn On AI
 
-1. Install Ollama from ollama.com
-2. Get a model: `ollama pull phi3:mini`
-3. In app: Tools → AI Status → Settings
-4. Turn on "Enable Ollama AI"
-5. Pick your model
-6. Status bar shows "AI: your-model"
+**Step 1: Install Ollama**
+```bash
+# Visit ollama.com and follow installation instructions for your OS
+# Or use these quick commands:
 
-Now all file changes use AI!
+# macOS
+brew install ollama
+
+# Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows
+# Download installer from ollama.com
+```
+
+**Step 2: Install an AI model**
+```bash
+# Recommended lightweight model (good for most documents)
+ollama pull phi3:mini
+
+# Other options:
+ollama pull llama2        # Better quality, slower
+ollama pull mistral       # Balanced performance
+ollama pull codellama     # Best for code-heavy documents
+```
+
+**Step 3: Enable in AsciiDoc Artisan**
+1. Open the app
+2. Go to: **Tools** → **AI Status** → **Settings**
+3. Check "Enable Ollama AI"
+4. Select your model from the dropdown
+5. Click "Save"
+
+**Step 4: Verify it's working**
+- Status bar shows: `AI: phi3:mini` (or your chosen model)
+- Try converting a document (File → Import or File → Export)
+- AI will process the conversion automatically
+
+**Note:** If Ollama isn't running or the model isn't available, the app automatically uses Pandoc instead.
 
 ## The Right Side
 
