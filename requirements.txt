@@ -20,6 +20,10 @@ keyring>=24.0.0
 # System resource monitoring
 psutil>=5.9.0
 
+# Grammar checking (LanguageTool + Ollama integration)
+language-tool-python>=2.9.0
+ollama>=0.1.0
+
 # Testing (development)
 pytest>=7.4.0
 pytest-qt>=4.2.0
