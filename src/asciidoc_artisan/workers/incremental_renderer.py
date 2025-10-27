@@ -145,7 +145,7 @@ class BlockCache:
             Dictionary with size, hits, misses, hit_rate
         """
         total = self._hits + self._misses
-        hit_rate = (self._hits / total * 100) if total > 0 else 0
+        hit_rate = (self._hits / total * 100) if total > 0 else 0.0
 
         return {
             "size": len(self._cache),

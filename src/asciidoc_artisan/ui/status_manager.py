@@ -41,10 +41,10 @@ class StatusManager:
         self.editor = editor
 
         # Widgets will be created later when status bar is ready
-        self.version_label = None
-        self.word_count_label = None
-        self.grade_level_label = None
-        self.ai_status_label = None
+        self.version_label: Optional[QLabel] = None
+        self.word_count_label: Optional[QLabel] = None
+        self.grade_level_label: Optional[QLabel] = None
+        self.ai_status_label: Optional[QLabel] = None
 
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets after status bar is created."""

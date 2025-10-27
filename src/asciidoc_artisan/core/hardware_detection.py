@@ -12,7 +12,7 @@ Used to optimize AI workloads and display capabilities to users.
 import logging
 import platform
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 logger = logging.getLogger(__name__)
@@ -43,14 +43,10 @@ class HardwareCapabilities:
 
     has_gpu: bool = False
     has_npu: bool = False
-    gpus: List[GPUInfo] = None
+    gpus: List[GPUInfo] = field(default_factory=list)
     npu: Optional[NPUInfo] = None
     cpu_cores: int = 0
     system_ram_gb: int = 0
-
-    def __post_init__(self):
-        if self.gpus is None:
-            self.gpus = []
 
 
 class HardwareDetector:
@@ -292,7 +288,7 @@ def print_hardware_report():
     else:
         print("\nGPU: None detected")
 
-    if caps.has_npu:
+    if caps.has_npu and caps.npu:
         print("\nNPU:")
         print(f"  Vendor: {caps.npu.vendor}")
         print(f"  Model: {caps.npu.model}")

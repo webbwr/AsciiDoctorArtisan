@@ -412,13 +412,13 @@ class OptimizedWorkerPool:
         # Calculate efficiency
         total = stats["submitted"]
         if total > 0:
-            stats["completion_rate"] = stats["completed"] / total * 100
-            stats["cancellation_rate"] = stats["canceled"] / total * 100
-            stats["coalesce_rate"] = stats["coalesced"] / total * 100
+            stats["completion_rate"] = float(stats["completed"]) / total * 100
+            stats["cancellation_rate"] = float(stats["canceled"]) / total * 100
+            stats["coalesce_rate"] = float(stats["coalesced"]) / total * 100
         else:
-            stats["completion_rate"] = 0
-            stats["cancellation_rate"] = 0
-            stats["coalesce_rate"] = 0
+            stats["completion_rate"] = 0.0
+            stats["cancellation_rate"] = 0.0
+            stats["coalesce_rate"] = 0.0
 
         return stats
 
