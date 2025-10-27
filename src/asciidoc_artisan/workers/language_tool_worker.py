@@ -51,12 +51,11 @@ except ImportError:
 # Import grammar models and config
 from asciidoc_artisan.core.grammar_config import (
     ASCIIDOC_EXCLUDE_PATTERNS,
+    ERROR_MESSAGES,
     LANGUAGETOOL_CACHE_SIZE,
     LANGUAGETOOL_DEFAULT_LANGUAGE,
     LANGUAGETOOL_DISABLED_RULES_DEFAULT,
     LANGUAGETOOL_MAX_TEXT_LENGTH,
-    LANGUAGETOOL_TIMEOUT_MS,
-    ERROR_MESSAGES,
 )
 from asciidoc_artisan.core.grammar_models import (
     GrammarCategory,
@@ -72,6 +71,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # CIRCUIT BREAKER FOR FAULT TOLERANCE
 # ============================================================================
+
 
 @dataclass
 class CircuitBreakerState:
@@ -130,6 +130,7 @@ class CircuitBreakerState:
 # ============================================================================
 # LRU CACHE FOR PERFORMANCE
 # ============================================================================
+
 
 class LRUCache:
     """Thread-safe LRU cache for grammar check results.
@@ -210,6 +211,7 @@ class LRUCache:
 # ASCIIDOC CONTENT FILTER
 # ============================================================================
 
+
 class AsciiDocContentFilter:
     """Filters AsciiDoc markup to extract prose for grammar checking.
 
@@ -248,8 +250,10 @@ class AsciiDocContentFilter:
                 removed_length = end - start
 
                 # Replace with spaces to maintain line structure
-                replacement = ' ' * removed_length
-                filtered_text = filtered_text[:start] + replacement + filtered_text[end:]
+                replacement = " " * removed_length
+                filtered_text = (
+                    filtered_text[:start] + replacement + filtered_text[end:]
+                )
 
                 # Track offset changes
                 for i in range(start, end):
@@ -258,8 +262,8 @@ class AsciiDocContentFilter:
                 removed_chars += removed_length
 
         # Clean up excessive whitespace
-        filtered_text = re.sub(r'\n{3,}', '\n\n', filtered_text)  # Max 2 newlines
-        filtered_text = re.sub(r' {2,}', ' ', filtered_text)      # Max 1 space
+        filtered_text = re.sub(r"\n{3,}", "\n\n", filtered_text)  # Max 2 newlines
+        filtered_text = re.sub(r" {2,}", " ", filtered_text)  # Max 1 space
 
         logger.debug(
             f"Filtered {len(text)} -> {len(filtered_text)} chars "
@@ -284,6 +288,7 @@ class AsciiDocContentFilter:
 # ============================================================================
 # LANGUAGETOOL WORKER
 # ============================================================================
+
 
 class LanguageToolWorker(QObject):
     """Background worker for LanguageTool grammar checking.
@@ -366,9 +371,7 @@ class LanguageToolWorker(QObject):
             self._language = language
             self._initialized = True
 
-            logger.info(
-                f"LanguageTool initialized successfully in {init_time:.0f}ms"
-            )
+            logger.info(f"LanguageTool initialized successfully in {init_time:.0f}ms")
             self.progress_update.emit(
                 f"LanguageTool ready ({language}) - {init_time:.0f}ms"
             )
@@ -402,8 +405,7 @@ class LanguageToolWorker(QObject):
         # Validate state
         if not self._initialized or not self._tool:
             result = GrammarResult.create_error(
-                GrammarSource.LANGUAGETOOL,
-                "LanguageTool not initialized"
+                GrammarSource.LANGUAGETOOL, "LanguageTool not initialized"
             )
             self.grammar_result_ready.emit(result)
             return
@@ -412,7 +414,7 @@ class LanguageToolWorker(QObject):
         if not self._circuit_breaker.can_attempt():
             result = GrammarResult.create_error(
                 GrammarSource.LANGUAGETOOL,
-                "LanguageTool temporarily unavailable (too many errors)"
+                "LanguageTool temporarily unavailable (too many errors)",
             )
             self.grammar_result_ready.emit(result)
             return
@@ -523,8 +525,7 @@ class LanguageToolWorker(QObject):
             logger.error(f"LanguageTool check failed: {e}", exc_info=True)
 
             result = GrammarResult.create_error(
-                GrammarSource.LANGUAGETOOL,
-                f"Grammar check failed: {str(e)}"
+                GrammarSource.LANGUAGETOOL, f"Grammar check failed: {str(e)}"
             )
             self.grammar_result_ready.emit(result)
 
@@ -533,10 +534,7 @@ class LanguageToolWorker(QObject):
     # ========================================================================
 
     def _parse_matches(
-        self,
-        matches: List[Match],
-        offset_map: Dict[int, int],
-        original_text: str
+        self, matches: List[Match], offset_map: Dict[int, int], original_text: str
     ) -> List[GrammarSuggestion]:
         """Parse LanguageTool matches into GrammarSuggestion objects.
 
@@ -558,8 +556,7 @@ class LanguageToolWorker(QObject):
             # Map positions back to original text
             start = self._content_filter.map_offset(match.offset, offset_map)
             end = self._content_filter.map_offset(
-                match.offset + match.errorLength,
-                offset_map
+                match.offset + match.errorLength, offset_map
             )
 
             # Validate positions
@@ -590,17 +587,19 @@ class LanguageToolWorker(QObject):
                 rule_id=match.ruleId,
                 context=context,
                 severity=severity,
-                url=match.ruleIssueType if hasattr(match, 'ruleIssueType') else None,
+                url=match.ruleIssueType if hasattr(match, "ruleIssueType") else None,
                 metadata={
-                    "category": match.category if hasattr(match, 'category') else None,
+                    "category": match.category if hasattr(match, "category") else None,
                     "offset": match.offset,
                     "length": match.errorLength,
-                }
+                },
             )
 
             suggestions.append(suggestion)
 
-        logger.debug(f"Parsed {len(suggestions)} suggestions from {len(matches)} matches")
+        logger.debug(
+            f"Parsed {len(suggestions)} suggestions from {len(matches)} matches"
+        )
         return suggestions
 
     def _categorize_match(self, match: Match) -> GrammarCategory:
@@ -613,23 +612,38 @@ class LanguageToolWorker(QObject):
             GrammarCategory enum value
         """
         rule_id_lower = match.ruleId.lower()
-        category = getattr(match, 'category', '').lower()
+        category = getattr(match, "category", "").lower()
 
         # Spelling errors
-        if 'spell' in rule_id_lower or 'spelling' in category or 'morfologik' in rule_id_lower:
+        if (
+            "spell" in rule_id_lower
+            or "spelling" in category
+            or "morfologik" in rule_id_lower
+        ):
             return GrammarCategory.SPELLING
 
         # Punctuation
-        if 'punctuation' in category or 'comma' in rule_id_lower or 'period' in rule_id_lower:
+        if (
+            "punctuation" in category
+            or "comma" in rule_id_lower
+            or "period" in rule_id_lower
+        ):
             return GrammarCategory.PUNCTUATION
 
         # Style issues
-        style_keywords = ['style', 'passive', 'cliche', 'redundant', 'wordy', 'repetition']
+        style_keywords = [
+            "style",
+            "passive",
+            "cliche",
+            "redundant",
+            "wordy",
+            "repetition",
+        ]
         if any(keyword in rule_id_lower for keyword in style_keywords):
             return GrammarCategory.STYLE
 
         # Readability
-        if 'readability' in category or 'sentence_length' in rule_id_lower:
+        if "readability" in category or "sentence_length" in rule_id_lower:
             return GrammarCategory.READABILITY
 
         # Grammar (default)
@@ -645,14 +659,14 @@ class LanguageToolWorker(QObject):
             GrammarSeverity enum value
         """
         # LanguageTool doesn't provide severity directly, so we infer it
-        category = getattr(match, 'category', '').lower()
+        category = getattr(match, "category", "").lower()
 
         # Spelling and grammar errors are high priority
-        if 'spelling' in category or 'grammar' in category:
+        if "spelling" in category or "grammar" in category:
             return GrammarSeverity.ERROR
 
         # Punctuation and style are warnings
-        if 'punctuation' in category or 'style' in category:
+        if "punctuation" in category or "style" in category:
             return GrammarSeverity.WARNING
 
         # Everything else is informational
@@ -701,7 +715,7 @@ class LanguageToolWorker(QObject):
         Returns:
             SHA256 hash hex string
         """
-        return hashlib.sha256(text.encode('utf-8')).hexdigest()
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get worker statistics.

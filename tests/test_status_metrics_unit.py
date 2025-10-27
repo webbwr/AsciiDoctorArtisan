@@ -7,19 +7,18 @@ Tests the new v1.2.0 features:
 - Grade level calculation
 """
 
-import pytest
-
-
 # Extract the metric calculation methods for testing
 # We'll test them as standalone functions
+
 
 def extract_document_version(text: str):
     """Extract document version from AsciiDoc attributes."""
     import re
+
     patterns = [
-        r'^:revnumber:\s*(.+)$',
-        r'^:version:\s*(.+)$',
-        r'^:rev:\s*(.+)$',
+        r"^:revnumber:\s*(.+)$",
+        r"^:version:\s*(.+)$",
+        r"^:rev:\s*(.+)$",
     ]
 
     for pattern in patterns:
@@ -33,9 +32,10 @@ def extract_document_version(text: str):
 def count_words(text: str) -> int:
     """Count words in document content."""
     import re
+
     # Remove AsciiDoc attributes and comments
-    text = re.sub(r'^:.*?:.*?$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^//.*?$', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^:.*?:.*?$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^//.*?$", "", text, flags=re.MULTILINE)
 
     # Split on whitespace and count
     words = text.split()
@@ -45,14 +45,15 @@ def count_words(text: str) -> int:
 def calculate_grade_level(text: str) -> float:
     """Calculate Flesch-Kincaid grade level."""
     import re
+
     # Remove AsciiDoc markup
-    text = re.sub(r'^:.*?:.*?$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^//.*?$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'^\[.*?\]$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'\*\*|__|\*|_|`', '', text)
+    text = re.sub(r"^:.*?:.*?$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^//.*?$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\[.*?\]$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\*\*|__|\*|_|`", "", text)
 
     # Count sentences (. ! ?)
-    sentences = re.split(r'[.!?]+', text)
+    sentences = re.split(r"[.!?]+", text)
     sentences = [s.strip() for s in sentences if s.strip()]
     num_sentences = len(sentences)
 
@@ -70,15 +71,17 @@ def calculate_grade_level(text: str) -> float:
     num_syllables = 0
     for word in words:
         word = word.lower()
-        syllable_count = len(re.findall(r'[aeiouy]+', word))
+        syllable_count = len(re.findall(r"[aeiouy]+", word))
         # Adjust for silent e
-        if word.endswith('e'):
+        if word.endswith("e"):
             syllable_count -= 1
         # Minimum 1 syllable per word
         num_syllables += max(1, syllable_count)
 
     # Flesch-Kincaid Grade Level formula
-    grade = 0.39 * (num_words / num_sentences) + 11.8 * (num_syllables / num_words) - 15.59
+    grade = (
+        0.39 * (num_words / num_sentences) + 11.8 * (num_syllables / num_words) - 15.59
+    )
 
     return round(max(0.0, grade), 2)
 

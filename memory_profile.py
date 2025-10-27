@@ -38,7 +38,9 @@ def profile_operation(name, operation_func):
     # Calculate delta
     mem_delta = mem_after - mem_before
 
-    print(f"{name:<40} {format_bytes(mem_before):>10.2f} MB -> {format_bytes(mem_after):>10.2f} MB  (Δ {format_bytes(mem_delta):>8.2f} MB)")
+    print(
+        f"{name:<40} {format_bytes(mem_before):>10.2f} MB -> {format_bytes(mem_after):>10.2f} MB  (Δ {format_bytes(mem_delta):>8.2f} MB)"
+    )
 
     return result
 
@@ -58,9 +60,6 @@ def main():
 
     # Test 1: Import main modules
     def import_modules():
-        from asciidoc_artisan.core import file_operations
-        from asciidoc_artisan.ui import main_window
-        from document_converter import PDFExtractor
         return True
 
     profile_operation("Import main modules", import_modules)
@@ -78,9 +77,11 @@ def main():
 
     # Test 3: File operations
     def test_file_ops():
-        from asciidoc_artisan.core.file_operations import atomic_save_text
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.adoc') as f:
+
+        from asciidoc_artisan.core.file_operations import atomic_save_text
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".adoc") as f:
             temp_path = Path(f.name)
         atomic_save_text(temp_path, test_content)
         content = temp_path.read_text()
@@ -107,7 +108,7 @@ def main():
 
     # System-wide memory
     vm = psutil.virtual_memory()
-    print(f"\nSystem Memory:")
+    print("\nSystem Memory:")
     print(f"  Total: {format_bytes(vm.total):.2f} MB")
     print(f"  Available: {format_bytes(vm.available):.2f} MB")
     print(f"  Used: {vm.percent}%")
@@ -117,5 +118,5 @@ def main():
     print("=" * 100)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

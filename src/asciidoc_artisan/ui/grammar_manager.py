@@ -34,20 +34,16 @@ import logging
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-from PySide6.QtCore import QPoint, QThread, QTimer, Qt, Slot
-from PySide6.QtGui import QColor, QCursor, QTextCharFormat, QTextCursor
+from PySide6.QtCore import QPoint, QThread, QTimer, Slot
+from PySide6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PySide6.QtWidgets import QMenu, QTextEdit, QToolTip
 
 from asciidoc_artisan.core.grammar_config import (
     DEFAULT_PERFORMANCE_PROFILE,
-    HYBRID_DEBOUNCE_MS,
-    LANGUAGETOOL_DEBOUNCE_MS,
-    OLLAMA_DEBOUNCE_MS,
     PERFORMANCE_PROFILES,
 )
 from asciidoc_artisan.core.grammar_models import (
     AggregatedGrammarResult,
-    GrammarCategory,
     GrammarResult,
     GrammarSource,
     GrammarSuggestion,
@@ -64,18 +60,20 @@ logger = logging.getLogger(__name__)
 # CHECKING MODE ENUM
 # ============================================================================
 
+
 class CheckingMode:
     """Grammar checking mode configuration."""
 
-    DISABLED = "disabled"              # No checking
+    DISABLED = "disabled"  # No checking
     LANGUAGETOOL_ONLY = "languagetool"  # Fast rules-based only
-    OLLAMA_ONLY = "ollama"             # AI-only (slow)
-    HYBRID = "hybrid"                   # Both engines (recommended)
+    OLLAMA_ONLY = "ollama"  # AI-only (slow)
+    HYBRID = "hybrid"  # Both engines (recommended)
 
 
 # ============================================================================
 # RESULT DEDUPLICATOR
 # ============================================================================
+
 
 class SuggestionDeduplicator:
     """Deduplicates suggestions from multiple sources.
@@ -87,7 +85,7 @@ class SuggestionDeduplicator:
     @staticmethod
     def deduplicate(
         lt_suggestions: List[GrammarSuggestion],
-        ollama_suggestions: List[GrammarSuggestion]
+        ollama_suggestions: List[GrammarSuggestion],
     ) -> List[GrammarSuggestion]:
         """Deduplicate suggestions from both sources.
 
@@ -130,8 +128,7 @@ class SuggestionDeduplicator:
 
     @staticmethod
     def _overlaps_with_any(
-        suggestion: GrammarSuggestion,
-        others: List[GrammarSuggestion]
+        suggestion: GrammarSuggestion, others: List[GrammarSuggestion]
     ) -> bool:
         """Check if suggestion overlaps with any in list.
 
@@ -144,8 +141,7 @@ class SuggestionDeduplicator:
         """
         for other in others:
             if SuggestionDeduplicator._ranges_overlap(
-                (suggestion.start, suggestion.end),
-                (other.start, other.end)
+                (suggestion.start, suggestion.end), (other.start, other.end)
             ):
                 return True
         return False
@@ -171,6 +167,7 @@ class SuggestionDeduplicator:
 # ============================================================================
 # GRAMMAR MANAGER
 # ============================================================================
+
 
 class GrammarManager:
     """Orchestrates hybrid grammar checking system.
@@ -249,9 +246,7 @@ class GrammarManager:
         # Connect signals
         self.lt_worker.grammar_result_ready.connect(self._handle_languagetool_result)
         self.lt_worker.progress_update.connect(self._handle_progress_update)
-        self.lt_worker.initialization_complete.connect(
-            self._handle_lt_initialization
-        )
+        self.lt_worker.initialization_complete.connect(self._handle_lt_initialization)
 
         # Start thread
         self.lt_thread.start()
@@ -287,7 +282,9 @@ class GrammarManager:
             ollama_model = getattr(settings, "ollama_model", "gnokit/improve-grammar")
 
             self.ollama_worker.set_config(ollama_enabled, ollama_model)
-            logger.info(f"Ollama config loaded: enabled={ollama_enabled}, model={ollama_model}")
+            logger.info(
+                f"Ollama config loaded: enabled={ollama_enabled}, model={ollama_model}"
+            )
 
         except Exception as e:
             logger.error(f"Failed to load Ollama config: {e}")
@@ -337,8 +334,12 @@ class GrammarManager:
         Args:
             mode: One of CheckingMode constants
         """
-        if mode not in [CheckingMode.DISABLED, CheckingMode.LANGUAGETOOL_ONLY,
-                        CheckingMode.OLLAMA_ONLY, CheckingMode.HYBRID]:
+        if mode not in [
+            CheckingMode.DISABLED,
+            CheckingMode.LANGUAGETOOL_ONLY,
+            CheckingMode.OLLAMA_ONLY,
+            CheckingMode.HYBRID,
+        ]:
             logger.warning(f"Invalid checking mode: {mode}")
             return
 
@@ -381,8 +382,7 @@ class GrammarManager:
 
         # Get debounce times from profile
         profile = PERFORMANCE_PROFILES.get(
-            self._performance_profile,
-            PERFORMANCE_PROFILES["balanced"]
+            self._performance_profile, PERFORMANCE_PROFILES["balanced"]
         )
 
         # Start LanguageTool timer (fast)
@@ -429,13 +429,15 @@ class GrammarManager:
         if not self._enabled:
             return
 
-        if self._checking_mode in [CheckingMode.DISABLED, CheckingMode.LANGUAGETOOL_ONLY]:
+        if self._checking_mode in [
+            CheckingMode.DISABLED,
+            CheckingMode.LANGUAGETOOL_ONLY,
+        ]:
             return
 
         # Get profile
         profile = PERFORMANCE_PROFILES.get(
-            self._performance_profile,
-            PERFORMANCE_PROFILES["balanced"]
+            self._performance_profile, PERFORMANCE_PROFILES["balanced"]
         )
 
         if not profile.ollama_enabled:
@@ -464,7 +466,9 @@ class GrammarManager:
 
         if not result.success:
             logger.error(f"LanguageTool check failed: {result.error_message}")
-            self._update_status(f"Grammar check failed: {result.error_message}", timeout=5000)
+            self._update_status(
+                f"Grammar check failed: {result.error_message}", timeout=5000
+            )
             return
 
         logger.info(
@@ -475,8 +479,7 @@ class GrammarManager:
         # If hybrid mode, trigger Ollama after LanguageTool
         if self._checking_mode == CheckingMode.HYBRID:
             profile = PERFORMANCE_PROFILES.get(
-                self._performance_profile,
-                PERFORMANCE_PROFILES["balanced"]
+                self._performance_profile, PERFORMANCE_PROFILES["balanced"]
             )
 
             if profile.ollama_enabled:
@@ -524,8 +527,7 @@ class GrammarManager:
             self._update_status("No issues found", timeout=3000)
         else:
             self._update_status(
-                f"Grammar: {count} issue{'s' if count != 1 else ''} found",
-                timeout=5000
+                f"Grammar: {count} issue{'s' if count != 1 else ''} found", timeout=5000
             )
 
     def _merge_and_apply_results(self):
@@ -536,8 +538,7 @@ class GrammarManager:
 
         # Deduplicate suggestions
         merged = self._deduplicator.deduplicate(
-            self._lt_result.suggestions,
-            self._ollama_result.suggestions
+            self._lt_result.suggestions, self._ollama_result.suggestions
         )
 
         # Create aggregated result
@@ -546,9 +547,9 @@ class GrammarManager:
             ollama_result=self._ollama_result,
             merged_suggestions=merged,
             total_processing_time_ms=(
-                self._lt_result.processing_time_ms +
-                self._ollama_result.processing_time_ms
-            )
+                self._lt_result.processing_time_ms
+                + self._ollama_result.processing_time_ms
+            ),
         )
 
         # Cache result
@@ -578,7 +579,7 @@ class GrammarManager:
         else:
             self._update_status(
                 f"Grammar: {total} issues ({lt_count} rules, {ollama_count} AI)",
-                timeout=5000
+                timeout=5000,
             )
 
     # ========================================================================
@@ -708,17 +709,14 @@ class GrammarManager:
             for replacement in suggestion.replacements[:5]:
                 action = menu.addAction(f"Replace with '{replacement}'")
                 action.triggered.connect(
-                    lambda checked, s=suggestion, r=replacement:
-                    self._apply_fix(s, r)
+                    lambda checked, s=suggestion, r=replacement: self._apply_fix(s, r)
                 )
 
             menu.addSeparator()
 
         # Ignore actions
         ignore_action = menu.addAction("Ignore this issue")
-        ignore_action.triggered.connect(
-            lambda: self._ignore_suggestion(suggestion)
-        )
+        ignore_action.triggered.connect(lambda: self._ignore_suggestion(suggestion))
 
         if suggestion.rule_id and suggestion.source == GrammarSource.LANGUAGETOOL:
             ignore_rule_action = menu.addAction(f"Ignore rule '{suggestion.rule_id}'")
@@ -740,7 +738,9 @@ class GrammarManager:
         cursor.setPosition(suggestion.end, QTextCursor.MoveMode.KeepAnchor)
         cursor.insertText(replacement)
 
-        logger.info(f"Applied fix at [{suggestion.start}:{suggestion.end}]: {replacement}")
+        logger.info(
+            f"Applied fix at [{suggestion.start}:{suggestion.end}]: {replacement}"
+        )
 
         # Re-check will be triggered by text change
 
@@ -752,7 +752,8 @@ class GrammarManager:
         """
         # Remove from current suggestions
         self._current_suggestions = [
-            s for s in self._current_suggestions
+            s
+            for s in self._current_suggestions
             if not (s.start == suggestion.start and s.end == suggestion.end)
         ]
 
@@ -772,8 +773,7 @@ class GrammarManager:
 
         # Remove all suggestions with this rule from current display
         self._current_suggestions = [
-            s for s in self._current_suggestions
-            if s.rule_id != rule_id
+            s for s in self._current_suggestions if s.rule_id != rule_id
         ]
 
         # Reapply underlines
@@ -822,7 +822,7 @@ class GrammarManager:
         Returns:
             SHA256 hash hex string
         """
-        return hashlib.sha256(text.encode('utf-8')).hexdigest()
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
     def _update_status(self, message: str, timeout: int = 0):
         """Update status bar message.
@@ -848,8 +848,7 @@ class GrammarManager:
         else:
             logger.error("LanguageTool initialization failed")
             self._update_status(
-                "Grammar checking unavailable (LanguageTool init failed)",
-                timeout=5000
+                "Grammar checking unavailable (LanguageTool init failed)", timeout=5000
             )
 
     @Slot(str)

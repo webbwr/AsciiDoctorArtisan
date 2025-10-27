@@ -19,7 +19,7 @@ asynchronously, emitting signals when rendering completes or fails.
 import html
 import io
 import logging
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 from PySide6.QtCore import QObject, Signal, Slot
 

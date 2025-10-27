@@ -4,9 +4,9 @@ Tests for pane maximization functionality (FR-044).
 Comprehensive integration tests for editor and preview pane maximize/restore.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from PySide6.QtWidgets import QApplication
-from unittest.mock import MagicMock, patch
 
 
 # Mock the main_window module to avoid GUI initialization

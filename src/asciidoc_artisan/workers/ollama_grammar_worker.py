@@ -33,7 +33,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -51,11 +51,9 @@ except ImportError:
 # Import grammar models and config
 from asciidoc_artisan.core.grammar_config import (
     ERROR_MESSAGES,
-    OLLAMA_API_BASE_URL,
     OLLAMA_DEFAULT_MODEL,
     OLLAMA_MAX_RETRIES,
     OLLAMA_RETRY_DELAY_MS,
-    OLLAMA_TIMEOUT_MS,
 )
 from asciidoc_artisan.core.grammar_models import (
     GrammarCategory,
@@ -71,6 +69,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # RETRY LOGIC WITH EXPONENTIAL BACKOFF
 # ============================================================================
+
 
 @dataclass
 class RetryState:
@@ -92,7 +91,7 @@ class RetryState:
             Delay in milliseconds
         """
         # Exponential backoff: base * 2^attempt
-        delay = self.base_delay_ms * (2 ** self.attempt)
+        delay = self.base_delay_ms * (2**self.attempt)
         # Cap at 10 seconds
         return min(delay, 10000)
 
@@ -112,6 +111,7 @@ class RetryState:
 # ============================================================================
 # GRAMMAR PROMPT TEMPLATES
 # ============================================================================
+
 
 class GrammarPromptTemplate:
     """Templates for Ollama grammar checking prompts.
@@ -208,6 +208,7 @@ JSON:"""
 # SUGGESTION PARSER
 # ============================================================================
 
+
 class OllamaSuggestionParser:
     """Parses Ollama AI responses into GrammarSuggestion objects.
 
@@ -216,8 +217,7 @@ class OllamaSuggestionParser:
 
     @staticmethod
     def parse_structured_json(
-        response: str,
-        original_text: str
+        response: str, original_text: str
     ) -> List[GrammarSuggestion]:
         """Parse structured JSON response from Ollama.
 
@@ -232,7 +232,7 @@ class OllamaSuggestionParser:
 
         try:
             # Extract JSON from response (handle extra text)
-            json_match = re.search(r'\[[\s\S]*\]', response)
+            json_match = re.search(r"\[[\s\S]*\]", response)
             if not json_match:
                 logger.warning("No JSON array found in Ollama response")
                 return suggestions
@@ -267,8 +267,7 @@ class OllamaSuggestionParser:
 
     @staticmethod
     def _parse_single_issue(
-        issue: Dict[str, Any],
-        original_text: str
+        issue: Dict[str, Any], original_text: str
     ) -> Optional[GrammarSuggestion]:
         """Parse single issue dict into GrammarSuggestion.
 
@@ -280,11 +279,11 @@ class OllamaSuggestionParser:
             GrammarSuggestion if valid, None otherwise
         """
         # Extract fields with defaults
-        problem_text = issue.get('text', '').strip()
-        issue_explanation = issue.get('issue', '').strip()
-        suggestion_text = issue.get('suggestion', '').strip()
-        severity_str = issue.get('severity', 'info').lower()
-        category_str = issue.get('category', 'ai').lower()
+        problem_text = issue.get("text", "").strip()
+        issue_explanation = issue.get("issue", "").strip()
+        suggestion_text = issue.get("suggestion", "").strip()
+        severity_str = issue.get("severity", "info").lower()
+        category_str = issue.get("category", "ai").lower()
 
         # Validate required fields
         if not problem_text or not issue_explanation:
@@ -305,20 +304,20 @@ class OllamaSuggestionParser:
 
         # Map severity
         severity_map = {
-            'error': GrammarSeverity.ERROR,
-            'warning': GrammarSeverity.WARNING,
-            'info': GrammarSeverity.INFO,
-            'hint': GrammarSeverity.HINT,
+            "error": GrammarSeverity.ERROR,
+            "warning": GrammarSeverity.WARNING,
+            "info": GrammarSeverity.INFO,
+            "hint": GrammarSeverity.HINT,
         }
         severity = severity_map.get(severity_str, GrammarSeverity.INFO)
 
         # Map category
         category_map = {
-            'grammar': GrammarCategory.GRAMMAR,
-            'style': GrammarCategory.STYLE,
-            'spelling': GrammarCategory.SPELLING,
-            'clarity': GrammarCategory.READABILITY,
-            'ai': GrammarCategory.AI_SUGGESTION,
+            "grammar": GrammarCategory.GRAMMAR,
+            "style": GrammarCategory.STYLE,
+            "spelling": GrammarCategory.SPELLING,
+            "clarity": GrammarCategory.READABILITY,
+            "ai": GrammarCategory.AI_SUGGESTION,
         }
         category = category_map.get(category_str, GrammarCategory.AI_SUGGESTION)
 
@@ -330,19 +329,18 @@ class OllamaSuggestionParser:
             source=GrammarSource.OLLAMA,
             message=issue_explanation,
             replacements=[suggestion_text] if suggestion_text else [],
-            rule_id='ollama_ai',
+            rule_id="ollama_ai",
             context=problem_text,
             severity=severity,
             metadata={
-                'ai_category': category_str,
-                'original_severity': severity_str,
-            }
+                "ai_category": category_str,
+                "original_severity": severity_str,
+            },
         )
 
     @staticmethod
     def parse_simple_correction(
-        response: str,
-        original_text: str
+        response: str, original_text: str
     ) -> List[GrammarSuggestion]:
         """Parse simple correction response (diff-based).
 
@@ -365,7 +363,7 @@ class OllamaSuggestionParser:
             source=GrammarSource.OLLAMA,
             message="AI suggests improvements to this text",
             replacements=[response.strip()],
-            rule_id='ollama_overall',
+            rule_id="ollama_overall",
             context=original_text[:100],
             severity=GrammarSeverity.INFO,
         )
@@ -376,6 +374,7 @@ class OllamaSuggestionParser:
 # ============================================================================
 # OLLAMA GRAMMAR WORKER
 # ============================================================================
+
 
 class OllamaGrammarWorker(QObject):
     """Background worker for Ollama AI grammar checking.
@@ -463,8 +462,7 @@ class OllamaGrammarWorker(QObject):
         # Check availability
         if not OLLAMA_AVAILABLE:
             result = GrammarResult.create_error(
-                GrammarSource.OLLAMA,
-                ERROR_MESSAGES["ollama_not_installed"]
+                GrammarSource.OLLAMA, ERROR_MESSAGES["ollama_not_installed"]
             )
             self.grammar_result_ready.emit(result)
             return
@@ -501,23 +499,25 @@ class OllamaGrammarWorker(QObject):
             # Show progress
             self.progress_update.emit(f"Analyzing with AI ({self._model})...")
 
-            logger.debug(f"Calling Ollama: model={self._model}, text_length={len(text)}")
+            logger.debug(
+                f"Calling Ollama: model={self._model}, text_length={len(text)}"
+            )
 
             # Call Ollama API
             response = ollama.generate(
                 model=self._model,
                 prompt=prompt,
                 options={
-                    'temperature': 0.3,  # Lower temperature for more consistent output
-                    'top_p': 0.9,
-                    'num_predict': 2000,  # Max tokens to generate
-                }
+                    "temperature": 0.3,  # Lower temperature for more consistent output
+                    "top_p": 0.9,
+                    "num_predict": 2000,  # Max tokens to generate
+                },
             )
 
-            if not response or 'response' not in response:
+            if not response or "response" not in response:
                 raise ValueError("Empty response from Ollama")
 
-            response_text = response['response']
+            response_text = response["response"]
             logger.debug(f"Ollama response length: {len(response_text)} chars")
 
             # Parse response
@@ -605,10 +605,7 @@ class OllamaGrammarWorker(QObject):
         else:
             final_error = f"Ollama error: {error_msg}"
 
-        result = GrammarResult.create_error(
-            GrammarSource.OLLAMA,
-            final_error
-        )
+        result = GrammarResult.create_error(GrammarSource.OLLAMA, final_error)
         self.grammar_result_ready.emit(result)
 
     def _handle_generic_error(self, error: Exception, text: str, start_time: float):
@@ -625,8 +622,7 @@ class OllamaGrammarWorker(QObject):
         logger.error(f"Ollama check failed: {error}", exc_info=True)
 
         result = GrammarResult.create_error(
-            GrammarSource.OLLAMA,
-            f"AI check failed: {str(error)}"
+            GrammarSource.OLLAMA, f"AI check failed: {str(error)}"
         )
         self.grammar_result_ready.emit(result)
 
@@ -667,13 +663,11 @@ class OllamaGrammarWorker(QObject):
 
         try:
             result = ollama.list()
-            models = result.get('models', [])
-            available_models = [m.get('name', '') for m in models]
+            models = result.get("models", [])
+            available_models = [m.get("name", "") for m in models]
 
             is_available = self._model in available_models
-            logger.info(
-                f"Model {self._model} available: {is_available}"
-            )
+            logger.info(f"Model {self._model} available: {is_available}")
             return is_available
 
         except Exception as e:

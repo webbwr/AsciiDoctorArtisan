@@ -4,10 +4,6 @@ Tests for secure credential storage module.
 Tests keyring-based API key storage with mocked keyring operations.
 """
 
-from unittest.mock import MagicMock, patch
-
-import pytest
-
 from asciidoc_artisan.core.secure_credentials import SecureCredentials
 
 
@@ -67,7 +63,9 @@ class TestSecureCredentials:
 
     def test_store_api_key_keyring_unavailable(self, mocker):
         """Test storing API key when keyring unavailable."""
-        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
+        mocker.patch(
+            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
+        )
 
         creds = SecureCredentials()
         result = creds.store_api_key("openai", "sk-test123")
@@ -112,7 +110,9 @@ class TestSecureCredentials:
 
     def test_get_api_key_keyring_unavailable(self, mocker):
         """Test retrieving API key when keyring unavailable."""
-        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
+        mocker.patch(
+            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
+        )
 
         creds = SecureCredentials()
         api_key = creds.get_api_key("openai")
@@ -145,7 +145,9 @@ class TestSecureCredentials:
 
     def test_delete_api_key_keyring_unavailable(self, mocker):
         """Test deleting API key when keyring unavailable."""
-        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
+        mocker.patch(
+            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
+        )
 
         creds = SecureCredentials()
         result = creds.delete_api_key("openai")
@@ -201,7 +203,9 @@ class TestSecureCredentials:
 
     def test_has_api_key_keyring_unavailable(self, mocker):
         """Test checking if API key exists when keyring unavailable."""
-        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
+        mocker.patch(
+            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
+        )
 
         creds = SecureCredentials()
         has_key = creds.has_api_key("openai")

@@ -6,14 +6,14 @@ typing speed, and render times.
 """
 
 import time
+
 import pytest
-from unittest.mock import Mock, patch
 
 from asciidoc_artisan.core.adaptive_debouncer import (
     AdaptiveDebouncer,
     DebounceConfig,
-    SystemMonitor,
     SystemMetrics,
+    SystemMonitor,
 )
 
 
@@ -57,7 +57,7 @@ class TestSystemMonitor:
 
         # Just test that it returns a valid category
         category = monitor.get_cpu_load_category(config)
-        assert category in ['low', 'medium', 'high', 'very_high']
+        assert category in ["low", "medium", "high", "very_high"]
 
 
 class TestDebounceConfig:
@@ -75,11 +75,7 @@ class TestDebounceConfig:
 
     def test_custom_config(self):
         """Test custom configuration."""
-        config = DebounceConfig(
-            min_delay=50,
-            max_delay=3000,
-            default_delay=500
-        )
+        config = DebounceConfig(min_delay=50, max_delay=3000, default_delay=500)
 
         assert config.min_delay == 50
         assert config.max_delay == 3000
@@ -172,12 +168,7 @@ class TestAdaptiveDebouncer:
 
         # Simulate fast typing (4 keystrokes in 0.4 seconds)
         now = time.time()
-        debouncer._keystroke_times = [
-            now - 0.4,
-            now - 0.3,
-            now - 0.2,
-            now - 0.1
-        ]
+        debouncer._keystroke_times = [now - 0.4, now - 0.3, now - 0.2, now - 0.1]
 
         delay = debouncer.calculate_delay(document_size=50000)
 
@@ -217,10 +208,7 @@ class TestAdaptiveDebouncer:
         debouncer = AdaptiveDebouncer()
 
         # Fast render - should not trigger multiplier
-        delay1 = debouncer.calculate_delay(
-            document_size=50000,
-            last_render_time=0.1
-        )
+        delay1 = debouncer.calculate_delay(document_size=50000, last_render_time=0.1)
 
         # Add more fast renders to stabilize
         for _ in range(4):
@@ -270,11 +258,11 @@ class TestAdaptiveDebouncer:
 
         stats = debouncer.get_statistics()
 
-        assert 'avg_delay' in stats
-        assert 'min_delay' in stats
-        assert 'max_delay' in stats
-        assert 'total_adjustments' in stats
-        assert stats['total_adjustments'] == 3
+        assert "avg_delay" in stats
+        assert "min_delay" in stats
+        assert "max_delay" in stats
+        assert "total_adjustments" in stats
+        assert stats["total_adjustments"] == 3
 
     def test_statistics_with_no_history(self):
         """Test statistics with no delay history."""
@@ -282,10 +270,10 @@ class TestAdaptiveDebouncer:
 
         stats = debouncer.get_statistics()
 
-        assert stats['avg_delay'] == 0
-        assert stats['min_delay'] == 0
-        assert stats['max_delay'] == 0
-        assert stats['total_adjustments'] == 0
+        assert stats["avg_delay"] == 0
+        assert stats["min_delay"] == 0
+        assert stats["max_delay"] == 0
+        assert stats["total_adjustments"] == 0
 
     def test_reset(self):
         """Test reset clears all state."""
@@ -363,7 +351,7 @@ class TestAdaptiveDebouncerPerformance:
         assert delay2 >= delay1  # Fast typing may increase
         assert delay3 >= delay1  # Slow renders increase
 
-        print(f"\nAdaptive delay scenario:")
+        print("\nAdaptive delay scenario:")
         print(f"  Initial: {delay1}ms")
         print(f"  Fast typing: {delay2}ms")
         print(f"  After slow renders: {delay3}ms")

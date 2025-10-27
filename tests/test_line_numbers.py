@@ -4,8 +4,6 @@ Tests for line number functionality.
 Tests the LineNumberPlainTextEdit widget and line number display.
 """
 
-import pytest
-
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 
 

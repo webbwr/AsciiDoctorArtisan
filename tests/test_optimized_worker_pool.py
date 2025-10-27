@@ -5,13 +5,15 @@ Tests task submission, cancellation, prioritization, and coalescing.
 """
 
 import time
-import pytest
 from unittest.mock import Mock
+
+import pytest
 from PySide6.QtCore import QCoreApplication
+
 from asciidoc_artisan.workers.optimized_worker_pool import (
-    TaskPriority,
     CancelableRunnable,
     OptimizedWorkerPool,
+    TaskPriority,
 )
 
 
@@ -67,6 +69,7 @@ class TestCancelableRunnable:
 
     def test_cannot_cancel_after_start(self, app):
         """Test cannot cancel after task starts."""
+
         # Slow function
         def slow_func():
             time.sleep(0.1)
@@ -75,6 +78,7 @@ class TestCancelableRunnable:
 
         # Start running
         from threading import Thread
+
         thread = Thread(target=runnable.run)
         thread.start()
 
@@ -91,6 +95,7 @@ class TestCancelableRunnable:
 
     def test_wait_for_finish(self, app):
         """Test waiting for task to finish."""
+
         def quick_func():
             time.sleep(0.05)
 
@@ -98,6 +103,7 @@ class TestCancelableRunnable:
 
         # Run in thread
         from threading import Thread
+
         thread = Thread(target=runnable.run)
         thread.start()
 
@@ -111,6 +117,7 @@ class TestCancelableRunnable:
 
     def test_is_running(self, app):
         """Test checking if task is running."""
+
         # Slow function
         def slow_func():
             time.sleep(0.2)
@@ -121,6 +128,7 @@ class TestCancelableRunnable:
 
         # Start running
         from threading import Thread
+
         thread = Thread(target=runnable.run)
         thread.start()
 
@@ -167,10 +175,7 @@ class TestOptimizedWorkerPool:
         pool = OptimizedWorkerPool(max_threads=2)
         func = Mock()
 
-        task_id = pool.submit(
-            func,
-            priority=TaskPriority.HIGH
-        )
+        task_id = pool.submit(func, priority=TaskPriority.HIGH)
 
         assert task_id is not None
 
@@ -205,7 +210,7 @@ class TestOptimizedWorkerPool:
 
         # Check statistics
         stats = pool.get_statistics()
-        assert stats['canceled'] >= 1
+        assert stats["canceled"] >= 1
 
     def test_cancel_all(self, app):
         """Test canceling all tasks."""
@@ -248,19 +253,9 @@ class TestOptimizedWorkerPool:
         # Submit coalescable tasks with same key
         func = Mock()
 
-        task_id1 = pool.submit(
-            func,
-            "arg1",
-            coalescable=True,
-            coalesce_key="render"
-        )
+        task_id1 = pool.submit(func, "arg1", coalescable=True, coalesce_key="render")
 
-        task_id2 = pool.submit(
-            func,
-            "arg2",
-            coalescable=True,
-            coalesce_key="render"
-        )
+        task_id2 = pool.submit(func, "arg2", coalescable=True, coalesce_key="render")
 
         # Should return same task ID (coalesced)
         assert task_id1 == task_id2
@@ -270,7 +265,7 @@ class TestOptimizedWorkerPool:
 
         # Check statistics
         stats = pool.get_statistics()
-        assert stats['coalesced'] >= 1
+        assert stats["coalesced"] >= 1
 
     def test_different_coalesce_keys(self, app):
         """Test tasks with different coalesce keys are not coalesced."""
@@ -285,17 +280,9 @@ class TestOptimizedWorkerPool:
         func1 = Mock()
         func2 = Mock()
 
-        task_id1 = pool.submit(
-            func1,
-            coalescable=True,
-            coalesce_key="render1"
-        )
+        task_id1 = pool.submit(func1, coalescable=True, coalesce_key="render1")
 
-        task_id2 = pool.submit(
-            func2,
-            coalescable=True,
-            coalesce_key="render2"
-        )
+        task_id2 = pool.submit(func2, coalescable=True, coalesce_key="render2")
 
         # Should be different tasks
         assert task_id1 != task_id2
@@ -309,7 +296,7 @@ class TestOptimizedWorkerPool:
         with pytest.raises(ValueError):
             pool.submit(
                 Mock(),
-                coalescable=True
+                coalescable=True,
                 # Missing coalesce_key
             )
 
@@ -323,15 +310,15 @@ class TestOptimizedWorkerPool:
 
         stats = pool.get_statistics()
 
-        assert 'submitted' in stats
-        assert 'completed' in stats
-        assert 'canceled' in stats
-        assert 'active_tasks' in stats
-        assert 'active_threads' in stats
-        assert 'max_threads' in stats
+        assert "submitted" in stats
+        assert "completed" in stats
+        assert "canceled" in stats
+        assert "active_tasks" in stats
+        assert "active_threads" in stats
+        assert "max_threads" in stats
 
-        assert stats['submitted'] >= 2
-        assert stats['max_threads'] == 2
+        assert stats["submitted"] >= 2
+        assert stats["max_threads"] == 2
 
         pool.wait_for_done(1000)
 
@@ -349,8 +336,8 @@ class TestOptimizedWorkerPool:
         pool.reset_statistics()
 
         stats = pool.get_statistics()
-        assert stats['submitted'] == 0
-        assert stats['completed'] == 0
+        assert stats["submitted"] == 0
+        assert stats["completed"] == 0
 
     def test_clear_pool(self, app):
         """Test clearing pool."""
@@ -364,8 +351,8 @@ class TestOptimizedWorkerPool:
         pool.clear()
 
         stats = pool.get_statistics()
-        assert stats['active_tasks'] == 0
-        assert stats['submitted'] == 0
+        assert stats["active_tasks"] == 0
+        assert stats["submitted"] == 0
 
     def test_wait_for_done(self, app):
         """Test waiting for all tasks to complete."""
@@ -418,6 +405,7 @@ class TestWorkerPoolPerformance:
         pool = OptimizedWorkerPool(max_threads=4)
 
         call_count = 0
+
         def quick_task():
             nonlocal call_count
             call_count += 1
@@ -451,16 +439,13 @@ class TestWorkerPoolPerformance:
 
         # Submit 10 coalescable tasks
         call_count = 0
+
         def work():
             nonlocal call_count
             call_count += 1
 
         for _ in range(10):
-            pool.submit(
-                work,
-                coalescable=True,
-                coalesce_key="same_work"
-            )
+            pool.submit(work, coalescable=True, coalesce_key="same_work")
 
         pool.wait_for_done(2000)
 
@@ -468,9 +453,9 @@ class TestWorkerPoolPerformance:
         assert call_count == 1
 
         stats = pool.get_statistics()
-        assert stats['coalesced'] == 9
+        assert stats["coalesced"] == 9
 
-        print(f"\nCoalescing: 10 tasks -> 1 execution")
+        print("\nCoalescing: 10 tasks -> 1 execution")
         print(f"Coalesced: {stats['coalesced']}")
 
     def test_cancellation_efficiency(self, app):
@@ -485,6 +470,7 @@ class TestWorkerPoolPerformance:
 
         # Submit tasks
         call_count = 0
+
         def work():
             nonlocal call_count
             call_count += 1

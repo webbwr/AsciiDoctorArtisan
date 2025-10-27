@@ -6,12 +6,11 @@ Tests temp file/directory tracking and cleanup.
 
 import os
 import tempfile
-import pytest
 
 from asciidoc_artisan.core.resource_manager import (
     ResourceManager,
-    TempFileContext,
     TempDirectoryContext,
+    TempFileContext,
 )
 
 
@@ -26,7 +25,7 @@ class TestResourceManager:
 
     def teardown_method(self):
         """Clean up after each test."""
-        if hasattr(self, 'rm'):
+        if hasattr(self, "rm"):
             self.rm.cleanup_all()
 
     def test_singleton_instance(self):
@@ -38,10 +37,10 @@ class TestResourceManager:
 
     def test_create_temp_file(self):
         """Test creating temp file."""
-        path = self.rm.create_temp_file(suffix='.txt')
+        path = self.rm.create_temp_file(suffix=".txt")
 
         assert os.path.exists(path)
-        assert path.endswith('.txt')
+        assert path.endswith(".txt")
         assert path in self.rm._temp_files
 
     def test_create_temp_directory(self):
@@ -151,15 +150,15 @@ class TestResourceManager:
 
         stats = self.rm.get_statistics()
 
-        assert stats['temp_files'] == 2
-        assert stats['temp_directories'] == 1
-        assert stats['cleaned_up'] is False
+        assert stats["temp_files"] == 2
+        assert stats["temp_directories"] == 1
+        assert stats["cleaned_up"] is False
 
         # Cleanup
         self.rm.cleanup_all()
 
         stats = self.rm.get_statistics()
-        assert stats['cleaned_up'] is True
+        assert stats["cleaned_up"] is True
 
     def test_cleanup_nonexistent_file(self):
         """Test cleanup of nonexistent file."""
@@ -194,16 +193,16 @@ class TestTempFileContext:
         """Test temp file context manager."""
         temp_path = None
 
-        with TempFileContext(suffix='.txt') as path:
+        with TempFileContext(suffix=".txt") as path:
             temp_path = path
 
             # File should exist
             assert os.path.exists(path)
-            assert path.endswith('.txt')
+            assert path.endswith(".txt")
 
             # Write to file
-            with open(path, 'w') as f:
-                f.write('test content')
+            with open(path, "w") as f:
+                f.write("test content")
 
         # File should be cleaned up
         assert not os.path.exists(temp_path)
@@ -241,9 +240,9 @@ class TestTempDirectoryContext:
             assert os.path.isdir(path)
 
             # Create file in directory
-            file_path = os.path.join(path, 'test.txt')
-            with open(file_path, 'w') as f:
-                f.write('test content')
+            file_path = os.path.join(path, "test.txt")
+            with open(file_path, "w") as f:
+                f.write("test content")
 
             assert os.path.exists(file_path)
 

@@ -18,7 +18,7 @@ Usage:
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Tuple, Set
+from typing import List, Tuple
 
 try:
     import textstat
@@ -52,7 +52,9 @@ class ReadabilityChecker:
         """
         self.max_grade = max_grade
         self.exclude_technical = exclude_technical
-        self.results: List[Tuple[Path, float, bool, bool]] = []  # Added is_technical flag
+        self.results: List[Tuple[Path, float, bool, bool]] = (
+            []
+        )  # Added is_technical flag
         self.skipped: List[Path] = []
 
     def is_technical_doc(self, file_path: Path) -> bool:
@@ -180,7 +182,9 @@ class ReadabilityChecker:
             for file_path, grade_level, passed, is_technical in sorted(self.results):
                 status = "✓ PASS" if passed else "✗ FAIL"
                 tech_marker = " [TECH]" if is_technical else ""
-                print(f"{status}  {file_path.name:30s}  Grade {grade_level:.1f}{tech_marker}")
+                print(
+                    f"{status}  {file_path.name:30s}  Grade {grade_level:.1f}{tech_marker}"
+                )
 
         print("\n" + "=" * 70)
         print(f"Results: {passed_count}/{total_count} user-facing files passed")
@@ -195,7 +199,9 @@ class ReadabilityChecker:
         else:
             print("\n✓  All user-facing files meet readability requirements!")
             if self.skipped:
-                print("   Technical documents are appropriately detailed for developers.")
+                print(
+                    "   Technical documents are appropriately detailed for developers."
+                )
             return True
 
 
@@ -249,8 +255,7 @@ def main():
 
     # Run readability checks
     checker = ReadabilityChecker(
-        max_grade=args.max_grade,
-        exclude_technical=not args.include_technical
+        max_grade=args.max_grade, exclude_technical=not args.include_technical
     )
 
     for file_path in files_to_check:

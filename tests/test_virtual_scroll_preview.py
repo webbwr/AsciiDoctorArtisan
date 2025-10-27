@@ -4,13 +4,15 @@ Tests for virtual scrolling preview.
 Tests viewport calculation, partial rendering, and performance benefits.
 """
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock
+
 from asciidoc_artisan.ui.virtual_scroll_preview import (
     Viewport,
+    ViewportCalculator,
     VirtualScrollConfig,
     VirtualScrollPreview,
-    ViewportCalculator,
 )
 
 
@@ -26,7 +28,7 @@ class TestViewport:
             height=600,
             document_width=800,
             document_height=5000,
-            line_height=20
+            line_height=20,
         )
 
         assert viewport.scroll_y == 100
@@ -42,7 +44,7 @@ class TestViewport:
             height=600,
             document_width=800,
             document_height=5000,
-            line_height=20
+            line_height=20,
         )
 
         start, end = viewport.get_visible_line_range(buffer_lines=10)
@@ -63,7 +65,7 @@ class TestViewport:
             height=600,
             document_width=800,
             document_height=5000,
-            line_height=20
+            line_height=20,
         )
 
         start, end = viewport.get_visible_line_range(buffer_lines=10)
@@ -85,7 +87,7 @@ class TestViewport:
             height=600,
             document_width=800,
             document_height=5000,
-            line_height=0  # Invalid
+            line_height=0,  # Invalid
         )
 
         start, end = viewport.get_visible_line_range()
@@ -101,7 +103,7 @@ class TestViewport:
             height=600,
             document_width=800,
             document_height=5000,
-            line_height=20
+            line_height=20,
         )
 
         # Line in visible range (40-90)
@@ -131,7 +133,7 @@ class TestVirtualScrollConfig:
             buffer_lines=20,
             min_lines_for_virtual=1000,
             estimated_line_height=25,
-            max_render_lines=2000
+            max_render_lines=2000,
         )
 
         assert config.buffer_lines == 20
@@ -168,7 +170,7 @@ class TestVirtualScrollPreview:
         renderer = VirtualScrollPreview(api)
 
         # Small document (< 500 lines)
-        small_doc = '\n'.join([f'Line {i}' for i in range(100)])
+        small_doc = "\n".join([f"Line {i}" for i in range(100)])
 
         assert renderer.should_use_virtual_scrolling(small_doc) is False
 
@@ -178,7 +180,7 @@ class TestVirtualScrollPreview:
         renderer = VirtualScrollPreview(api)
 
         # Large document (> 500 lines)
-        large_doc = '\n'.join([f'Line {i}' for i in range(1000)])
+        large_doc = "\n".join([f"Line {i}" for i in range(1000)])
 
         assert renderer.should_use_virtual_scrolling(large_doc) is True
 
@@ -189,7 +191,7 @@ class TestVirtualScrollPreview:
         renderer.enable(False)
 
         # Large document but virtual scrolling disabled
-        large_doc = '\n'.join([f'Line {i}' for i in range(1000)])
+        large_doc = "\n".join([f"Line {i}" for i in range(1000)])
 
         assert renderer.should_use_virtual_scrolling(large_doc) is False
 
@@ -201,7 +203,7 @@ class TestVirtualScrollPreview:
         renderer = VirtualScrollPreview(api)
 
         # Small document
-        source = '\n'.join([f'Line {i}' for i in range(100)])
+        source = "\n".join([f"Line {i}" for i in range(100)])
 
         viewport = Viewport(
             scroll_x=0,
@@ -210,7 +212,7 @@ class TestVirtualScrollPreview:
             height=600,
             document_width=800,
             document_height=2000,
-            line_height=20
+            line_height=20,
         )
 
         html, offset = renderer.render_viewport(source, viewport)
@@ -227,7 +229,7 @@ class TestVirtualScrollPreview:
         renderer = VirtualScrollPreview(api)
 
         # Large document (1000 lines)
-        source = '\n'.join([f'Line {i}' for i in range(1000)])
+        source = "\n".join([f"Line {i}" for i in range(1000)])
 
         viewport = Viewport(
             scroll_x=0,
@@ -236,7 +238,7 @@ class TestVirtualScrollPreview:
             height=600,
             document_width=800,
             document_height=20000,
-            line_height=20
+            line_height=20,
         )
 
         html, offset = renderer.render_viewport(source, viewport)
@@ -247,7 +249,7 @@ class TestVirtualScrollPreview:
 
         # Should have rendered fewer lines than total
         stats = renderer.get_statistics()
-        assert stats['rendered_lines'] < stats['total_lines']
+        assert stats["rendered_lines"] < stats["total_lines"]
 
     def test_render_viewport_top_of_doc(self):
         """Test rendering at top of document."""
@@ -257,7 +259,7 @@ class TestVirtualScrollPreview:
         renderer = VirtualScrollPreview(api)
 
         # Large document
-        source = '\n'.join([f'Line {i}' for i in range(1000)])
+        source = "\n".join([f"Line {i}" for i in range(1000)])
 
         viewport = Viewport(
             scroll_x=0,
@@ -266,7 +268,7 @@ class TestVirtualScrollPreview:
             height=600,
             document_width=800,
             document_height=20000,
-            line_height=20
+            line_height=20,
         )
 
         html, offset = renderer.render_viewport(source, viewport)
@@ -282,7 +284,7 @@ class TestVirtualScrollPreview:
         renderer = VirtualScrollPreview(api)
 
         # Large document
-        source = '\n'.join([f'Line {i}' for i in range(1000)])
+        source = "\n".join([f"Line {i}" for i in range(1000)])
 
         viewport = Viewport(
             scroll_x=0,
@@ -291,14 +293,14 @@ class TestVirtualScrollPreview:
             height=600,
             document_width=800,
             document_height=20000,
-            line_height=20
+            line_height=20,
         )
 
         html, offset = renderer.render_viewport(source, viewport)
 
         # Should handle bottom gracefully
         stats = renderer.get_statistics()
-        assert stats['rendered_lines'] <= 1000
+        assert stats["rendered_lines"] <= 1000
 
     def test_update_line_height(self):
         """Test updating line height."""
@@ -308,7 +310,7 @@ class TestVirtualScrollPreview:
         renderer.update_line_height(25)
 
         stats = renderer.get_statistics()
-        assert stats['actual_line_height'] == 25
+        assert stats["actual_line_height"] == 25
 
     def test_get_statistics(self):
         """Test getting statistics."""
@@ -318,7 +320,7 @@ class TestVirtualScrollPreview:
         renderer = VirtualScrollPreview(api)
 
         # Render something
-        source = '\n'.join([f'Line {i}' for i in range(1000)])
+        source = "\n".join([f"Line {i}" for i in range(1000)])
         viewport = Viewport(
             scroll_x=0,
             scroll_y=1000,
@@ -326,19 +328,19 @@ class TestVirtualScrollPreview:
             height=600,
             document_width=800,
             document_height=20000,
-            line_height=20
+            line_height=20,
         )
 
         renderer.render_viewport(source, viewport)
 
         stats = renderer.get_statistics()
 
-        assert 'enabled' in stats
-        assert 'total_lines' in stats
-        assert 'rendered_lines' in stats
-        assert 'render_ratio' in stats
-        assert stats['total_lines'] == 1000
-        assert stats['rendered_lines'] < stats['total_lines']
+        assert "enabled" in stats
+        assert "total_lines" in stats
+        assert "rendered_lines" in stats
+        assert "render_ratio" in stats
+        assert stats["total_lines"] == 1000
+        assert stats["rendered_lines"] < stats["total_lines"]
 
 
 class TestViewportCalculator:
@@ -347,11 +349,7 @@ class TestViewportCalculator:
     def test_calculate_from_values(self):
         """Test calculating viewport from values."""
         viewport = ViewportCalculator.calculate_from_values(
-            width=800,
-            height=600,
-            scroll_y=1000,
-            document_height=5000,
-            line_height=20
+            width=800, height=600, scroll_y=1000, document_height=5000, line_height=20
         )
 
         assert viewport.width == 800
@@ -362,10 +360,7 @@ class TestViewportCalculator:
 
     def test_calculate_from_values_defaults(self):
         """Test calculating viewport with defaults."""
-        viewport = ViewportCalculator.calculate_from_values(
-            width=800,
-            height=600
-        )
+        viewport = ViewportCalculator.calculate_from_values(width=800, height=600)
 
         assert viewport.scroll_y == 0
         assert viewport.document_height == 600  # Defaults to height
@@ -384,7 +379,7 @@ class TestVirtualScrollPerformance:
         renderer = VirtualScrollPreview(api)
 
         # Very large document (10,000 lines)
-        source = '\n'.join([f'Line {i}' for i in range(10000)])
+        source = "\n".join([f"Line {i}" for i in range(10000)])
 
         # Small viewport
         viewport = Viewport(
@@ -394,7 +389,7 @@ class TestVirtualScrollPerformance:
             height=600,
             document_width=800,
             document_height=200000,
-            line_height=20
+            line_height=20,
         )
 
         renderer.render_viewport(source, viewport)
@@ -405,7 +400,7 @@ class TestVirtualScrollPerformance:
         # Viewport: 600px / 20px = 30 lines
         # Buffer: 10 + 10 = 20 lines
         # Total: ~50 lines out of 10,000 = 0.5%
-        assert stats['render_ratio'] < 5  # Less than 5%
+        assert stats["render_ratio"] < 5  # Less than 5%
 
     def test_memory_efficiency(self):
         """Test memory efficiency of virtual scrolling."""
@@ -415,7 +410,7 @@ class TestVirtualScrollPerformance:
         renderer = VirtualScrollPreview(api)
 
         # Huge document
-        source = '\n'.join([f'Line {i}' for i in range(50000)])
+        source = "\n".join([f"Line {i}" for i in range(50000)])
 
         viewport = Viewport(
             scroll_x=0,
@@ -424,7 +419,7 @@ class TestVirtualScrollPerformance:
             height=600,
             document_width=800,
             document_height=1000000,
-            line_height=20
+            line_height=20,
         )
 
         renderer.render_viewport(source, viewport)
@@ -432,8 +427,8 @@ class TestVirtualScrollPerformance:
         stats = renderer.get_statistics()
 
         # Should render less than 1% of document
-        assert stats['rendered_lines'] < 500  # Out of 50,000
-        assert stats['render_ratio'] < 1.0
+        assert stats["rendered_lines"] < 500  # Out of 50,000
+        assert stats["render_ratio"] < 1.0
 
 
 class TestVirtualScrollEdgeCases:
@@ -453,10 +448,10 @@ class TestVirtualScrollEdgeCases:
             height=600,
             document_width=800,
             document_height=0,
-            line_height=20
+            line_height=20,
         )
 
-        html, offset = renderer.render_viewport('', viewport)
+        html, offset = renderer.render_viewport("", viewport)
 
         assert offset == 0
 
@@ -474,10 +469,10 @@ class TestVirtualScrollEdgeCases:
             height=600,
             document_width=800,
             document_height=20,
-            line_height=20
+            line_height=20,
         )
 
-        html, offset = renderer.render_viewport('Single line', viewport)
+        html, offset = renderer.render_viewport("Single line", viewport)
 
         # Small doc - should do full render
         assert offset == 0
@@ -490,7 +485,7 @@ class TestVirtualScrollEdgeCases:
         renderer = VirtualScrollPreview(api)
 
         # Large document
-        source = '\n'.join([f'Line {i}' for i in range(1000)])
+        source = "\n".join([f"Line {i}" for i in range(1000)])
 
         viewport = Viewport(
             scroll_x=0,
@@ -499,14 +494,14 @@ class TestVirtualScrollEdgeCases:
             height=600,
             document_width=800,
             document_height=20000,
-            line_height=20
+            line_height=20,
         )
 
         # Should not raise exception
         html, offset = renderer.render_viewport(source, viewport)
 
         # Should return fallback HTML (escaped text in <pre>)
-        assert '<pre' in html
+        assert "<pre" in html
 
     def test_negative_scroll_position(self):
         """Test with negative scroll position."""
@@ -515,7 +510,7 @@ class TestVirtualScrollEdgeCases:
 
         renderer = VirtualScrollPreview(api)
 
-        source = '\n'.join([f'Line {i}' for i in range(1000)])
+        source = "\n".join([f"Line {i}" for i in range(1000)])
 
         viewport = Viewport(
             scroll_x=0,
@@ -524,7 +519,7 @@ class TestVirtualScrollEdgeCases:
             height=600,
             document_width=800,
             document_height=20000,
-            line_height=20
+            line_height=20,
         )
 
         # Should handle gracefully

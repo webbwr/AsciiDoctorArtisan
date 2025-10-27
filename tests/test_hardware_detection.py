@@ -5,15 +5,12 @@ Tests GPU, NPU, and CPU capability detection with mocked system calls.
 """
 
 import subprocess
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from asciidoc_artisan.core.hardware_detection import (
     GPUInfo,
     HardwareCapabilities,
     HardwareDetector,
-    NPUInfo,
 )
 
 
@@ -59,9 +56,7 @@ class TestGPUDetection:
     def test_amd_gpu_detection_success(self, mocker):
         """Test AMD GPU detected via rocm-smi."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="AMD Radeon RX 6800"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="AMD Radeon RX 6800")
 
         detector = HardwareDetector()
         gpu = detector.detect_amd_gpu()

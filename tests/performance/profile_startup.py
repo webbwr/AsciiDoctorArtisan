@@ -53,18 +53,13 @@ def profile_imports():
             t1 = time.perf_counter()
             m1 = process.memory_info().rss / 1024 / 1024
 
-            results.append({
-                'module': name,
-                'time_ms': (t1 - t0) * 1000,
-                'memory_mb': m1 - m0
-            })
+            results.append(
+                {"module": name, "time_ms": (t1 - t0) * 1000, "memory_mb": m1 - m0}
+            )
         except Exception as e:
-            results.append({
-                'module': name,
-                'time_ms': 0,
-                'memory_mb': 0,
-                'error': str(e)
-            })
+            results.append(
+                {"module": name, "time_ms": 0, "memory_mb": 0, "error": str(e)}
+            )
 
     total_time = time.perf_counter() - start_time
     total_memory = process.memory_info().rss / 1024 / 1024 - start_memory
@@ -72,7 +67,7 @@ def profile_imports():
     print(f"\n{'Module':<40} {'Time (ms)':>12} {'Memory (MB)':>12}")
     print("-" * 80)
     for r in results:
-        if 'error' in r:
+        if "error" in r:
             print(f"{r['module']:<40} {'ERROR':>12} {'-':>12}")
         else:
             print(f"{r['module']:<40} {r['time_ms']:>12.2f} {r['memory_mb']:>12.2f}")
@@ -92,9 +87,11 @@ def profile_application_init():
 
     # Set Qt platform to offscreen to avoid GUI display
     import os
-    os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
     from PySide6.QtWidgets import QApplication
+
     from asciidoc_artisan.core import APP_NAME
     from asciidoc_artisan.ui import AsciiDocEditor
 
@@ -132,7 +129,7 @@ def profile_application_init():
     print("=" * 80)
 
     s = io.StringIO()
-    ps = pstats.Stats(profiler, stream=s).sort_stats('cumulative')
+    ps = pstats.Stats(profiler, stream=s).sort_stats("cumulative")
     ps.print_stats(20)
     print(s.getvalue())
 
@@ -146,9 +143,9 @@ def profile_application_init():
     app.quit()
 
     return {
-        'init_time_ms': (end_time - start_time) * 1000,
-        'memory_mb': end_memory - start_memory,
-        'total_memory_mb': end_memory
+        "init_time_ms": (end_time - start_time) * 1000,
+        "memory_mb": end_memory - start_memory,
+        "total_memory_mb": end_memory,
     }
 
 
@@ -159,10 +156,11 @@ def profile_component_creation():
     print("=" * 80)
 
     import os
-    os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
-    from PySide6.QtWidgets import QApplication, QPlainTextEdit, QTextBrowser
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
     from PySide6.QtCore import QSettings
+    from PySide6.QtWidgets import QApplication, QPlainTextEdit, QTextBrowser
 
     app = QApplication.instance() or QApplication(sys.argv)
     process = psutil.Process()
@@ -190,11 +188,9 @@ def profile_component_creation():
             time_ms = (t1 - t0) * 1000
             memory_mb = m1 - m0
 
-            results.append({
-                'component': name,
-                'time_ms': time_ms,
-                'memory_mb': memory_mb
-            })
+            results.append(
+                {"component": name, "time_ms": time_ms, "memory_mb": memory_mb}
+            )
 
             print(f"{name:<30} {time_ms:>12.2f} {memory_mb:>12.2f}")
 
@@ -202,10 +198,7 @@ def profile_component_creation():
             del obj
         except Exception as e:
             print(f"{name:<30} {'ERROR':>12} {str(e)}")
-            results.append({
-                'component': name,
-                'error': str(e)
-            })
+            results.append({"component": name, "error": str(e)})
 
     print()
     app.quit()
@@ -233,18 +226,18 @@ def main():
     print("SUMMARY")
     print("=" * 80)
 
-    total_import_time = sum(r.get('time_ms', 0) for r in import_results)
-    total_import_memory = sum(r.get('memory_mb', 0) for r in import_results)
+    total_import_time = sum(r.get("time_ms", 0) for r in import_results)
+    total_import_memory = sum(r.get("memory_mb", 0) for r in import_results)
 
-    print(f"\nImport Phase:")
+    print("\nImport Phase:")
     print(f"  Time: {total_import_time:.2f} ms")
     print(f"  Memory: {total_import_memory:.2f} MB")
 
-    print(f"\nInitialization Phase:")
+    print("\nInitialization Phase:")
     print(f"  Time: {init_results['init_time_ms']:.2f} ms")
     print(f"  Memory: {init_results['memory_mb']:.2f} MB")
 
-    print(f"\nTotal Startup:")
+    print("\nTotal Startup:")
     print(f"  Time: {total_import_time + init_results['init_time_ms']:.2f} ms")
     print(f"  Memory: {init_results['total_memory_mb']:.2f} MB")
 
@@ -257,11 +250,11 @@ def main():
         print("\n⚠️  Import time is high (>500ms)")
         print("   Consider: Lazy loading, defer non-critical imports")
 
-    if init_results['init_time_ms'] > 1000:
+    if init_results["init_time_ms"] > 1000:
         print("\n⚠️  Initialization time is high (>1000ms)")
         print("   Consider: Deferred widget creation, async initialization")
 
-    if init_results['memory_mb'] > 200:
+    if init_results["memory_mb"] > 200:
         print("\n⚠️  Startup memory usage is high (>200MB)")
         print("   Consider: Lazy loading, object pooling, cache limits")
 
@@ -270,5 +263,5 @@ def main():
     print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

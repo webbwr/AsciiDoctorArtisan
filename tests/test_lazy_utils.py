@@ -5,13 +5,14 @@ Tests lazy property, lazy imports, and deferred initialization.
 """
 
 import time
+
 import pytest
 
 from asciidoc_artisan.core.lazy_utils import (
-    lazy_property,
     LazyImport,
     LazyInitializer,
     cached_property,
+    lazy_property,
 )
 
 
@@ -46,6 +47,7 @@ class TestLazyProperty:
 
     def test_lazy_property_per_instance(self):
         """Test each instance has own cache."""
+
         class MyClass:
             def __init__(self, value):
                 self.value = value
@@ -87,6 +89,7 @@ class TestLazyProperty:
 
     def test_lazy_property_set(self):
         """Test manually setting property value."""
+
         class MyClass:
             @lazy_property
             def value(self):
@@ -107,13 +110,13 @@ class TestLazyImport:
     def test_deferred_import(self):
         """Test module import is deferred."""
         # Create lazy import (shouldn't import yet)
-        lazy_os = LazyImport('os')
+        lazy_os = LazyImport("os")
 
         # Module not imported yet
         assert lazy_os._module is None
 
         # First use triggers import
-        result = lazy_os.path.exists('/')
+        result = lazy_os.path.exists("/")
 
         # Module now imported
         assert lazy_os._module is not None
@@ -121,11 +124,11 @@ class TestLazyImport:
 
     def test_multiple_access(self):
         """Test multiple accesses use same module."""
-        lazy_os = LazyImport('os')
+        lazy_os = LazyImport("os")
 
         # Multiple accesses
-        lazy_os.path.exists('/')
-        lazy_os.path.isdir('/')
+        lazy_os.path.exists("/")
+        lazy_os.path.isdir("/")
         lazy_os.getcwd()
 
         # Module imported only once
@@ -133,7 +136,7 @@ class TestLazyImport:
 
     def test_nonexistent_module(self):
         """Test error on nonexistent module."""
-        lazy_bad = LazyImport('nonexistent_module_xyz')
+        lazy_bad = LazyImport("nonexistent_module_xyz")
 
         with pytest.raises(ModuleNotFoundError):
             lazy_bad.some_function()
@@ -147,25 +150,25 @@ class TestLazyInitializer:
         initialized = []
 
         def init_component_a():
-            initialized.append('a')
+            initialized.append("a")
 
         def init_component_b():
-            initialized.append('b')
+            initialized.append("b")
 
         initializer = LazyInitializer()
-        initializer.register('a', init_component_a)
-        initializer.register('b', init_component_b)
+        initializer.register("a", init_component_a)
+        initializer.register("b", init_component_b)
 
         # Nothing initialized yet
         assert len(initialized) == 0
 
         # Initialize component a
-        initializer.initialize('a')
-        assert initialized == ['a']
+        initializer.initialize("a")
+        assert initialized == ["a"]
 
         # Initialize component b
-        initializer.initialize('b')
-        assert initialized == ['a', 'b']
+        initializer.initialize("b")
+        assert initialized == ["a", "b"]
 
     def test_initialize_only_once(self):
         """Test component only initialized once."""
@@ -176,12 +179,12 @@ class TestLazyInitializer:
             call_count += 1
 
         initializer = LazyInitializer()
-        initializer.register('test', init_component)
+        initializer.register("test", init_component)
 
         # Initialize multiple times
-        initializer.initialize('test')
-        initializer.initialize('test')
-        initializer.initialize('test')
+        initializer.initialize("test")
+        initializer.initialize("test")
+        initializer.initialize("test")
 
         # Only called once
         assert call_count == 1
@@ -191,53 +194,53 @@ class TestLazyInitializer:
         initialized = []
 
         initializer = LazyInitializer()
-        initializer.register('a', lambda: initialized.append('a'))
-        initializer.register('b', lambda: initialized.append('b'))
-        initializer.register('c', lambda: initialized.append('c'))
+        initializer.register("a", lambda: initialized.append("a"))
+        initializer.register("b", lambda: initialized.append("b"))
+        initializer.register("c", lambda: initialized.append("c"))
 
         # Initialize one manually
-        initializer.initialize('a')
-        assert initialized == ['a']
+        initializer.initialize("a")
+        assert initialized == ["a"]
 
         # Initialize remaining
         initializer.initialize_remaining()
-        assert set(initialized) == {'a', 'b', 'c'}
+        assert set(initialized) == {"a", "b", "c"}
 
     def test_is_initialized(self):
         """Test checking initialization status."""
         initializer = LazyInitializer()
-        initializer.register('test', lambda: None)
+        initializer.register("test", lambda: None)
 
-        assert initializer.is_initialized('test') is False
+        assert initializer.is_initialized("test") is False
 
-        initializer.initialize('test')
+        initializer.initialize("test")
 
-        assert initializer.is_initialized('test') is True
+        assert initializer.is_initialized("test") is True
 
     def test_get_statistics(self):
         """Test getting statistics."""
         initializer = LazyInitializer()
-        initializer.register('a', lambda: None)
-        initializer.register('b', lambda: None)
-        initializer.register('c', lambda: None)
+        initializer.register("a", lambda: None)
+        initializer.register("b", lambda: None)
+        initializer.register("c", lambda: None)
 
-        initializer.initialize('a')
+        initializer.initialize("a")
 
         stats = initializer.get_statistics()
 
-        assert stats['total'] == 3
-        assert stats['initialized'] == 1
-        assert stats['pending'] == 2
-        assert stats['components']['a'] is True
-        assert stats['components']['b'] is False
-        assert stats['components']['c'] is False
+        assert stats["total"] == 3
+        assert stats["initialized"] == 1
+        assert stats["pending"] == 2
+        assert stats["components"]["a"] is True
+        assert stats["components"]["b"] is False
+        assert stats["components"]["c"] is False
 
     def test_initialize_nonexistent(self):
         """Test error on nonexistent component."""
         initializer = LazyInitializer()
 
         with pytest.raises(ValueError):
-            initializer.initialize('nonexistent')
+            initializer.initialize("nonexistent")
 
 
 class TestCachedProperty:
@@ -268,6 +271,7 @@ class TestCachedProperty:
 
     def test_cached_property_per_instance(self):
         """Test each instance has own cache."""
+
         class MyClass:
             def __init__(self, value):
                 self.value = value
@@ -288,6 +292,7 @@ class TestMemoryEfficiency:
 
     def test_lazy_property_memory(self):
         """Test lazy property reduces initial memory."""
+
         class HeavyClass:
             @lazy_property
             def heavy_data(self):
@@ -314,21 +319,21 @@ class TestMemoryEfficiency:
                 self.initializer = LazyInitializer()
 
                 # Register in one order
-                self.initializer.register('slow', lambda: order.append('slow'))
-                self.initializer.register('fast', lambda: order.append('fast'))
-                self.initializer.register('medium', lambda: order.append('medium'))
+                self.initializer.register("slow", lambda: order.append("slow"))
+                self.initializer.register("fast", lambda: order.append("fast"))
+                self.initializer.register("medium", lambda: order.append("medium"))
 
             def initialize_critical_first(self):
                 # Initialize in priority order
-                self.initializer.initialize('fast')
-                self.initializer.initialize('medium')
-                self.initializer.initialize('slow')
+                self.initializer.initialize("fast")
+                self.initializer.initialize("medium")
+                self.initializer.initialize("slow")
 
         app = Application()
         app.initialize_critical_first()
 
         # Order controlled by initialization calls
-        assert order == ['fast', 'medium', 'slow']
+        assert order == ["fast", "medium", "slow"]
 
 
 @pytest.mark.performance
@@ -337,6 +342,7 @@ class TestLazyLoadingPerformance:
 
     def test_startup_time_reduction(self):
         """Test lazy loading reduces startup time."""
+
         class EagerApp:
             def __init__(self):
                 self.data1 = self._load_data()
@@ -388,16 +394,13 @@ class TestLazyLoadingPerformance:
         """Test lazy import reduces startup overhead."""
         # Direct import
         start = time.time()
-        import os
-        import sys
-        import pathlib
         direct_time = time.time() - start
 
         # Lazy import (creation only)
         start = time.time()
-        lazy_os = LazyImport('os')
-        lazy_sys = LazyImport('sys')
-        lazy_pathlib = LazyImport('pathlib')
+        lazy_os = LazyImport("os")
+        lazy_sys = LazyImport("sys")
+        lazy_pathlib = LazyImport("pathlib")
         lazy_time = time.time() - start
 
         # Lazy should be faster (no actual import yet)

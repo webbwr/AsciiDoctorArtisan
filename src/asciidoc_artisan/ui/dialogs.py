@@ -134,12 +134,14 @@ class PreferencesDialog(QDialog):
         mode_layout = QHBoxLayout()
         mode_layout.addWidget(QLabel("Checking mode:"))
         self.grammar_mode_combo = QComboBox()
-        self.grammar_mode_combo.addItems([
-            "Hybrid (LanguageTool + AI)",
-            "LanguageTool Only",
-            "Ollama AI Only",
-            "Disabled"
-        ])
+        self.grammar_mode_combo.addItems(
+            [
+                "Hybrid (LanguageTool + AI)",
+                "LanguageTool Only",
+                "Ollama AI Only",
+                "Disabled",
+            ]
+        )
         current_mode = getattr(self.settings, "grammar_mode", "hybrid")
         mode_map = {"hybrid": 0, "languagetool": 1, "ollama": 2, "disabled": 3}
         self.grammar_mode_combo.setCurrentIndex(mode_map.get(current_mode, 0))
@@ -157,11 +159,13 @@ class PreferencesDialog(QDialog):
         profile_layout = QHBoxLayout()
         profile_layout.addWidget(QLabel("Performance:"))
         self.grammar_profile_combo = QComboBox()
-        self.grammar_profile_combo.addItems([
-            "Balanced (Recommended)",
-            "Real-time (Fastest)",
-            "Thorough (Most Accurate)"
-        ])
+        self.grammar_profile_combo.addItems(
+            [
+                "Balanced (Recommended)",
+                "Real-time (Fastest)",
+                "Thorough (Most Accurate)",
+            ]
+        )
         current_profile = getattr(self.settings, "grammar_profile", "balanced")
         profile_map = {"balanced": 0, "realtime": 1, "thorough": 2}
         self.grammar_profile_combo.setCurrentIndex(profile_map.get(current_profile, 0))

@@ -10,16 +10,13 @@ Usage:
 """
 
 import sys
-import time
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from PySide6.QtCore import QCoreApplication, QTimer
-from PySide6.QtWidgets import QApplication
 
-from asciidoc_artisan.core.grammar_models import GrammarSource
 from asciidoc_artisan.workers import LanguageToolWorker, OllamaGrammarWorker
 
 
@@ -40,7 +37,7 @@ def test_languagetool_worker():
         print(f"✅ Initialization: {'SUCCESS' if success else 'FAILED'}")
 
     def on_result(result):
-        print(f"\n📊 Result:")
+        print("\n📊 Result:")
         print(f"   Success: {result.success}")
         print(f"   Suggestions: {result.suggestion_count}")
         print(f"   Processing time: {result.processing_time_ms}ms")
@@ -48,7 +45,7 @@ def test_languagetool_worker():
         print(f"   Cached: {result.cached}")
 
         if result.suggestions:
-            print(f"\n   Issues found:")
+            print("\n   Issues found:")
             for i, sugg in enumerate(result.suggestions[:3], 1):
                 print(f"   {i}. [{sugg.start}:{sugg.end}] {sugg.message}")
                 if sugg.replacements:
@@ -91,7 +88,7 @@ def test_ollama_worker():
     worker = OllamaGrammarWorker()
 
     def on_result(result):
-        print(f"\n📊 Result:")
+        print("\n📊 Result:")
         print(f"   Success: {result.success}")
         print(f"   Source: {result.source}")
         print(f"   Suggestions: {result.suggestion_count}")
@@ -102,7 +99,7 @@ def test_ollama_worker():
             print(f"   Error: {result.error_message}")
 
         if result.suggestions:
-            print(f"\n   AI Suggestions:")
+            print("\n   AI Suggestions:")
             for i, sugg in enumerate(result.suggestions[:3], 1):
                 print(f"   {i}. {sugg.message}")
                 if sugg.replacements:

@@ -5,8 +5,10 @@ Tests performance improvements with large documents.
 """
 
 import time
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from asciidoc_artisan.ui.virtual_scroll_preview import (
     Viewport,
     VirtualScrollConfig,
@@ -24,21 +26,21 @@ def create_large_document(lines: int) -> str:
     Returns:
         AsciiDoc source text
     """
-    doc_lines = ['= Large Document Test', '']
+    doc_lines = ["= Large Document Test", ""]
 
     for i in range(lines // 10):
-        doc_lines.append(f'== Section {i}')
-        doc_lines.append('')
-        doc_lines.append(f'This is section {i} of the test document.')
-        doc_lines.append('')
-        doc_lines.append('Some content with *bold* and _italic_ text.')
-        doc_lines.append('')
-        doc_lines.append('- List item 1')
-        doc_lines.append('- List item 2')
-        doc_lines.append('- List item 3')
-        doc_lines.append('')
+        doc_lines.append(f"== Section {i}")
+        doc_lines.append("")
+        doc_lines.append(f"This is section {i} of the test document.")
+        doc_lines.append("")
+        doc_lines.append("Some content with *bold* and _italic_ text.")
+        doc_lines.append("")
+        doc_lines.append("- List item 1")
+        doc_lines.append("- List item 2")
+        doc_lines.append("- List item 3")
+        doc_lines.append("")
 
-    return '\n'.join(doc_lines[:lines])
+    return "\n".join(doc_lines[:lines])
 
 
 @pytest.mark.performance
@@ -60,7 +62,7 @@ class TestVirtualScrollBenchmark:
             height=600,
             document_width=800,
             document_height=20000,
-            line_height=20
+            line_height=20,
         )
 
         start = time.time()
@@ -69,13 +71,13 @@ class TestVirtualScrollBenchmark:
 
         stats = renderer.get_statistics()
 
-        print(f"\n1000 lines:")
+        print("\n1000 lines:")
         print(f"  Render time: {elapsed*1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
         # Should render only small fraction
-        assert stats['render_ratio'] < 10
+        assert stats["render_ratio"] < 10
 
     def test_medium_document_5000_lines(self):
         """Benchmark with 5,000 line document."""
@@ -92,7 +94,7 @@ class TestVirtualScrollBenchmark:
             height=600,
             document_width=800,
             document_height=100000,
-            line_height=20
+            line_height=20,
         )
 
         start = time.time()
@@ -101,13 +103,13 @@ class TestVirtualScrollBenchmark:
 
         stats = renderer.get_statistics()
 
-        print(f"\n5000 lines:")
+        print("\n5000 lines:")
         print(f"  Render time: {elapsed*1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
         # Should render even smaller fraction
-        assert stats['render_ratio'] < 5
+        assert stats["render_ratio"] < 5
 
     def test_large_document_10000_lines(self):
         """Benchmark with 10,000 line document."""
@@ -124,7 +126,7 @@ class TestVirtualScrollBenchmark:
             height=600,
             document_width=800,
             document_height=200000,
-            line_height=20
+            line_height=20,
         )
 
         start = time.time()
@@ -133,13 +135,13 @@ class TestVirtualScrollBenchmark:
 
         stats = renderer.get_statistics()
 
-        print(f"\n10000 lines:")
+        print("\n10000 lines:")
         print(f"  Render time: {elapsed*1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
         # Should render tiny fraction
-        assert stats['render_ratio'] < 2
+        assert stats["render_ratio"] < 2
 
     def test_huge_document_50000_lines(self):
         """Benchmark with 50,000 line document."""
@@ -156,7 +158,7 @@ class TestVirtualScrollBenchmark:
             height=600,
             document_width=800,
             document_height=1000000,
-            line_height=20
+            line_height=20,
         )
 
         start = time.time()
@@ -165,13 +167,13 @@ class TestVirtualScrollBenchmark:
 
         stats = renderer.get_statistics()
 
-        print(f"\n50000 lines:")
+        print("\n50000 lines:")
         print(f"  Render time: {elapsed*1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
         # Should render very tiny fraction
-        assert stats['render_ratio'] < 1
+        assert stats["render_ratio"] < 1
 
     def test_scroll_through_document(self):
         """Benchmark scrolling through document."""
@@ -193,7 +195,7 @@ class TestVirtualScrollBenchmark:
                 height=600,
                 document_width=800,
                 document_height=200000,
-                line_height=20
+                line_height=20,
             )
 
             start = time.time()
@@ -203,7 +205,7 @@ class TestVirtualScrollBenchmark:
 
         avg_time = sum(times) / len(times)
 
-        print(f"\nScroll through 10000 lines:")
+        print("\nScroll through 10000 lines:")
         print(f"  Positions tested: {len(scroll_positions)}")
         print(f"  Average time: {avg_time*1000:.2f}ms")
         print(f"  Min time: {min(times)*1000:.2f}ms")
@@ -229,21 +231,21 @@ class TestVirtualScrollBenchmark:
             height=600,
             document_width=800,
             document_height=2000000,
-            line_height=20
+            line_height=20,
         )
 
         renderer.render_viewport(source, viewport)
 
         stats = renderer.get_statistics()
 
-        print(f"\n100000 lines:")
+        print("\n100000 lines:")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
         print(f"  Memory saved: {100 - stats['render_ratio']:.2f}%")
 
         # Should render less than 0.1% of document
-        assert stats['render_ratio'] < 0.1
-        assert stats['rendered_lines'] < 100
+        assert stats["render_ratio"] < 0.1
+        assert stats["rendered_lines"] < 100
 
     def test_comparison_with_full_render(self):
         """Compare virtual scrolling vs full render."""
@@ -261,7 +263,7 @@ class TestVirtualScrollBenchmark:
             height=600,
             document_width=800,
             document_height=200000,
-            line_height=20
+            line_height=20,
         )
 
         start = time.time()
@@ -279,7 +281,7 @@ class TestVirtualScrollBenchmark:
 
         speedup = full_time / virtual_time if virtual_time > 0 else 1
 
-        print(f"\nComparison (10000 lines):")
+        print("\nComparison (10000 lines):")
         print(f"  Virtual scroll: {virtual_time*1000:.2f}ms")
         print(f"  Full render: {full_time*1000:.2f}ms")
         print(f"  Speedup: {speedup:.1f}x")
@@ -288,7 +290,7 @@ class TestVirtualScrollBenchmark:
         # Virtual scrolling renders fewer lines
         # (Note: Mock doesn't actually render, so timing is overhead only)
         # In real usage with actual rendering, virtual scroll will be much faster
-        assert stats['render_ratio'] < 1  # Renders less than 1% of document
+        assert stats["render_ratio"] < 1  # Renders less than 1% of document
 
 
 @pytest.mark.performance
@@ -318,7 +320,7 @@ class TestVirtualScrollScaling:
                 height=600,
                 document_width=800,
                 document_height=size * 20,
-                line_height=20
+                line_height=20,
             )
 
             start = time.time()
@@ -326,7 +328,7 @@ class TestVirtualScrollScaling:
             elapsed = time.time() - start
             times.append(elapsed)
 
-        print(f"\nScaling test:")
+        print("\nScaling test:")
         for size, elapsed in zip(sizes, times):
             print(f"  {size:6d} lines: {elapsed*1000:6.2f}ms")
 
@@ -367,7 +369,7 @@ class TestVirtualScrollBuffering:
                 height=600,
                 document_width=800,
                 document_height=200000,
-                line_height=20
+                line_height=20,
             )
 
             start = time.time()
@@ -375,14 +377,16 @@ class TestVirtualScrollBuffering:
             elapsed = time.time() - start
 
             stats = renderer.get_statistics()
-            results.append({
-                'buffer': buffer_size,
-                'time': elapsed,
-                'lines': stats['rendered_lines'],
-                'ratio': stats['render_ratio']
-            })
+            results.append(
+                {
+                    "buffer": buffer_size,
+                    "time": elapsed,
+                    "lines": stats["rendered_lines"],
+                    "ratio": stats["render_ratio"],
+                }
+            )
 
-        print(f"\nBuffer size impact:")
+        print("\nBuffer size impact:")
         for r in results:
             print(
                 f"  Buffer {r['buffer']:2d}: "
@@ -392,4 +396,4 @@ class TestVirtualScrollBuffering:
             )
 
         # Larger buffer should render more lines
-        assert results[0]['lines'] < results[-1]['lines']
+        assert results[0]["lines"] < results[-1]["lines"]

@@ -48,9 +48,6 @@ from .constants import (
 # File Operations
 from .file_operations import atomic_save_json, atomic_save_text, sanitize_path
 
-# Models
-from .models import GitResult
-
 # Grammar System (v1.3)
 from .grammar_models import (
     AggregatedGrammarResult,
@@ -60,6 +57,9 @@ from .grammar_models import (
     GrammarSource,
     GrammarSuggestion,
 )
+
+# Models
+from .models import GitResult
 
 # Performance Monitoring (v1.1 Phase 4)
 from .resource_monitor import DocumentMetrics, ResourceMetrics, ResourceMonitor

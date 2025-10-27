@@ -6,6 +6,7 @@ A simple program. It helps you write papers.
 
 This program:
 - Shows your work as you type (2-5x faster with GPU)
+- Checks grammar with AI help (new v1.3)
 - Saves your work with Git
 - Opens Word, PDF, Markdown, HTML files (3-5x faster)
 - Saves to Word, PDF, Markdown, HTML
@@ -81,6 +82,42 @@ python src\main.py
 
 Or click the start file.
 
+### Grammar Checking (New in v1.3)
+
+The program can check your grammar two ways:
+
+**Fast Check (LanguageTool)**
+- Quick grammar check (under 1 second)
+- Finds spelling and grammar errors
+- Works without internet
+- Always free
+
+**Smart Check (Ollama AI)**
+- Deep style analysis (1-3 seconds)
+- Suggests better words
+- Helps with clarity
+- Needs Ollama installed (optional)
+
+**How to use:**
+1. Press F7 to check grammar now
+2. Or turn on auto-check in settings
+3. See colored lines under errors:
+   - Red = grammar error
+   - Blue = style issue
+   - Orange = spelling mistake
+   - Green = AI suggestion
+
+**Setup Ollama (optional):**
+```bash
+# Install Ollama from ollama.com
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Download grammar model (takes a few minutes)
+ollama pull llama3.2
+```
+
+Then turn on AI suggestions in Edit → Preferences.
+
 ### Fast Keys
 
 | Press | Does |
@@ -93,6 +130,8 @@ Or click the start file.
 | Ctrl+D | Dark mode |
 | Ctrl++ | Big text |
 | Ctrl+- | Small text |
+| F7 | Check grammar (new) |
+| Ctrl+. | Next grammar issue (new) |
 
 ### Open Files
 

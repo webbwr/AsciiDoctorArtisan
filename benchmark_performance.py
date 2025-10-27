@@ -11,12 +11,13 @@ Usage:
     python3 benchmark_performance.py
 """
 
-import time
 import sys
+import time
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
+
 
 def benchmark_pymupdf():
     """Benchmark PyMuPDF PDF extraction."""
@@ -25,6 +26,7 @@ def benchmark_pymupdf():
 
     try:
         import fitz  # PyMuPDF
+
         print(f"✓ PyMuPDF version: {fitz.version[0]}")
 
         # Create a test PDF in memory
@@ -41,7 +43,7 @@ def benchmark_pymupdf():
 
         avg_time = (end - start) / iterations * 1000
         print(f"✓ Average extraction time: {avg_time:.3f}ms per page")
-        print(f"✓ Estimated speedup: 3-5x faster than pdfplumber")
+        print("✓ Estimated speedup: 3-5x faster than pdfplumber")
 
     except ImportError:
         print("✗ PyMuPDF not installed")
@@ -55,10 +57,12 @@ def benchmark_numba():
 
     try:
         from numba import jit
-        print(f"✓ Numba available")
+
+        print("✓ Numba available")
 
         # Test cell cleaning (hot path)
         import sys
+
         sys.path.insert(0, str(Path(__file__).parent / "src"))
         from document_converter import DocumentConverter
 
@@ -72,7 +76,7 @@ def benchmark_numba():
 
         avg_time = (end - start) / iterations * 1000000  # microseconds
         print(f"✓ Cell cleaning: {avg_time:.3f}µs per cell")
-        print(f"✓ Estimated speedup: 10-50x faster with JIT")
+        print("✓ Estimated speedup: 10-50x faster with JIT")
 
         # Test text splitting
         from asciidoc_artisan.workers.incremental_renderer import count_leading_equals
@@ -88,7 +92,7 @@ def benchmark_numba():
 
         avg_time = (end - start) / iterations * 1000
         print(f"✓ Heading detection: {avg_time:.3f}ms per document")
-        print(f"✓ Estimated speedup: 5-10x faster with JIT")
+        print("✓ Estimated speedup: 5-10x faster with JIT")
 
     except ImportError:
         print("✗ Numba not installed (optional)")
@@ -102,11 +106,12 @@ def benchmark_gpu():
     print("Checking QWebEngineView availability...")
 
     try:
-        from PySide6.QtWebEngineWidgets import QWebEngineView
         from PySide6.QtWebEngineCore import QWebEngineSettings
-        print(f"✓ QWebEngineView available (GPU-accelerated)")
-        print(f"✓ Preview rendering: 2-5x faster")
-        print(f"✓ CPU usage: 30-50% less")
+        from PySide6.QtWebEngineWidgets import QWebEngineView
+
+        print("✓ QWebEngineView available (GPU-accelerated)")
+        print("✓ Preview rendering: 2-5x faster")
+        print("✓ CPU usage: 30-50% less")
     except ImportError:
         print("✗ QWebEngineView not available")
         print("  Install: pip install PySide6-Addons>=6.9.0")
@@ -114,9 +119,9 @@ def benchmark_gpu():
 
 def benchmark_summary():
     """Print overall summary."""
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("PERFORMANCE SUMMARY")
-    print("="*50)
+    print("=" * 50)
 
     print("\nOptimizations Implemented (v1.1.0):")
     print("  • GPU Preview:       2-5x faster")
@@ -140,16 +145,16 @@ def benchmark_summary():
 def main():
     """Run all benchmarks."""
     print("AsciiDoc Artisan v1.1.0 Performance Benchmark")
-    print("="*50)
+    print("=" * 50)
 
     benchmark_gpu()
     benchmark_pymupdf()
     benchmark_numba()
     benchmark_summary()
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("Benchmark Complete!")
-    print("="*50)
+    print("=" * 50)
 
 
 if __name__ == "__main__":

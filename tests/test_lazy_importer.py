@@ -4,16 +4,18 @@ Tests for lazy importer.
 Tests lazy module loading, import profiling, and optimization.
 """
 
-import pytest
 import time
+
+import pytest
+
 from asciidoc_artisan.core.lazy_importer import (
-    LazyModule,
+    ImportOptimizer,
     ImportProfiler,
     ImportTracker,
+    LazyModule,
+    get_import_statistics,
     lazy_import,
     profile_imports,
-    get_import_statistics,
-    ImportOptimizer,
 )
 
 
@@ -22,17 +24,17 @@ class TestLazyModule:
 
     def test_create_lazy_module(self):
         """Test creating lazy module."""
-        lazy_os = LazyModule('os')
+        lazy_os = LazyModule("os")
 
         # Module not loaded yet
         assert lazy_os._module is None
 
     def test_lazy_loading(self):
         """Test module loads on first access."""
-        lazy_os = LazyModule('os')
+        lazy_os = LazyModule("os")
 
         # First access triggers load
-        result = lazy_os.path.exists('/')
+        result = lazy_os.path.exists("/")
 
         # Module now loaded
         assert lazy_os._module is not None
@@ -40,7 +42,7 @@ class TestLazyModule:
 
     def test_multiple_access(self):
         """Test multiple accesses use same module."""
-        lazy_sys = LazyModule('sys')
+        lazy_sys = LazyModule("sys")
 
         # Multiple accesses
         version1 = lazy_sys.version
@@ -52,7 +54,7 @@ class TestLazyModule:
 
     def test_lazy_import_time_tracked(self):
         """Test import time is tracked."""
-        lazy_time = LazyModule('time')
+        lazy_time = LazyModule("time")
 
         # Access module
         lazy_time.time()
@@ -62,31 +64,31 @@ class TestLazyModule:
 
     def test_lazy_module_repr(self):
         """Test string representation."""
-        lazy_os = LazyModule('os')
+        lazy_os = LazyModule("os")
 
         # Before loading
         repr_before = repr(lazy_os)
-        assert 'not loaded' in repr_before
+        assert "not loaded" in repr_before
 
         # After loading
         lazy_os.getcwd()
         repr_after = repr(lazy_os)
-        assert 'loaded in' in repr_after
+        assert "loaded in" in repr_after
 
     def test_lazy_module_dir(self):
         """Test dir() on lazy module."""
-        lazy_os = LazyModule('os')
+        lazy_os = LazyModule("os")
 
         # Get attributes
         attrs = dir(lazy_os)
 
         # Should have loaded module
         assert lazy_os._module is not None
-        assert 'path' in attrs
+        assert "path" in attrs
 
     def test_nonexistent_module_error(self):
         """Test error for non-existent module."""
-        lazy_bad = LazyModule('nonexistent_module_xyz')
+        lazy_bad = LazyModule("nonexistent_module_xyz")
 
         with pytest.raises(ModuleNotFoundError):
             lazy_bad.some_function()
@@ -106,9 +108,9 @@ class TestImportProfiler:
         stats = profiler.get_statistics()
 
         # Should have tracked imports
-        assert stats['total_imports'] >= 2
-        assert stats['total_time'] > 0
-        assert len(stats['slowest']) > 0
+        assert stats["total_imports"] >= 2
+        assert stats["total_time"] > 0
+        assert len(stats["slowest"]) > 0
 
     def test_profiler_slowest_imports(self):
         """Test identifying slowest imports."""
@@ -122,7 +124,7 @@ class TestImportProfiler:
         stats = profiler.get_statistics()
 
         # Should list slowest
-        slowest = stats['slowest']
+        slowest = stats["slowest"]
         assert len(slowest) > 0
 
         # Each entry is (name, time_ms)
@@ -146,7 +148,7 @@ class TestImportProfiler:
         # Import hook restored
 
         stats = profiler.get_statistics()
-        assert stats['total_imports'] > 0
+        assert stats["total_imports"] > 0
 
     def test_profiler_print_report(self, capsys):
         """Test printing report."""
@@ -158,8 +160,8 @@ class TestImportProfiler:
         profiler.print_report(top_n=5)
 
         captured = capsys.readouterr()
-        assert 'Import Profiling Report' in captured.out
-        assert 'Total imports' in captured.out
+        assert "Import Profiling Report" in captured.out
+        assert "Total imports" in captured.out
 
 
 class TestImportTracker:
@@ -176,19 +178,19 @@ class TestImportTracker:
         """Test registering lazy import."""
         tracker = ImportTracker()
 
-        tracker.register_lazy_import('test_module')
+        tracker.register_lazy_import("test_module")
 
         stats = tracker.get_statistics()
-        assert 'test_module' in tracker._lazy_modules
+        assert "test_module" in tracker._lazy_modules
 
     def test_record_import(self):
         """Test recording import."""
         tracker = ImportTracker()
 
-        tracker.record_import('test_module', 0.05, deferred=False)
+        tracker.record_import("test_module", 0.05, deferred=False)
 
         stats = tracker.get_statistics()
-        assert stats['total_imports'] >= 1
+        assert stats["total_imports"] >= 1
 
     def test_track_eager_vs_lazy(self):
         """Test tracking eager vs lazy imports."""
@@ -199,17 +201,17 @@ class TestImportTracker:
         tracker._lazy_modules.clear()
 
         # Record eager import
-        tracker.record_import('module_eager', 0.01, deferred=False)
+        tracker.record_import("module_eager", 0.01, deferred=False)
 
         # Record lazy import
-        tracker.register_lazy_import('module_lazy')
-        tracker.record_import('module_lazy', 0.02, deferred=True)
+        tracker.register_lazy_import("module_lazy")
+        tracker.record_import("module_lazy", 0.02, deferred=True)
 
         stats = tracker.get_statistics()
 
-        assert stats['eager_imports'] >= 1
-        assert stats['lazy_imports'] >= 1
-        assert stats['time_saved'] > 0
+        assert stats["eager_imports"] >= 1
+        assert stats["lazy_imports"] >= 1
+        assert stats["time_saved"] > 0
 
     def test_tracker_print_report(self, capsys):
         """Test printing tracker report."""
@@ -218,7 +220,7 @@ class TestImportTracker:
         tracker.print_report()
 
         captured = capsys.readouterr()
-        assert 'Import Tracking Report' in captured.out
+        assert "Import Tracking Report" in captured.out
 
 
 class TestLazyImportFunction:
@@ -226,13 +228,13 @@ class TestLazyImportFunction:
 
     def test_lazy_import_function(self):
         """Test lazy_import convenience function."""
-        lazy_json = lazy_import('json')
+        lazy_json = lazy_import("json")
 
         # Not loaded yet
         assert lazy_json._module is None
 
         # Use it
-        data = lazy_json.dumps({'test': 123})
+        data = lazy_json.dumps({"test": 123})
 
         # Now loaded
         assert lazy_json._module is not None
@@ -241,10 +243,10 @@ class TestLazyImportFunction:
     def test_lazy_import_with_package(self):
         """Test lazy import with package."""
         # Test relative import capability
-        lazy_mod = lazy_import('os.path')
+        lazy_mod = lazy_import("os.path")
 
-        result = lazy_mod.join('a', 'b')
-        assert 'a' in result and 'b' in result
+        result = lazy_mod.join("a", "b")
+        assert "a" in result and "b" in result
 
 
 class TestProfileImportsDecorator:
@@ -252,10 +254,12 @@ class TestProfileImportsDecorator:
 
     def test_decorator_basic(self, capsys):
         """Test decorator profiles function imports."""
+
         @profile_imports
         def test_function():
             import csv  # noqa: F401
             import xml  # noqa: F401
+
             return "done"
 
         result = test_function()
@@ -264,13 +268,15 @@ class TestProfileImportsDecorator:
 
         # Should print report
         captured = capsys.readouterr()
-        assert 'Import Profiling Report' in captured.out
+        assert "Import Profiling Report" in captured.out
 
     def test_decorator_with_args(self, capsys):
         """Test decorator with function arguments."""
+
         @profile_imports
         def test_function(x, y):
             import base64  # noqa: F401
+
             return x + y
 
         result = test_function(10, 20)
@@ -278,7 +284,7 @@ class TestProfileImportsDecorator:
         assert result == 30
 
         captured = capsys.readouterr()
-        assert 'Import Profiling Report' in captured.out
+        assert "Import Profiling Report" in captured.out
 
 
 class TestGetImportStatistics:
@@ -288,10 +294,10 @@ class TestGetImportStatistics:
         """Test getting global statistics."""
         stats = get_import_statistics()
 
-        assert 'total_imports' in stats
-        assert 'eager_imports' in stats
-        assert 'lazy_imports' in stats
-        assert isinstance(stats['total_imports'], int)
+        assert "total_imports" in stats
+        assert "eager_imports" in stats
+        assert "lazy_imports" in stats
+        assert isinstance(stats["total_imports"], int)
 
 
 class TestImportOptimizer:
@@ -309,16 +315,16 @@ class TestImportOptimizer:
 
         heavy = optimizer.get_heavy_modules()
 
-        assert 'pandas' in heavy
-        assert 'numpy' in heavy
-        assert 'matplotlib' in heavy
+        assert "pandas" in heavy
+        assert "numpy" in heavy
+        assert "matplotlib" in heavy
 
     def test_analyze_module(self):
         """Test analyzing module."""
         optimizer = ImportOptimizer()
 
         # Analyze a built-in module
-        suggestions = optimizer.analyze_module('os')
+        suggestions = optimizer.analyze_module("os")
 
         # Should return list (may be empty for os)
         assert isinstance(suggestions, list)
@@ -335,13 +341,14 @@ class TestLazyImportPerformance:
         import json  # noqa: F401
         import urllib  # noqa: F401
         import xml  # noqa: F401
+
         eager_time = time.time() - start
 
         # Lazy import (creation only)
         start = time.time()
-        lazy_json = LazyModule('json')
-        lazy_urllib = LazyModule('urllib')
-        lazy_xml = LazyModule('xml')
+        lazy_json = LazyModule("json")
+        lazy_urllib = LazyModule("urllib")
+        lazy_xml = LazyModule("xml")
         lazy_create_time = time.time() - start
 
         # Lazy creation should be faster or equal (on fast systems, both are very quick)
@@ -355,16 +362,16 @@ class TestLazyImportPerformance:
     def test_deferred_cost(self):
         """Test deferred import cost on first access."""
         # Create lazy module
-        lazy_re = LazyModule('re')
+        lazy_re = LazyModule("re")
 
         # First access (triggers import)
         start = time.time()
-        lazy_re.compile(r'test')
+        lazy_re.compile(r"test")
         first_access = time.time() - start
 
         # Second access (already loaded)
         start = time.time()
-        lazy_re.compile(r'test2')
+        lazy_re.compile(r"test2")
         second_access = time.time() - start
 
         # Second access should be much faster
@@ -379,6 +386,7 @@ class TestLazyImportPerformance:
         start = time.time()
         import hashlib  # noqa: F401
         import hmac  # noqa: F401
+
         normal_time = time.time() - start
 
         # With profiler
@@ -407,7 +415,7 @@ class TestLazyImportIntegration:
         import sys  # noqa: F401
 
         # Lazy
-        lazy_os = lazy_import('os')
+        lazy_os = lazy_import("os")
 
         # Both work
         assert sys.version is not None
@@ -415,23 +423,24 @@ class TestLazyImportIntegration:
 
     def test_lazy_import_in_function(self):
         """Test lazy import inside function."""
+
         def process_data():
             # Import only when function is called
-            lazy_json = lazy_import('json')
-            return lazy_json.dumps({'result': 'success'})
+            lazy_json = lazy_import("json")
+            return lazy_json.dumps({"result": "success"})
 
         # Function defined but imports not loaded yet
 
         # Call function
         result = process_data()
-        assert 'success' in result
+        assert "success" in result
 
     def test_conditional_lazy_import(self):
         """Test conditional lazy import."""
         use_feature = True
 
         if use_feature:
-            lazy_mod = lazy_import('datetime')
+            lazy_mod = lazy_import("datetime")
         else:
             lazy_mod = None
 

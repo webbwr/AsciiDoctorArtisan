@@ -17,7 +17,6 @@ Usage:
 """
 
 import time
-from pathlib import Path
 
 import pytest
 
@@ -177,9 +176,7 @@ class TestPerformanceBenchmarks:
         elapsed = time.perf_counter() - start
 
         # Should complete 100 calculations in < 200ms (avg < 2ms per call)
-        assert (
-            elapsed < 0.2
-        ), f"Document metrics too slow: {elapsed:.3f}s for 100 calls"
+        assert elapsed < 0.2, f"Document metrics too slow: {elapsed:.3f}s for 100 calls"
 
     @pytest.mark.benchmark
     def test_comprehensive_metrics_performance(self):
@@ -238,8 +235,7 @@ class TestDebounceIntervalAccuracy:
         # Just over large threshold (501 KB)
         large_text = "x" * 501_000
         assert (
-            monitor.calculate_debounce_interval(large_text)
-            >= monitor.LARGE_DEBOUNCE_MS
+            monitor.calculate_debounce_interval(large_text) >= monitor.LARGE_DEBOUNCE_MS
         )
 
     def test_debounce_consistency(self):
@@ -282,6 +278,7 @@ class TestMemoryMonitoring:
         # If psutil available, CPU percentage should be reasonable
         if monitor.is_available():
             import psutil
+
             assert 0.0 <= cpu_percent <= 100.0 * psutil.cpu_count()
 
 

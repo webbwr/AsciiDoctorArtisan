@@ -4,17 +4,17 @@ Tests for async file handler.
 Tests async read/write, streaming, and batch operations.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock
+
+import pytest
 from PySide6.QtCore import QCoreApplication, QTimer
+
 from asciidoc_artisan.core.async_file_handler import (
     AsyncFileHandler,
+    BatchFileOperations,
     FileStreamReader,
     FileStreamWriter,
-    BatchFileOperations,
-    FileOperationResult,
 )
 
 
@@ -30,7 +30,7 @@ def app():
 @pytest.fixture
 def temp_file():
     """Create temporary file for testing."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
         f.write("Test content\nLine 2\nLine 3")
         temp_path = f.name
 
@@ -48,6 +48,7 @@ def temp_dir():
 
     # Cleanup
     import shutil
+
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
@@ -213,6 +214,7 @@ class TestAsyncFileHandler:
 
         # Verify file was written (even if signal didn't arrive)
         import time
+
         time.sleep(0.5)  # Give file time to complete
         assert output_path.exists()
         assert len(output_path.read_text()) == 1000
@@ -232,7 +234,7 @@ class TestFileStreamReader:
             assert len(chunks) > 0
 
             # Combine chunks
-            content = ''.join(chunks)
+            content = "".join(chunks)
             assert "Test content" in content
 
     def test_get_file_size(self, temp_file):
@@ -315,7 +317,11 @@ class TestBatchFileOperations:
 
         # Check content
         contents = [r.data for r in results]
-        assert "Content 1" in contents[0] or "Content 1" in contents[1] or "Content 1" in contents[2]
+        assert (
+            "Content 1" in contents[0]
+            or "Content 1" in contents[1]
+            or "Content 1" in contents[2]
+        )
 
     def test_batch_write(self, temp_dir):
         """Test writing multiple files in batch."""
@@ -325,11 +331,13 @@ class TestBatchFileOperations:
 
         # Batch write
         batch = BatchFileOperations(max_workers=2)
-        results = batch.write_files([
-            (str(file1), "Output 1"),
-            (str(file2), "Output 2"),
-            (str(file3), "Output 3"),
-        ])
+        results = batch.write_files(
+            [
+                (str(file1), "Output 1"),
+                (str(file2), "Output 2"),
+                (str(file3), "Output 3"),
+            ]
+        )
 
         # Check results
         assert len(results) == 3
@@ -351,11 +359,9 @@ class TestBatchFileOperations:
         file1.write_text("Real content")
 
         batch = BatchFileOperations()
-        results = batch.read_files([
-            str(file1),
-            "/nonexistent1.txt",
-            "/nonexistent2.txt"
-        ])
+        results = batch.read_files(
+            [str(file1), "/nonexistent1.txt", "/nonexistent2.txt"]
+        )
 
         # Should have 3 results
         assert len(results) == 3
@@ -433,8 +439,7 @@ class TestAsyncPerformance:
 
         # Prepare data for 20 files
         file_data = [
-            (str(Path(temp_dir) / f"out_{i}.txt"), f"Data {i}" * 100)
-            for i in range(20)
+            (str(Path(temp_dir) / f"out_{i}.txt"), f"Data {i}" * 100) for i in range(20)
         ]
 
         # Batch write

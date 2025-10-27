@@ -32,8 +32,8 @@ class GrammarSource(Enum):
     """
 
     LANGUAGETOOL = "languagetool"  # Rules-based grammar checker
-    OLLAMA = "ollama"              # AI-powered style analyzer
-    HYBRID = "hybrid"              # Combined analysis
+    OLLAMA = "ollama"  # AI-powered style analyzer
+    HYBRID = "hybrid"  # Combined analysis
 
     def __str__(self) -> str:
         """Human-readable source name."""
@@ -46,10 +46,10 @@ class GrammarCategory(Enum):
     Maps to visual indicators (underline colors) in the editor.
     """
 
-    GRAMMAR = "grammar"          # Red underline - Grammar errors
-    STYLE = "style"              # Blue underline - Style issues
-    SPELLING = "spelling"        # Orange underline - Spelling mistakes
-    AI_SUGGESTION = "ai"         # Green underline - AI improvements
+    GRAMMAR = "grammar"  # Red underline - Grammar errors
+    STYLE = "style"  # Blue underline - Style issues
+    SPELLING = "spelling"  # Orange underline - Spelling mistakes
+    AI_SUGGESTION = "ai"  # Green underline - AI improvements
     PUNCTUATION = "punctuation"  # Purple underline - Punctuation
     READABILITY = "readability"  # Yellow underline - Readability
 
@@ -64,9 +64,9 @@ class GrammarCategory(Enum):
             Tuple of (red, green, blue) values (0-255)
         """
         color_map = {
-            GrammarCategory.GRAMMAR: (255, 0, 0),        # Red
-            GrammarCategory.STYLE: (0, 0, 255),          # Blue
-            GrammarCategory.SPELLING: (255, 165, 0),     # Orange
+            GrammarCategory.GRAMMAR: (255, 0, 0),  # Red
+            GrammarCategory.STYLE: (0, 0, 255),  # Blue
+            GrammarCategory.SPELLING: (255, 165, 0),  # Orange
             GrammarCategory.AI_SUGGESTION: (0, 200, 0),  # Green
             GrammarCategory.PUNCTUATION: (128, 0, 128),  # Purple
             GrammarCategory.READABILITY: (255, 215, 0),  # Gold
@@ -77,10 +77,10 @@ class GrammarCategory(Enum):
 class GrammarSeverity(Enum):
     """Severity level of grammar issue."""
 
-    ERROR = "error"        # Critical grammar error
-    WARNING = "warning"    # Style or minor grammar issue
-    INFO = "info"          # Informational suggestion
-    HINT = "hint"          # Subtle improvement hint
+    ERROR = "error"  # Critical grammar error
+    WARNING = "warning"  # Style or minor grammar issue
+    INFO = "info"  # Informational suggestion
+    HINT = "hint"  # Subtle improvement hint
 
     def __str__(self) -> str:
         """Human-readable severity name."""
@@ -248,11 +248,15 @@ class GrammarResult:
         """Whether any WARNING-level issues were found."""
         return any(s.severity == GrammarSeverity.WARNING for s in self.suggestions)
 
-    def get_suggestions_by_category(self, category: GrammarCategory) -> List[GrammarSuggestion]:
+    def get_suggestions_by_category(
+        self, category: GrammarCategory
+    ) -> List[GrammarSuggestion]:
         """Get all suggestions of a specific category."""
         return [s for s in self.suggestions if s.category == category]
 
-    def get_suggestions_by_severity(self, severity: GrammarSeverity) -> List[GrammarSuggestion]:
+    def get_suggestions_by_severity(
+        self, severity: GrammarSeverity
+    ) -> List[GrammarSuggestion]:
         """Get all suggestions of a specific severity."""
         return [s for s in self.suggestions if s.severity == severity]
 
@@ -279,7 +283,9 @@ class GrammarResult:
     def from_dict(cls, data: Dict[str, Any]) -> "GrammarResult":
         """Create result from dictionary."""
         return cls(
-            suggestions=[GrammarSuggestion.from_dict(s) for s in data.get("suggestions", [])],
+            suggestions=[
+                GrammarSuggestion.from_dict(s) for s in data.get("suggestions", [])
+            ],
             success=data.get("success", True),
             source=GrammarSource(data.get("source", "languagetool")),
             error_message=data.get("error_message"),
@@ -347,7 +353,9 @@ class AggregatedGrammarResult:
     @property
     def success(self) -> bool:
         """Whether at least one engine succeeded."""
-        lt_success = self.languagetool_result.success if self.languagetool_result else False
+        lt_success = (
+            self.languagetool_result.success if self.languagetool_result else False
+        )
         ollama_success = self.ollama_result.success if self.ollama_result else False
         return lt_success or ollama_success
 
@@ -359,12 +367,16 @@ class AggregatedGrammarResult:
     @property
     def languagetool_count(self) -> int:
         """Number of suggestions from LanguageTool."""
-        return sum(1 for s in self.merged_suggestions if s.source == GrammarSource.LANGUAGETOOL)
+        return sum(
+            1 for s in self.merged_suggestions if s.source == GrammarSource.LANGUAGETOOL
+        )
 
     @property
     def ollama_count(self) -> int:
         """Number of suggestions from Ollama."""
-        return sum(1 for s in self.merged_suggestions if s.source == GrammarSource.OLLAMA)
+        return sum(
+            1 for s in self.merged_suggestions if s.source == GrammarSource.OLLAMA
+        )
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get detailed statistics about the results."""

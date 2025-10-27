@@ -4,10 +4,6 @@ Tests for large file handler module.
 Tests file size categorization, optimized loading strategies, and progress signals.
 """
 
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock
-
 import pytest
 from PySide6.QtCore import QCoreApplication
 
@@ -226,7 +222,9 @@ class TestLargeFileLoading:
         assert progress_updates[0][0] == 0
         assert progress_updates[-1][0] == 100
 
-    def test_large_file_progress_updates_every_5_percent(self, handler, qtbot, tmp_path):
+    def test_large_file_progress_updates_every_5_percent(
+        self, handler, qtbot, tmp_path
+    ):
         """Test large file emits progress every 5%."""
         file_path = tmp_path / "large.txt"
         lines = ["x" * 1000 + "\n"] * 10000

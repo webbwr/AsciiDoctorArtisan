@@ -6,11 +6,13 @@ Tests with realistic AsciiDoc documents of various sizes.
 """
 
 import time
+
 import pytest
 
 try:
     from asciidoc3 import asciidoc3
     from asciidoc3.asciidoc3api import AsciiDoc3API
+
     ASCIIDOC3_AVAILABLE = True
 except ImportError:
     asciidoc3 = None
@@ -19,11 +21,9 @@ except ImportError:
 
 from asciidoc_artisan.workers.incremental_renderer import IncrementalPreviewRenderer
 
-
 # Skip tests if AsciiDoc3 not available
 pytestmark = pytest.mark.skipif(
-    not ASCIIDOC3_AVAILABLE,
-    reason="AsciiDoc3 not available"
+    not ASCIIDOC3_AVAILABLE, reason="AsciiDoc3 not available"
 )
 
 
@@ -38,22 +38,22 @@ def create_test_document(num_sections: int = 10, section_size: int = 5) -> str:
     Returns:
         AsciiDoc source text
     """
-    lines = ['= Performance Test Document', '']
+    lines = ["= Performance Test Document", ""]
 
     for i in range(num_sections):
-        lines.append(f'== Section {i + 1}')
-        lines.append('')
+        lines.append(f"== Section {i + 1}")
+        lines.append("")
 
         for j in range(section_size):
             lines.append(
-                f'This is paragraph {j + 1} in section {i + 1}. '
-                f'It contains some test content to simulate a real document. '
-                f'AsciiDoc supports many features like *bold*, _italic_, '
-                f'and `code` formatting.'
+                f"This is paragraph {j + 1} in section {i + 1}. "
+                f"It contains some test content to simulate a real document. "
+                f"AsciiDoc supports many features like *bold*, _italic_, "
+                f"and `code` formatting."
             )
-            lines.append('')
+            lines.append("")
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def benchmark_render(renderer, source: str, num_iterations: int = 5) -> float:
@@ -87,9 +87,9 @@ class TestIncrementalRenderingBenchmark:
         """Set up AsciiDoc API for each test."""
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API:
             self.api = AsciiDoc3API(asciidoc3.__file__)
-            self.api.options('--no-header-footer')
-            self.api.attributes['icons'] = 'font'
-            self.api.attributes['source-highlighter'] = 'highlight.js'
+            self.api.options("--no-header-footer")
+            self.api.attributes["icons"] = "font"
+            self.api.attributes["source-highlighter"] = "highlight.js"
 
     def test_benchmark_small_document_full_vs_incremental(self):
         """Benchmark small document (10 sections)."""
@@ -108,7 +108,7 @@ class TestIncrementalRenderingBenchmark:
         incremental_second = benchmark_render(incremental, source, num_iterations=3)
         full_second = benchmark_render(full_render, source, num_iterations=3)
 
-        print(f"\nSmall Document (10 sections):")
+        print("\nSmall Document (10 sections):")
         print(f"  Incremental first render: {incremental_first:.4f}s")
         print(f"  Full first render: {full_first:.4f}s")
         print(f"  Incremental cached render: {incremental_second:.4f}s")
@@ -139,7 +139,7 @@ class TestIncrementalRenderingBenchmark:
         incremental_time = benchmark_render(incremental, source, num_iterations=5)
         full_time = benchmark_render(full_render, source, num_iterations=5)
 
-        print(f"\nMedium Document (30 sections):")
+        print("\nMedium Document (30 sections):")
         print(f"  Incremental render: {incremental_time:.4f}s")
         print(f"  Full render: {full_time:.4f}s")
         print(f"  Speedup: {full_time / incremental_time:.2f}x")
@@ -149,7 +149,7 @@ class TestIncrementalRenderingBenchmark:
 
         stats = incremental.get_cache_stats()
         print(f"  Cache stats: {stats}")
-        assert stats['hit_rate'] > 80  # Should have high cache hit rate
+        assert stats["hit_rate"] > 80  # Should have high cache hit rate
 
     def test_benchmark_large_document_full_vs_incremental(self):
         """Benchmark large document (50 sections)."""
@@ -168,7 +168,7 @@ class TestIncrementalRenderingBenchmark:
         incremental_time = benchmark_render(incremental, source, num_iterations=3)
         full_time = benchmark_render(full_render, source, num_iterations=3)
 
-        print(f"\nLarge Document (50 sections):")
+        print("\nLarge Document (50 sections):")
         print(f"  Incremental render: {incremental_time:.4f}s")
         print(f"  Full render: {full_time:.4f}s")
         print(f"  Speedup: {full_time / incremental_time:.2f}x")
@@ -178,22 +178,22 @@ class TestIncrementalRenderingBenchmark:
 
         stats = incremental.get_cache_stats()
         print(f"  Cache stats: {stats}")
-        assert stats['hit_rate'] > 85
+        assert stats["hit_rate"] > 85
 
     def test_benchmark_partial_edit(self):
         """Benchmark partial edit (change one section)."""
         source1 = create_test_document(num_sections=40, section_size=5)
 
         # Create lines for modification
-        lines = source1.split('\n')
+        lines = source1.split("\n")
 
         # Find first section and modify it
         for i, line in enumerate(lines):
-            if line.startswith('== Section 1'):
-                lines[i] = '== Section 1 MODIFIED'
+            if line.startswith("== Section 1"):
+                lines[i] = "== Section 1 MODIFIED"
                 break
 
-        source2 = '\n'.join(lines)
+        source2 = "\n".join(lines)
 
         # Create renderer
         incremental = IncrementalPreviewRenderer(self.api)
@@ -209,7 +209,7 @@ class TestIncrementalRenderingBenchmark:
         full_render.enable(False)
         full_time = benchmark_render(full_render, source2, num_iterations=5)
 
-        print(f"\nPartial Edit (1 section changed out of 40):")
+        print("\nPartial Edit (1 section changed out of 40):")
         print(f"  Incremental render: {edit_time:.4f}s")
         print(f"  Full render: {full_time:.4f}s")
         print(f"  Speedup: {full_time / edit_time:.2f}x")
@@ -238,10 +238,7 @@ class TestIncrementalRenderingBenchmark:
         edit_times = []
         for i in range(10):
             # Modify document slightly
-            modified = base_source.replace(
-                'paragraph 1',
-                f'paragraph 1 edit {i}'
-            )
+            modified = base_source.replace("paragraph 1", f"paragraph 1 edit {i}")
 
             # Render
             start = time.time()
@@ -251,7 +248,7 @@ class TestIncrementalRenderingBenchmark:
 
         avg_edit_time = sum(edit_times) / len(edit_times)
 
-        print(f"\nMultiple Edits (10 sequential edits):")
+        print("\nMultiple Edits (10 sequential edits):")
         print(f"  First render: {first_render:.4f}s")
         print(f"  Average edit render: {avg_edit_time:.4f}s")
         print(f"  Speedup vs first: {first_render / avg_edit_time:.2f}x")
@@ -278,7 +275,7 @@ class TestIncrementalRenderingBenchmark:
 
         stats = incremental.get_cache_stats()
 
-        print(f"\nCache Efficiency (21 renders of same document):")
+        print("\nCache Efficiency (21 renders of same document):")
         print(f"  Cache size: {stats['size']}")
         print(f"  Cache hits: {stats['hits']}")
         print(f"  Cache misses: {stats['misses']}")
@@ -288,20 +285,16 @@ class TestIncrementalRenderingBenchmark:
         # First render = N misses (one per block)
         # Next 20 renders = 20*N hits
         # Hit rate should be ~95%+ (20N / (20N + N) = 95.2%)
-        assert stats['hit_rate'] > 90
+        assert stats["hit_rate"] > 90
 
     def test_benchmark_summary(self):
         """Summary benchmark showing target achievement."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("INCREMENTAL RENDERING BENCHMARK SUMMARY")
-        print("="*60)
+        print("=" * 60)
 
         # Test various document sizes
-        test_cases = [
-            (10, 3, "Small"),
-            (25, 5, "Medium"),
-            (50, 8, "Large")
-        ]
+        test_cases = [(10, 3, "Small"), (25, 5, "Medium"), (50, 8, "Large")]
 
         results = []
 
@@ -329,7 +322,7 @@ class TestIncrementalRenderingBenchmark:
             stats = incremental.get_cache_stats()
             print(f"  Cache hit rate:     {stats['hit_rate']:.1f}%")
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TARGET: 3-5x speedup for incremental rendering")
 
         # Check if we meet the 3x target
@@ -341,7 +334,7 @@ class TestIncrementalRenderingBenchmark:
         else:
             print("STATUS: ✗ TARGET NOT MET")
 
-        print("="*60)
+        print("=" * 60)
 
         # Assert target met
         assert avg_speedup >= 3.0, f"Target: 3x, Actual: {avg_speedup:.2f}x"

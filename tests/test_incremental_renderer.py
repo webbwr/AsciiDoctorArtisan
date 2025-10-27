@@ -5,6 +5,7 @@ Tests block-based caching, diff detection, and rendering performance.
 """
 
 import pytest
+
 from asciidoc_artisan.workers.incremental_renderer import (
     BlockCache,
     DocumentBlock,
@@ -53,7 +54,7 @@ class TestBlockCache:
         cache.put("block3", "html3")
 
         assert cache.get("block1") == "html1"  # Still in cache
-        assert cache.get("block2") is None     # Evicted
+        assert cache.get("block2") is None  # Evicted
         assert cache.get("block3") == "html3"
 
     def test_cache_stats(self):
@@ -72,10 +73,10 @@ class TestBlockCache:
         cache.get("block4")
 
         stats = cache.get_stats()
-        assert stats['size'] == 2
-        assert stats['hits'] == 2
-        assert stats['misses'] == 2
-        assert stats['hit_rate'] == 50.0
+        assert stats["size"] == 2
+        assert stats["hits"] == 2
+        assert stats["misses"] == 2
+        assert stats["hit_rate"] == 50.0
 
     def test_cache_clear(self):
         """Test cache clearing."""
@@ -88,9 +89,9 @@ class TestBlockCache:
         cache.clear()
 
         stats = cache.get_stats()
-        assert stats['size'] == 0
-        assert stats['hits'] == 0
-        assert stats['misses'] == 0
+        assert stats["size"] == 0
+        assert stats["hits"] == 0
+        assert stats["misses"] == 0
 
 
 class TestDocumentBlock:
@@ -99,11 +100,7 @@ class TestDocumentBlock:
     def test_block_compute_id(self):
         """Test block ID computation."""
         block = DocumentBlock(
-            id='',
-            start_line=0,
-            end_line=5,
-            content='= Title\n\nSome content',
-            level=1
+            id="", start_line=0, end_line=5, content="= Title\n\nSome content", level=1
         )
 
         block_id = block.compute_id()
@@ -112,13 +109,13 @@ class TestDocumentBlock:
 
     def test_block_id_consistency(self):
         """Test same content produces same ID."""
-        content = '= Title\n\nSome content'
+        content = "= Title\n\nSome content"
 
         block1 = DocumentBlock(
-            id='', start_line=0, end_line=5, content=content, level=1
+            id="", start_line=0, end_line=5, content=content, level=1
         )
         block2 = DocumentBlock(
-            id='', start_line=10, end_line=15, content=content, level=1
+            id="", start_line=10, end_line=15, content=content, level=1
         )
 
         assert block1.compute_id() == block2.compute_id()
@@ -126,10 +123,10 @@ class TestDocumentBlock:
     def test_block_id_uniqueness(self):
         """Test different content produces different IDs."""
         block1 = DocumentBlock(
-            id='', start_line=0, end_line=5, content='= Title 1', level=1
+            id="", start_line=0, end_line=5, content="= Title 1", level=1
         )
         block2 = DocumentBlock(
-            id='', start_line=0, end_line=5, content='= Title 2', level=1
+            id="", start_line=0, end_line=5, content="= Title 2", level=1
         )
 
         assert block1.compute_id() != block2.compute_id()
@@ -140,17 +137,17 @@ class TestDocumentBlockSplitter:
 
     def test_split_empty_document(self):
         """Test splitting empty document."""
-        blocks = DocumentBlockSplitter.split('')
+        blocks = DocumentBlockSplitter.split("")
         assert len(blocks) == 0
 
     def test_split_single_title(self):
         """Test splitting document with single title."""
-        source = '= Document Title\n\nSome content here.'
+        source = "= Document Title\n\nSome content here."
         blocks = DocumentBlockSplitter.split(source)
 
         assert len(blocks) == 1
         assert blocks[0].level == 1
-        assert '= Document Title' in blocks[0].content
+        assert "= Document Title" in blocks[0].content
 
     def test_split_multiple_sections(self):
         """Test splitting document with multiple sections."""
@@ -217,14 +214,14 @@ Final content"""
         blocks = DocumentBlockSplitter.split(source)
 
         for block in blocks:
-            assert block.id != ''
+            assert block.id != ""
             assert len(block.id) == 16
 
 
 class MockAsciiDocAPI:
     """Mock AsciiDoc API for testing."""
 
-    def execute(self, infile, outfile, backend='html5'):
+    def execute(self, infile, outfile, backend="html5"):
         """Mock execute method."""
         content = infile.read()
         # Simple mock rendering
@@ -259,7 +256,7 @@ class TestIncrementalPreviewRenderer:
         api = MockAsciiDocAPI()
         renderer = IncrementalPreviewRenderer(api)
 
-        source = '= Title\n\nSome content.'
+        source = "= Title\n\nSome content."
         html = renderer.render(source)
 
         assert html is not None
@@ -293,7 +290,7 @@ Content 2.
         stats2 = renderer.get_cache_stats()
 
         # Should have cache hits
-        assert stats2['hits'] > stats1['hits']
+        assert stats2["hits"] > stats1["hits"]
         assert html1 == html2
 
     def test_incremental_render_changed_content(self):
@@ -327,34 +324,34 @@ Content 1 MODIFIED.
         api = MockAsciiDocAPI()
         renderer = IncrementalPreviewRenderer(api)
 
-        source = '= Title\n\nContent.'
+        source = "= Title\n\nContent."
         renderer.render(source)
 
         stats = renderer.get_cache_stats()
 
-        assert 'size' in stats
-        assert 'hits' in stats
-        assert 'misses' in stats
-        assert 'hit_rate' in stats
+        assert "size" in stats
+        assert "hits" in stats
+        assert "misses" in stats
+        assert "hit_rate" in stats
 
     def test_clear_cache(self):
         """Test clearing cache."""
         api = MockAsciiDocAPI()
         renderer = IncrementalPreviewRenderer(api)
 
-        source = '= Title\n\nContent.'
+        source = "= Title\n\nContent."
         renderer.render(source)
 
         # Cache should have items
         stats1 = renderer.get_cache_stats()
-        assert stats1['size'] > 0
+        assert stats1["size"] > 0
 
         # Clear cache
         renderer.clear_cache()
 
         # Cache should be empty
         stats2 = renderer.get_cache_stats()
-        assert stats2['size'] == 0
+        assert stats2["size"] == 0
 
     def test_fallback_when_disabled(self):
         """Test fallback to full render when disabled."""
@@ -363,7 +360,7 @@ Content 1 MODIFIED.
 
         renderer.enable(False)
 
-        source = '= Title\n\nContent.'
+        source = "= Title\n\nContent."
         html = renderer.render(source)
 
         # Should still render successfully
@@ -389,6 +386,7 @@ class TestIncrementalRenderingPerformance:
 
         # First render
         import time
+
         start = time.time()
         html1 = renderer.render(source)
         first_render_time = time.time() - start
@@ -423,6 +421,7 @@ class TestIncrementalRenderingPerformance:
 
         # Second render should be fast (only one block changed)
         import time
+
         start = time.time()
         renderer.render(source2)
         edit_render_time = time.time() - start
@@ -432,4 +431,4 @@ class TestIncrementalRenderingPerformance:
 
         stats = renderer.get_cache_stats()
         # Should have cache hits
-        assert stats['hits'] > 0
+        assert stats["hits"] > 0
