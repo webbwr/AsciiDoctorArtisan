@@ -119,6 +119,15 @@ def main() -> None:
 
     logger.info("GPU acceleration flags set for Qt")
 
+    # Start memory profiler if enabled (v1.4.1 optimization)
+    profiler = None
+    if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
+        from asciidoc_artisan.core import get_profiler
+        profiler = get_profiler()
+        profiler.start()
+        logger.info("Memory profiling enabled")
+        profiler.take_snapshot("startup_begin")
+
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setOrganizationName("AsciiDoc Artisan")
@@ -128,12 +137,35 @@ def main() -> None:
     else:
         app.setStyle("Fusion")
 
+    if profiler:
+        profiler.take_snapshot("after_app_init")
+
     window = AsciiDocEditor()
+
+    if profiler:
+        profiler.take_snapshot("after_window_init")
+
     window.show()
+
+    if profiler:
+        profiler.take_snapshot("after_window_show")
 
     window.update_preview()
 
-    sys.exit(app.exec())
+    if profiler:
+        profiler.take_snapshot("after_initial_preview")
+
+    exit_code = app.exec()
+
+    # Log memory statistics on exit
+    if profiler:
+        profiler.take_snapshot("before_exit")
+        stats = profiler.get_statistics()
+        logger.info(f"Memory statistics: {stats}")
+        profiler.log_top_allocations(10)
+        profiler.stop()
+
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

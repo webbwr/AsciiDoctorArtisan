@@ -158,6 +158,14 @@ class FileHandler(QObject):
         """
         self.is_opening_file = True
 
+        # Optional memory profiling (enabled via environment variable)
+        import os
+        if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
+            from asciidoc_artisan.core import get_profiler
+            profiler = get_profiler()
+            if profiler.is_running:
+                profiler.take_snapshot(f"before_load_{file_path.name}")
+
         try:
             # Read file
             with open(file_path, "r", encoding="utf-8") as f:
@@ -187,6 +195,14 @@ class FileHandler(QObject):
             self.status_manager.update_document_metrics()
 
             logger.info(f"Opened file: {file_path}")
+
+            # Optional memory profiling
+            import os
+            if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
+                from asciidoc_artisan.core import get_profiler
+                profiler = get_profiler()
+                if profiler.is_running:
+                    profiler.take_snapshot(f"after_load_{file_path.name}")
 
         finally:
             self.is_opening_file = False

@@ -52,6 +52,9 @@ from .models import GitResult
 # Performance Monitoring (v1.1 Phase 4)
 from .resource_monitor import DocumentMetrics, ResourceMetrics, ResourceMonitor
 
+# Memory Profiling (v1.4.1)
+from .memory_profiler import MemoryProfiler, MemorySnapshot, get_profiler, profile_memory
+
 # Security (v1.1)
 from .secure_credentials import SecureCredentials
 from .settings import Settings
@@ -67,6 +70,11 @@ __all__ = [
     "ResourceMonitor",
     "ResourceMetrics",
     "DocumentMetrics",
+    # Memory Profiling
+    "MemoryProfiler",
+    "MemorySnapshot",
+    "get_profiler",
+    "profile_memory",
     # File Operations
     "sanitize_path",
     "atomic_save_text",
