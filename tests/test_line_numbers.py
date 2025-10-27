@@ -5,38 +5,31 @@ Tests the LineNumberPlainTextEdit widget and line number display.
 """
 
 import pytest
-from PySide6.QtWidgets import QApplication
 
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 
 
-@pytest.fixture(scope="module")
-def qapp():
-    """Create QApplication instance for Qt tests."""
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication([])
-    yield app
-
-
-def test_line_number_widget_creation(qapp):
+def test_line_number_widget_creation(qtbot):
     """Test that LineNumberPlainTextEdit can be created."""
     editor = LineNumberPlainTextEdit()
+    qtbot.addWidget(editor)
     assert editor is not None
     assert hasattr(editor, "line_number_area")
 
 
-def test_line_number_area_width(qapp):
+def test_line_number_area_width(qtbot):
     """Test that line number area width is calculated correctly."""
     editor = LineNumberPlainTextEdit()
+    qtbot.addWidget(editor)
     width = editor.line_number_area_width()
     assert width > 0
     assert isinstance(width, int)
 
 
-def test_line_numbers_with_text(qapp):
+def test_line_numbers_with_text(qtbot):
     """Test line numbers with actual text content."""
     editor = LineNumberPlainTextEdit()
+    qtbot.addWidget(editor)
     editor.setPlainText("Line 1\nLine 2\nLine 3\nLine 4\nLine 5")
 
     # Should have 5 blocks
@@ -47,9 +40,10 @@ def test_line_numbers_with_text(qapp):
     assert width > 10  # Should be at least 10 pixels
 
 
-def test_line_numbers_with_many_lines(qapp):
+def test_line_numbers_with_many_lines(qtbot):
     """Test line numbers with 100+ lines (multi-digit)."""
     editor = LineNumberPlainTextEdit()
+    qtbot.addWidget(editor)
 
     # Create 100 lines
     text = "\n".join([f"Line {i+1}" for i in range(100)])
@@ -63,9 +57,10 @@ def test_line_numbers_with_many_lines(qapp):
     assert width > 15  # Should be wider for 3 digits
 
 
-def test_line_number_area_paint(qapp):
+def test_line_number_area_paint(qtbot):
     """Test that line number area can be painted."""
     editor = LineNumberPlainTextEdit()
+    qtbot.addWidget(editor)
     editor.setPlainText("Test line")
 
     # Line number area should exist
@@ -75,9 +70,10 @@ def test_line_number_area_paint(qapp):
     assert hasattr(editor, "line_number_area_paint_event")
 
 
-def test_viewport_margins(qapp):
+def test_viewport_margins(qtbot):
     """Test that viewport margins are set for line numbers."""
     editor = LineNumberPlainTextEdit()
+    qtbot.addWidget(editor)
 
     # Get viewport margins
     margins = editor.viewportMargins()
@@ -86,9 +82,10 @@ def test_viewport_margins(qapp):
     assert margins.left() > 0
 
 
-def test_line_number_updates_on_text_change(qapp):
+def test_line_number_updates_on_text_change(qtbot):
     """Test that line numbers update when text changes."""
     editor = LineNumberPlainTextEdit()
+    qtbot.addWidget(editor)
 
     # Start with one line
     editor.setPlainText("One line")
