@@ -34,7 +34,7 @@ import logging
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-from PySide6.QtCore import QPoint, QThread, QTimer, Slot
+from PySide6.QtCore import QObject, QPoint, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PySide6.QtWidgets import QMenu, QTextEdit, QToolTip
 
@@ -169,7 +169,7 @@ class SuggestionDeduplicator:
 # ============================================================================
 
 
-class GrammarManager:
+class GrammarManager(QObject):
     """Orchestrates hybrid grammar checking system.
 
     This is the main public interface for grammar checking in
@@ -192,12 +192,16 @@ class GrammarManager:
         ```
     """
 
+    # Signal for thread-safe status updates
+    status_update_requested = Signal(str, int)
+
     def __init__(self, editor: "AsciiDocEditor"):
         """Initialize GrammarManager.
 
         Args:
             editor: Reference to main AsciiDocEditor window
         """
+        super().__init__()
         self.editor = editor
 
         # Configuration
@@ -248,11 +252,7 @@ class GrammarManager:
         self.lt_worker.progress_update.connect(self._handle_progress_update)
         self.lt_worker.initialization_complete.connect(self._handle_lt_initialization)
 
-        # Start thread
-        self.lt_thread.start()
-
-        # Initialize worker
-        self.lt_worker.initialize_tool("en-US")
+        # Thread will be started later in start_workers()
 
         logger.info("LanguageTool worker setup complete")
 
@@ -266,8 +266,7 @@ class GrammarManager:
         self.ollama_worker.grammar_result_ready.connect(self._handle_ollama_result)
         self.ollama_worker.progress_update.connect(self._handle_progress_update)
 
-        # Start thread
-        self.ollama_thread.start()
+        # Thread will be started later in start_workers()
 
         # Load configuration from settings
         self._load_ollama_config()
@@ -288,6 +287,19 @@ class GrammarManager:
 
         except Exception as e:
             logger.error(f"Failed to load Ollama config: {e}")
+
+    def start_workers(self):
+        """Start worker threads. Must be called after main window is fully initialized."""
+        # Start LanguageTool thread
+        self.lt_thread.start()
+
+        # Initialize LanguageTool worker
+        self.lt_worker.initialize_tool("en-US")
+
+        # Start Ollama thread
+        self.ollama_thread.start()
+
+        logger.info("Grammar worker threads started")
 
     # ========================================================================
     # PUBLIC API - ENABLE/DISABLE
@@ -887,9 +899,14 @@ class GrammarManager:
         Args:
             message: Status message
             timeout: Timeout in milliseconds (0 = permanent)
+
+        Note:
+            This method may be called from worker threads. We emit a signal
+            which is automatically queued to run on the main GUI thread.
         """
         try:
-            self.editor.status_manager.show_status(message, timeout)
+            # Emit signal - Qt will queue this to main thread if needed
+            self.status_update_requested.emit(message, timeout)
         except Exception as e:
             logger.debug(f"Could not update status: {e}")
 

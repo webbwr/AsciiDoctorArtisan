@@ -285,6 +285,10 @@ class AsciiDocEditor(QMainWindow):
         # Initialize GrammarManager (v1.3: Legendary Grammar System)
         # Must be initialized BEFORE ActionManager since actions reference it
         self.grammar_manager = GrammarManager(self)
+        # Connect grammar manager's status signal to status manager
+        self.grammar_manager.status_update_requested.connect(
+            lambda msg, timeout: self.status_manager.show_status(msg, timeout)
+        )
         logger.info("GrammarManager initialized with LanguageTool + Ollama workers")
 
         # Initialize ActionManager (Phase 5: Refactoring)
@@ -611,8 +615,9 @@ class AsciiDocEditor(QMainWindow):
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
         self.preview_thread.start()
 
-        # Grammar worker threads are already started in GrammarManager.__init__
-        # (v1.3: Legendary Grammar System - workers initialized in constructor)
+        # Start grammar worker threads (v1.3: Legendary Grammar System)
+        # Must be started here (not in __init__) to avoid Qt threading issues
+        self.grammar_manager.start_workers()
 
         logger.info("All worker threads started (Git, Pandoc, Preview, Grammar)")
 
