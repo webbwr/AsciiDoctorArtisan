@@ -391,6 +391,7 @@ class OllamaSettingsDialog(QDialog):
                     else:
                         name = str(model)
 
+                    logger.info(f"Found model: {name}")
                     self.models.append(name)
                     self.model_combo.addItem(name)
 
@@ -408,6 +409,7 @@ class OllamaSettingsDialog(QDialog):
                 )
 
             except Exception as e:
+                logger.error(f"Ollama service error: {type(e).__name__}: {e}", exc_info=True)
                 self.status_label.setText(f"❌ Ollama service not running: {str(e)}")
                 self.status_label.setStyleSheet(
                     "QLabel { color: red; font-size: 10pt; }"
@@ -415,7 +417,8 @@ class OllamaSettingsDialog(QDialog):
                 self.model_combo.addItem("Service not available")
                 self.model_combo.setEnabled(False)
 
-        except ImportError:
+        except ImportError as e:
+            logger.error(f"Ollama import error: {e}", exc_info=True)
             self.status_label.setText("❌ Ollama library not installed")
             self.status_label.setStyleSheet("QLabel { color: red; font-size: 10pt; }")
             self.model_combo.addItem("Library not installed")
