@@ -13,6 +13,7 @@ Extracted from main_window.py to improve maintainability and testability.
 
 import logging
 import platform
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -24,6 +25,15 @@ from asciidoc_artisan.core import (
     SUPPORTED_SAVE_FILTER,
     atomic_save_text,
 )
+
+# Import metrics
+try:
+    from asciidoc_artisan.core.metrics import get_metrics_collector
+
+    METRICS_AVAILABLE = True
+except ImportError:
+    get_metrics_collector = None  # type: ignore[assignment]
+    METRICS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +166,7 @@ class FileHandler(QObject):
         Args:
             file_path: Path to file to load
         """
+        start_time = time.perf_counter()
         self.is_opening_file = True
 
         # Optional memory profiling (enabled via environment variable)
@@ -196,6 +207,12 @@ class FileHandler(QObject):
             # Update document metrics (version, word count, grade level)
             self.status_manager.update_document_metrics()
 
+            # Record metrics
+            if METRICS_AVAILABLE and get_metrics_collector:
+                duration_ms = (time.perf_counter() - start_time) * 1000
+                metrics = get_metrics_collector()
+                metrics.record_operation("file_open", duration_ms)
+
             logger.info(f"Opened file: {file_path}")
 
             # Optional memory profiling
@@ -222,6 +239,8 @@ class FileHandler(QObject):
         Returns:
             True if saved successfully, False otherwise
         """
+        start_time = time.perf_counter()
+
         # Determine save path
         if save_as or not self.current_file_path:
             settings = self.settings_manager.load_settings()
@@ -272,6 +291,12 @@ class FileHandler(QObject):
 
                 # Update document metrics (version, word count, grade level)
                 self.status_manager.update_document_metrics()
+
+                # Record metrics
+                if METRICS_AVAILABLE and get_metrics_collector:
+                    duration_ms = (time.perf_counter() - start_time) * 1000
+                    metrics = get_metrics_collector()
+                    metrics.record_operation("file_save", duration_ms)
 
                 logger.info(f"Saved file: {save_path}")
                 return True

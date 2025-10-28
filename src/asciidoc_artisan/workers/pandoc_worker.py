@@ -25,6 +25,7 @@ Supported Formats:
 import logging
 import re
 import subprocess
+import time
 from pathlib import Path
 from typing import Optional, Union
 
@@ -40,6 +41,15 @@ except ImportError:
     PANDOC_AVAILABLE = False
 
 # AI client removed - using Ollama for local AI features instead
+
+# Import metrics
+try:
+    from asciidoc_artisan.core.metrics import get_metrics_collector
+
+    METRICS_AVAILABLE = True
+except ImportError:
+    get_metrics_collector = None  # type: ignore[assignment]
+    METRICS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +138,9 @@ class PandocWorker(QObject):
             2. If Ollama fails or disabled -> Fallback to Pandoc
             3. Post-process AsciiDoc output for quality
         """
+        start_time = time.perf_counter()
+        conversion_method = "pandoc"
+
         # Try Ollama AI conversion first if requested
         if use_ai_conversion and self.ollama_enabled and self.ollama_model:
             # Get source content as string
@@ -146,6 +159,7 @@ class PandocWorker(QObject):
 
                 if ollama_result:
                     # Ollama conversion succeeded
+                    conversion_method = "ollama"
                     logger.info("Using Ollama AI conversion result")
 
                     # Handle output
@@ -157,8 +171,15 @@ class PandocWorker(QObject):
                         )
                         # Continue to Pandoc with Ollama's result as source
                         source = ollama_result
+                        conversion_method = "ollama_pandoc"
                     else:
                         # Text output - use Ollama result directly
+                        # Record metrics
+                        if METRICS_AVAILABLE and get_metrics_collector:
+                            duration_ms = (time.perf_counter() - start_time) * 1000
+                            metrics = get_metrics_collector()
+                            metrics.record_operation(f"conversion_{conversion_method}", duration_ms)
+
                         self.conversion_complete.emit(ollama_result, context)
                         return
 
@@ -322,6 +343,12 @@ class PandocWorker(QObject):
                 # Post-process AsciiDoc output
                 if to_format == "asciidoc":
                     result_text = self._enhance_asciidoc_output(result_text)
+
+            # Record metrics
+            if METRICS_AVAILABLE and get_metrics_collector:
+                duration_ms = (time.perf_counter() - start_time) * 1000
+                metrics = get_metrics_collector()
+                metrics.record_operation(f"conversion_{conversion_method}", duration_ms)
 
             logger.info(f"Pandoc conversion successful ({context})")
             self.conversion_complete.emit(result_text, context)

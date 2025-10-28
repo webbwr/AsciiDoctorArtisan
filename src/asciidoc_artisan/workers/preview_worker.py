@@ -19,6 +19,7 @@ asynchronously, emitting signals when rendering completes or fails.
 import html
 import io
 import logging
+import time
 from typing import Any, Optional
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -42,6 +43,15 @@ try:
 except ImportError:
     IncrementalPreviewRenderer = None  # type: ignore[assignment, misc]
     INCREMENTAL_RENDERER_AVAILABLE = False
+
+# Import metrics
+try:
+    from asciidoc_artisan.core.metrics import get_metrics_collector
+
+    METRICS_AVAILABLE = True
+except ImportError:
+    get_metrics_collector = None  # type: ignore[assignment]
+    METRICS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +170,11 @@ class PreviewWorker(QObject):
             Incremental rendering: 3-5x faster for minor edits
             Typical rendering time: <350ms (NFR-001)
             Main window handles debouncing (350ms delay, FR-004)
+            Metrics tracked: preview_render_full, preview_render_incremental
         """
+        start_time = time.perf_counter()
+        render_type = "full"
+
         try:
             if self._asciidoc_api is None:
                 # Fallback: Display source as plain text if AsciiDoc unavailable
@@ -174,6 +188,7 @@ class PreviewWorker(QObject):
                 and self._incremental_renderer is not None
                 and len(source_text) > 1000
             ):  # Only for larger docs
+                render_type = "incremental"
                 html_body = self._incremental_renderer.render(source_text)
                 logger.debug("PreviewWorker: Incremental rendering successful")
             else:
@@ -183,6 +198,12 @@ class PreviewWorker(QObject):
                 self._asciidoc_api.execute(infile, outfile, backend="html5")
                 html_body = outfile.getvalue()
                 logger.debug("PreviewWorker: Full rendering successful")
+
+            # Record metrics
+            if METRICS_AVAILABLE and get_metrics_collector:
+                duration_ms = (time.perf_counter() - start_time) * 1000
+                metrics = get_metrics_collector()
+                metrics.record_operation(f"preview_render_{render_type}", duration_ms)
 
             self.render_complete.emit(html_body)
 
