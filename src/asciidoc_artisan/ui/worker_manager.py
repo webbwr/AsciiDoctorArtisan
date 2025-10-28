@@ -187,6 +187,37 @@ class WorkerManager:
             return self.worker_pool.wait_for_done(timeout_ms)
         return True
 
+    def cancel_git_operation(self) -> None:
+        """Cancel the current Git operation.
+
+        Note: Git operations use blocking subprocess calls, so cancellation
+        only prevents queued operations from starting. In-progress operations
+        cannot be interrupted.
+        """
+        logger.info("Cancelling Git operation")
+        if self.git_worker and hasattr(self.git_worker, "cancel"):
+            self.git_worker.cancel()
+
+    def cancel_pandoc_operation(self) -> None:
+        """Cancel the current Pandoc operation.
+
+        Note: Pandoc operations use blocking subprocess calls, so cancellation
+        only prevents queued operations from starting. In-progress operations
+        cannot be interrupted.
+        """
+        logger.info("Cancelling Pandoc operation")
+        if self.pandoc_worker and hasattr(self.pandoc_worker, "cancel"):
+            self.pandoc_worker.cancel()
+
+    def cancel_preview_operation(self) -> None:
+        """Cancel the current preview rendering operation.
+
+        Note: Preview rendering cannot currently be interrupted once started.
+        """
+        logger.info("Cancelling preview operation")
+        if self.preview_worker and hasattr(self.preview_worker, "cancel"):
+            self.preview_worker.cancel()
+
     def shutdown(self) -> None:
         """
         Shutdown all workers and threads gracefully.

@@ -56,6 +56,25 @@ class GitWorker(QObject):
 
     command_complete = Signal(GitResult)
 
+    def __init__(self) -> None:
+        """Initialize Git worker with cancellation support."""
+        super().__init__()
+        self._cancelled = False
+
+    def cancel(self) -> None:
+        """Request cancellation of current operation.
+
+        Note: Git operations use blocking subprocess.run() so cancellation
+        only prevents new operations from starting. In-progress Git commands
+        cannot be interrupted.
+        """
+        logger.info("Git worker cancellation requested")
+        self._cancelled = True
+
+    def reset_cancellation(self) -> None:
+        """Reset cancellation flag for next operation."""
+        self._cancelled = False
+
     @Slot(list, str)
     def run_git_command(self, command: List[str], working_dir: str) -> None:
         """
@@ -75,6 +94,15 @@ class GitWorker(QObject):
             - Validates working directory exists before execution
             - No destructive force flags without user confirmation (NFR-008)
         """
+        # Check for cancellation
+        if self._cancelled:
+            logger.info("Git operation cancelled before execution")
+            self.command_complete.emit(
+                GitResult(False, "", "Operation cancelled by user", -1, "Cancelled")
+            )
+            self.reset_cancellation()
+            return
+
         user_message = "Git command failed."
         stdout, stderr = "", ""
         exit_code = None

@@ -16,8 +16,8 @@ The StatusManager provides centralized UI feedback management.
 import re
 from typing import TYPE_CHECKING, Optional
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel, QMessageBox
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
 
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME
 
@@ -45,9 +45,23 @@ class StatusManager:
         self.word_count_label: Optional[QLabel] = None
         self.grade_level_label: Optional[QLabel] = None
         self.ai_status_label: Optional[QLabel] = None
+        self.cancel_button: Optional[QPushButton] = None
+
+        # Track current operation for cancellation
+        self._current_operation: Optional[str] = None  # 'git', 'pandoc', or 'preview'
 
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets after status bar is created."""
+        # Create cancel button (left side, shown only during operations)
+        self.cancel_button = QPushButton("✕ Cancel")
+        self.cancel_button.setMaximumWidth(80)
+        self.cancel_button.setToolTip("Cancel current operation")
+        self.cancel_button.clicked.connect(self._on_cancel_clicked)
+        self.cancel_button.hide()  # Hidden by default
+
+        # Add cancel button to left side of status bar
+        self.editor.status_bar.addWidget(self.cancel_button)
+
         # Create permanent status bar widgets (right side)
         self.word_count_label = QLabel("Words: 0")
         self.version_label = QLabel("")
@@ -317,3 +331,39 @@ class StatusManager:
         # This method is kept for backward compatibility but does nothing
         # Use set_ai_model() to set the model name instead
         pass
+
+    def show_cancel_button(self, operation: str) -> None:
+        """Show cancel button for the given operation.
+
+        Args:
+            operation: Type of operation ('git', 'pandoc', or 'preview')
+        """
+        self._current_operation = operation
+        if self.cancel_button:
+            self.cancel_button.show()
+
+    def hide_cancel_button(self) -> None:
+        """Hide cancel button when operation completes."""
+        self._current_operation = None
+        if self.cancel_button:
+            self.cancel_button.hide()
+
+    def _on_cancel_clicked(self) -> None:
+        """Handle cancel button click."""
+        if not self._current_operation:
+            return
+
+        # Delegate cancellation to worker_manager
+        if hasattr(self.editor, "worker_manager"):
+            if self._current_operation == "git":
+                self.editor.worker_manager.cancel_git_operation()
+            elif self._current_operation == "pandoc":
+                self.editor.worker_manager.cancel_pandoc_operation()
+            elif self._current_operation == "preview":
+                self.editor.worker_manager.cancel_preview_operation()
+
+        # Hide button
+        self.hide_cancel_button()
+
+        # Show feedback
+        self.editor.status_bar.showMessage(f"Cancelled {self._current_operation} operation", 3000)
