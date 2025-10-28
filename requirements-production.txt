@@ -43,7 +43,7 @@ psutil==5.9.0
 
 # Local AI Integration (document conversion)
 # Note: Requires Ollama system binary
-ollama==0.4.0
+ollama==0.6.0
 
 # ============================================================================
 # PERFORMANCE OPTIMIZATION
