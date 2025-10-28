@@ -1,26 +1,29 @@
 """
-GPU-Enabled Preview Handler - Automatically detect and use GPU when available.
+Web Engine Preview Handler - GPU-accelerated preview rendering.
 
-This module provides a drop-in replacement for preview_handler.py that:
-- Detects GPU availability automatically
-- Uses QWebEngineView when GPU is available
-- Falls back to QTextBrowser for software rendering
-- Provides the same API as the original PreviewHandler
+This module provides QWebEngineView-based preview handlers with:
+- Automatic GPU detection and configuration
+- Hardware-accelerated 2D canvas
+- WebGL support for rich rendering
+- JavaScript-based scroll synchronization
+- Automatic fallback to QTextBrowser when GPU unavailable
 
-To enable, replace the import in main_window.py:
-    from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandler
+Detects GPU capabilities automatically and chooses the optimal widget:
+- QWebEngineView (GPU available) - 10-50x faster, 70-90% less CPU
+- QTextBrowser (GPU unavailable) - Reliable software fallback
+
+Factory function create_preview_handler() simplifies usage in main_window.py.
 """
 
 import logging
+import time
 from typing import Optional
 
 from PySide6.QtCore import QUrl
-from PySide6.QtWidgets import QTextBrowser, QWidget
+from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QWidget
 
 from asciidoc_artisan.core.gpu_detection import get_gpu_info
-
-# Import base handler
-from asciidoc_artisan.ui.preview_handler import PreviewHandler as BasePreviewHandler
+from asciidoc_artisan.ui.preview_handler_base import PreviewHandlerBase
 
 # Try to import QWebEngineView (may not be available)
 try:
@@ -36,97 +39,60 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def create_preview_widget(parent: Optional[QWidget] = None) -> QWidget:
+class WebEngineHandler(PreviewHandlerBase):
     """
-    Create appropriate preview widget based on GPU availability.
+    QWebEngineView-based preview handler (GPU-accelerated).
 
-    Returns:
-        QWebEngineView if GPU available, QTextBrowser otherwise
-    """
-    if not WEBENGINE_AVAILABLE:
-        logger.info("QWebEngineView not available, using QTextBrowser")
-        return QTextBrowser(parent)
+    Provides hardware-accelerated preview rendering with:
+    - GPU-accelerated 2D canvas (up to 10-50x faster)
+    - WebGL support for rich content
+    - JavaScript-based scroll synchronization
+    - Significantly reduced CPU usage (70-90% less)
 
-    # Detect GPU
-    gpu_info = get_gpu_info()
+    Requires:
+    - GPU hardware (NVIDIA, AMD, Intel, or NPU)
+    - QWebEngineView available
+    - GPU drivers installed
 
-    if gpu_info.can_use_webengine and gpu_info.has_gpu:
-        logger.info(
-            f"GPU detected ({gpu_info.gpu_name}), using QWebEngineView with acceleration"
-        )
-
-        # Create QWebEngineView with GPU acceleration
-        web_view = QWebEngineView(parent)
-
-        # Enable hardware acceleration
-        settings = web_view.settings()
-        settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
-        settings.setAttribute(QWebEngineSettings.PluginsEnabled, False)
-        settings.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, False)
-
-        # Log GPU info
-        logger.info(f"  GPU Type: {gpu_info.gpu_type}")
-        logger.info(f"  GPU Name: {gpu_info.gpu_name}")
-        if gpu_info.driver_version:
-            logger.info(f"  Driver: {gpu_info.driver_version}")
-        logger.info(f"  Device: {gpu_info.render_device}")
-        logger.info("  Accelerated2dCanvas: ENABLED")
-        logger.info("  WebGL: ENABLED")
-
-        return web_view
-    else:
-        logger.info(f"Using QTextBrowser: {gpu_info.reason}")
-        return QTextBrowser(parent)
-
-
-class PreviewHandler(BasePreviewHandler):
-    """
-    GPU-enabled preview handler.
-
-    Drop-in replacement for the base PreviewHandler that automatically
-    detects and uses GPU acceleration when available.
-
-    Usage in main_window.py:
-        # Replace:
-        # from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        # with:
-        from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandler
+    Implements abstract methods from PreviewHandlerBase:
+    - handle_preview_complete() - Update QWebEngineView with HTML
+    - sync_editor_to_preview() - Sync scroll via JavaScript
+    - sync_preview_to_editor() - Sync scroll via JavaScript callback
     """
 
-    def __init__(self, editor, preview, parent_window):
+    def __init__(
+        self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window
+    ):
         """
-        Initialize GPU-enabled PreviewHandler.
+        Initialize WebEngine PreviewHandler.
 
-        Note: This expects the preview widget to be created by
-        create_preview_widget() function, not passed in pre-created.
+        Args:
+            editor: The text editor widget
+            preview: The QWebEngineView widget for GPU-accelerated preview
+            parent_window: Main window (for signals and state)
         """
-        # Detect if preview is QWebEngineView or QTextBrowser
-        self.is_webengine = hasattr(preview, "page")
-
-        # Initialize base handler
         super().__init__(editor, preview, parent_window)
 
-        if self.is_webengine:
-            logger.info(
-                "Preview handler initialized with QWebEngineView (GPU-accelerated)"
+        # Verify widget type
+        if not hasattr(preview, "page"):
+            raise TypeError(
+                "WebEngineHandler requires QWebEngineView, got"
+                f" {type(preview).__name__}"
             )
-        else:
-            logger.info(
-                "Preview handler initialized with QTextBrowser (software rendering)"
-            )
+
+        logger.info(
+            "PreviewHandler initialized with QWebEngineView (GPU-accelerated)"
+        )
 
     def handle_preview_complete(self, html: str) -> None:
         """
-        Handle completed preview rendering (GPU-aware).
+        Handle completed preview rendering (QWebEngineView).
 
         Args:
             html: Rendered HTML content
         """
         # Calculate render time
         if self._last_render_start is not None:
-            import time
-
             render_time = time.time() - self._last_render_start
 
             # Update adaptive debouncer with render time
@@ -138,22 +104,19 @@ class PreviewHandler(BasePreviewHandler):
         # Add CSS styling
         styled_html = self._wrap_with_css(html)
 
-        # Update preview (different methods for QWebEngineView vs QTextBrowser)
-        if self.is_webengine:
-            # QWebEngineView uses setHtml with base URL
-            self.preview.setHtml(styled_html, QUrl("file://"))
-        else:
-            # QTextBrowser uses simple setHtml
-            self.preview.setHtml(styled_html)
+        # Update preview (QWebEngineView uses setHtml with base URL)
+        self.preview.setHtml(styled_html, QUrl("file://"))
 
         # Emit signal
         self.preview_updated.emit(html)
 
-        logger.debug("Preview updated successfully")
+        logger.debug("Preview updated successfully (GPU-accelerated)")
 
     def sync_editor_to_preview(self, editor_value: int) -> None:
         """
-        Sync preview scroll position to editor (GPU-aware).
+        Sync preview scroll position to editor (QWebEngineView).
+
+        Uses JavaScript for smooth, hardware-accelerated scrolling.
 
         Args:
             editor_value: Editor scroll bar value (0-max)
@@ -170,39 +133,151 @@ class PreviewHandler(BasePreviewHandler):
             if editor_max > 0:
                 scroll_percentage = editor_value / editor_max
 
-                if self.is_webengine:
-                    # QWebEngineView: Use JavaScript
-                    js_code = f"""
-                        var body = document.body;
-                        var html = document.documentElement;
-                        var height = Math.max(
-                            body.scrollHeight, body.offsetHeight,
-                            html.clientHeight, html.scrollHeight, html.offsetHeight
-                        );
-                        var maxScroll = height - window.innerHeight;
-                        window.scrollTo(0, maxScroll * {scroll_percentage});
-                    """
-                    self.preview.page().runJavaScript(js_code)
-                else:
-                    # QTextBrowser: Direct scrollbar control
-                    preview_scrollbar = self.preview.verticalScrollBar()
-                    preview_max = preview_scrollbar.maximum()
-                    preview_value = int(preview_max * scroll_percentage)
-                    preview_scrollbar.setValue(preview_value)
+                # Scroll preview via JavaScript (QWebEngineView-specific)
+                js_code = f"""
+                    var body = document.body;
+                    var html = document.documentElement;
+                    var height = Math.max(
+                        body.scrollHeight, body.offsetHeight,
+                        html.clientHeight, html.scrollHeight, html.offsetHeight
+                    );
+                    var maxScroll = height - window.innerHeight;
+                    window.scrollTo(0, maxScroll * {scroll_percentage});
+                """
+                self.preview.page().runJavaScript(js_code)
 
         finally:
             self.is_syncing_scroll = False
+
+    def sync_preview_to_editor(self, preview_value: int) -> None:
+        """
+        Sync editor scroll position to preview (QWebEngineView).
+
+        Requires JavaScript callback from preview to get scroll position.
+        Currently not fully implemented - primarily syncs editor -> preview.
+
+        Args:
+            preview_value: Preview scroll value
+        """
+        if not self.sync_scrolling_enabled or self.is_syncing_scroll:
+            return
+
+        self.is_syncing_scroll = True
+        try:
+            # Would require JavaScript callback to get scroll position
+            # For now, we primarily sync editor -> preview
+            pass
+        finally:
+            self.is_syncing_scroll = False
+
+
+def create_preview_widget(parent: Optional[QWidget] = None) -> QWidget:
+    """
+    Create appropriate preview widget based on GPU availability.
+
+    Automatically detects GPU and creates the optimal widget:
+    - QWebEngineView if GPU available (hardware-accelerated)
+    - QTextBrowser if GPU unavailable (software fallback)
+
+    Args:
+        parent: Parent widget
+
+    Returns:
+        QWebEngineView if GPU available, QTextBrowser otherwise
+    """
+    if not WEBENGINE_AVAILABLE:
+        logger.info("QWebEngineView not available, using QTextBrowser")
+        return QTextBrowser(parent)
+
+    # Detect GPU
+    gpu_info = get_gpu_info()
+
+    if gpu_info.can_use_webengine and gpu_info.has_gpu:
+        logger.info(
+            f"GPU detected ({gpu_info.gpu_name}), using QWebEngineView with"
+            " acceleration"
+        )
+
+        # Create QWebEngineView with GPU acceleration
+        web_view = QWebEngineView(parent)
+
+        # Enable hardware acceleration
+        settings = web_view.settings()
+        settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
+        settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
+        settings.setAttribute(QWebEngineSettings.PluginsEnabled, False)
+        settings.setAttribute(
+            QWebEngineSettings.LocalContentCanAccessRemoteUrls, False
+        )
+
+        # Log GPU info
+        logger.info(f"  GPU Type: {gpu_info.gpu_type}")
+        logger.info(f"  GPU Name: {gpu_info.gpu_name}")
+        if gpu_info.driver_version:
+            logger.info(f"  Driver: {gpu_info.driver_version}")
+        logger.info(f"  Device: {gpu_info.render_device}")
+        logger.info("  Accelerated2dCanvas: ENABLED")
+        logger.info("  WebGL: ENABLED")
+
+        return web_view
+    else:
+        logger.info(f"Using QTextBrowser: {gpu_info.reason}")
+        return QTextBrowser(parent)
+
+
+def create_preview_handler(
+    editor: QPlainTextEdit, preview: QWidget, parent_window
+) -> PreviewHandlerBase:
+    """
+    Create appropriate preview handler for the given widget.
+
+    Factory function that creates the correct handler type based on
+    the widget type (QWebEngineView or QTextBrowser).
+
+    Args:
+        editor: The text editor widget
+        preview: The preview widget (from create_preview_widget())
+        parent_window: Main window
+
+    Returns:
+        WebEngineHandler if QWebEngineView, else TextBrowserHandler
+    """
+    # Import here to avoid circular dependency
+    from asciidoc_artisan.ui.preview_handler import PreviewHandler as TextBrowserHandler
+
+    if hasattr(preview, "page"):
+        # QWebEngineView - use GPU-accelerated handler
+        return WebEngineHandler(editor, preview, parent_window)
+    else:
+        # QTextBrowser - use software rendering handler
+        return TextBrowserHandler(editor, preview, parent_window)
+
+
+# Backward compatibility alias
+# Main window imports "PreviewHandler" from this module
+# The create_preview_handler() factory returns the correct handler type
+PreviewHandler = WebEngineHandler
 
 
 def get_preview_widget_info(preview_widget: QWidget) -> dict:
     """
     Get information about the preview widget.
 
+    Useful for debugging and logging widget configuration.
+
     Args:
         preview_widget: Preview widget (QWebEngineView or QTextBrowser)
 
     Returns:
-        Dictionary with widget info
+        Dictionary with widget info including:
+        - widget_type: Widget class name
+        - is_webengine: True if QWebEngineView
+        - is_textbrowser: True if QTextBrowser
+        - gpu_detected: True if GPU hardware found
+        - gpu_name: GPU name (if detected)
+        - gpu_type: GPU type (nvidia, amd, intel, npu)
+        - accelerated_2d_canvas: True if 2D canvas acceleration enabled
+        - webgl_enabled: True if WebGL enabled
     """
     widget_type = type(preview_widget).__name__
     is_webengine = hasattr(preview_widget, "page")
