@@ -39,7 +39,7 @@ pymupdf==1.23.0
 keyring==24.3.0
 
 # System Resource Monitoring
-psutil==5.9.0
+psutil==7.1.2
 
 # Local AI Integration (document conversion)
 # Note: Requires Ollama system binary
