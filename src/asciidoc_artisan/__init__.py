@@ -2,12 +2,12 @@
 AsciiDoc Artisan - Cross-platform AsciiDoc editor with live preview.
 
 This package provides a modular, well-structured implementation of the
-AsciiDoc Artisan application per specification v1.3.0.
+AsciiDoc Artisan application per specification v1.5.0.
 
 Architecture:
-- core: Constants, settings, models, and secure file operations
-- workers: Background QThread workers (Git, Pandoc, Preview, Grammar)
-- ui: User interface components (main window, dialogs, grammar manager)
+- core: Constants, settings, models, secure file operations, metrics, profiling
+- workers: Background QThread workers (Git, Pandoc, Preview) + Worker Pool
+- ui: User interface components (main window, managers, dialogs)
 
 Public API exports the most commonly used classes and functions:
     from asciidoc_artisan import AsciiDocEditor, Settings, GitWorker
@@ -24,12 +24,9 @@ Complete Public API:
     - GitWorker: Git version control operations
     - PandocWorker: Document format conversion (+ AI)
     - PreviewWorker: AsciiDoc HTML rendering
-    - LanguageToolWorker: Rules-based grammar checking (v1.3)
-    - OllamaGrammarWorker: AI-powered style checking (v1.3)
 
     # UI Components
     - PreferencesDialog: Application preferences
-    - GrammarManager: Grammar checking orchestration (v1.3)
 
     # File Operations (Security Features)
     - sanitize_path: Path traversal prevention (FR-016)
@@ -39,22 +36,22 @@ Complete Public API:
     # Constants
     - APP_NAME, SETTINGS_FILENAME, etc.
 
+v1.5.0 Features:
+- Fast startup (1.05s) with lazy module loading
+- Main window refactored to 577 lines (66% reduction)
+- Worker pool system with task prioritization
+- Operation cancellation support
+- Metrics collection and memory profiling
+- 60%+ test coverage with 681+ tests
+- GPU-accelerated preview (10-50x faster)
+- NPU detection and configuration
+
 Specification Compliance:
-- FR-001 to FR-062: All functional requirements implemented
-- Grammar Rules (v1.3): 8 new grammar checking requirements
+- FR-001 to FR-053: All functional requirements implemented
+- Performance Rules: Fast startup, cancellation, clean code, good tests
 - NFR-016: Comprehensive type hints
 - NFR-017: All classes/methods documented
-- NFR-019: 100% test coverage (71/71 passing)
-- Technical Debt Resolved: Modular architecture (<500 lines per module)
-
-Grammar System (v1.3 - Legendary Grandmaster):
-- Hybrid checking: LanguageTool (rules) + Ollama AI (context)
-- Enterprise patterns: Circuit breaker, LRU cache, retry logic
-- 4 checking modes: Hybrid, LanguageTool Only, Ollama Only, Disabled
-- 3 performance profiles: Balanced, Real-time, Thorough
-- Visual feedback: Color-coded wavy underlines by error type
-- Keyboard shortcuts: F7 (check), Ctrl+. (next), Ctrl+I (ignore)
-- +4,362 lines of production-ready code
+- Technical Debt Resolved: Modular architecture
 
 Usage:
     # Simple usage
@@ -72,7 +69,7 @@ Usage:
     from asciidoc_artisan.core import atomic_save_text, sanitize_path
 """
 
-__version__ = "1.3.0-beta"
+__version__ = "1.5.0"
 
 # Main Application
 # Settings & Models

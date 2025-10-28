@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asciidoc-artisan"
-version = "1.4.0-beta"
+version = "1.5.0"
 description = "A modern AsciiDoc editor with GPU-accelerated live preview and AI-powered document conversion"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -311,15 +311,15 @@ Need help?
 
 ## Version
 
-**Current Version**: 1.4.0-beta
+**Current Version**: 1.5.0
 
-**What's New in v1.4.0:**
-- ✅ Full GPU/NPU hardware acceleration (10-50x faster)
-- ✅ Auto-detect NVIDIA, AMD, Intel GPUs
-- ✅ NPU detection and OpenVINO configuration
-- ✅ Document version display in status bar
-- ✅ 70-90% less CPU usage
-- ✅ Smooth 60fps+ rendering
+**What's New in v1.5.0:**
+- ✅ Fast startup (1.05 seconds)
+- ✅ Worker pool system
+- ✅ Operation cancellation
+- ✅ 60%+ test coverage (681+ tests)
+- ✅ Main window: 577 lines (66% smaller)
+- ✅ GPU acceleration (10-50x faster from v1.4.0)
 
 ## Thank You
 
