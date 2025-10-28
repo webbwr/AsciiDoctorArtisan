@@ -191,11 +191,13 @@ src/asciidoc_artisan/
 │   ├── lazy_importer.py        # Lazy module loading for performance
 │   └── lazy_utils.py           # Utility functions for lazy evaluation
 ├── ui/                         # UI components (Qt widgets)
-│   ├── main_window.py          # AsciiDocEditor (main window controller, 1714 lines)
+│   ├── main_window.py          # AsciiDocEditor (main window controller, 1614 lines in v1.4.1)
 │   ├── menu_manager.py         # Menu bar creation and actions
-│   ├── theme_manager.py        # Dark/light theme management
+│   ├── theme_manager.py        # Dark/light theme + CSS generation (v1.4.1)
 │   ├── status_manager.py       # Status bar, document version display, messages
 │   ├── file_handler.py         # File open/save/import dialogs
+│   ├── file_operations_manager.py # File operation coordination
+│   ├── file_load_manager.py    # File loading and import handling
 │   ├── export_manager.py       # Export to DOCX/PDF/HTML/MD
 │   ├── preview_handler.py      # QTextBrowser preview (software fallback)
 │   ├── preview_handler_gpu.py  # GPU-accelerated QWebEngineView (v1.4.0)
@@ -205,7 +207,13 @@ src/asciidoc_artisan/
 │   ├── line_number_area.py     # Editor with line numbers
 │   ├── editor_state.py         # Editor state tracking
 │   ├── dialogs.py              # Custom dialogs (preferences, etc.)
+│   ├── dialog_manager.py       # Dialog coordination and management
 │   ├── api_key_dialog.py       # API key management dialog
+│   ├── pandoc_result_handler.py # Pandoc conversion result handling
+│   ├── ui_setup_manager.py     # UI initialization and setup
+│   ├── ui_state_manager.py     # UI state tracking and coordination
+│   ├── worker_manager.py       # Worker thread lifecycle management
+│   ├── scroll_manager.py       # Preview scroll synchronization
 │   └── virtual_scroll_preview.py # Virtual scrolling optimization
 ├── workers/                    # QThread worker classes
 │   ├── git_worker.py           # Git operations (pull, commit, push)
@@ -498,4 +506,9 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 ---
 
-*This file is for Claude Code (claude.ai/code). Last updated for v1.4.0: October 27, 2025*
+**Note on Copilot Instructions:**
+The `.github/copilot-instructions.md` file is outdated. It references the old WSLg compatibility note about QTextBrowser. As of v1.4.0, GPU detection is automatic and the app uses QWebEngineView (GPU) or QTextBrowser (fallback) based on hardware availability. Refer to this file (CLAUDE.md) for current architecture.
+
+---
+
+*This file is for Claude Code (claude.ai/code). Last updated for v1.4.1: October 28, 2025*
