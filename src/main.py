@@ -109,9 +109,13 @@ def main() -> None:
     # Enable GPU acceleration for Qt
     # Must be set BEFORE creating QApplication
     import os
+
     os.environ.setdefault("QT_OPENGL", "desktop")
     os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
-    os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-gpu-rasterization --enable-zero-copy --enable-hardware-overlays --enable-features=VaapiVideoDecoder,VaapiVideoEncoder --use-gl=desktop --disable-gpu-driver-bug-workarounds")
+    os.environ.setdefault(
+        "QTWEBENGINE_CHROMIUM_FLAGS",
+        "--enable-gpu-rasterization --enable-zero-copy --enable-hardware-overlays --enable-features=VaapiVideoDecoder,VaapiVideoEncoder --use-gl=desktop --disable-gpu-driver-bug-workarounds",
+    )
 
     # Enable NPU/AI acceleration if available
     os.environ.setdefault("OPENCV_DNN_BACKEND", "5")  # OpenVINO backend
@@ -123,6 +127,7 @@ def main() -> None:
     profiler = None
     if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
         from asciidoc_artisan.core import get_profiler
+
         profiler = get_profiler()
         profiler.start()
         logger.info("Memory profiling enabled")

@@ -190,7 +190,7 @@ class StatusManager:
             if match:
                 version = match.group(1).strip()
                 # Clean up any trailing markup
-                version = re.sub(r'\*+$', '', version)  # Remove trailing asterisks
+                version = re.sub(r"\*+$", "", version)  # Remove trailing asterisks
                 return version
 
         return None

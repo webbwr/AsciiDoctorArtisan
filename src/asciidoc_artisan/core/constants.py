@@ -53,3 +53,46 @@ SUPPORTED_SAVE_FILTER = (
     f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;"
     f"{PDF_FILTER};;{ALL_FILES_FILTER}"
 )
+
+# Window Settings
+MIN_WINDOW_WIDTH = 800
+MIN_WINDOW_HEIGHT = 600
+
+# Auto-save Settings
+AUTO_SAVE_INTERVAL_MS = 300000  # 5 minutes
+
+# Preview Timer Settings
+PREVIEW_FAST_INTERVAL_MS = 200  # For small documents
+PREVIEW_NORMAL_INTERVAL_MS = 500  # For medium documents
+PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
+
+# File Size Thresholds
+LARGE_FILE_THRESHOLD_BYTES = 100000  # 100 KB
+
+# Status Messages
+MSG_SAVED_ASCIIDOC = "Saved as AsciiDoc: {}"
+MSG_SAVED_HTML = "Saved as HTML: {}"
+MSG_SAVED_HTML_PDF_READY = "Saved as HTML (PDF-ready): {}"
+MSG_PDF_IMPORTED = "PDF imported successfully: {}"
+MSG_LOADING_LARGE_FILE = "Loading large file ({:.1f} KB) - preview will be deferred"
+
+# Error Messages
+ERR_ASCIIDOC_NOT_INITIALIZED = "AsciiDoc API not initialized"
+ERR_ATOMIC_SAVE_FAILED = "Atomic save failed for {}"
+ERR_FAILED_SAVE_HTML = "Failed to save HTML file: {}"
+ERR_FAILED_CREATE_TEMP = "Failed to create temporary file:\n{}"
+
+# Dialog Titles
+DIALOG_OPEN_FILE = "Open File"
+DIALOG_SAVE_FILE = "Save File"
+DIALOG_SAVE_ERROR = "Save Error"
+DIALOG_CONVERSION_ERROR = "Conversion Error"
+
+# Menu Labels
+MENU_FILE = "&File"
+
+# Status Tip Text
+STATUS_TIP_EXPORT_OFFICE365 = "Export to Microsoft Office 365 Word format"
+
+# Message Display Duration
+STATUS_MESSAGE_DURATION_MS = 5000

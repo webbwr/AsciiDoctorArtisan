@@ -32,9 +32,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Phase 3: Dialogs → `ui/dialogs.py`
   - Phase 4: Main window → `ui/main_window.py`
   - Phase 5: UI managers → `ui/{menu,theme,status,file,export,git,preview,action,settings,editor_state}_manager.py`
+  - Phase 6: Constants consolidated in `core/constants.py`, CSS moved to `theme_manager.py`
 - **v1.2+**: Ollama AI integration for smart document conversion
 - **v1.3.0**: Grammar system (later removed in v1.4.0)
 - **v1.4.0**: Full GPU/NPU hardware acceleration, automatic detection, document version display
+- **v1.4.1**: Further refactoring - main_window.py reduced from 1723 to 1614 lines
 - **Current**: Hardware-accelerated modular architecture with intelligent fallbacks
 
 ## What's New in v1.4.0
@@ -73,73 +75,99 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Test in WSLg environment (should auto-detect and handle correctly)
 - Verify document version extraction from various formats
 
-## Development Setup
+## Quick Start for New Developers
 
-### Quick Setup
+**First time here? Start with these steps:**
 
-**Automated installation scripts:**
-```bash
-# Linux/Mac
-./install-asciidoc-artisan.sh
+1. **Install dependencies:**
+   ```bash
+   # Automated (recommended)
+   ./install-asciidoc-artisan.sh  # Linux/Mac
 
-# Windows
-.\Install-AsciiDocArtisan.ps1
-```
+   # Manual
+   pip install -r requirements.txt
+   pip install -e ".[dev]"
+   pre-commit install
+   ```
 
-These scripts install system dependencies (Pandoc, wkhtmltopdf), create a virtual environment, and install Python packages.
+2. **Run the application:**
+   ```bash
+   make run
+   ```
 
-### Manual Setup
+3. **Run tests to verify everything works:**
+   ```bash
+   make test
+   ```
 
-```bash
-# Production dependencies only
-pip install -r requirements-production.txt
+4. **Read the key architecture docs:**
+   - This file (CLAUDE.md) - Architecture overview
+   - SPECIFICATIONS.md - Functional requirements (FR-001 to FR-053)
+   - Code in `src/asciidoc_artisan/ui/main_window.py` - Main UI controller
 
-# Full dev environment (includes pytest, ruff, mypy, black, pre-commit)
-pip install -r requirements.txt
-pip install -e ".[dev]"
-pre-commit install
-```
-
-**System dependencies (required):**
-- Pandoc (`sudo apt install pandoc` on Linux, `brew install pandoc` on Mac)
-- wkhtmltopdf (`sudo apt install wkhtmltopdf` on Linux, `brew install wkhtmltopdf` on Mac)
+**System dependencies required:**
+- Pandoc (`sudo apt install pandoc`)
+- wkhtmltopdf (`sudo apt install wkhtmltopdf`)
+- Git (optional, for version control features)
 
 ## Common Commands
 
-### Running the Application
+### Daily Development Workflow
 
 ```bash
-make run              # Recommended
-python src/main.py    # Direct execution
+# Run the app
+make run                    # or: python src/main.py
+
+# Test your changes
+make test                   # Run all 481+ tests with coverage
+pytest tests/test_specific.py -v           # Single test file
+pytest tests/test_specific.py::test_func   # Single test function
+
+# Fix code style before committing
+make format                 # Auto-format with black, isort, ruff
+make lint                   # Check for issues (ruff, black, mypy)
+
+# Clean up build artifacts
+make clean
 ```
 
-### Testing
-
-```bash
-make test                                    # Run all tests with coverage
-pytest tests/ -v                             # Verbose output, all tests
-pytest tests/test_file_operations.py -v     # Single test file
-pytest tests/test_settings.py::test_settings_save_load -v  # Specific test
-pytest tests/ --cov=src --cov-report=html   # HTML coverage report
-```
-
-**Current test coverage:** 34 test files, 481+ tests
-
-### Code Quality & Formatting
-
-```bash
-make lint      # Run ruff, black --check, isort --check, mypy
-make format    # Auto-format with black, isort, ruff --fix
-make clean     # Remove build artifacts, __pycache__, .pytest_cache
-```
-
-**Linting tools:**
-- **ruff**: Fast Python linter (replaces flake8, pylint for most checks)
-- **black**: Code formatter (88 char line length)
-- **isort**: Import sorting
-- **mypy**: Type checking (lenient config, use for new code)
+**Key Makefile targets:**
+- `make help` - Show all available commands
+- `make install-dev` - Full dev setup with pre-commit hooks
+- `make build` - Build package for distribution
 
 ## Architecture
+
+### High-Level Design Patterns
+
+**Key architectural concepts to understand before diving into code:**
+
+1. **Manager Pattern** - UI is split into specialized managers (v1.1+ refactoring):
+   - Main window delegates to manager classes instead of doing everything itself
+   - Each manager handles one domain: menus, themes (incl. CSS), status bar, file operations, Git, export
+   - **v1.4.1 improvement:** CSS generation moved from main_window to theme_manager (63 lines reduced)
+   - Reduces coupling and makes testing easier
+
+2. **Worker Thread Pattern** - All slow operations run off the main UI thread:
+   - `GitWorker`, `PandocWorker`, `PreviewWorker` inherit from `QThread`
+   - Communicate via Qt signals/slots (thread-safe)
+   - **Critical:** Must check reentrancy guards (`_is_processing_git`, `_is_processing_pandoc`) before starting operations
+
+3. **GPU Auto-Detection with Fallback** (v1.4.0):
+   - Detects GPU/NPU capabilities at startup (cached for 24 hours)
+   - Automatically chooses `QWebEngineView` (GPU) or `QTextBrowser` (CPU) for preview
+   - No user configuration needed - fully transparent
+
+4. **Security-First File Operations**:
+   - All file writes use atomic operations (write to temp file, then atomic rename)
+   - All paths are sanitized before use (prevent directory traversal attacks)
+   - Subprocess calls always use list form, never `shell=True`
+
+5. **Incremental Rendering with Caching**:
+   - Documents split into blocks by heading levels
+   - Each block is hashed (MD5) to detect changes
+   - Only changed blocks are re-rendered
+   - LRU cache stores up to 100 rendered blocks
 
 ### Directory Structure
 
@@ -194,111 +222,66 @@ src/asciidoc_artisan/
 
 ### Threading Model
 
-The application uses Qt's threading model with QThread workers for long-running operations:
+**Workers (QThread-based):** `workers/{git,pandoc,preview}_worker.py`
+- **GitWorker:** Git commands via subprocess
+- **PandocWorker:** Format conversion (AsciiDoc ↔ MD ↔ DOCX ↔ HTML ↔ PDF)
+- **PreviewWorker:** AsciiDoc → HTML rendering (asciidoc3)
 
-**Worker Threads:**
-- **GitWorker** (`workers/git_worker.py`): Executes Git commands via subprocess
-  - Operations: pull, commit, push
-  - Communicates via `request_git_command` signal → `git_result_ready` signal
-- **PandocWorker** (`workers/pandoc_worker.py`): Document format conversion
-  - Formats: AsciiDoc ↔ Markdown ↔ DOCX ↔ HTML ↔ PDF
-  - Uses pypandoc wrapper around Pandoc system binary
-  - Falls back gracefully if Pandoc unavailable
-- **PreviewWorker** (`workers/preview_worker.py`): AsciiDoc → HTML rendering
-  - Uses asciidoc3 library
-  - Triggered by editor text changes with adaptive debouncing
-
-**Thread Communication Pattern:**
+**Communication:** Signal/slot pattern (thread-safe)
 ```python
-# Main thread emits request signal
+# Main thread → Worker
 self.request_git_command.emit(["git", "status"], repo_path)
 
-# Worker processes in background thread
+# Worker → Main thread
 class GitWorker(QThread):
     git_result_ready = Signal(GitResult)
-
     def run(self):
-        result = self.run_git_command(...)
         self.git_result_ready.emit(result)
-
-# Main thread receives result via slot
-@Slot(GitResult)
-def _handle_git_result(self, result: GitResult):
-    # Update UI based on result
 ```
 
-**Reentrancy Guards (Critical):**
-These flags prevent concurrent operations from corrupting state:
-- `_is_processing_git`: Prevents multiple simultaneous Git operations
-- `_is_processing_pandoc`: Prevents multiple simultaneous Pandoc conversions
-- `_is_opening_file`: Prevents reentrancy during file load operations
+**Reentrancy Guards (Critical):** Always check before async operations:
+- `_is_processing_git`, `_is_processing_pandoc`, `_is_opening_file`
 
-**Always check these flags before starting async operations!**
+### Security Patterns
 
-### Security Best Practices
-
-**Path Sanitization (FR-016):**
+**Must use for all file/subprocess operations:**
 ```python
-from asciidoc_artisan.core import sanitize_path
+from asciidoc_artisan.core import sanitize_path, atomic_save_text
 
-# Always sanitize user-provided paths
-safe_path = sanitize_path(user_input)
-```
+safe_path = sanitize_path(user_input)  # FR-016: Prevent directory traversal
+atomic_save_text(path, content)        # FR-015: Atomic write (no corruption)
 
-**Atomic File Writes (FR-015):**
-```python
-from asciidoc_artisan.core import atomic_save_text
-
-# Prevents partial writes and data loss
-atomic_save_text(filepath, content)  # Writes to temp, then atomic rename
-```
-
-**Subprocess Security:**
-- **Always use list form** for subprocess calls (prevents shell injection)
-- **Good:** `subprocess.run(["git", "commit", "-m", message])`
-- **Bad:** `subprocess.run(f"git commit -m {message}", shell=True)`  # NEVER DO THIS
-
-**Git Command Pattern:**
-```python
-# GitWorker uses this pattern - follow it for all subprocess calls
-cmd = ["git", operation, *args]
-result = subprocess.run(cmd, capture_output=True, text=True, cwd=repo_path)
+# Subprocess: ALWAYS list form, NEVER shell=True
+subprocess.run(["git", "commit", "-m", msg])  # ✓ Good
+subprocess.run(f"git commit -m {msg}", shell=True)  # ✗ Shell injection!
 ```
 
 ### Settings Persistence
 
-Settings are stored as JSON in platform-specific locations via `QStandardPaths.AppDataLocation`:
+**Code:** `core/settings.py` (JSON via `QStandardPaths.AppDataLocation`)
 
-- **Linux:** `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
-- **Windows:** `%APPDATA%/AsciiDocArtisan/AsciiDocArtisan.json`
-- **macOS:** `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.json`
+**Locations:**
+- Linux: `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
+- Windows: `%APPDATA%/AsciiDocArtisan/AsciiDocArtisan.json`
+- macOS: `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.json`
 
-**Implementation:**
-- Managed by `Settings` class (`core/settings.py`)
-- Auto-saved on application exit
-- Includes: window geometry, theme, font, recent files, Git preferences
-- Uses atomic writes via `atomic_save_text()` to prevent corruption
+Auto-saved on exit with atomic writes. Stores: window geometry, theme, font, recent files, Git preferences.
 
 ## Development Workflow
 
-### Making Changes
+**Standard change process:**
+1. Read `SPECIFICATIONS.md` (FR-001 to FR-053) for requirements
+2. Make changes (follow patterns, respect reentrancy guards)
+3. `make test` - Ensure 481+ tests pass
+4. `make format` - Auto-format code
+5. `make lint` - Check for issues
+6. Update docs if changing public APIs
 
-1. **Read specifications:** `SPECIFICATIONS.md` contains all functional requirements (FR-001 to FR-053)
-2. **Make changes:** Follow existing patterns, respect reentrancy guards
-3. **Run tests:** `make test` (ensure all 371+ tests pass)
-4. **Lint:** `make lint` (fix any ruff/black/isort issues)
-5. **Format:** `make format` (auto-fix formatting)
-6. **Update docs:** If changing public APIs or behavior
-
-### Pre-commit Hooks
-
-This project uses pre-commit hooks (`.pre-commit-config.yaml`):
+**Pre-commit hooks:** `.pre-commit-config.yaml` (black, isort, ruff)
 ```bash
-pre-commit install        # Enable hooks
+pre-commit install        # Enable
 pre-commit run --all-files  # Manual run
 ```
-
-Hooks run: black, isort, ruff, trailing whitespace checks
 
 ### Change Risk Assessment
 
@@ -322,180 +305,52 @@ Hooks run: black, isort, ruff, trailing whitespace checks
 - Documentation
 - Comments
 
-### Performance Optimizations
+### Performance Hot Paths
 
-The application includes several performance-critical code paths:
+**Critical areas - profile before/after changes:**
 
-**1. GPU-Accelerated Preview Rendering (v1.4.0)**
-- **Location:** `ui/preview_handler_gpu.py`, `core/gpu_detection.py`, `src/main.py`
-- **Tech:** Automatic GPU detection with intelligent fallback
-  - **GPU available:** QWebEngineView with hardware acceleration (10-50x faster)
-  - **No GPU/WSLg:** QTextBrowser software rendering (stable fallback)
-- **Features:**
-  - NVIDIA, AMD, Intel GPU auto-detection
-  - Intel NPU support with OpenVINO
-  - Compute capability detection (CUDA, OpenCL, Vulkan, ROCm)
-  - GPU detection caching (100ms startup improvement)
-  - Zero-copy texture sharing, hardware compositing
-  - 70-90% reduction in CPU usage
-  - Smooth 60fps+ scrolling
-- **Environment Variables:** Automatically set in `main.py` before Qt initialization
-  - `QT_OPENGL=desktop` - Desktop OpenGL rendering
-  - `QT_XCB_GL_INTEGRATION=xcb_egl` - EGL integration
-  - `QTWEBENGINE_CHROMIUM_FLAGS` - GPU optimization flags
-- **Detection Cache:** `~/.cache/asciidoc_artisan/gpu_detection.json` (24-hour TTL)
-- **Fallback Logic:** Automatically uses QTextBrowser if GPU unavailable or WSLg detected
+1. **GPU Preview:** `ui/preview_handler_gpu.py` - 10-50x faster with hardware acceleration
+2. **PDF Reading:** `document_converter.py:283-365` - PyMuPDF (3-5x faster than pdfplumber)
+3. **Incremental Render:** `workers/incremental_renderer.py` - Block cache with LRU (3-5x faster edits)
+4. **String Processing:** `document_converter.py:_clean_cell()` - Called in tight loops
 
-**2. PyMuPDF PDF Reading (3-5x speedup)**
-- **Location:** `src/document_converter.py:283-365`
-- **Tech:** Uses `fitz.open()` (PyMuPDF) instead of pdfplumber
-- **Benefits:** Faster parsing, lower memory usage, GPU acceleration where supported
-
-**3. Incremental Rendering with Block Cache**
-- **Location:** `workers/incremental_renderer.py` (460 lines)
-- **Tech:** Block-based document splitting with LRU cache
-- **How it works:**
-  1. Split document into blocks by heading levels (=, ==, ===)
-  2. Hash each block with MD5 for change detection
-  3. Cache rendered HTML for unchanged blocks (LRU, 100 blocks max)
-  4. Only re-render blocks that changed
-  5. Assemble final HTML from cached + newly rendered blocks
-- **Performance:** 3-5x faster for minor edits, enabled for docs >1000 chars
-- **Cache:** `BlockCache` class with LRU eviction
-
-**4. Optimized String Processing**
-- **Table cell processing:** `src/document_converter.py` (`_clean_cell()`)
-- **Heading detection:** `workers/incremental_renderer.py` (`count_leading_equals()`)
-- **Tech:** Native Python string operations (C-optimized)
-- **Note:** Called in tight loops (every table cell, every line)
-
-**When modifying hot paths:**
-1. Profile before/after changes
-2. Test in both native and WSLg environments
-3. Check logs show correct optimization status
-4. Run benchmark scripts: `benchmark_performance.py`
+**Benchmark:** Use `scripts/benchmark_performance.py` to measure changes
 
 ### Ollama AI Integration (v1.2+)
 
-The application integrates with Ollama for AI-powered document conversion:
+**Location:** `workers/pandoc_worker.py`, `ui/dialogs.py`
 
-**Location:** `workers/pandoc_worker.py` (Ollama logic), `ui/dialogs.py` (settings UI)
-
-**Features:**
-- Local AI processing (no cloud, privacy-focused)
-- Model selection via UI (Tools → AI Status → Settings)
-- Automatic fallback to Pandoc if Ollama unavailable or conversion fails
-- Real-time status indicator in status bar
-
-**Supported Models:**
-- `phi3:mini` (recommended, fast, lightweight)
-- `llama2` (better quality, slower)
-- `mistral` (balanced performance)
-- `codellama` (best for code-heavy documents)
-
-**Conversion Flow:**
-1. User enables Ollama in preferences
-2. User selects model from dropdown
-3. On import/export, PandocWorker tries Ollama first
-4. If Ollama fails or unavailable, falls back to Pandoc
-5. Status bar shows active conversion method
-
-**Settings Storage:**
-```python
-# In Settings dataclass
-ollama_enabled: bool = False
-ollama_model: Optional[str] = None
-```
-
-**Testing:**
-- Test with Ollama installed and running
-- Test with Ollama disabled (fallback to Pandoc)
-- Test with invalid model name (should show error and fallback)
+Local AI for document conversion with automatic Pandoc fallback:
+- Enable via Tools → AI Status → Settings
+- Supports: `phi3:mini` (recommended), `llama2`, `mistral`, `codellama`
+- Status bar shows active conversion method
+- Settings: `ollama_enabled: bool`, `ollama_model: Optional[str]`
 
 ### Document Version Display (v1.4.0)
 
-**Real-time version detection in status bar:**
-
-The application automatically extracts and displays document version from AsciiDoc content:
-
 **Location:** `ui/status_manager.py:extract_document_version()`
 
-**Detection Methods (in priority order):**
-1. **AsciiDoc attributes:** `:version: 1.0.0` or `:revnumber: 1.0.0`
-2. **Text labels:** `*Version*: 1.0.0` or `**Version**: 1.0.0`
-3. **Title parsing:** Extracts from titles like "AsciiDoc v1.4.0 Roadmap"
-
-**Display Format:**
-- Status bar shows: `v{version}` (e.g., "v1.4.0")
-- Shows "None" if no version detected
-- Updates automatically when:
-  - Opening a file
-  - Saving a file
-  - Editing document (real-time)
-
-**Regex Patterns:**
-```python
-# Matches multiple version formats
-r':(?:version|revnumber):\s*([0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[a-zA-Z0-9]+)?)'
-r'\*\*?Version\*\*?:?\s*([0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[a-zA-Z0-9]+)?)'
-r'v?([0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[a-zA-Z0-9]+)?)\s*$'
-```
-
-**Integration Points:**
-- `file_handler.py`: Calls `status_manager.update_version()` on open/save
-- `main_window.py`: Updates on text change with debouncing
-- `status_manager.py`: Handles extraction and display logic
+Auto-extracts version from AsciiDoc and displays in status bar:
+- Detects: `:version:` or `:revnumber:` attributes, text labels, title patterns
+- Updates: real-time on edit, open, or save
+- Format: `v{version}` in status bar
 
 ### GPU/NPU Hardware Acceleration (v1.4.0)
 
-**Automatic Detection and Fallback:**
+**Code:** `core/gpu_detection.py`, `ui/preview_handler_gpu.py`, `src/main.py`
 
-The application automatically detects hardware capabilities and configures rendering accordingly:
+Auto-detects GPU/NPU and configures rendering (10-50x faster, 70-90% less CPU):
+- **Supported:** NVIDIA (CUDA/OpenCL/Vulkan), AMD (ROCm/OpenCL/Vulkan), Intel (OpenCL/Vulkan), Intel NPU (OpenVINO)
+- **Cache:** `~/.cache/asciidoc_artisan/gpu_detection.json` (24hr TTL)
+- **Widget:** QWebEngineView (GPU) or QTextBrowser (fallback)
+- **WSLg:** Auto-fallback if GPU init fails
 
-1. **GPU Detection Flow:**
-   - Check cache (`~/.cache/asciidoc_artisan/gpu_detection.json`, 24-hour TTL)
-   - If cache miss: Run detection (NVIDIA, AMD, Intel GPUs + NPU)
-   - Save results to cache for fast startup
-   - Configure environment variables before Qt initialization
-   - Select preview widget: QWebEngineView (GPU) or QTextBrowser (fallback)
-
-2. **Supported Hardware:**
-   - **NVIDIA GPUs:** Detected via `nvidia-smi`, supports CUDA/OpenCL/Vulkan
-   - **AMD GPUs:** Detected via `rocm-smi`, supports ROCm/OpenCL/Vulkan
-   - **Intel GPUs:** Detected via DRI devices + `clinfo`, supports OpenCL/Vulkan
-   - **Intel NPU:** Detected via `/dev/accel*`, supports OpenVINO
-
-3. **WSLg Compatibility:**
-   - GPU detection works in WSLg environments
-   - Automatic fallback to QTextBrowser if GPU initialization fails
-   - Test in both native Linux and WSLg to ensure fallback works
-   - No manual configuration required
-
-4. **Code Locations:**
-   - GPU detection: `core/gpu_detection.py`
-   - Preview widget factory: `ui/preview_handler_gpu.py:create_preview_widget()`
-   - Environment setup: `src/main.py` (before `QApplication` initialization)
-   - Main window integration: `ui/main_window.py`
-
-5. **Debugging GPU Issues:**
-   ```bash
-   # Check GPU detection cache
-   cat ~/.cache/asciidoc_artisan/gpu_detection.json
-
-   # Force cache refresh (delete cache file)
-   rm ~/.cache/asciidoc_artisan/gpu_detection.json
-
-   # Run with debug logging
-   QTWEBENGINE_CHROMIUM_FLAGS="--enable-logging --v=1" python src/main.py
-
-   # Check GPU status from app logs
-   grep "GPU" ~/.asciidoc_artisan.log
-   ```
-
-6. **Performance Comparison:**
-   - **With GPU:** 10-50x faster rendering, 70-90% less CPU usage
-   - **Without GPU:** Same performance as v1.3.0 (QTextBrowser)
-   - **Memory:** GPU uses ~100-200MB more VRAM but reduces system RAM usage
+**Debug GPU:**
+```bash
+cat ~/.cache/asciidoc_artisan/gpu_detection.json  # Check cache
+rm ~/.cache/asciidoc_artisan/gpu_detection.json   # Force refresh
+QTWEBENGINE_CHROMIUM_FLAGS="--enable-logging --v=1" python src/main.py
+```
 
 ## Important Files Reference
 
@@ -524,223 +379,96 @@ The application automatically detects hardware capabilities and configures rende
 | `.pre-commit-config.yaml` | Pre-commit hook configuration |
 | `.ruff.toml` | Ruff linter configuration |
 
+## Critical "Gotchas" - Read This First!
+
+**Common mistakes that will cause bugs or test failures:**
+
+1. **❌ Forgetting reentrancy guards**
+   ```python
+   # BAD - allows concurrent operations
+   def start_git_commit(self):
+       self.git_worker.commit(...)
+
+   # GOOD - prevents concurrent operations
+   def start_git_commit(self):
+       if self._is_processing_git:
+           return
+       self._is_processing_git = True
+       self.git_worker.commit(...)
+   ```
+
+2. **❌ Updating UI from worker threads**
+   ```python
+   # BAD - crashes or corrupts UI
+   class Worker(QThread):
+       def run(self):
+           self.preview.setHtml(html)  # WRONG THREAD!
+
+   # GOOD - use signals
+   class Worker(QThread):
+       result_ready = Signal(str)
+       def run(self):
+           self.result_ready.emit(html)  # Main thread handles it
+   ```
+
+3. **❌ Using shell=True in subprocess**
+   ```python
+   # BAD - security vulnerability
+   subprocess.run(f"git commit -m {msg}", shell=True)
+
+   # GOOD - always use list form
+   subprocess.run(["git", "commit", "-m", msg], shell=False)
+   ```
+
+4. **❌ Direct file writes without atomicity**
+   ```python
+   # BAD - corrupts file if crash during write
+   with open(path, 'w') as f:
+       f.write(content)
+
+   # GOOD - atomic write via temp file
+   from asciidoc_artisan.core import atomic_save_text
+   atomic_save_text(path, content)
+   ```
+
+5. **❌ Modifying manager logic without understanding delegation**
+   - Don't add UI logic to `main_window.py` - delegate to appropriate manager
+   - Each manager has clear responsibility (menu, theme, status, file, git, export)
+
 ## Coding Standards
 
-### Style Guide
-- **Line length:** 88 characters (Black formatter enforces this)
-- **Type hints:** Required for new code (mypy checking enabled but lenient)
-- **Docstrings:** All public functions, classes, and modules
-- **Imports:** Sorted with isort (black-compatible profile)
-- **Python version:** Minimum 3.11, recommended 3.12
-
-### Testing Requirements
-- **Framework:** pytest + pytest-qt (for Qt GUI testing)
-- **Coverage target:** 100% (currently 28 test files, 371+ tests)
-- **Test all:**
-  - New features (per SPECIFICATIONS.md requirements)
-  - Security-critical code (path sanitization, atomic writes, subprocess calls)
-  - Edge cases (large files, missing dependencies, Git errors)
-- **GUI testing:** Use `pytest-qt` fixtures (`qtbot`) for widget interactions
-
-### Documentation Standards
-- **User docs:** README.md (Grade 5.0 reading level)
-- **Specs:** SPECIFICATIONS.md (FR-XXX functional requirements)
-- **Code docs:** Docstrings for all public APIs
-- **This file:** Update when architecture changes
+- **Style:** Black (88 char), isort, ruff - enforced by pre-commit hooks
+- **Types:** Required for new code (mypy lenient)
+- **Testing:** pytest + pytest-qt, 481+ tests, use `qtbot` for GUI tests
+- **Docs:** Docstrings for public APIs, update SPECIFICATIONS.md for new features
+- **Python:** 3.11+ (3.12 recommended)
 
 ## Dependencies
 
-### System Requirements (External Binaries)
+**System (required):** Pandoc, wkhtmltopdf
+**System (optional):** Git (for version control features)
 
-**Required:**
-- **Pandoc** (document conversion engine)
-  - Linux: `sudo apt install pandoc`
-  - macOS: `brew install pandoc`
-  - Windows: Download from pandoc.org
-  - Verify: `pandoc --version`
+**Python (production):** PySide6 6.9.0+, asciidoc3 3.2.0+, pypandoc 1.13+, pymupdf 1.23.0+
+**Python (dev):** pytest, pytest-qt, pytest-cov, black, ruff, mypy, pre-commit
 
-- **wkhtmltopdf** (HTML → PDF conversion)
-  - Linux: `sudo apt install wkhtmltopdf`
-  - macOS: `brew install wkhtmltopdf`
-  - Windows: Download from wkhtmltopdf.org
-  - Verify: `wkhtmltopdf --version`
-
-**Optional:**
-- **Git** (version control integration)
-  - Must be in PATH for Git features to work
-  - Verify: `git --version`
-  - Application gracefully disables Git features if unavailable
-
-### Python Dependencies
-
-**Production (`requirements-production.txt`):**
-- PySide6 6.9.0+ (Qt6 bindings)
-- asciidoc3 3.2.0+ (AsciiDoc processor)
-- pypandoc 1.13+ (Pandoc Python wrapper)
-- pymupdf 1.23.0+ (fast PDF parsing)
-- keyring 24.0.0+ (secure credential storage)
-- psutil 5.9.0+ (system resource monitoring)
-
-**Development (`requirements.txt`):**
-- All production deps plus:
-- pytest 7.0.0+ (testing framework)
-- pytest-qt 4.0.0+ (Qt testing)
-- pytest-cov 4.0.0+ (coverage reporting)
-- black 23.0.0+ (code formatter)
-- ruff 0.1.0+ (linter)
-- mypy 1.0.0+ (type checker)
-- pre-commit 3.0.0+ (Git hooks)
+Install: `pip install -r requirements.txt` (dev) or `requirements-production.txt` (prod)
 
 ## Troubleshooting
 
-### Common Development Issues
+**Common issues:**
+- `ModuleNotFoundError`: Run `pip install -r requirements.txt`
+- "Pandoc not found": Install Pandoc - `sudo apt install pandoc` or brew/download
+- PDF export fails: Install wkhtmltopdf - `sudo apt install wkhtmltopdf`
+- Git disabled: Not in Git repo or Git not installed
+- Qt test errors: `pip install pytest-qt && pytest tests/ -v -s`
+- Pre-commit fails: `make format` to auto-fix
 
-**Import errors: `ModuleNotFoundError: No module named 'pypandoc'`**
-```bash
-pip install -r requirements.txt  # Install all dependencies
-```
+**Debug:**
+- Logging: `logging.basicConfig(level=logging.DEBUG)` in `main.py`
+- Qt: `QT_LOGGING_RULES="*.debug=true" python src/main.py`
+- Performance: `scripts/benchmark_performance.py`
+- Memory: `scripts/memory_profile.py`
 
-**Runtime error: "Pandoc not found"**
-- Pandoc system binary not installed or not in PATH
-- Solution: Install Pandoc (see Dependencies section)
-- Verify: `pandoc --version`
-
-**PDF export fails**
-- wkhtmltopdf system binary not installed or not in PATH
-- Solution: Install wkhtmltopdf (see Dependencies section)
-- Verify: `wkhtmltopdf --version`
-
-**Git operations fail / Git menu disabled**
-- Not in a Git repository or Git not installed
-- Verify: `git status` (should not error)
-- Note: Application gracefully disables Git features if unavailable
-
-**Tests fail with Qt errors**
-```bash
-# Install Qt test dependencies
-pip install pytest-qt
-
-# Run with verbose output to see Qt errors
-pytest tests/ -v -s
-```
-
-**Pre-commit hooks fail**
-```bash
-pre-commit run --all-files  # See what's failing
-make format                  # Auto-fix formatting issues
-```
-
-### Debugging Tips
-
-- **Verbose logging:** Set `logging.basicConfig(level=logging.DEBUG)` in `main.py`
-- **Qt debug:** Run with `QT_LOGGING_RULES="*.debug=true"`
-- **Profile performance:** Use `benchmark_performance.py`
-- **Memory profiling:** Use `memory_profile.py`
-
-## Common Pitfalls & Best Practices
-
-### Threading Mistakes
-
-**❌ Bad: Direct UI update from worker thread**
-```python
-class PreviewWorker(QObject):
-    def render_preview(self, text):
-        html = self.render(text)
-        self.preview_widget.setHtml(html)  # WRONG: Not thread-safe!
-```
-
-**✅ Good: Use signals to communicate results**
-```python
-class PreviewWorker(QObject):
-    render_complete = Signal(str)
-
-    def render_preview(self, text):
-        html = self.render(text)
-        self.render_complete.emit(html)  # Main thread handles UI update
-```
-
-### Reentrancy Issues
-
-**❌ Bad: No guard against concurrent operations**
-```python
-def _trigger_git_commit(self):
-    self.request_git_command.emit(["git", "commit", ...])
-    # User clicks again before first completes → corruption!
-```
-
-**✅ Good: Use reentrancy guards**
-```python
-def _trigger_git_commit(self):
-    if self._is_processing_git:
-        return  # Already processing
-
-    self._is_processing_git = True
-    self.request_git_command.emit(["git", "commit", ...])
-    # Reset flag in handler after completion
-```
-
-### Subprocess Security
-
-**❌ Bad: Shell injection vulnerability**
-```python
-message = user_input
-subprocess.run(f"git commit -m {message}", shell=True)  # DANGEROUS!
-```
-
-**✅ Good: Always use list form**
-```python
-message = user_input
-subprocess.run(["git", "commit", "-m", message], shell=False)
-```
-
-### File Operations
-
-**❌ Bad: Non-atomic write (data loss on crash)**
-```python
-with open(filepath, 'w') as f:
-    f.write(content)  # If crash happens here, file is corrupted
-```
-
-**✅ Good: Atomic write pattern**
-```python
-from asciidoc_artisan.core import atomic_save_text
-atomic_save_text(filepath, content)  # Temp file + atomic rename
-```
-
-### Manager Pattern
-
-**❌ Bad: Main window doing everything**
-```python
-class MainWindow:
-    def __init__(self):
-        self._create_menus()
-        self._setup_theme()
-        self._init_status_bar()
-        # ... 2000+ lines of mixed concerns
-```
-
-**✅ Good: Delegate to specialized managers**
-```python
-class MainWindow:
-    def __init__(self):
-        self.menu_manager = MenuManager(self)
-        self.theme_manager = ThemeManager(self)
-        self.status_manager = StatusManager(self)
-        # Each manager handles its own domain
-```
-
-### Preview Updates
-
-**❌ Bad: Update on every keystroke (slow for large docs)**
-```python
-self.editor.textChanged.connect(self.update_preview)  # Too frequent!
-```
-
-**✅ Good: Use adaptive debouncing**
-```python
-self.editor.textChanged.connect(self._start_preview_timer)
-# Timer delay adapts based on document size
-```
 
 ## Removed Features
 
@@ -762,14 +490,11 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 ## Additional Resources
 
-- **README.md** — User-facing installation and usage guide (Grade 5.0 reading level)
 - **SPECIFICATIONS.md** — Complete functional requirements (FR-001 to FR-053)
+- **README.md** — User-facing installation and usage guide (Grade 5.0 reading level)
 - **RELEASE_NOTES_v1.4.0.md** — v1.4.0 release notes and GPU acceleration details
 - **ROADMAP_v1.5.0.md** — Future feature roadmap
 - **DEEP_CODE_ANALYSIS_v1.4.0.md** — Codebase analysis and optimization opportunities
-- **GitHub Issues** — Bug reports and feature requests
-
-**Note:** `.github/copilot-instructions.md` is outdated (references old `adp.py` monolithic file). The application has been refactored into modular architecture. Use this CLAUDE.md for current guidance.
 
 ---
 

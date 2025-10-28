@@ -46,10 +46,12 @@ from PySide6.QtGui import (
     QGuiApplication,
     QPalette,
 )
+
 # QWebEngine with GPU acceleration - auto-detected by preview_handler_gpu
 try:
     from PySide6.QtWebEngineCore import QWebEngineSettings
     from PySide6.QtWebEngineWidgets import QWebEngineView
+
     WEBENGINE_AVAILABLE = True
 except ImportError:
     WEBENGINE_AVAILABLE = False
@@ -73,18 +75,41 @@ from PySide6.QtWidgets import (
 # Import from refactored modules
 from asciidoc_artisan.core import (
     APP_NAME,
+    AUTO_SAVE_INTERVAL_MS,
     DEFAULT_FILENAME,
+    DIALOG_CONVERSION_ERROR,
+    DIALOG_OPEN_FILE,
+    DIALOG_SAVE_ERROR,
+    DIALOG_SAVE_FILE,
     DOCX_FILTER,
     EDITOR_FONT_FAMILY,
     EDITOR_FONT_SIZE,
+    ERR_ASCIIDOC_NOT_INITIALIZED,
+    ERR_ATOMIC_SAVE_FAILED,
+    ERR_FAILED_CREATE_TEMP,
+    ERR_FAILED_SAVE_HTML,
+    GitResult,
     HTML_FILTER,
+    LARGE_FILE_THRESHOLD_BYTES,
     MD_FILTER,
+    MENU_FILE,
+    MIN_WINDOW_HEIGHT,
+    MIN_WINDOW_WIDTH,
+    MSG_LOADING_LARGE_FILE,
+    MSG_PDF_IMPORTED,
+    MSG_SAVED_ASCIIDOC,
+    MSG_SAVED_HTML,
+    MSG_SAVED_HTML_PDF_READY,
     PDF_FILTER,
+    PREVIEW_FAST_INTERVAL_MS,
+    PREVIEW_NORMAL_INTERVAL_MS,
+    PREVIEW_SLOW_INTERVAL_MS,
     PREVIEW_UPDATE_INTERVAL_MS,
+    ResourceMonitor,
+    STATUS_MESSAGE_DURATION_MS,
+    STATUS_TIP_EXPORT_OFFICE365,
     SUPPORTED_OPEN_FILTER,
     SUPPORTED_SAVE_FILTER,
-    GitResult,
-    ResourceMonitor,
     atomic_save_text,
 )
 from asciidoc_artisan.core.large_file_handler import LargeFileHandler
@@ -96,15 +121,25 @@ from asciidoc_artisan.ui.editor_state import EditorState
 from asciidoc_artisan.ui.export_manager import ExportManager
 from asciidoc_artisan.ui.file_handler import FileHandler
 from asciidoc_artisan.ui.git_handler import GitHandler
+
 # Grammar functionality removed - no longer needed
 # from asciidoc_artisan.ui.grammar_manager import GrammarManager
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
+
 # GPU-accelerated preview handler (auto-detects and uses GPU when available)
 from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandler
 from asciidoc_artisan.ui.settings_manager import SettingsManager
+from asciidoc_artisan.ui.dialog_manager import DialogManager
+from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+from asciidoc_artisan.ui.scroll_manager import ScrollManager
 from asciidoc_artisan.ui.status_manager import StatusManager
 from asciidoc_artisan.ui.theme_manager import ThemeManager
+from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+from asciidoc_artisan.ui.ui_state_manager import UIStateManager
+from asciidoc_artisan.ui.worker_manager import WorkerManager
 from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
 
 # Check for AI client availability
@@ -139,61 +174,9 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
-# CONSTANTS
+# CONSTANTS (UI-specific color values - other constants imported from core)
 # ============================================================================
-
-# Window Settings
-MIN_WINDOW_WIDTH = 800
-MIN_WINDOW_HEIGHT = 600
-
-# Auto-save Settings
-AUTO_SAVE_INTERVAL_MS = 300000  # 5 minutes
-
-# Preview Timer Settings
-PREVIEW_FAST_INTERVAL_MS = 200  # For small documents
-PREVIEW_NORMAL_INTERVAL_MS = 500  # For medium documents
-PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
-
-# File Size Thresholds
-LARGE_FILE_THRESHOLD_BYTES = 100000  # 100 KB
-
-# Color Values
-SEPARATOR_BACKGROUND_COLOR = "rgba(128, 128, 128, 0.1)"
-SEPARATOR_BORDER_COLOR = "#888"
-EDITOR_HIGHLIGHT_COLOR_ADD = "rgba(74, 222, 128, 0.2)"
-EDITOR_HIGHLIGHT_HOVER_ADD = "rgba(74, 222, 128, 0.3)"
-PREVIEW_HIGHLIGHT_COLOR_ADD = "rgba(74, 158, 255, 0.2)"
-PREVIEW_HIGHLIGHT_HOVER_ADD = "rgba(74, 158, 255, 0.3)"
-DARK_THEME_LINK_COLOR = QColor(42, 130, 218)
-DARK_THEME_HIGHLIGHT_COLOR = QColor(42, 130, 218)
-
-# Status Messages
-MSG_SAVED_ASCIIDOC = "Saved as AsciiDoc: {}"
-MSG_SAVED_HTML = "Saved as HTML: {}"
-MSG_SAVED_HTML_PDF_READY = "Saved as HTML (PDF-ready): {}"
-MSG_PDF_IMPORTED = "PDF imported successfully: {}"
-MSG_LOADING_LARGE_FILE = "Loading large file ({:.1f} KB) - preview will be deferred"
-
-# Error Messages
-ERR_ASCIIDOC_NOT_INITIALIZED = "AsciiDoc API not initialized"
-ERR_ATOMIC_SAVE_FAILED = "Atomic save failed for {}"
-ERR_FAILED_SAVE_HTML = "Failed to save HTML file: {}"
-ERR_FAILED_CREATE_TEMP = "Failed to create temporary file:\n{}"
-
-# Dialog Titles
-DIALOG_OPEN_FILE = "Open File"
-DIALOG_SAVE_FILE = "Save File"
-DIALOG_SAVE_ERROR = "Save Error"
-DIALOG_CONVERSION_ERROR = "Conversion Error"
-
-# Menu Labels
-MENU_FILE = "&File"
-
-# Status Tip Text
-STATUS_TIP_EXPORT_OFFICE365 = "Export to Microsoft Office 365 Word format"
-
-# Message Display Duration
-STATUS_MESSAGE_DURATION_MS = 5000
+# Note: UI color constants moved to ui_setup_manager.py (Phase 6b refactoring)
 
 
 class AsciiDocEditor(QMainWindow):
@@ -215,6 +198,15 @@ class AsciiDocEditor(QMainWindow):
         self.menu_manager = MenuManager(self)
         self.theme_manager = ThemeManager(self)
         self.status_manager = StatusManager(self)
+        self.dialog_manager = DialogManager(self)  # Phase 6b refactoring
+        self.file_load_manager = FileLoadManager(self)  # Phase 6b refactoring
+        self.file_operations_manager = FileOperationsManager(
+            self
+        )  # Phase 7 refactoring
+        self.pandoc_result_handler = PandocResultHandler(self)  # Phase 6c refactoring
+        self.scroll_manager = ScrollManager(self)  # Phase 6b refactoring
+        self.ui_state_manager = UIStateManager(self)  # Phase 6b refactoring
+        self.worker_manager = WorkerManager(self)  # Phase 6b refactoring
 
         # Initialize Phase 4 resource monitor
         self.resource_monitor = ResourceMonitor()
@@ -224,7 +216,9 @@ class AsciiDocEditor(QMainWindow):
 
         # Initialize large file handler
         self.large_file_handler = LargeFileHandler()
-        self.large_file_handler.progress_update.connect(self._on_file_load_progress)
+        self.large_file_handler.progress_update.connect(
+            self.file_load_manager.on_file_load_progress
+        )
 
         # Initialize progress dialog for large file loading
         self._progress_dialog: Optional[QProgressDialog] = None
@@ -238,9 +232,8 @@ class AsciiDocEditor(QMainWindow):
         self._start_maximized = self._settings.maximized
         self._is_opening_file = False
         self._is_processing_git = False
-        self._is_processing_pandoc = False
+        # Note: _is_processing_pandoc and _pending_file_path moved to FileOperationsManager (Phase 7)
         self._last_git_operation = ""
-        self._pending_file_path: Optional[Path] = None
         self._pending_commit_message: Optional[str] = None
         self._unsaved_changes = False
         self._sync_scrolling = True
@@ -274,7 +267,9 @@ class AsciiDocEditor(QMainWindow):
                 | Qt.WindowType.WindowCloseButtonHint
             )
 
-        self._setup_ui()
+        # Setup UI via UISetupManager (Phase 6b refactoring)
+        self.ui_setup = UISetupManager(self)
+        self.ui_setup.setup_ui()
 
         # Initialize FileHandler (Phase 5: Refactoring)
         self.file_handler = FileHandler(
@@ -339,282 +334,21 @@ class AsciiDocEditor(QMainWindow):
         timer.timeout.connect(self.update_preview)
         return timer
 
-    def _setup_ui(self) -> None:
-
-        self.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
-
-        self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
-        self.setCentralWidget(self.splitter)
-
-        editor_container = QWidget()
-        editor_layout = QVBoxLayout(editor_container)
-        editor_layout.setContentsMargins(0, 0, 0, 0)
-        editor_layout.setSpacing(0)
-
-        editor_toolbar = QWidget()
-        editor_toolbar.setFixedHeight(30)
-        editor_toolbar.setStyleSheet(
-            f"background-color: {SEPARATOR_BACKGROUND_COLOR}; border-bottom: 1px solid {SEPARATOR_BORDER_COLOR};"
-        )
-        editor_toolbar_layout = QHBoxLayout(editor_toolbar)
-        editor_toolbar_layout.setContentsMargins(5, 2, 5, 2)
-
-        self.editor_label = QLabel("Editor")
-
-        self.editor_label.setStyleSheet("color: #4ade80; font-weight: bold;")
-        editor_toolbar_layout.addWidget(self.editor_label)
-        editor_toolbar_layout.addStretch()
-
-        self.editor_max_btn = QPushButton("⬜")
-        self.editor_max_btn.setFixedSize(24, 24)
-        self.editor_max_btn.setToolTip("Maximize editor")
-        self.editor_max_btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: transparent;
-                border: 1px solid #4ade80;
-                border-radius: 3px;
-                padding: 2px;
-                color: #4ade80;
-            }
-            QPushButton:hover {
-                background-color: {EDITOR_HIGHLIGHT_COLOR_ADD};
-                border-color: #4ade80;
-            }
-            QPushButton:pressed {
-                background-color: {EDITOR_HIGHLIGHT_HOVER_ADD};
-            }
-        """
-        )
-        self.editor_max_btn.clicked.connect(
-            lambda: self._toggle_pane_maximize("editor")
-        )
-        editor_toolbar_layout.addWidget(self.editor_max_btn)
-
-        editor_layout.addWidget(editor_toolbar)
-
-        self.editor = LineNumberPlainTextEdit(self)
-        font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
-        self.editor.setFont(font)
-        self.editor.textChanged.connect(self._start_preview_timer)
-        editor_layout.addWidget(self.editor)
-
-        self.splitter.addWidget(editor_container)
-
-        preview_container = QWidget()
-        preview_layout = QVBoxLayout(preview_container)
-        preview_layout.setContentsMargins(0, 0, 0, 0)
-        preview_layout.setSpacing(0)
-
-        preview_toolbar = QWidget()
-        preview_toolbar.setFixedHeight(30)
-        preview_toolbar.setStyleSheet(
-            f"background-color: {SEPARATOR_BACKGROUND_COLOR}; border-bottom: 1px solid {SEPARATOR_BORDER_COLOR};"
-        )
-        preview_toolbar_layout = QHBoxLayout(preview_toolbar)
-        preview_toolbar_layout.setContentsMargins(5, 2, 5, 2)
-
-        self.preview_label = QLabel("Preview")
-
-        self.preview_label.setStyleSheet("color: #4a9eff; font-weight: bold;")
-        preview_toolbar_layout.addWidget(self.preview_label)
-        preview_toolbar_layout.addStretch()
-
-        self.preview_max_btn = QPushButton("⬜")
-        self.preview_max_btn.setFixedSize(24, 24)
-        self.preview_max_btn.setToolTip("Maximize preview")
-        self.preview_max_btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: transparent;
-                border: 1px solid #4a9eff;
-                border-radius: 3px;
-                padding: 2px;
-                color: #4a9eff;
-            }
-            QPushButton:hover {
-                background-color: {PREVIEW_HIGHLIGHT_COLOR_ADD};
-                border-color: #4a9eff;
-            }
-            QPushButton:pressed {
-                background-color: {PREVIEW_HIGHLIGHT_HOVER_ADD};
-            }
-        """
-        )
-        self.preview_max_btn.clicked.connect(
-            lambda: self._toggle_pane_maximize("preview")
-        )
-        preview_toolbar_layout.addWidget(self.preview_max_btn)
-
-        preview_layout.addWidget(preview_toolbar)
-
-        # WSLg FIX: Use QTextBrowser instead of QWebEngineView for better compatibility
-        self.preview = QTextBrowser(self)
-        self.preview.setOpenExternalLinks(True)
-        logger.info("Using QTextBrowser for WSLg compatibility (no WebEngine)")
-        preview_layout.addWidget(self.preview)
-
-        self.splitter.addWidget(preview_container)
-
-        self.splitter.setStretchFactor(0, 1)
-        self.splitter.setStretchFactor(1, 1)
-
-        # Set default 50/50 split - ensure both panes visible
-        # This will be overridden by saved settings if they exist
-        QTimer.singleShot(0, lambda: self.splitter.setSizes([400, 400]))
-
-        self._setup_synchronized_scrolling()
-
-        self.status_bar = QStatusBar(self)
-        self.setStatusBar(self.status_bar)
-
-        # Initialize status manager widgets now that status bar exists
-        self.status_manager.initialize_widgets()
-
-        self._setup_dynamic_sizing()
-
-    def _setup_dynamic_sizing(self) -> None:
-        """Set up window to dynamically resize based on screen size."""
-        screen = QGuiApplication.primaryScreen()
-        if screen:
-            available = screen.availableGeometry()
-
-            default_width = int(available.width() * 0.8)
-            default_height = int(available.height() * 0.8)
-
-            if self._initial_geometry and available.intersects(self._initial_geometry):
-                self.setGeometry(self._initial_geometry)
-            else:
-
-                self.resize(default_width, default_height)
-                self.move(
-                    (available.width() - default_width) // 2 + available.x(),
-                    (available.height() - default_height) // 2 + available.y(),
-                )
-
-            if self._start_maximized:
-                self.showMaximized()
-
     def _setup_synchronized_scrolling(self) -> None:
-        """
-        Set up synchronized scrolling between editor and preview.
-
-        Implements FR-043 with scroll loop protection and event coalescing.
-        Note: QWebEngineView uses JavaScript for scroll synchronization.
-        """
-        editor_scrollbar = self.editor.verticalScrollBar()
-        editor_scrollbar.valueChanged.connect(self._sync_editor_to_preview)
-
-        # Initialize scroll sync tracking
-        self._last_editor_scroll = 0
-        self._last_preview_scroll = 0
-        self._scroll_sync_count = 0
+        """Set up synchronized scrolling (delegates to ScrollManager)."""
+        self.scroll_manager.setup_synchronized_scrolling()
 
     def _sync_editor_to_preview(self, value: int) -> None:
-        """
-        Synchronize preview scroll position with editor.
-
-        Implements FR-043 with loop detection and coalescing.
-        Uses JavaScript for QWebEngineView scrolling.
-        """
-        if not self._sync_scrolling or self._is_syncing_scroll:
-            return
-
-        # Skip if value hasn't changed significantly (coalesce events)
-        if abs(value - self._last_editor_scroll) < 2:
-            return
-
-        self._last_editor_scroll = value
-
-        # Detect potential scroll loops
-        self._scroll_sync_count += 1
-        if self._scroll_sync_count > 100:
-            logger.warning("Scroll loop detected, resetting")
-            self._scroll_sync_count = 0
-            return
-
-        self._is_syncing_scroll = True
-        try:
-            editor_scrollbar = self.editor.verticalScrollBar()
-            editor_max = editor_scrollbar.maximum()
-
-            if editor_max > 0:
-                scroll_percentage = value / editor_max
-
-                # Use JavaScript to scroll QWebEngineView
-                js_code = f"""
-                    var body = document.body;
-                    var html = document.documentElement;
-                    var height = Math.max(
-                        body.scrollHeight, body.offsetHeight,
-                        html.clientHeight, html.scrollHeight, html.offsetHeight
-                    );
-                    var maxScroll = height - window.innerHeight;
-                    window.scrollTo(0, maxScroll * {scroll_percentage});
-                """
-                self.preview.page().runJavaScript(js_code)
-
-            # Reset counter on successful sync
-            self._scroll_sync_count = max(0, self._scroll_sync_count - 1)
-        finally:
-            self._is_syncing_scroll = False
+        """Synchronize preview scroll (delegates to ScrollManager)."""
+        self.scroll_manager.sync_editor_to_preview(value)
 
     def _sync_preview_to_editor(self, value: int) -> None:
-        """
-        Synchronize editor scroll position with preview.
-
-        Note: QWebEngineView does not provide scrollbar signals.
-        Preview-to-editor sync is primarily handled via editor-to-preview.
-        This method is kept for compatibility but has limited functionality.
-        """
-        # QWebEngineView doesn't provide scroll events in the same way
-        # Primary sync direction is editor -> preview
-        pass
+        """Synchronize editor scroll (delegates to ScrollManager)."""
+        self.scroll_manager.sync_preview_to_editor(value)
 
     def _setup_workers_and_threads(self) -> None:
-        logger.info("Setting up worker threads...")
-
-        self.git_thread = QThread(self)
-        self.git_worker = GitWorker()
-        self.git_worker.moveToThread(self.git_thread)
-        self.request_git_command.connect(self.git_worker.run_git_command)
-        self.git_worker.command_complete.connect(self._handle_git_result)
-        self.git_thread.finished.connect(self.git_worker.deleteLater)
-        self.git_thread.start()
-
-        self.pandoc_thread = QThread(self)
-        self.pandoc_worker = PandocWorker()
-        self.pandoc_worker.moveToThread(self.pandoc_thread)
-
-        # Initialize Ollama configuration from settings
-        self.pandoc_worker.set_ollama_config(
-            getattr(self._settings, "ollama_enabled", False),
-            getattr(self._settings, "ollama_model", None),
-        )
-
-        self.request_pandoc_conversion.connect(self.pandoc_worker.run_pandoc_conversion)
-        self.pandoc_worker.conversion_complete.connect(self._handle_pandoc_result)
-        self.pandoc_worker.conversion_error.connect(self._handle_pandoc_error_result)
-        self.pandoc_thread.finished.connect(self.pandoc_worker.deleteLater)
-        self.pandoc_thread.start()
-
-        self.preview_thread = QThread(self)
-        self.preview_worker = PreviewWorker()
-        self.preview_worker.moveToThread(self.preview_thread)
-
-        if ASCIIDOC3_AVAILABLE and asciidoc3:
-            self.preview_worker.initialize_asciidoc(asciidoc3.__file__)
-
-        self.request_preview_render.connect(self.preview_worker.render_preview)
-        self.preview_worker.render_complete.connect(self._handle_preview_complete)
-        self.preview_worker.render_error.connect(self._handle_preview_error)
-        self.preview_thread.finished.connect(self.preview_worker.deleteLater)
-        self.preview_thread.start()
-
-        # Grammar functionality removed - no longer needed
-        # self.grammar_manager.start_workers()
-
-        logger.info("All worker threads started (Git, Pandoc, Preview)")
+        """Set up worker threads (delegates to WorkerManager)."""
+        self.worker_manager.setup_workers_and_threads()
 
     def _start_preview_timer(self) -> None:
         """
@@ -659,38 +393,8 @@ class AsciiDocEditor(QMainWindow):
         self.setWindowTitle(title)
 
     def _apply_theme(self) -> None:
-        if self._settings.dark_mode:
-            self._apply_dark_theme()
-
-            if hasattr(self, "editor_label"):
-                self.editor_label.setStyleSheet("color: white;")
-            if hasattr(self, "preview_label"):
-                self.preview_label.setStyleSheet("color: white;")
-        else:
-
-            QApplication.setPalette(QApplication.style().standardPalette())
-
-            if hasattr(self, "editor_label"):
-                self.editor_label.setStyleSheet("color: black;")
-            if hasattr(self, "preview_label"):
-                self.preview_label.setStyleSheet("color: black;")
-
-    def _apply_dark_theme(self) -> None:
-        palette = QPalette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
-        palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
-        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
-        palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.black)
-        palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
-        palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
-        palette.setColor(QPalette.ColorRole.Link, DARK_THEME_LINK_COLOR)
-        palette.setColor(QPalette.ColorRole.Highlight, DARK_THEME_HIGHLIGHT_COLOR)
-        palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
-        QApplication.setPalette(palette)
+        """Apply theme (delegates to ThemeManager)."""
+        self.theme_manager.apply_theme()
 
     def new_file(self) -> None:
         """Create a new file (delegates to FileHandler)."""
@@ -698,485 +402,17 @@ class AsciiDocEditor(QMainWindow):
 
     @Slot()
     def open_file(self) -> None:
-        """Open a file with proper Windows dialog."""
-        if self._is_processing_pandoc:
-            self.status_manager.show_message(
-                "warning", "Busy", "Already processing a file conversion."
-            )
-            return
-
-        if self._unsaved_changes:
-            if not self.status_manager.prompt_save_before_action("opening a new file"):
-                return
-
-        file_path_str, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open File",
-            self._settings.last_directory,
-            SUPPORTED_OPEN_FILTER,
-            options=(
-                QFileDialog.Option.DontUseNativeDialog
-                if platform.system() != "Windows"
-                else QFileDialog.Option(0)
-            ),
-        )
-
-        if not file_path_str:
-            return
-
-        file_path = Path(file_path_str)
-        self._settings.last_directory = str(file_path.parent)
-
-        try:
-            suffix = file_path.suffix.lower()
-            if suffix == ".pdf":
-                # PDF import via text extraction
-                from document_converter import pdf_extractor
-
-                if not pdf_extractor.is_available():
-                    self.status_manager.show_message(
-                        "warning",
-                        "PDF Support Unavailable",
-                        "PDF text extraction requires PyMuPDF.\n\n"
-                        "To install:\n"
-                        "  pip install pymupdf\n\n"
-                        "After installation, restart the application.",
-                    )
-                    return
-
-                self.status_bar.showMessage(
-                    f"Extracting text from PDF: {file_path.name}..."
-                )
-
-                success, asciidoc_text, error_msg = pdf_extractor.convert_to_asciidoc(
-                    file_path
-                )
-
-                if not success:
-                    self.status_manager.show_message(
-                        "critical",
-                        "PDF Extraction Failed",
-                        f"Failed to extract text from PDF:\n\n{error_msg}\n\n"
-                        "The PDF may be encrypted, image-based, or corrupted.",
-                    )
-                    return
-
-                # Load extracted content into editor
-                self._load_content_into_editor(asciidoc_text, file_path)
-                self.status_bar.showMessage(
-                    f"PDF imported successfully: {file_path.name}", 5000
-                )
-                return
-            elif suffix in [
-                ".docx",
-                ".md",
-                ".markdown",
-                ".html",
-                ".htm",
-                ".tex",
-                ".rst",
-                ".org",
-                ".textile",
-            ]:
-
-                if not self._check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
-                    return
-
-                format_map = {
-                    ".docx": ("docx", "binary"),
-                    ".md": ("markdown", "text"),
-                    ".markdown": ("markdown", "text"),
-                    ".html": ("html", "text"),
-                    ".htm": ("html", "text"),
-                    ".tex": ("latex", "text"),
-                    ".rst": ("rst", "text"),
-                    ".org": ("org", "text"),
-                    ".textile": ("textile", "text"),
-                }
-
-                input_format, file_type = format_map.get(suffix, ("markdown", "text"))
-
-                # Use settings preference for AI conversion (defaults to Pandoc)
-                use_ai_for_import = self._settings_manager.get_ai_conversion_preference(
-                    self._settings
-                )
-
-                self._is_processing_pandoc = True
-                self._pending_file_path = file_path
-                self._update_ui_state()
-
-                self.editor.setPlainText(
-                    f"// Converting {file_path.name} to AsciiDoc...\n// Please wait..."
-                )
-                self.preview.setHtml(
-                    "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
-                )
-                self.status_bar.showMessage(
-                    f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc..."
-                )
-
-                file_content: str | bytes
-                if file_type == "binary":
-                    file_content = file_path.read_bytes()
-                else:
-                    file_content = file_path.read_text(encoding="utf-8")
-
-                logger.info(
-                    f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})"
-                )
-
-                self.request_pandoc_conversion.emit(
-                    file_content,
-                    "asciidoc",
-                    input_format,
-                    f"converting '{file_path.name}'",
-                    None,
-                    use_ai_for_import,
-                )
-            else:
-                # Use optimized loading for large files
-                file_path.stat().st_size
-                category = LargeFileHandler.get_file_size_category(file_path)
-
-                if category in ["medium", "large"]:
-                    logger.info(f"Loading {category} file with optimizations")
-                    success, content, error = (
-                        self.large_file_handler.load_file_optimized(file_path)
-                    )
-                    if not success:
-                        raise Exception(error)
-                else:
-                    content = file_path.read_text(encoding="utf-8")
-
-                self._load_content_into_editor(content, file_path)
-
-        except Exception as e:
-            logger.exception(f"Failed to open file: {file_path}")
-            self.status_manager.show_message(
-                "critical", "Error", f"Failed to open file:\n{e}"
-            )
+        """Open a file (delegates to FileOperationsManager)."""
+        self.file_operations_manager.open_file()
 
     def _load_content_into_editor(self, content: str, file_path: Path) -> None:
-        """Load content into editor with lazy loading for large files."""
-        self._is_opening_file = True
-        try:
-            # Disable preview updates temporarily for large files
-            content_size = len(content)
-            is_large_file = content_size > LARGE_FILE_THRESHOLD_BYTES
-
-            if is_large_file:
-                logger.info(MSG_LOADING_LARGE_FILE.format(content_size / 1024))
-
-            # QPlainTextEdit handles large documents efficiently with internal lazy loading
-            # It only renders visible blocks, so setPlainText is still fast
-            self.editor.setPlainText(content)
-            self._current_file_path = file_path
-            self._unsaved_changes = False
-            self.status_manager.update_window_title()
-
-            # Update document metrics after loading content
-            self.status_manager.update_document_metrics()
-
-            if file_path.suffix.lower() in [
-                ".md",
-                ".markdown",
-                ".docx",
-                ".html",
-                ".htm",
-                ".tex",
-                ".rst",
-                ".org",
-                ".textile",
-            ]:
-                self.status_bar.showMessage(
-                    f"Converted and opened: {file_path} → AsciiDoc"
-                )
-            else:
-                self.status_bar.showMessage(f"Opened: {file_path}")
-
-            # Trigger preview update (will be optimized based on file size)
-            self.update_preview()
-
-            logger.info(f"Loaded content into editor: {file_path}")
-        finally:
-            self._is_opening_file = False
+        """Load content into editor (delegates to FileLoadManager)."""
+        self.file_load_manager.load_content_into_editor(content, file_path)
 
     @Slot()
     def save_file(self, save_as: bool = False) -> bool:
-        """
-        Save file with Windows-friendly dialog.
-
-        Handles both simple AsciiDoc saves and export to other formats.
-        Simple .adoc saves delegate to FileHandler.
-        """
-        if save_as or not self._current_file_path:
-
-            suggested_name = (
-                self._current_file_path.name
-                if self._current_file_path
-                else DEFAULT_FILENAME
-            )
-            suggested_path = Path(self._settings.last_directory) / suggested_name
-
-            file_path_str, selected_filter = QFileDialog.getSaveFileName(
-                self,
-                "Save File",
-                str(suggested_path),
-                SUPPORTED_SAVE_FILTER,
-                options=(
-                    QFileDialog.Option.DontUseNativeDialog
-                    if platform.system() != "Windows"
-                    else QFileDialog.Option(0)
-                ),
-            )
-
-            if not file_path_str:
-                return False
-
-            file_path = Path(file_path_str)
-            logger.info(
-                f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}"
-            )
-
-            format_type = "adoc"
-
-            if MD_FILTER in selected_filter:
-                format_type = "md"
-            elif DOCX_FILTER in selected_filter:
-                format_type = "docx"
-            elif HTML_FILTER in selected_filter:
-                format_type = "html"
-            elif PDF_FILTER in selected_filter:
-                format_type = "pdf"
-            elif file_path.suffix:
-
-                ext = file_path.suffix.lower()
-                if ext in [".md", ".markdown"]:
-                    format_type = "md"
-                elif ext == ".docx":
-                    format_type = "docx"
-                elif ext in [".html", ".htm"]:
-                    format_type = "html"
-                elif ext == ".pdf":
-                    format_type = "pdf"
-
-            if format_type == "md" and not file_path.suffix:
-                file_path = file_path.with_suffix(".md")
-            elif format_type == "docx" and not file_path.suffix:
-                file_path = file_path.with_suffix(".docx")
-            elif format_type == "html" and not file_path.suffix:
-                file_path = file_path.with_suffix(".html")
-            elif format_type == "pdf" and not file_path.suffix:
-                file_path = file_path.with_suffix(".pdf")
-            elif format_type == "adoc" and not file_path.suffix:
-                file_path = file_path.with_suffix(".adoc")
-
-            if format_type != "adoc":
-
-                # Use settings preference for AI conversion (defaults to Pandoc)
-                use_ai_for_export = self._settings_manager.get_ai_conversion_preference(
-                    self._settings
-                )
-
-                logger.info(
-                    f"Calling _save_as_format_internal with file_path={file_path}, format_type={format_type}, use_ai={use_ai_for_export}"
-                )
-                return self._save_as_format_internal(
-                    file_path, format_type, use_ai_for_export
-                )
-
-        else:
-            # We only reach here if _current_file_path is not None (checked at line 1909)
-            file_path = self._current_file_path
-            assert file_path is not None, "file_path should not be None in save mode"
-
-            if file_path.suffix.lower() not in [".adoc", ".asciidoc"]:
-
-                file_path = file_path.with_suffix(".adoc")
-                logger.info(
-                    f"Converting save format from {self._current_file_path.suffix} to .adoc"
-                )
-
-        content = self.editor.toPlainText()
-
-        if atomic_save_text(file_path, content, encoding="utf-8"):
-            self._current_file_path = file_path
-            self._settings.last_directory = str(file_path.parent)
-            self._unsaved_changes = False
-            self.status_manager.update_window_title()
-            self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
-            logger.info(f"Saved file: {file_path}")
-            return True
-        else:
-            self.status_manager.show_message(
-                "critical",
-                "Save Error",
-                f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.",
-            )
-            return False
-
-    def _save_as_format_internal(
-        self, file_path: Path, format_type: str, use_ai: Optional[bool] = None
-    ) -> bool:
-        """Internal method to save file in specified format without showing dialog.
-
-        Args:
-            file_path: Target file path
-            format_type: Target format (adoc, md, docx, pdf, html)
-            use_ai: Whether to use AI conversion (None = use settings default)
-        """
-        logger.info(
-            f"_save_as_format_internal called - file_path: {file_path}, format_type: {format_type}, use_ai: {use_ai}"
-        )
-
-        if use_ai is None:
-            use_ai = self._settings_manager.get_ai_conversion_preference(self._settings)
-
-        content = self.editor.toPlainText()
-
-        if format_type == "adoc":
-            if atomic_save_text(file_path, content, encoding="utf-8"):
-                self._current_file_path = file_path
-                self._settings.last_directory = str(file_path.parent)
-                self._unsaved_changes = False
-                self.status_manager.update_window_title()
-                self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
-                return True
-            else:
-                self.status_manager.show_message(
-                    "critical",
-                    "Save Error",
-                    f"Failed to save AsciiDoc file: {file_path}",
-                )
-                return False
-
-        if format_type == "html":
-            self.status_bar.showMessage("Saving as HTML...")
-            try:
-                if self._asciidoc_api is None:
-                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-                infile = io.StringIO(content)
-                outfile = io.StringIO()
-                self._asciidoc_api.execute(infile, outfile, backend="html5")
-                html_content = outfile.getvalue()
-
-                if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                    self.status_bar.showMessage(MSG_SAVED_HTML.format(file_path))
-                    logger.info(f"Successfully saved as HTML: {file_path}")
-                    return True
-                else:
-                    raise IOError(f"Atomic save failed for {file_path}")
-            except Exception as e:
-                logger.exception(f"Failed to save HTML file: {e}")
-                self.status_manager.show_message(
-                    "critical", "Save Error", f"Failed to save HTML file:\n{e}"
-                )
-                return False
-
-        if not self._check_pandoc_availability(f"Save as {format_type.upper()}"):
-            return False
-
-        self.status_bar.showMessage(f"Saving as {format_type.upper()}...")
-
-        # Determine source format from current file
-        source_format = "asciidoc"  # default
-        temp_source_file = None
-
-        if self._current_file_path:
-            suffix = self._current_file_path.suffix.lower()
-            format_map = {
-                ".md": "markdown",
-                ".markdown": "markdown",
-                ".docx": "docx",
-                ".pdf": "markdown",  # PDF was converted to text, treat as markdown
-                ".html": "html",
-                ".htm": "html",
-            }
-            source_format = format_map.get(suffix, "asciidoc")
-
-        # If source is AsciiDoc, convert to HTML first (legacy path)
-        if source_format == "asciidoc":
-            try:
-                if self._asciidoc_api is None:
-                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-                infile = io.StringIO(content)
-                outfile = io.StringIO()
-                self._asciidoc_api.execute(infile, outfile, backend="html5")
-                html_content = outfile.getvalue()
-
-                temp_source_file = (
-                    Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
-                )
-                temp_source_file.write_text(html_content, encoding="utf-8")
-                source_format = "html"
-            except Exception as e:
-                logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-                self.status_manager.show_message(
-                    "critical",
-                    "Conversion Error",
-                    f"Failed to convert AsciiDoc to HTML:\n{e}",
-                )
-                return False
-        else:
-            # For non-AsciiDoc sources, save content to temp file for Pandoc
-            ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
-            temp_ext = ext_map.get(source_format, ".txt")
-            temp_source_file = (
-                Path(self._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
-            )
-            try:
-                temp_source_file.write_text(content, encoding="utf-8")
-            except Exception as e:
-                self.status_manager.show_message(
-                    "critical", "Save Error", f"Failed to create temporary file:\n{e}"
-                )
-                return False
-
-        self.status_bar.showMessage(f"Saving as {format_type.upper()}...")
-
-        # Set export manager pending paths for result handling
-        self.export_manager.pending_export_path = file_path
-        self.export_manager.pending_export_format = format_type
-
-        if format_type in ["pdf", "docx"]:
-            # Use Pandoc for PDF and DOCX conversion - pass output file directly
-            logger.info(
-                f"Emitting pandoc conversion request for {format_type} - source: {temp_source_file} ({source_format}), output: {file_path}"
-            )
-            self.request_pandoc_conversion.emit(
-                temp_source_file,
-                format_type,
-                source_format,
-                f"Exporting to {format_type.upper()}",
-                file_path,
-                use_ai,
-            )
-        else:
-            # For other formats, let worker return the content
-            logger.info(
-                f"Emitting pandoc conversion request for {format_type} - source: {temp_source_file} ({source_format})"
-            )
-            self.request_pandoc_conversion.emit(
-                temp_source_file,
-                format_type,
-                source_format,
-                f"Exporting to {format_type.upper()}",
-                None,
-                use_ai,
-            )
-
-            self._pending_export_path = file_path
-            self._pending_export_format = format_type
-
-        if format_type == "adoc":
-            self._current_file_path = file_path
-            self._settings.last_directory = str(file_path.parent)
-            self._unsaved_changes = False
-            self.status_manager.update_window_title()
-
-        return True
+        """Save file (delegates to FileOperationsManager)."""
+        return self.file_operations_manager.save_file(save_as)
 
     def save_file_as_format(self, format_type: str) -> bool:
         """Save/export file in specified format (delegates to ExportManager)."""
@@ -1194,36 +430,8 @@ class AsciiDocEditor(QMainWindow):
 
     @Slot(int, str)
     def _on_file_load_progress(self, percentage: int, message: str) -> None:
-        """Handle file loading progress updates with visual progress dialog."""
-        # Create progress dialog on first progress update
-        if percentage > 0 and percentage < 100:
-            if self._progress_dialog is None:
-                self._progress_dialog = QProgressDialog(
-                    "Loading file...", "Cancel", 0, 100, self
-                )
-                self._progress_dialog.setWindowTitle("Loading")
-                self._progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
-                self._progress_dialog.setMinimumDuration(500)  # Show after 500ms
-                self._progress_dialog.setCancelButton(None)  # No cancel button
-                self._progress_dialog.setAutoClose(True)
-                self._progress_dialog.setAutoReset(True)
-
-            self._progress_dialog.setValue(percentage)
-            self._progress_dialog.setLabelText(message)
-            logger.debug(f"File load progress: {percentage}% - {message}")
-
-        # Close and cleanup on completion
-        elif percentage >= 100:
-            if self._progress_dialog is not None:
-                self._progress_dialog.setValue(100)
-                self._progress_dialog.close()
-                self._progress_dialog = None
-            self.status_bar.showMessage(message, 3000)
-            logger.debug(f"File load complete: {message}")
-
-        # Show in status bar for initial progress
-        else:
-            self.status_bar.showMessage(message, 2000)
+        """Handle file loading progress (delegates to FileLoadManager)."""
+        self.file_load_manager.on_file_load_progress(percentage, message)
 
     @Slot()
     def update_preview(self) -> None:
@@ -1258,67 +466,8 @@ class AsciiDocEditor(QMainWindow):
             return f"<div style='color:red'>Render Error: {html.escape(str(exc))}</div>"
 
     def _get_preview_css(self) -> str:
-
-        if self._settings.dark_mode:
-            return """
-                body {
-                    background:#1e1e1e; color:#dcdcdc;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    padding: 20px; line-height: 1.6; max-width: 900px; margin: 0 auto;
-                }
-                h1,h2,h3,h4,h5,h6 { color:#ececec; margin-top: 1.5em; margin-bottom: 0.5em; }
-                h1 { font-size: 2.2em; border-bottom: 2px solid #444; padding-bottom: 0.3em; }
-                h2 { font-size: 1.8em; border-bottom: 1px solid #333; padding-bottom: 0.2em; }
-                h3 { font-size: 1.4em; }
-                a { color:#80d0ff; text-decoration: none; }
-                a:hover { text-decoration: underline; }
-                code { background:#2a2a2a; color:#f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
-                pre { background:#2a2a2a; color:#f0f0f0; padding: 15px; overflow-x: auto; border-radius: 5px; }
-                pre code { background: none; padding: 0; }
-                blockquote { border-left: 4px solid #666; margin: 1em 0; padding-left: 1em; color: #aaa; }
-                table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-                th, td { border: 1px solid #444; padding: 8px; text-align: left; }
-                th { background: #2a2a2a; font-weight: bold; }
-                ul, ol { padding-left: 2em; margin: 1em 0; }
-                .admonitionblock { margin: 1em 0; padding: 1em; border-radius: 5px; }
-                .admonitionblock.note { background: #1e3a5f; border-left: 4px solid #4a90e2; }
-                .admonitionblock.tip { background: #1e4d2b; border-left: 4px solid #5cb85c; }
-                .admonitionblock.warning { background: #5d4037; border-left: 4px solid #ff9800; }
-                .admonitionblock.caution { background: #5d4037; border-left: 4px solid #f44336; }
-                .admonitionblock.important { background: #4a148c; border-left: 4px solid #9c27b0; }
-                .imageblock { text-align: center; margin: 1em 0; }
-                .imageblock img { max-width: 100%; height: auto; }
-            """
-        else:
-            return """
-                body {
-                    background:#ffffff; color:#333333;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    padding: 20px; line-height: 1.6; max-width: 900px; margin: 0 auto;
-                }
-                h1,h2,h3,h4,h5,h6 { color:#111111; margin-top: 1.5em; margin-bottom: 0.5em; }
-                h1 { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 0.3em; }
-                h2 { font-size: 1.8em; border-bottom: 1px solid #eee; padding-bottom: 0.2em; }
-                h3 { font-size: 1.4em; }
-                a { color:#007bff; text-decoration: none; }
-                a:hover { text-decoration: underline; }
-                code { background:#f8f8f8; color:#333; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; border: 1px solid #e1e4e8; }
-                pre { background:#f8f8f8; color:#333; padding: 15px; overflow-x: auto; border-radius: 5px; border: 1px solid #e1e4e8; }
-                pre code { background: none; padding: 0; border: none; }
-                blockquote { border-left: 4px solid #ddd; margin: 1em 0; padding-left: 1em; color: #666; }
-                table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background: #f8f8f8; font-weight: bold; }
-                ul, ol { padding-left: 2em; margin: 1em 0; }
-                .admonitionblock { margin: 1em 0; padding: 1em; border-radius: 5px; }
-                .admonitionblock.note { background: #e3f2fd; border-left: 4px solid #2196f3; }
-                .admonitionblock.tip { background: #e8f5e9; border-left: 4px solid #4caf50; }
-                .admonitionblock.warning { background: #fff3e0; border-left: 4px solid #ff9800; }
-                .admonitionblock.caution { background: #ffebee; border-left: 4px solid #f44336; }
-                .admonitionblock.important { background: #f3e5f5; border-left: 4px solid #9c27b0; }
-                .imageblock { text-align: center; margin: 1em 0; }
-                .imageblock img { max-width: 100%; height: auto; }
-            """
+        """Get CSS for preview rendering (delegates to ThemeManager)."""
+        return self.theme_manager.get_preview_css()
 
     def _zoom(self, delta: int) -> None:
         """Zoom editor and preview (delegates to EditorState)."""
@@ -1367,352 +516,61 @@ class AsciiDocEditor(QMainWindow):
 
     @Slot(str, str)
     def _handle_pandoc_result(self, result: str, context: str) -> None:
-        self._is_processing_pandoc = False
-        self._update_ui_state()
-
-        # Delegate to ExportManager
-        self.export_manager.handle_pandoc_result(result, context)
-
-        # Handle file import operations
-        if self._pending_file_path:
-
-            self._load_content_into_editor(result, self._pending_file_path)
-            self._pending_file_path = None
-
-            logger.info(f"Successfully converted {context}")
-
-            QTimer.singleShot(100, self.update_preview)
+        """Handle Pandoc conversion result (delegates to PandocResultHandler)."""
+        self.pandoc_result_handler.handle_pandoc_result(result, context)
 
     @Slot(str, str)
     def _handle_pandoc_error_result(self, error: str, context: str) -> None:
-        self._is_processing_pandoc = False
-        file_path = self._pending_file_path
-        self._pending_file_path = None
-        export_path = self.export_manager.pending_export_path
-        self.export_manager.pending_export_path = None
-        self.export_manager.pending_export_format = None
-        self._update_ui_state()
-        self.status_bar.showMessage(f"Conversion failed: {context}")
-
-        if export_path and "Exporting to" in context:
-
-            if "PDF" in context and (
-                "pdflatex" in error
-                or "pdf-engine" in error
-                or "No such file or directory" in error
-            ):
-                error_msg = (
-                    f"Failed to export to PDF:\n\n"
-                    f"Pandoc could not find a PDF engine on your system.\n\n"
-                    f"Solution: Export to HTML instead\n"
-                    f"1. File → Save As → Select 'HTML Files (*.html)'\n"
-                    f"2. Open the HTML file in your browser\n"
-                    f"3. Press Ctrl+P and select 'Save as PDF'\n\n"
-                    f"Technical details:\n{error}"
-                )
-            else:
-                error_msg = (
-                    f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
-                )
-
-            self.status_manager.show_message("critical", "Export Error", error_msg)
-            return
-
-        self.editor.clear()
-        self.preview.setHtml(
-            "<h3>Conversion Failed</h3><p>Unable to convert the document.</p>"
-        )
-
-        error_msg = f"{context} failed:\n\n{error}"
-        if file_path:
-            error_msg += f"\n\nFile: {file_path}"
-
-        self.status_manager.show_message("critical", "Conversion Error", error_msg)
+        """Handle Pandoc conversion error (delegates to PandocResultHandler)."""
+        self.pandoc_result_handler.handle_pandoc_error_result(error, context)
 
     def _update_ui_state(self) -> None:
-
-        self.action_manager.save_act.setEnabled(not self._is_processing_pandoc)
-        self.action_manager.save_as_act.setEnabled(not self._is_processing_pandoc)
-
-        export_enabled = not self._is_processing_pandoc
-        self.action_manager.save_as_adoc_act.setEnabled(export_enabled)
-        self.action_manager.save_as_md_act.setEnabled(
-            export_enabled and PANDOC_AVAILABLE
-        )
-        self.action_manager.save_as_docx_act.setEnabled(
-            export_enabled and PANDOC_AVAILABLE
-        )
-        self.action_manager.save_as_html_act.setEnabled(export_enabled)
-        self.action_manager.save_as_pdf_act.setEnabled(
-            export_enabled and PANDOC_AVAILABLE
-        )
-
-        git_ready = bool(self._settings.git_repo_path) and not self._is_processing_git
-        self.action_manager.git_commit_act.setEnabled(git_ready)
-        self.action_manager.git_pull_act.setEnabled(git_ready)
-        self.action_manager.git_push_act.setEnabled(git_ready)
-
-        self.action_manager.convert_paste_act.setEnabled(
-            PANDOC_AVAILABLE and not self._is_processing_pandoc
-        )
-
-        # Update AI status bar
-        self._update_ai_status_bar()
+        """Update UI element states (delegates to UIStateManager)."""
+        self.ui_state_manager.update_ui_state()
 
     def _update_ai_status_bar(self) -> None:
-        """Update AI model name in status bar based on settings."""
-        if self._settings.ollama_enabled and self._settings.ollama_model:
-            # Show selected Ollama model
-            self.status_manager.set_ai_model(self._settings.ollama_model)
-        else:
-            # Show Pandoc as fallback conversion method
-            self.status_manager.set_ai_model("Pandoc")
+        """Update AI model name in status bar (delegates to UIStateManager)."""
+        self.ui_state_manager.update_ai_status_bar()
 
     def _check_pandoc_availability(self, context: str) -> bool:
-        """Check if Pandoc is available for document conversion."""
-        if not PANDOC_AVAILABLE:
-            self.status_manager.show_message(
-                "critical",
-                "Pandoc Not Available",
-                f"{context} requires Pandoc and pypandoc.\n"
-                "Please install them first:\n\n"
-                "1. Install pandoc from https://pandoc.org\n"
-                "2. Run: pip install pypandoc",
-            )
-            return False
-        return True
+        """Check if Pandoc is available (delegates to UIStateManager)."""
+        return self.ui_state_manager.check_pandoc_availability(context)
+
+    # ========================================================================
+    # Dialog Methods (Phase 6b: Delegated to DialogManager)
+    # ========================================================================
 
     def _show_pandoc_status(self) -> None:
-        """Show detailed pandoc installation status."""
-        status = "Pandoc Status:\n\n"
-        status += f"PANDOC_AVAILABLE: {PANDOC_AVAILABLE}\n"
-        status += f"pypandoc module: {'Imported' if pypandoc else 'Not found'}\n"
-
-        if PANDOC_AVAILABLE and pypandoc:
-            try:
-                version = pypandoc.get_pandoc_version()
-                status += f"Pandoc version: {version}\n"
-                path = pypandoc.get_pandoc_path()
-                status += f"Pandoc path: {path}\n"
-            except Exception as e:
-                status += f"Error getting pandoc info: {e}\n"
-
-        if not PANDOC_AVAILABLE:
-            status += "\nTo enable document conversion:\n"
-            status += "1. Install pandoc from https://pandoc.org\n"
-            status += "2. Run: pip install pypandoc"
-
-        self.status_manager.show_message("info", "Pandoc Status", status)
+        """Show detailed pandoc installation status (delegates to DialogManager)."""
+        self.dialog_manager.show_pandoc_status()
 
     def _show_supported_formats(self) -> None:
-        """Show supported input and output formats."""
-        if PANDOC_AVAILABLE and pypandoc:
-            message = "Supported Conversion Formats:\n\n"
-            message += "COMMON INPUT FORMATS:\n"
-            message += "  • markdown (.md, .markdown)\n"
-            message += "  • docx (Microsoft Word)\n"
-            message += "  • html (.html, .htm)\n"
-            message += "  • latex (.tex)\n"
-            message += "  • rst (reStructuredText)\n"
-            message += "  • org (Org Mode)\n"
-            message += "\nCOMMON OUTPUT FORMATS:\n"
-            message += "  • asciidoc (.adoc)\n"
-            message += "  • markdown (.md)\n"
-            message += "  • html (.html)\n"
-            message += "  • docx (Microsoft Word)\n"
-            message += "  • pdf (via PDF engine)\n"
-            message += "\nNote: Pandoc supports 40+ formats total.\n"
-            message += "See https://pandoc.org for complete list."
-            self.status_manager.show_message("info", "Supported Formats", message)
-        else:
-            self.status_manager.show_message(
-                "warning",
-                "Format Information Unavailable",
-                "Pandoc is not properly configured.\n\n"
-                "When configured, you can convert between many formats including:\n"
-                "• Markdown to AsciiDoc\n"
-                "• DOCX to AsciiDoc\n"
-                "• HTML to AsciiDoc\n"
-                "• And many more...",
-            )
+        """Show supported input and output formats (delegates to DialogManager)."""
+        self.dialog_manager.show_supported_formats()
 
     def _show_ollama_status(self) -> None:
-        """Show Ollama service and installation status."""
-        status = "Ollama Status:\n\n"
-
-        # Check if Ollama is enabled in settings
-        if not self._settings.ollama_enabled:
-            status += "⚠️ Ollama AI: Disabled in settings\n\n"
-            status += "Current conversion method: Pandoc (standard)\n\n"
-            status += "To enable Ollama AI:\n"
-            status += "1. Go to Tools → AI Status → Settings...\n"
-            status += "2. Check 'Enable Ollama AI integration'\n"
-            status += "3. Select an AI model\n"
-            status += "4. Click OK\n"
-            self.status_manager.show_message("info", "Ollama Status", status)
-            return
-
-        # Ollama is enabled, check service status
-        status += "✅ Ollama AI: Enabled\n"
-        if self._settings.ollama_model:
-            status += f"Selected model: {self._settings.ollama_model}\n\n"
-        else:
-            status += "⚠️ No model selected\n\n"
-
-        try:
-            import ollama
-
-            # Try to connect to Ollama service
-            try:
-                # Test connection by listing models
-                models = ollama.list()
-                status += "✅ Ollama service: Running\n"
-                status += "API endpoint: http://127.0.0.1:11434\n"
-                status += f"Models installed: {len(models.get('models', []))}\n"
-
-                # Check for GPU
-                try:
-                    import subprocess
-
-                    result = subprocess.run(
-                        ["nvidia-smi"],
-                        capture_output=True,
-                        text=True,
-                        timeout=2,
-                    )
-                    if result.returncode == 0:
-                        status += "GPU: ✅ NVIDIA GPU detected\n"
-                    else:
-                        status += "GPU: ⚠️ Not detected (CPU mode)\n"
-                except (FileNotFoundError, subprocess.TimeoutExpired):
-                    status += "GPU: ⚠️ Not detected (CPU mode)\n"
-
-            except Exception as e:
-                status += "❌ Ollama service: Not running\n"
-                status += f"Error: {str(e)}\n\n"
-                status += "To start Ollama:\n"
-                status += "  Linux/Mac: systemctl start ollama\n"
-                status += "  Windows: Start Ollama application\n"
-
-        except ImportError:
-            status += "❌ Ollama Python library not installed\n\n"
-            status += "To install:\n"
-            status += "  pip install ollama>=0.4.0\n\n"
-            status += "To install Ollama itself:\n"
-            status += "  Visit: https://ollama.com/download\n"
-
-        self.status_manager.show_message("info", "Ollama Status", status)
+        """Show Ollama service and installation status (delegates to DialogManager)."""
+        self.dialog_manager.show_ollama_status()
 
     def _show_ollama_settings(self) -> None:
-        """Show Ollama AI settings dialog with model selection."""
-        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
-
-        dialog = OllamaSettingsDialog(self._settings, self)
-        if dialog.exec():
-            self._settings = dialog.get_settings()
-            self._settings_manager.save_settings(
-                self._settings, self, self._current_file_path
-            )
-
-            # Update status bar with model name
-            self._update_ai_status_bar()
-
-            # Update PandocWorker with new Ollama configuration
-            self.pandoc_worker.set_ollama_config(
-                self._settings.ollama_enabled, self._settings.ollama_model
-            )
-
-            logger.info(
-                f"Ollama settings updated: enabled={self._settings.ollama_enabled}, "
-                f"model={self._settings.ollama_model}"
-            )
+        """Show Ollama AI settings dialog (delegates to DialogManager)."""
+        self.dialog_manager.show_ollama_settings()
 
     def _show_message(self, level: str, title: str, text: str) -> None:
-        icon_map = {
-            "info": QMessageBox.Icon.Information,
-            "warning": QMessageBox.Icon.Warning,
-            "critical": QMessageBox.Icon.Critical,
-        }
-
-        msg = QMessageBox(self)
-        msg.setWindowTitle(title)
-        msg.setText(text)
-        msg.setIcon(icon_map.get(level, QMessageBox.Icon.Information))
-        msg.exec()
+        """Show message box (delegates to DialogManager)."""
+        self.dialog_manager.show_message(level, title, text)
 
     def _prompt_save_before_action(self, action: str) -> bool:
-        if not self._unsaved_changes:
-            return True
-
-        reply = QMessageBox.question(
-            self,
-            "Unsaved Changes",
-            f"Save changes before {action}?",
-            QMessageBox.StandardButton.Save
-            | QMessageBox.StandardButton.Discard
-            | QMessageBox.StandardButton.Cancel,
-        )
-
-        if reply == QMessageBox.StandardButton.Save:
-            return self.save_file()
-        elif reply == QMessageBox.StandardButton.Discard:
-            return True
-        else:
-            return False
+        """Prompt to save before action (delegates to DialogManager)."""
+        return self.dialog_manager.prompt_save_before_action(action)
 
     def _show_preferences_dialog(self) -> None:
-        """
-        Show preferences dialog for configuring application settings.
-
-        FR-055: AI-Enhanced Conversion option configuration UI
-        """
-        dialog = PreferencesDialog(self._settings, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self._settings = dialog.get_settings()
-            self._settings_manager.save_settings(
-                self._settings, self, self._current_file_path
-            )
-            self.status_bar.showMessage("Preferences updated", 3000)
-            logger.info(
-                f"AI conversion preference updated: {self._settings.ai_conversion_enabled}"
-            )
+        """Show preferences dialog (delegates to DialogManager)."""
+        self.dialog_manager.show_preferences_dialog()
 
     def _show_about(self) -> None:
-        """Show about dialog."""
-        about_text = """
-        <h2>AsciiDoctor Artisan</h2>
-        <p><b>Version:</b> 1.1.0</p>
-        <p><b>Description:</b> A unified, distraction-free environment for AsciiDoc authoring with live preview.</p>
-
-        <h3>Features</h3>
-        <ul>
-            <li>Real-time AsciiDoc preview</li>
-            <li>Git integration for version control</li>
-            <li>Multi-format export (Markdown, DOCX, HTML, PDF)</li>
-            <li>AI-enhanced document conversion (optional)</li>
-            <li>Dark mode support</li>
-            <li>Auto-save functionality</li>
-        </ul>
-
-        <h3>Technology Stack</h3>
-        <ul>
-            <li>Python + PySide6 (Qt)</li>
-            <li>asciidoc3 for rendering</li>
-            <li>Pandoc for format conversion</li>
-            <li>Claude AI for enhanced conversions (optional)</li>
-        </ul>
-
-        <p><b>License:</b> Open Source</p>
-        <p><b>Documentation:</b> See Help menu for AI setup and usage guides</p>
-        """
-
-        msg = QMessageBox(self)
-        msg.setWindowTitle("About AsciiDoctor Artisan")
-        msg.setTextFormat(Qt.TextFormat.RichText)
-        msg.setText(about_text)
-        msg.setIcon(QMessageBox.Icon.Information)
-        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-        msg.exec()
+        """Show about dialog (delegates to DialogManager)."""
+        self.dialog_manager.show_about()
 
     def closeEvent(self, event: Any) -> None:
         """Handle window close event (delegates to EditorState)."""

@@ -160,8 +160,10 @@ class FileHandler(QObject):
 
         # Optional memory profiling (enabled via environment variable)
         import os
+
         if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
             from asciidoc_artisan.core import get_profiler
+
             profiler = get_profiler()
             if profiler.is_running:
                 profiler.take_snapshot(f"before_load_{file_path.name}")
@@ -198,8 +200,10 @@ class FileHandler(QObject):
 
             # Optional memory profiling
             import os
+
             if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
                 from asciidoc_artisan.core import get_profiler
+
                 profiler = get_profiler()
                 if profiler.is_running:
                     profiler.take_snapshot(f"after_load_{file_path.name}")

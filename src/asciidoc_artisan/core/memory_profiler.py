@@ -140,7 +140,7 @@ class MemoryProfiler:
 
         # Get tracemalloc statistics
         snapshot = tracemalloc.take_snapshot()
-        top_stats = snapshot.statistics('lineno')
+        top_stats = snapshot.statistics("lineno")
 
         # Get current and peak memory from tracemalloc
         current, peak = tracemalloc.get_traced_memory()
@@ -149,7 +149,7 @@ class MemoryProfiler:
 
         # Get top allocations
         top_allocations = []
-        for stat in top_stats[:self.top_n]:
+        for stat in top_stats[: self.top_n]:
             # Get first traceback frame for location
             if stat.traceback:
                 frame = stat.traceback[0]
@@ -164,7 +164,7 @@ class MemoryProfiler:
             current_mb=current_mb,
             peak_mb=peak_mb,
             top_allocations=top_allocations,
-            description=description
+            description=description,
         )
 
         self.snapshots.append(mem_snapshot)
@@ -208,7 +208,7 @@ class MemoryProfiler:
             return
 
         snapshot = tracemalloc.take_snapshot()
-        top_stats = snapshot.statistics('lineno')
+        top_stats = snapshot.statistics("lineno")
 
         logger.info(f"Top {n} memory allocations:")
         for index, stat in enumerate(top_stats[:n], 1):
@@ -218,9 +218,7 @@ class MemoryProfiler:
                 location = f"{frame.filename}:{frame.lineno}"
             else:
                 location = "unknown"
-            logger.info(
-                f"  {index}. {location} - {size_kb:.1f} KB"
-            )
+            logger.info(f"  {index}. {location} - {size_kb:.1f} KB")
 
     def compare_snapshots(self, index1: int, index2: int) -> None:
         """
@@ -258,10 +256,7 @@ class MemoryProfiler:
             Dictionary with memory statistics
         """
         if not self.snapshots:
-            return {
-                "snapshots_count": 0,
-                "profiler_running": self.is_running
-            }
+            return {"snapshots_count": 0, "profiler_running": self.is_running}
 
         current_mbs = [s.current_mb for s in self.snapshots]
         peak_mbs = [s.peak_mb for s in self.snapshots]
@@ -273,7 +268,9 @@ class MemoryProfiler:
             "peak_mb": max(peak_mbs),
             "min_mb": min(current_mbs),
             "avg_mb": sum(current_mbs) / len(current_mbs),
-            "total_growth_mb": current_mbs[-1] - current_mbs[0] if len(current_mbs) > 1 else 0,
+            "total_growth_mb": (
+                current_mbs[-1] - current_mbs[0] if len(current_mbs) > 1 else 0
+            ),
         }
 
         # Add psutil stats if available
@@ -332,6 +329,7 @@ def profile_memory(description: str = ""):
     Args:
         description: Description for the profiled function
     """
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             profiler = get_profiler()
@@ -350,7 +348,9 @@ def profile_memory(description: str = ""):
             profiler.take_snapshot(f"{description or func.__name__} - after")
 
             return result
+
         return wrapper
+
     return decorator
 
 

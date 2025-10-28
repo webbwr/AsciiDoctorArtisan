@@ -16,6 +16,7 @@ import time
 from typing import Any, Optional
 
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
+
 # QWebEngine disabled for WSLg compatibility
 # from PySide6.QtWebEngineCore import QWebEngineSettings
 # from PySide6.QtWebEngineWidgets import QWebEngineView

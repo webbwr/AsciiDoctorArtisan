@@ -108,9 +108,13 @@ class PreviewHandler(BasePreviewHandler):
         super().__init__(editor, preview, parent_window)
 
         if self.is_webengine:
-            logger.info("Preview handler initialized with QWebEngineView (GPU-accelerated)")
+            logger.info(
+                "Preview handler initialized with QWebEngineView (GPU-accelerated)"
+            )
         else:
-            logger.info("Preview handler initialized with QTextBrowser (software rendering)")
+            logger.info(
+                "Preview handler initialized with QTextBrowser (software rendering)"
+            )
 
     def handle_preview_complete(self, html: str) -> None:
         """

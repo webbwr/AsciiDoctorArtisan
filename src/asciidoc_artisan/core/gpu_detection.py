@@ -33,7 +33,9 @@ class GPUInfo:
     has_npu: bool = False  # Neural Processing Unit
     npu_type: Optional[str] = None  # "intel_npu", "qualcomm_npu", "amd_npu", etc.
     npu_name: Optional[str] = None
-    compute_capabilities: list[str] = field(default_factory=list)  # ["cuda", "opencl", "vulkan", "openvino", etc.]
+    compute_capabilities: list[str] = field(
+        default_factory=list
+    )  # ["cuda", "opencl", "vulkan", "openvino", etc.]
 
 
 @dataclass
@@ -50,7 +52,7 @@ class GPUCacheEntry:
         return cls(
             timestamp=datetime.now().isoformat(),
             gpu_info=asdict(gpu_info),
-            version=version
+            version=version,
         )
 
     def to_gpu_info(self) -> GPUInfo:
@@ -102,9 +104,7 @@ class GPUDetectionCache:
             cls.CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
             entry = GPUCacheEntry.from_gpu_info(gpu_info, version)
-            cls.CACHE_FILE.write_text(
-                json.dumps(asdict(entry), indent=2)
-            )
+            cls.CACHE_FILE.write_text(json.dumps(asdict(entry), indent=2))
 
             logger.info("GPU cache saved")
             return True
@@ -214,9 +214,7 @@ def check_intel_gpu() -> tuple[bool, Optional[str]]:
         Tuple of (has_intel, gpu_name)
     """
     try:
-        result = subprocess.run(
-            ["clinfo"], capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=5)
 
         if result.returncode == 0 and result.stdout.strip():
             # Look for Intel device
@@ -239,9 +237,7 @@ def check_opengl_renderer() -> tuple[bool, Optional[str]]:
         Tuple of (is_hardware, renderer_name)
     """
     try:
-        result = subprocess.run(
-            ["glxinfo"], capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run(["glxinfo"], capture_output=True, text=True, timeout=5)
 
         if result.returncode == 0:
             for line in result.stdout.split("\n"):
@@ -288,9 +284,7 @@ def check_intel_npu() -> tuple[bool, Optional[str]]:
     """
     # Check for Intel NPU via OpenVINO
     try:
-        result = subprocess.run(
-            ["clinfo"], capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=5)
 
         if result.returncode == 0 and result.stdout.strip():
             # Look for Intel NPU device
@@ -332,9 +326,7 @@ def detect_compute_capabilities() -> list[str]:
 
     # Check OpenCL
     try:
-        result = subprocess.run(
-            ["clinfo"], capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0 and "Platform Name" in result.stdout:
             capabilities.append("opencl")
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -508,6 +500,7 @@ def get_gpu_info(force_redetect: bool = False) -> GPUInfo:
 
     # Save to disk cache
     from asciidoc_artisan.core import APP_VERSION
+
     GPUDetectionCache.save(_cached_gpu_info, APP_VERSION)
 
     return _cached_gpu_info
@@ -543,10 +536,14 @@ def main():
                 print(f"NPU: {info.npu_name}")
         else:
             print(f"Unknown command: {command}")
-            print("Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]")
+            print(
+                "Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]"
+            )
     else:
         print("GPU Detection Cache Manager")
-        print("Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]")
+        print(
+            "Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]"
+        )
         print("")
         print("Commands:")
         print("  clear  - Clear GPU cache")
