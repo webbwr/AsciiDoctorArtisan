@@ -96,3 +96,16 @@ STATUS_TIP_EXPORT_OFFICE365 = "Export to Microsoft Office 365 Word format"
 
 # Message Display Duration
 STATUS_MESSAGE_DURATION_MS = 5000
+
+# ============================================================================
+# Module Availability Checks (v1.5.0-D)
+# ============================================================================
+# Check if optional modules are available.
+# Note: These checks import the modules, so they should be deferred by importing
+# constants.py only when needed, not at main.py startup.
+
+try:
+    import pypandoc  # noqa: F401
+    PANDOC_AVAILABLE = True
+except ImportError:
+    PANDOC_AVAILABLE = False
