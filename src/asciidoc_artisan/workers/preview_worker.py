@@ -44,6 +44,19 @@ except ImportError:
     IncrementalPreviewRenderer = None  # type: ignore[assignment, misc]
     INCREMENTAL_RENDERER_AVAILABLE = False
 
+# Import predictive renderer (v1.6.0)
+try:
+    from asciidoc_artisan.workers.predictive_renderer import (
+        PredictiveRenderer,
+        PredictivePreviewRenderer,
+    )
+
+    PREDICTIVE_RENDERER_AVAILABLE = True
+except ImportError:
+    PredictiveRenderer = None  # type: ignore[assignment, misc]
+    PredictivePreviewRenderer = None  # type: ignore[assignment, misc]
+    PREDICTIVE_RENDERER_AVAILABLE = False
+
 # Import metrics
 try:
     from asciidoc_artisan.core.metrics import get_metrics_collector
@@ -92,6 +105,8 @@ class PreviewWorker(QObject):
         self._asciidoc_api: Optional[Any] = None
         self._incremental_renderer: Optional[Any] = None
         self._use_incremental = True  # Enable incremental rendering by default
+        self._predictive_renderer: Optional[Any] = None  # v1.6.0: Predictive rendering
+        self._use_predictive = True  # Enable predictive rendering by default
 
     def initialize_asciidoc(self, asciidoc_module_file: str) -> None:
         """
@@ -136,6 +151,13 @@ class PreviewWorker(QObject):
                         self._asciidoc_api
                     )
                     logger.debug("PreviewWorker: Incremental renderer initialized")
+
+                    # Initialize predictive renderer if available (v1.6.0)
+                    if PREDICTIVE_RENDERER_AVAILABLE and PredictivePreviewRenderer:  # type: ignore[truthy-function]
+                        self._predictive_renderer = PredictivePreviewRenderer(
+                            self._incremental_renderer
+                        )
+                        logger.debug("PreviewWorker: Predictive renderer initialized")
 
                 logger.debug("PreviewWorker: AsciiDoc API initialized")
             except Exception as exc:
@@ -226,6 +248,140 @@ class PreviewWorker(QObject):
         if self._incremental_renderer:
             self._incremental_renderer.enable(enabled)
         logger.info(f"Incremental rendering {'enabled' if enabled else 'disabled'}")
+
+    def set_predictive_rendering(self, enabled: bool) -> None:
+        """
+        Enable or disable predictive rendering (v1.6.0).
+
+        Args:
+            enabled: True to enable, False to disable
+        """
+        self._use_predictive = enabled
+        if self._predictive_renderer:
+            self._predictive_renderer.enable(enabled)
+        logger.info(f"Predictive rendering {'enabled' if enabled else 'disabled'}")
+
+    def update_cursor_position(self, line_number: int) -> None:
+        """
+        Update cursor position for predictive rendering (v1.6.0).
+
+        Args:
+            line_number: Current cursor line number (0-indexed)
+        """
+        if self._predictive_renderer:
+            self._predictive_renderer.update_cursor_position(line_number)
+
+    def request_prediction(self, source_text: str, cursor_line: int) -> None:
+        """
+        Request predictive pre-rendering during debounce period (v1.6.0).
+
+        Splits document into blocks, determines current block from cursor,
+        and requests prediction for pre-rendering.
+
+        Args:
+            source_text: Current document text
+            cursor_line: Current cursor line number (0-indexed)
+        """
+        if not self._use_predictive or not self._predictive_renderer:
+            return
+
+        try:
+            # Import block splitter
+            from asciidoc_artisan.workers.incremental_renderer import (
+                DocumentBlockSplitter,
+            )
+
+            # Split document into blocks
+            blocks = DocumentBlockSplitter.split(source_text)
+            if not blocks:
+                return
+
+            # Find block containing cursor line
+            current_block_index = 0
+            for i, block in enumerate(blocks):
+                if block.start_line <= cursor_line <= block.end_line:
+                    current_block_index = i
+                    break
+
+            # Request prediction
+            self._predictive_renderer.request_prediction(
+                total_blocks=len(blocks), current_block=current_block_index
+            )
+
+            logger.debug(
+                f"Prediction requested: {len(blocks)} blocks, cursor at block {current_block_index}"
+            )
+
+            # Schedule pre-rendering during debounce period
+            self._schedule_prerender(blocks)
+
+        except Exception as exc:
+            logger.warning(f"Prediction request failed: {exc}")
+
+    def _schedule_prerender(self, blocks: list, max_blocks: int = 3) -> None:
+        """
+        Schedule pre-rendering of predicted blocks (v1.6.0).
+
+        Pre-renders up to max_blocks from the prediction queue during
+        the debounce period for reduced latency.
+
+        Args:
+            blocks: List of DocumentBlock objects
+            max_blocks: Maximum blocks to pre-render (default: 3)
+        """
+        if not self._predictive_renderer or not self._incremental_renderer:
+            return
+
+        prerendered_count = 0
+
+        try:
+            # Pre-render multiple blocks from queue (up to max_blocks)
+            while prerendered_count < max_blocks:
+                # Get next block to pre-render from prediction queue
+                block_index = self._predictive_renderer.get_next_prerender_block()
+
+                if block_index is None or block_index >= len(blocks):
+                    break  # No more blocks in queue
+
+                block = blocks[block_index]
+
+                # Skip if already cached
+                if self._incremental_renderer.cache.get(block.id) is not None:
+                    logger.debug(f"Block {block_index} already cached, skipping")
+                    continue
+
+                # Pre-render the block
+                rendered_html = self._incremental_renderer._render_block(block)
+
+                # Cache it for later use
+                self._incremental_renderer.cache.put(block.id, rendered_html)
+
+                # Record prediction was used
+                self._predictive_renderer.predictor.record_prediction_used(block_index)
+
+                prerendered_count += 1
+
+                logger.debug(
+                    f"Pre-rendered block {block_index} "
+                    f"(size: {len(block.content)} chars, {prerendered_count}/{max_blocks})"
+                )
+
+            if prerendered_count > 0:
+                logger.debug(f"Pre-rendering complete: {prerendered_count} blocks cached")
+
+        except Exception as exc:
+            logger.debug(f"Pre-render failed: {exc}")
+
+    def get_predictive_stats(self) -> dict:
+        """
+        Get predictive rendering statistics (v1.6.0).
+
+        Returns:
+            Dictionary with prediction stats, or empty dict if not available
+        """
+        if self._predictive_renderer:
+            return self._predictive_renderer.get_statistics()
+        return {}
 
     def get_cache_stats(self) -> dict:
         """

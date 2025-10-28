@@ -97,8 +97,27 @@ class PreviewHandlerBase(QObject):
             self._adaptive_debouncer = AdaptiveDebouncer()
             logger.info("Adaptive debouncing enabled")
 
+        # Cursor position tracking (v1.6.0 for predictive rendering)
+        self._current_cursor_line = 0
+        self.editor.cursorPositionChanged.connect(self._on_cursor_position_changed)
+
         # Connect editor text changes to preview updates
         self.editor.textChanged.connect(self._on_text_changed)
+
+    def _on_cursor_position_changed(self) -> None:
+        """
+        Handle cursor position changes (v1.6.0 for predictive rendering).
+
+        Tracks cursor line and notifies preview worker for prediction.
+        """
+        cursor = self.editor.textCursor()
+        self._current_cursor_line = cursor.blockNumber()
+
+        # Notify preview worker for predictive rendering
+        if hasattr(self.window, "preview_worker"):
+            worker = self.window.preview_worker
+            if hasattr(worker, "update_cursor_position"):
+                worker.update_cursor_position(self._current_cursor_line)
 
     def start_preview_updates(self) -> None:
         """Start automatic preview updates on text changes."""
@@ -140,6 +159,13 @@ class PreviewHandlerBase(QObject):
                 delay = PREVIEW_NORMAL_INTERVAL_MS
             else:  # >= 100KB
                 delay = PREVIEW_SLOW_INTERVAL_MS
+
+        # Request predictive pre-rendering during debounce (v1.6.0)
+        if hasattr(self.window, "preview_worker"):
+            worker = self.window.preview_worker
+            if hasattr(worker, "request_prediction"):
+                source_text = self.editor.toPlainText()
+                worker.request_prediction(source_text, self._current_cursor_line)
 
         # Start timer with calculated delay
         self.preview_timer.start(delay)
