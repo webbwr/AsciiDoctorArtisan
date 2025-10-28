@@ -33,9 +33,16 @@ Usage Example:
 from .git_worker import GitWorker
 from .pandoc_worker import PandocWorker
 from .preview_worker import PreviewWorker
+from .optimized_worker_pool import OptimizedWorkerPool, TaskPriority
+from .worker_tasks import RenderTask, ConversionTask, GitTask
 
 __all__ = [
     "GitWorker",
     "PandocWorker",
     "PreviewWorker",
+    "OptimizedWorkerPool",
+    "TaskPriority",
+    "RenderTask",
+    "ConversionTask",
+    "GitTask",
 ]

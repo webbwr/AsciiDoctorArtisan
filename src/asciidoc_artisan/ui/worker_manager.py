@@ -7,17 +7,27 @@ Implements:
 - Preview worker thread setup
 - Signal/slot connections
 - Thread lifecycle management
+- Worker pool for optimized task execution (v1.5.0)
 
 Extracted from main_window.py as part of Phase 6 refactoring to reduce
 main window complexity and improve modularity.
+
+v1.5.0: Added OptimizedWorkerPool support for better resource management
+and cancellable operations.
 """
 
 import logging
+import os
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QThread
 
-from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
+from asciidoc_artisan.workers import (
+    GitWorker,
+    PandocWorker,
+    PreviewWorker,
+    OptimizedWorkerPool,
+)
 
 if TYPE_CHECKING:
     from .main_window import AsciiDocEditor
@@ -40,11 +50,21 @@ class WorkerManager:
     This class encapsulates all worker thread initialization, signal/slot
     connections, and lifecycle management.
 
+    v1.5.0: Added OptimizedWorkerPool for better resource management.
+    The pool is used alongside dedicated threads for backward compatibility.
+
     Args:
         editor: Reference to the main AsciiDocEditor window
+        use_worker_pool: Enable worker pool (default: True for v1.5.0+)
+        max_pool_threads: Maximum threads in pool (default: CPU count * 2)
     """
 
-    def __init__(self, editor: "AsciiDocEditor") -> None:
+    def __init__(
+        self,
+        editor: "AsciiDocEditor",
+        use_worker_pool: bool = True,
+        max_pool_threads: int | None = None,
+    ) -> None:
         """Initialize the WorkerManager with a reference to the main editor."""
         self.editor = editor
         self.git_thread: QThread | None = None
@@ -53,6 +73,21 @@ class WorkerManager:
         self.pandoc_worker: PandocWorker | None = None
         self.preview_thread: QThread | None = None
         self.preview_worker: PreviewWorker | None = None
+
+        # Worker pool (v1.5.0)
+        self.use_worker_pool = use_worker_pool
+        self.worker_pool: OptimizedWorkerPool | None = None
+
+        if self.use_worker_pool:
+            # Default to CPU count * 2 if not specified
+            if max_pool_threads is None:
+                max_pool_threads = os.cpu_count() or 4
+                max_pool_threads = max(4, max_pool_threads * 2)
+
+            self.worker_pool = OptimizedWorkerPool(max_threads=max_pool_threads)
+            logger.info(
+                f"Worker pool enabled with {max_pool_threads} threads"
+            )
 
     def setup_workers_and_threads(self) -> None:
         """Set up all worker threads (Git, Pandoc, Preview) with signal connections."""
@@ -115,3 +150,69 @@ class WorkerManager:
         self.editor.pandoc_worker = self.pandoc_worker
         self.preview_thread = self.preview_thread
         self.editor.preview_worker = self.preview_worker
+
+    def get_pool_statistics(self) -> dict:
+        """
+        Get worker pool statistics.
+
+        Returns:
+            Dictionary with pool stats, or empty dict if pool not enabled
+        """
+        if self.worker_pool:
+            return self.worker_pool.get_statistics()
+        return {}
+
+    def cancel_all_pool_tasks(self) -> int:
+        """
+        Cancel all pending tasks in the worker pool.
+
+        Returns:
+            Number of tasks cancelled, or 0 if pool not enabled
+        """
+        if self.worker_pool:
+            return self.worker_pool.cancel_all()
+        return 0
+
+    def wait_for_pool_done(self, timeout_ms: int = 5000) -> bool:
+        """
+        Wait for all pool tasks to complete.
+
+        Args:
+            timeout_ms: Timeout in milliseconds (default: 5 seconds)
+
+        Returns:
+            True if all tasks completed, False if timeout or pool not enabled
+        """
+        if self.worker_pool:
+            return self.worker_pool.wait_for_done(timeout_ms)
+        return True
+
+    def shutdown(self) -> None:
+        """
+        Shutdown all workers and threads gracefully.
+
+        This method should be called when the application is closing.
+        """
+        logger.info("Shutting down workers...")
+
+        # Cancel and wait for pool tasks if pool is enabled
+        if self.worker_pool:
+            cancelled = self.cancel_all_pool_tasks()
+            if cancelled > 0:
+                logger.info(f"Cancelled {cancelled} pool tasks")
+            self.wait_for_pool_done(5000)
+
+        # Stop dedicated threads
+        if self.git_thread and self.git_thread.isRunning():
+            self.git_thread.quit()
+            self.git_thread.wait(2000)
+
+        if self.pandoc_thread and self.pandoc_thread.isRunning():
+            self.pandoc_thread.quit()
+            self.pandoc_thread.wait(2000)
+
+        if self.preview_thread and self.preview_thread.isRunning():
+            self.preview_thread.quit()
+            self.preview_thread.wait(2000)
+
+        logger.info("All workers shutdown complete")
