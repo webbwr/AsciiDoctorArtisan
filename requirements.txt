@@ -27,6 +27,9 @@ keyring>=24.0.0
 # System resource monitoring (CPU, memory tracking)
 psutil>=5.9.0
 
+# Async file operations (v1.6.0 - non-blocking I/O)
+aiofiles>=24.1.0
+
 # AI document conversion (Ollama integration)
 # Note: Requires Ollama system binary for local AI features
 ollama>=0.4.0

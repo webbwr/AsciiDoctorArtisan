@@ -38,16 +38,18 @@ Transform AsciiDoc Artisan from a solid editor into a best-in-class, high-perfor
 
 ## 🚀 v1.6.0 Progress
 
-**Status:** IN PROGRESS (2/5 tasks complete)
+**Status:** IN PROGRESS (2/3 tasks complete)
 
 **Completed:**
 - ✅ Task 1: Block Detection Optimization (10-14% improvement)
 - ✅ Task 3: Predictive Rendering (28% latency reduction for sequential editing)
 
 **Remaining:**
-- ⏳ Task 2: Async I/O (LOW priority, 24 hours)
-- ⏳ Task 4: Plugin Architecture (LOW priority, 40 hours)
-- ⏳ Task 5: Collaborative Editing (FUTURE, 80+ hours)
+- ⏳ Task 2: Async I/O (24 hours)
+
+**Removed from Scope:**
+- ❌ Task 4: Plugin Architecture (moved to v2.0.0 backlog)
+- ❌ Task 5: Collaborative Editing (moved to v2.0.0 backlog)
 
 **See:** `docs/v1.6.0_PERFORMANCE_SUMMARY.md` for Task 1 & 3 results
 
@@ -328,34 +330,7 @@ PreviewHandlerBase (~400 lines)
 
 **Impact:** Perceived latency reduction by 30-50%
 
-### Advanced Features
-
-#### 4. Plugin Architecture
-**Priority:** LOW | **Effort:** 40 hours
-
-- [ ] Design plugin API
-- [ ] Implement plugin loader
-- [ ] Add plugin hooks for:
-  - Custom renderers
-  - Custom exporters
-  - Custom themes
-  - Editor extensions
-- [ ] Create plugin manager UI
-- [ ] Write plugin development guide
-
-**Files:**
-- New: `src/asciidoc_artisan/plugins/` (package)
-
-#### 5. Collaborative Editing (Experimental)
-**Priority:** FUTURE | **Effort:** 80+ hours
-
-- [ ] Research OT (Operational Transform) or CRDT
-- [ ] Implement conflict-free editing
-- [ ] Add WebSocket server
-- [ ] Create session management
-- [ ] Add user presence indicators
-
-**Note:** This is a major feature requiring significant research and development.
+**Note:** Tasks 4 (Plugin Architecture) and 5 (Collaborative Editing) have been removed from v1.6.0 scope. These remain as potential v2.0.0 features if needed.
 
 ---
 
