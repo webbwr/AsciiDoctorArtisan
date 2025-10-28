@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **wkhtmltopdf**: System binary for PDF generation
 - **Python 3.11+**: Minimum version (3.12 recommended for best performance)
 
-**Version:** 1.4.0 (Production Ready Beta)
+**Version:** 1.5.0 (Complete) | v1.6.0 (In Progress)
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane
@@ -39,41 +39,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **v1.4.1**: Further refactoring - main_window.py reduced from 1723 to 1614 lines
 - **Current**: Hardware-accelerated modular architecture with intelligent fallbacks
 
-## What's New in v1.4.0
+## What's New in v1.5.0
 
-**Key Changes for Developers:**
+**Status:** ✅ COMPLETE (October 28, 2025)
 
-1. **GPU/NPU Hardware Acceleration** ⚡
-   - New files: `core/gpu_detection.py`, `ui/preview_handler_gpu.py`
-   - Automatic GPU detection with 24-hour cache (100ms startup improvement)
-   - QWebEngineView (GPU) vs QTextBrowser (fallback) automatic selection
-   - Environment variables set in `main.py` before Qt init
-   - 10-50x performance improvement with GPU, 70-90% less CPU usage
+**Key Achievements:**
 
-2. **Document Version Display** 📊
-   - New feature in `status_manager.py`
-   - Extracts version from AsciiDoc attributes, text labels, or titles
-   - Real-time updates in status bar
+1. **Startup Performance** ⚡
+   - **1.05s startup** (beats v1.6.0 target of 1.5s!)
+   - Lazy import system for heavy modules
+   - 3-5x faster than v1.4.0
 
-3. **Memory Profiling** 🔍
-   - New file: `core/memory_profiler.py`
-   - Identifies memory hotspots and optimization opportunities
+2. **Main Window Refactoring** 🏗️
+   - **577 lines** (down from 1,719 lines - 66% reduction)
+   - Clean manager pattern with separation of concerns
+   - Much more maintainable codebase
 
-4. **Grammar System Removed** 🗑️
-   - Removed 2,067 lines of code
-   - Improves performance and reduces complexity
-   - Users should use external grammar tools
+3. **Worker Pool System** 🏊
+   - New file: `workers/optimized_worker_pool.py`
+   - Configurable thread pool (CPU_COUNT * 2)
+   - Task prioritization (CRITICAL, HIGH, NORMAL, LOW, IDLE)
+   - Task cancellation and coalescing
+   - Statistics tracking
 
-**Breaking Changes:**
-- None! v1.4.0 is fully backward compatible
-- GPU acceleration is automatic and transparent
-- Existing code continues to work without modification
+4. **Operation Cancellation** ❌
+   - Cancel button in status bar
+   - GitWorker cancellation support
+   - Graceful shutdown of long operations
 
-**Testing Priority for v1.4.0:**
-- Test GPU detection on different hardware (NVIDIA, AMD, Intel)
-- Verify fallback to QTextBrowser when GPU unavailable
-- Test in WSLg environment (should auto-detect and handle correctly)
-- Verify document version extraction from various formats
+5. **Test Coverage Improvement** ✅
+   - **60%+ coverage** (up from 34%)
+   - **481+ total tests** (+88 new tests)
+   - 37 test files
+
+6. **Code Quality** 📊
+   - Preview handler duplication: 60% → <30%
+   - Comprehensive metrics collection system
+   - Memory profiling and optimization
+
+**v1.6.0 In Progress:**
+- ✅ Block detection optimization (10-14% improvement)
+- ✅ Predictive rendering system
+- ✅ Async I/O with aiofiles
+- 🚧 Worker pool migration (in progress)
 
 ## Quick Start for New Developers
 
@@ -498,17 +506,15 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 ## Additional Resources
 
+**Core Documentation:**
 - **SPECIFICATIONS.md** — Complete functional requirements (FR-001 to FR-053)
 - **README.md** — User-facing installation and usage guide (Grade 5.0 reading level)
-- **RELEASE_NOTES_v1.4.0.md** — v1.4.0 release notes and GPU acceleration details
-- **ROADMAP_v1.5.0.md** — Future feature roadmap
-- **DEEP_CODE_ANALYSIS_v1.4.0.md** — Codebase analysis and optimization opportunities
+- **ROADMAP_v1.5.0.md** — Current roadmap (v1.5.0 complete, v1.6.0 in progress)
+
+**Implementation Details:**
+- **docs/IMPLEMENTATION_REFERENCE.md** — v1.5.0 feature implementation details
+- **SECURITY.md** — Security policy
 
 ---
 
-**Note on Copilot Instructions:**
-The `.github/copilot-instructions.md` file is outdated. It references the old WSLg compatibility note about QTextBrowser. As of v1.4.0, GPU detection is automatic and the app uses QWebEngineView (GPU) or QTextBrowser (fallback) based on hardware availability. Refer to this file (CLAUDE.md) for current architecture.
-
----
-
-*This file is for Claude Code (claude.ai/code). Last updated for v1.4.1: October 28, 2025*
+*This file is for Claude Code (claude.ai/code). Last updated for v1.5.0: October 28, 2025*
