@@ -38,6 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **v1.3.0**: Grammar system (later removed in v1.4.0)
 - **v1.4.0**: Full GPU/NPU hardware acceleration, automatic detection, document version display
 - **v1.4.1**: Further refactoring - main_window.py reduced from 1723 to 1614 lines
+- **v1.5.0**: Major refactoring - main_window.py reduced to 561 lines (67% reduction from v1.4.0)
 - **Current**: Hardware-accelerated modular architecture with intelligent fallbacks
 
 ## What's New in v1.5.0
@@ -52,7 +53,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - 3-5x faster than v1.4.0
 
 2. **Main Window Refactoring** 🏗️
-   - **577 lines** (down from 1,719 lines - 66% reduction)
+   - **561 lines** (down from 1,719 lines - 67% reduction)
    - Clean manager pattern with separation of concerns
    - Much more maintainable codebase
 
@@ -70,8 +71,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 5. **Test Coverage Improvement** ✅
    - **60%+ coverage** (up from 34%)
-   - **481+ total tests** (+88 new tests)
-   - 37 test files
+   - **481+ total tests** (+88 new tests since v1.4.0)
+   - 69 test files across comprehensive test suite
 
 6. **Code Quality** 📊
    - Preview handler duplication: 60% → <30%
@@ -112,7 +113,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 4. **Read the key architecture docs:**
    - This file (CLAUDE.md) - Architecture overview
-   - SPECIFICATIONS.md - Functional requirements (FR-001 to FR-060, includes GitHub integration)
+   - SPECIFICATIONS.md - Functional requirements (84 rules covering all features)
    - Code in `src/asciidoc_artisan/ui/main_window.py` - Main UI controller
 
 **System dependencies required:**
@@ -130,7 +131,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 make run                    # or: python src/main.py
 
 # Test your changes
-make test                   # Run all 481+ tests with coverage
+make test                   # Run all tests with coverage (generates htmlcov/index.html)
 pytest tests/test_specific.py -v           # Single test file
 pytest tests/test_specific.py::test_func   # Single test function
 
@@ -202,7 +203,7 @@ src/asciidoc_artisan/
 │   ├── lazy_importer.py        # Lazy module loading for performance
 │   └── lazy_utils.py           # Utility functions for lazy evaluation
 ├── ui/                         # UI components (Qt widgets)
-│   ├── main_window.py          # AsciiDocEditor (main window controller, 1614 lines in v1.4.1)
+│   ├── main_window.py          # AsciiDocEditor (main window controller, 561 lines)
 │   ├── menu_manager.py         # Menu bar creation and actions
 │   ├── theme_manager.py        # Dark/light theme + CSS generation (v1.4.1)
 │   ├── status_manager.py       # Status bar, document version display, messages
@@ -235,9 +236,9 @@ src/asciidoc_artisan/
 │   ├── preview_worker.py       # AsciiDoc → HTML rendering
 │   ├── incremental_renderer.py # Partial document rendering (block-based cache)
 │   └── optimized_worker_pool.py # Worker thread pool management
-├── conversion/                 # Format conversion utilities
-├── git/                        # Git integration utilities
-└── claude/                     # Claude AI integration (future)
+├── conversion/                 # Format conversion utilities (placeholder)
+├── git/                        # Git integration utilities (placeholder)
+└── claude/                     # Claude AI integration (placeholder for future)
 ```
 
 **Key entry point:** `src/main.py` (launches QApplication and AsciiDocEditor)
@@ -270,8 +271,8 @@ class GitWorker(QThread):
 ```python
 from asciidoc_artisan.core import sanitize_path, atomic_save_text
 
-safe_path = sanitize_path(user_input)  # FR-016: Prevent directory traversal
-atomic_save_text(path, content)        # FR-015: Atomic write (no corruption)
+safe_path = sanitize_path(user_input)  # Prevent directory traversal
+atomic_save_text(path, content)        # Atomic write (no corruption)
 
 # Subprocess: ALWAYS list form, NEVER shell=True
 subprocess.run(["git", "commit", "-m", msg])  # ✓ Good
@@ -292,18 +293,28 @@ Auto-saved on exit with atomic writes. Stores: window geometry, theme, font, rec
 ## Development Workflow
 
 **Standard change process:**
-1. Read `SPECIFICATIONS.md` (FR-001 to FR-060) for requirements
+1. Read `SPECIFICATIONS.md` (84 rules) for requirements
 2. Make changes (follow patterns, respect reentrancy guards)
-3. `make test` - Ensure 481+ tests pass
+3. `make test` - Ensure all tests pass
 4. `make format` - Auto-format code
 5. `make lint` - Check for issues
 6. Update docs if changing public APIs
 
-**Pre-commit hooks:** `.pre-commit-config.yaml` (black, isort, ruff)
+**Pre-commit hooks:** `.pre-commit-config.yaml` (ruff, black, trailing whitespace, YAML/TOML checks)
 ```bash
-pre-commit install        # Enable
-pre-commit run --all-files  # Manual run
+pre-commit install             # Enable hooks
+pre-commit run --all-files     # Manual run all hooks
+pre-commit run <hook-id>       # Run specific hook (e.g., ruff, black)
+git commit --no-verify         # Bypass hooks (emergency only)
 ```
+
+**Automated checks:**
+- Ruff linting with auto-fix
+- Black formatting (line-length=88, Black default)
+- Trailing whitespace removal
+- YAML/TOML syntax validation
+- Large file detection (>1MB)
+- Merge conflict markers
 
 ### Change Risk Assessment
 
@@ -332,11 +343,15 @@ pre-commit run --all-files  # Manual run
 **Critical areas - profile before/after changes:**
 
 1. **GPU Preview:** `ui/preview_handler_gpu.py` - 10-50x faster with hardware acceleration
-2. **PDF Reading:** `document_converter.py:283-365` - PyMuPDF (3-5x faster than pdfplumber)
+2. **PDF Reading:** `document_converter.py:287+` (PDFExtractor class) - PyMuPDF (3-5x faster than pdfplumber)
 3. **Incremental Render:** `workers/incremental_renderer.py` - Block cache with LRU (3-5x faster edits)
-4. **String Processing:** `document_converter.py:_clean_cell()` - Called in tight loops
+4. **String Processing:** `document_converter.py:374` (_clean_cell method) - Called in tight loops
 
-**Benchmark:** Use `scripts/benchmark_performance.py` to measure changes
+**Benchmark & Profiling Scripts:**
+- `scripts/benchmark_performance.py` - General performance benchmarking
+- `scripts/benchmark_predictive_rendering.py` - Predictive rendering benchmarks
+- `scripts/memory_profile.py` - Memory usage profiling
+- `scripts/profile_block_detection.py` - Block detection profiling
 
 ### Ollama AI Integration (v1.2+)
 
@@ -457,11 +472,11 @@ StatusManager.show_message("PR #42 created!")
 | `requirements.txt` | Development dependencies (includes test/lint tools) |
 | `pyproject.toml` | Package metadata, build config, tool settings |
 | `Makefile` | Build automation (run, test, lint, format) |
-| `SPECIFICATIONS.md` | Complete functional requirements (FR-001 to FR-053) |
-| `RELEASE_NOTES_v1.4.0.md` | v1.4.0 release notes and changelog |
+| `SPECIFICATIONS.md` | Complete functional requirements (84 rules) |
 | `README.md` | User-facing documentation and installation guide |
 | `.pre-commit-config.yaml` | Pre-commit hook configuration |
 | `.ruff.toml` | Ruff linter configuration |
+| `ROADMAP_v1.5.0.md` | Version roadmap and progress tracking |
 
 ## Critical "Gotchas" - Read This First!
 
@@ -521,21 +536,42 @@ StatusManager.show_message("PR #42 created!")
 
 ## Coding Standards
 
-- **Style:** Black (88 char), isort, ruff - enforced by pre-commit hooks
-- **Types:** Required for new code (mypy lenient)
-- **Testing:** pytest + pytest-qt, 481+ tests, use `qtbot` for GUI tests
+- **Style:** Black + isort + ruff - enforced by pre-commit hooks
+- **Line length:** 88 characters (Black default, enforced consistently)
+- **Types:** Required for new code (mypy lenient mode)
+- **Testing:** pytest + pytest-qt (69 test files, 481+ tests), use `qtbot` for GUI tests
 - **Docs:** Docstrings for public APIs, update SPECIFICATIONS.md for new features
-- **Python:** 3.11+ (3.12 recommended)
+- **Python:** 3.11+ (3.12 recommended for best performance)
 
 ## Dependencies
 
-**System (required):** Pandoc, wkhtmltopdf
-**System (optional):** Git (for version control features), GitHub CLI (`gh` 2.45.0+, for GitHub integration)
+**System (required):**
+- Pandoc (document conversion)
+- wkhtmltopdf (PDF generation)
 
-**Python (production):** PySide6 6.9.0+, asciidoc3 3.2.0+, pypandoc 1.13+, pymupdf 1.23.0+
-**Python (dev):** pytest, pytest-qt, pytest-cov, black, ruff, mypy, pre-commit
+**System (optional):**
+- Git (version control features)
+- GitHub CLI (`gh` 2.45.0+, for PR/Issue management)
+- Ollama (local AI for smart document conversions)
 
-Install: `pip install -r requirements.txt` (dev) or `requirements-production.txt` (prod)
+**Python (production):**
+- PySide6 6.9.0+ (Qt GUI framework)
+- asciidoc3 3.2.0+ (AsciiDoc to HTML)
+- pypandoc 1.13+ (document conversion)
+- pymupdf 1.23.0+ (fast PDF reading)
+- keyring 24.0.0+ (secure credential storage)
+- psutil 5.9.0+ (resource monitoring)
+
+**Python (dev):**
+- pytest, pytest-qt, pytest-cov (testing)
+- black, isort, ruff (formatting/linting)
+- mypy (type checking)
+- pre-commit (git hooks)
+
+**Dependency management:**
+- Dependabot: Weekly automated dependency updates (PRs created automatically)
+- Security scanning: Weekly GitHub Actions workflow checks for vulnerabilities
+- Install: `pip install -r requirements.txt` (dev) or `requirements-production.txt` (prod)
 
 ## Troubleshooting
 
@@ -552,6 +588,7 @@ Install: `pip install -r requirements.txt` (dev) or `requirements-production.txt
 - Qt: `QT_LOGGING_RULES="*.debug=true" python src/main.py`
 - Performance: `scripts/benchmark_performance.py`
 - Memory: `scripts/memory_profile.py`
+- Coverage Report: Open `htmlcov/index.html` after `make test`
 
 
 ## Removed Features
@@ -572,18 +609,45 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 **Migration:** Users should use external grammar tools (Grammarly, LanguageTool, etc.) via copy/paste or editor plugins.
 
+## CI/CD & Automation
+
+**GitHub Actions:**
+- **Security scanning** (`.github/workflows/security.yml`):
+  - Runs weekly and on PR/push to main/dev
+  - Dual scanning: Safety + pip-audit
+  - Non-blocking (reports only, doesn't fail builds)
+  - Artifacts uploaded for tracking
+
+**Dependabot** (`.github/dependabot.yml`):
+- Weekly dependency updates
+- Automatic PRs for pip and GitHub Actions
+- Reviewer: webbwr
+
+**Pre-commit hooks** (`.pre-commit-config.yaml`):
+- Runs before every commit
+- Auto-fixes code style issues
+- Validates YAML/TOML syntax
+- Prevents large file commits
+
 ## Additional Resources
 
 **Core Documentation:**
-- **SPECIFICATIONS.md** — Complete functional requirements (FR-001 to FR-060, includes GitHub integration)
+- **SPECIFICATIONS.md** — Complete functional requirements (84 rules across all features)
 - **README.md** — User-facing installation and usage guide (Grade 5.0 reading level)
 - **ROADMAP_v1.5.0.md** — Current roadmap (v1.5.0 complete, v1.6.0 in progress)
 
 **Implementation Details:**
 - **docs/IMPLEMENTATION_REFERENCE.md** — v1.5.0 feature implementation details
 - **docs/GITHUB_CLI_INTEGRATION.md** — GitHub CLI Integration user guide (v1.6.0)
+- **docs/PERFORMANCE_PROFILING.md** — Performance profiling guide
+- **docs/TEST_COVERAGE_SUMMARY.md** — Test coverage analysis
 - **SECURITY.md** — Security policy
+
+**Developer Resources:**
+- **.github/copilot-instructions.md** — AI coding assistant guidance (redirects to CLAUDE.md)
+- **docs/how-to-contribute.md** — Contribution guidelines
+- **docs/how-to-use.md** — User guide for all features
 
 ---
 
-*This file is for Claude Code (claude.ai/code). Last updated for v1.6.0: October 29, 2025*
+*This file is for Claude Code (claude.ai/code). Last updated: October 29, 2025*
