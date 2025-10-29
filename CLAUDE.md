@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **pypandoc 1.13+**: Multi-format document conversion (requires Pandoc system binary)
 - **pymupdf 1.23.0+**: Fast PDF reading (3-5x faster than pdfplumber)
 - **wkhtmltopdf**: System binary for PDF generation
+- **GitHub CLI (gh) 2.45.0+**: GitHub integration for PR/Issue management (v1.6.0)
 - **Python 3.11+**: Minimum version (3.12 recommended for best performance)
 
 **Version:** 1.5.0 (Complete) | v1.6.0 (In Progress)
@@ -81,6 +82,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Block detection optimization (10-14% improvement)
 - ✅ Predictive rendering system
 - ✅ Async I/O with aiofiles
+- ✅ GitHub CLI Integration (complete - PR/Issue management)
 - 🚧 Worker pool migration (in progress)
 
 ## Quick Start for New Developers
@@ -110,13 +112,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 4. **Read the key architecture docs:**
    - This file (CLAUDE.md) - Architecture overview
-   - SPECIFICATIONS.md - Functional requirements (FR-001 to FR-053)
+   - SPECIFICATIONS.md - Functional requirements (FR-001 to FR-060, includes GitHub integration)
    - Code in `src/asciidoc_artisan/ui/main_window.py` - Main UI controller
 
 **System dependencies required:**
 - Pandoc (`sudo apt install pandoc`)
 - wkhtmltopdf (`sudo apt install wkhtmltopdf`)
 - Git (optional, for version control features)
+- GitHub CLI (`sudo apt install gh`, optional, for GitHub features)
 
 ## Common Commands
 
@@ -210,6 +213,8 @@ src/asciidoc_artisan/
 │   ├── preview_handler.py      # QTextBrowser preview (software fallback)
 │   ├── preview_handler_gpu.py  # GPU-accelerated QWebEngineView (v1.4.0)
 │   ├── git_handler.py          # Git UI operations
+│   ├── github_handler.py       # GitHub UI operations (v1.6.0)
+│   ├── github_dialogs.py       # GitHub dialogs (PR/Issue create/list, v1.6.0)
 │   ├── action_manager.py       # QAction creation and management
 │   ├── settings_manager.py     # Settings UI and persistence
 │   ├── line_number_area.py     # Editor with line numbers
@@ -225,6 +230,7 @@ src/asciidoc_artisan/
 │   └── virtual_scroll_preview.py # Virtual scrolling optimization
 ├── workers/                    # QThread worker classes
 │   ├── git_worker.py           # Git operations (pull, commit, push)
+│   ├── github_cli_worker.py    # GitHub CLI operations (PR/Issue management, v1.6.0)
 │   ├── pandoc_worker.py        # Document format conversion (Ollama + Pandoc)
 │   ├── preview_worker.py       # AsciiDoc → HTML rendering
 │   ├── incremental_renderer.py # Partial document rendering (block-based cache)
@@ -286,7 +292,7 @@ Auto-saved on exit with atomic writes. Stores: window geometry, theme, font, rec
 ## Development Workflow
 
 **Standard change process:**
-1. Read `SPECIFICATIONS.md` (FR-001 to FR-053) for requirements
+1. Read `SPECIFICATIONS.md` (FR-001 to FR-060) for requirements
 2. Make changes (follow patterns, respect reentrancy guards)
 3. `make test` - Ensure 481+ tests pass
 4. `make format` - Auto-format code
@@ -368,6 +374,65 @@ rm ~/.cache/asciidoc_artisan/gpu_detection.json   # Force refresh
 QTWEBENGINE_CHROMIUM_FLAGS="--enable-logging --v=1" python src/main.py
 ```
 
+### GitHub CLI Integration (v1.6.0)
+
+**Code:** `workers/github_cli_worker.py`, `ui/github_handler.py`, `ui/github_dialogs.py`
+
+Enables pull request and issue management using GitHub CLI (`gh`):
+- **Worker Pattern:** Follows existing GitWorker/GitHandler pattern for consistency
+- **5 Operations:** Create PR, List PRs, Create Issue, List Issues, View Repo Info
+- **4 Custom Dialogs:** CreatePullRequestDialog, PullRequestListDialog, CreateIssueDialog, IssueListDialog
+- **Background Execution:** All operations run in GitHubCLIWorker QThread (non-blocking UI)
+- **Security:** subprocess with `shell=False`, 60s timeout, list arguments only
+- **Authentication:** Handled by `gh` CLI (system-level, not app-managed)
+- **Menu:** Git → GitHub submenu with 5 actions
+- **Data Model:** GitHubResult dataclass for operation results
+- **Error Handling:** 7+ error types with user-friendly messages
+
+**Integration Points:**
+- `main_window.py`: Initializes GitHubHandler, adds request_github_command Signal
+- `worker_manager.py`: Sets up GitHubCLIWorker thread with signal connections
+- `action_manager.py`: Creates 5 GitHub menu actions
+- `core/models.py`: GitHubResult dataclass
+
+**Operations Flow:**
+```
+User → Menu Action → GitHubHandler → Dialog
+  ↓
+GitHubHandler.create_pull_request()
+  ↓
+MainWindow.request_github_command Signal(operation, kwargs)
+  ↓
+GitHubCLIWorker.dispatch_github_operation()
+  ↓
+GitHubCLIWorker.create_pull_request() → subprocess: gh pr create --json
+  ↓
+GitHubCLIWorker.github_result_ready Signal(GitHubResult)
+  ↓
+MainWindow._handle_github_result()
+  ↓
+GitHubHandler.handle_github_result()
+  ↓
+StatusManager.show_message("PR #42 created!")
+```
+
+**Dialog Validation:**
+- Real-time validation with visual feedback (red borders)
+- Title cannot be empty
+- Base branch ≠ head branch for PRs
+- State filters: Open/Closed/Merged/All for PRs, Open/Closed/All for issues
+- Double-click row to open in browser
+- Refresh button to reload data
+
+**Test Coverage:** 49 tests passing (100%), 30 tests scaffolded
+- `tests/test_github_cli_worker.py`: 21 tests (worker operations)
+- `tests/test_github_dialogs.py`: 28 tests (dialog validation, data retrieval)
+- `tests/test_github_handler.py`: 30 tests scaffolded (handler coordination)
+
+**Documentation:**
+- User Guide: `docs/GITHUB_CLI_INTEGRATION.md` (1,000+ lines)
+- Requirements: SPECIFICATIONS.md (GitHub Rules section)
+
 ## Important Files Reference
 
 | File | Purpose |
@@ -382,8 +447,11 @@ QTWEBENGINE_CHROMIUM_FLAGS="--enable-logging --v=1" python src/main.py
 | `src/asciidoc_artisan/core/settings.py` | Settings persistence and management |
 | `src/asciidoc_artisan/core/file_operations.py` | Atomic file I/O and path sanitization |
 | `src/asciidoc_artisan/workers/git_worker.py` | Git subprocess operations |
+| `src/asciidoc_artisan/workers/github_cli_worker.py` | GitHub CLI subprocess operations (v1.6.0) |
 | `src/asciidoc_artisan/workers/pandoc_worker.py` | Document format conversion (Ollama + Pandoc) |
 | `src/asciidoc_artisan/workers/preview_worker.py` | AsciiDoc → HTML rendering |
+| `src/asciidoc_artisan/ui/github_handler.py` | GitHub UI coordination and dialog management (v1.6.0) |
+| `src/asciidoc_artisan/ui/github_dialogs.py` | GitHub dialogs for PR/Issue management (v1.6.0) |
 | `src/document_converter.py` | Document import/export (DOCX, PDF) |
 | `requirements-production.txt` | Production dependencies |
 | `requirements.txt` | Development dependencies (includes test/lint tools) |
@@ -462,7 +530,7 @@ QTWEBENGINE_CHROMIUM_FLAGS="--enable-logging --v=1" python src/main.py
 ## Dependencies
 
 **System (required):** Pandoc, wkhtmltopdf
-**System (optional):** Git (for version control features)
+**System (optional):** Git (for version control features), GitHub CLI (`gh` 2.45.0+, for GitHub integration)
 
 **Python (production):** PySide6 6.9.0+, asciidoc3 3.2.0+, pypandoc 1.13+, pymupdf 1.23.0+
 **Python (dev):** pytest, pytest-qt, pytest-cov, black, ruff, mypy, pre-commit
@@ -507,14 +575,15 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 ## Additional Resources
 
 **Core Documentation:**
-- **SPECIFICATIONS.md** — Complete functional requirements (FR-001 to FR-053)
+- **SPECIFICATIONS.md** — Complete functional requirements (FR-001 to FR-060, includes GitHub integration)
 - **README.md** — User-facing installation and usage guide (Grade 5.0 reading level)
 - **ROADMAP_v1.5.0.md** — Current roadmap (v1.5.0 complete, v1.6.0 in progress)
 
 **Implementation Details:**
 - **docs/IMPLEMENTATION_REFERENCE.md** — v1.5.0 feature implementation details
+- **docs/GITHUB_CLI_INTEGRATION.md** — GitHub CLI Integration user guide (v1.6.0)
 - **SECURITY.md** — Security policy
 
 ---
 
-*This file is for Claude Code (claude.ai/code). Last updated for v1.5.0: October 28, 2025*
+*This file is for Claude Code (claude.ai/code). Last updated for v1.6.0: October 29, 2025*

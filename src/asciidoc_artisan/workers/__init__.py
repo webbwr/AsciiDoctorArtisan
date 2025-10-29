@@ -31,6 +31,7 @@ Usage Example:
 """
 
 from .git_worker import GitWorker
+from .github_cli_worker import GitHubCLIWorker
 from .pandoc_worker import PandocWorker
 from .preview_worker import PreviewWorker
 from .optimized_worker_pool import OptimizedWorkerPool, TaskPriority
@@ -38,6 +39,7 @@ from .worker_tasks import RenderTask, ConversionTask, GitTask
 
 __all__ = [
     "GitWorker",
+    "GitHubCLIWorker",
     "PandocWorker",
     "PreviewWorker",
     "OptimizedWorkerPool",

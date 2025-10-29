@@ -23,10 +23,11 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import QThread
 
 from asciidoc_artisan.workers import (
+    GitHubCLIWorker,
     GitWorker,
+    OptimizedWorkerPool,
     PandocWorker,
     PreviewWorker,
-    OptimizedWorkerPool,
 )
 
 if TYPE_CHECKING:
@@ -69,6 +70,8 @@ class WorkerManager:
         self.editor = editor
         self.git_thread: QThread | None = None
         self.git_worker: GitWorker | None = None
+        self.github_thread: QThread | None = None
+        self.github_worker: GitHubCLIWorker | None = None
         self.pandoc_thread: QThread | None = None
         self.pandoc_worker: PandocWorker | None = None
         self.preview_thread: QThread | None = None
@@ -85,9 +88,7 @@ class WorkerManager:
                 max_pool_threads = max(4, max_pool_threads * 2)
 
             self.worker_pool = OptimizedWorkerPool(max_threads=max_pool_threads)
-            logger.info(
-                f"Worker pool enabled with {max_pool_threads} threads"
-            )
+            logger.info(f"Worker pool enabled with {max_pool_threads} threads")
 
     def setup_workers_and_threads(self) -> None:
         """Set up all worker threads (Git, Pandoc, Preview) with signal connections."""
@@ -101,6 +102,19 @@ class WorkerManager:
         self.git_worker.command_complete.connect(self.editor._handle_git_result)
         self.git_thread.finished.connect(self.git_worker.deleteLater)
         self.git_thread.start()
+
+        # GitHub Worker
+        self.github_thread = QThread(self.editor)
+        self.github_worker = GitHubCLIWorker()
+        self.github_worker.moveToThread(self.github_thread)
+        self.editor.request_github_command.connect(
+            self.github_worker.dispatch_github_operation
+        )
+        self.github_worker.github_result_ready.connect(
+            self.editor._handle_github_result
+        )
+        self.github_thread.finished.connect(self.github_worker.deleteLater)
+        self.github_thread.start()
 
         # Pandoc Worker
         self.pandoc_thread = QThread(self.editor)
@@ -141,11 +155,13 @@ class WorkerManager:
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
         self.preview_thread.start()
 
-        logger.info("All worker threads started (Git, Pandoc, Preview)")
+        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview)")
 
         # Store references on main window for backward compatibility
         self.editor.git_thread = self.git_thread
         self.editor.git_worker = self.git_worker
+        self.editor.github_thread = self.github_thread
+        self.editor.github_worker = self.github_worker
         self.editor.pandoc_thread = self.pandoc_thread
         self.editor.pandoc_worker = self.pandoc_worker
         self.preview_thread = self.preview_thread
@@ -198,6 +214,17 @@ class WorkerManager:
         if self.git_worker and hasattr(self.git_worker, "cancel"):
             self.git_worker.cancel()
 
+    def cancel_github_operation(self) -> None:
+        """Cancel the current GitHub operation.
+
+        Note: GitHub CLI operations use blocking subprocess calls, so cancellation
+        only prevents queued operations from starting. In-progress operations
+        cannot be interrupted.
+        """
+        logger.info("Cancelling GitHub operation")
+        if self.github_worker and hasattr(self.github_worker, "cancel"):
+            self.github_worker.cancel()
+
     def cancel_pandoc_operation(self) -> None:
         """Cancel the current Pandoc operation.
 
@@ -237,6 +264,10 @@ class WorkerManager:
         if self.git_thread and self.git_thread.isRunning():
             self.git_thread.quit()
             self.git_thread.wait(2000)
+
+        if self.github_thread and self.github_thread.isRunning():
+            self.github_thread.quit()
+            self.github_thread.wait(2000)
 
         if self.pandoc_thread and self.pandoc_thread.isRunning():
             self.pandoc_thread.quit()

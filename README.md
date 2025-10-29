@@ -7,6 +7,7 @@ A simple program. It helps you write papers with GPU-accelerated performance.
 This program:
 - Shows your work as you type (10-50x faster with GPU)
 - Saves your work with Git
+- Works with GitHub (make PRs and issues)
 - Opens Word, PDF, Markdown, HTML files (3-5x faster)
 - Saves to Word, PDF, Markdown, HTML
 - Changes file types with AI or Pandoc
@@ -23,6 +24,7 @@ You need these programs:
 - **Pandoc** - Changes file types
 - **wkhtmltopdf** - Makes PDF files
 - **Git** - Saves work online (optional)
+- **GitHub CLI (gh)** - Work with GitHub (optional, from cli.github.com)
 - **Ollama** - AI file changes (optional, from ollama.com)
 - **GPU drivers** - For hardware acceleration (automatic)
 

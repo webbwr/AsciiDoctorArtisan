@@ -28,23 +28,15 @@ import io
 import logging
 import platform
 import tempfile
-import uuid
 from pathlib import Path
 from typing import Any, Optional
 
 from PySide6.QtCore import (
     QRect,
     Qt,
-    QThread,
     QTimer,
     Signal,
     Slot,
-)
-from PySide6.QtGui import (
-    QColor,
-    QFont,
-    QGuiApplication,
-    QPalette,
 )
 
 # QWebEngine with GPU acceleration - auto-detected by preview_handler_gpu
@@ -56,20 +48,8 @@ try:
 except ImportError:
     WEBENGINE_AVAILABLE = False
 from PySide6.QtWidgets import (
-    QApplication,
-    QDialog,
-    QFileDialog,
-    QHBoxLayout,
-    QLabel,
     QMainWindow,
-    QMessageBox,
     QProgressDialog,
-    QPushButton,
-    QSplitter,
-    QStatusBar,
-    QTextBrowser,
-    QVBoxLayout,
-    QWidget,
 )
 
 # Import from refactored modules
@@ -77,70 +57,36 @@ from asciidoc_artisan.core import (
     APP_NAME,
     AUTO_SAVE_INTERVAL_MS,
     DEFAULT_FILENAME,
-    DIALOG_CONVERSION_ERROR,
-    DIALOG_OPEN_FILE,
-    DIALOG_SAVE_ERROR,
-    DIALOG_SAVE_FILE,
-    DOCX_FILTER,
-    EDITOR_FONT_FAMILY,
-    EDITOR_FONT_SIZE,
-    ERR_ASCIIDOC_NOT_INITIALIZED,
-    ERR_ATOMIC_SAVE_FAILED,
-    ERR_FAILED_CREATE_TEMP,
-    ERR_FAILED_SAVE_HTML,
-    GitResult,
-    HTML_FILTER,
-    LARGE_FILE_THRESHOLD_BYTES,
-    MD_FILTER,
-    MENU_FILE,
-    MIN_WINDOW_HEIGHT,
-    MIN_WINDOW_WIDTH,
-    MSG_LOADING_LARGE_FILE,
-    MSG_PDF_IMPORTED,
-    MSG_SAVED_ASCIIDOC,
-    MSG_SAVED_HTML,
-    MSG_SAVED_HTML_PDF_READY,
-    PDF_FILTER,
-    PREVIEW_FAST_INTERVAL_MS,
-    PREVIEW_NORMAL_INTERVAL_MS,
-    PREVIEW_SLOW_INTERVAL_MS,
     PREVIEW_UPDATE_INTERVAL_MS,
+    GitResult,
     ResourceMonitor,
-    STATUS_MESSAGE_DURATION_MS,
-    STATUS_TIP_EXPORT_OFFICE365,
-    SUPPORTED_OPEN_FILTER,
-    SUPPORTED_SAVE_FILTER,
     atomic_save_text,
 )
 from asciidoc_artisan.core.large_file_handler import LargeFileHandler
 from asciidoc_artisan.ui.action_manager import ActionManager
-from asciidoc_artisan.ui.dialogs import (
-    PreferencesDialog,
-)
+from asciidoc_artisan.ui.dialog_manager import DialogManager
 from asciidoc_artisan.ui.editor_state import EditorState
 from asciidoc_artisan.ui.export_manager import ExportManager
 from asciidoc_artisan.ui.file_handler import FileHandler
+from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 from asciidoc_artisan.ui.git_handler import GitHandler
+from asciidoc_artisan.ui.github_handler import GitHubHandler
 
 # Grammar functionality removed - no longer needed
 # from asciidoc_artisan.ui.grammar_manager import GrammarManager
-from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 from asciidoc_artisan.ui.menu_manager import MenuManager
+from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
 
 # GPU-accelerated preview handler (auto-detects and uses GPU when available)
 from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandler
-from asciidoc_artisan.ui.settings_manager import SettingsManager
-from asciidoc_artisan.ui.dialog_manager import DialogManager
-from asciidoc_artisan.ui.file_load_manager import FileLoadManager
-from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
-from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
 from asciidoc_artisan.ui.scroll_manager import ScrollManager
+from asciidoc_artisan.ui.settings_manager import SettingsManager
 from asciidoc_artisan.ui.status_manager import StatusManager
 from asciidoc_artisan.ui.theme_manager import ThemeManager
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
 from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 from asciidoc_artisan.ui.worker_manager import WorkerManager
-from asciidoc_artisan.workers import GitWorker, PandocWorker, PreviewWorker
 
 # Check for AI client availability
 try:
@@ -181,63 +127,33 @@ logger = logging.getLogger(__name__)
 
 class AsciiDocEditor(QMainWindow):
     request_git_command = Signal(list, str)
+    request_github_command = Signal(str, dict)  # operation_type, kwargs
     request_pandoc_conversion = Signal(object, str, str, str, object, bool)
     request_preview_render = Signal(str)
 
     def __init__(self) -> None:
         super().__init__()
 
-        # Initialize settings manager
+        # === Core Configuration ===
+        # Settings must be loaded first as other components depend on it
         self._settings_manager = SettingsManager()
         self._settings_path = self._settings_manager.get_settings_path()
-
-        # Load settings
         self._settings = self._settings_manager.load_settings()
 
-        # Initialize Phase 2 managers
-        self.menu_manager = MenuManager(self)
-        self.theme_manager = ThemeManager(self)
-        self.status_manager = StatusManager(self)
-        self.dialog_manager = DialogManager(self)  # Phase 6b refactoring
-        self.file_load_manager = FileLoadManager(self)  # Phase 6b refactoring
-        self.file_operations_manager = FileOperationsManager(
-            self
-        )  # Phase 7 refactoring
-        self.pandoc_result_handler = PandocResultHandler(self)  # Phase 6c refactoring
-        self.scroll_manager = ScrollManager(self)  # Phase 6b refactoring
-        self.ui_state_manager = UIStateManager(self)  # Phase 6b refactoring
-        self.worker_manager = WorkerManager(self)  # Phase 6b refactoring
-
-        # Initialize Phase 4 resource monitor
-        self.resource_monitor = ResourceMonitor()
-        logger.info(
-            f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})"
-        )
-
-        # Initialize large file handler
-        self.large_file_handler = LargeFileHandler()
-        self.large_file_handler.progress_update.connect(
-            self.file_load_manager.on_file_load_progress
-        )
-
-        # Initialize progress dialog for large file loading
-        self._progress_dialog: Optional[QProgressDialog] = None
-
-        # Initialize temporary directory for file conversions
-        self._temp_dir = tempfile.TemporaryDirectory()
-
-        # Initialize state variables
+        # === State Variables ===
+        # Initialize state tracking before managers
         self._current_file_path: Optional[Path] = None
         self._initial_geometry: Optional[QRect] = None
         self._start_maximized = self._settings.maximized
         self._is_opening_file = False
         self._is_processing_git = False
-        # Note: _is_processing_pandoc and _pending_file_path moved to FileOperationsManager (Phase 7)
         self._last_git_operation = ""
         self._pending_commit_message: Optional[str] = None
         self._unsaved_changes = False
         self._sync_scrolling = True
         self._is_syncing_scroll = False
+        self._progress_dialog: Optional[QProgressDialog] = None
+        self._temp_dir = tempfile.TemporaryDirectory()
 
         # Parse window geometry from settings
         if not self._start_maximized:
@@ -249,12 +165,45 @@ class AsciiDocEditor(QMainWindow):
         if self._settings.last_file and Path(self._settings.last_file).is_file():
             self._current_file_path = Path(self._settings.last_file)
 
-        # Initialize AsciiDoc API
-        self._asciidoc_api = self._initialize_asciidoc()
+        # === Core Managers (Always Needed) ===
+        # These managers are used throughout initialization
+        self.status_manager = StatusManager(self)
+        self.theme_manager = ThemeManager(self)
 
-        # Setup preview timer
+        # === UI State & Coordination Managers ===
+        self.ui_state_manager = UIStateManager(self)
+        self.dialog_manager = DialogManager(self)
+        self.scroll_manager = ScrollManager(self)
+
+        # === File & Operations Managers ===
+        self.file_load_manager = FileLoadManager(self)
+        self.file_operations_manager = FileOperationsManager(self)
+        self.pandoc_result_handler = PandocResultHandler(self)
+
+        # === Resource Monitoring ===
+        self.resource_monitor = ResourceMonitor()
+        logger.info(
+            f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})"
+        )
+
+        # Large file handling
+        self.large_file_handler = LargeFileHandler()
+        self.large_file_handler.progress_update.connect(
+            self.file_load_manager.on_file_load_progress
+        )
+
+        # === Menu & Actions ===
+        # MenuManager initialization deferred until after UI setup
+        self.menu_manager = MenuManager(self)
+
+        # === Worker Thread Management ===
+        self.worker_manager = WorkerManager(self)
+
+        # === AsciiDoc Processing ===
+        self._asciidoc_api = self._initialize_asciidoc()
         self._preview_timer = self._setup_preview_timer()
 
+        # === Window Configuration ===
         self.setWindowTitle(f"{APP_NAME} · Basic Preview")
 
         if platform.system() == "Windows":
@@ -267,42 +216,44 @@ class AsciiDocEditor(QMainWindow):
                 | Qt.WindowType.WindowCloseButtonHint
             )
 
-        # Setup UI via UISetupManager (Phase 6b refactoring)
+        # === UI Setup ===
         self.ui_setup = UISetupManager(self)
         self.ui_setup.setup_ui()
 
-        # Initialize FileHandler (Phase 5: Refactoring)
+        # === File Operations ===
         self.file_handler = FileHandler(
             self.editor, self, self._settings_manager, self.status_manager
         )
-        # Start auto-save
         self.file_handler.start_auto_save(AUTO_SAVE_INTERVAL_MS)
 
-        # Initialize PreviewHandler (Phase 5: Refactoring)
+        # === Preview System ===
         self.preview_handler = PreviewHandler(self.editor, self.preview, self)
         self.preview_handler.start_preview_updates()
 
-        # Initialize GitHandler (Phase 5: Refactoring)
+        # === Git Integration ===
         self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)
 
-        # Grammar functionality removed - no longer needed
-        # self.grammar_manager = GrammarManager(self)
+        # === GitHub Integration ===
+        self.github_handler = GitHubHandler(
+            self, self._settings_manager, self.status_manager, self.git_handler
+        )
+
+        # === Grammar (Removed in v1.4.0) ===
         self.grammar_manager = None  # Placeholder for compatibility
 
-        # Initialize ActionManager (Phase 5: Refactoring)
+        # === Actions & Menus ===
         self.action_manager = ActionManager(self)
         self.action_manager.create_actions()
         self.action_manager.create_menus()
 
-        # Initialize ExportManager (Phase 5: Refactoring)
+        # === Export System ===
         self.export_manager = ExportManager(self)
 
-        # Initialize EditorState (Phase 5: Refactoring)
+        # === Editor State ===
         self.editor_state = EditorState(self)
 
-        # Restore UI settings using manager
+        # === Finalization ===
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
-        # Phase 2: Use manager classes for theme setup
         self.theme_manager.apply_theme()
         self._setup_workers_and_threads()
         self._update_ui_state()
@@ -505,6 +456,31 @@ class AsciiDocEditor(QMainWindow):
         """Trigger Git push (delegates to GitHandler)."""
         self.git_handler.push_changes()
 
+    def _trigger_github_create_pr(self) -> None:
+        """Create GitHub pull request (delegates to GitHubHandler)."""
+        if hasattr(self, "github_handler"):
+            self.github_handler.create_pull_request()
+
+    def _trigger_github_list_prs(self) -> None:
+        """List GitHub pull requests (delegates to GitHubHandler)."""
+        if hasattr(self, "github_handler"):
+            self.github_handler.list_pull_requests()
+
+    def _trigger_github_create_issue(self) -> None:
+        """Create GitHub issue (delegates to GitHubHandler)."""
+        if hasattr(self, "github_handler"):
+            self.github_handler.create_issue()
+
+    def _trigger_github_list_issues(self) -> None:
+        """List GitHub issues (delegates to GitHubHandler)."""
+        if hasattr(self, "github_handler"):
+            self.github_handler.list_issues()
+
+    def _trigger_github_repo_info(self) -> None:
+        """Show GitHub repository info (delegates to GitHubHandler)."""
+        if hasattr(self, "github_handler"):
+            self.github_handler.get_repo_info()
+
     def _ensure_git_ready(self) -> bool:
         """Ensure Git is ready (delegates to GitHandler)."""
         return self.git_handler._ensure_ready()
@@ -513,6 +489,14 @@ class AsciiDocEditor(QMainWindow):
     def _handle_git_result(self, result: GitResult) -> None:
         """Handle Git result (delegates to GitHandler)."""
         self.git_handler.handle_git_result(result)
+
+    @Slot(object)
+    def _handle_github_result(self, result) -> None:
+        """Handle GitHub result (delegates to GitHubHandler)."""
+        from asciidoc_artisan.core import GitHubResult
+
+        if isinstance(result, GitHubResult):
+            self.github_handler.handle_github_result(result)
 
     @Slot(str, str)
     def _handle_pandoc_result(self, result: str, context: str) -> None:

@@ -20,6 +20,7 @@ It:
 - Opens Word, PDF, Markdown files (10-50x faster with GPU)
 - Saves to Word, PDF, Markdown
 - Uses Git to save versions
+- Works with GitHub (make PRs and issues)
 - Works on all computers
 - Uses GPU for speed (10-50x faster preview with hardware acceleration)
 - Uses NPU for AI tasks when available
@@ -221,6 +222,92 @@ The program MUST show Git status.
 **Test**: In Git folder, status bar shows folder name.
 
 **Test**: Not in Git folder, shows "Not in Git".
+
+---
+
+## GitHub Rules (v1.6.0)
+
+### Rule: Use GitHub From App
+
+The program MUST work with GitHub.
+
+**Test**: In Git folder with GitHub, menu shows "GitHub".
+
+**Test**: Not in GitHub repo, shows error.
+
+### Rule: Make Pull Request
+
+The program MUST let you make pull requests.
+
+**Test**: Click Git → GitHub → Create Pull Request. Dialog must show.
+
+**Test**: Fill in title and branch. PR must be made.
+
+**Test**: Empty title must show red box.
+
+### Rule: See All Pull Requests
+
+The program MUST show all pull requests.
+
+**Test**: Click Git → GitHub → List Pull Requests. Table must show.
+
+**Test**: Filter by Open/Closed/Merged/All. List must update.
+
+**Test**: Double-click row. PR must open in web.
+
+### Rule: Make Issue
+
+The program MUST let you make issues.
+
+**Test**: Click Git → GitHub → Create Issue. Dialog must show.
+
+**Test**: Fill in title. Issue must be made.
+
+**Test**: Empty title must show red box.
+
+### Rule: See All Issues
+
+The program MUST show all issues.
+
+**Test**: Click Git → GitHub → List Issues. Table must show.
+
+**Test**: Filter by Open/Closed/All. List must update.
+
+**Test**: Double-click row. Issue must open in web.
+
+### Rule: Show Repo Info
+
+The program MUST show GitHub info.
+
+**Test**: Click Git → GitHub → Repository Info. Info must show.
+
+**Test**: See repo name, owner, and web link.
+
+### Rule: GitHub Runs In Background
+
+The program MUST do GitHub work in background.
+
+**Test**: While making PR, window must still work.
+
+**Test**: While loading PRs, window must still work.
+
+### Rule: GitHub Has Timeout
+
+The program MUST wait 60 seconds max.
+
+**Test**: If slow, must stop after 60 seconds.
+
+**Test**: Must show "timeout" message.
+
+### Rule: GitHub Shows Errors
+
+The program MUST show clear error messages.
+
+**Test**: No gh CLI installed. Shows "gh not found" message.
+
+**Test**: Not logged in. Shows "run gh auth login" message.
+
+**Test**: No network. Shows "check connection" message.
 
 ---
 
@@ -833,12 +920,22 @@ Things for later:
 - Print preview
 - Change colors
 
-### Git
+### Git - ✅ PARTLY IMPLEMENTED (v1.6.0)
 
+**Current Features**:
+- ✅ Make pull requests (v1.6.0)
+- ✅ See pull requests (v1.6.0)
+- ✅ Make issues (v1.6.0)
+- ✅ See issues (v1.6.0)
+- ✅ See repo info (v1.6.0)
+
+**Future Features**:
 - See old versions
 - Compare versions
 - Use branches
 - Merge help
+- Edit pull requests
+- Comment on issues
 
 ### Teams
 
@@ -880,16 +977,16 @@ Things for later:
 ## Summary
 
 **What It Does**:
-Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Changes file types. Shows document version. Starts in 1 second. Can cancel tasks.
+Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Works with GitHub. Changes file types. Shows document version. Starts in 1 second. Can cancel tasks.
 
 **Who It's For**:
 Writers, coders, students, teachers, teams.
 
 **Main Parts**:
-GPU-accelerated preview, file changes, Git, works everywhere, safe, fast startup, clean code.
+GPU-accelerated preview, file changes, Git, GitHub integration, works everywhere, safe, fast startup, clean code.
 
 **Status**:
-Version 1.5.0 - Complete
+Version 1.5.0 - Complete | v1.6.0 - In Progress (GitHub Integration)
 
 **Reading Level**:
 Grade 5.0 - Easy to read!

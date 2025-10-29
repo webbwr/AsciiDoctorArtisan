@@ -68,6 +68,11 @@ class ActionManager:
         self.git_commit_act: QAction
         self.git_pull_act: QAction
         self.git_push_act: QAction
+        self.github_create_pr_act: QAction
+        self.github_list_prs_act: QAction
+        self.github_create_issue_act: QAction
+        self.github_list_issues_act: QAction
+        self.github_repo_info_act: QAction
         self.pandoc_status_act: QAction
         self.pandoc_formats_act: QAction
         self.ollama_status_act: QAction
@@ -294,6 +299,42 @@ class ActionManager:
             triggered=self.window._trigger_git_push,
         )
 
+        # GitHub menu actions
+        self.github_create_pr_act = QAction(  # type: ignore[call-overload]
+            "Create &Pull Request...",
+            self.window,
+            statusTip="Create a GitHub pull request",
+            triggered=self.window._trigger_github_create_pr,
+        )
+
+        self.github_list_prs_act = QAction(  # type: ignore[call-overload]
+            "&List Pull Requests",
+            self.window,
+            statusTip="List GitHub pull requests",
+            triggered=self.window._trigger_github_list_prs,
+        )
+
+        self.github_create_issue_act = QAction(  # type: ignore[call-overload]
+            "Create &Issue...",
+            self.window,
+            statusTip="Create a GitHub issue",
+            triggered=self.window._trigger_github_create_issue,
+        )
+
+        self.github_list_issues_act = QAction(  # type: ignore[call-overload]
+            "List &Issues",
+            self.window,
+            statusTip="List GitHub issues",
+            triggered=self.window._trigger_github_list_issues,
+        )
+
+        self.github_repo_info_act = QAction(  # type: ignore[call-overload]
+            "Repository &Info",
+            self.window,
+            statusTip="Show GitHub repository information",
+            triggered=self.window._trigger_github_repo_info,
+        )
+
         # Tools menu actions
         self.pandoc_status_act = QAction(  # type: ignore[call-overload]
             "&Pandoc Status",
@@ -387,6 +428,17 @@ class ActionManager:
         git_menu.addAction(self.git_commit_act)
         git_menu.addAction(self.git_pull_act)
         git_menu.addAction(self.git_push_act)
+
+        # GitHub submenu
+        git_menu.addSeparator()
+        github_submenu = git_menu.addMenu("Git&Hub")
+        github_submenu.addAction(self.github_create_pr_act)
+        github_submenu.addAction(self.github_list_prs_act)
+        github_submenu.addSeparator()
+        github_submenu.addAction(self.github_create_issue_act)
+        github_submenu.addAction(self.github_list_issues_act)
+        github_submenu.addSeparator()
+        github_submenu.addAction(self.github_repo_info_act)
 
         # Tools menu (sorted alphabetically)
         tools_menu = menubar.addMenu("&Tools")
