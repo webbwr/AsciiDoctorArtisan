@@ -1,0 +1,250 @@
+#!/bin/bash
+# Grandmaster Technical Writer - CLI Wrapper
+# Provides easy command-line access to the grandmaster techwriter skill
+
+set -e
+
+VERSION="1.0.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Help text
+show_help() {
+    cat << EOF
+Grandmaster Technical Writer v${VERSION}
+
+USAGE:
+    techwriter <command> [file] [options]
+
+COMMANDS:
+    check <file>     Check readability of a file
+    score <file>     Get detailed readability score
+    watch <file>     Monitor file and auto-check on changes
+    batch <dir>      Check all documentation in directory
+    report <file>    Generate full verification report
+    help             Show this help message
+    version          Show version
+
+OPTIONS:
+    --json           Output in JSON format
+    --quiet          Minimal output
+    --strict         Fail on Grade >5.0 (default: warn only)
+
+EXAMPLES:
+    # Check single file
+    techwriter check README.md
+
+    # Score with JSON output
+    techwriter score docs/guide.md --json
+
+    # Watch file for changes
+    techwriter watch CONTRIBUTING.md
+
+    # Check all docs
+    techwriter batch docs/
+
+    # Generate full report
+    techwriter report SPECIFICATIONS.md
+
+STANDARDS:
+    Target Grade Level: ≤5.0 (5th grade)
+    Reading Ease: ≥70 (Easy)
+    Sentence Length: ≤15 words average
+    Syllables/Word: ≤1.5 average
+
+    All documentation must pass these standards before commit.
+
+AUTO-ACTIVATION:
+    This skill auto-activates when Claude Code detects documentation
+    operations. You don't need to invoke it manually most of the time.
+
+    Auto-triggers:
+    - Writing/editing .md, .rst, .adoc, .txt files
+    - Creating README, CONTRIBUTING, CHANGELOG files
+    - Any "document" or "explain" operation
+
+SEE ALSO:
+    - .claude/skills/grandmaster-techwriter.md
+    - python3 scripts/readability_check.py --help
+
+EOF
+}
+
+# Check command
+cmd_check() {
+    local file="$1"
+    local opts="${@:2}"
+
+    if [ ! -f "$file" ]; then
+        echo -e "${RED}✗ Error:${NC} File not found: $file"
+        exit 1
+    fi
+
+    echo -e "${BLUE}Checking:${NC} $file"
+    echo ""
+
+    if python3 "$SCRIPT_DIR/readability_check.py" "$file" $opts; then
+        echo ""
+        echo -e "${GREEN}✓ PASS${NC}: Document meets Grade 5.0 standards"
+        return 0
+    else
+        echo ""
+        echo -e "${YELLOW}ℹ Recommendation:${NC} Use grandmaster techwriter to improve:"
+        echo "  @grandmaster-techwriter $file"
+        return 1
+    fi
+}
+
+# Score command (detailed)
+cmd_score() {
+    local file="$1"
+    local opts="${@:2}"
+
+    if [ ! -f "$file" ]; then
+        echo -e "${RED}✗ Error:${NC} File not found: $file"
+        exit 1
+    fi
+
+    python3 "$SCRIPT_DIR/readability_check.py" "$file" $opts
+}
+
+# Watch command
+cmd_watch() {
+    local file="$1"
+
+    if [ ! -f "$file" ]; then
+        echo -e "${RED}✗ Error:${NC} File not found: $file"
+        exit 1
+    fi
+
+    echo -e "${BLUE}Watching:${NC} $file"
+    echo "Press Ctrl+C to stop"
+    echo ""
+
+    # Check if fswatch is available
+    if ! command -v fswatch &> /dev/null; then
+        echo -e "${YELLOW}⚠ Warning:${NC} fswatch not installed, using basic polling"
+        echo "Install: brew install fswatch (Mac) or apt install fswatch (Linux)"
+        echo ""
+
+        # Fallback to basic polling
+        while true; do
+            if [ "$file" -nt "/tmp/.techwriter_last_check" ]; then
+                touch "/tmp/.techwriter_last_check"
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "File changed at $(date '+%H:%M:%S')"
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                cmd_check "$file" --quiet || true
+                echo ""
+            fi
+            sleep 2
+        done
+    else
+        # Use fswatch for real-time monitoring
+        touch "/tmp/.techwriter_last_check"
+        fswatch -o "$file" | while read; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "File changed at $(date '+%H:%M:%S')"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            cmd_check "$file" --quiet || true
+            echo ""
+        done
+    fi
+}
+
+# Batch command
+cmd_batch() {
+    local dir="${1:-.}"
+    local opts="${@:2}"
+
+    if [ ! -d "$dir" ]; then
+        echo -e "${RED}✗ Error:${NC} Directory not found: $dir"
+        exit 1
+    fi
+
+    echo -e "${BLUE}Checking all documentation in:${NC} $dir"
+    echo ""
+
+    local total=0
+    local passed=0
+    local failed=0
+
+    # Find all documentation files
+    while IFS= read -r -d '' file; do
+        total=$((total + 1))
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "[$total] $file"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        if python3 "$SCRIPT_DIR/readability_check.py" "$file" --quiet $opts 2>&1 | grep -q "✓ PASS"; then
+            echo -e "${GREEN}✓ PASS${NC}"
+            passed=$((passed + 1))
+        else
+            echo -e "${RED}✗ FAIL${NC}"
+            failed=$((failed + 1))
+        fi
+        echo ""
+    done < <(find "$dir" -type f \( -name "*.md" -o -name "*.rst" -o -name "*.adoc" -o -name "*.txt" \) -print0)
+
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Summary"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Total:  $total files"
+    echo -e "Passed: ${GREEN}$passed${NC} files"
+    echo -e "Failed: ${RED}$failed${NC} files"
+    echo ""
+
+    if [ $failed -gt 0 ]; then
+        return 1
+    fi
+}
+
+# Report command
+cmd_report() {
+    local file="$1"
+
+    if [ ! -f "$file" ]; then
+        echo -e "${RED}✗ Error:${NC} File not found: $file"
+        exit 1
+    fi
+
+    python3 "$SCRIPT_DIR/readability_check.py" "$file"
+}
+
+# Main command router
+case "${1:-help}" in
+    check)
+        cmd_check "${@:2}"
+        ;;
+    score)
+        cmd_score "${@:2}"
+        ;;
+    watch)
+        cmd_watch "${@:2}"
+        ;;
+    batch)
+        cmd_batch "${@:2}"
+        ;;
+    report)
+        cmd_report "${@:2}"
+        ;;
+    version)
+        echo "Grandmaster Technical Writer v${VERSION}"
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo -e "${RED}✗ Error:${NC} Unknown command: $1"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac

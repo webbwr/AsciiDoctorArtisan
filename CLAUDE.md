@@ -651,10 +651,20 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 **Claude Code Skills:**
 - **.claude/skills/grandmaster-techwriter.md** — Automatic Grade 5.0 technical writing
-  - Uses Japanese MA (minimalism) and Socratic principles
-  - Self-iterating until readability targets met
+  - **AUTO-ACTIVATED:** Always runs when writing/editing documentation
+  - Uses Japanese MA (minimalism), Socratic method, and Spec-Kit validation
+  - Self-iterating until Grade ≤5.0 + all checklists pass
   - Preserves 100% technical accuracy
-  - Usage: `@grandmaster-techwriter [file]`
+  - 7-phase structured process with "unit tests for English"
+  - Manual invocation: `@grandmaster-techwriter [file]`
+  - Validation: `python3 scripts/readability_check.py [file]`
+
+**Documentation Standards (Enforced):**
+- Target: Grade 5.0 reading level (Flesch-Kincaid)
+- Minimum: 70+ reading ease score (Easy)
+- Sentence length: ≤15 words average
+- All technical terms explained on first use
+- All checklists must pass before commit
 
 ---
 

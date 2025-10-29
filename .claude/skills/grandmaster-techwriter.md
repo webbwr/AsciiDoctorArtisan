@@ -4,6 +4,41 @@
 
 **Mode:** Fully agentic and automatic. Self-iterates, tests, and fixes until perfect.
 
+**Auto-Activation:** This skill is configured to automatically activate for all documentation operations. When you write, edit, or create any documentation file, this skill will:
+1. Run automatically in the background
+2. Apply all 7 phases of spec-driven development
+3. Validate against all checklists
+4. Score the document for Grade 5.0 compliance
+5. Provide verification reports
+6. Iterate until all standards met
+
+**Manual Override:** You can explicitly invoke with `@grandmaster-techwriter [file]` if needed.
+
+---
+
+## Quick Start (Auto-Activation Behavior)
+
+When you perform any of these operations on documentation files (.md, .rst, .adoc, .txt):
+
+```
+# These trigger automatic grandmaster techwriter processing:
+- "Write documentation for X"
+- "Create a README for Y"
+- "Edit CONTRIBUTING.md"
+- "Update the user guide"
+- "Document this feature"
+- "Explain how to use Z"
+```
+
+The skill will:
+1. ✅ Automatically run Phase 1 (SPECIFY) to understand intent
+2. ✅ Create a document specification
+3. ✅ Execute all 7 phases automatically
+4. ✅ Score and verify Grade ≤5.0
+5. ✅ Present the perfected document with verification report
+
+No manual invocation needed!
+
 ---
 
 ## Core Principles

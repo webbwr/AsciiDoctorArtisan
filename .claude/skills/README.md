@@ -22,18 +22,31 @@ This directory contains custom skills for Claude Code.
 - Living documentation approach
 - User delight optimization
 
-**Usage:**
-```
-@grandmaster-techwriter [file-to-improve]
-```
+**Auto-Activation:** ✅ ENABLED
 
-Or in conversation:
-```
-Write documentation for [topic] using the grandmaster-techwriter skill
+This skill automatically activates for all documentation operations:
+- Writing/editing .md, .rst, .adoc, .txt files
+- Creating README, CONTRIBUTING, CHANGELOG files
+- Any operation involving "document" or "explain"
+
+No manual invocation needed! The skill runs automatically, scores documents, and ensures Grade 5.0 compliance.
+
+**Manual Usage (if needed):**
+```bash
+@grandmaster-techwriter [file-to-improve]
+
+# Or use CLI wrapper
+./scripts/techwriter check README.md
+./scripts/techwriter watch docs/guide.md
+./scripts/techwriter batch docs/
 ```
 
 **Supporting Tools:**
 - `scripts/readability_check.py` - Automatic readability verification
+- `scripts/techwriter` - CLI wrapper with watch/batch modes
+- `.claude/config.json` - Auto-activation configuration
+- `.git/hooks/pre-commit-readability` - Git hook for validation
+- `.pre-commit-config.yaml` - Pre-commit readability check
 
 ## Testing Readability
 

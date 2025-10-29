@@ -29,3 +29,14 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: mixed-line-ending
+
+  # Documentation readability check (Grade 5.0 standard)
+  - repo: local
+    hooks:
+      - id: readability-check
+        name: Documentation Readability (Grade 5.0)
+        entry: python3 scripts/readability_check.py
+        language: system
+        files: \.(md|rst|adoc|txt)$
+        pass_filenames: true
+        stages: [commit]
