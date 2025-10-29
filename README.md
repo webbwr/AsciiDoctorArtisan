@@ -305,7 +305,7 @@ This is free! MIT License.
 
 Need help?
 - [How to Use](docs/how-to-use.md) - All features
-- [GPU Documentation](GPU_NPU_ACCELERATION_IMPLEMENTATION.md) - Hardware acceleration details
+- [GitHub Integration](docs/GITHUB_CLI_INTEGRATION.md) - Pull requests and issues
 - Look at GitHub
 - Make a new issue
 
@@ -319,9 +319,10 @@ Need help?
 - ✅ Fast startup (1.05 seconds)
 - ✅ Worker pool system
 - ✅ Operation cancellation
-- ✅ 60%+ test coverage (681+ tests)
-- ✅ Main window: 577 lines (66% smaller)
+- ✅ 60%+ test coverage (481+ tests, 69 test files)
+- ✅ Main window: 561 lines (67% smaller)
 - ✅ GPU acceleration (10-50x faster from v1.4.0)
+- ✅ Grandmaster TechWriter skill (automatic Grade 5.0 docs)
 
 ## Thank You
 

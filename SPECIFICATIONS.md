@@ -1,8 +1,8 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.5.0
-**Last Updated**: October 28, 2025
+**Version**: 1.5.0 (complete) / 1.6.0 (in progress)
+**Last Updated**: October 29, 2025
 
 ## What This Is
 
@@ -996,4 +996,4 @@ GPU (NVIDIA, AMD, Intel), NPU (Intel), CPU (all systems)
 
 ---
 
-**Doc Info**: Main rules | Grade 5.0 | v1.5.0 | October 28, 2025
+**Doc Info**: Main rules | Grade 5.0 | v1.5.0/v1.6.0 | October 29, 2025
