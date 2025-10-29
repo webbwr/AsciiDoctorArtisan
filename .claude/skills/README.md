@@ -8,12 +8,18 @@ This directory contains custom skills for Claude Code.
 
 **Purpose:** Write and verify technical documentation at ≤5th grade reading level while preserving all technical content.
 
+**Methodology:** Combines three powerful approaches:
+- **Japanese MA (間)** - Minimalism and negative space
+- **Socratic Method** - Questions guide discovery
+- **GitHub Spec-Kit** - Spec-driven development with validation
+
 **Key Features:**
+- 7-phase spec-driven process (Specify → Plan → Draft → Analyze → Refine → Validate → Delight)
+- "Unit tests for English" (completeness, clarity, consistency checklists)
 - Automatic readability testing (Flesch-Kincaid)
-- Japanese MA (間) principles - minimalism and negative space
-- Socratic teaching method - questions guide understanding
-- Self-iterating until Grade 5.0 achieved
+- Self-iterating until Grade 5.0 + all checklists pass
 - Technical accuracy verification
+- Living documentation approach
 - User delight optimization
 
 **Usage:**

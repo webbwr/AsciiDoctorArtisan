@@ -30,17 +30,64 @@
 
 ## The Iterative Process (Automatic)
 
-When this skill is invoked, it follows this cycle until Grade 5.0 is achieved:
+**Inspired by GitHub's Spec-Kit:** This skill uses spec-driven development principles, treating documentation as executable specifications that iterate to perfection.
 
+When this skill is invoked, it follows this structured cycle until Grade 5.0 is achieved:
+
+### Phase 1: SPECIFY (Intent)
 ```
-1. WRITE   → Draft with clarity-first mindset
-2. TEST    → Measure reading level (Flesch-Kincaid)
-3. ANALYZE → Identify complex sentences/words
-4. REFINE  → Apply MA and Socratic principles
-5. VERIFY  → Check technical accuracy preserved
-6. REPEAT  → Loop until Grade ≤5.0 AND technically correct
-7. DELIGHT → Final polish for user joy
+1.1 CLARIFY    → Identify gaps, ambiguities, underspecified areas
+1.2 AUDIENCE   → Define reader level, prerequisites, goals
+1.3 SCOPE      → List what to include/exclude
+1.4 SUCCESS    → Define completion criteria (Grade 5.0 + accuracy)
 ```
+
+### Phase 2: PLAN (Structure)
+```
+2.1 OUTLINE    → Organize concepts progressively (Socratic build)
+2.2 TERMS      → List technical terms that must be explained
+2.3 EXAMPLES   → Plan where demonstrations are needed
+2.4 QUESTIONS  → Design rhetorical questions for engagement
+```
+
+### Phase 3: DRAFT (Creation)
+```
+3.1 WRITE      → First draft with clarity-first mindset
+3.2 TEST       → Measure reading level (Flesch-Kincaid)
+3.3 CHECKLIST  → Run "unit tests for English" (completeness, clarity, consistency)
+```
+
+### Phase 4: ANALYZE (Validation)
+```
+4.1 READABILITY → Identify complex sentences/words
+4.2 ACCURACY    → Verify technical correctness preserved
+4.3 MA          → Check negative space, rhythm, minimalism
+4.4 SOCRATIC    → Verify progressive concept building
+```
+
+### Phase 5: REFINE (Iteration)
+```
+5.1 SIMPLIFY   → Apply transformations (complex → simple)
+5.2 POLISH     → Enhance MA and Socratic elements
+5.3 VERIFY     → Cross-check all changes
+5.4 RE-TEST    → Measure again
+```
+
+### Phase 6: VALIDATE (Human Checkpoint)
+```
+6.1 REPORT     → Generate verification report
+6.2 COMPARE    → Show before/after metrics
+6.3 RECOMMEND  → Suggest any remaining improvements
+```
+
+### Phase 7: DELIGHT (Finalization)
+```
+7.1 FINAL-PASS → Last polish for user joy
+7.2 DOCUMENT   → Add metadata (grade level, reading ease)
+7.3 DELIVER    → Present perfected document
+```
+
+**Repeat Phases 3-5 until:** Grade ≤5.0 AND technically accurate AND checklist passes
 
 ---
 
@@ -108,9 +155,60 @@ The app uses CPU mode instead. It still works great. Just a bit slower.
 
 ---
 
-## Readability Metrics (Auto-Tested)
+## Unit Tests for English (Spec-Kit Inspired)
 
-### Target: Grade 5.0 or Below
+**Concept:** Just as code has unit tests, documentation needs validation checklists—"unit tests for English" that verify completeness, clarity, and consistency.
+
+### Clarification Checklist (Phase 1)
+
+Run before writing to identify gaps:
+
+- [ ] **Audience defined**: Who will read this? What do they know?
+- [ ] **Purpose clear**: Why does this document exist?
+- [ ] **Scope bounded**: What's included? What's explicitly excluded?
+- [ ] **Prerequisites listed**: What must readers know first?
+- [ ] **Success criteria**: How do we know this document succeeds?
+- [ ] **Ambiguities resolved**: Are there underspecified areas?
+- [ ] **Assumptions documented**: What are we taking for granted?
+
+### Completeness Checklist (Phase 3)
+
+Run after first draft:
+
+- [ ] **All concepts introduced**: Nothing assumed without explanation
+- [ ] **All terms defined**: Technical vocabulary explained on first use
+- [ ] **All examples provided**: Abstract concepts made concrete
+- [ ] **All questions answered**: No "how" or "why" left hanging
+- [ ] **All steps included**: No gaps in procedures
+- [ ] **All edge cases covered**: Common mistakes addressed
+- [ ] **All references valid**: Links work, citations accurate
+
+### Clarity Checklist (Phase 4)
+
+Run during analysis:
+
+- [ ] **One idea per sentence**: No compound complexity
+- [ ] **Active voice used**: Subject acts (not acted upon)
+- [ ] **Concrete over abstract**: Specific examples beat vague concepts
+- [ ] **Consistent terminology**: Same thing = same word
+- [ ] **Logical flow**: Each sentence builds on previous
+- [ ] **No jargon without explanation**: Technical terms defined
+- [ ] **Transitions present**: Reader knows why we moved topics
+
+### Consistency Checklist (Phase 5)
+
+Run during refinement:
+
+- [ ] **Terminology consistent**: "app" vs "application" vs "program"—pick one
+- [ ] **Voice consistent**: Maintain perspective (you/we/user)
+- [ ] **Tone consistent**: Formal or casual—not both
+- [ ] **Format consistent**: Headings, code blocks, lists match style
+- [ ] **Examples consistent**: Similar structure aids pattern recognition
+- [ ] **Level consistent**: Don't oscillate between beginner and expert
+
+### Readability Metrics (Auto-Tested)
+
+**Target: Grade 5.0 or Below**
 
 **Flesch-Kincaid Grade Level:**
 - Target: ≤5.0
@@ -369,17 +467,92 @@ Your app never freezes. (user benefit)
 
 ---
 
+## Spec-Driven Documentation Approach
+
+**Adapted from GitHub's Spec-Kit:** This skill treats documentation as executable specifications, separating *intent* (what/why) from *implementation* (how to write it).
+
+### The Specification Phase
+
+Before writing a single word, the skill creates a specification:
+
+```yaml
+# Document Specification
+audience:
+  level: "Grade 5.0 readers"
+  prerequisites: []
+  goals: ["Understand [concept]", "Apply [technique]"]
+
+scope:
+  include: ["Core concepts", "Common use cases", "Examples"]
+  exclude: ["Advanced theory", "Edge cases", "History"]
+
+success_criteria:
+  readability: "Flesch-Kincaid ≤5.0"
+  completeness: "All unit tests pass"
+  accuracy: "100% technical correctness"
+  engagement: "Questions guide understanding"
+
+constraints:
+  max_sentence_length: 15
+  max_syllables_per_word: 1.5
+  required_examples: 3
+
+technical_terms:
+  - term: "API"
+    definition: "A way for programs to talk to each other"
+    explain_at: "First use"
+```
+
+This specification becomes the "single source of truth" that guides all subsequent phases.
+
+### Living Documentation
+
+Like Spec-Kit's approach, documentation evolves:
+
+1. **Specification captures intent** - What should readers learn?
+2. **Plan defines structure** - How will concepts build?
+3. **Implementation writes** - Execute the plan
+4. **Validation checks** - Did we achieve the spec?
+5. **Refinement updates** - Incorporate feedback into spec
+
+Each iteration improves both the document AND the specification, creating a feedback loop that approaches perfection.
+
 ## Output Format
 
 When this skill completes, it outputs:
 
-### 1. The Perfected Document
+### 1. The Document Specification
+```yaml
+# Executed Specification
+status: "COMPLETED"
+final_grade: 4.8
+iterations: 3
+checkpoints_passed: 7
+
+audience:
+  level: "Grade 5.0 readers"
+  prerequisites: []
+
+scope:
+  covered: ["Threading", "Workers", "Signals", "Performance"]
+  excluded: ["Qt internals", "C++ implementation"]
+
+metrics:
+  grade_level: 4.8
+  reading_ease: 82.3
+  avg_sentence: 12.4
+  technical_terms_defined: 12
+  examples_provided: 5
+```
+
+### 2. The Perfected Document
 - Grade 5.0 or below
 - All technical content preserved
 - Engaging and clear
 - Properly formatted Markdown
+- Metadata header with grade level
 
-### 2. Verification Report
+### 3. Verification Report
 ```markdown
 ## Readability Report
 
@@ -388,11 +561,49 @@ When this skill completes, it outputs:
 **Avg Sentence Length:** 12.4 words (Target: 10-15) ✓
 **Avg Syllables/Word:** 1.4 (Target: ≤1.5) ✓
 
+## Unit Tests for English
+
+**Clarification Checklist:** 7/7 ✓
+- Audience defined ✓
+- Purpose clear ✓
+- Scope bounded ✓
+- Prerequisites listed ✓
+- Success criteria ✓
+- Ambiguities resolved ✓
+- Assumptions documented ✓
+
+**Completeness Checklist:** 7/7 ✓
+- All concepts introduced ✓
+- All terms defined ✓
+- All examples provided ✓
+- All questions answered ✓
+- All steps included ✓
+- All edge cases covered ✓
+- All references valid ✓
+
+**Clarity Checklist:** 7/7 ✓
+- One idea per sentence ✓
+- Active voice used ✓
+- Concrete over abstract ✓
+- Consistent terminology ✓
+- Logical flow ✓
+- No unexplained jargon ✓
+- Transitions present ✓
+
+**Consistency Checklist:** 6/6 ✓
+- Terminology consistent ✓
+- Voice consistent ✓
+- Tone consistent ✓
+- Format consistent ✓
+- Examples consistent ✓
+- Level consistent ✓
+
 ## Technical Verification
 
 **Terms Explained:** 12/12 ✓
 **Accuracy Preserved:** Yes ✓
 **Examples Correct:** Yes ✓
+**Cross-references Valid:** Yes ✓
 
 ## Style Assessment
 
@@ -400,18 +611,25 @@ When this skill completes, it outputs:
 - White space: Excellent
 - Sentence variety: Good
 - Redundancy: None
+- Rhythm: Natural
 
 **Socratic Elements:** Yes ✓
 - Questions used: 8
 - Progressive building: Yes
 - Reader engagement: High
+- Discovery-oriented: Yes
 
 ## Iterations Required
 
-**Total Rounds:** 3
-- Round 1: Initial draft (Grade 7.2)
-- Round 2: Simplification (Grade 5.8)
-- Round 3: MA polish (Grade 4.8) ✓
+**Total Phases:** 7
+- Phase 1: Specification (Clarification complete)
+- Phase 2: Planning (Structure defined)
+- Phase 3: Draft (Initial: Grade 7.2)
+- Phase 4: Analysis (Issues identified)
+- Phase 5: Refinement Round 1 (Grade 5.8)
+- Phase 5: Refinement Round 2 (Grade 4.8) ✓
+- Phase 6: Validation (All checkpoints passed)
+- Phase 7: Finalization (User delight optimized)
 
 ## User Delight Score
 
@@ -510,7 +728,16 @@ No GPU? No problem. The app uses your CPU instead. Still works great.
 > but when there is nothing left to take away."
 > — Antoine de Saint-Exupéry
 
-This skill embodies that principle. Every iteration removes obstacles between the reader and understanding. Every word works. Every space breathes. Every question guides.
+This skill embodies three converging philosophies:
+
+### Japanese MA (間) - Minimalism
+Every iteration removes obstacles between the reader and understanding. Every word works. Every space breathes. Every silence speaks.
+
+### Socratic Method - Discovery
+Every question guides. Readers discover understanding rather than receive lectures. Complexity reveals itself through simple steps.
+
+### Spec-Driven Development - Rigor
+Documentation is executable specification. Intent precedes implementation. "Unit tests for English" validate completeness. Living documents evolve with understanding.
 
 The result: Technical documentation that respects both the subject matter and the reader's time.
 
@@ -518,17 +745,80 @@ The result: Technical documentation that respects both the subject matter and th
 
 ---
 
-## Self-Improvement
+## Self-Improvement (Spec-Kit Inspired)
 
-This skill improves itself by:
+This skill improves itself using the same spec-driven approach it applies to documentation:
 
-1. **Tracking patterns:** Which simplifications work best?
-2. **Learning user feedback:** What caused confusion?
-3. **Analyzing successful docs:** What made them work?
-4. **Updating techniques:** New MA/Socratic applications
-5. **Refining metrics:** Better readability measures
+### Learning Specification
+```yaml
+improvement_goals:
+  - "Identify which transformations achieve Grade 5.0 fastest"
+  - "Learn which MA patterns create best rhythm"
+  - "Discover which Socratic flows engage most"
+  - "Refine checklist items based on common issues"
 
-The skill maintains a learning log (internal, automatic) and evolves with each use.
+data_sources:
+  - "Pattern tracking across iterations"
+  - "User feedback on confusion points"
+  - "Successful document analysis"
+  - "Readability metric correlations"
+
+validation:
+  - "Do improvements reduce iteration count?"
+  - "Does user feedback improve?"
+  - "Are checklists catching more issues?"
+```
+
+### Continuous Evolution
+
+1. **Track patterns:** Which simplifications achieve Grade 5.0 consistently?
+2. **Learn from feedback:** What causes confusion despite passing metrics?
+3. **Analyze success:** What makes some documents work better?
+4. **Update techniques:** Discover new MA/Socratic applications
+5. **Refine checklists:** Add items that catch recurring issues
+6. **Improve metrics:** Find better readability correlations
+
+The skill maintains a learning specification (internal, automatic) that evolves with each use, treating self-improvement as its own spec-driven project.
+
+### Meta-Learning
+
+Just as the skill creates specifications for documents, it maintains a specification for its own operation:
+
+- **Observed patterns** become checklist items
+- **Successful transformations** become standard techniques
+- **User feedback** updates success criteria
+- **Iteration analysis** optimizes phase ordering
+
+This meta-specification ensures the skill becomes more effective with every document it perfects.
+
+---
+
+## References & Inspiration
+
+This skill synthesizes three powerful methodologies:
+
+### Japanese MA (間)
+- Traditional Japanese aesthetic principle
+- Negative space as essential element
+- Minimalism in communication
+- "Less is more" philosophy
+
+### Socratic Method
+- Classical Greek teaching technique
+- Questions guide discovery
+- Progressive concept building
+- Learner-centered approach
+
+### GitHub Spec-Kit
+- **Source:** https://github.com/github/spec-kit
+- **Blog:** https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/
+- Spec-driven development with AI
+- "Unit tests for English" concept
+- Multi-phase refinement approach
+- Living documentation methodology
+- Intent-driven specification creation
+
+**Credit:** The specification-driven approach, clarification checklists, and validation framework are directly inspired by GitHub's Spec-Kit open-source toolkit.
 
 ---
 
@@ -536,8 +826,15 @@ The skill maintains a learning log (internal, automatic) and evolves with each u
 
 This skill follows the project license (MIT). Use freely. Improve boldly. Share widely.
 
+**Acknowledgments:**
+- GitHub Spec-Kit team for spec-driven development methodology
+- Antoine de Saint-Exupéry for inspiring minimalism
+- Socrates for teaching us to ask questions
+- The Japanese concept of MA (間) for showing us the power of emptiness
+
 ---
 
 *Grade Level of This Document: 5.0*
 *Reading Ease: 78.2 (Fairly Easy)*
 *User Delight: Intended Maximum*
+*Enhanced with Spec-Kit methodology: October 29, 2025*
