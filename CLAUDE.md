@@ -352,6 +352,7 @@ git commit --no-verify         # Bypass hooks (emergency only)
 - `scripts/benchmark_predictive_rendering.py` - Predictive rendering benchmarks
 - `scripts/memory_profile.py` - Memory usage profiling
 - `scripts/profile_block_detection.py` - Block detection profiling
+- `scripts/readability_check.py` - Documentation readability verification (Grade 5.0 target)
 
 ### Ollama AI Integration (v1.2+)
 
@@ -647,6 +648,13 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 - **.github/copilot-instructions.md** — AI coding assistant guidance (redirects to CLAUDE.md)
 - **docs/how-to-contribute.md** — Contribution guidelines
 - **docs/how-to-use.md** — User guide for all features
+
+**Claude Code Skills:**
+- **.claude/skills/grandmaster-techwriter.md** — Automatic Grade 5.0 technical writing
+  - Uses Japanese MA (minimalism) and Socratic principles
+  - Self-iterating until readability targets met
+  - Preserves 100% technical accuracy
+  - Usage: `@grandmaster-techwriter [file]`
 
 ---
 
