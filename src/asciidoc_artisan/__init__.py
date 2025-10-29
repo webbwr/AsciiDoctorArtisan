@@ -71,32 +71,46 @@ Usage:
 
 __version__ = "1.5.0"
 
-# Main Application
-# Settings & Models
-# File Operations
-# Constants (most commonly used)
-from .core import (
-    APP_NAME,
-    DEFAULT_FILENAME,
-    EDITOR_FONT_SIZE,
-    SETTINGS_FILENAME,
-    SUPPORTED_OPEN_FILTER,
-    SUPPORTED_SAVE_FILTER,
-    GitResult,
-    Settings,
-    atomic_save_json,
-    atomic_save_text,
-    sanitize_path,
-)
 
-# UI Dialogs
-from .ui import (
-    AsciiDocEditor,
-    PreferencesDialog,
-)
+def __getattr__(name: str):
+    """Lazy import for package exports to improve startup time."""
+    # Core exports
+    if name in ("APP_NAME", "DEFAULT_FILENAME", "EDITOR_FONT_SIZE",
+                "SETTINGS_FILENAME", "SUPPORTED_OPEN_FILTER", "SUPPORTED_SAVE_FILTER"):
+        from .core import (  # noqa: F401
+            APP_NAME,
+            DEFAULT_FILENAME,
+            EDITOR_FONT_SIZE,
+            SETTINGS_FILENAME,
+            SUPPORTED_OPEN_FILTER,
+            SUPPORTED_SAVE_FILTER,
+        )
+        return locals()[name]
 
-# Workers
-from .workers import GitWorker, PandocWorker, PreviewWorker
+    if name in ("GitResult", "Settings"):
+        from .core import GitResult, Settings  # noqa: F401
+        return locals()[name]
+
+    if name in ("atomic_save_json", "atomic_save_text", "sanitize_path"):
+        from .core import atomic_save_json, atomic_save_text, sanitize_path  # noqa: F401
+        return locals()[name]
+
+    # UI exports
+    if name == "AsciiDocEditor":
+        from .ui import AsciiDocEditor
+        return AsciiDocEditor
+
+    if name == "PreferencesDialog":
+        from .ui import PreferencesDialog
+        return PreferencesDialog
+
+    # Worker exports
+    if name in ("GitWorker", "PandocWorker", "PreviewWorker"):
+        from .workers import GitWorker, PandocWorker, PreviewWorker  # noqa: F401
+        return locals()[name]
+
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
 
 __all__ = [
     # Version

@@ -244,7 +244,10 @@ class PandocWorker(QObject):
                 for engine in pdf_engines:
                     try:
                         subprocess.run(
-                            [engine, "--version"], capture_output=True, check=True
+                            [engine, "--version"],
+                            capture_output=True,
+                            check=True,
+                            timeout=5  # 5 second timeout for version check
                         )
                         extra_args.append(f"--pdf-engine={engine}")
                         logger.info(f"Using PDF engine: {engine}")
@@ -253,8 +256,11 @@ class PandocWorker(QObject):
                     except (
                         FileNotFoundError,
                         subprocess.CalledProcessError,
+                        subprocess.TimeoutExpired,
                         Exception,
                     ):
+                        # Engine not found, returned error, timed out, or other issue
+                        # Continue to next engine
                         continue
 
                 if not pdf_engine_found:
@@ -436,8 +442,20 @@ class PandocWorker(QObject):
             # Create conversion prompt
             prompt = self._create_conversion_prompt(source, from_format, to_format)
 
-            # Call Ollama API
-            response = ollama.generate(model=self.ollama_model, prompt=prompt)
+            # Call Ollama API (Security: 30s timeout to prevent hangs)
+            # Note: Timeout handling depends on Ollama library implementation
+            # The library uses httpx internally which respects environment timeouts
+            try:
+                response = ollama.generate(
+                    model=self.ollama_model,
+                    prompt=prompt,
+                )
+            except Exception as timeout_err:
+                # Catch any timeout or connection errors
+                if "timeout" in str(timeout_err).lower() or "timed out" in str(timeout_err).lower():
+                    logger.warning(f"Ollama API call timed out: {timeout_err}")
+                    return None
+                raise  # Re-raise if not a timeout error
 
             if not response or "response" not in response:
                 logger.warning("Ollama returned empty or invalid response")

@@ -1,0 +1,14 @@
+AsciiDoc Artisan Test Coverage Summary
+Generated: 20251028_124440
+
+Coverage: %
+Target: 100%
+Minimum: 90%
+
+Test Exit Code: 0
+
+Reports:
+- HTML: htmlcov/index.html
+- JSON: coverage.json
+- XML: coverage.xml
+- Log: coverage_reports/test_run_20251028_124440.log

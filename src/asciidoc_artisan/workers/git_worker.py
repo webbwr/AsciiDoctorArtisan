@@ -118,6 +118,13 @@ class GitWorker(QObject):
 
             logger.info(f"Executing Git: {' '.join(command)} in {working_dir}")
 
+            # Determine timeout based on operation type
+            # Network operations (pull, push, fetch, clone) get 60s
+            # Local operations (commit, add, status, diff, log) get 30s
+            network_ops = {"pull", "push", "fetch", "clone"}
+            is_network_op = any(op in command for op in network_ops)
+            timeout_seconds = 60 if is_network_op else 30
+
             # SECURITY: Never use shell=True - always use list arguments to prevent command injection
             process = subprocess.run(
                 command,
@@ -128,6 +135,7 @@ class GitWorker(QObject):
                 shell=False,  # Critical: prevents command injection
                 encoding="utf-8",
                 errors="replace",
+                timeout=timeout_seconds,  # Security: Prevent indefinite hangs
             )
 
             exit_code = process.returncode
@@ -146,6 +154,16 @@ class GitWorker(QObject):
 
             self.command_complete.emit(result)
 
+        except subprocess.TimeoutExpired as e:
+            timeout_msg = (
+                f"Git operation timed out after {e.timeout}s. "
+                f"Command: {' '.join(command)}. "
+                "Check network connection or try again."
+            )
+            logger.error(timeout_msg)
+            self.command_complete.emit(
+                GitResult(False, "", timeout_msg, None, "Git operation timed out")
+            )
         except FileNotFoundError:
             error_msg = (
                 "Git command not found. Ensure Git is installed and in system PATH."

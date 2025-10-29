@@ -68,6 +68,7 @@ PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
 
 # File Size Thresholds
 LARGE_FILE_THRESHOLD_BYTES = 100000  # 100 KB
+MAX_FILE_SIZE_MB = 500  # Maximum file size for opening (Security: DoS prevention)
 
 # Status Messages
 MSG_SAVED_ASCIIDOC = "Saved as AsciiDoc: {}"

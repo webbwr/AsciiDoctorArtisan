@@ -21,6 +21,7 @@ from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QPlainTextEdit
 
 from asciidoc_artisan.core import (
+    MAX_FILE_SIZE_MB,
     SUPPORTED_OPEN_FILTER,
     SUPPORTED_SAVE_FILTER,
     atomic_save_text,
@@ -165,9 +166,36 @@ class FileHandler(QObject):
 
         Args:
             file_path: Path to file to load
+
+        Raises:
+            ValueError: If file size exceeds maximum allowed size
         """
         start_time = time.perf_counter()
         self.is_opening_file = True
+
+        # File size validation (Security: Prevent memory exhaustion - DoS prevention)
+        try:
+            file_size = file_path.stat().st_size
+            file_size_mb = file_size / (1024 * 1024)
+
+            if file_size > MAX_FILE_SIZE_MB * 1024 * 1024:
+                error_msg = (
+                    f"File too large: {file_size_mb:.1f}MB\n"
+                    f"Maximum allowed: {MAX_FILE_SIZE_MB}MB\n\n"
+                    f"Large files may cause the application to freeze or crash."
+                )
+                self.status_manager.show_message("critical", "File Too Large", error_msg)
+                self.is_opening_file = False
+                logger.warning(f"Rejected file {file_path.name}: {file_size_mb:.1f}MB > {MAX_FILE_SIZE_MB}MB")
+                return
+
+            # Log file size for monitoring
+            if file_size_mb > 10:
+                logger.info(f"Opening large file: {file_path.name} ({file_size_mb:.1f}MB)")
+
+        except Exception as e:
+            logger.error(f"Failed to check file size for {file_path}: {e}")
+            # Continue anyway - size check is advisory
 
         # Optional memory profiling (enabled via environment variable)
         import os

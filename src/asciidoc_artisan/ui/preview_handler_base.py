@@ -42,6 +42,18 @@ PREVIEW_FAST_INTERVAL_MS = 200  # For small documents
 PREVIEW_NORMAL_INTERVAL_MS = 500  # For medium documents
 PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
 
+# Content Security Policy for preview HTML (XSS protection)
+# Applied to all HTML rendered in preview widget (preview, errors, clear)
+CSP_POLICY = (
+    "default-src 'self'; "  # Only same-origin resources
+    "script-src 'unsafe-eval'; "  # Allow Qt runJavaScript() for scroll sync
+    "object-src 'none'; "  # Block plugins (Flash, etc.)
+    "style-src 'unsafe-inline'; "  # Allow inline CSS (required for AsciiDoc)
+    "img-src 'self' data:; "  # Images from same origin + data URIs
+    "base-uri 'self'; "  # Restrict base URL
+    "form-action 'none'"  # Block form submissions
+)
+
 
 class PreviewHandlerBase(QObject):
     """
@@ -203,7 +215,11 @@ class PreviewHandlerBase(QObject):
 
     def handle_preview_error(self, error: str) -> None:
         """
-        Handle preview rendering error.
+        Handle preview rendering error with security headers.
+
+        Security:
+            - Applies CSP to error display HTML to prevent XSS
+            - Same security policy as preview content
 
         Args:
             error: Error message
@@ -227,8 +243,11 @@ class PreviewHandlerBase(QObject):
             pre_bg = "#f8f9fa"
 
         error_html = f"""
+        <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy" content="{CSP_POLICY}">
             <style>
                 body {{
                     font-family: Arial, sans-serif;
@@ -262,21 +281,29 @@ class PreviewHandlerBase(QObject):
 
     def _wrap_with_css(self, html: str) -> str:
         """
-        Wrap HTML content with CSS styling.
+        Wrap HTML content with CSS styling and security headers.
+
+        Security:
+            - Content Security Policy (CSP) prevents XSS attacks
+            - Restricts script execution, plugin loading, and external resources
+            - Allows inline CSS for AsciiDoc styling requirements
 
         Args:
             html: HTML body content
 
         Returns:
-            Complete HTML with CSS
+            Complete HTML with CSS and CSP security headers
         """
         css = self.get_preview_css()
+
+        logger.debug("Applying Content Security Policy to preview HTML")
 
         return f"""
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy" content="{CSP_POLICY}">
             <style>
                 {css}
             </style>
@@ -492,8 +519,25 @@ class PreviewHandlerBase(QObject):
         pass
 
     def clear_preview(self) -> None:
-        """Clear preview content."""
-        self.preview.setHtml("<p>Preview cleared</p>")
+        """
+        Clear preview content with security headers.
+
+        Security:
+            - Applies CSP even to cleared/empty preview state
+        """
+        clear_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy" content="{CSP_POLICY}">
+        </head>
+        <body>
+            <p>Preview cleared</p>
+        </body>
+        </html>
+        """
+        self.preview.setHtml(clear_html)
         logger.debug("Preview cleared")
 
     def get_preview_html(self) -> str:

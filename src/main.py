@@ -1,141 +1,100 @@
 """
-AsciiDoc Artisan - Windows-Optimized Version
-============================================
+AsciiDoc Artisan - Cross-Platform AsciiDoc Editor
+==================================================
 
-Enhanced for Windows with proper window management, dynamic screen sizing,
-and improved file navigation.
+Fast desktop editor with live preview, GPU acceleration, and Git integration.
 """
 
 import logging
+import os
 import platform
 import sys
 import warnings
 
+# Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# Lazy imports for heavy modules (deferred until first use)
-# These are checked at runtime when needed, not at startup
+# Check AI client availability (lazy import)
 try:
     import ai_client  # noqa: F401
-
     AI_CLIENT_AVAILABLE = True
 except ImportError:
     AI_CLIENT_AVAILABLE = False
     logger.info("AI client not available. AI-enhanced conversion disabled.")
 
-# Import from refactored core module
-from PySide6.QtWidgets import (
-    QApplication,
-)
 
-from asciidoc_artisan.core import (
-    APP_NAME,
-)
-
-# Import from refactored workers module
-# Import from refactored UI module
-from asciidoc_artisan.ui import (
-    AsciiDocEditor,
-)
-
-# NOTE: pypandoc, document_converter, and asciidoc3 imports are now deferred
-# to where they're actually used. This improves startup time by ~500ms.
-# Availability is checked at runtime when these modules are needed.
-
-# ============================================================================
-# REFACTORING NOTE: Constants, Settings, GitResult, and file operations
-# have been extracted to asciidoc_artisan.core module (Phase 1 of architectural
-# refactoring to resolve technical debt per specification line 1197).
-# These are now imported above from asciidoc_artisan.core.
-# ============================================================================
-
-
-# ============================================================================
-# REFACTORING NOTE: Dialog class (PreferencesDialog) has been extracted to
-# asciidoc_artisan.ui.dialogs module (Phase 3 of architectural refactoring to
-# resolve technical debt per specification line 1197). This is now imported
-# above from asciidoc_artisan.ui.dialogs.
-# ============================================================================
-
-# ============================================================================
-# REFACTORING NOTE: Worker classes (GitWorker, PandocWorker, PreviewWorker)
-# have been extracted to asciidoc_artisan.workers module (Phase 2 of
-# architectural refactoring to resolve technical debt per specification line 1197).
-# These are now imported above from asciidoc_artisan.workers.
-# ============================================================================
-
-# ============================================================================
-# REFACTORING NOTE: AsciiDocEditor class has been extracted to
-# asciidoc_artisan.ui.main_window module (Phase 4 of architectural
-# refactoring to resolve technical debt per specification line 1197).
-# The class is now imported above from asciidoc_artisan.ui.
-# ============================================================================
-
-
-def main() -> None:
-
-    warnings.filterwarnings("ignore", category=SyntaxWarning)
-
-    # Enable GPU acceleration for Qt
-    # Must be set BEFORE creating QApplication
-    import os
-
+def _setup_gpu_acceleration() -> None:
+    """Configure Qt GPU/NPU acceleration environment variables."""
     os.environ.setdefault("QT_OPENGL", "desktop")
     os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
     os.environ.setdefault(
         "QTWEBENGINE_CHROMIUM_FLAGS",
-        "--enable-gpu-rasterization --enable-zero-copy --enable-hardware-overlays --enable-features=VaapiVideoDecoder,VaapiVideoEncoder --use-gl=desktop --disable-gpu-driver-bug-workarounds",
+        "--enable-gpu-rasterization --enable-zero-copy --enable-hardware-overlays "
+        "--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --use-gl=desktop "
+        "--disable-gpu-driver-bug-workarounds",
     )
-
     # Enable NPU/AI acceleration if available
-    os.environ.setdefault("OPENCV_DNN_BACKEND", "5")  # OpenVINO backend
-    os.environ.setdefault("OPENCV_DNN_TARGET", "6")  # NPU target
+    os.environ.setdefault("OPENCV_DNN_BACKEND", "5")  # OpenVINO
+    os.environ.setdefault("OPENCV_DNN_TARGET", "6")   # NPU
+    logger.info("GPU/NPU acceleration configured")
 
-    logger.info("GPU acceleration flags set for Qt")
 
-    # Start memory profiler if enabled (v1.4.1 optimization)
-    profiler = None
-    if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
-        from asciidoc_artisan.core import get_profiler
+def _create_app():
+    """Create and configure QApplication."""
+    from PySide6.QtWidgets import QApplication
 
-        profiler = get_profiler()
-        profiler.start()
-        logger.info("Memory profiling enabled")
-        profiler.take_snapshot("startup_begin")
+    from asciidoc_artisan.core import APP_NAME
 
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setOrganizationName("AsciiDoc Artisan")
 
-    if platform.system() == "Windows":
-        app.setStyle("windowsvista")
-    else:
-        app.setStyle("Fusion")
+    # Platform-specific styling
+    app.setStyle("windowsvista" if platform.system() == "Windows" else "Fusion")
+    return app
 
+
+def main() -> None:
+    """Main application entry point."""
+    warnings.filterwarnings("ignore", category=SyntaxWarning)
+
+    # Setup GPU acceleration before creating QApplication
+    _setup_gpu_acceleration()
+
+    # Optional memory profiling
+    profiler = None
+    if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
+        from asciidoc_artisan.core import get_profiler
+        profiler = get_profiler()
+        profiler.start()
+        logger.info("Memory profiling enabled")
+        profiler.take_snapshot("startup_begin")
+
+    # Create app and window
+    app = _create_app()
     if profiler:
         profiler.take_snapshot("after_app_init")
 
+    from asciidoc_artisan.ui import AsciiDocEditor
     window = AsciiDocEditor()
-
     if profiler:
         profiler.take_snapshot("after_window_init")
 
     window.show()
-
     if profiler:
         profiler.take_snapshot("after_window_show")
 
     window.update_preview()
-
     if profiler:
         profiler.take_snapshot("after_initial_preview")
 
+    # Run event loop
     exit_code = app.exec()
 
-    # Log memory statistics on exit
+    # Log memory stats on exit
     if profiler:
         profiler.take_snapshot("before_exit")
         stats = profiler.get_statistics()

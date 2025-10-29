@@ -1,4 +1,30 @@
-# GitHub Actions Workflow Setup
+# GitHub Actions Workflows
+
+This directory contains automated workflows for continuous integration, testing, and security scanning.
+
+## Available Workflows
+
+### 1. Security Scanning (`security.yml`)
+
+**Status:** ✅ Active and ready to use
+
+Automated dependency security scanning using Safety and pip-audit.
+
+- **Triggers:** Push to main/dev, PRs, weekly schedule, manual dispatch
+- **Tools:** Safety (Safety DB) + pip-audit (OSV database)
+- **Runtime:** ~5 minutes
+- **Non-blocking:** Reports vulnerabilities but doesn't fail PRs
+
+**Quick Links:**
+- 📚 [Full Documentation](SECURITY_SCANNING.md) - Complete setup and usage guide
+- 🚀 [Quick Reference](SECURITY_QUICK_REFERENCE.md) - 30-second cheat sheet
+
+**To trigger manually:**
+```
+GitHub → Actions → Security Scanning → Run workflow
+```
+
+### 2. CI/CD Pipeline (`ci.yml`)
 
 ## ⚠️ Manual Setup Required
 
