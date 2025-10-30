@@ -131,6 +131,16 @@ mock_window.status_bar = Mock()  # Add mock attributes as needed
   - **Reason:** Async event loop hangs
   - **Status:** P0-5 future work
 
+### ⚠️ Known Flaky Tests (Occasional)
+**Impact:** Pass when run individually, occasionally fail in full suite
+**Tests:**
+- `test_profiler_overhead` - profiler timing variance
+- `test_lazy_import_performance` - import caching effects
+- `test_scaling_constant_render_time` - rendering timing variance
+
+**Why:** Test ordering effects, system load variance, module import caching
+**What to do:** Re-run tests individually with `-v` flag. If they pass, it's environmental flake, not a real bug.
+
 ---
 
 ## Performance Baselines

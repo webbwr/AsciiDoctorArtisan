@@ -256,11 +256,14 @@ find . -name "*.pyc" -delete
 **Investigation Needed:** asyncio event loop cleanup issues
 
 ### Performance Test Stabilization (Optional)
-**Impact:** 2 tests occasionally flaky in full suite (pass individually)
+**Impact:** 2-3 tests occasionally flaky in full suite (pass individually)
 **Tests:**
-- `test_scaling_constant_render_time` - rendering timing variance
-- `test_lazy_import_performance` - import caching effects
+- `test_profiler_overhead` - profiler timing variance (observed Oct 30, 2025)
+- `test_lazy_import_performance` - import caching effects (observed Oct 30, 2025)
+- `test_scaling_constant_render_time` - rendering timing variance (observed in earlier runs)
 **Status:** Non-blocking (environmental, not bugs)
+**Root Cause:** Test ordering effects, system load variance, module import caching
+**Verification:** All pass 100% when run individually, only occasionally fail in full suite
 **Recommendation:** Mark as `@pytest.mark.flaky` or increase tolerances further
 
 ---
@@ -271,6 +274,7 @@ find . -name "*.pyc" -delete
 - **Local runs:** 5+ full suite executions (all 100% pass rate)
 - **Individual test verification:** Each fixed test run 3+ times
 - **Regression check:** Re-ran fixed tests after subsequent commits
+- **Flaky test verification:** Confirmed 2-3 performance tests occasionally fail in full suite but pass individually (Oct 30, 2025)
 
 ### Code Review Checkpoints
 - ✅ All changes reviewed for production impact
