@@ -35,6 +35,7 @@ env/
 
 # Claude Code / AI agents (credentials & private artifacts)
 .claude/
+.claude.json
 
 # OS files
 .DS_Store
@@ -42,14 +43,15 @@ env/
 # Testing and coverage
 .pytest_cache/
 .coverage
+coverage.json
 htmlcov/
+coverage_reports/
 .tox/
 .mypy_cache/
 .ruff_cache/
 
 # Project specific
 *.log
-logs/*.log
 .env
 *.bak
 *.tmp
