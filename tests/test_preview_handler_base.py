@@ -13,7 +13,7 @@ import pytest
 import time
 from unittest.mock import Mock, MagicMock
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
+from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QMainWindow
 
 from asciidoc_artisan.ui.preview_handler_base import (
     PreviewHandlerBase,
@@ -46,9 +46,11 @@ class ConcretePreviewHandler(PreviewHandlerBase):
 
 
 @pytest.fixture
-def mock_window():
+def mock_window(qtbot):
     """Create mock parent window."""
-    window = Mock()
+    window = QMainWindow()  # ✅ Real QObject for parent compatibility
+    qtbot.addWidget(window)  # Manage lifecycle
+    # Add Mock attributes that tests expect
     window._settings = Mock()
     window._settings.dark_mode = False
     window.request_preview_render = Mock()

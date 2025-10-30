@@ -64,11 +64,11 @@ def test_preview_render_large_document_performance():
 
 
 @pytest.mark.performance
-def test_file_open_performance():
+def test_file_open_performance(qtbot):
     """Test file opening performance."""
     from asciidoc_artisan.ui.file_handler import FileHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit
+    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
 
     # Create test file
     with tempfile.NamedTemporaryFile(mode='w', suffix='.adoc', delete=False) as f:
@@ -79,7 +79,9 @@ def test_file_open_performance():
     try:
         # Create file handler
         editor = QPlainTextEdit()
-        mock_window = Mock()
+        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+        qtbot.addWidget(mock_window)  # Manage lifecycle
+        # Add Mock attributes that tests expect
         mock_window.status_bar = Mock()
         mock_settings = Mock()
         mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
@@ -102,18 +104,20 @@ def test_file_open_performance():
 
 
 @pytest.mark.performance
-def test_file_save_performance():
+def test_file_save_performance(qtbot):
     """Test file saving performance."""
     from asciidoc_artisan.ui.file_handler import FileHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit
+    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
 
     with tempfile.TemporaryDirectory() as tmpdir:
         test_file = Path(tmpdir) / "test_save.adoc"
 
         # Create file handler
         editor = QPlainTextEdit()
-        mock_window = Mock()
+        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+        qtbot.addWidget(mock_window)  # Manage lifecycle
+        # Add Mock attributes that tests expect
         mock_window.status_bar = Mock()
         mock_settings = Mock()
         mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
@@ -162,15 +166,17 @@ def test_metrics_collection_overhead():
 
 
 @pytest.mark.performance
-def test_css_generation_performance():
+def test_css_generation_performance(qtbot):
     """Test CSS generation is fast enough."""
     from asciidoc_artisan.ui.preview_handler import PreviewHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
+    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QMainWindow
 
     editor = QPlainTextEdit()
     preview = QTextBrowser()
-    mock_window = Mock()
+    mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+    qtbot.addWidget(mock_window)  # Manage lifecycle
+    # Add Mock attributes that tests expect
     mock_window._settings = Mock(dark_mode=False)
 
     handler = PreviewHandler(editor, preview, mock_window)

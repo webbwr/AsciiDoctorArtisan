@@ -14,7 +14,7 @@ import pytest
 import time
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
-from PySide6.QtWidgets import QPlainTextEdit, QMessageBox
+from PySide6.QtWidgets import QPlainTextEdit, QMessageBox, QMainWindow
 
 from asciidoc_artisan.ui.file_handler import FileHandler
 
@@ -28,9 +28,11 @@ def mock_editor(qtbot):
 
 
 @pytest.fixture
-def mock_window():
+def mock_window(qtbot):
     """Create mock parent window."""
-    window = Mock()
+    window = QMainWindow()  # ✅ Real QObject for parent compatibility
+    qtbot.addWidget(window)  # Manage lifecycle
+    # Add Mock attributes that tests expect
     window.status_bar = Mock()
     window.status_bar.showMessage = Mock()
     return window

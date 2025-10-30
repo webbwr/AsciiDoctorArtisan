@@ -16,15 +16,17 @@ from unittest.mock import Mock
 
 
 @pytest.mark.memory
-def test_preview_handler_cleanup():
+def test_preview_handler_cleanup(qtbot):
     """Test preview handler is properly cleaned up."""
     from asciidoc_artisan.ui.preview_handler import PreviewHandler
-    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
+    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QMainWindow
 
     # Create widgets
     editor = QPlainTextEdit()
     preview = QTextBrowser()
-    mock_window = Mock()
+    mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+    qtbot.addWidget(mock_window)  # Manage lifecycle
+    # Add Mock attributes that tests expect
     mock_window._settings = Mock(dark_mode=False)
 
     # Create handler
@@ -76,10 +78,10 @@ def test_worker_pool_cleanup():
 
 
 @pytest.mark.memory
-def test_file_handler_no_handle_leak():
+def test_file_handler_no_handle_leak(qtbot):
     """Test file handler doesn't leak file handles."""
     from asciidoc_artisan.ui.file_handler import FileHandler
-    from PySide6.QtWidgets import QPlainTextEdit
+    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
     import tempfile
     from pathlib import Path
 
@@ -93,7 +95,9 @@ def test_file_handler_no_handle_leak():
 
         # Create handler
         editor = QPlainTextEdit()
-        mock_window = Mock()
+        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+        qtbot.addWidget(mock_window)  # Manage lifecycle
+        # Add Mock attributes that tests expect
         mock_window.status_bar = Mock()
         mock_settings = Mock()
         mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))

@@ -10,15 +10,18 @@ from unittest.mock import Mock, MagicMock, patch
 
 import pytest
 from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QMainWindow
 
 from asciidoc_artisan.core import GitHubResult
 from asciidoc_artisan.ui.github_handler import GitHubHandler
 
 
 @pytest.fixture
-def mock_parent_window():
+def mock_parent_window(qtbot):
     """Fixture for mock parent window."""
-    window = Mock()
+    window = QMainWindow()  # ✅ Real QObject for parent compatibility
+    qtbot.addWidget(window)  # Manage lifecycle
+    # Add Mock attributes that tests expect
     window.settings_manager = Mock()
     window.status_manager = Mock()
     window.git_handler = Mock()
@@ -27,9 +30,35 @@ def mock_parent_window():
 
 
 @pytest.fixture
-def github_handler(mock_parent_window):
+def mock_settings_manager():
+    """Fixture for mock settings manager."""
+    return Mock()
+
+
+@pytest.fixture
+def mock_status_manager():
+    """Fixture for mock status manager."""
+    return Mock()
+
+
+@pytest.fixture
+def mock_git_handler():
+    """Fixture for mock git handler."""
+    handler = Mock()
+    handler.get_repository_path.return_value = "/test/repo"
+    return handler
+
+
+@pytest.fixture
+def github_handler(mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler):
     """Fixture for GitHubHandler instance."""
-    handler = GitHubHandler(mock_parent_window)
+    # Pass all 4 required arguments (matches production usage in main_window.py:324-326)
+    handler = GitHubHandler(
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler
+    )
     yield handler
     # Cleanup
     if hasattr(handler, "worker"):

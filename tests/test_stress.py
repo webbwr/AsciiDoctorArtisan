@@ -41,16 +41,18 @@ def test_large_document_preview():
 
 @pytest.mark.stress
 @pytest.mark.slow
-def test_rapid_file_operations():
+def test_rapid_file_operations(qtbot):
     """Test rapid successive file operations."""
     from asciidoc_artisan.ui.file_handler import FileHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit
+    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create handler
         editor = QPlainTextEdit()
-        mock_window = Mock()
+        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+        qtbot.addWidget(mock_window)  # Manage lifecycle
+        # Add Mock attributes that tests expect
         mock_window.status_bar = Mock()
         mock_settings = Mock()
         mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
@@ -98,15 +100,17 @@ def test_many_concurrent_tasks():
 
 @pytest.mark.stress
 @pytest.mark.slow
-def test_rapid_preview_updates():
+def test_rapid_preview_updates(qtbot):
     """Test rapid successive preview updates."""
     from asciidoc_artisan.ui.preview_handler import PreviewHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
+    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QMainWindow
 
     editor = QPlainTextEdit()
     preview = QTextBrowser()
-    mock_window = Mock()
+    mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+    qtbot.addWidget(mock_window)  # Manage lifecycle
+    # Add Mock attributes that tests expect
     mock_window._settings = Mock(dark_mode=False)
     mock_window.request_preview_render = Mock()
 
@@ -146,11 +150,11 @@ def test_many_metrics_operations():
 
 @pytest.mark.stress
 @pytest.mark.slow
-def test_large_file_open_save():
+def test_large_file_open_save(qtbot):
     """Test opening and saving very large files."""
     from asciidoc_artisan.ui.file_handler import FileHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit
+    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create very large file (5MB)
@@ -162,7 +166,9 @@ def test_large_file_open_save():
 
         # Create handler
         editor = QPlainTextEdit()
-        mock_window = Mock()
+        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
+        qtbot.addWidget(mock_window)  # Manage lifecycle
+        # Add Mock attributes that tests expect
         mock_window.status_bar = Mock()
         mock_settings = Mock()
         mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
