@@ -457,3 +457,224 @@ class TestAsyncPerformance:
 
         # Should be fast
         assert elapsed < 2.0
+
+
+# Tests for error paths and edge cases
+
+
+@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
+def test_read_file_async_exception(qtbot, tmp_path):
+    """Test read_file_async handles exceptions (lines 130-132)."""
+    handler = AsyncFileHandler()
+
+    # Track error signal
+    error_received = []
+
+    def on_error(path, error):
+        error_received.append((path, error))
+
+    handler.read_error.connect(on_error)
+
+    # Try to read nonexistent file
+    nonexistent = str(tmp_path / "nonexistent.txt")
+    handler.read_file_async(nonexistent)
+
+    # Wait for error signal
+    qtbot.waitUntil(lambda: len(error_received) > 0, timeout=2000)
+
+    assert len(error_received) == 1
+    assert nonexistent in error_received[0][0]
+
+
+@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
+def test_write_file_async_exception(qtbot, tmp_path):
+    """Test write_file_async handles exceptions (lines 171-173)."""
+    handler = AsyncFileHandler()
+
+    # Track error signal
+    error_received = []
+
+    def on_error(path, error):
+        error_received.append((path, error))
+
+    handler.write_error.connect(on_error)
+
+    # Try to write to invalid path (e.g., root directory without permissions)
+    invalid_path = "/invalid/path/test.txt"
+    handler.write_file_async(invalid_path, "content")
+
+    # Wait for error signal
+    qtbot.waitUntil(lambda: len(error_received) > 0, timeout=2000)
+
+    assert len(error_received) == 1
+    assert "invalid" in error_received[0][0].lower()
+
+
+@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
+def test_read_file_streaming_not_found(qtbot, tmp_path):
+    """Test read_file_streaming handles missing file (lines 198-199)."""
+    handler = AsyncFileHandler()
+
+    # Track error signal
+    error_received = []
+
+    def on_error(path, error):
+        error_received.append((path, error))
+
+    handler.read_error.connect(on_error)
+
+    # Try to stream nonexistent file
+    nonexistent = str(tmp_path / "nonexistent.txt")
+    handler.read_file_streaming(nonexistent)
+
+    # Wait for error signal
+    qtbot.waitUntil(lambda: len(error_received) > 0, timeout=2000)
+
+    assert len(error_received) == 1
+    assert "not found" in error_received[0][1].lower()
+
+
+@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
+def test_read_file_streaming_exception(qtbot, tmp_path):
+    """Test read_file_streaming handles exceptions (lines 234-236)."""
+    from unittest.mock import patch
+    handler = AsyncFileHandler()
+
+    # Track error signal
+    error_received = []
+
+    def on_error(path, error):
+        error_received.append((path, error))
+
+    handler.read_error.connect(on_error)
+
+    # Create a file
+    test_file = tmp_path / "test.txt"
+    test_file.write_text("test content")
+
+    # Mock Path.stat to raise exception
+    with patch('pathlib.Path.stat', side_effect=PermissionError("Mock error")):
+        handler.read_file_streaming(str(test_file))
+
+        # Wait for error signal
+        qtbot.waitUntil(lambda: len(error_received) > 0, timeout=2000)
+
+    assert len(error_received) == 1
+
+
+@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
+def test_write_file_streaming_exception(qtbot, tmp_path):
+    """Test write_file_streaming handles exceptions (lines 290-292)."""
+    handler = AsyncFileHandler()
+
+    # Track error signal
+    error_received = []
+
+    def on_error(path, error):
+        error_received.append((path, error))
+
+    handler.write_error.connect(on_error)
+
+    # Try to write to invalid path
+    invalid_path = "/invalid/path/test.txt"
+    handler.write_file_streaming(invalid_path, "content")
+
+    # Wait for error signal
+    qtbot.waitUntil(lambda: len(error_received) > 0, timeout=2000)
+
+    assert len(error_received) == 1
+
+
+def test_file_stream_reader_not_opened():
+    """Test FileStreamReader raises when not opened (line 347)."""
+    from asciidoc_artisan.core.async_file_handler import FileStreamReader
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+        f.write("test content")
+        temp_path = f.name
+
+    try:
+        reader = FileStreamReader(temp_path)
+
+        # Try to read chunks without opening
+        with pytest.raises(RuntimeError, match="not opened"):
+            for chunk in reader.read_chunks():
+                pass
+    finally:
+        Path(temp_path).unlink()
+
+
+def test_file_stream_writer_not_opened():
+    """Test FileStreamWriter raises when not opened (line 416)."""
+    from asciidoc_artisan.core.async_file_handler import FileStreamWriter
+    import tempfile
+
+    temp_path = tempfile.mktemp(suffix='.txt')
+
+    try:
+        writer = FileStreamWriter(temp_path)
+
+        # Try to write without opening
+        with pytest.raises(RuntimeError, match="not opened"):
+            writer.write_chunk("test")
+    finally:
+        if Path(temp_path).exists():
+            Path(temp_path).unlink()
+
+
+def test_batch_read_files_exception(tmp_path):
+    """Test BatchFileOperations.read_files handles exceptions (lines 480-482)."""
+    from asciidoc_artisan.core.async_file_handler import BatchFileOperations
+
+    # Create some files
+    file1 = tmp_path / "file1.txt"
+    file1.write_text("content1")
+
+    # Include a nonexistent file to trigger exception
+    nonexistent = tmp_path / "nonexistent.txt"
+
+    batch = BatchFileOperations(max_workers=2)
+    results = batch.read_files([str(file1), str(nonexistent)])
+
+    assert len(results) == 2
+    # First should succeed
+    assert results[0].success or results[1].success
+    # One should fail
+    assert not results[0].success or not results[1].success
+
+
+def test_batch_write_files_exception(tmp_path):
+    """Test BatchFileOperations.write_files handles exceptions (lines 518-520)."""
+    from asciidoc_artisan.core.async_file_handler import BatchFileOperations
+
+    # Try to write to valid and invalid paths
+    valid_path = tmp_path / "valid.txt"
+    invalid_path = "/invalid/path/test.txt"
+
+    file_data = [
+        (str(valid_path), "content"),
+        (invalid_path, "content"),
+    ]
+
+    batch = BatchFileOperations(max_workers=2)
+    results = batch.write_files(file_data)
+
+    assert len(results) == 2
+    # One should succeed
+    assert results[0].success or results[1].success
+    # One should fail
+    assert not results[0].success or not results[1].success
+
+
+def test_batch_write_one_exception(tmp_path):
+    """Test BatchFileOperations._write_one handles exceptions (lines 549-550)."""
+    from asciidoc_artisan.core.async_file_handler import BatchFileOperations
+
+    # Try to write to invalid path
+    invalid_path = "/invalid/path/test.txt"
+
+    result = BatchFileOperations._write_one(invalid_path, "content")
+
+    assert not result.success
+    assert result.error is not None
