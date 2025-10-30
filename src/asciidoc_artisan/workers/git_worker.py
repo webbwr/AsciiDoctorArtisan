@@ -79,7 +79,13 @@ class GitWorker(BaseWorker):
         if self._check_cancellation():
             logger.info("Git operation cancelled before execution")
             self.command_complete.emit(
-                GitResult(False, "", "Operation cancelled by user", -1, "Cancelled")
+                GitResult(
+                    success=False,
+                    stdout="",
+                    stderr="Operation cancelled by user",
+                    exit_code=-1,
+                    user_message="Cancelled",
+                )
             )
             self.reset_cancellation()
             return
@@ -93,7 +99,13 @@ class GitWorker(BaseWorker):
             if not self._validate_working_directory(working_dir):
                 user_message = f"Error: Git working directory not found: {working_dir}"
                 self.command_complete.emit(
-                    GitResult(False, "", user_message, None, user_message)
+                    GitResult(
+                        success=False,
+                        stdout="",
+                        stderr=user_message,
+                        exit_code=None,
+                        user_message=user_message,
+                    )
                 )
                 return
 
@@ -126,12 +138,22 @@ class GitWorker(BaseWorker):
             if exit_code == 0:
                 logger.info(f"Git command successful: {' '.join(command)}")
                 result = GitResult(
-                    True, stdout, stderr, exit_code, "Git command successful."
+                    success=True,
+                    stdout=stdout,
+                    stderr=stderr,
+                    exit_code=exit_code,
+                    user_message="Git command successful.",
                 )
             else:
                 user_message = self._analyze_git_error(stderr, command)
                 logger.error(f"Git command failed (code {exit_code}): {user_message}")
-                result = GitResult(False, stdout, stderr, exit_code, user_message)
+                result = GitResult(
+                    success=False,
+                    stdout=stdout,
+                    stderr=stderr,
+                    exit_code=exit_code,
+                    user_message=user_message,
+                )
 
             self.command_complete.emit(result)
 
@@ -143,19 +165,39 @@ class GitWorker(BaseWorker):
             )
             logger.error(timeout_msg)
             self.command_complete.emit(
-                GitResult(False, "", timeout_msg, None, "Git operation timed out")
+                GitResult(
+                    success=False,
+                    stdout="",
+                    stderr=timeout_msg,
+                    exit_code=None,
+                    user_message="Git operation timed out",
+                )
             )
         except FileNotFoundError:
             error_msg = (
                 "Git command not found. Ensure Git is installed and in system PATH."
             )
             logger.error(error_msg)
-            self.command_complete.emit(GitResult(False, "", error_msg, None, error_msg))
+            self.command_complete.emit(
+                GitResult(
+                    success=False,
+                    stdout="",
+                    stderr=error_msg,
+                    exit_code=None,
+                    user_message=error_msg,
+                )
+            )
         except Exception as e:
             error_msg = f"Unexpected error running Git command: {e}"
             logger.exception("Unexpected Git error")
             self.command_complete.emit(
-                GitResult(False, stdout, stderr or str(e), exit_code, error_msg)
+                GitResult(
+                    success=False,
+                    stdout=stdout,
+                    stderr=stderr or str(e),
+                    exit_code=exit_code,
+                    user_message=error_msg,
+                )
             )
 
     def _analyze_git_error(self, stderr: str, command: List[str]) -> str:

@@ -208,8 +208,8 @@ class GitTask(CancelableRunnable):
                     success=False,
                     stdout="",
                     stderr="Git operation cancelled",
-                    returncode=-1,
-                    command=command,
+                    exit_code=-1,
+                    user_message="Git operation cancelled",
                 )
 
             try:
@@ -228,16 +228,16 @@ class GitTask(CancelableRunnable):
                         success=False,
                         stdout="",
                         stderr="Git operation cancelled",
-                        returncode=-1,
-                        command=command,
+                        exit_code=-1,
+                        user_message="Git operation cancelled",
                     )
 
                 return GitResult(
                     success=result.returncode == 0,
                     stdout=result.stdout,
                     stderr=result.stderr,
-                    returncode=result.returncode,
-                    command=command,
+                    exit_code=result.returncode,
+                    user_message="Git operation completed" if result.returncode == 0 else "Git operation failed",
                 )
 
             except subprocess.TimeoutExpired:
@@ -246,8 +246,8 @@ class GitTask(CancelableRunnable):
                     success=False,
                     stdout="",
                     stderr="Git command timed out",
-                    returncode=-1,
-                    command=command,
+                    exit_code=-1,
+                    user_message="Git command timed out",
                 )
             except Exception as exc:
                 logger.error(f"Git command failed: {exc}")
@@ -255,8 +255,8 @@ class GitTask(CancelableRunnable):
                     success=False,
                     stdout="",
                     stderr=str(exc),
-                    returncode=-1,
-                    command=command,
+                    exit_code=-1,
+                    user_message=f"Git command failed: {exc}",
                 )
 
         super().__init__(git_func, task_id)

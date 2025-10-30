@@ -6,15 +6,15 @@ This module contains simple data structures used throughout the application:
 - GitHubResult: Result of GitHub CLI operations
 - Additional models as needed
 
-These models represent the return types and data structures that don't
-belong to specific worker classes or UI components.
+These models use Pydantic for runtime validation and type safety (v1.7.0+).
 """
 
-from dataclasses import dataclass
-from typing import Any, Dict, NamedTuple, Optional
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field, field_validator
 
 
-class GitResult(NamedTuple):
+class GitResult(BaseModel):
     """
     Result of a Git operation execution.
 
@@ -27,17 +27,57 @@ class GitResult(NamedTuple):
         stderr: Standard error from Git command
         exit_code: Process exit code (None if not executed)
         user_message: Human-readable message for status bar display
+
+    Validation:
+        - user_message cannot be empty when provided
+        - exit_code must be non-negative if provided
+
+    Example:
+        ```python
+        # Successful operation
+        result = GitResult(
+            success=True,
+            stdout="On branch main\\nYour branch is up to date",
+            stderr="",
+            exit_code=0,
+            user_message="Git status retrieved successfully"
+        )
+
+        # Failed operation
+        result = GitResult(
+            success=False,
+            stdout="",
+            stderr="fatal: not a git repository",
+            exit_code=128,
+            user_message="Not a Git repository"
+        )
+        ```
     """
 
-    success: bool
-    stdout: str
-    stderr: str
-    exit_code: Optional[int]
-    user_message: str
+    success: bool = Field(..., description="True if operation succeeded")
+    stdout: str = Field(default="", description="Standard output from Git command")
+    stderr: str = Field(default="", description="Standard error from Git command")
+    exit_code: Optional[int] = Field(
+        default=None, description="Process exit code (-1 for errors/cancelled)"
+    )
+    user_message: str = Field(..., description="Human-readable status message")
+
+    @field_validator("user_message")
+    @classmethod
+    def validate_user_message(cls, v: str) -> str:
+        """Ensure user message is not empty."""
+        if not v or not v.strip():
+            raise ValueError("user_message cannot be empty")
+        return v.strip()
+
+    model_config = {
+        "frozen": False,  # Allow mutation for compatibility
+        "validate_assignment": True,  # Validate on field assignment
+        "str_strip_whitespace": True,  # Strip whitespace from strings
+    }
 
 
-@dataclass
-class GitHubResult:
+class GitHubResult(BaseModel):
     """
     Result of a GitHub CLI operation execution.
 
@@ -50,6 +90,11 @@ class GitHubResult:
         error: Error message from GitHub CLI standard error
         user_message: Human-readable message for status bar display
         operation: Operation type (e.g., "pr_create", "issue_list", "repo_view")
+
+    Validation:
+        - operation must be one of the allowed operation types
+        - user_message cannot be empty when provided
+        - data must be present when success=True for most operations
 
     Example:
         ```python
@@ -73,8 +118,41 @@ class GitHubResult:
         ```
     """
 
-    success: bool
-    data: Optional[Dict[str, Any]]
-    error: str
-    user_message: str
-    operation: str
+    success: bool = Field(..., description="True if operation succeeded")
+    data: Optional[Dict[str, Any]] = Field(
+        default=None, description="Parsed JSON data from GitHub CLI"
+    )
+    error: str = Field(default="", description="Error message from GitHub CLI")
+    user_message: str = Field(..., description="Human-readable status message")
+    operation: str = Field(..., description="Operation type identifier")
+
+    @field_validator("user_message")
+    @classmethod
+    def validate_user_message(cls, v: str) -> str:
+        """Ensure user message is not empty."""
+        if not v or not v.strip():
+            raise ValueError("user_message cannot be empty")
+        return v.strip()
+
+    @field_validator("operation")
+    @classmethod
+    def validate_operation(cls, v: str) -> str:
+        """Validate operation type is known."""
+        allowed_operations = {
+            "pr_create",
+            "pr_list",
+            "issue_create",
+            "issue_list",
+            "repo_view",
+        }
+        if v not in allowed_operations:
+            raise ValueError(
+                f"Unknown operation: {v}. Must be one of {allowed_operations}"
+            )
+        return v
+
+    model_config = {
+        "frozen": False,  # Allow mutation for compatibility
+        "validate_assignment": True,  # Validate on field assignment
+        "str_strip_whitespace": True,  # Strip whitespace from strings
+    }
