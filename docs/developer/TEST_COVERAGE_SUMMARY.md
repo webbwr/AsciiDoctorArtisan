@@ -274,7 +274,6 @@ with open('coverage.json') as f:
 The test suite is designed for CI/CD pipelines:
 
 ```yaml
-# Example GitHub Actions workflow
 - name: Run Tests with Coverage
   run: |
     source venv/bin/activate

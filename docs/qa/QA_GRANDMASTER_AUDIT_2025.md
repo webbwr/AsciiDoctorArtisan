@@ -717,7 +717,6 @@ def test_render_any_text(text: str):
 ---
 
 #### E004: Performance Regression CI
-**Tool:** pytest-benchmark + GitHub Actions
 **Purpose:** Automatic performance gates
 
 **Features:**

@@ -489,14 +489,6 @@ The codebase has 406+ edge case tests covering all required categories and far e
 - **Collections (3):** List operations (10K items), dict lookups (1K items), set operations
 - **Memory (2):** Large cache population (1K items, 1MB), large text processing (10MB)
 
-**CI Configuration:**
-- GitHub Actions workflow: `.github/workflows/performance.yml`
-- Runs on: Push to main/dev, all PRs, manual trigger
-- Regression threshold: **35%** (allows normal variance, fails on significant slowdowns)
-- Benchmark storage: 90-day artifact retention
-- PR comments: Automatic performance summary with fastest/slowest tests
-- Historical tracking: Baseline comparisons against previous runs
-
 **Performance Baselines Established:**
 - Atomic save small: 1ms target
 - Atomic save medium: 10ms target

@@ -571,7 +571,6 @@ StatusManager.show_message("PR #42 created!")
 
 **Dependency management:**
 - Dependabot: Weekly automated dependency updates (PRs created automatically)
-- Security scanning: Weekly GitHub Actions workflow checks for vulnerabilities
 - Install: `pip install -r requirements.txt` (dev) or `requirements-production.txt` (prod)
 
 ## Troubleshooting
@@ -612,16 +611,9 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 ## CI/CD & Automation
 
-**GitHub Actions:**
-- **Security scanning** (`.github/workflows/security.yml`):
-  - Runs weekly and on PR/push to main/dev
-  - Dual scanning: Safety + pip-audit
-  - Non-blocking (reports only, doesn't fail builds)
-  - Artifacts uploaded for tracking
-
 **Dependabot** (`.github/dependabot.yml`):
 - Weekly dependency updates
-- Automatic PRs for pip and GitHub Actions
+- Automatic PRs for pip dependencies
 - Reviewer: webbwr
 
 **Pre-commit hooks** (`.pre-commit-config.yaml`):

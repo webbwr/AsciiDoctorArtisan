@@ -905,7 +905,6 @@ def test_search_never_crashes(text: str, pattern: str):
 #### Task P2-2: Performance Regression CI
 **Priority:** P2 | **Effort:** 6 hours | **Quality:** YES
 
-**Tool:** pytest-benchmark + GitHub Actions
 
 **Implementation:**
 1. **Create Baseline File** (1h)
@@ -952,7 +951,6 @@ def test_search_never_crashes(text: str, pattern: str):
 
 3. **Configure CI** (2h)
    ```yaml
-   # .github/workflows/performance.yml
 
    name: Performance Tests
 
