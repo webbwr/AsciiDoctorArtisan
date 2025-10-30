@@ -362,14 +362,29 @@ class TestGitHubHandlerRepository:
         assert "working_dir" in kwargs
         assert kwargs["working_dir"] == "/test/repo"
 
-    @pytest.mark.skip(reason="RepoInfoDialog doesn't exist; handler uses 'repo_info' but model requires 'repo_view'")
-    def test_show_repo_info_displays_dialog(self, github_handler):
-        """Test show_repo_info displays repo info dialog."""
-        # NOTE: Implementation bug - handler uses operation="repo_info" but GitHubResult
-        # validator only allows "repo_view". Also, RepoInfoDialog doesn't exist.
-        # The actual _handle_repo_info() only logs, doesn't show a dialog.
-        # TODO: Fix implementation to use "repo_view" and possibly add dialog
-        pass
+    def test_show_repo_info_logs_data(self, github_handler, caplog):
+        """Test _handle_repo_info logs repository information."""
+        import logging
+
+        # Create mock result with repo data
+        result = GitHubResult(
+            success=True,
+            data={
+                "nameWithOwner": "test/repo",
+                "description": "Test repository"
+            },
+            error="",
+            user_message="Repository info retrieved",
+            operation="repo_view"
+        )
+
+        # Test that _handle_repo_info logs the data
+        with caplog.at_level(logging.INFO):
+            github_handler._handle_repo_info(result)
+
+        # Verify logging occurred
+        assert "Repository: test/repo" in caplog.text
+        assert "Test repository" in caplog.text
 
 
 @pytest.mark.unit
