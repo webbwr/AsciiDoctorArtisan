@@ -116,7 +116,6 @@ from .status_manager import StatusManager
 # Manages dark/light themes and CSS generation
 from .theme_manager import ThemeManager
 
-
 # === PUBLIC API DECLARATION ===
 # The __all__ list defines what gets exported from this module
 # This controls "from asciidoc_artisan.ui import *" behavior

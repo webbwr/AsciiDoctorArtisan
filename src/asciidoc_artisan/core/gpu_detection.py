@@ -406,10 +406,8 @@ def detect_gpu() -> GPUInfo:
         gpu_name = renderer_name
         driver_version = None
 
-    # Check if WSLg (GPU acceleration works now!)
-    is_wslg = check_wslg_environment()
-
     # GPU acceleration works in WSLg with proper NVIDIA drivers
+    # WSLg environment: GPU acceleration is automatically available
     can_use = True
     reason = f"Hardware acceleration available: {gpu_name}"
 

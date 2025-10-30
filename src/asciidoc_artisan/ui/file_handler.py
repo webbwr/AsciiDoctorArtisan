@@ -28,7 +28,6 @@ from asciidoc_artisan.core import (
     SUPPORTED_OPEN_FILTER,
     SUPPORTED_SAVE_FILTER,
     QtAsyncFileManager,
-    atomic_save_text,
 )
 
 # Import metrics

@@ -53,7 +53,6 @@ from PySide6.QtWidgets import (
 # Import our Settings data class
 from asciidoc_artisan.core import Settings
 
-
 # === HELPER FUNCTIONS ===
 # These functions are reused by multiple dialogs to avoid code duplication
 

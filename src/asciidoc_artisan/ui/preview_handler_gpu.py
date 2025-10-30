@@ -237,8 +237,9 @@ def create_preview_handler(
         WebEngineHandler if QWebEngineView, else TextBrowserHandler
     """
     # Import here to avoid circular dependency
-    from asciidoc_artisan.ui.preview_handler import PreviewHandler as TextBrowserHandler
     from typing import cast
+
+    from asciidoc_artisan.ui.preview_handler import PreviewHandler as TextBrowserHandler
 
     if hasattr(preview, "page"):
         # QWebEngineView - use GPU-accelerated handler

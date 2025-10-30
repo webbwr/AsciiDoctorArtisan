@@ -367,11 +367,11 @@ def main():
     profiler.take_snapshot("Initial state")
 
     print("\n2. Allocating 10MB...")
-    large_list = [0] * (10 * 1024 * 1024 // 8)  # ~10MB
+    _large_list = [0] * (10 * 1024 * 1024 // 8)  # ~10MB
     profiler.take_snapshot("After 10MB allocation")
 
     print("\n3. Allocating another 5MB...")
-    medium_list = [0] * (5 * 1024 * 1024 // 8)  # ~5MB
+    _medium_list = [0] * (5 * 1024 * 1024 // 8)  # ~5MB
     profiler.take_snapshot("After 5MB allocation")
 
     print("\n4. Comparing snapshots...")

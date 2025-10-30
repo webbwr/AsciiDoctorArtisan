@@ -227,10 +227,10 @@ def __getattr__(name: str):
 
     # === CORE SECURITY FUNCTIONS ===
     if name in ("atomic_save_json", "atomic_save_text", "sanitize_path"):
-        from .core import (  # noqa: F401
-            atomic_save_json,  # Save JSON files atomically (no corruption)
-            atomic_save_text,  # Save text files atomically (no corruption)
-            sanitize_path,  # Clean file paths (prevent attacks)
+        from .core import (  # Save JSON files atomically (no corruption)  # noqa: F401  # Save text files atomically (no corruption)  # noqa: F401  # Clean file paths (prevent attacks); noqa: F401
+            atomic_save_json,
+            atomic_save_text,
+            sanitize_path,
         )
 
         return locals()[name]

@@ -95,8 +95,9 @@ from PySide6.QtCore import (
 # If not available (e.g., on older systems), fall back to QTextBrowser
 # This is called "graceful degradation" - app works even without GPU
 try:
-    from PySide6.QtWebEngineCore import QWebEngineSettings  # Web engine config
-    from PySide6.QtWebEngineWidgets import QWebEngineView  # Web browser widget
+    from PySide6.QtWebEngineWidgets import (  # Web browser widget
+        QWebEngineView,  # noqa: F401
+    )
 
     WEBENGINE_AVAILABLE = True  # Flag: GPU preview available
 except ImportError:
@@ -121,57 +122,58 @@ from asciidoc_artisan.core import (
     ResourceMonitor,  # Tracks CPU/memory usage
     atomic_save_text,  # Save files atomically (prevents corruption)
 )
-from asciidoc_artisan.core.large_file_handler import (
+from asciidoc_artisan.core.large_file_handler import (  # Handles files >10MB
     LargeFileHandler,
-)  # Handles files >10MB
+)
 
 # === UI MANAGER IMPORTS ===
 # These "manager" classes handle different parts of the UI
 # This is the "Delegation Pattern" - main window delegates to specialists
 from asciidoc_artisan.ui.action_manager import ActionManager  # Creates menu actions
 from asciidoc_artisan.ui.dialog_manager import DialogManager  # Manages pop-up dialogs
-from asciidoc_artisan.ui.editor_state import (
+from asciidoc_artisan.ui.editor_state import (  # Tracks editor state (cursor, undo, etc.)
     EditorState,
-)  # Tracks editor state (cursor, undo, etc.)
+)
 from asciidoc_artisan.ui.export_manager import ExportManager  # Exports to PDF/DOCX/HTML
 from asciidoc_artisan.ui.file_handler import FileHandler  # Opens/saves files
-from asciidoc_artisan.ui.file_load_manager import (
+from asciidoc_artisan.ui.file_load_manager import (  # Loads files with progress
     FileLoadManager,
-)  # Loads files with progress
-from asciidoc_artisan.ui.file_operations_manager import (
+)
+from asciidoc_artisan.ui.file_operations_manager import (  # File I/O coordinator
     FileOperationsManager,
-)  # File I/O coordinator
-from asciidoc_artisan.ui.git_handler import (
+)
+from asciidoc_artisan.ui.git_handler import (  # Git operations (commit/push/pull)
     GitHandler,
-)  # Git operations (commit/push/pull)
-from asciidoc_artisan.ui.github_handler import (
+)
+from asciidoc_artisan.ui.github_handler import (  # GitHub PR/Issue operations
     GitHubHandler,
-)  # GitHub PR/Issue operations
+)
 
 # === REMOVED FEATURES (KEPT AS COMMENTS FOR REFERENCE) ===
 # Grammar functionality removed in v1.4.0 - users prefer external tools
 # from asciidoc_artisan.ui.grammar_manager import GrammarManager
 # MenuManager removed in v1.5.0 - replaced by ActionManager (better architecture)
 # from asciidoc_artisan.ui.menu_manager import MenuManager
-
-from asciidoc_artisan.ui.pandoc_result_handler import (
+from asciidoc_artisan.ui.pandoc_result_handler import (  # Handles Pandoc results
     PandocResultHandler,
-)  # Handles Pandoc results
+)
 
 # === PREVIEW & RENDERING MANAGERS ===
 # GPU-accelerated preview handler - automatically detects GPU and uses it if available
-from asciidoc_artisan.ui.preview_handler_gpu import create_preview_handler  # Preview factory
-from asciidoc_artisan.ui.scroll_manager import (
+from asciidoc_artisan.ui.preview_handler_gpu import (  # Preview factory
+    create_preview_handler,
+)
+from asciidoc_artisan.ui.scroll_manager import (  # Syncs editor/preview scroll
     ScrollManager,
-)  # Syncs editor/preview scroll
+)
 from asciidoc_artisan.ui.settings_manager import SettingsManager  # Loads/saves settings
 from asciidoc_artisan.ui.status_manager import StatusManager  # Status bar updates
 from asciidoc_artisan.ui.theme_manager import ThemeManager  # Dark/light mode switcher
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager  # Sets up UI widgets
 from asciidoc_artisan.ui.ui_state_manager import UIStateManager  # Tracks UI state
-from asciidoc_artisan.ui.worker_manager import (
+from asciidoc_artisan.ui.worker_manager import (  # Manages background threads
     WorkerManager,
-)  # Manages background threads
+)
 
 # === OPTIONAL: AI CLIENT ===
 # Check if AI client library is installed (for smart document conversion)

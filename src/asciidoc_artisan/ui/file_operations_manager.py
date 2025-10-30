@@ -98,9 +98,9 @@ from asciidoc_artisan.core import (
     SUPPORTED_SAVE_FILTER,  # Combined filter for Save dialog
     atomic_save_text,  # Safe file write (prevents corruption)
 )
-from asciidoc_artisan.core.large_file_handler import (
+from asciidoc_artisan.core.large_file_handler import (  # Streaming I/O for large files
     LargeFileHandler,
-)  # Streaming I/O for large files
+)
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
 if TYPE_CHECKING:

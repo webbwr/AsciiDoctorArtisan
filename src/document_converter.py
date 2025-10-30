@@ -92,7 +92,7 @@ class PandocIntegration:
             return False, f"Error checking pandoc: {e}"
 
         try:
-            import pypandoc
+            import pypandoc  # noqa: F401
 
             self.pypandoc_available = True
             self._get_supported_formats()
@@ -296,7 +296,7 @@ class PDFExtractor:
     def is_available() -> bool:
         """Check if PyMuPDF is available."""
         try:
-            import fitz  # PyMuPDF
+            import fitz  # PyMuPDF  # noqa: F401
 
             return True
         except ImportError:
