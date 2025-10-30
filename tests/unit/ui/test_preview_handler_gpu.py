@@ -12,25 +12,32 @@ def qapp():
 
 
 class TestPreviewHandlerGPU:
-    """Test suite for PreviewHandlerGPU (hardware acceleration)."""
+    """Test suite for WebEngineHandler (hardware-accelerated GPU preview)."""
 
     def test_import(self):
-        from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandlerGPU
-        assert PreviewHandlerGPU is not None
+        from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
+        assert WebEngineHandler is not None
 
     def test_creation(self, qapp):
-        from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandlerGPU
+        from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
+        from unittest.mock import Mock
         try:
-            handler = PreviewHandlerGPU()
+            # WebEngineHandler needs settings
+            settings = Mock()
+            settings.value = Mock(return_value=False)
+            handler = WebEngineHandler(settings=settings)
             assert handler is not None
         except Exception:
             # GPU handler may fail in headless environment
             pytest.skip("GPU handler requires GPU support")
 
     def test_set_html(self, qapp):
-        from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandlerGPU
+        from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
+        from unittest.mock import Mock
         try:
-            handler = PreviewHandlerGPU()
-            handler.setHtml("<h1>Test</h1>")
+            settings = Mock()
+            settings.value = Mock(return_value=False)
+            handler = WebEngineHandler(settings=settings)
+            handler.set_content("<h1>Test</h1>")  # Changed from setHtml to set_content
         except Exception:
             pytest.skip("GPU handler requires GPU support")
