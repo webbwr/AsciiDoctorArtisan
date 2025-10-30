@@ -19,7 +19,7 @@ class TestLineNumberArea:
         assert LineNumberArea is not None
 
     def test_creation(self, qapp):
-        from asciidoc_artisan.ui.line_number_area import LineNumberArea, CodeEditor
-        editor = CodeEditor()
-        # LineNumberArea is typically created automatically by CodeEditor
+        from asciidoc_artisan.ui.line_number_area import LineNumberArea, LineNumberPlainTextEdit
+        editor = LineNumberPlainTextEdit()
+        # LineNumberArea is typically created automatically by LineNumberPlainTextEdit
         assert hasattr(editor, "lineNumberArea") or hasattr(editor, "line_number_area")
