@@ -357,6 +357,63 @@ class ActionManager:
         # Action is now fully set up and ready to use!
         return action
 
+    def create_action(
+        self,
+        text: str,
+        triggered,
+        shortcut=None,
+        icon=None,
+        tooltip=None,
+        enabled: bool = True,
+        checkable: bool = False,
+        checked: bool = False,
+    ) -> QAction:
+        """
+        Public API to create a single QAction.
+
+        This is a convenience wrapper around _create_action() with additional
+        parameters for icon, tooltip, and enabled state. Useful for creating
+        custom actions or extending the application.
+
+        Args:
+            text: Action text (e.g., "New File")
+            triggered: Callback function to run when action is triggered
+            shortcut: Optional keyboard shortcut
+            icon: Optional QIcon for the action
+            tooltip: Optional tooltip text (also used as status tip)
+            enabled: Whether action is enabled (default: True)
+            checkable: Whether action is checkable/toggleable (default: False)
+            checked: Initial checked state if checkable (default: False)
+
+        Returns:
+            Configured QAction instance
+        """
+        # Use tooltip as status_tip if provided, otherwise use text
+        status_tip = tooltip if tooltip else text
+
+        # Create action using private helper
+        action = self._create_action(
+            text=text,
+            status_tip=status_tip,
+            triggered=triggered,
+            shortcut=shortcut,
+            checkable=checkable,
+            checked=checked,
+        )
+
+        # Set icon if provided
+        if icon is not None:
+            action.setIcon(icon)
+
+        # Set tooltip if provided (in addition to status tip)
+        if tooltip is not None:
+            action.setToolTip(tooltip)
+
+        # Set enabled state
+        action.setEnabled(enabled)
+
+        return action
+
     def create_actions(self) -> None:
         """
         Create All QAction Objects - Build All 50+ Menu Actions.

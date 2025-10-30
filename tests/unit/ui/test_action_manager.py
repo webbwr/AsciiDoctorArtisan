@@ -50,7 +50,8 @@ class TestActionManager:
         from asciidoc_artisan.ui.action_manager import ActionManager
 
         manager = ActionManager(main_window)
-        assert hasattr(manager, "parent") or hasattr(manager, "_parent")
+        assert hasattr(manager, "window")
+        assert manager.window == main_window
 
     def test_create_action_method_exists(self, main_window):
         """Test that create_action method exists."""
@@ -83,12 +84,14 @@ class TestActionManager:
         """Test creating action with icon."""
         from asciidoc_artisan.ui.action_manager import ActionManager
         from PySide6.QtGui import QIcon
+        from PySide6.QtWidgets import QStyle
 
         manager = ActionManager(main_window)
-        icon = QIcon()
+        # Use a standard icon instead of null icon for testing
+        icon = main_window.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
         action = manager.create_action("Open", lambda: None, icon=icon)
 
-        assert not action.icon().isNull() or action.icon() == icon
+        assert not action.icon().isNull()
 
     def test_action_callback_connection(self, main_window):
         """Test that action callback is properly connected."""

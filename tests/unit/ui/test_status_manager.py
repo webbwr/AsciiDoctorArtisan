@@ -30,14 +30,28 @@ class TestStatusManager:
 
     def test_show_message(self, main_window):
         from asciidoc_artisan.ui.status_manager import StatusManager
-        manager = StatusManager(main_window)
-        if hasattr(manager, "show_message"):
-            manager.show_message("Test message")
-            # Should not raise exception
+        from unittest.mock import patch
+        # Need to add status_bar attribute for StatusManager
+        from PySide6.QtWidgets import QStatusBar
+        main_window.status_bar = QStatusBar()
+        main_window.setStatusBar(main_window.status_bar)
 
-    def test_extract_document_version(self):
-        from asciidoc_artisan.ui.status_manager import extract_document_version
-        # Test with version attribute
+        manager = StatusManager(main_window)
+        # Mock QMessageBox to prevent blocking on exec()
+        with patch('asciidoc_artisan.ui.status_manager.QMessageBox') as mock_msgbox:
+            # show_message signature: (level, title, text) from status_manager.py:109
+            manager.show_message("info", "Test Title", "Test message")
+            # Verify QMessageBox was created but don't let it block
+            mock_msgbox.assert_called_once()
+
+    def test_extract_document_version(self, main_window):
+        from asciidoc_artisan.ui.status_manager import StatusManager
+        from PySide6.QtWidgets import QStatusBar
+        main_window.status_bar = QStatusBar()
+        main_window.setStatusBar(main_window.status_bar)
+
+        manager = StatusManager(main_window)
+        # extract_document_version is a method, not standalone function
         text_with_version = ":version: 1.5.0\n\nContent"
-        version = extract_document_version(text_with_version)
-        assert version == "1.5.0" or "1.5.0" in version
+        version = manager.extract_document_version(text_with_version)
+        assert version == "1.5.0"

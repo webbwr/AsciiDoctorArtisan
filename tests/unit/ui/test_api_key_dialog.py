@@ -12,19 +12,20 @@ def qapp():
 
 
 class TestApiKeyDialog:
-    """Test suite for ApiKeyDialog."""
+    """Test suite for APIKeySetupDialog."""
 
     def test_import(self):
-        from asciidoc_artisan.ui.api_key_dialog import ApiKeyDialog
-        assert ApiKeyDialog is not None
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+        assert APIKeySetupDialog is not None
 
     def test_creation(self, qapp):
-        from asciidoc_artisan.ui.api_key_dialog import ApiKeyDialog
-        dialog = ApiKeyDialog()
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+        dialog = APIKeySetupDialog()
         assert dialog is not None
 
     def test_has_input_field(self, qapp):
-        from asciidoc_artisan.ui.api_key_dialog import ApiKeyDialog
-        dialog = ApiKeyDialog()
-        # Should have some way to input API key
-        assert hasattr(dialog, "api_key") or hasattr(dialog, "get_api_key")
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+        dialog = APIKeySetupDialog()
+        # Should have get_api_key method (line 281 in api_key_dialog.py)
+        assert hasattr(dialog, "get_api_key")
+        assert callable(dialog.get_api_key)
