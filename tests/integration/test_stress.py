@@ -76,24 +76,21 @@ def test_rapid_file_operations(qtbot):
 def test_many_concurrent_tasks():
     """Test handling many concurrent tasks."""
     from asciidoc_artisan.workers.optimized_worker_pool import OptimizedWorkerPool
-    from asciidoc_artisan.workers.cancellable_task import CancellableTask
     import time
 
-    class SlowTask(CancellableTask):
-        def run_task(self):
-            time.sleep(0.01)  # 10ms task
-            return "done"
+    def slow_func():
+        time.sleep(0.01)  # 10ms task
+        return "done"
 
-    pool = OptimizedWorkerPool(max_workers=8)
+    pool = OptimizedWorkerPool(max_threads=8)
 
     # Submit many tasks
     task_count = 200
     for i in range(task_count):
-        task = SlowTask(task_id=f"task_{i}")
-        pool.submit_task(task)
+        pool.submit(slow_func, task_id=f"task_{i}")
 
     # Wait for completion
-    pool.shutdown(wait=True, timeout=30)
+    pool.wait_for_done(timeout_ms=30000)
 
     # Should handle all tasks without issues
 
