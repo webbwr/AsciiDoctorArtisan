@@ -88,18 +88,30 @@ class AsyncFileWatcher(QObject):
         self,
         poll_interval: float = 1.0,
         debounce_period: float = 0.5,
+        adaptive_polling: bool = True,
+        min_poll_interval: float = 0.1,
+        max_poll_interval: float = 5.0,
     ):
         """
         Initialize async file watcher.
 
         Args:
-            poll_interval: How often to check file (seconds)
+            poll_interval: Initial/default poll interval (seconds)
             debounce_period: Minimum time between notifications (seconds)
+            adaptive_polling: Enable adaptive poll interval adjustment
+            min_poll_interval: Minimum poll interval for active files (seconds)
+            max_poll_interval: Maximum poll interval for idle files (seconds)
         """
         super().__init__()
 
+        self.base_poll_interval = poll_interval
         self.poll_interval = poll_interval
         self.debounce_period = debounce_period
+
+        # Adaptive polling settings (QA-13)
+        self.adaptive_polling = adaptive_polling
+        self.min_poll_interval = min_poll_interval
+        self.max_poll_interval = max_poll_interval
 
         self._file_path: Optional[Path] = None
         self._last_mtime: Optional[float] = None
@@ -111,9 +123,14 @@ class AsyncFileWatcher(QObject):
 
         self._last_notification_time: float = 0.0
 
+        # Adaptive polling state (QA-13)
+        self._last_change_time: float = 0.0
+        self._idle_count: int = 0
+        self._activity_streak: int = 0
+
         logger.debug(
             f"AsyncFileWatcher initialized (poll={poll_interval}s, "
-            f"debounce={debounce_period}s)"
+            f"debounce={debounce_period}s, adaptive={adaptive_polling})"
         )
 
     def set_file(self, file_path: Path) -> None:
@@ -202,6 +219,7 @@ class AsyncFileWatcher(QObject):
             return
 
         current_time = asyncio.get_event_loop().time()
+        file_changed = False  # Track if file changed for adaptive polling
 
         # Check if file exists
         file_exists = self._file_path.exists()
@@ -215,6 +233,8 @@ class AsyncFileWatcher(QObject):
             self._file_exists = False
             self._last_mtime = None
             self._last_size = None
+            file_changed = True
+            self._adjust_poll_interval(file_changed, current_time)
             return
 
         # File created
@@ -232,6 +252,8 @@ class AsyncFileWatcher(QObject):
                 self._last_size = stat.st_size
             except Exception as e:
                 logger.error(f"Failed to stat file {self._file_path}: {e}")
+            file_changed = True
+            self._adjust_poll_interval(file_changed, current_time)
             return
 
         # File modified
@@ -253,9 +275,13 @@ class AsyncFileWatcher(QObject):
                     # Update state
                     self._last_mtime = current_mtime
                     self._last_size = current_size
+                    file_changed = True
 
             except Exception as e:
                 logger.error(f"Failed to check file {self._file_path}: {e}")
+
+        # Adjust polling interval based on activity (QA-13)
+        self._adjust_poll_interval(file_changed, current_time)
 
     def _should_notify(self, current_time: float) -> bool:
         """
@@ -269,6 +295,58 @@ class AsyncFileWatcher(QObject):
         """
         time_since_last = current_time - self._last_notification_time
         return time_since_last >= self.debounce_period
+
+    def _adjust_poll_interval(self, file_changed: bool, current_time: float) -> None:
+        """
+        Adjust poll interval based on file activity (QA-13: Adaptive Polling).
+
+        Strategy:
+        - Active files (recent changes): Fast polling (0.1-0.5s)
+        - Idle files (no recent changes): Slow polling (2-5s)
+        - Exponential backoff for increasingly idle files
+        - Quick response to activity resumption
+
+        Args:
+            file_changed: Whether file changed in this check
+            current_time: Current time
+        """
+        if not self.adaptive_polling:
+            return  # Adaptive polling disabled
+
+        if file_changed:
+            # File is active - use fast polling
+            self._activity_streak += 1
+            self._idle_count = 0
+            self._last_change_time = current_time
+
+            # Faster polling for active files (min 0.1s)
+            self.poll_interval = max(
+                self.min_poll_interval, self.base_poll_interval / 2
+            )
+
+            logger.debug(
+                f"Active file detected (streak={self._activity_streak}), "
+                f"poll interval: {self.poll_interval:.2f}s"
+            )
+        else:
+            # File is idle - increase polling interval
+            time_since_change = current_time - self._last_change_time
+
+            if time_since_change > 10.0:  # Idle for 10+ seconds
+                self._idle_count += 1
+                self._activity_streak = 0
+
+                # Exponential backoff: 1.0s → 2.0s → 4.0s → 5.0s (capped)
+                backoff_multiplier = min(2**self._idle_count, 5)
+                self.poll_interval = min(
+                    self.base_poll_interval * backoff_multiplier, self.max_poll_interval
+                )
+
+                if self._idle_count <= 3:  # Only log first few backoffs
+                    logger.debug(
+                        f"Idle file detected (count={self._idle_count}), "
+                        f"poll interval: {self.poll_interval:.2f}s"
+                    )
 
     def is_running(self) -> bool:
         """Check if watcher is running."""

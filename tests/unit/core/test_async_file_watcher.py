@@ -408,6 +408,116 @@ class TestAsyncFileWatcher:
                 "mock stat error" in log_text)
 
 
+    @pytest.mark.asyncio
+    async def test_adaptive_polling_enabled(self):
+        """Test adaptive polling is enabled by default (QA-13)."""
+        watcher = AsyncFileWatcher()
+        assert watcher.adaptive_polling is True
+        assert watcher.min_poll_interval == 0.1
+        assert watcher.max_poll_interval == 5.0
+
+    @pytest.mark.asyncio
+    async def test_adaptive_polling_disabled(self):
+        """Test adaptive polling can be disabled (QA-13)."""
+        watcher = AsyncFileWatcher(adaptive_polling=False)
+        assert watcher.adaptive_polling is False
+        assert watcher.poll_interval == 1.0  # Default
+
+    @pytest.mark.asyncio
+    async def test_adaptive_polling_fast_for_active_files(
+        self, qtbot: QtBot, temp_file: Path
+    ):
+        """Test poll interval decreases for active files (QA-13)."""
+        # Use fast poll for testing
+        watcher = AsyncFileWatcher(poll_interval=0.5, debounce_period=0.05)
+        watcher.set_file(temp_file)
+
+        await watcher.start()
+        await asyncio.sleep(0.3)
+
+        # Modify file to trigger activity
+        temp_file.write_text("Active content 1")
+        await asyncio.sleep(0.8)  # Wait for detection and adjustment
+
+        # Poll interval should be faster for active file (0.25s for base 0.5s)
+        assert watcher.poll_interval < 0.5
+        assert watcher._activity_streak > 0
+        assert watcher._idle_count == 0
+
+        await watcher.stop()
+
+    @pytest.mark.asyncio
+    async def test_adaptive_polling_slow_for_idle_files(
+        self, qtbot: QtBot, temp_file: Path
+    ):
+        """Test poll interval increases for idle files (QA-13)."""
+        watcher = AsyncFileWatcher(poll_interval=1.0, debounce_period=0.05)
+        watcher.set_file(temp_file)
+
+        # Set last change time to past (simulate idle)
+        watcher._last_change_time = asyncio.get_event_loop().time() - 20.0
+
+        await watcher.start()
+        await asyncio.sleep(1.5)  # Wait for checks to occur
+
+        # Poll interval should increase for idle file
+        assert watcher.poll_interval > 1.0
+        assert watcher._idle_count > 0
+
+        await watcher.stop()
+
+    @pytest.mark.asyncio
+    async def test_adaptive_polling_exponential_backoff(
+        self, qtbot: QtBot, temp_file: Path
+    ):
+        """Test exponential backoff for increasingly idle files (QA-13)."""
+        watcher = AsyncFileWatcher(poll_interval=1.0, debounce_period=0.05)
+        watcher.set_file(temp_file)
+
+        # Simulate idle checks
+        current_time = asyncio.get_event_loop().time()
+        watcher._last_change_time = current_time - 20.0  # 20s ago
+
+        # First idle check
+        watcher._adjust_poll_interval(file_changed=False, current_time=current_time)
+        interval_1 = watcher.poll_interval
+        idle_1 = watcher._idle_count
+
+        # Second idle check
+        watcher._adjust_poll_interval(file_changed=False, current_time=current_time)
+        interval_2 = watcher.poll_interval
+        idle_2 = watcher._idle_count
+
+        # Verify exponential backoff
+        assert idle_2 > idle_1
+        assert interval_2 > interval_1
+        assert watcher.poll_interval <= watcher.max_poll_interval
+
+    @pytest.mark.asyncio
+    async def test_adaptive_polling_activity_resumption(
+        self, qtbot: QtBot, temp_file: Path
+    ):
+        """Test poll interval resets on activity resumption (QA-13)."""
+        watcher = AsyncFileWatcher(poll_interval=1.0, debounce_period=0.05)
+        watcher.set_file(temp_file)
+
+        # Simulate idle state
+        current_time = asyncio.get_event_loop().time()
+        watcher._last_change_time = current_time - 20.0
+        watcher._adjust_poll_interval(file_changed=False, current_time=current_time)
+
+        idle_interval = watcher.poll_interval
+        assert idle_interval > 1.0  # Should be slower
+
+        # Activity resumes
+        watcher._adjust_poll_interval(file_changed=True, current_time=current_time)
+
+        # Poll interval should be fast again
+        assert watcher.poll_interval < idle_interval
+        assert watcher._activity_streak > 0
+        assert watcher._idle_count == 0
+
+
 class TestFileChangeEvent:
     """Test FileChangeEvent dataclass."""
 
