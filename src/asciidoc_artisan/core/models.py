@@ -119,8 +119,8 @@ class GitHubResult(BaseModel):
     """
 
     success: bool = Field(..., description="True if operation succeeded")
-    data: Optional[Dict[str, Any]] = Field(
-        default=None, description="Parsed JSON data from GitHub CLI"
+    data: Optional[Dict[str, Any] | list[Dict[str, Any]]] = Field(
+        default=None, description="Parsed JSON data from GitHub CLI (dict for single results, list for list operations)"
     )
     error: str = Field(default="", description="Error message from GitHub CLI")
     user_message: str = Field(..., description="Human-readable status message")
@@ -139,11 +139,20 @@ class GitHubResult(BaseModel):
     def validate_operation(cls, v: str) -> str:
         """Validate operation type is known."""
         allowed_operations = {
+            # Specific operations (full names)
             "pr_create",
             "pr_list",
             "issue_create",
             "issue_list",
             "repo_view",
+            # Generic subcommands (from args[0])
+            "pr",
+            "issue",
+            "repo",
+            "gh",
+            # Special operations
+            "cancelled",
+            "unknown",
         }
         if v not in allowed_operations:
             raise ValueError(
