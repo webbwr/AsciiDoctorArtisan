@@ -280,27 +280,21 @@ def __getattr__(name: str):
 __all__ = [
     # === VERSION STRING ===
     "__version__",  # Package version number (e.g., "1.5.0")
-
     # === MAIN APPLICATION ===
     "AsciiDocEditor",  # The main window - the entire editor application
-
     # === SETTINGS & DATA MODELS ===
     "Settings",  # Application settings (theme, font, recent files, etc.)
     "GitResult",  # Data from Git operations (success/failure, output, error)
-
     # === BACKGROUND WORKERS (Threading) ===
     "GitWorker",  # Runs Git commands without freezing the UI
     "PandocWorker",  # Converts documents without freezing the UI
     "PreviewWorker",  # Renders preview without freezing the UI
-
     # === UI DIALOGS ===
     "PreferencesDialog",  # Settings window (Edit → Preferences menu)
-
     # === FILE OPERATIONS (Security Functions) ===
     "sanitize_path",  # Clean file paths (prevent directory traversal attacks)
     "atomic_save_text",  # Save text files atomically (no corruption risk)
     "atomic_save_json",  # Save JSON files atomically (no corruption risk)
-
     # === CONSTANTS (Application-Wide Values) ===
     "APP_NAME",  # "AsciiDoc Artisan" (shown in title bar, taskbar)
     "DEFAULT_FILENAME",  # "Untitled.adoc" (new document name)

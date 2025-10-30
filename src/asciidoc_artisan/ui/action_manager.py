@@ -180,9 +180,13 @@ class ActionManager:
         # === STORE REFERENCES ===
         # These references allow actions to call main window methods
         self.window = main_window  # Main application window
-        self.editor = main_window.editor  # Text editor widget (for undo/redo/cut/copy/paste)
+        self.editor = (
+            main_window.editor
+        )  # Text editor widget (for undo/redo/cut/copy/paste)
         self._settings = main_window._settings  # Application settings
-        self._sync_scrolling = main_window._sync_scrolling  # Scroll sync state (for toggling)
+        self._sync_scrolling = (
+            main_window._sync_scrolling
+        )  # Scroll sync state (for toggling)
 
         # === DECLARE ALL ACTION VARIABLES ===
         # These are declared (but not created yet - that happens in create_actions())
@@ -795,7 +799,9 @@ class ActionManager:
 
         # Pane maximize toggles
         view_menu.addAction(self.maximize_editor_act)  # Maximize editor (Ctrl+Shift+E)
-        view_menu.addAction(self.maximize_preview_act)  # Maximize preview (Ctrl+Shift+R)
+        view_menu.addAction(
+            self.maximize_preview_act
+        )  # Maximize preview (Ctrl+Shift+R)
 
         # === GIT MENU ===
         git_menu = menubar.addMenu("&Git")

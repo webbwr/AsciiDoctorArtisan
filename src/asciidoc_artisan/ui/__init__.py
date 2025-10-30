@@ -131,16 +131,13 @@ from .theme_manager import ThemeManager
 __all__ = [
     # Main application window (most important - the whole editor!)
     "AsciiDocEditor",
-
     # Dialogs (pop-up windows)
     "PreferencesDialog",  # Settings dialog (Edit → Preferences)
     "APIKeySetupDialog",  # API key entry dialog (for AI features)
-
     # Managers (coordinate different parts of the UI)
     "SettingsManager",  # Loads/saves user settings
     "ThemeManager",  # Controls dark/light themes and CSS
     "StatusManager",  # Controls status bar (messages, version, progress)
-
     # Custom widgets (reusable UI components)
     "LineNumberPlainTextEdit",  # Text editor with line numbers
 ]

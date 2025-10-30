@@ -237,7 +237,11 @@ class GitTask(CancelableRunnable):
                     stdout=result.stdout,
                     stderr=result.stderr,
                     exit_code=result.returncode,
-                    user_message="Git operation completed" if result.returncode == 0 else "Git operation failed",
+                    user_message=(
+                        "Git operation completed"
+                        if result.returncode == 0
+                        else "Git operation failed"
+                    ),
                 )
 
             except subprocess.TimeoutExpired:

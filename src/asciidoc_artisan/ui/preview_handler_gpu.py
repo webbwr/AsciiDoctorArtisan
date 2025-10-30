@@ -243,10 +243,12 @@ def create_preview_handler(
     if hasattr(preview, "page"):
         # QWebEngineView - use GPU-accelerated handler
         from PySide6.QtWebEngineWidgets import QWebEngineView
+
         return WebEngineHandler(editor, cast(QWebEngineView, preview), parent_window)
     else:
         # QTextBrowser - use software rendering handler
         from PySide6.QtWidgets import QTextBrowser
+
         return TextBrowserHandler(editor, cast(QTextBrowser, preview), parent_window)
 
 

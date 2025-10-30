@@ -121,20 +121,32 @@ from asciidoc_artisan.core import (
     ResourceMonitor,  # Tracks CPU/memory usage
     atomic_save_text,  # Save files atomically (prevents corruption)
 )
-from asciidoc_artisan.core.large_file_handler import LargeFileHandler  # Handles files >10MB
+from asciidoc_artisan.core.large_file_handler import (
+    LargeFileHandler,
+)  # Handles files >10MB
 
 # === UI MANAGER IMPORTS ===
 # These "manager" classes handle different parts of the UI
 # This is the "Delegation Pattern" - main window delegates to specialists
 from asciidoc_artisan.ui.action_manager import ActionManager  # Creates menu actions
 from asciidoc_artisan.ui.dialog_manager import DialogManager  # Manages pop-up dialogs
-from asciidoc_artisan.ui.editor_state import EditorState  # Tracks editor state (cursor, undo, etc.)
+from asciidoc_artisan.ui.editor_state import (
+    EditorState,
+)  # Tracks editor state (cursor, undo, etc.)
 from asciidoc_artisan.ui.export_manager import ExportManager  # Exports to PDF/DOCX/HTML
 from asciidoc_artisan.ui.file_handler import FileHandler  # Opens/saves files
-from asciidoc_artisan.ui.file_load_manager import FileLoadManager  # Loads files with progress
-from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager  # File I/O coordinator
-from asciidoc_artisan.ui.git_handler import GitHandler  # Git operations (commit/push/pull)
-from asciidoc_artisan.ui.github_handler import GitHubHandler  # GitHub PR/Issue operations
+from asciidoc_artisan.ui.file_load_manager import (
+    FileLoadManager,
+)  # Loads files with progress
+from asciidoc_artisan.ui.file_operations_manager import (
+    FileOperationsManager,
+)  # File I/O coordinator
+from asciidoc_artisan.ui.git_handler import (
+    GitHandler,
+)  # Git operations (commit/push/pull)
+from asciidoc_artisan.ui.github_handler import (
+    GitHubHandler,
+)  # GitHub PR/Issue operations
 
 # === REMOVED FEATURES (KEPT AS COMMENTS FOR REFERENCE) ===
 # Grammar functionality removed in v1.4.0 - users prefer external tools
@@ -142,18 +154,24 @@ from asciidoc_artisan.ui.github_handler import GitHubHandler  # GitHub PR/Issue 
 # MenuManager removed in v1.5.0 - replaced by ActionManager (better architecture)
 # from asciidoc_artisan.ui.menu_manager import MenuManager
 
-from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler  # Handles Pandoc results
+from asciidoc_artisan.ui.pandoc_result_handler import (
+    PandocResultHandler,
+)  # Handles Pandoc results
 
 # === PREVIEW & RENDERING MANAGERS ===
 # GPU-accelerated preview handler - automatically detects GPU and uses it if available
 from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandler  # Preview renderer
-from asciidoc_artisan.ui.scroll_manager import ScrollManager  # Syncs editor/preview scroll
+from asciidoc_artisan.ui.scroll_manager import (
+    ScrollManager,
+)  # Syncs editor/preview scroll
 from asciidoc_artisan.ui.settings_manager import SettingsManager  # Loads/saves settings
 from asciidoc_artisan.ui.status_manager import StatusManager  # Status bar updates
 from asciidoc_artisan.ui.theme_manager import ThemeManager  # Dark/light mode switcher
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager  # Sets up UI widgets
 from asciidoc_artisan.ui.ui_state_manager import UIStateManager  # Tracks UI state
-from asciidoc_artisan.ui.worker_manager import WorkerManager  # Manages background threads
+from asciidoc_artisan.ui.worker_manager import (
+    WorkerManager,
+)  # Manages background threads
 
 # === OPTIONAL: AI CLIENT ===
 # Check if AI client library is installed (for smart document conversion)
