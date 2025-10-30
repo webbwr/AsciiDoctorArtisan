@@ -59,6 +59,71 @@ class TestSystemMonitor:
         category = monitor.get_cpu_load_category(config)
         assert category in ["low", "medium", "high", "very_high"]
 
+    def test_get_metrics_exception_handling(self):
+        """Test system monitor handles exceptions gracefully."""
+        from unittest.mock import patch
+
+        monitor = SystemMonitor()
+
+        # Mock psutil to raise exception
+        with patch("psutil.cpu_percent", side_effect=Exception("Test error")):
+            metrics = monitor.get_metrics()
+
+            # Should return safe defaults (50%, 50%)
+            assert metrics.cpu_percent == 50.0
+            assert metrics.memory_percent == 50.0
+            assert metrics.timestamp > 0
+
+    def test_cpu_load_category_very_high(self):
+        """Test CPU load category for very high load."""
+        from unittest.mock import Mock
+
+        config = DebounceConfig()
+        monitor = SystemMonitor()
+
+        # Mock metrics with very high CPU (>80%)
+        mock_metrics = SystemMetrics(cpu_percent=95.0, memory_percent=50.0, timestamp=time.time())
+        monitor._last_metrics = mock_metrics
+
+        category = monitor.get_cpu_load_category(config)
+        assert category == "very_high"
+
+    def test_cpu_load_category_high(self):
+        """Test CPU load category for high load."""
+        config = DebounceConfig()
+        monitor = SystemMonitor()
+
+        # Mock metrics with high CPU (60-80%)
+        mock_metrics = SystemMetrics(cpu_percent=70.0, memory_percent=50.0, timestamp=time.time())
+        monitor._last_metrics = mock_metrics
+
+        category = monitor.get_cpu_load_category(config)
+        assert category == "high"
+
+    def test_cpu_load_category_medium(self):
+        """Test CPU load category for medium load."""
+        config = DebounceConfig()
+        monitor = SystemMonitor()
+
+        # Mock metrics with medium CPU (30-60%)
+        mock_metrics = SystemMetrics(cpu_percent=45.0, memory_percent=50.0, timestamp=time.time())
+        monitor._last_metrics = mock_metrics
+
+        category = monitor.get_cpu_load_category(config)
+        assert category == "medium"
+
+    def test_cpu_load_category_low(self):
+        """Test CPU load category for low load."""
+        config = DebounceConfig()
+        monitor = SystemMonitor()
+
+        # Mock metrics with low CPU (<30%)
+        mock_metrics = SystemMetrics(cpu_percent=15.0, memory_percent=50.0, timestamp=time.time())
+        monitor._last_metrics = mock_metrics
+
+        category = monitor.get_cpu_load_category(config)
+        assert category == "low"
+
 
 class TestDebounceConfig:
     """Test debounce configuration."""
@@ -224,6 +289,17 @@ class TestAdaptiveDebouncer:
         # After slow renders, delay should increase (or at least be reasonable)
         # Due to multiplier being applied
         assert delay2 >= delay1
+
+    def test_render_time_multiplier_with_no_history(self):
+        """Test render time multiplier when no render history exists."""
+        debouncer = AdaptiveDebouncer()
+
+        # Calculate delay without any render time data
+        # This should hit the early return in _get_render_time_multiplier (line 291)
+        delay = debouncer.calculate_delay(document_size=50000)
+
+        # Should get base delay without render time multiplier
+        assert 100 <= delay <= 2000
 
     def test_on_render_complete_tracks_time(self):
         """Test on_render_complete tracks render times."""
