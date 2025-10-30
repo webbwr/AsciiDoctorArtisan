@@ -180,7 +180,7 @@ def test_incremental_renderer_cache_bounded():
     from unittest.mock import Mock
 
     mock_api = Mock()
-    # No cache_size parameter - uses MAX_CACHE_SIZE constant (100)
+    # No cache_size parameter - uses MAX_CACHE_SIZE constant (500)
     renderer = IncrementalPreviewRenderer(mock_api)
 
     # Add many entries directly to cache
@@ -189,8 +189,8 @@ def test_incremental_renderer_cache_bounded():
         html = f"<h2>Section {i}</h2><p>Content {i}</p>"
         renderer.cache.put(block_id, html)
 
-    # Cache should be bounded to MAX_CACHE_SIZE (100) entries
-    assert len(renderer.cache._cache) <= 100
+    # Cache should be bounded to MAX_CACHE_SIZE (500) entries
+    assert len(renderer.cache._cache) <= 500
 
 
 @pytest.mark.memory

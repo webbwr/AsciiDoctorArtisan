@@ -135,9 +135,15 @@ class ThemeManager:
 
         CREATES:
             self.editor: Reference to main window
+            _cached_dark_css: Cached dark mode CSS (generated once)
+            _cached_light_css: Cached light mode CSS (generated once)
         """
         # Store reference to main editor window
         self.editor = editor
+
+        # CSS cache to avoid regenerating on every preview update
+        self._cached_dark_css: str | None = None
+        self._cached_light_css: str | None = None
 
     def apply_theme(self) -> None:
         """
@@ -214,13 +220,22 @@ class ThemeManager:
     def get_preview_css(self) -> str:
         """Get CSS for preview rendering based on current theme.
 
+        Uses cached CSS to avoid regenerating strings on every update.
+        CSS is only generated once per theme and reused.
+
         Returns:
             CSS string for dark or light mode preview rendering
         """
         if self.editor._settings.dark_mode:
-            return self._get_dark_mode_css()
+            # Return cached dark CSS or generate if not cached
+            if self._cached_dark_css is None:
+                self._cached_dark_css = self._get_dark_mode_css()
+            return self._cached_dark_css
         else:
-            return self._get_light_mode_css()
+            # Return cached light CSS or generate if not cached
+            if self._cached_light_css is None:
+                self._cached_light_css = self._get_light_mode_css()
+            return self._cached_light_css
 
     def _get_dark_mode_css(self) -> str:
         """Get CSS for dark mode preview."""

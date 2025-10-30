@@ -39,7 +39,7 @@ from typing import Dict, List, Optional, Tuple, Union
 logger = logging.getLogger(__name__)
 
 # Cache settings
-MAX_CACHE_SIZE = 100  # Max blocks in cache
+MAX_CACHE_SIZE = 500  # Max blocks in cache (increased from 100 for better performance)
 BLOCK_HASH_LENGTH = 16  # Hash length for block IDs
 
 
