@@ -163,6 +163,19 @@ class TestImportProfiler:
         assert "Import Profiling Report" in captured.out
         assert "Total imports" in captured.out
 
+    def test_profiler_empty_statistics(self):
+        """Test profiler with no imports."""
+        profiler = ImportProfiler()
+
+        # Get stats without profiling anything
+        stats = profiler.get_statistics()
+
+        # Should return empty stats structure
+        assert stats["total_imports"] == 0
+        assert stats["total_time"] == 0
+        assert stats["slowest"] == []
+        assert stats["fastest"] == []
+
 
 class TestImportTracker:
     """Test ImportTracker."""
@@ -300,6 +313,20 @@ class TestGetImportStatistics:
         assert isinstance(stats["total_imports"], int)
 
 
+class TestPrintImportReport:
+    """Test print_import_report function."""
+
+    def test_print_import_report(self, capsys):
+        """Test global import report printing."""
+        from asciidoc_artisan.core.lazy_importer import print_import_report
+
+        print_import_report()
+
+        captured = capsys.readouterr()
+        assert "Import Tracking Report" in captured.out
+        assert "Total imports" in captured.out
+
+
 class TestImportOptimizer:
     """Test ImportOptimizer."""
 
@@ -328,6 +355,53 @@ class TestImportOptimizer:
 
         # Should return list (may be empty for os)
         assert isinstance(suggestions, list)
+
+    def test_analyze_module_not_loaded(self):
+        """Test analyzing module that's not yet loaded."""
+        optimizer = ImportOptimizer()
+
+        # Analyze module not in sys.modules
+        suggestions = optimizer.analyze_module("asyncio")
+
+        # Should import and analyze it
+        assert isinstance(suggestions, list)
+
+    def test_analyze_nonexistent_module(self):
+        """Test analyzing non-existent module."""
+        optimizer = ImportOptimizer()
+
+        # Should handle gracefully
+        suggestions = optimizer.analyze_module("nonexistent_module_xyz_12345")
+
+        # Should return empty list (logged warning internally)
+        assert suggestions == []
+
+    def test_analyze_module_with_heavy_imports(self):
+        """Test detecting heavy imports in module."""
+        optimizer = ImportOptimizer()
+
+        # Create a test module with heavy imports
+        import sys
+        from types import ModuleType
+
+        test_module = ModuleType("test_heavy_module")
+
+        # Create mock object with pandas module attribute
+        class MockPandasObject:
+            __module__ = "pandas.core.frame"
+
+        test_module.dataframe_obj = MockPandasObject()
+        sys.modules["test_heavy_module"] = test_module
+
+        try:
+            suggestions = optimizer.analyze_module("test_heavy_module")
+
+            # Should suggest lazy loading pandas
+            assert len(suggestions) > 0
+            assert any("pandas" in s for s in suggestions)
+        finally:
+            # Cleanup
+            del sys.modules["test_heavy_module"]
 
 
 @pytest.mark.performance
