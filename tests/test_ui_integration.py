@@ -22,30 +22,25 @@ class TestAsciiDocEditorUI:
     """Integration tests for AsciiDocEditor UI."""
 
     @pytest.fixture
-    def editor(self, qtbot):
+    def editor(self, qtbot, monkeypatch):
         """Create AsciiDocEditor instance for testing with proper cleanup."""
         with patch(
             "asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"
         ):
             window = AsciiDocEditor()
+
+            # Mock the prompt_save_before_action to prevent dialog during teardown
+            def mock_prompt(*args, **kwargs):
+                return True  # Always proceed without showing dialog
+            monkeypatch.setattr(window.status_manager, "prompt_save_before_action", mock_prompt)
+
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
 
             yield window
 
-            # Cleanup threads BEFORE qtbot tries to close the window
-            # This prevents segfaults during teardown
-            if hasattr(window, "git_thread") and window.git_thread:
-                window.git_thread.quit()
-                window.git_thread.wait(1000)
-
-            if hasattr(window, "pandoc_thread") and window.pandoc_thread:
-                window.pandoc_thread.quit()
-                window.pandoc_thread.wait(1000)
-
-            if hasattr(window, "preview_thread") and window.preview_thread:
-                window.preview_thread.quit()
-                window.preview_thread.wait(1000)
+            # Mark as no unsaved changes to prevent save dialog during teardown
+            window._unsaved_changes = False
 
             # Note: qtbot handles window.close() and window.deleteLater()
 

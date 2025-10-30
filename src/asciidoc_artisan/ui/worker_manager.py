@@ -164,7 +164,7 @@ class WorkerManager:
         self.editor.github_worker = self.github_worker
         self.editor.pandoc_thread = self.pandoc_thread
         self.editor.pandoc_worker = self.pandoc_worker
-        self.preview_thread = self.preview_thread
+        self.editor.preview_thread = self.preview_thread
         self.editor.preview_worker = self.preview_worker
 
     def get_pool_statistics(self) -> dict:

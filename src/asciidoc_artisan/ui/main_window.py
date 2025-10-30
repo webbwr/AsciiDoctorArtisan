@@ -160,7 +160,7 @@ from asciidoc_artisan.ui.pandoc_result_handler import (
 
 # === PREVIEW & RENDERING MANAGERS ===
 # GPU-accelerated preview handler - automatically detects GPU and uses it if available
-from asciidoc_artisan.ui.preview_handler_gpu import PreviewHandler  # Preview renderer
+from asciidoc_artisan.ui.preview_handler_gpu import create_preview_handler  # Preview factory
 from asciidoc_artisan.ui.scroll_manager import (
     ScrollManager,
 )  # Syncs editor/preview scroll
@@ -314,7 +314,7 @@ class AsciiDocEditor(QMainWindow):
         self.file_handler.start_auto_save(AUTO_SAVE_INTERVAL_MS)
 
         # === Preview System ===
-        self.preview_handler = PreviewHandler(self.editor, self.preview, self)
+        self.preview_handler = create_preview_handler(self.editor, self.preview, self)
         self.preview_handler.start_preview_updates()
 
         # === Git Integration ===
