@@ -1,7 +1,7 @@
 """Tests for ui.export_manager module."""
 
 import pytest
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QPlainTextEdit
 from unittest.mock import Mock, patch
 
 
@@ -14,7 +14,16 @@ def qapp():
 
 @pytest.fixture
 def main_window(qapp):
-    return QMainWindow()
+    window = QMainWindow()
+    # ExportManager expects these attributes from main_window
+    window.editor = QPlainTextEdit()
+    window.status_bar = Mock()
+    window.status_bar.showMessage = Mock()
+    window.status_manager = Mock()
+    window._settings_manager = Mock()
+    window._settings = Mock()
+    window._asciidoc_api = Mock()
+    return window
 
 
 class TestExportManager:
