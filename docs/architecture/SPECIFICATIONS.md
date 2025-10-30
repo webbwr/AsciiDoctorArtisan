@@ -1,8 +1,8 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.5.0 (complete) / 1.6.0 (complete) / 1.7.0 (in progress)
-**Last Updated**: October 29, 2025
+**Version**: 1.7.0 (in progress) - Code quality fixes complete
+**Last Updated**: October 30, 2025
 
 ## What This Is
 
@@ -856,7 +856,57 @@ The program MUST be tested on all types.
 
 ## Version History
 
-### Version 1.5.0 (Current)
+### Version 1.7.0 (Current)
+
+**Status**: In Progress
+**Date**: October 30, 2025
+
+**What's New**:
+
+- ✅ **Code quality fixes** (removed unused code)
+- ✅ **Linting improvements** (all ruff and black checks pass)
+- 🚧 **Type safety** (pydantic validation - in progress)
+- 🚧 **Performance tests** (async I/O benchmarks - in progress)
+
+**Bug Fixes**:
+- Fixed unused variable `is_wslg` in gpu_detection.py
+- Fixed unused test variables in memory_profiler.py
+- Removed unused import `atomic_save_text` from file_handler.py
+- Removed unused import `QWebEngineSettings` from main_window.py
+- Added noqa comments for intentional availability-check imports
+- Fixed import formatting across 10 files
+
+**Code Quality**:
+- Ruff: All checks pass
+- Black: All files formatted correctly
+- Cleaner codebase with no unused imports or variables
+
+### Version 1.6.0
+
+**Status**: Complete
+**Date**: October 29, 2025
+
+**What's New**:
+
+- ✅ **GitHub CLI Integration** (PR and Issue management)
+- ✅ **Block detection optimization** (10-14% faster)
+- ✅ **Predictive rendering** (smarter preview updates)
+- ✅ **Async I/O** (faster file operations with aiofiles)
+- ✅ **Worker pool migration** (better thread management)
+
+**GitHub Features**:
+- Create and list pull requests
+- Create and list issues
+- View repository info
+- Background execution (non-blocking UI)
+- 49 tests passing (100% coverage for GitHub features)
+
+**Performance**:
+- Block detection: 10-14% faster
+- File I/O: Async with aiofiles
+- Preview: Predictive rendering reduces unnecessary updates
+
+### Version 1.5.0
 
 **Status**: Complete
 **Date**: October 28, 2025
