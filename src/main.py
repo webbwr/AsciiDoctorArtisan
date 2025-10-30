@@ -25,6 +25,7 @@ KEY CONCEPTS:
 - Logging: Recording what the program does (like a diary)
 """
 
+import asyncio  # For async/await support
 import logging  # For recording what the program does
 import os  # For reading/setting environment variables
 import platform  # For detecting Windows/Linux/Mac
@@ -36,7 +37,7 @@ import warnings  # For suppressing non-critical warnings
 # Level INFO means we record important events, but not every tiny detail
 logging.basicConfig(
     level=logging.INFO,  # Record INFO, WARNING, and ERROR messages
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"  # Time, source, level, message
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Time, source, level, message
 )
 logger = logging.getLogger(__name__)  # Get a logger for this file
 
@@ -145,6 +146,28 @@ def _create_app():
     return app  # Return the application object
 
 
+async def _run_async_app(app) -> None:
+    """
+    Run Qt application asynchronously.
+
+    This helper function allows the Qt event loop to run within asyncio,
+    enabling async/await for file operations and other async tasks.
+
+    Args:
+        app: QApplication instance
+
+    v1.7.0: Added for Enhanced Async I/O (Task 4)
+    """
+    # Create a future that completes when the app quits
+    fut = asyncio.Future()
+
+    # Connect app's aboutToQuit signal to resolve the future
+    app.aboutToQuit.connect(lambda: fut.set_result(None))
+
+    # Wait for app to quit
+    await fut
+
+
 def main() -> None:
     """
     Main Entry Point - The First Function That Runs.
@@ -157,14 +180,16 @@ def main() -> None:
     5. Create main window
     6. Show window on screen
     7. Render initial preview
-    8. Start event loop (wait for user actions)
+    8. Start event loop (wait for user actions) with async support
     9. When user quits: clean up and exit
 
     FOR DEVELOPERS:
     This function follows the "setup, run, cleanup" pattern:
     - Setup: Prepare everything before showing the window
-    - Run: Keep the program running (event loop)
+    - Run: Keep the program running (event loop) with async/await support
     - Cleanup: Save data and release resources before exit
+
+    v1.7.0: Enhanced with qasync for async/await file operations
     """
     # === STEP 1: IGNORE HARMLESS WARNINGS ===
     # Some Python warnings are not helpful (like SyntaxWarning from dependencies)
@@ -210,16 +235,40 @@ def main() -> None:
     # Generate the first preview so user sees content immediately
     window.update_preview()
     if profiler:
-        profiler.take_snapshot("after_initial_preview")  # Snapshot 5: After first render
+        profiler.take_snapshot(
+            "after_initial_preview"
+        )  # Snapshot 5: After first render
 
-    # === STEP 8: START EVENT LOOP ===
+    # === STEP 8: START EVENT LOOP (WITH ASYNC SUPPORT) ===
     # This is where the program "runs" - it processes user actions in a loop:
     # - Wait for user to click a button, type text, etc.
     # - Process that action
     # - Update the screen
     # - Repeat until user quits
     # The loop only exits when the user closes the window
-    exit_code = app.exec()  # Run event loop (blocks until quit)
+    #
+    # v1.7.0: We use qasync to bridge Qt's event loop with Python's asyncio,
+    # allowing async/await for non-blocking file operations
+    try:
+        import qasync
+
+        # Create qasync event loop that bridges Qt and asyncio
+        loop = qasync.QEventLoop(app)
+        asyncio.set_event_loop(loop)
+
+        logger.info("Using qasync event loop for async/await support")
+
+        # Run event loop with async support
+        # Note: We use a context manager to ensure proper cleanup
+        with loop:
+            # Start Qt's event loop within the asyncio loop
+            loop.run_until_complete(_run_async_app(app))
+            exit_code = 0  # Success
+
+    except ImportError:
+        # Fallback to standard Qt event loop if qasync not available
+        logger.warning("qasync not available - async file operations disabled")
+        exit_code = app.exec()  # Run standard event loop (blocks until quit)
 
     # === STEP 9: CLEANUP AND EXIT ===
     # User has quit - log memory stats if profiling was enabled

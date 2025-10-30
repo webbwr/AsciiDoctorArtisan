@@ -7,10 +7,13 @@ This module handles all file I/O operations for AsciiDoc Artisan:
 - Creating new files
 - Managing file state and unsaved changes
 - Auto-save functionality
+- Async file I/O with Qt integration (v1.7.0)
+- File watching for external changes (v1.7.0)
 
 Extracted from main_window.py to improve maintainability and testability.
 """
 
+import asyncio
 import logging
 import platform
 import time
@@ -24,6 +27,7 @@ from asciidoc_artisan.core import (
     MAX_FILE_SIZE_MB,
     SUPPORTED_OPEN_FILTER,
     SUPPORTED_SAVE_FILTER,
+    QtAsyncFileManager,
     atomic_save_text,
 )
 
@@ -46,6 +50,9 @@ class FileHandler(QObject):
     file_opened = Signal(Path)  # Emitted when file is opened
     file_saved = Signal(Path)  # Emitted when file is saved
     file_modified = Signal(bool)  # Emitted when unsaved changes state changes
+    file_changed_externally = Signal(
+        Path
+    )  # Emitted when file modified externally (v1.7.0)
 
     def __init__(
         self, editor: QPlainTextEdit, parent_window, settings_manager, status_manager
@@ -73,6 +80,15 @@ class FileHandler(QObject):
         # Auto-save timer
         self.auto_save_timer = QTimer()
         self.auto_save_timer.timeout.connect(self.auto_save)
+
+        # Async file manager (v1.7.0)
+        self.async_manager = QtAsyncFileManager()
+        self.async_manager.read_complete.connect(self._on_async_read_complete)
+        self.async_manager.write_complete.connect(self._on_async_write_complete)
+        self.async_manager.operation_failed.connect(self._on_async_operation_failed)
+        self.async_manager.file_changed_externally.connect(
+            self._on_file_changed_externally
+        )
 
         # Connect editor changes to track modifications
         self.editor.textChanged.connect(self._on_text_changed)
@@ -151,24 +167,17 @@ class FileHandler(QObject):
             )
             return
 
-        # Load file
-        try:
-            self._load_file_content(path)
-        except Exception as e:
-            logger.error(f"Failed to open file {path}: {e}")
-            self.status_manager.show_message(
-                "critical", "Error", f"Failed to open file:\n{e}"
-            )
+        # Load file - launch async operation
+        asyncio.ensure_future(self._load_file_async(path))
 
-    def _load_file_content(self, file_path: Path) -> None:
+    async def _load_file_async(self, file_path: Path) -> None:
         """
-        Load file content into editor.
+        Load file content into editor asynchronously.
 
         Args:
             file_path: Path to file to load
 
-        Raises:
-            ValueError: If file size exceeds maximum allowed size
+        v1.7.0: Migrated to async I/O for non-blocking file operations
         """
         start_time = time.perf_counter()
         self.is_opening_file = True
@@ -201,7 +210,8 @@ class FileHandler(QObject):
 
         except Exception as e:
             logger.error(f"Failed to check file size for {file_path}: {e}")
-            # Continue anyway - size check is advisory
+            self.is_opening_file = False
+            return
 
         # Optional memory profiling (enabled via environment variable)
         import os
@@ -214,9 +224,12 @@ class FileHandler(QObject):
                 profiler.take_snapshot(f"before_load_{file_path.name}")
 
         try:
-            # Read file
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
+            # Read file asynchronously (v1.7.0)
+            content = await self.async_manager.read_file(file_path, encoding="utf-8")
+
+            if content is None:
+                # Error already handled by async_manager signal
+                return
 
             # Load into editor
             self.editor.setPlainText(content)
@@ -241,13 +254,16 @@ class FileHandler(QObject):
             # Update document metrics (version, word count, grade level)
             self.status_manager.update_document_metrics()
 
+            # Start watching file for external changes (v1.7.0)
+            self.async_manager.watch_file(file_path)
+
             # Record metrics
             if METRICS_AVAILABLE and get_metrics_collector:
                 duration_ms = (time.perf_counter() - start_time) * 1000
                 metrics = get_metrics_collector()
                 metrics.record_operation("file_open", duration_ms)
 
-            logger.info(f"Opened file: {file_path}")
+            logger.info(f"Opened file: {file_path} (async)")
 
             # Optional memory profiling
             import os
@@ -259,6 +275,11 @@ class FileHandler(QObject):
                 if profiler.is_running:
                     profiler.take_snapshot(f"after_load_{file_path.name}")
 
+        except Exception as e:
+            logger.error(f"Failed to open file {file_path}: {e}")
+            self.status_manager.show_message(
+                "critical", "Error", f"Failed to open file:\n{e}"
+            )
         finally:
             self.is_opening_file = False
 
@@ -271,10 +292,11 @@ class FileHandler(QObject):
             save_as: If True, always show save dialog
 
         Returns:
-            True if saved successfully, False otherwise
-        """
-        start_time = time.perf_counter()
+            True if operation started successfully, False otherwise
 
+        Note: v1.7.0 - This now launches async save operation.
+              Actual success is reported via file_saved signal.
+        """
         # Determine save path
         if save_as or not self.current_file_path:
             settings = self.settings_manager.load_settings()
@@ -303,9 +325,29 @@ class FileHandler(QObject):
         # Get content
         content = self.editor.toPlainText()
 
-        # Save file
+        # Launch async save operation (v1.7.0)
+        asyncio.ensure_future(self._save_file_async(save_path, content))
+        return True  # Operation started
+
+    async def _save_file_async(self, save_path: Path, content: str) -> None:
+        """
+        Save file content asynchronously.
+
+        Args:
+            save_path: Path to save to
+            content: File content
+
+        v1.7.0: Migrated to async I/O for non-blocking file operations
+        """
+        start_time = time.perf_counter()
+
         try:
-            if atomic_save_text(save_path, content, encoding="utf-8"):
+            # Save file asynchronously (v1.7.0)
+            success = await self.async_manager.write_file(
+                save_path, content, encoding="utf-8"
+            )
+
+            if success:
                 # Update state
                 self.current_file_path = save_path
                 self.unsaved_changes = False
@@ -332,17 +374,15 @@ class FileHandler(QObject):
                     metrics = get_metrics_collector()
                     metrics.record_operation("file_save", duration_ms)
 
-                logger.info(f"Saved file: {save_path}")
-                return True
+                logger.info(f"Saved file: {save_path} (async)")
             else:
-                raise IOError(f"Atomic save failed for {save_path}")
+                raise IOError(f"Async atomic save failed for {save_path}")
 
         except Exception as e:
             logger.error(f"Failed to save file {save_path}: {e}")
             self.status_manager.show_message(
                 "critical", "Save Error", f"Failed to save file:\n{e}"
             )
-            return False
 
     @Slot()
     def auto_save(self) -> None:
@@ -395,3 +435,64 @@ class FileHandler(QObject):
             if not self.unsaved_changes:
                 self.unsaved_changes = True
                 self.file_modified.emit(True)
+
+    # === ASYNC OPERATION SIGNAL HANDLERS (v1.7.0) ===
+
+    def _on_async_read_complete(self, file_path: Path, content: str) -> None:
+        """
+        Handle async read complete signal.
+
+        Args:
+            file_path: Path to file that was read
+            content: File content
+
+        v1.7.0: Async I/O signal handler
+        """
+        logger.debug(f"Async read complete: {file_path}")
+
+    def _on_async_write_complete(self, file_path: Path) -> None:
+        """
+        Handle async write complete signal.
+
+        Args:
+            file_path: Path to file that was written
+
+        v1.7.0: Async I/O signal handler
+        """
+        logger.debug(f"Async write complete: {file_path}")
+
+    def _on_async_operation_failed(
+        self, operation: str, file_path: Path, error: str
+    ) -> None:
+        """
+        Handle async operation failure signal.
+
+        Args:
+            operation: Operation type (read, write, etc.)
+            file_path: Path to file that failed
+            error: Error message
+
+        v1.7.0: Async I/O signal handler
+        """
+        logger.error(f"Async {operation} failed for {file_path}: {error}")
+        # Error message already shown by async operation handlers
+
+    def _on_file_changed_externally(self, file_path: Path) -> None:
+        """
+        Handle file changed externally signal.
+
+        Args:
+            file_path: Path to file that changed
+
+        v1.7.0: File watcher signal handler
+        """
+        logger.info(f"File changed externally: {file_path}")
+
+        # Emit signal for main window to handle
+        self.file_changed_externally.emit(file_path)
+
+        # Show message to user
+        if hasattr(self.window, "status_bar"):
+            self.window.status_bar.showMessage(
+                f"File modified externally: {file_path.name}", 5000
+            )

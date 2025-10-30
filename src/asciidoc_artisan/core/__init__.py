@@ -261,6 +261,38 @@ def __getattr__(name: str):
         # Return the cached class
         return _MODULE_CACHE[name]
 
+    # === GROUP 5: ASYNC FILE OPERATIONS (v1.7.0 Task 4) ===
+    # Async file I/O with Qt integration and file watching
+    if name in (
+        "AsyncFileWatcher",
+        "QtAsyncFileManager",
+        "async_read_text",
+        "async_atomic_save_text",
+        "async_atomic_save_json",
+        "async_read_json",
+        "async_copy_file",
+        "AsyncFileContext",
+    ):
+        # Check if we've already imported this async component
+        if name not in _MODULE_CACHE:
+            # Determine which module to import from
+            if name == "AsyncFileWatcher":
+                from .async_file_watcher import AsyncFileWatcher
+
+                _MODULE_CACHE[name] = AsyncFileWatcher
+            elif name == "QtAsyncFileManager":
+                from .qt_async_file_manager import QtAsyncFileManager
+
+                _MODULE_CACHE[name] = QtAsyncFileManager
+            else:
+                # Import from async_file_ops
+                from . import async_file_ops
+
+                _MODULE_CACHE[name] = getattr(async_file_ops, name)
+
+        # Return the cached class/function
+        return _MODULE_CACHE[name]
+
     # === UNKNOWN ATTRIBUTE ===
     # If we get here, they asked for something not in our public API
     # Raise AttributeError (same as Python does for missing attributes)
@@ -294,42 +326,45 @@ __all__ = [
     # === CORE CLASSES - SETTINGS ===
     # Settings class for saving/loading user preferences
     "Settings",  # Main settings class (theme, font, recent files, window size)
-
     # === CORE CLASSES - DATA MODELS ===
     # Data structures for Git and GitHub operations
     "GitResult",  # Result from Git commands (success/failure, output, error)
     "GitHubResult",  # Result from GitHub CLI operations (PR/Issue management)
-
     # === CORE CLASSES - SECURITY ===
     # Secure credential storage using OS keyring
     "SecureCredentials",  # Stores API keys safely in OS keyring (not plain text!)
-
     # === CORE CLASSES - PERFORMANCE MONITORING ===
     # Classes for tracking resource usage and document metrics
     "ResourceMonitor",  # Monitors memory usage, CPU, file sizes
     "ResourceMetrics",  # Data structure for resource measurements
     "DocumentMetrics",  # Data structure for document statistics
-
     # === CORE CLASSES - MEMORY PROFILING (Developer Tools) ===
     # Tools for finding memory leaks and optimization opportunities
     "MemoryProfiler",  # Main profiler class (start/stop, take snapshots)
     "MemorySnapshot",  # Snapshot of memory state at a point in time
     "get_profiler",  # Function to get singleton profiler instance
     "profile_memory",  # Decorator for profiling function memory usage
-
     # === FILE OPERATIONS (Security Functions) ===
     # Safe file I/O to prevent corruption and security vulnerabilities
     "sanitize_path",  # Clean file paths (prevent directory traversal attacks)
     "atomic_save_text",  # Save text files atomically (no corruption if crash)
     "atomic_save_json",  # Save JSON files atomically (no corruption if crash)
-
+    # === ASYNC FILE OPERATIONS (v1.7.0 Task 4) ===
+    # Non-blocking file I/O with Qt integration and file watching
+    "AsyncFileWatcher",  # Monitor files for external changes (polling-based)
+    "QtAsyncFileManager",  # Qt-integrated async file manager with signals
+    "async_read_text",  # Read text file asynchronously (non-blocking)
+    "async_atomic_save_text",  # Save text file asynchronously (atomic)
+    "async_atomic_save_json",  # Save JSON file asynchronously (atomic)
+    "async_read_json",  # Read JSON file asynchronously
+    "async_copy_file",  # Copy file asynchronously (chunked for large files)
+    "AsyncFileContext",  # Async context manager for file operations
     # === CONSTANTS - APPLICATION METADATA ===
     # Basic application information
     "APP_NAME",  # "AsciiDoc Artisan" (shown in title bar, about dialog)
     "APP_VERSION",  # "1.5.0" (current version number)
     "DEFAULT_FILENAME",  # "Untitled.adoc" (default name for new files)
     "SETTINGS_FILENAME",  # "AsciiDocArtisan.json" (settings file name)
-
     # === CONSTANTS - UI SETTINGS ===
     # User interface configuration values
     "PREVIEW_UPDATE_INTERVAL_MS",  # 500ms (how often preview refreshes)
@@ -339,7 +374,6 @@ __all__ = [
     "ZOOM_STEP",  # 1 (font size change per zoom in/out)
     "MIN_WINDOW_WIDTH",  # 800 (minimum window width in pixels)
     "MIN_WINDOW_HEIGHT",  # 600 (minimum window height in pixels)
-
     # === CONSTANTS - TIMING ===
     # Time intervals for various operations (all in milliseconds)
     "AUTO_SAVE_INTERVAL_MS",  # 60000 (auto-save every 60 seconds)
@@ -347,12 +381,10 @@ __all__ = [
     "PREVIEW_NORMAL_INTERVAL_MS",  # 500 (normal preview updates - 500ms)
     "PREVIEW_SLOW_INTERVAL_MS",  # 1000 (slow preview updates - 1 second)
     "STATUS_MESSAGE_DURATION_MS",  # 3000 (status messages show for 3 seconds)
-
     # === CONSTANTS - FILE SIZE LIMITS ===
     # Thresholds for large files and size limits
     "LARGE_FILE_THRESHOLD_BYTES",  # 1048576 (1MB - show warning for larger)
     "MAX_FILE_SIZE_MB",  # 50 (maximum file size in megabytes)
-
     # === CONSTANTS - FILE FILTERS (For Open/Save Dialogs) ===
     # These strings are used in Qt file dialogs to filter file types
     # Format: "Description (*.extension *.ext2)"
@@ -366,15 +398,12 @@ __all__ = [
     "ORG_FILTER",  # "Org-mode Files (*.org)"
     "TEXTILE_FILTER",  # "Textile Files (*.textile)"
     "ALL_FILES_FILTER",  # "All Files (*)" (no filter)
-
     # Grouped filters (lists of formats)
     "COMMON_FORMATS",  # ["DOCX", "PDF", "MD", "HTML"] (most-used formats)
     "ALL_FORMATS",  # All supported formats (for advanced users)
-
     # Combined filters (multiple formats in one filter string)
     "SUPPORTED_OPEN_FILTER",  # All formats the app can open
     "SUPPORTED_SAVE_FILTER",  # All formats the app can save to
-
     # === CONSTANTS - USER MESSAGES ===
     # Messages shown in the status bar after operations
     "MSG_SAVED_ASCIIDOC",  # "Saved as AsciiDoc"
@@ -382,25 +411,21 @@ __all__ = [
     "MSG_SAVED_HTML_PDF_READY",  # "Saved as HTML (ready for PDF conversion)"
     "MSG_PDF_IMPORTED",  # "PDF imported successfully"
     "MSG_LOADING_LARGE_FILE",  # "Loading large file... this may take a moment"
-
     # === CONSTANTS - ERROR MESSAGES ===
     # Error messages for common failure cases
     "ERR_ASCIIDOC_NOT_INITIALIZED",  # "AsciiDoc converter not initialized"
     "ERR_ATOMIC_SAVE_FAILED",  # "Failed to save file atomically"
     "ERR_FAILED_SAVE_HTML",  # "Failed to save HTML file"
     "ERR_FAILED_CREATE_TEMP",  # "Failed to create temporary file"
-
     # === CONSTANTS - DIALOG TITLES ===
     # Titles for various dialogs (shown in dialog title bar)
     "DIALOG_OPEN_FILE",  # "Open File"
     "DIALOG_SAVE_FILE",  # "Save File"
     "DIALOG_SAVE_ERROR",  # "Save Error"
     "DIALOG_CONVERSION_ERROR",  # "Conversion Error"
-
     # === CONSTANTS - MENU LABELS ===
     # Labels for menu items
     "MENU_FILE",  # "File" (File menu label)
-
     # === CONSTANTS - STATUS TIPS ===
     # Tooltips shown in status bar when hovering over menu items
     "STATUS_TIP_EXPORT_OFFICE365",  # "Export to Word/Office365 format"

@@ -30,6 +30,9 @@ psutil>=5.9.0
 # Async file operations (v1.6.0 - non-blocking I/O)
 aiofiles>=24.1.0
 
+# Qt + asyncio integration (v1.7.0 Task 4 - Enhanced Async I/O)
+qasync>=0.28.0
+
 # Data validation and settings (v1.7.0 - enhanced type safety)
 pydantic>=2.0.0
 

@@ -1,0 +1,279 @@
+"""
+Async File Watcher - Monitor files for external changes.
+
+Implements v1.7.0 Task 4: Enhanced Async I/O - File Watcher
+- Asynchronous file monitoring without blocking UI
+- Detects external changes to files
+- Debouncing to avoid excessive notifications
+- Qt signal integration via qasync
+
+This module provides file watching capabilities:
+- Monitor single file for changes
+- Detect modifications, deletions, renames
+- Debounced notifications
+- Non-blocking async implementation
+- Integrates with Qt event loop via qasync
+
+Design Goals:
+- No UI blocking
+- Efficient polling with asyncio
+- Configurable debounce period
+- Simple API for Qt applications
+"""
+
+import asyncio
+import logging
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional
+
+from PySide6.QtCore import QObject, Signal
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class FileChangeEvent:
+    """
+    File change event data.
+
+    Attributes:
+        path: Path to file that changed
+        event_type: Type of change (modified, deleted, created)
+        timestamp: When change was detected
+    """
+
+    path: Path
+    event_type: str  # 'modified', 'deleted', 'created'
+    timestamp: float
+
+
+class AsyncFileWatcher(QObject):
+    """
+    Async file watcher with Qt integration.
+
+    Monitors a file for external changes and emits Qt signals.
+    Uses asyncio for non-blocking polling with configurable intervals.
+
+    Features:
+    - Non-blocking async monitoring
+    - Debouncing to reduce noise
+    - Qt signal emission on changes
+    - Automatic start/stop
+    - Graceful shutdown
+
+    Signals:
+        file_modified: Emitted when file content changes
+        file_deleted: Emitted when file is deleted
+        file_created: Emitted when file is created
+        error: Emitted on watcher errors
+
+    Example:
+        watcher = AsyncFileWatcher()
+        watcher.file_modified.connect(on_file_modified)
+        watcher.set_file(Path("/path/to/file.adoc"))
+        await watcher.start()
+
+        # Later...
+        await watcher.stop()
+    """
+
+    # Signals
+    file_modified = Signal(Path)  # Emitted when file is modified
+    file_deleted = Signal(Path)  # Emitted when file is deleted
+    file_created = Signal(Path)  # Emitted when file is created
+    error = Signal(str)  # Emitted on errors
+
+    def __init__(
+        self,
+        poll_interval: float = 1.0,
+        debounce_period: float = 0.5,
+    ):
+        """
+        Initialize async file watcher.
+
+        Args:
+            poll_interval: How often to check file (seconds)
+            debounce_period: Minimum time between notifications (seconds)
+        """
+        super().__init__()
+
+        self.poll_interval = poll_interval
+        self.debounce_period = debounce_period
+
+        self._file_path: Optional[Path] = None
+        self._last_mtime: Optional[float] = None
+        self._last_size: Optional[int] = None
+        self._file_exists: bool = False
+
+        self._watch_task: Optional[asyncio.Task] = None
+        self._running = False
+
+        self._last_notification_time: float = 0.0
+
+        logger.debug(
+            f"AsyncFileWatcher initialized (poll={poll_interval}s, "
+            f"debounce={debounce_period}s)"
+        )
+
+    def set_file(self, file_path: Path) -> None:
+        """
+        Set file to watch.
+
+        Args:
+            file_path: Path to file to monitor
+        """
+        self._file_path = file_path
+
+        # Initialize file state
+        if file_path.exists():
+            try:
+                stat = file_path.stat()
+                self._last_mtime = stat.st_mtime
+                self._last_size = stat.st_size
+                self._file_exists = True
+                logger.info(f"Watching file: {file_path}")
+            except Exception as e:
+                logger.error(f"Failed to stat file {file_path}: {e}")
+                self._last_mtime = None
+                self._last_size = None
+                self._file_exists = False
+        else:
+            self._last_mtime = None
+            self._last_size = None
+            self._file_exists = False
+            logger.info(f"Watching file (not yet created): {file_path}")
+
+    async def start(self) -> None:
+        """Start watching file."""
+        if self._running:
+            logger.warning("File watcher already running")
+            return
+
+        if not self._file_path:
+            logger.error("Cannot start watcher: no file set")
+            return
+
+        self._running = True
+        self._watch_task = asyncio.create_task(self._watch_loop())
+        logger.info(f"File watcher started for: {self._file_path}")
+
+    async def stop(self) -> None:
+        """Stop watching file."""
+        if not self._running:
+            return
+
+        self._running = False
+
+        if self._watch_task:
+            self._watch_task.cancel()
+            try:
+                await self._watch_task
+            except asyncio.CancelledError:
+                pass
+            self._watch_task = None
+
+        logger.info(f"File watcher stopped for: {self._file_path}")
+
+    async def _watch_loop(self) -> None:
+        """
+        Main watch loop.
+
+        Polls file periodically and detects changes.
+        """
+        while self._running:
+            try:
+                await self._check_file()
+                await asyncio.sleep(self.poll_interval)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in watch loop: {e}")
+                self.error.emit(str(e))
+                await asyncio.sleep(self.poll_interval)
+
+    async def _check_file(self) -> None:
+        """
+        Check file for changes.
+
+        Compares current state with last known state.
+        """
+        if not self._file_path:
+            return
+
+        current_time = asyncio.get_event_loop().time()
+
+        # Check if file exists
+        file_exists = self._file_path.exists()
+
+        # File deleted
+        if self._file_exists and not file_exists:
+            if self._should_notify(current_time):
+                logger.info(f"File deleted: {self._file_path}")
+                self.file_deleted.emit(self._file_path)
+                self._last_notification_time = current_time
+            self._file_exists = False
+            self._last_mtime = None
+            self._last_size = None
+            return
+
+        # File created
+        if not self._file_exists and file_exists:
+            if self._should_notify(current_time):
+                logger.info(f"File created: {self._file_path}")
+                self.file_created.emit(self._file_path)
+                self._last_notification_time = current_time
+            self._file_exists = True
+
+            # Update state
+            try:
+                stat = self._file_path.stat()
+                self._last_mtime = stat.st_mtime
+                self._last_size = stat.st_size
+            except Exception as e:
+                logger.error(f"Failed to stat file {self._file_path}: {e}")
+            return
+
+        # File modified
+        if file_exists:
+            try:
+                stat = self._file_path.stat()
+                current_mtime = stat.st_mtime
+                current_size = stat.st_size
+
+                # Check if modified (mtime or size changed)
+                if (
+                    self._last_mtime is not None and current_mtime != self._last_mtime
+                ) or (self._last_size is not None and current_size != self._last_size):
+                    if self._should_notify(current_time):
+                        logger.info(f"File modified: {self._file_path}")
+                        self.file_modified.emit(self._file_path)
+                        self._last_notification_time = current_time
+
+                    # Update state
+                    self._last_mtime = current_mtime
+                    self._last_size = current_size
+
+            except Exception as e:
+                logger.error(f"Failed to check file {self._file_path}: {e}")
+
+    def _should_notify(self, current_time: float) -> bool:
+        """
+        Check if enough time has passed since last notification (debouncing).
+
+        Args:
+            current_time: Current time
+
+        Returns:
+            True if should notify, False if too soon
+        """
+        time_since_last = current_time - self._last_notification_time
+        return time_since_last >= self.debounce_period
+
+    def is_running(self) -> bool:
+        """Check if watcher is running."""
+        return self._running
+
+    def get_file_path(self) -> Optional[Path]:
+        """Get current file being watched."""
+        return self._file_path
