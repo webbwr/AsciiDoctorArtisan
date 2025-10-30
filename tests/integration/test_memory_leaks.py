@@ -47,26 +47,29 @@ def test_preview_handler_cleanup(qtbot):
 @pytest.mark.memory
 def test_worker_pool_cleanup():
     """Test worker pool properly cleans up threads."""
-    from asciidoc_artisan.workers.optimized_worker_pool import OptimizedWorkerPool
-    from asciidoc_artisan.workers.cancellable_task import CancellableTask
+    from asciidoc_artisan.workers.optimized_worker_pool import (
+        OptimizedWorkerPool,
+        TaskPriority,
+    )
     import threading
+    import time
 
-    class DummyTask(CancellableTask):
-        def run_task(self):
-            return "done"
+    def dummy_task():
+        """Simple task that returns immediately."""
+        return "done"
 
     # Get initial thread count
     initial_threads = threading.active_count()
 
     # Create and use worker pool
-    pool = OptimizedWorkerPool(max_workers=4)
+    pool = OptimizedWorkerPool(max_threads=4)
 
+    # Submit tasks
     for i in range(10):
-        task = DummyTask(task_id=f"task_{i}")
-        pool.submit_task(task)
+        pool.submit(dummy_task, priority=TaskPriority.NORMAL, task_id=f"task_{i}")
 
-    # Shutdown pool
-    pool.shutdown(wait=True, timeout=5)
+    # Wait for tasks to complete
+    time.sleep(0.5)
 
     # Force garbage collection
     gc.collect()
