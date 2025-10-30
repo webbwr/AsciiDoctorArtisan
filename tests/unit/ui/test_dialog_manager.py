@@ -45,7 +45,8 @@ class TestDialogManager:
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         manager = DialogManager(main_window)
-        assert hasattr(manager, "parent") or hasattr(manager, "_parent")
+        assert hasattr(manager, "editor")  # DialogManager stores parent as 'editor'
+        assert manager.editor == main_window
 
     def test_show_dialog_method_exists(self, main_window):
         """Test that show_dialog or similar method exists."""
@@ -96,6 +97,6 @@ class TestDialogManager:
 
         manager = DialogManager(main_window)
 
-        # Manager should have reference to parent window
-        parent = getattr(manager, "parent", getattr(manager, "_parent", None))
-        assert parent is not None or parent == main_window
+        # Manager should have reference to parent window (stored as 'editor')
+        assert hasattr(manager, "editor")
+        assert manager.editor == main_window
