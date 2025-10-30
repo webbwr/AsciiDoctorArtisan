@@ -1,0 +1,16 @@
+file_error:
+  has_details: true
+  has_error_prefix: true
+  length: 26
+git_error:
+  has_details: true
+  has_error_prefix: true
+  length: 31
+permission_error:
+  has_details: true
+  has_error_prefix: false
+  length: 39
+render_error:
+  has_details: true
+  has_error_prefix: false
+  length: 49

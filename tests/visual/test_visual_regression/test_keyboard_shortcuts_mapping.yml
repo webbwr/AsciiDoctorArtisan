@@ -1,0 +1,7 @@
+export_pdf: Ctrl+E
+new: Ctrl+N
+open: Ctrl+O
+quit: Ctrl+Q
+save: Ctrl+S
+save_as: Ctrl+Shift+S
+toggle_preview: Ctrl+P

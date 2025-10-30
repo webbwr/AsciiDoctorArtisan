@@ -1,0 +1,6 @@
+dark_mode:
+  accent_bg_ratio: 6.0
+  text_bg_ratio: 12.63
+light_mode:
+  accent_bg_ratio: 4.5
+  text_bg_ratio: 21.0

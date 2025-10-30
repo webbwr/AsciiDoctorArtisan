@@ -1,0 +1,8 @@
+recent_files:
+- /path/1.adoc
+- /path/2.adoc
+settings:
+  auto_save: true
+  font_size: 12
+  theme: light
+version: 1.5.0

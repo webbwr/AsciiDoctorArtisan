@@ -1,0 +1,12 @@
+docx:
+  extension: .docx
+  requires_pandoc: true
+html:
+  extension: .html
+  requires_wkhtmltopdf: false
+markdown:
+  extension: .md
+  requires_pandoc: true
+pdf:
+  extension: .pdf
+  requires_wkhtmltopdf: true

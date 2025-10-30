@@ -1,0 +1,20 @@
+add:
+- git
+- add
+- '{file}'
+commit:
+- git
+- commit
+- -m
+- '{message}'
+pull:
+- git
+- pull
+- --rebase
+push:
+- git
+- push
+status:
+- git
+- status
+- --porcelain

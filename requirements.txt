@@ -80,3 +80,5 @@ pre-commit>=3.0.0
 #
 hypothesis>=6.100.0  # Property-based testing (QA-7)
 pytest-benchmark>=5.0.0  # Performance regression testing (QA-8)
+pytest-regressions>=2.8.0  # Visual regression testing (QA-9)
+numpy>=1.24.0  # Image processing for visual regression tests (QA-9)

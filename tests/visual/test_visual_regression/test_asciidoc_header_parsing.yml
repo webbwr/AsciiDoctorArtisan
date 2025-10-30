@@ -1,0 +1,16 @@
+simple:
+  has_attributes: false
+  has_title: true
+  line_count: 1
+with_attribute:
+  has_attributes: true
+  has_title: true
+  line_count: 2
+with_author:
+  has_attributes: false
+  has_title: true
+  line_count: 2
+with_version:
+  has_attributes: false
+  has_title: true
+  line_count: 1

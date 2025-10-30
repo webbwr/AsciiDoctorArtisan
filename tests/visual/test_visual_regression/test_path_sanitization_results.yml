@@ -1,0 +1,20 @@
+../../../dangerous/path:
+  has_dotdot: true
+  is_absolute: true
+  is_none: false
+../../etc/passwd:
+  has_dotdot: true
+  is_absolute: true
+  is_none: false
+/home/user/documents/file.adoc:
+  has_dotdot: false
+  is_absolute: true
+  is_none: false
+/tmp/test.txt:
+  has_dotdot: false
+  is_absolute: true
+  is_none: false
+relative/path/to/file.adoc:
+  has_dotdot: false
+  is_absolute: true
+  is_none: false

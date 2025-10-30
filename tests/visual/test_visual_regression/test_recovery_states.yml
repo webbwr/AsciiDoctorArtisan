@@ -1,0 +1,16 @@
+critical_error:
+  can_render: false
+  can_save: false
+  has_error: true
+file_error:
+  can_render: true
+  can_save: false
+  has_error: true
+normal:
+  can_render: true
+  can_save: true
+  has_error: false
+render_error:
+  can_render: false
+  can_save: true
+  has_error: true

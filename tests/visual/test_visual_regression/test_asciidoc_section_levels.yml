@@ -1,0 +1,20 @@
+level_1:
+  is_section: false
+  is_title: true
+  level: 1
+level_2:
+  is_section: true
+  is_title: false
+  level: 2
+level_3:
+  is_section: true
+  is_title: false
+  level: 3
+level_4:
+  is_section: true
+  is_title: false
+  level: 4
+level_5:
+  is_section: true
+  is_title: false
+  level: 5

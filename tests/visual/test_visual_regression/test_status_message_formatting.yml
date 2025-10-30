@@ -1,0 +1,12 @@
+error:
+  has_prefix: true
+  length: 26
+git:
+  has_prefix: true
+  length: 22
+normal:
+  has_prefix: true
+  length: 23
+version:
+  has_prefix: true
+  length: 6

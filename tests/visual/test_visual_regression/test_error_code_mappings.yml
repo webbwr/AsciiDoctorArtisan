@@ -1,0 +1,6 @@
+E001: File not found
+E002: Permission denied
+E003: Invalid AsciiDoc syntax
+E004: Git repository not found
+E005: Pandoc not installed
+E006: wkhtmltopdf not installed

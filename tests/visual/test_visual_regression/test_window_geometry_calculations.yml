@@ -1,0 +1,20 @@
+4k:
+  editor_width: 1920
+  is_wide: true
+  preview_width: 1920
+  ratio: 0.5
+fullhd:
+  editor_width: 960
+  is_wide: true
+  preview_width: 960
+  ratio: 0.5
+laptop:
+  editor_width: 683
+  is_wide: false
+  preview_width: 683
+  ratio: 0.5
+maximized:
+  editor_width: 960
+  is_wide: true
+  preview_width: 960
+  ratio: 0.5

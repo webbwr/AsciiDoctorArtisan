@@ -1,0 +1,28 @@
+size_10:
+  line_height: 13
+  pixel_size: 13
+  point_size: 10
+size_12:
+  line_height: 15
+  pixel_size: 16
+  point_size: 12
+size_14:
+  line_height: 18
+  pixel_size: 18
+  point_size: 14
+size_16:
+  line_height: 20
+  pixel_size: 21
+  point_size: 16
+size_18:
+  line_height: 23
+  pixel_size: 24
+  point_size: 18
+size_20:
+  line_height: 26
+  pixel_size: 26
+  point_size: 20
+size_8:
+  line_height: 10
+  pixel_size: 10
+  point_size: 8

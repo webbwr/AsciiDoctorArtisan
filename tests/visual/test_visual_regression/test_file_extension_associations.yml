@@ -1,0 +1,12 @@
+asciidoc:
+- .adoc
+- .asciidoc
+- .asc
+html:
+- .html
+- .htm
+markdown:
+- .md
+- .markdown
+text:
+- .txt

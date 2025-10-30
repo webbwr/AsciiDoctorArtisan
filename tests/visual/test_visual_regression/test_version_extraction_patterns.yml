@@ -1,0 +1,12 @@
+attribute_revnumber:
+  extracted_version: 3.0.0
+  found: true
+attribute_version:
+  extracted_version: 2.1.0
+  found: true
+text_version:
+  extracted_version: 1.5.0
+  found: true
+title_version:
+  extracted_version: 4.2.1
+  found: true

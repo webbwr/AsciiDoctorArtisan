@@ -1,0 +1,20 @@
+bold:
+  is_paired: true
+  length: 6
+  start_char: '*'
+italic:
+  is_paired: true
+  length: 6
+  start_char: _
+monospace:
+  is_paired: true
+  length: 6
+  start_char: '`'
+subscript:
+  is_paired: true
+  length: 6
+  start_char: '~'
+superscript:
+  is_paired: true
+  length: 6
+  start_char: ^

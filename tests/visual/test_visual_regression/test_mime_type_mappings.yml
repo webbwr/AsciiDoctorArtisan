@@ -1,0 +1,5 @@
+.adoc: text/plain
+.docx: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+.html: text/html
+.md: text/markdown
+.pdf: application/pdf

@@ -1,0 +1,6 @@
+evicted_b: true
+has_a: true
+has_b: false
+has_c: true
+has_d: true
+size: 3

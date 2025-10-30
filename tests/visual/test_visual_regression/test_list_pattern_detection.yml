@@ -1,0 +1,25 @@
+checklist:
+  is_nested: false
+  is_ordered: false
+  is_unordered: true
+  starts_with_marker: true
+ordered:
+  is_nested: false
+  is_ordered: true
+  is_unordered: false
+  starts_with_marker: true
+ordered_nested:
+  is_nested: true
+  is_ordered: true
+  is_unordered: false
+  starts_with_marker: true
+unordered:
+  is_nested: false
+  is_ordered: false
+  is_unordered: true
+  starts_with_marker: true
+unordered_nested:
+  is_nested: true
+  is_ordered: false
+  is_unordered: true
+  starts_with_marker: true

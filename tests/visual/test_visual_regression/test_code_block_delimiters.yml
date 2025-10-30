@@ -1,0 +1,16 @@
+listing:
+  delimiter_char: .
+  has_source_attribute: false
+  line_count: 1
+literal:
+  delimiter_char: .
+  has_source_attribute: false
+  line_count: 1
+source_block:
+  delimiter_char: '-'
+  has_source_attribute: true
+  line_count: 2
+standard:
+  delimiter_char: '-'
+  has_source_attribute: false
+  line_count: 1
