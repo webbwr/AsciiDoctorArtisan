@@ -37,12 +37,14 @@ class ConcretePreviewHandler(PreviewHandlerBase):
         self.preview_updated.emit(html)
 
     def sync_editor_to_preview(self, editor_value: int) -> None:
-        """Test implementation."""
-        self.scroll_synced = True
+        """Test implementation - respects sync_scrolling_enabled and is_syncing_scroll."""
+        if self.sync_scrolling_enabled and not self.is_syncing_scroll:
+            self.scroll_synced = True
 
     def sync_preview_to_editor(self, preview_value: int) -> None:
-        """Test implementation."""
-        self.scroll_synced = True
+        """Test implementation - respects sync_scrolling_enabled and is_syncing_scroll."""
+        if self.sync_scrolling_enabled and not self.is_syncing_scroll:
+            self.scroll_synced = True
 
 
 @pytest.fixture
@@ -54,6 +56,52 @@ def mock_window(qtbot):
     window._settings = Mock()
     window._settings.dark_mode = False
     window.request_preview_render = Mock()
+
+    # Mock theme_manager for CSS generation
+    window.theme_manager = Mock()
+    # Use a list to ensure we create new string objects each time
+    css_call_count = [0]
+    def get_preview_css_mock():
+        """Return CSS based on dark_mode setting - ensures new object each call."""
+        css_call_count[0] += 1
+        if window._settings.dark_mode:
+            # Use string concatenation to ensure new object
+            return "".join([
+                f"/* Call {css_call_count[0]} */\n",
+                "body {\n",
+                "    color: #e0e0e0;\n",
+                "    background-color: #1a1a1a;\n",
+                "    max-width: 900px;\n",
+                "    margin: 0 auto;\n",
+                "}\n",
+                "code { background: #2d2d2d; font-family: 'Courier New', monospace; }\n",
+                "pre { background: #2d2d2d; padding: 10px; font-family: 'Courier New', monospace; }\n",
+                "table { border: 1px solid #444; }\n",
+                "table th { background: #333; }\n",
+                "table td { padding: 8px; }\n",
+                "h1 { border-bottom: 2px solid #444; }\n",
+                "h1, h2, h3 { color: #fff; }\n",
+            ])
+        else:
+            # Use string concatenation to ensure new object
+            return "".join([
+                f"/* Call {css_call_count[0]} */\n",
+                "body {\n",
+                "    color: #333;\n",
+                "    background-color: #fff;\n",
+                "    max-width: 900px;\n",
+                "    margin: 0 auto;\n",
+                "}\n",
+                "code { background: #f5f5f5; font-family: 'Courier New', monospace; }\n",
+                "pre { background: #f5f5f5; padding: 10px; font-family: 'Courier New', monospace; }\n",
+                "table { border: 1px solid #ddd; }\n",
+                "table th { background: #f9f9f9; }\n",
+                "table td { padding: 8px; }\n",
+                "h1 { border-bottom: 2px solid #ddd; }\n",
+                "h1, h2, h3 { color: #000; }\n",
+            ])
+    window.theme_manager.get_preview_css = get_preview_css_mock
+
     return window
 
 
