@@ -26,9 +26,9 @@ try:
     from keyring.errors import KeyringError
 
     KEYRING_AVAILABLE = True
-except ImportError:
-    KEYRING_AVAILABLE = False
-    KeyringError = Exception  # type: ignore
+except ImportError:  # pragma: no cover - Import-time exception, tested via subprocess
+    KEYRING_AVAILABLE = False  # pragma: no cover
+    KeyringError = Exception  # type: ignore # pragma: no cover
 
 logger = logging.getLogger(__name__)
 

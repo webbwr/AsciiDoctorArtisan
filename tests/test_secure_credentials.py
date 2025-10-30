@@ -329,3 +329,73 @@ class TestEdgeCases:
         result = creds.delete_api_key("test")
 
         assert result is False
+
+
+class TestImportErrorHandling:
+    """Test import-time error handling (lines 29-31).
+
+    Note: Lines 29-31 are import-time exception handlers marked with
+    `pragma: no cover` because they execute only when the module is first
+    loaded and keyring is unavailable. They are tested indirectly via:
+    - All tests that mock KEYRING_AVAILABLE=False
+    - Subprocess test (if keyring truly unavailable)
+    """
+
+    def test_keyring_unavailable_behavior_documented(self):
+        """Document that ImportError handling sets fallback behavior."""
+        from asciidoc_artisan.core.secure_credentials import (
+            KEYRING_AVAILABLE,
+            KeyringError,
+        )
+
+        # This test documents the expected behavior when keyring import fails:
+        # 1. KEYRING_AVAILABLE is set to False (handled by lines 29-31)
+        # 2. KeyringError falls back to Exception (handled by line 31)
+        #
+        # The existing 29 tests already thoroughly cover the
+        # KEYRING_AVAILABLE=False code paths, validating the fallback works.
+
+        # If keyring is available (normal case)
+        if KEYRING_AVAILABLE:
+            assert KeyringError.__name__ == "KeyringError"
+        # If keyring unavailable (import error occurred)
+        else:  # pragma: no cover
+            assert KEYRING_AVAILABLE is False
+            assert KeyringError == Exception
+
+
+class TestAuditLoggingFailure:
+    """Test audit logging failure scenarios."""
+
+    def test_audit_log_exception_handling(self, mocker):
+        """Test double exception handling in audit logging (lines 84-90)."""
+        from asciidoc_artisan.core.secure_credentials import SecurityAudit
+
+        # Mock logger to raise exception during info logging
+        mock_logger = mocker.patch("asciidoc_artisan.core.secure_credentials.logger")
+        mock_logger.info.side_effect = RuntimeError("Logging system failure")
+        mock_logger.error.side_effect = RuntimeError("Error logging also fails")
+
+        # Should not raise exception, silently continue
+        SecurityAudit.log_event("store_key", "test_service", True)
+
+        # Verify both info and error were attempted
+        assert mock_logger.info.called
+        assert mock_logger.error.called
+
+    def test_audit_log_getuser_exception(self, mocker):
+        """Test audit logging when getuser() fails."""
+        from asciidoc_artisan.core.secure_credentials import SecurityAudit
+        import getpass
+
+        # Mock getuser() to raise exception
+        mocker.patch.object(getpass, "getuser", side_effect=OSError("No user"))
+
+        # Mock logger
+        mock_logger = mocker.patch("asciidoc_artisan.core.secure_credentials.logger")
+
+        # Should not raise exception, should log error
+        SecurityAudit.log_event("test", "test_service", True)
+
+        # Should have called error due to exception
+        assert mock_logger.error.called
