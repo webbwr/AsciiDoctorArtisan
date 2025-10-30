@@ -1,0 +1,18 @@
+{
+  "skills": [
+    {
+      "name": "grandmaster-techwriter",
+      "aliases": ["tw", "techwriter", "grade5"],
+      "description": "Write and verify technical documentation at ≤Grade 5.0 reading level",
+      "file": "grandmaster-techwriter.md",
+      "auto_activate": true,
+      "trigger_patterns": ["*.md", "*.rst", "*.txt", "*.adoc"],
+      "version": "1.0.0"
+    }
+  ],
+  "metadata": {
+    "created": "2025-10-30",
+    "repository": "AsciiDoctorArtisan",
+    "claude_code_version": "latest"
+  }
+}

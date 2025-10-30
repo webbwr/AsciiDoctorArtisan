@@ -31,14 +31,33 @@ This skill automatically activates for all documentation operations:
 
 No manual invocation needed! The skill runs automatically, scores documents, and ensures Grade 5.0 compliance.
 
-**Manual Usage (if needed):**
-```bash
-@grandmaster-techwriter [file-to-improve]
+**Manual Usage:**
 
-# Or use CLI wrapper
-./scripts/techwriter check README.md
-./scripts/techwriter watch docs/guide.md
-./scripts/techwriter batch docs/
+Three ways to invoke:
+
+1. **Via bash aliases** (recommended):
+```bash
+tw check README.md          # Check readability
+tw improve docs/guide.md    # Apply improvements
+tw watch CHANGELOG.md       # Watch for changes
+tw batch docs/              # Check all .md files
+
+# Aliases: tw, techwriter, grade5 (all work the same)
+techwriter check README.md
+grade5 batch docs/
+```
+
+2. **Via script directly**:
+```bash
+./scripts/tw check README.md
+./scripts/tw improve docs/guide.md
+./scripts/tw watch docs/guide.md
+./scripts/tw batch docs/
+```
+
+3. **Via Claude Code** (when registered):
+```
+@grandmaster-techwriter [file-to-improve]
 ```
 
 **Supporting Tools:**
