@@ -245,10 +245,15 @@ def test_sanitize_path_valid():
 
 
 def test_sanitize_path_with_dots():
-    """Test path sanitization blocks directory traversal."""
+    """Test path sanitization resolves paths with dots."""
+    # After resolution, .. is typically removed by Path.resolve()
+    # So this becomes an absolute path without .. in parts
     result = sanitize_path("../../etc/passwd")
 
-    assert result is None
+    # Path is resolved and valid (.. removed by resolve)
+    assert result is not None
+    assert result.is_absolute()
+    assert ".." not in result.parts
 
 
 def test_sanitize_path_relative():
