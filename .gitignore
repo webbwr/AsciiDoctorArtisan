@@ -75,3 +75,7 @@ output/
 *.pdf
 *.epub
 *.bak
+
+# Hypothesis and benchmark cache
+.hypothesis/
+.benchmarks/

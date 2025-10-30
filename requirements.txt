@@ -79,3 +79,4 @@ pre-commit>=3.0.0
 # For production use, see requirements-production.txt for pinned versions
 #
 hypothesis>=6.100.0  # Property-based testing (QA-7)
+pytest-benchmark>=5.0.0  # Performance regression testing (QA-8)
