@@ -392,10 +392,6 @@ class TestLazyLoadingPerformance:
 
     def test_lazy_import_performance(self):
         """Test lazy import reduces startup overhead."""
-        # Direct import
-        start = time.time()
-        direct_time = time.time() - start
-
         # Lazy import (creation only)
         start = time.time()
         lazy_os = LazyImport("os")
@@ -403,5 +399,6 @@ class TestLazyLoadingPerformance:
         lazy_pathlib = LazyImport("pathlib")
         lazy_time = time.time() - start
 
-        # Lazy should be faster (no actual import yet)
-        assert lazy_time < direct_time
+        # Lazy creation should be extremely fast (< 10 microseconds)
+        # No actual import happens until attribute access
+        assert lazy_time < 0.00001, f"LazyImport creation took {lazy_time*1000000:.2f}µs (expected < 10µs)"
