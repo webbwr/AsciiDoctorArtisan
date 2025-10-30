@@ -3,8 +3,37 @@
 
 **Last Updated:** October 29, 2025
 **Planning Horizon:** 18-24 months
-**Based on:** Architectural Analysis 2025 + v1.6.0 Completion Review
 **Status:** v1.5.0 ✅ | v1.6.0 ✅ | v1.7.0 PLANNED
+
+---
+
+## Quick Reference
+
+| Version | Status | Target Date | Focus | Effort | Critical Tasks |
+|---------|--------|-------------|-------|--------|----------------|
+| v1.5.0 | ✅ COMPLETE | Oct 2025 | Performance | - | Startup optimization, refactoring |
+| v1.6.0 | ✅ COMPLETE | Oct 2025 | GitHub + Async | - | GitHub CLI, async I/O |
+| v1.7.0 | 🔄 PLANNED | Q1 2026 | Polish + QA | 76-108h | Find/Replace, Type Hints, QA fixes |
+| v1.8.0 | 📋 BACKLOG | Q2-Q3 2026 | Extensibility | 120-172h | Auto-complete, Plugin API |
+| v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 360-500h | LSP, Multi-core, Collaboration |
+
+**Current Priority:** v1.7.0 + QA Initiative (parallel execution)
+
+---
+
+## Table of Contents
+
+1. [Vision & Principles](#vision-statement)
+2. [Current State (v1.6.0)](#current-state-v160-)
+3. [v1.7.0 Plan (Q1 2026)](#version-170-polish--essential-features)
+4. [Quality Assurance Initiative](#quality-assurance-initiative-critical)
+5. [v1.8.0 Plan (Q2-Q3 2026)](#version-180-advanced-features--extensibility)
+6. [v2.0.0 Plan (Q4 2026-Q2 2027)](#version-200-next-generation-architecture)
+7. [Future Vision](#beyond-v200-future-vision)
+8. [Performance Budget](#performance-budget)
+9. [Resources & Budget](#resource-requirements)
+10. [Risk Management](#risk-management)
+11. [Success Metrics](#success-metrics--kpis)
 
 ---
 
@@ -22,37 +51,30 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ## Current State (v1.6.0) ✅
 
-### Achievements
+### Architecture Excellence
+- **Modular design** with manager pattern (59 source modules)
+- **Main window:** 630 lines (down from 1,719 - 63% reduction)
+- **Clean separation** of concerns (core, ui, workers)
 
-**Architecture:**
-- Modular design with manager pattern
-- 59 source modules (core: 19, ui: 29, workers: 10)
-- Main window: 630 lines (down from 1,719)
-- Clean separation of concerns
+### Performance Achievements
+- **Startup:** 1.05s (70-79% faster than v1.4.0)
+- **GPU acceleration:** 10-50x faster rendering
+- **Block detection:** 10-14% improvement
+- **Predictive rendering:** 28% latency reduction
 
-**Performance:**
-- Startup: 1.05s (70-79% faster than v1.4.0)
-- GPU-accelerated rendering (10-50x faster)
-- Block detection: 10-14% improvement
-- Predictive rendering: 28% latency reduction
+### Quality Metrics
+- **Test coverage:** 60%+ (up from 34%)
+- **Test suite:** 68 files, 481+ tests
+- **Tech debt:** LOW (<30% duplication)
+- **Documentation:** Comprehensive
 
-**Quality:**
-- Test coverage: 60%+ (up from 34%)
-- 68 test files, 481+ total tests
-- Only 2 TODOs/FIXMEs
-- Comprehensive documentation
+### Feature Completeness
+- ✅ GitHub CLI integration (PR/Issue management)
+- ✅ Async I/O implementation
+- ✅ Incremental rendering with caching
+- ✅ Memory profiling system
 
-**Features:**
-- GitHub CLI integration (PR/Issue management)
-- Async I/O implementation
-- Incremental rendering with caching
-- Memory profiling system
-
-### Technical Debt: LOW ✅
-- Code duplication: <30%
-- Maintainability: HIGH
-- Dependencies: Current
-- Security: No known issues
+**Quality Score:** 82/100 (GOOD) → Target: 95/100 (LEGENDARY)
 
 ---
 
@@ -60,41 +82,34 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 **Target Date:** Q1 2026 (January - March)
 **Duration:** 2-3 months
-**Effort:** 76-108 hours (1 developer, full-time)
+**Effort:** 76-108 hours
 **Focus:** Essential text editor features + code quality
 
 ### Goals
 
-1. **Add missing essential features**
-2. **Complete type hint coverage**
-3. **Improve user experience**
-4. **Prepare foundation for plugins**
-5. **Enhance async I/O integration**
+1. ⭐ Add missing essential features (Find/Replace, Spell Checker)
+2. ⭐ Complete type hint coverage (60% → 100%)
+3. ⭐ Enhance async I/O integration
+4. 🔧 Improve user experience (error messages, shortcuts)
+5. 📊 Enable telemetry (opt-in)
 
-### Tasks
+### Critical Tasks
 
 #### Task 1: Find & Replace System ⭐
 **Priority:** CRITICAL | **Effort:** 8-12 hours
 
-**Requirements:**
+**Features:**
 - Find text with regex support
 - Replace single or all occurrences
-- Case-sensitive/insensitive options
-- Whole word matching
-- Find in selection
-- Replace preview
+- Case-sensitive/insensitive, whole word matching
+- Find in selection + replace preview
 
-**Implementation:**
-- New: `src/asciidoc_artisan/ui/find_replace_dialog.py` (~300 lines)
-- New: `src/asciidoc_artisan/core/search_engine.py` (~200 lines)
-- Modify: `src/asciidoc_artisan/ui/main_window.py` (+50 lines)
-- Tests: `tests/test_find_replace.py` (25 tests)
+**Deliverables:**
+- `ui/find_replace_dialog.py` (~300 lines)
+- `core/search_engine.py` (~200 lines)
+- 25 tests
 
-**Success Criteria:**
-- Ctrl+F opens find dialog
-- Ctrl+H opens replace dialog
-- Regex patterns work correctly
-- All tests pass
+**Success:** Ctrl+F/Ctrl+H working, regex patterns supported
 
 ---
 
@@ -105,22 +120,13 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 **Target:** 100% type coverage
 
 **Approach:**
-1. Audit all modules for missing type hints (4 hours)
-2. Add type hints to core/ modules (6 hours)
-3. Add type hints to ui/ modules (8 hours)
-4. Add type hints to workers/ modules (4 hours)
-5. Run mypy strict mode, fix issues (4 hours)
+1. Audit all 59 modules for missing hints (4h)
+2. Add hints to core/ modules (6h)
+3. Add hints to ui/ modules (8h)
+4. Add hints to workers/ modules (4h)
+5. Run `mypy --strict`, fix issues (4h)
 
-**Files to Update:**
-- All 59 source modules
-- Focus on public APIs first
-- Add `from __future__ import annotations` for Python 3.9 compat
-
-**Success Criteria:**
-- mypy passes with `--strict`
-- All public functions have type hints
-- All class attributes typed
-- IDE autocomplete improved
+**Success:** mypy passes strict mode, all public APIs typed
 
 ---
 
@@ -128,133 +134,74 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 **Priority:** HIGH | **Effort:** 12-16 hours
 
 **Features:**
-- Real-time spell checking
-- Underline misspelled words
-- Right-click suggestions
+- Real-time spell checking with underlines
+- Right-click suggestions menu
 - Custom dictionary support
 - Language selection
 
-**Implementation:**
+**Deliverables:**
+- `core/spell_checker.py` (~250 lines)
+- `ui/spell_checker_ui.py` (~150 lines)
+- 20 tests
 - Dependency: `language_tool_python` or `pyspellchecker`
-- New: `src/asciidoc_artisan/core/spell_checker.py` (~250 lines)
-- New: `src/asciidoc_artisan/ui/spell_checker_ui.py` (~150 lines)
-- Modify: `src/asciidoc_artisan/ui/main_window.py` (+30 lines)
-- Tests: `tests/test_spell_checker.py` (20 tests)
 
-**Success Criteria:**
-- Spell checking works in editor
-- Red underlines for errors
-- Context menu with suggestions
-- Can add to custom dictionary
-- Performance: <100ms for typical documents
+**Success:** Spell checking works, <100ms performance
 
 ---
 
 #### Task 4: Enhanced Async I/O ⭐
 **Priority:** MEDIUM | **Effort:** 24-32 hours
 
-**Current State:**
-- async_file_ops.py exists but underutilized
-- Most file operations still synchronous
-- Mixed sync/async patterns
+**Status:** ✅ COMPLETE (October 29, 2025)
 
-**Goals:**
-1. Migrate file operations to async (8 hours)
-2. Implement async file watcher (8 hours)
-3. Add async context managers (4 hours)
-4. Integrate with Qt event loop (8 hours)
-5. Benchmark and optimize (4 hours)
+**Delivered:**
+- AsyncFileWatcher (file change monitoring)
+- QtAsyncFileManager (Qt-integrated async operations)
+- file_handler.py migrated to async
+- 30/30 tests passing (100%)
+- Zero performance regression
 
-**Files to Modify:**
-- `src/asciidoc_artisan/core/async_file_ops.py` (enhance)
-- `src/asciidoc_artisan/core/file_operations.py` (migrate to async)
-- `src/asciidoc_artisan/ui/file_handler.py` (use async APIs)
-- All file I/O call sites
-
-**Success Criteria:**
-- File open/save non-blocking
-- Large file loads don't freeze UI
-- File watcher detects external changes
-- No performance regression
-- All tests pass
+**Files Created:**
+- `core/async_file_watcher.py` (273 lines)
+- `core/qt_async_file_manager.py` (388 lines)
+- Tests: 30 tests, all passing
 
 ---
 
 #### Task 5: Telemetry System (Opt-In) ⭐
 **Priority:** MEDIUM | **Effort:** 16-24 hours
 
-**Purpose:**
-- Understand user behavior
-- Identify popular features
-- Detect crash patterns
-- Guide feature prioritization
-
-**Implementation:**
-- Dependency: `sentry-sdk` (errors) + custom analytics
-- New: `src/asciidoc_artisan/core/telemetry.py` (~300 lines)
-- New: `src/asciidoc_artisan/ui/telemetry_dialog.py` (opt-in UI)
-- Config: Settings for telemetry preferences
+**Purpose:** Understand user behavior, guide feature prioritization
 
 **Data to Collect (with consent):**
 - Feature usage frequency
-- Crash reports (stack traces)
-- Performance metrics (startup time, render time)
-- Document size statistics (anonymized)
+- Crash reports (stack traces only)
+- Performance metrics (startup, render time)
 - Error patterns
+- **NO personal data or document content**
 
-**Privacy:**
-- Opt-in only (ask on first launch)
-- No personal data
-- No document content
-- Anonymous user ID
-- Open-source collection code
+**Implementation:**
+- Dependency: `sentry-sdk`
+- `core/telemetry.py` (~300 lines)
+- `ui/telemetry_dialog.py` (opt-in UI)
+- GDPR compliant, clear opt-in on first launch
 
-**Success Criteria:**
-- Clear opt-in dialog
-- Can enable/disable anytime
-- Data sent securely
-- Privacy policy displayed
-- GDPR compliant
+**Success:** Opt-in dialog shown, can enable/disable anytime
 
 ---
 
 ### Minor Tasks
 
-#### Task 6: Improved Error Messages
-**Effort:** 4-6 hours
-
-- User-friendly error dialogs
-- Actionable error messages
-- Error recovery suggestions
-- Log errors to file
-
-#### Task 7: Keyboard Shortcuts Customization
-**Effort:** 6-8 hours
-
-- Editable keyboard shortcuts
-- Conflict detection
-- Import/export shortcuts
-- Restore defaults
-
-#### Task 8: Recent Files Improvements
-**Effort:** 4-6 hours
-
-- Pin favorite files
-- Clear recent files
-- Show file paths on hover
-- Limit recent files count (configurable)
-
-#### Task 9: Performance Dashboard (Dev Tool)
-**Effort:** 8-12 hours
-
-- Show metrics in UI (debug mode)
-- Render time graphs
-- Memory usage graphs
-- Cache hit rates
+| Task | Effort | Description |
+|------|--------|-------------|
+| Improved Error Messages | 4-6h | User-friendly dialogs, actionable messages |
+| Keyboard Shortcuts Customization | 6-8h | Editable shortcuts, conflict detection |
+| Recent Files Improvements | 4-6h | Pin favorites, show paths, clear list |
+| Performance Dashboard | 8-12h | Dev tool: metrics, graphs, cache stats |
 
 ---
 
-### Success Criteria (v1.7.0)
+### Success Criteria
 
 | Criterion | Target | Priority |
 |-----------|--------|----------|
@@ -265,26 +212,346 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 | Telemetry opt-in | ✅ Yes | MEDIUM |
 | Test coverage | >70% | HIGH |
 | Startup time | <0.9s | MEDIUM |
-| User satisfaction | >4.5/5 | HIGH |
 | Zero critical bugs | ✅ Yes | CRITICAL |
 
-### Timeline (v1.7.0)
+---
+
+### Timeline
 
 ```
 Month 1 (Jan 2026):
-- Week 1-2: Find & Replace + Spell Checker
-- Week 3-4: Type Hints (core + ui modules)
+  Week 1-2: Find & Replace + Spell Checker
+  Week 3-4: Type Hints (core + ui modules)
 
 Month 2 (Feb 2026):
-- Week 1-2: Enhanced Async I/O
-- Week 3-4: Telemetry System + Testing
+  Week 1-2: Enhanced Async I/O (if needed)
+  Week 3-4: Telemetry System + Testing
 
 Month 3 (Mar 2026):
-- Week 1-2: Minor tasks + bug fixes
-- Week 3-4: Documentation + release prep
+  Week 1-2: Minor tasks + bug fixes
+  Week 3-4: Documentation + release prep
 ```
 
 **Release Target:** March 31, 2026
+
+---
+
+## Quality Assurance Initiative (CRITICAL)
+
+**Status:** 🔴 CRITICAL
+**Priority:** P0 (Blocks v1.7.0 release)
+**Effort:** 142 hours (10 weeks, 1 developer part-time)
+**Based on:** Grandmaster QA Audit (October 29, 2025)
+
+### Executive Summary
+
+**Current Quality Score:** 82/100 (GOOD)
+**Target Quality Score:** 95/100 (LEGENDARY) by Q1 2026
+
+**Critical Issues:** 204 total
+- 🔴 120 test fixture errors (BLOCKING CI)
+- 🟡 84 missing tests (coverage gaps)
+- 🟡 1 performance regression
+- 🟢 ~380 lines uncovered code
+
+**Recommendation:** Execute Phases 1-3 immediately (84 hours, 7 weeks)
+
+---
+
+### Quick Overview: 5-Phase Plan
+
+| Phase | Focus | Duration | Effort | Priority | Key Goal |
+|-------|-------|----------|--------|----------|----------|
+| 1 | Critical Fixes | 2 weeks | 20h | P0 | Fix 120 test errors, enable CI |
+| 2 | Coverage Push | 3 weeks | 38h | P1 | Achieve 80% coverage |
+| 3 | Quality Infrastructure | 2 weeks | 26h | P2 | Automated quality gates |
+| 4 | Performance Optimization | 3 weeks | 28h | P2 | 15-20% performance gain |
+| 5 | Continuous Improvement | Ongoing | 30h | P3 | Maintain legendary quality |
+
+**Total:** 10 weeks, 142 hours, 19 tasks
+
+---
+
+### Phase 1: Critical Fixes (P0 - IMMEDIATE)
+
+**Duration:** 2 weeks | **Effort:** 20 hours
+**Goal:** Fix broken tests, enable CI/CD
+
+#### QA-1: Fix Test Fixture Incompatibility 🔴
+**Effort:** 8 hours | **Impact:** HIGH
+
+**Problem:** 120 tests failing with `TypeError: QObject.__init__() called with Mock`
+
+**Solution:**
+```python
+# BEFORE (BROKEN):
+parent_window = Mock()  # ❌ Not a QObject!
+
+# AFTER (FIXED):
+from PySide6.QtWidgets import QMainWindow
+parent_window = QMainWindow()  # ✅ Real QObject
+```
+
+**Files Affected:**
+- `tests/test_file_handler.py` (29 tests)
+- `tests/test_preview_handler_base.py` (29 tests)
+- `tests/test_ui_integration.py` (34 tests)
+- `tests/test_github_handler.py` (28 tests)
+
+**Deliverables:**
+- `tests/fixtures/qt_fixtures.py` (new, ~150 lines)
+- 4 test files updated
+- CI configuration updated
+
+**Success:** 120 errors → 0, CI green
+
+---
+
+#### QA-2: Investigate Performance Test Failure 🔴
+**Effort:** 4 hours | **Impact:** MEDIUM
+
+**Problem:** `test_benchmark_multiple_edits` failing
+
+**Investigation:**
+1. Run test 10x to check if flaky
+2. Profile actual performance vs baseline
+3. Review test thresholds
+4. Check environment factors
+
+**Possible Outcomes:**
+- Regression found → fix performance bug
+- Flaky test → adjust threshold or add retry
+- Environment issue → update CI
+
+**Success:** Root cause identified, test passing or documented
+
+---
+
+#### QA-3: Implement GitHub Handler Tests 🟡
+**Effort:** 8 hours | **Impact:** MEDIUM
+
+**Problem:** 30 test stubs created, 0 implemented
+
+**Implementation:** Complete all 30 tests in `tests/test_github_handler.py`
+
+**Test Categories:**
+- Initialization (4 tests)
+- Reentrancy guards (3 tests)
+- Pull requests (5 tests)
+- Issues (4 tests)
+- Repository operations (2 tests)
+- Error handling (4 tests)
+- Signal/slot connections (2 tests)
+- State management (2 tests)
+- Integration workflows (2 tests)
+- Cleanup (2 tests)
+
+**Success:** 30/30 tests implemented and passing, 80%+ coverage
+
+---
+
+### Phase 2: Coverage Push (P1)
+
+**Duration:** 3 weeks | **Effort:** 38 hours
+**Goal:** 60% → 80% code coverage
+
+#### QA-4: Cover Low-Coverage Core Modules 🟡
+**Effort:** 12 hours
+
+**Target Modules (6 modules, ~380 lines):**
+
+| Module | Current | Target | Gap | Lines |
+|--------|---------|--------|-----|-------|
+| adaptive_debouncer.py | 45% | 80% | 35% | ~70 |
+| lazy_importer.py | 40% | 80% | 40% | ~80 |
+| memory_profiler.py | 55% | 80% | 25% | ~50 |
+| secure_credentials.py | 50% | 80% | 30% | ~60 |
+| hardware_detection.py | 40% | 80% | 40% | ~80 |
+| gpu_detection.py | 60% | 80% | 20% | ~40 |
+
+**Success:** 6 modules at 80%+, overall coverage 65%+
+
+---
+
+#### QA-5: Add Async Integration Tests 🟡
+**Effort:** 6 hours | **Tests:** 15 new tests
+
+**Categories:**
+- **Async I/O Integration (5):** File load/save, watch, concurrent ops, errors
+- **File Watcher Integration (5):** Modify, delete, replace, memory leak, cleanup
+- **Performance Integration (5):** Async vs sync, large files, concurrent reads
+
+**Success:** 15 integration tests passing, no memory leaks
+
+---
+
+#### QA-6: Add Edge Case Tests 🟡
+**Effort:** 20 hours | **Tests:** 60 new tests
+
+**Categories:**
+- **File Operations (20):** Large files, binary, locked, slow I/O, symlinks, permissions
+- **UI Edge Cases (20):** Extreme sizes, rapid triggers, theme switching, DPI
+- **Worker Thread (20):** Death/resurrection, shutdown, deadlock, timeout
+
+**Success:** 60 edge case tests passing, graceful degradation verified
+
+---
+
+### Phase 3: Quality Infrastructure (P2)
+
+**Duration:** 2 weeks | **Effort:** 26 hours
+**Goal:** Automated quality gates
+
+#### QA-7: Property-Based Testing 🟢
+**Effort:** 8 hours | **Tool:** Hypothesis
+
+**Purpose:** Fuzz testing to find edge cases
+
+**Example:**
+```python
+from hypothesis import given, strategies as st
+
+@given(st.text(min_size=0, max_size=10000))
+def test_render_any_text(text: str):
+    result = render_asciidoc(text)
+    assert result is not None  # Should never crash
+```
+
+**Success:** 20 property-based tests added, 5+ bugs found and fixed
+
+---
+
+#### QA-8: Performance Regression CI 🟢
+**Effort:** 6 hours | **Tool:** pytest-benchmark
+
+**Benchmarks:**
+- Startup time (<1.5s)
+- File load (1MB, 10MB, 50MB)
+- Preview render (1KB, 100KB, 1MB)
+- Git operations
+- Theme switching
+
+**Success:** CI fails on >10% regression, performance history tracked
+
+---
+
+#### QA-9: Visual Regression Testing 🟢
+**Effort:** 12 hours | **Tool:** pytest-regressions
+
+**Scenarios:** 30 visual regression tests
+- App startup (light/dark)
+- File loaded
+- Preview rendering
+- Dialogs
+- Theme changes
+- Error states
+
+**Success:** Baseline stored, CI flags unexpected visual changes
+
+---
+
+### Phase 4: Performance Optimization (P2)
+
+**Duration:** 3 weeks | **Effort:** 28 hours
+**Goal:** 15-20% overall performance improvement
+
+**Quick Wins:**
+
+| Task | Effort | Issue | Expected Gain |
+|------|--------|-------|---------------|
+| QA-10: Fix Incremental Renderer Cache | 2h | LRU cache too small | 10-15% render speed |
+| QA-11: Cache CSS Generation | 1h | CSS regenerated every update | 5-10ms per update |
+| QA-12: Async Settings Save | 2h | Settings block UI | UI never blocks |
+| QA-13: Adaptive File Watcher Polling | 3h | Fixed 1.0s polling | 80% less CPU idle |
+| QA-14: Memory Leak Detection Suite | 12h | Unknown leaks | 0 memory leaks |
+| QA-15: CPU Profiling Integration | 8h | No profiling | 3+ optimization opportunities |
+
+**Total Expected Gain:** 15-20% overall performance improvement
+
+---
+
+### Phase 5: Continuous Improvement (P3)
+
+**Duration:** Ongoing | **Effort:** 30 hours setup
+**Goal:** Maintain quality long-term
+
+**Tasks:**
+- **QA-16:** Mutation Testing (mutmut) - 12h
+- **QA-17:** Type Coverage 100% (mypy --strict) - 12h
+- **QA-18:** Automated Code Review (CodeClimate) - 4h
+- **QA-19:** Dependency Security Scanning - 2h
+
+---
+
+### Quality Score Progression
+
+```
+Current:        82/100 (GOOD)
+  ↓ Phase 1
+After Phase 1:  88/100 (VERY GOOD)    +6 points
+  ↓ Phase 2
+After Phase 2:  92/100 (EXCELLENT)    +4 points
+  ↓ Phase 3
+After Phase 3:  95/100 (LEGENDARY) ⭐ +3 points
+  ↓ Phases 4-5
+After Phase 5:  97/100 (GRANDMASTER)  +2 points
+```
+
+**Target for v1.7.0:** 95/100 (LEGENDARY)
+**Achievable with:** Phases 1-3 (84 hours, 7 weeks)
+
+---
+
+### QA Success Criteria
+
+| Criterion | Baseline | Target | Priority |
+|-----------|----------|--------|----------|
+| Test Errors | 120 | 0 | P0 |
+| Failing Tests | 84 | 0 | P0 |
+| Performance Regression | 1 | 0 | P0 |
+| Code Coverage | 60% | 80% | P1 |
+| Quality Score | 82/100 | 95/100 | P1 |
+| Type Coverage | 85% | 100% | P2 |
+| Memory Leaks | Unknown | 0 | P2 |
+
+---
+
+### QA Risk Mitigation
+
+**Risk 1:** QA work delays v1.7.0
+**Mitigation:** Run QA in parallel with feature work, prioritize P0
+
+**Risk 2:** Coverage targets too ambitious
+**Mitigation:** Accept 75% if 80% time-constrained
+
+**Risk 3:** Performance optimizations introduce bugs
+**Mitigation:** Add regression tests BEFORE optimizing
+
+---
+
+### QA Recommendation
+
+**✅ APPROVE Phase 1 immediately** (20 hours, 2 weeks)
+- Blocking v1.7.0 release confidence
+- Enables all future QA work
+- ROI: 2-20x (bug prevention)
+
+**✅ APPROVE Phase 2 for Q1 2026** (38 hours, 3 weeks)
+- Critical for code quality
+- Prevents production bugs
+- ROI: 10-100x (compound bug prevention)
+
+**⭐ APPROVE Phase 3 for Q2 2026** (26 hours, 2 weeks)
+- Quality infrastructure investment
+- Compound value over time
+- ROI: VERY HIGH (long-term)
+
+**🔷 OPTIONAL Phases 4-5** (58 hours, 8 weeks)
+- Nice-to-have optimizations
+- Evaluate ROI vs other priorities
+- Defer if time-constrained
+
+**Total Recommended:** Phases 1-3 = 10 weeks, 84 hours
 
 ---
 
@@ -292,49 +559,36 @@ Month 3 (Mar 2026):
 
 **Target Date:** Q2-Q3 2026 (April - September)
 **Duration:** 4-6 months
-**Effort:** 120-172 hours (1 developer, full-time)
+**Effort:** 120-172 hours
 **Focus:** Auto-completion, syntax checking, plugin architecture
 
 ### Goals
 
-1. **Add advanced editing features**
-2. **Implement plugin architecture**
-3. **Enable third-party extensions**
-4. **Improve multi-level caching**
-5. **Add document template system**
+1. ⭐⭐ Add advanced editing features (auto-complete, syntax errors)
+2. ⭐⭐⭐ Implement plugin architecture (Phase 1)
+3. ⭐ Improve multi-level caching
+4. ⭐ Add document template system
+5. 🔧 Improve Git integration and export presets
 
-### Tasks
+### Critical Tasks
 
 #### Task 1: Auto-Complete System ⭐⭐
 **Priority:** CRITICAL | **Effort:** 24-32 hours
 
 **Features:**
-- AsciiDoc syntax completion
+- AsciiDoc syntax completion (headings, lists, blocks)
 - Attribute name completion
 - Cross-reference completion
 - Include file completion
 - Snippet expansion
 
-**Implementation:**
-- Dependency: `jedi` or custom parser
-- New: `src/asciidoc_artisan/core/autocomplete.py` (~400 lines)
-- New: `src/asciidoc_artisan/ui/completion_popup.py` (~250 lines)
-- New: `src/asciidoc_artisan/core/asciidoc_parser.py` (~300 lines)
-- Tests: `tests/test_autocomplete.py` (30 tests)
+**Deliverables:**
+- `core/autocomplete.py` (~400 lines)
+- `ui/completion_popup.py` (~250 lines)
+- `core/asciidoc_parser.py` (~300 lines)
+- 30 tests
 
-**Completion Types:**
-1. **Syntax** - Headings (==), lists (-, *), blocks (----), attributes (:attr:)
-2. **Attributes** - Built-in attributes ({doctitle}, {author}, etc.)
-3. **Cross-refs** - Section IDs (<<section-id>>)
-4. **Includes** - File paths (include::path/file.adoc[])
-5. **Snippets** - Common patterns (code block, table, etc.)
-
-**Success Criteria:**
-- Ctrl+Space triggers completion
-- Context-aware suggestions
-- Fuzzy matching works
-- Performance: <50ms for completion
-- Works with large documents
+**Success:** Ctrl+Space triggers completion, <50ms performance
 
 ---
 
@@ -343,238 +597,69 @@ Month 3 (Mar 2026):
 
 **Features:**
 - Real-time syntax checking
-- Error underlines (red squiggles)
-- Warning underlines (yellow squiggles)
-- Error explanations on hover
+- Error/warning underlines (red/yellow)
+- Hover explanations
 - Quick fixes for common errors
 
-**Implementation:**
-- New: `src/asciidoc_artisan/core/syntax_checker.py` (~350 lines)
-- New: `src/asciidoc_artisan/ui/error_marker.py` (~200 lines)
-- Enhance: `asciidoc_parser.py` (error recovery)
-- Tests: `tests/test_syntax_checker.py` (25 tests)
-
 **Error Categories:**
-1. **Syntax errors** - Invalid AsciiDoc syntax
-2. **Semantic errors** - Undefined cross-references
-3. **Style warnings** - Inconsistent heading levels
-4. **Best practices** - Missing attributes
+1. Syntax errors (invalid AsciiDoc)
+2. Semantic errors (undefined cross-references)
+3. Style warnings (inconsistent heading levels)
+4. Best practices (missing attributes)
 
-**Success Criteria:**
-- Errors shown in real-time
-- Hover shows explanation
-- Quick fixes available
-- Doesn't slow down editing
-- All tests pass
+**Success:** Real-time errors shown, quick fixes available
 
 ---
 
 #### Task 3: Plugin Architecture (Phase 1) ⭐⭐⭐
 **Priority:** CRITICAL | **Effort:** 40-60 hours
 
-**Goals:**
-1. Plugin discovery and loading
-2. Basic plugin API
-3. Sandboxed execution
-4. Plugin lifecycle management
-
-**Architecture:**
-```
-plugins/
-├── __init__.py (plugin manager)
-├── api.py (plugin API definitions)
-├── loader.py (plugin discovery & loading)
-├── sandbox.py (isolated execution)
-└── manifest.py (plugin metadata)
-```
-
 **Plugin API (v1.0):**
 ```python
 class Plugin:
-    """Base plugin class"""
     name: str
     version: str
     author: str
 
     def on_load(self): pass
-    def on_unload(self): pass
     def on_document_open(self, doc: Document): pass
     def on_document_save(self, doc: Document): pass
     def on_menu_requested(self) -> List[MenuItem]: pass
-    def on_command(self, command: str, args: dict): pass
 ```
-
-**Plugin Discovery:**
-- Location: `~/.config/AsciiDocArtisan/plugins/`
-- Manifest: `plugin.json` in each plugin directory
-- Loading: On application startup
-- Validation: JSON schema for manifests
-
-**Sandboxing:**
-- Restricted file system access
-- No network access (without permission)
-- Limited Qt API access
-- Resource limits (CPU, memory)
-
-**Implementation:**
-- Dependency: `pluggy` (plugin framework)
-- New directory: `src/asciidoc_artisan/plugins/` (8-10 files)
-- New: Plugin manager UI in preferences
-- Tests: `tests/test_plugins/` (30+ tests)
-- Example plugins: 2-3 sample plugins
-
-**Success Criteria:**
-- Plugins load from directory
-- Plugin API works
-- Sandboxing prevents abuse
-- Can enable/disable plugins
-- Plugin errors don't crash app
-- Documentation for plugin developers
-
----
-
-#### Task 4: Multi-Level Caching System ⭐
-**Priority:** MEDIUM | **Effort:** 24-32 hours
-
-**Current:** Single-level LRU cache (memory only)
-**Target:** Multi-level cache (memory + disk + persistent)
-
-**Architecture:**
-```
-Cache Hierarchy:
-L1: Memory (LRU, 100 blocks, hot data)
-L2: Disk (SSD, 1000 blocks, warm data)
-L3: Persistent (across sessions, user's most-edited docs)
-```
-
-**Implementation:**
-- New: `src/asciidoc_artisan/core/multi_level_cache.py` (~400 lines)
-- Enhance: `incremental_renderer.py` (use multi-level cache)
-- New: Cache statistics and management UI
-- Tests: `tests/test_multi_level_cache.py` (25 tests)
 
 **Features:**
-1. **Memory cache** - Existing LRU cache
-2. **Disk cache** - Serialize to `~/.cache/AsciiDocArtisan/`
-3. **Persistent cache** - Recent documents cached
-4. **Smart prefetching** - Preload likely-needed blocks
-5. **Cache management** - Clear cache, view stats
+- Plugin discovery from `~/.config/AsciiDocArtisan/plugins/`
+- Manifest validation (JSON schema)
+- Sandboxed execution (restricted file/network access)
+- Plugin lifecycle management
+- Plugin manager UI
 
-**Success Criteria:**
-- Cache persists across sessions
-- Disk cache speeds up reopened docs
-- Prefetching reduces latency
-- Cache size configurable
-- Performance: <5ms cache lookup
+**Success:** Plugins load/unload, sandboxing works, 2-3 example plugins
 
 ---
 
-#### Task 5: Document Templates System ⭐
-**Priority:** MEDIUM | **Effort:** 16-24 hours
+### Minor Tasks
 
-**Features:**
-- Template library (built-in templates)
-- Custom template creation
-- Template variables ({{author}}, {{date}})
-- Template categories
-- Import/export templates
-
-**Built-in Templates:**
-1. **Article** - Standard article structure
-2. **Book** - Multi-chapter book
-3. **Report** - Technical report
-4. **README** - Software README
-5. **Manual** - User manual
-6. **Slides** - Presentation
-
-**Implementation:**
-- New: `src/asciidoc_artisan/templates/` (template files)
-- New: `src/asciidoc_artisan/ui/template_dialog.py` (~300 lines)
-- New: `src/asciidoc_artisan/core/template_engine.py` (~250 lines)
-- Tests: `tests/test_templates.py` (20 tests)
-
-**Template Format:**
-```
----
-name: Article Template
-category: General
-author: AsciiDoc Artisan
-version: 1.0
----
-= {{title}}
-{{author}} <{{email}}>
-{{date}}
-
-== Introduction
-[Content here]
-```
-
-**Success Criteria:**
-- File → New from Template works
-- Variables replaced correctly
-- Can create custom templates
-- Template preview available
-- All tests pass
+| Task | Effort | Description |
+|------|--------|-------------|
+| Multi-Level Caching | 24-32h | Memory + disk + persistent cache |
+| Document Templates | 16-24h | Built-in templates, custom creation |
+| Improved Git Integration | 8-12h | Status bar, color coding, quick commit |
+| Export Presets | 6-8h | Save configurations, one-click export |
+| Editor Themes | 8-12h | Syntax highlighting themes, import/export |
 
 ---
 
-### Minor Tasks (v1.8.0)
-
-#### Task 6: Improved Git Integration
-**Effort:** 8-12 hours
-
-- Show Git status in status bar
-- Color code modified/new files
-- Quick commit dialog
-- Git branch switching
-
-#### Task 7: Export Presets
-**Effort:** 6-8 hours
-
-- Save export configurations
-- One-click export with preset
-- Share presets
-
-#### Task 8: Editor Themes
-**Effort:** 8-12 hours
-
-- Syntax highlighting themes
-- Import/export themes
-- Theme preview
-- Community theme sharing
-
----
-
-### Success Criteria (v1.8.0)
+### Success Criteria
 
 | Criterion | Target | Priority |
 |-----------|--------|----------|
 | Auto-complete working | ✅ Yes | CRITICAL |
 | Syntax checking active | ✅ Yes | HIGH |
 | Plugin API released | ✅ v1.0 | CRITICAL |
-| Multi-level caching | ✅ Yes | MEDIUM |
-| Template system | ✅ Yes | MEDIUM |
 | 5+ community plugins | ✅ Yes | HIGH |
 | Test coverage | >75% | HIGH |
 | Startup time | <0.8s | MEDIUM |
-| User satisfaction | >4.6/5 | HIGH |
-
-### Timeline (v1.8.0)
-
-```
-Month 1-2 (Apr-May 2026):
-- Auto-complete system
-- Syntax error detection
-
-Month 3-4 (Jun-Jul 2026):
-- Plugin architecture (Phase 1)
-- Plugin API documentation
-
-Month 5-6 (Aug-Sep 2026):
-- Multi-level caching
-- Document templates
-- Testing & bug fixes
-```
 
 **Release Target:** September 30, 2026
 
@@ -589,82 +674,56 @@ Month 5-6 (Aug-Sep 2026):
 
 ### Goals
 
-1. **Implement Language Server Protocol**
-2. **Enable multi-core rendering**
-3. **Launch plugin marketplace**
-4. **Add collaborative editing (Phase 1)**
-5. **Cloud integration**
+1. ⭐⭐⭐ Implement Language Server Protocol (LSP)
+2. ⭐⭐⭐ Enable multi-core rendering (3-5x faster)
+3. ⭐⭐ Launch plugin marketplace
+4. ⭐⭐⭐ Add collaborative editing (Phase 1)
+5. ⭐ Cloud integration (Dropbox, Google Drive, OneDrive)
 
 ### Major Tasks
 
 #### Task 1: Language Server Protocol (LSP) ⭐⭐⭐
 **Priority:** CRITICAL | **Effort:** 80-120 hours
 
-**Goals:**
-- Full LSP implementation for AsciiDoc
-- IDE integration (VS Code, IntelliJ, etc.)
-- Advanced language features
-
 **LSP Features:**
-1. **Auto-completion** - Symbols, attributes, cross-refs
-2. **Go to Definition** - Jump to headings, includes
-3. **Find References** - Find all uses of anchor
-4. **Hover** - Show attribute values, anchor targets
-5. **Diagnostics** - Syntax errors, warnings
-6. **Document Symbols** - Outline view
-7. **Rename** - Refactor IDs and attributes
-8. **Code Actions** - Quick fixes
+1. Auto-completion (symbols, attributes, cross-refs)
+2. Go to Definition (headings, includes)
+3. Find References (anchor usage)
+4. Hover (attribute values, targets)
+5. Diagnostics (syntax errors, warnings)
+6. Document Symbols (outline view)
+7. Rename (refactor IDs, attributes)
+8. Code Actions (quick fixes)
 
-**Implementation:**
-- Dependency: `pygls` (LSP server framework)
-- New: `src/asciidoc_artisan/lsp/` directory (10-15 files)
-- Separate process: `asciidoc-lsp-server` executable
+**Deliverables:**
+- `src/asciidoc_artisan/lsp/` directory (10-15 files)
+- Separate `asciidoc-lsp-server` executable
 - VS Code extension: `asciidoc-artisan-lsp`
-- Tests: `tests/test_lsp/` (50+ tests)
+- 50+ tests
 
-**Benefits:**
-- Use AsciiDoc Artisan from any editor
-- Broader audience reach
-- Community contributions easier
-- Standardized language support
+**Benefits:** Use AsciiDoc Artisan from any editor, broader reach
 
 ---
 
 #### Task 2: Multi-Core Rendering ⭐⭐⭐
 **Priority:** HIGH | **Effort:** 60-80 hours
 
-**Current:** Single-threaded rendering
-**Target:** Parallel rendering across CPU cores
-
 **Architecture:**
 ```
-Main Thread
-  ├→ Coordinator: Split document into chunks
-  ├→ Worker Pool: N processes (multiprocessing)
-  │   ├→ Process 1: Render blocks 0-99
-  │   ├→ Process 2: Render blocks 100-199
-  │   └→ Process N: Render blocks 900-999
-  └→ Aggregator: Combine results → final HTML
+Main Thread → Coordinator → Worker Pool (N processes)
+  ├→ Process 1: Render blocks 0-99
+  ├→ Process 2: Render blocks 100-199
+  └→ Process N: Render blocks 900-999
+    → Aggregator → Final HTML
 ```
 
-**Implementation:**
-- New: `src/asciidoc_artisan/workers/parallel_renderer.py` (~500 lines)
-- New: `src/asciidoc_artisan/workers/render_coordinator.py` (~300 lines)
-- Modify: `preview_worker.py` (use parallel renderer for large docs)
-- Tests: `tests/test_parallel_rendering.py` (30 tests)
-
 **Optimizations:**
-- Automatic chunk sizing based on document size
-- Process pool reuse (avoid startup overhead)
+- Automatic chunk sizing
+- Process pool reuse
 - Shared memory for rendered blocks
-- Work-stealing queue for load balancing
+- Work-stealing queue
 
-**Success Criteria:**
-- 3-5x faster rendering for large documents (1000+ sections)
-- Scales with CPU cores
-- No race conditions
-- Memory usage acceptable
-- All tests pass
+**Expected Gain:** 3-5x faster rendering for large documents (1000+ sections)
 
 ---
 
@@ -673,165 +732,50 @@ Main Thread
 
 **Features:**
 - Browse plugins in-app
-- Install/update/uninstall plugins
+- Install/update/uninstall
 - Plugin ratings and reviews
 - Search and categories
 - Featured plugins
 
-**Architecture:**
-```
-Client (AsciiDoc Artisan)
-  ↓
-Plugin API (REST)
-  ↓
-Backend (Flask or FastAPI)
-  ↓
-Database (PostgreSQL)
-  ↓
-Storage (S3 for plugin .zip files)
-```
-
-**Implementation:**
-- Backend: Separate repository (`asciidoc-artisan-marketplace`)
-- Client: `src/asciidoc_artisan/plugins/marketplace.py` (~400 lines)
-- UI: `src/asciidoc_artisan/ui/marketplace_dialog.py` (~350 lines)
-- Tests: Client-side only (30 tests)
-
 **Security:**
-- Plugin code signing (GPG signatures)
+- Code signing (GPG)
 - Automated security scanning
-- User reviews and ratings
 - Verified developers badge
 
-**Success Criteria:**
-- Browse/install works in-app
-- Plugins update automatically (opt-in)
-- Security scanning active
-- 20+ plugins at launch
-- Documentation for publishers
+**Success:** 20+ plugins at launch, automated updates work
 
 ---
 
 #### Task 4: Collaborative Editing (Phase 1) ⭐⭐⭐
 **Priority:** MEDIUM | **Effort:** 120-160 hours
 
-**Goals:**
-- Real-time multi-user editing
-- Conflict-free merging
-- Presence indicators (who's editing)
-- Chat (optional)
-
 **Architecture:**
-- Algorithm: **CRDT** (Conflict-free Replicated Data Type)
-- Backend: WebSocket server (FastAPI + WebSockets)
-- Client: WebSocket connection + sync engine
-
-**Implementation:**
-- Dependency: `y-py` or `pycrdt` (CRDT library)
-- New: `src/asciidoc_artisan/collaboration/` directory (12-15 files)
-- Backend: Separate repository (`asciidoc-artisan-collab-server`)
-- Tests: `tests/test_collaboration/` (40+ tests)
-
-**Features (Phase 1):**
-1. **Real-time sync** - Changes appear instantly
-2. **Presence** - See who's online
-3. **Cursor position** - See where others are editing
-4. **Automatic conflict resolution** - CRDT merges automatically
-5. **Offline support** - Sync when reconnected
-
-**Success Criteria:**
-- 2+ users can edit simultaneously
-- No data loss
-- Merge conflicts resolved automatically
-- Latency <100ms for sync
-- Works offline
-
----
-
-#### Task 5: Cloud Integration ⭐
-**Priority:** LOW | **Effort:** 60-80 hours
+- Algorithm: CRDT (Conflict-free Replicated Data Type)
+- Backend: WebSocket server (FastAPI)
+- Client: WebSocket + sync engine
 
 **Features:**
-- Cloud storage (Dropbox, Google Drive, OneDrive)
-- Automatic sync
-- Version history
-- Backup and restore
+1. Real-time sync
+2. Presence indicators
+3. Cursor position sharing
+4. Automatic conflict resolution
+5. Offline support
 
-**Implementation:**
-- Dependencies: `dropbox`, `google-api-python-client`, `onedrivesdk`
-- New: `src/asciidoc_artisan/cloud/` directory (8-10 files)
-- UI: Cloud storage settings in preferences
-- Tests: `tests/test_cloud/` (25 tests)
-
-**Success Criteria:**
-- Connect to cloud services
-- Automatic sync on save
-- Conflict detection
-- Version history accessible
-- Offline mode works
+**Success:** 2+ users edit simultaneously, no data loss, <100ms latency
 
 ---
 
-### Minor Tasks (v2.0.0)
-
-#### Task 6: Advanced Export Options
-**Effort:** 12-16 hours
-
-- Custom CSS for HTML export
-- PDF styling options
-- EPUB metadata
-- Batch export
-
-#### Task 7: Accessibility Improvements
-**Effort:** 16-24 hours
-
-- Screen reader support
-- Keyboard navigation
-- High contrast mode
-- Font scaling
-
-#### Task 8: Mobile Companion App (Research)
-**Effort:** 40-60 hours (research + proof of concept)
-
-- View documents on mobile
-- Light editing
-- Sync with desktop
-
----
-
-### Success Criteria (v2.0.0)
+### Success Criteria
 
 | Criterion | Target | Priority |
 |-----------|--------|----------|
 | LSP implemented | ✅ Yes | CRITICAL |
 | Multi-core rendering | ✅ Yes | HIGH |
 | Plugin marketplace live | ✅ Yes | HIGH |
-| Collaborative editing (Phase 1) | ✅ Yes | MEDIUM |
-| Cloud integration | ✅ Yes | LOW |
+| Collaborative editing | ✅ Yes | MEDIUM |
 | 50+ plugins available | ✅ Yes | HIGH |
 | Test coverage | >80% | HIGH |
 | Startup time | <0.7s | MEDIUM |
-| User satisfaction | >4.7/5 | HIGH |
-
-### Timeline (v2.0.0)
-
-```
-Phase 1 (Oct-Dec 2026): LSP + Multi-Core
-- LSP server implementation
-- Multi-core rendering
-- Testing and optimization
-
-Phase 2 (Jan-Mar 2027): Marketplace + Collab
-- Plugin marketplace backend
-- Collaborative editing (Phase 1)
-- Beta testing
-
-Phase 3 (Apr-Jun 2027): Polish + Release
-- Cloud integration
-- Bug fixes
-- Documentation
-- v2.0.0 release
-```
 
 **Release Target:** June 30, 2027
 
@@ -891,17 +835,17 @@ Phase 3 (Apr-Jun 2027): Polish + Release
 | v2.0.0 | 12-16 | 8-12 | 2 FTE |
 | **Total** | **18-25** | **14-21** | **1-2 FTE** |
 
-### Budget Estimates (Rough)
+### Budget Estimates
 
 **Assumptions:**
-- Developer rate: $75/hour (experienced Python/Qt developer)
+- Developer rate: $75/hour
 - Cloud costs: $50/month (marketplace + collab server)
 
 | Version | Development Cost | Infrastructure Cost | Total |
 |---------|------------------|---------------------|-------|
-| v1.7.0 | $5,700-$8,100 | $150 (3 months) | $5,850-$8,250 |
-| v1.8.0 | $9,000-$12,900 | $300 (6 months) | $9,300-$13,200 |
-| v2.0.0 | $27,000-$37,500 | $600 (12 months) | $27,600-$38,100 |
+| v1.7.0 | $5,700-$8,100 | $150 | $5,850-$8,250 |
+| v1.8.0 | $9,000-$12,900 | $300 | $9,300-$13,200 |
+| v2.0.0 | $27,000-$37,500 | $600 | $27,600-$38,100 |
 | **Total** | **$41,700-$58,500** | **$1,050** | **$42,750-$59,550** |
 
 ---
@@ -916,38 +860,26 @@ Phase 3 (Apr-Jun 2027): Polish + Release
    - **Contingency:** Kill switch to disable plugins remotely
 
 2. **LSP Complexity**
-   - **Risk:** LSP implementation is complex, may delay release
+   - **Risk:** LSP implementation delays release
    - **Mitigation:** Use proven libraries (pygls), incremental implementation
-   - **Contingency:** Ship with subset of LSP features in v2.0.0
+   - **Contingency:** Ship with subset of LSP features
 
 3. **Collaborative Editing Data Loss**
    - **Risk:** Sync issues cause data loss
    - **Mitigation:** Extensive testing, automatic backups, version history
-   - **Contingency:** Disable collab feature if critical bugs found
+   - **Contingency:** Disable collab if critical bugs found
 
 ### Medium-Risk Items
 
 4. **Multi-Core Performance**
-   - **Risk:** Overhead negates performance gains
-   - **Mitigation:** Benchmark thoroughly, optimize chunk size
+   - **Risk:** Overhead negates gains
+   - **Mitigation:** Benchmark thoroughly
    - **Contingency:** Fall back to single-threaded for small docs
 
 5. **Type Hint Migration**
-   - **Risk:** Breaking changes during type hint addition
-   - **Mitigation:** Comprehensive test suite, gradual migration
+   - **Risk:** Breaking changes
+   - **Mitigation:** Comprehensive tests, gradual migration
    - **Contingency:** Type hints are non-breaking, can fix iteratively
-
-### Low-Risk Items
-
-6. **Find & Replace**
-   - **Risk:** Minimal, well-understood feature
-   - **Mitigation:** Use standard regex library, extensive tests
-   - **Contingency:** Easy to fix bugs as found
-
-7. **Spell Checker**
-   - **Risk:** Minimal, using battle-tested library
-   - **Mitigation:** Use language_tool_python or pyspellchecker
-   - **Contingency:** Can disable if performance issues arise
 
 ---
 
@@ -984,7 +916,7 @@ Phase 3 (Apr-Jun 2027): Polish + Release
 
 ## Competitive Positioning
 
-### Target Position Evolution
+### Position Evolution
 
 **v1.7.0:** "The fastest AsciiDoc editor"
 - Focus: Performance + essential features
@@ -1014,56 +946,21 @@ Phase 3 (Apr-Jun 2027): Polish + Release
 
 ---
 
-## Community & Ecosystem
-
-### Plugin Ecosystem Goals
-
-**v1.8.0 Launch (Sep 2026):**
-- 20+ plugins available
-- 5+ plugin developers
-- Plugin documentation complete
-- Marketplace operational
-
-**v2.0.0 Milestone (Jun 2027):**
-- 50+ plugins available
-- 20+ plugin developers
-- Active plugin marketplace
-- Community forums active
-
-**v2.1.0+ Vision:**
-- 200+ plugins
-- Plugin revenue sharing
-- Enterprise plugins
-- Verified developer program
-
-### Community Building
-
-**Initiatives:**
-1. **Documentation** - Comprehensive guides for users and developers
-2. **Tutorials** - Video tutorials on YouTube
-3. **Blog** - Monthly development updates
-4. **Discord** - Community chat server
-5. **Contributor Guide** - Lower barrier to contribution
-6. **Bounties** - Pay for critical features/bugs
-7. **Sponsorship** - GitHub Sponsors, Patreon
-
----
-
 ## Conclusion
 
 This roadmap represents an ambitious 18-24 month plan to transform AsciiDoc Artisan from an excellent editor into **the definitive AsciiDoc platform**.
 
 **Core Strategy:**
-1. **v1.7.0:** Polish the basics, achieve feature parity
-2. **v1.8.0:** Enable extensibility, build ecosystem
+1. **v1.7.0:** Polish the basics, achieve feature parity, fix quality issues
+2. **v1.8.0:** Enable extensibility, build plugin ecosystem
 3. **v2.0.0:** Lead the market with LSP and collaboration
 
 **Success Factors:**
-- Strong architectural foundation (v1.5.0-v1.6.0) ✅
-- Low technical debt ✅
-- Engaged development team ✅
-- Clear user demand 🎯
-- Competitive advantages (performance, native UI) ✅
+- ✅ Strong architectural foundation (v1.5.0-v1.6.0)
+- ✅ Low technical debt (<30% duplication)
+- ✅ Engaged development team
+- 🎯 Clear user demand
+- ✅ Competitive advantages (performance, native UI)
 
 **Estimated Success Probability: 85%+**
 
