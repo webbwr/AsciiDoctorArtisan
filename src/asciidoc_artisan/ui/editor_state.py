@@ -65,15 +65,20 @@ class EditorState:
         font.setPointSize(new_size)
         self.editor.setFont(font)
 
-        # Update preview zoom factor (QWebEngineView uses setZoomFactor)
-        current_zoom = self.preview.zoomFactor()
-        zoom_delta = 0.1 * delta  # Convert delta to zoom factor change
-        new_zoom = max(0.25, min(5.0, current_zoom + zoom_delta))
-        self.preview.setZoomFactor(new_zoom)
-
-        logger.debug(
-            f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}"
-        )
+        # Update preview zoom factor (QWebEngineView only - QTextBrowser doesn't support zoom)
+        if hasattr(self.preview, "zoomFactor") and hasattr(self.preview, "setZoomFactor"):
+            current_zoom = self.preview.zoomFactor()
+            zoom_delta = 0.1 * delta  # Convert delta to zoom factor change
+            new_zoom = max(0.25, min(5.0, current_zoom + zoom_delta))
+            self.preview.setZoomFactor(new_zoom)
+            logger.debug(
+                f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}"
+            )
+        else:
+            # QTextBrowser fallback - only zoom editor
+            logger.debug(
+                f"Zoom changed: {delta}, new size: {new_size} (preview zoom not supported)"
+            )
 
     def toggle_dark_mode(self) -> None:
         """Toggle dark mode on/off."""
