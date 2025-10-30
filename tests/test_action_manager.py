@@ -21,8 +21,12 @@ def qapp():
 
 @pytest.fixture
 def main_window(qapp):
-    """Create a mock main window."""
+    """Create a mock main window with required attributes."""
     window = QMainWindow()
+    # Add required attributes that ActionManager expects
+    window.editor = Mock()  # Text editor widget
+    window._settings = Mock()  # Application settings
+    window._sync_scrolling = False  # Scroll sync state
     return window
 
 
