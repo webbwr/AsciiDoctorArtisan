@@ -389,3 +389,210 @@ def test_profiler_custom_top_n():
     assert len(snapshot.top_allocations) <= 3
 
     profiler.stop()
+
+
+def test_psutil_import_error_handling():
+    """Test graceful handling when psutil unavailable."""
+    from unittest.mock import patch
+    import sys
+
+    # Mock psutil to be unavailable
+    with patch.dict(sys.modules, {'psutil': None}):
+        # Re-import to trigger ImportError path
+        import importlib
+        from asciidoc_artisan.core import memory_profiler
+        importlib.reload(memory_profiler)
+
+        # Should still work, just with limited functionality
+        profiler = memory_profiler.MemoryProfiler()
+        mem_mb, mem_percent = profiler.get_memory_usage()
+
+        # Should return 0.0 when psutil unavailable
+        assert mem_mb == 0.0
+        assert mem_percent == 0.0
+
+
+def test_psutil_process_init_error():
+    """Test handling of psutil Process initialization error."""
+    from unittest.mock import patch, MagicMock
+
+    with patch('asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE', True):
+        with patch('asciidoc_artisan.core.memory_profiler.psutil') as mock_psutil:
+            # Mock Process() to raise exception
+            mock_psutil.Process.side_effect = Exception("Test error")
+
+            profiler = MemoryProfiler()
+
+            # Should handle error gracefully
+            assert profiler.process is None
+
+
+def test_main_cli_function(capsys):
+    """Test main CLI demonstration function."""
+    from asciidoc_artisan.core.memory_profiler import main
+
+    # Run main function
+    main()
+
+    captured = capsys.readouterr()
+
+    # Should print expected sections
+    assert "Memory Profiler Demo" in captured.out
+    assert "1. Taking initial snapshot" in captured.out
+    assert "2. Allocating 10MB" in captured.out
+    assert "3. Allocating another 5MB" in captured.out
+    assert "4. Comparing snapshots" in captured.out
+    assert "5. Statistics" in captured.out
+    assert "6. Top allocations" in captured.out
+    assert "Done!" in captured.out
+
+
+def test_memory_snapshot_dataclass():
+    """Test MemorySnapshot as dataclass."""
+    snapshot = MemorySnapshot(
+        timestamp=1234567890.0,
+        current_mb=100.5,
+        peak_mb=150.7,
+        top_allocations=[("test.py:10", 1024)],
+        description="test"
+    )
+
+    assert snapshot.timestamp == 1234567890.0
+    assert snapshot.current_mb == 100.5
+    assert snapshot.peak_mb == 150.7
+    assert len(snapshot.top_allocations) == 1
+    assert snapshot.description == "test"
+
+
+def test_compare_snapshots_edge_cases():
+    """Test snapshot comparison edge cases."""
+    profiler = MemoryProfiler()
+    profiler.start()
+
+    profiler.take_snapshot("snap1")
+
+    # Compare same snapshot
+    profiler.compare_snapshots(0, 0)
+
+    # Compare with negative index (should handle gracefully)
+    profiler.compare_snapshots(-1, 0)
+
+    profiler.stop()
+
+
+def test_get_memory_usage_without_psutil():
+    """Test get_memory_usage when psutil unavailable."""
+    profiler = MemoryProfiler()
+
+    # Mock PSUTIL_AVAILABLE to False
+    from unittest.mock import patch
+
+    with patch('asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE', False):
+        mem_mb, mem_percent = profiler.get_memory_usage()
+
+        assert mem_mb == 0.0
+        assert mem_percent == 0.0
+
+
+def test_stop_when_not_running():
+    """Test stop() when profiler is not running (line 121)."""
+    profiler = MemoryProfiler()
+
+    # Not started yet
+    assert not profiler.is_running
+
+    # Calling stop should return early
+    profiler.stop()
+
+    # Should still not be running
+    assert not profiler.is_running
+
+
+def test_snapshot_without_description():
+    """Test take_snapshot() without description uses logger.debug (line 175)."""
+    profiler = MemoryProfiler()
+    profiler.start()
+
+    # Take snapshot without description
+    snapshot = profiler.take_snapshot()  # No description argument
+
+    # Should still create snapshot
+    assert snapshot is not None
+    assert snapshot.description == ""
+
+    profiler.stop()
+
+
+def test_snapshot_with_no_traceback():
+    """Test take_snapshot() when traceback is None (line 158)."""
+    from unittest.mock import patch, MagicMock
+
+    profiler = MemoryProfiler()
+    profiler.start()
+
+    # Mock tracemalloc.take_snapshot to return stats with no traceback
+    mock_stat = MagicMock()
+    mock_stat.size = 1024
+    mock_stat.traceback = None  # Force no traceback
+
+    mock_snapshot = MagicMock()
+    mock_snapshot.statistics.return_value = [mock_stat]
+
+    with patch('tracemalloc.take_snapshot', return_value=mock_snapshot):
+        snapshot = profiler.take_snapshot("test")
+
+        # Should handle missing traceback with "unknown"
+        assert snapshot is not None
+        # Check top_allocations contains "unknown" location
+        if snapshot.top_allocations:
+            location, size = snapshot.top_allocations[0]
+            assert location == "unknown"
+
+    profiler.stop()
+
+
+def test_log_top_allocations_with_no_traceback():
+    """Test log_top_allocations() when traceback is None (line 220)."""
+    from unittest.mock import patch, MagicMock
+
+    profiler = MemoryProfiler()
+    profiler.start()
+
+    # Mock tracemalloc.take_snapshot to return stats with no traceback
+    mock_stat = MagicMock()
+    mock_stat.size = 2048
+    mock_stat.traceback = None  # Force no traceback
+
+    mock_snapshot = MagicMock()
+    mock_snapshot.statistics.return_value = [mock_stat]
+
+    with patch('tracemalloc.take_snapshot', return_value=mock_snapshot):
+        # Should log "unknown" location
+        profiler.log_top_allocations(5)
+
+    profiler.stop()
+
+
+def test_get_memory_usage_exception():
+    """Test get_memory_usage() exception handling (lines 195-197)."""
+    from unittest.mock import patch, MagicMock
+
+    profiler = MemoryProfiler()
+
+    # Ensure process is set (not None)
+    with patch('asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE', True):
+        with patch('asciidoc_artisan.core.memory_profiler.psutil.Process') as mock_process_class:
+            # Create a mock process that raises exception
+            mock_process = MagicMock()
+            mock_process.memory_info.side_effect = Exception("Memory access error")
+            mock_process_class.return_value = mock_process
+
+            # Reinitialize profiler with mocked process
+            profiler_with_process = MemoryProfiler()
+
+            # This should trigger exception handling
+            mem_mb, mem_percent = profiler_with_process.get_memory_usage()
+
+            # Should return safe defaults on exception
+            assert mem_mb == 0.0
+            assert mem_percent == 0.0
