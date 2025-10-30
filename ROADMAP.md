@@ -13,7 +13,7 @@
 |---------|--------|-------------|-------|--------|----------------|
 | v1.5.0 | ✅ COMPLETE | Oct 2025 | Performance | - | Startup optimization, refactoring |
 | v1.6.0 | ✅ COMPLETE | Oct 2025 | GitHub + Async | - | GitHub CLI, async I/O |
-| v1.7.0 | 🔄 PLANNED | Q1 2026 | Polish + QA | 76-108h | Find/Replace, Type Hints, QA fixes |
+| v1.7.0 | 🔄 IN PROGRESS | Q1 2026 | Polish + QA | 52-76h | Find/Replace, Type Hints, QA fixes |
 | v1.8.0 | 📋 BACKLOG | Q2-Q3 2026 | Extensibility | 120-172h | Auto-complete, Plugin API |
 | v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 360-500h | LSP, Multi-core, Collaboration |
 
@@ -82,18 +82,34 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 **Target Date:** Q1 2026 (January - March)
 **Duration:** 2-3 months
-**Effort:** 76-108 hours
+**Effort:** 52-76 hours (Task 4 complete: -24h saved)
 **Focus:** Essential text editor features + code quality
 
 ### Goals
 
 1. ⭐ Add missing essential features (Find/Replace, Spell Checker)
 2. ⭐ Complete type hint coverage (60% → 100%)
-3. ⭐ Enhance async I/O integration
+3. ✅ ~~Enhance async I/O integration~~ **COMPLETE** (Oct 29, 2025)
 4. 🔧 Improve user experience (error messages, shortcuts)
 5. 📊 Enable telemetry (opt-in)
 
-### Critical Tasks
+### Completed Tasks
+
+#### ✅ Enhanced Async I/O (Former Task 4)
+**Completed:** October 29, 2025 | **Effort:** 24-32 hours
+
+**Delivered:**
+- `AsyncFileWatcher` (273 lines) - Non-blocking file monitoring with debouncing
+- `QtAsyncFileManager` (388 lines) - Qt-integrated async operations with signals
+- Migrated `file_handler.py` to async APIs
+- 30 tests, 100% passing
+- Zero performance regression (1.05s startup maintained)
+
+**Documentation:** See `docs/TASK_4_COMPLETION_SUMMARY.md`
+
+---
+
+### Remaining Tasks
 
 #### Task 1: Find & Replace System ⭐
 **Priority:** CRITICAL | **Effort:** 8-12 hours
@@ -149,26 +165,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ---
 
-#### Task 4: Enhanced Async I/O ⭐
-**Priority:** MEDIUM | **Effort:** 24-32 hours
-
-**Status:** ✅ COMPLETE (October 29, 2025)
-
-**Delivered:**
-- AsyncFileWatcher (file change monitoring)
-- QtAsyncFileManager (Qt-integrated async operations)
-- file_handler.py migrated to async
-- 30/30 tests passing (100%)
-- Zero performance regression
-
-**Files Created:**
-- `core/async_file_watcher.py` (273 lines)
-- `core/qt_async_file_manager.py` (388 lines)
-- Tests: 30 tests, all passing
-
----
-
-#### Task 5: Telemetry System (Opt-In) ⭐
+#### Task 4: Telemetry System (Opt-In) ⭐
 **Priority:** MEDIUM | **Effort:** 16-24 hours
 
 **Purpose:** Understand user behavior, guide feature prioritization
@@ -203,16 +200,16 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ### Success Criteria
 
-| Criterion | Target | Priority |
-|-----------|--------|----------|
-| Find & Replace working | ✅ Yes | CRITICAL |
-| Type hint coverage | 100% | HIGH |
-| Spell checker integrated | ✅ Yes | HIGH |
-| Async I/O complete | ✅ Yes | MEDIUM |
-| Telemetry opt-in | ✅ Yes | MEDIUM |
-| Test coverage | >70% | HIGH |
-| Startup time | <0.9s | MEDIUM |
-| Zero critical bugs | ✅ Yes | CRITICAL |
+| Criterion | Target | Priority | Status |
+|-----------|--------|----------|--------|
+| Find & Replace working | ✅ Yes | CRITICAL | Pending |
+| Type hint coverage | 100% | HIGH | Pending |
+| Spell checker integrated | ✅ Yes | HIGH | Pending |
+| Async I/O complete | ✅ Yes | ~~MEDIUM~~ | ✅ **DONE** |
+| Telemetry opt-in | ✅ Yes | MEDIUM | Pending |
+| Test coverage | >70% | HIGH | 60% (↑10% needed) |
+| Startup time | <0.9s | MEDIUM | 1.05s (↓0.15s needed) |
+| Zero critical bugs | ✅ Yes | CRITICAL | Pending |
 
 ---
 
@@ -224,11 +221,11 @@ Month 1 (Jan 2026):
   Week 3-4: Type Hints (core + ui modules)
 
 Month 2 (Feb 2026):
-  Week 1-2: Enhanced Async I/O (if needed)
-  Week 3-4: Telemetry System + Testing
+  Week 1-2: Telemetry System
+  Week 3-4: Testing + Minor tasks
 
 Month 3 (Mar 2026):
-  Week 1-2: Minor tasks + bug fixes
+  Week 1-2: Bug fixes + polish
   Week 3-4: Documentation + release prep
 ```
 
