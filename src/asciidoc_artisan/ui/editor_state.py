@@ -189,8 +189,8 @@ class EditorState:
             event.ignore()
             return
 
-        # Save settings
-        self.window._settings_manager.save_settings(
+        # Save settings immediately (QA-12: must save before shutdown)
+        self.window._settings_manager.save_settings_immediate(
             self._settings, self.window, self.window._current_file_path
         )
 

@@ -61,6 +61,13 @@ class SettingsManager:
         """Initialize the settings manager."""
         self._settings_path = self.get_settings_path()
 
+        # Deferred save mechanism (QA-12: Async Settings Save)
+        self._pending_save_timer = QTimer()
+        self._pending_save_timer.setSingleShot(True)
+        self._pending_save_timer.setInterval(100)  # 100ms delay
+        self._pending_save_timer.timeout.connect(self._do_deferred_save)
+        self._pending_save_data: Optional[dict] = None
+
     def get_settings_path(self) -> Path:
         """
         Get platform-specific settings file path.
@@ -184,10 +191,13 @@ class SettingsManager:
         current_file_path: Optional[Path] = None,
     ) -> bool:
         """
-        Save settings to disk with current application state.
+        Schedule deferred settings save (non-blocking).
 
-        Updates settings object with current UI state and saves to JSON file
-        using atomic write to prevent corruption.
+        Updates settings object with current UI state and schedules save
+        after a short delay (100ms). This prevents UI blocking and coalesces
+        rapid save requests.
+
+        For immediate save (e.g., on app exit), use save_settings_immediate().
 
         Args:
             settings: Settings object to save
@@ -195,7 +205,7 @@ class SettingsManager:
             current_file_path: Current document path (optional)
 
         Returns:
-            True if save successful, False otherwise
+            True (save is scheduled, not yet complete)
 
         Updates from window state:
             - last_directory: Parent directory of current file
@@ -239,12 +249,94 @@ class SettingsManager:
             font = window.editor.font()
             settings.font_size = font.pointSize()
 
-        # Atomic save
+        # Schedule deferred save (non-blocking)
+        settings_dict = settings.to_dict()
+        self._pending_save_data = settings_dict
+
+        # Restart timer (coalesces rapid saves)
+        self._pending_save_timer.start()
+
+        logger.debug("Settings save scheduled (deferred)")
+        return True
+
+    def _do_deferred_save(self) -> None:
+        """
+        Perform the actual deferred save.
+
+        Called by QTimer after 100ms delay. Saves pending data to disk.
+        """
+        if self._pending_save_data is None:
+            return
+
+        # Save to disk
+        if atomic_save_json(
+            self._settings_path,
+            self._pending_save_data,
+            encoding="utf-8",
+            indent=2,
+        ):
+            logger.info("Settings saved successfully (deferred)")
+        else:
+            logger.error(f"Failed to save settings: {self._settings_path}")
+
+        # Clear pending data
+        self._pending_save_data = None
+
+    def save_settings_immediate(
+        self,
+        settings: Settings,
+        window: QMainWindow,
+        current_file_path: Optional[Path] = None,
+    ) -> bool:
+        """
+        Save settings immediately (blocking).
+
+        Use this for critical operations like app shutdown where settings
+        must be saved before exiting.
+
+        Args:
+            settings: Settings object to save
+            window: Main window to extract state from
+            current_file_path: Current document path (optional)
+
+        Returns:
+            True if save successful, False otherwise
+        """
+        # Update settings from current state (same as save_settings)
+        if current_file_path:
+            settings.last_directory = str(current_file_path.parent)
+            settings.last_file = str(current_file_path)
+        else:
+            settings.last_file = None
+
+        if hasattr(window, "dark_mode_act") and window.dark_mode_act:
+            settings.dark_mode = window.dark_mode_act.isChecked()
+
+        settings.maximized = window.isMaximized()
+        if not window.isMaximized():
+            geom = window.geometry()
+            settings.window_geometry = {
+                "x": geom.x(),
+                "y": geom.y(),
+                "width": geom.width(),
+                "height": geom.height(),
+            }
+        else:
+            settings.window_geometry = None
+
+        if hasattr(window, "splitter") and window.splitter:
+            settings.splitter_sizes = window.splitter.sizes()
+
+        if hasattr(window, "editor") and window.editor:
+            font = window.editor.font()
+            settings.font_size = font.pointSize()
+
+        # Immediate save (blocking)
         settings_dict = settings.to_dict()
         if atomic_save_json(
             self._settings_path, settings_dict, encoding="utf-8", indent=2
         ):
-            logger.info("Settings saved successfully")
+            logger.info("Settings saved successfully (immediate)")
             return True
         else:
             logger.error(f"Failed to save settings: {self._settings_path}")
