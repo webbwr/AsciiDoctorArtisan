@@ -1,59 +1,171 @@
 """
-Export Manager - Manage document export and format conversion operations.
+===============================================================================
+EXPORT MANAGER - Document Export and Format Conversion
+===============================================================================
 
-This module handles:
-- Exporting to multiple formats (AsciiDoc, Markdown, DOCX, HTML, PDF)
-- Pandoc-based format conversion with AI enhancement support
-- Clipboard content conversion
-- Export state management
-- PDF engine detection and fallback
+FILE PURPOSE:
+This file manages exporting documents to different formats: AsciiDoc, Markdown,
+Word (DOCX), HTML, and PDF.
 
-Extracted from main_window.py to improve maintainability and testability.
+WHAT THIS FILE DOES:
+1. Exports AsciiDoc documents to multiple formats (5 formats total)
+2. Uses Pandoc for format conversion (AsciiDoc → Markdown/Word/HTML/PDF)
+3. Handles clipboard content conversion (paste and convert)
+4. Detects PDF engines and chooses best one (wkhtmltopdf or xhtml2pdf)
+5. Manages export state (prevents concurrent exports)
+
+FOR BEGINNERS - WHAT IS EXPORTING?:
+Exporting means saving your document in a different format:
+- You write in AsciiDoc (easy to read and write)
+- You export to Word (DOCX) to send to colleagues
+- You export to PDF to share a finished document
+- You export to HTML to publish on a website
+
+ANALOGY:
+Think of a translator:
+- You speak English (AsciiDoc)
+- Translator converts to Spanish (Word/PDF/HTML)
+- Same content, different language (format)
+
+WHY THIS FILE WAS EXTRACTED:
+Before v1.5.0, export logic was in main_window.py (making it 1,700+ lines!).
+We extracted it to:
+- Reduce main_window.py size (part of 67% reduction to 561 lines)
+- Group related functionality (all exports in one place)
+- Make testing easier (can test exports separately)
+- Separate concerns (main window doesn't need to know about Pandoc)
+
+KEY CONCEPTS:
+
+1. FORMAT CONVERSION:
+   - Pandoc is the "Swiss Army knife" of document conversion
+   - It converts between 40+ formats
+   - We use it for: Markdown, Word, HTML, PDF
+
+2. PDF ENGINES:
+   - wkhtmltopdf: Fast, high quality (requires external program)
+   - xhtml2pdf: Pure Python, slower (fallback if wkhtmltopdf missing)
+   - We auto-detect which is available
+
+3. EXPORT STATE MANAGEMENT:
+   - _is_exporting flag prevents concurrent exports
+   - Can't start new export while one is running
+   - Prevents file corruption and UI confusion
+
+4. CLIPBOARD CONVERSION:
+   - Copy Word/HTML content to clipboard
+   - Paste in AsciiDoc Artisan
+   - Automatically converts to AsciiDoc!
+
+SPECIFICATIONS IMPLEMENTED:
+- FR-021 to FR-024: Multi-format export (Markdown, DOCX, HTML, PDF)
+- FR-028: Clipboard content conversion
+- NFR-010: Export operation status indication
+
+REFACTORING HISTORY:
+- v1.0: All export code in main_window.py
+- v1.5.0: Extracted to export_manager.py (455 lines)
+- Result: Main window reduced by 67%
+
+VERSION: 1.5.0 (Major refactoring)
 """
 
-import io
-import logging
-import platform
-import subprocess
-import tempfile
-import uuid
-from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+# === STANDARD LIBRARY IMPORTS ===
+import logging  # For recording what the program does
+import platform  # For detecting Windows/Linux/Mac
+import tempfile  # For creating temporary files during export
+import uuid  # For generating unique IDs
+from pathlib import Path  # Modern file path handling
+from typing import TYPE_CHECKING, Optional  # Type hints
 
-from PySide6.QtCore import QObject, Signal
-from PySide6.QtGui import QGuiApplication
-from PySide6.QtWidgets import QFileDialog
+# === QT FRAMEWORK IMPORTS ===
+from PySide6.QtCore import QObject, Signal  # Signal/slot support, Qt base class
+from PySide6.QtGui import QGuiApplication  # For clipboard access
+from PySide6.QtWidgets import QFileDialog  # File save dialogs
 
+# === CORE IMPORTS (Constants and Utilities) ===
 from asciidoc_artisan.core import (
-    ADOC_FILTER,
-    DOCX_FILTER,
-    HTML_FILTER,
-    MD_FILTER,
-    PDF_FILTER,
-    atomic_save_text,
+    ADOC_FILTER,  # "AsciiDoc Files (*.adoc *.asciidoc)"
+    DOCX_FILTER,  # "Word Documents (*.docx)"
+    HTML_FILTER,  # "HTML Files (*.html *.htm)"
+    MD_FILTER,  # "Markdown Files (*.md)"
+    PDF_FILTER,  # "PDF Files (*.pdf)"
+    atomic_save_text,  # Safe file write (prevents corruption)
 )
 
+# === EXPORT HELPER IMPORTS ===
+from asciidoc_artisan.ui.export_helpers import (
+    ClipboardHelper,  # Clipboard content conversion utilities
+    HTMLConverter,  # HTML generation for export
+    PDFHelper,  # PDF engine detection and conversion
+)
+
+# === TYPE CHECKING (Avoid Circular Imports) ===
 if TYPE_CHECKING:
     from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
+# === LOGGING SETUP ===
 logger = logging.getLogger(__name__)
 
-# Export messages
-MSG_SAVED_ASCIIDOC = "Saved as AsciiDoc: {}"
-ERR_ASCIIDOC_NOT_INITIALIZED = "AsciiDoc renderer not initialized"
+# === MESSAGE CONSTANTS ===
+# Status messages shown to user after export operations
+MSG_SAVED_ASCIIDOC = "Saved as AsciiDoc: {}"  # Success message with file path
+ERR_ASCIIDOC_NOT_INITIALIZED = "AsciiDoc renderer not initialized"  # Error message
 
 
 class ExportManager(QObject):
-    """Handle all document export and format conversion operations."""
+    """
+    Export Manager - Handles Document Export and Format Conversion.
 
-    # Signals for export operations
-    export_started = Signal(str)  # Emitted when export starts (format)
-    export_completed = Signal(Path)  # Emitted when export completes (file path)
-    export_failed = Signal(str)  # Emitted when export fails (error message)
+    FOR BEGINNERS - WHAT IS THIS CLASS?:
+    This class is like a "document translator" that converts your AsciiDoc
+    document to other formats (Word, PDF, HTML, Markdown). Think of it as
+    having multiple "save as" options.
+
+    RESPONSIBILITIES:
+    1. Export to multiple formats (AsciiDoc, Markdown, Word, HTML, PDF)
+    2. Use Pandoc for format conversion (background thread)
+    3. Detect and use best PDF engine (wkhtmltopdf or fallback)
+    4. Handle clipboard content conversion (paste Word/HTML → AsciiDoc)
+    5. Manage export state (prevent concurrent exports)
+
+    WHY IT EXISTS:
+    Before this class, export logic was in main_window.py. By extracting it,
+    we reduced main_window.py by 67% and made exports testable independently.
+
+    USAGE:
+    Called by main_window.py:
+        export_mgr = ExportManager(self)
+        export_mgr.export_as_docx()  # Export to Word
+        export_mgr.export_as_pdf()   # Export to PDF
+
+    SIGNALS (Events):
+    - export_started: Fired when export begins (emits format name)
+    - export_completed: Fired when export succeeds (emits file path)
+    - export_failed: Fired when export fails (emits error message)
+    """
+
+    # === QT SIGNALS ===
+    # These are "events" that other parts of the app can listen to
+    export_started = Signal(str)  # Emits format name when export starts
+    export_completed = Signal(Path)  # Emits file path when export completes
+    export_failed = Signal(str)  # Emits error message when export fails
 
     def __init__(self, main_window: "AsciiDocEditor"):
         """
-        Initialize ExportManager.
+        Initialize Export Manager.
+
+        WHAT THIS DOES:
+        1. Calls parent QObject.__init__ for signal/slot support
+        2. Stores reference to main window
+        3. Initializes export state flag
+
+        PARAMETERS:
+            main_window: The main AsciiDocEditor window
+
+        CREATES:
+            self.main_window: Reference to main window
+            self._is_exporting: Guard flag (prevents concurrent exports)
 
         Args:
             main_window: Main window instance (for signals, editor access, etc.)
@@ -66,6 +178,11 @@ class ExportManager(QObject):
         self.settings_manager = main_window._settings_manager
         self._settings = main_window._settings
         self._asciidoc_api = main_window._asciidoc_api
+
+        # Export helpers
+        self.html_converter = HTMLConverter(self._asciidoc_api)
+        self.pdf_helper = PDFHelper()
+        self.clipboard_helper = ClipboardHelper()
 
         # Export state
         self.pending_export_path: Optional[Path] = None
@@ -181,13 +298,8 @@ class ExportManager(QObject):
         """
         self.status_bar.showMessage("Exporting to HTML...")
         try:
-            if self._asciidoc_api is None:
-                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-            infile = io.StringIO(content)
-            outfile = io.StringIO()
-            self._asciidoc_api.execute(infile, outfile, backend="html5")
-            html_content = outfile.getvalue()
+            # Convert AsciiDoc to HTML using helper
+            html_content = self.html_converter.asciidoc_to_html(content)
 
             if atomic_save_text(file_path, html_content, encoding="utf-8"):
                 self.status_bar.showMessage(f"Exported to HTML: {file_path}")
@@ -221,15 +333,9 @@ class ExportManager(QObject):
         """
         self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
 
-        # Convert AsciiDoc to HTML first
+        # Convert AsciiDoc to HTML first using helper
         try:
-            if self._asciidoc_api is None:
-                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-            infile = io.StringIO(content)
-            outfile = io.StringIO()
-            self._asciidoc_api.execute(infile, outfile, backend="html5")
-            html_content = outfile.getvalue()
+            html_content = self.html_converter.asciidoc_to_html(content)
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
             self.status_manager.show_message(
@@ -252,7 +358,7 @@ class ExportManager(QObject):
             return False
 
         # Handle PDF engine fallback
-        if format_type == "pdf" and not self.check_pdf_engine_available():
+        if format_type == "pdf" and not self.pdf_helper.check_pdf_engine_available():
             return self._export_pdf_fallback(file_path, html_content)
 
         # Emit Pandoc conversion request
@@ -298,7 +404,7 @@ class ExportManager(QObject):
             True if fallback successful, False otherwise
         """
         try:
-            styled_html = self.add_print_css_to_html(html_content)
+            styled_html = self.pdf_helper.add_print_css_to_html(html_content)
             html_path = file_path.with_suffix(".html")
 
             if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
@@ -321,89 +427,6 @@ class ExportManager(QObject):
             logger.exception(f"Failed to save HTML for PDF: {e}")
             self.export_failed.emit(str(e))
             return False
-
-    def check_pdf_engine_available(self) -> bool:
-        """
-        Check if any PDF engine is available.
-
-        Returns:
-            True if a PDF engine is found, False otherwise
-        """
-        pdf_engines = ["wkhtmltopdf", "weasyprint", "pdflatex", "xelatex", "lualatex"]
-
-        for engine in pdf_engines:
-            try:
-                subprocess.run([engine, "--version"], capture_output=True, check=True)
-                logger.debug(f"PDF engine found: {engine}")
-                return True
-            except (FileNotFoundError, subprocess.CalledProcessError, Exception):
-                continue
-
-        logger.warning("No PDF engine available")
-        return False
-
-    def add_print_css_to_html(self, html_content: str) -> str:
-        """
-        Add print-friendly CSS to HTML for better PDF output.
-
-        Args:
-            html_content: HTML content to enhance
-
-        Returns:
-            HTML content with print CSS added
-        """
-        print_css = """
-        <style type="text/css" media="print">
-            @page {
-                size: letter;
-                margin: 1in;
-            }
-            body {
-                font-family: Georgia, serif;
-                font-size: 11pt;
-                line-height: 1.6;
-                color: #000;
-            }
-            h1, h2, h3, h4, h5, h6 {
-                page-break-after: avoid;
-                font-family: Helvetica, Arial, sans-serif;
-            }
-            pre, code {
-                font-family: Consolas, Monaco, monospace;
-                font-size: 9pt;
-                background-color: #f5f5f5;
-                page-break-inside: avoid;
-            }
-            table {
-                border-collapse: collapse;
-                page-break-inside: avoid;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-            }
-            a {
-                color: #000;
-                text-decoration: underline;
-            }
-            @media screen {
-                body {
-                    max-width: 8.5in;
-                    margin: 0 auto;
-                    padding: 1in;
-                }
-            }
-        </style>
-        """
-
-        if "</head>" in html_content:
-            html_content = html_content.replace("</head>", print_css + "</head>")
-        elif "<html>" in html_content:
-            html_content = html_content.replace("<html>", "<html>" + print_css)
-        else:
-            html_content = print_css + html_content
-
-        return html_content
 
     def convert_and_paste_from_clipboard(self) -> None:
         """

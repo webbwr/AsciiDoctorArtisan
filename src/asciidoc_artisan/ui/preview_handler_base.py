@@ -1,78 +1,177 @@
 """
-Preview Handler Base - Common functionality for all preview handlers.
+===============================================================================
+PREVIEW HANDLER BASE - Abstract Base for Preview Rendering
+===============================================================================
 
-This module provides the abstract base class for preview handlers with:
-- Adaptive debouncing for preview updates
-- CSS generation and caching
-- Preview rendering coordination
-- Error handling
-- Statistics tracking
+FILE PURPOSE:
+This file provides the base class for all preview handlers (GPU and software).
+It contains shared logic for updating the preview window as you type.
 
-Concrete handlers must implement widget-specific operations:
-- handle_preview_complete() - Update widget with rendered HTML
-- sync_editor_to_preview() - Scroll preview to match editor
-- sync_preview_to_editor() - Scroll editor to match preview
+WHAT THIS FILE DOES:
+1. Debouncing (wait before updating preview - don't update on every keystroke!)
+2. CSS generation (styling for dark/light themes)
+3. Coordinates with PreviewWorker (background thread for rendering)
+4. Scroll synchronization (keep editor and preview in sync)
+5. Statistics tracking (how long renders take, for adaptive behavior)
+
+FOR BEGINNERS - WHAT IS A PREVIEW?:
+The preview window shows what your AsciiDoc document looks like when formatted.
+As you type in the editor, the preview updates to show the result.
+
+ANALOGY:
+Think of a cooking show where you see the chef cooking AND the finished dish:
+- Editor = the chef chopping vegetables (raw AsciiDoc text)
+- Preview = the finished dish on the plate (formatted HTML)
+- This file = the camera operator deciding when to show the finished dish
+
+WHY ABSTRACT BASE CLASS?:
+We have TWO types of preview:
+1. GPU Preview (QWebEngineView) - fast, hardware-accelerated (10-50x faster)
+2. Software Preview (QTextBrowser) - slower, but works everywhere
+
+Both need the same basic features (debouncing, CSS, scroll sync). Instead of
+duplicating code, we put common logic HERE (base class) and each preview
+type adds its specific implementation (concrete classes).
+
+KEY CONCEPTS:
+
+1. DEBOUNCING:
+   Without debouncing: Preview updates on EVERY KEYSTROKE (slow, CPU-intensive)
+   With debouncing: Wait 200-1000ms after typing stops, THEN update preview
+
+   Why? If you type "Hello World" quickly:
+   - Without debouncing: Renders 11 times (H, He, Hel, Hell, Hello, ...)
+   - With debouncing: Renders once when you stop typing ("Hello World")
+
+2. ADAPTIVE DEBOUNCING:
+   - Small documents: Update fast (200ms delay)
+   - Large documents: Update slow (1000ms delay)
+   - Slow renders: Increase delay automatically
+   - Fast renders: Decrease delay automatically
+
+3. CSS GENERATION:
+   - Dark theme: Dark background, light text
+   - Light theme: Light background, dark text
+   - CSS is cached (don't regenerate every time)
+
+4. CONTENT SECURITY POLICY (CSP):
+   - Prevents XSS attacks (malicious JavaScript in preview)
+   - Blocks external resources, form submissions, plugins
+
+SPECIFICATIONS IMPLEMENTED:
+- FR-013 to FR-020: Preview rendering and synchronization
+- NFR-008: Preview update debouncing (adaptive)
+- NFR-009: Scroll synchronization
+- SEC-001: Content Security Policy (XSS protection)
+
+ARCHITECTURE:
+PreviewHandlerBase (this file - abstract base)
+    ├── PreviewHandlerGPU (QWebEngineView - GPU accelerated)
+    └── PreviewHandlerCPU (QTextBrowser - software fallback)
+
+REFACTORING HISTORY:
+- v1.0: All preview logic in main_window.py
+- v1.4.0: Extracted to preview_handler.py (GPU), preview_handler_gpu.py
+- v1.5.0: Refactored to base class pattern (DRY - eliminate duplication)
+
+VERSION: 1.5.0 (Base class refactoring)
 """
 
-import logging
-import time
-from abc import abstractmethod
-from typing import Any, Optional
+# === STANDARD LIBRARY IMPORTS ===
+import logging  # For recording what the program does
+import time  # For timing render performance
+from abc import abstractmethod  # For creating abstract base classes
+from typing import Any, Optional  # Type hints
 
-from PySide6.QtCore import QObject, QTimer, Signal, Slot
-from PySide6.QtWidgets import QPlainTextEdit, QWidget
+# === QT FRAMEWORK IMPORTS ===
+from PySide6.QtCore import (
+    QObject,  # Base class for Qt objects (signal/slot support)
+    QTimer,  # Timer for debouncing preview updates
+    Signal,  # Qt signal class (publish/subscribe pattern)
+    Slot,  # Qt slot decorator (marks methods that receive signals)
+)
+from PySide6.QtWidgets import (
+    QPlainTextEdit,  # Text editor widget
+    QWidget,  # Base widget class
+)
 
+# === OPTIONAL IMPORTS (Adaptive Debouncer) ===
+# Try to import adaptive debouncer - graceful degradation if not available
 try:
     from asciidoc_artisan.core.adaptive_debouncer import (
-        AdaptiveDebouncer,
-        DebounceConfig,
+        AdaptiveDebouncer,  # Adaptive delay calculator
+        DebounceConfig,  # Configuration for debouncing
     )
 
-    ADAPTIVE_DEBOUNCER_AVAILABLE = True
+    ADAPTIVE_DEBOUNCER_AVAILABLE = True  # Flag: Feature available
 except ImportError:
+    # If import fails, set to None and disable feature
     AdaptiveDebouncer = None
     DebounceConfig = None
-    ADAPTIVE_DEBOUNCER_AVAILABLE = False
+    ADAPTIVE_DEBOUNCER_AVAILABLE = False  # Flag: Feature disabled
 
+# === LOGGING SETUP ===
 logger = logging.getLogger(__name__)
 
 
-# Constants for preview timing
-PREVIEW_FAST_INTERVAL_MS = 200  # For small documents
-PREVIEW_NORMAL_INTERVAL_MS = 500  # For medium documents
-PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
+# === DEBOUNCE INTERVAL CONSTANTS ===
+# These define how long to wait before updating preview
+# Shorter intervals = faster updates but more CPU usage
+PREVIEW_FAST_INTERVAL_MS = 200  # 200ms for small documents (fast typing)
+PREVIEW_NORMAL_INTERVAL_MS = 500  # 500ms for medium documents (normal)
+PREVIEW_SLOW_INTERVAL_MS = 1000  # 1000ms for large documents (slow typing)
 
-# Content Security Policy for preview HTML (XSS protection)
-# Applied to all HTML rendered in preview widget (preview, errors, clear)
+# === CONTENT SECURITY POLICY (CSP) ===
+# Security rules for preview HTML to prevent XSS attacks
+# Applied to all HTML rendered in preview widget
 CSP_POLICY = (
-    "default-src 'self'; "  # Only same-origin resources
+    "default-src 'self'; "  # Only load resources from same origin
     "script-src 'unsafe-eval'; "  # Allow Qt runJavaScript() for scroll sync
-    "object-src 'none'; "  # Block plugins (Flash, etc.)
+    "object-src 'none'; "  # Block plugins (Flash, Java applets, etc.)
     "style-src 'unsafe-inline'; "  # Allow inline CSS (required for AsciiDoc)
-    "img-src 'self' data:; "  # Images from same origin + data URIs
-    "base-uri 'self'; "  # Restrict base URL
-    "form-action 'none'"  # Block form submissions
+    "img-src 'self' data:; "  # Images from same origin or data URIs only
+    "base-uri 'self'; "  # Restrict base URL (prevent base tag attacks)
+    "form-action 'none'"  # Block all form submissions (no forms in preview)
 )
 
 
 class PreviewHandlerBase(QObject):
     """
-    Abstract base class for preview handlers.
+    Preview Handler Base - Abstract Base Class for All Preview Handlers.
 
-    Provides common functionality for all preview implementations:
-    - Adaptive debouncing based on document size and render times
-    - CSS generation and caching with theme support
-    - Preview rendering coordination with worker threads
-    - Error handling and display
-    - Scroll synchronization coordination
-    - Statistics tracking for adaptive behavior
+    FOR BEGINNERS - ABSTRACT BASE CLASS:
+    An abstract base class is like a template or blueprint. It says:
+    "All preview handlers MUST have these features" but doesn't specify
+    exactly HOW to implement them. Concrete classes (GPU/CPU handlers)
+    provide the specific implementation.
 
-    Subclasses must implement widget-specific operations.
+    WHAT THIS CLASS PROVIDES:
+    - Debouncing logic (wait before updating preview)
+    - CSS generation (styling for dark/light themes)
+    - Preview rendering coordination
+    - Error handling
+    - Scroll synchronization
+    - Statistics tracking (render times, document sizes)
+
+    WHAT SUBCLASSES MUST IMPLEMENT:
+    - handle_preview_complete() - Update widget with rendered HTML
+    - sync_editor_to_preview() - Scroll preview to match editor
+    - sync_preview_to_editor() - Scroll editor to match preview
+
+    WHY ABSTRACT BASE CLASS?:
+    GPU and CPU previews need the same debouncing, CSS, and coordination
+    logic. Instead of duplicating code, we put it here. Each preview type
+    just adds its widget-specific operations.
+
+    SIGNALS:
+    - preview_updated: Fired when preview HTML changes
+    - preview_error: Fired when rendering fails
     """
 
-    # Signals
-    preview_updated = Signal(str)  # Emitted when preview HTML is updated
-    preview_error = Signal(str)  # Emitted on preview error
+    # === QT SIGNALS ===
+    # These are "events" that other parts of the app can listen to
+    preview_updated = Signal(str)  # Emits HTML when preview updates
+    preview_error = Signal(str)  # Emits error message when render fails
 
     def __init__(
         self, editor: QPlainTextEdit, preview: QWidget, parent_window: QObject
@@ -333,155 +432,24 @@ class PreviewHandlerBase(QObject):
 
     def _generate_preview_css(self) -> str:
         """
-        Generate preview CSS.
+        Generate preview CSS by delegating to ThemeManager.
 
         Returns:
             CSS content as string
         """
-        # Check if dark mode is enabled
-        dark_mode = False
-        if hasattr(self.window, "_settings") and hasattr(
-            self.window._settings, "dark_mode"
-        ):
-            dark_mode = self.window._settings.dark_mode
+        # Delegate to ThemeManager for single source of truth
+        if hasattr(self.window, "theme_manager"):
+            return self.window.theme_manager.get_preview_css()
 
-        # Set colors based on theme
-        if dark_mode:
-            text_color = "#e0e0e0"
-            bg_color = "#1a1a1a"
-            heading_color = "#ffffff"
-            border_color = "#404040"
-            code_bg = "#2a2a2a"
-            table_bg = "#2a2a2a"
-            link_color = "#66b3ff"
-            quote_color = "#a0a0a0"
-            quote_border = "#505050"
-        else:
-            text_color = "#333"
-            bg_color = "#fff"
-            heading_color = "#000"
-            border_color = "#eaecef"
-            code_bg = "#f6f8fa"
-            table_bg = "#f6f8fa"
-            link_color = "#0366d6"
-            quote_color = "#6a737d"
-            quote_border = "#dfe2e5"
-
-        # Basic responsive CSS for AsciiDoc preview
-        return f"""
-            body {{
+        # Fallback CSS if ThemeManager not available (shouldn't happen in production)
+        return """
+            body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 line-height: 1.6;
                 max-width: 900px;
                 margin: 0 auto;
                 padding: 20px;
-                color: {text_color};
-                background-color: {bg_color};
-            }}
-
-            h1, h2, h3, h4, h5, h6 {{
-                margin-top: 24px;
-                margin-bottom: 16px;
-                font-weight: 600;
-                line-height: 1.25;
-                color: {heading_color};
-            }}
-
-            h1 {{ font-size: 2em; border-bottom: 1px solid {border_color}; padding-bottom: 0.3em; }}
-            h2 {{ font-size: 1.5em; border-bottom: 1px solid {border_color}; padding-bottom: 0.3em; }}
-            h3 {{ font-size: 1.25em; }}
-            h4 {{ font-size: 1em; }}
-            h5 {{ font-size: 0.875em; }}
-            h6 {{ font-size: 0.85em; color: {quote_color}; }}
-
-            p {{ margin-bottom: 16px; }}
-
-            code {{
-                padding: 0.2em 0.4em;
-                margin: 0;
-                font-size: 85%;
-                background-color: {code_bg};
-                border-radius: 3px;
-                font-family: 'Courier New', Courier, monospace;
-            }}
-
-            pre {{
-                padding: 16px;
-                overflow: auto;
-                font-size: 85%;
-                line-height: 1.45;
-                background-color: {code_bg};
-                border-radius: 3px;
-            }}
-
-            pre code {{
-                display: inline;
-                padding: 0;
-                margin: 0;
-                overflow: visible;
-                line-height: inherit;
-                background-color: transparent;
-                border: 0;
-            }}
-
-            blockquote {{
-                padding: 0 1em;
-                color: {quote_color};
-                border-left: 0.25em solid {quote_border};
-                margin: 0 0 16px 0;
-            }}
-
-            table {{
-                border-spacing: 0;
-                border-collapse: collapse;
-                margin-bottom: 16px;
-                width: 100%;
-            }}
-
-            table th, table td {{
-                padding: 6px 13px;
-                border: 1px solid {border_color};
-            }}
-
-            table th {{
-                font-weight: 600;
-                background-color: {table_bg};
-            }}
-
-            table tr:nth-child(2n) {{
-                background-color: {table_bg};
-            }}
-
-            ul, ol {{
-                padding-left: 2em;
-                margin-bottom: 16px;
-            }}
-
-            li + li {{
-                margin-top: 0.25em;
-            }}
-
-            a {{
-                color: {link_color};
-                text-decoration: none;
-            }}
-
-            a:hover {{
-                text-decoration: underline;
-            }}
-
-            img {{
-                max-width: 100%;
-                height: auto;
-            }}
-
-            hr {{
-                height: 0.25em;
-                padding: 0;
-                margin: 24px 0;
-                background-color: {border_color};
-                border: 0;
-            }}
+            }
         """
 
     def enable_sync_scrolling(self, enabled: bool) -> None:

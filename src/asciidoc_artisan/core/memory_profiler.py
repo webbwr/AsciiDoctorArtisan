@@ -356,7 +356,6 @@ def profile_memory(description: str = ""):
 
 def main():
     """CLI for memory profiler demonstration."""
-    import sys
 
     print("Memory Profiler Demo")
     print("=" * 50)

@@ -181,6 +181,7 @@ async def async_atomic_save_text(
     if not AIOFILES_AVAILABLE:
         logger.error("aiofiles not available - falling back to sync write")
         from asciidoc_artisan.core.file_operations import atomic_save_text
+
         return atomic_save_text(file_path, content, encoding)
 
     if not file_path:
@@ -208,9 +209,7 @@ async def async_atomic_save_text(
             if temp_path.exists():
                 await aiofiles.os.remove(temp_path)
         except Exception as cleanup_error:
-            logger.warning(
-                f"Failed to cleanup temp file {temp_path}: {cleanup_error}"
-            )
+            logger.warning(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
 
         return False
 
@@ -241,6 +240,7 @@ async def async_atomic_save_json(
     if not AIOFILES_AVAILABLE:
         logger.error("aiofiles not available - falling back to sync write")
         from asciidoc_artisan.core.file_operations import atomic_save_json
+
         return atomic_save_json(file_path, data, encoding, indent)
 
     if not file_path:
@@ -271,14 +271,14 @@ async def async_atomic_save_json(
             if temp_path.exists():
                 await aiofiles.os.remove(temp_path)
         except Exception as cleanup_error:
-            logger.warning(
-                f"Failed to cleanup temp file {temp_path}: {cleanup_error}"
-            )
+            logger.warning(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
 
         return False
 
 
-async def async_read_json(file_path: Path, encoding: str = "utf-8") -> Optional[Dict[str, Any]]:
+async def async_read_json(
+    file_path: Path, encoding: str = "utf-8"
+) -> Optional[Dict[str, Any]]:
     """
     Asynchronously read and parse JSON file.
 
@@ -378,6 +378,7 @@ async def async_copy_file(src: Path, dst: Path, chunk_size: int = 65536) -> bool
         logger.error("aiofiles not available - falling back to sync copy")
         try:
             import shutil
+
             shutil.copy2(src, dst)
             return True
         except Exception as e:

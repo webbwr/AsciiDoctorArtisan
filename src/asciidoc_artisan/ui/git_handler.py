@@ -18,11 +18,12 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFileDialog, QInputDialog
 
 from asciidoc_artisan.core import GitResult
+from asciidoc_artisan.ui.base_vcs_handler import BaseVCSHandler
 
 logger = logging.getLogger(__name__)
 
 
-class GitHandler:
+class GitHandler(BaseVCSHandler):
     """Handle Git version control operations."""
 
     # Signals
@@ -40,13 +41,9 @@ class GitHandler:
             settings_manager: Settings manager instance
             status_manager: Status manager instance
         """
-        self.window = parent_window
-        self.settings_manager = settings_manager
-        self.status_manager = status_manager
+        super().__init__(parent_window, settings_manager, status_manager)
 
-        # Git state
-        self.is_processing = False
-        self.last_operation = ""
+        # Git-specific state
         self.pending_commit_message: Optional[str] = None
 
     def select_repository(self) -> None:
@@ -229,12 +226,12 @@ class GitHandler:
         self.last_operation = ""
         self.pending_commit_message = None
 
-    def _ensure_ready(self) -> bool:
+    def _check_repository_ready(self) -> bool:
         """
-        Ensure Git is ready for operations.
+        Check if Git repository is configured and ready.
 
         Returns:
-            True if ready, False otherwise
+            True if repository ready, False otherwise
         """
         settings = self.settings_manager.load_settings()
 
@@ -245,19 +242,11 @@ class GitHandler:
             )
             return False
 
-        # Check if already processing
-        if self.is_processing:
-            self.status_manager.show_message(
-                "warning", "Busy", "Git operation in progress."
-            )
-            return False
-
         return True
 
-    def _update_ui_state(self) -> None:
-        """Update UI state (delegate to main window)."""
-        if hasattr(self.window, "_update_ui_state"):
-            self.window._update_ui_state()
+    def _get_busy_message(self) -> str:
+        """Get Git-specific busy message."""
+        return "Git operation in progress."
 
     def get_repository_path(self) -> Optional[str]:
         """

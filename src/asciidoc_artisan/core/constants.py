@@ -107,6 +107,7 @@ STATUS_MESSAGE_DURATION_MS = 5000
 
 try:
     import pypandoc  # noqa: F401
+
     PANDOC_AVAILABLE = True
 except ImportError:
     PANDOC_AVAILABLE = False

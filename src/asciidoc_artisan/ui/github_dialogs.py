@@ -1,49 +1,315 @@
 """
-GitHub UI Dialogs - Pull Request and Issue management dialogs.
+===============================================================================
+GITHUB DIALOGS - Pop-ups for Pull Requests and Issues
+===============================================================================
 
-This module contains QDialog subclasses for GitHub CLI integration:
-- CreatePullRequestDialog: Create new pull requests
-- PullRequestListDialog: Browse and manage pull requests
-- CreateIssueDialog: Create new issues
-- IssueListDialog: Browse and manage issues
+FILE PURPOSE:
+This file creates dialog windows for GitHub operations. When you click
+Git → GitHub → Create Pull Request, these dialogs appear.
 
-Implements FR-054 to FR-060: GitHub CLI integration features.
+WHAT THIS FILE CONTAINS:
+1. Validation Helper Functions: Reusable code for form validation
+2. BaseListDialog: Base class for PR/Issue list views (Template Method Pattern)
+3. CreatePullRequestDialog: Form to create a new pull request
+4. PullRequestListDialog: Table showing all pull requests
+5. CreateIssueDialog: Form to create a new issue
+6. IssueListDialog: Table showing all issues
 
-Usage Example:
-    ```python
-    from asciidoc_artisan.ui.github_dialogs import CreatePullRequestDialog
+FOR BEGINNERS - WHAT IS GITHUB INTEGRATION?:
+GitHub is a website where developers store code and collaborate. This file
+lets you manage GitHub features without leaving the editor:
+- Create Pull Requests (PRs): Propose code changes
+- List PRs: See all pending code reviews
+- Create Issues: Report bugs or request features
+- List Issues: See all open bugs/feature requests
 
-    dialog = CreatePullRequestDialog(current_branch="feature-x")
-    if dialog.exec():
-        pr_data = dialog.get_pr_data()
-        # Create PR with pr_data
-    ```
+WHY SEPARATE DIALOGS?:
+Each dialog has ONE job (Single Responsibility Principle):
+- Create dialogs: Collect user input (title, description, etc.)
+- List dialogs: Show data in a table (with filtering and refresh)
+
+DESIGN PATTERN USED:
+"Template Method Pattern" - BaseListDialog defines the structure, subclasses
+fill in the details. Both PR and Issue lists work the same way, but show
+different data. The base class handles common stuff (table, refresh, filtering).
+
+VALIDATION PATTERN:
+All input validation uses helper functions to avoid duplication:
+- _show_validation_error(): Shows red border on invalid field
+- _clear_validation_error(): Removes red border when fixed
+- _validate_required_text(): Checks if field is not empty
+
+IMPLEMENTS SPECIFICATIONS:
+FR-054 to FR-060 (GitHub CLI Integration features)
+See SPECIFICATIONS.md for complete feature list.
+
+USAGE EXAMPLE:
+    # Create a pull request
+    dialog = CreatePullRequestDialog(current_branch="my-feature")
+    if dialog.exec():  # User clicked OK (not Cancel)
+        pr_data = dialog.get_pr_data()  # Get form data
+        # Send to GitHub CLI worker to actually create the PR
 """
 
-import logging
-from typing import Dict, List, Optional
+import logging  # For recording events (validation errors, etc.)
+from typing import Dict, List, Optional  # Type hints for better code quality
 
-from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QDesktopServices
+# Qt imports for GUI
+from PySide6.QtCore import Qt, QUrl  # Qt constants and URL class
+from PySide6.QtGui import QDesktopServices  # For opening URLs in browser
 from PySide6.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QHBoxLayout,
-    QHeaderView,
-    QLabel,
-    QLineEdit,
-    QPlainTextEdit,
-    QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QVBoxLayout,
-    QWidget,
+    QCheckBox,  # Checkbox widget (on/off)
+    QComboBox,  # Dropdown menu
+    QDialog,  # Base class for pop-up windows
+    QDialogButtonBox,  # Standard OK/Cancel buttons
+    QFormLayout,  # Layout for forms (label: input)
+    QHBoxLayout,  # Horizontal layout
+    QHeaderView,  # Table header (column titles)
+    QLabel,  # Text label
+    QLineEdit,  # Single-line text input
+    QPlainTextEdit,  # Multi-line text input
+    QPushButton,  # Clickable button
+    QTableWidget,  # Table with rows and columns
+    QTableWidgetItem,  # Single cell in a table
+    QVBoxLayout,  # Vertical layout
+    QWidget,  # Base class for all UI widgets
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # Logger for this file
+
+
+# === VALIDATION HELPER FUNCTIONS ===
+# These functions are reused by all dialogs to validate user input
+# Following DRY principle: "Don't Repeat Yourself"
+
+
+def _show_validation_error(widget: QWidget, widget_type: str) -> None:
+    """
+    Show Validation Error - Make Widget Border Red.
+
+    WHY THIS EXISTS:
+    When user enters invalid data (e.g., empty required field), we need to
+    show them what's wrong. A red border is the standard way to indicate errors.
+
+    WHAT IT DOES:
+    1. Apply red border CSS style to the widget
+    2. Move keyboard focus to the widget (cursor appears there)
+
+    HOW IT WORKS:
+    We use Qt's CSS styling system. Each widget type (QLineEdit, QComboBox)
+    needs its CSS class name in the style string.
+
+    PARAMETERS:
+        widget: The input widget with invalid data (will get red border)
+        widget_type: CSS class name ("QLineEdit", "QComboBox", etc.)
+
+    EXAMPLE:
+        _show_validation_error(title_input, "QLineEdit")
+        # Result: title_input now has red border and keyboard focus
+    """
+    # Apply CSS style - red 1px border around the widget
+    widget.setStyleSheet(f"{widget_type} {{ border: 1px solid red; }}")
+
+    # Move keyboard focus to this widget so user knows where to fix the error
+    widget.setFocus()
+
+
+def _clear_validation_error(widget: QWidget) -> None:
+    """
+    Clear Validation Error - Remove Red Border.
+
+    WHY THIS EXISTS:
+    After user fixes the error, we need to remove the red border.
+    Otherwise, it stays red even after fixing!
+
+    WHAT IT DOES:
+    Remove all custom CSS styling from the widget (returns to default look)
+
+    PARAMETERS:
+        widget: The input widget to clear styling from
+
+    EXAMPLE:
+        _clear_validation_error(title_input)
+        # Result: title_input returns to normal appearance
+    """
+    # Empty string = remove all custom styles, use default
+    widget.setStyleSheet("")
+
+
+def _validate_required_text(widget: QLineEdit, field_name: str) -> bool:
+    """
+    Validate Required Text Field - Check If Not Empty.
+
+    WHY THIS EXISTS:
+    Many fields are required (e.g., PR title, Issue title). This function
+    checks if user entered something, and shows an error if they didn't.
+
+    WHAT IT DOES:
+    1. Get text from the widget
+    2. Strip whitespace (remove spaces from beginning/end)
+    3. If empty: Show red border + log warning, return False
+    4. If not empty: Clear red border, return True
+
+    WHY .strip()?:
+    "   " (just spaces) should count as empty. .strip() removes leading/trailing
+    whitespace, so "   " becomes "" (empty string).
+
+    PARAMETERS:
+        widget: QLineEdit to check (text input box)
+        field_name: Name of field for logging ("PR title", "Issue title", etc.)
+
+    RETURNS:
+        True if field has text (valid)
+        False if field is empty (invalid)
+
+    USAGE PATTERN:
+        if not _validate_required_text(self.title_input, "PR title"):
+            return  # Don't submit form, user needs to fix error
+
+    TECHNICAL NOTE:
+    This follows the "validation guard" pattern - check for errors first,
+    return early if found. This avoids deep nesting (if valid: if valid: if valid:)
+    """
+    # Get text from input and remove leading/trailing spaces
+    text = widget.text().strip()
+
+    # Check if empty
+    if not text:
+        # Empty! Show error and return False
+        _show_validation_error(widget, "QLineEdit")
+        logger.warning(f"{field_name} is required")
+        return False  # Validation failed
+
+    # Not empty! Clear any previous error and return True
+    _clear_validation_error(widget)
+    return True  # Validation passed
+
+
+class BaseListDialog(QDialog):
+    """
+    Base class for GitHub list dialogs (PRs and Issues).
+
+    Provides common functionality:
+    - Table widget with filtering
+    - Refresh button
+    - Double-click to open in browser
+    - State filter dropdown
+
+    Subclasses must implement:
+    - _get_window_title() -> str
+    - _get_filter_states() -> List[str]
+    - _get_data_attribute_name() -> str
+    - _get_tooltip_prefix() -> str
+    """
+
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        data: Optional[List[Dict]] = None,
+    ) -> None:
+        """Initialize base list dialog."""
+        super().__init__(parent)
+        self._data = data or []
+        self._init_ui()
+        self._populate_table()
+
+    def _get_window_title(self) -> str:
+        """Get window title. Subclasses must override."""
+        raise NotImplementedError
+
+    def _get_filter_states(self) -> List[str]:
+        """Get filter state options. Subclasses must override."""
+        raise NotImplementedError
+
+    def _get_data_attribute_name(self) -> str:
+        """Get data attribute name. Subclasses must override."""
+        raise NotImplementedError
+
+    def _get_tooltip_prefix(self) -> str:
+        """Get tooltip prefix (e.g., 'pull requests', 'issues'). Subclasses must override."""
+        raise NotImplementedError
+
+    def _init_ui(self) -> None:
+        """Initialize the list dialog UI."""
+        self.setWindowTitle(self._get_window_title())
+        self.setMinimumSize(700, 400)
+        self.setModal(False)
+
+        layout = QVBoxLayout(self)
+
+        # Filter controls
+        filter_layout = QHBoxLayout()
+        filter_layout.addWidget(QLabel("State:"))
+
+        self.state_filter = QComboBox()
+        self.state_filter.addItems(self._get_filter_states())
+        self.state_filter.setCurrentText(self._get_filter_states()[0])
+        self.state_filter.setToolTip(f"Filter {self._get_tooltip_prefix()} by state")
+        self.state_filter.currentTextChanged.connect(self._filter_changed)
+        filter_layout.addWidget(self.state_filter)
+
+        filter_layout.addStretch()
+
+        # Refresh button
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.setToolTip(f"Reload {self._get_tooltip_prefix()} from GitHub")
+        refresh_btn.clicked.connect(self._refresh_clicked)
+        filter_layout.addWidget(refresh_btn)
+
+        layout.addLayout(filter_layout)
+
+        # Table widget
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(
+            ["Number", "Title", "Author", "Status", "Created", "URL"]
+        )
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.doubleClicked.connect(self._row_double_clicked)
+        self.table.setToolTip(
+            f"Double-click to open {self._get_tooltip_prefix()[:-1]} in browser"
+        )
+
+        # Configure column widths
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Number
+        header.setSectionResizeMode(1, QHeaderView.Stretch)  # Title
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Author
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Status
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Created
+        header.setSectionResizeMode(5, QHeaderView.Stretch)  # URL
+
+        layout.addWidget(self.table)
+
+        # Dialog buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.Close)
+        button_box.rejected.connect(self.close)
+        layout.addWidget(button_box)
+
+    def _populate_table(self) -> None:
+        """Populate table with current data. Subclasses can override."""
+        raise NotImplementedError
+
+    def _filter_changed(self, state: str) -> None:
+        """Handle filter state change. Subclasses can override."""
+        logger.debug(f"Filter changed to: {state}")
+        self._populate_table()
+
+    def _refresh_clicked(self) -> None:
+        """Handle refresh button click. Subclasses can override."""
+        logger.debug("Refresh clicked")
+        # Emit signal or trigger refresh logic
+        # Subclasses should override or connect to handler
+
+    def _row_double_clicked(self, index) -> None:
+        """Handle row double-click to open in browser. Subclasses can override."""
+        row = index.row()
+        url_item = self.table.item(row, 5)  # URL column
+        if url_item:
+            url = url_item.text()
+            QDesktopServices.openUrl(QUrl(url))
+            logger.info(f"Opening {self._get_tooltip_prefix()[:-1]} in browser: {url}")
 
 
 class CreatePullRequestDialog(QDialog):
@@ -155,26 +421,19 @@ class CreatePullRequestDialog(QDialog):
 
     def _validate_and_accept(self) -> None:
         """Validate inputs and accept dialog if valid."""
-        title = self.title_input.text().strip()
-        if not title:
-            # Show error in title field
-            self.title_input.setStyleSheet("QLineEdit { border: 1px solid red; }")
-            self.title_input.setFocus()
-            logger.warning("PR title is required")
+        # Validate title is not empty
+        if not _validate_required_text(self.title_input, "PR title"):
             return
-
-        # Clear error styling
-        self.title_input.setStyleSheet("")
 
         # Validate base != head
         base = self.base_input.text().strip()
         head = self.head_input.currentText().strip()
         if base == head:
-            self.head_input.setStyleSheet("QComboBox { border: 1px solid red; }")
+            _show_validation_error(self.head_input, "QComboBox")
             logger.warning("Base and head branches cannot be the same")
             return
 
-        self.head_input.setStyleSheet("")
+        _clear_validation_error(self.head_input)
         self.accept()
 
     def get_pr_data(self) -> Dict[str, str]:
@@ -198,7 +457,7 @@ class CreatePullRequestDialog(QDialog):
         }
 
 
-class PullRequestListDialog(QDialog):
+class PullRequestListDialog(BaseListDialog):
     """
     Dialog for browsing and managing pull requests.
 
@@ -232,78 +491,41 @@ class PullRequestListDialog(QDialog):
         pr_data: Optional[List[Dict]] = None,
     ) -> None:
         """Initialize pull request list dialog."""
-        super().__init__(parent)
         self.pr_data = pr_data or []
-        self._init_ui()
-        self._populate_table()
+        super().__init__(parent, data=pr_data)
 
-    def _init_ui(self) -> None:
-        """Initialize the pull request list UI."""
-        self.setWindowTitle("Pull Requests")
-        self.setMinimumSize(700, 400)
-        self.setModal(False)
+    def _get_window_title(self) -> str:
+        """Get window title."""
+        return "Pull Requests"
 
-        layout = QVBoxLayout(self)
+    def _get_filter_states(self) -> List[str]:
+        """Get filter state options."""
+        return ["Open", "Closed", "Merged", "All"]
 
-        # Filter controls
-        filter_layout = QHBoxLayout()
-        filter_layout.addWidget(QLabel("State:"))
+    def _get_data_attribute_name(self) -> str:
+        """Get data attribute name."""
+        return "pr_data"
 
-        self.state_filter = QComboBox()
-        self.state_filter.addItems(["Open", "Closed", "Merged", "All"])
-        self.state_filter.setCurrentText("Open")
-        self.state_filter.setToolTip("Filter pull requests by state")
-        self.state_filter.currentTextChanged.connect(self._filter_changed)
-        filter_layout.addWidget(self.state_filter)
+    def _get_tooltip_prefix(self) -> str:
+        """Get tooltip prefix."""
+        return "pull requests"
 
-        filter_layout.addStretch()
-
-        # Refresh button
-        refresh_btn = QPushButton("Refresh")
-        refresh_btn.setToolTip("Reload pull requests from GitHub")
-        refresh_btn.clicked.connect(self._refresh_clicked)
-        filter_layout.addWidget(refresh_btn)
-
-        layout.addLayout(filter_layout)
-
-        # PR table
-        self.pr_table = QTableWidget()
-        self.pr_table.setColumnCount(6)
-        self.pr_table.setHorizontalHeaderLabels(
-            ["Number", "Title", "Author", "Status", "Created", "URL"]
-        )
-        self.pr_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.pr_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.pr_table.doubleClicked.connect(self._row_double_clicked)
-        self.pr_table.setToolTip("Double-click to open PR in browser")
-
-        # Configure column widths
-        header = self.pr_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Number
-        header.setSectionResizeMode(1, QHeaderView.Stretch)  # Title
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Author
-        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Status
-        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Created
-        header.setSectionResizeMode(5, QHeaderView.Stretch)  # URL
-
-        layout.addWidget(self.pr_table)
-
-        # Dialog buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.Close)
-        button_box.rejected.connect(self.close)
-        layout.addWidget(button_box)
+    @property
+    def pr_table(self):
+        """Backward compatibility alias for table attribute."""
+        return self.table
 
     def _populate_table(self) -> None:
         """Populate the PR table with current data."""
-        self.pr_table.setRowCount(0)
+        self.table.setRowCount(0)
 
         if not self.pr_data:
             # Show "no data" message
-            self.pr_table.setRowCount(1)
+            self.table.setRowCount(1)
             item = QTableWidgetItem("No pull requests found")
             item.setTextAlignment(Qt.AlignCenter)
-            self.pr_table.setSpan(0, 0, 1, 6)
-            self.pr_table.setItem(0, 0, item)
+            self.table.setSpan(0, 0, 1, 6)
+            self.table.setItem(0, 0, item)
             return
 
         # Filter by selected state
@@ -314,16 +536,16 @@ class PullRequestListDialog(QDialog):
             if state_filter == "all" or pr.get("state", "").lower() == state_filter
         ]
 
-        self.pr_table.setRowCount(len(filtered_prs))
+        self.table.setRowCount(len(filtered_prs))
 
         for row, pr in enumerate(filtered_prs):
             # PR Number
             number_item = QTableWidgetItem(f"#{pr.get('number', 'N/A')}")
-            self.pr_table.setItem(row, 0, number_item)
+            self.table.setItem(row, 0, number_item)
 
             # Title
             title_item = QTableWidgetItem(pr.get("title", "Untitled"))
-            self.pr_table.setItem(row, 1, title_item)
+            self.table.setItem(row, 1, title_item)
 
             # Author
             author = pr.get("author", {})
@@ -333,41 +555,22 @@ class PullRequestListDialog(QDialog):
                 else str(author)
             )
             author_item = QTableWidgetItem(author_name)
-            self.pr_table.setItem(row, 2, author_item)
+            self.table.setItem(row, 2, author_item)
 
             # Status
             status = pr.get("state", "unknown").capitalize()
             status_item = QTableWidgetItem(status)
-            self.pr_table.setItem(row, 3, status_item)
+            self.table.setItem(row, 3, status_item)
 
             # Created date
             created = pr.get("createdAt", "Unknown")
             created_item = QTableWidgetItem(created)
-            self.pr_table.setItem(row, 4, created_item)
+            self.table.setItem(row, 4, created_item)
 
             # URL
             url = pr.get("url", "")
             url_item = QTableWidgetItem(url)
-            self.pr_table.setItem(row, 5, url_item)
-
-    def _filter_changed(self, _text: str) -> None:
-        """Handle state filter change."""
-        self._populate_table()
-
-    def _refresh_clicked(self) -> None:
-        """Handle refresh button click."""
-        # Emit signal or call callback to reload data
-        logger.info("Refresh button clicked - parent should reload PR data")
-
-    def _row_double_clicked(self, index) -> None:
-        """Handle row double-click to open PR in browser."""
-        row = index.row()
-        url_item = self.pr_table.item(row, 5)
-        if url_item:
-            url = url_item.text()
-            if url:
-                QDesktopServices.openUrl(QUrl(url))
-                logger.info(f"Opening PR in browser: {url}")
+            self.table.setItem(row, 5, url_item)
 
     def set_pr_data(self, pr_data: List[Dict]) -> None:
         """
@@ -377,6 +580,7 @@ class PullRequestListDialog(QDialog):
             pr_data: List of PR dictionaries
         """
         self.pr_data = pr_data
+        self._data = pr_data
         self._populate_table()
 
 
@@ -467,16 +671,10 @@ class CreateIssueDialog(QDialog):
 
     def _validate_and_accept(self) -> None:
         """Validate inputs and accept dialog if valid."""
-        title = self.title_input.text().strip()
-        if not title:
-            # Show error in title field
-            self.title_input.setStyleSheet("QLineEdit { border: 1px solid red; }")
-            self.title_input.setFocus()
-            logger.warning("Issue title is required")
+        # Validate title is not empty
+        if not _validate_required_text(self.title_input, "Issue title"):
             return
 
-        # Clear error styling
-        self.title_input.setStyleSheet("")
         self.accept()
 
     def get_issue_data(self) -> Dict[str, str]:
@@ -496,7 +694,7 @@ class CreateIssueDialog(QDialog):
         }
 
 
-class IssueListDialog(QDialog):
+class IssueListDialog(BaseListDialog):
     """
     Dialog for browsing and managing issues.
 
@@ -530,78 +728,41 @@ class IssueListDialog(QDialog):
         issue_data: Optional[List[Dict]] = None,
     ) -> None:
         """Initialize issue list dialog."""
-        super().__init__(parent)
         self.issue_data = issue_data or []
-        self._init_ui()
-        self._populate_table()
+        super().__init__(parent, data=issue_data)
 
-    def _init_ui(self) -> None:
-        """Initialize the issue list UI."""
-        self.setWindowTitle("Issues")
-        self.setMinimumSize(700, 400)
-        self.setModal(False)
+    def _get_window_title(self) -> str:
+        """Get window title."""
+        return "Issues"
 
-        layout = QVBoxLayout(self)
+    def _get_filter_states(self) -> List[str]:
+        """Get filter state options."""
+        return ["Open", "Closed", "All"]
 
-        # Filter controls
-        filter_layout = QHBoxLayout()
-        filter_layout.addWidget(QLabel("State:"))
+    def _get_data_attribute_name(self) -> str:
+        """Get data attribute name."""
+        return "issue_data"
 
-        self.state_filter = QComboBox()
-        self.state_filter.addItems(["Open", "Closed", "All"])
-        self.state_filter.setCurrentText("Open")
-        self.state_filter.setToolTip("Filter issues by state")
-        self.state_filter.currentTextChanged.connect(self._filter_changed)
-        filter_layout.addWidget(self.state_filter)
+    def _get_tooltip_prefix(self) -> str:
+        """Get tooltip prefix."""
+        return "issues"
 
-        filter_layout.addStretch()
-
-        # Refresh button
-        refresh_btn = QPushButton("Refresh")
-        refresh_btn.setToolTip("Reload issues from GitHub")
-        refresh_btn.clicked.connect(self._refresh_clicked)
-        filter_layout.addWidget(refresh_btn)
-
-        layout.addLayout(filter_layout)
-
-        # Issue table
-        self.issue_table = QTableWidget()
-        self.issue_table.setColumnCount(6)
-        self.issue_table.setHorizontalHeaderLabels(
-            ["Number", "Title", "Author", "Status", "Created", "URL"]
-        )
-        self.issue_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.issue_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.issue_table.doubleClicked.connect(self._row_double_clicked)
-        self.issue_table.setToolTip("Double-click to open issue in browser")
-
-        # Configure column widths
-        header = self.issue_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Number
-        header.setSectionResizeMode(1, QHeaderView.Stretch)  # Title
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Author
-        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Status
-        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Created
-        header.setSectionResizeMode(5, QHeaderView.Stretch)  # URL
-
-        layout.addWidget(self.issue_table)
-
-        # Dialog buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.Close)
-        button_box.rejected.connect(self.close)
-        layout.addWidget(button_box)
+    @property
+    def issue_table(self):
+        """Backward compatibility alias for table attribute."""
+        return self.table
 
     def _populate_table(self) -> None:
         """Populate the issue table with current data."""
-        self.issue_table.setRowCount(0)
+        self.table.setRowCount(0)
 
         if not self.issue_data:
             # Show "no data" message
-            self.issue_table.setRowCount(1)
+            self.table.setRowCount(1)
             item = QTableWidgetItem("No issues found")
             item.setTextAlignment(Qt.AlignCenter)
-            self.issue_table.setSpan(0, 0, 1, 6)
-            self.issue_table.setItem(0, 0, item)
+            self.table.setSpan(0, 0, 1, 6)
+            self.table.setItem(0, 0, item)
             return
 
         # Filter by selected state
@@ -612,16 +773,16 @@ class IssueListDialog(QDialog):
             if state_filter == "all" or issue.get("state", "").lower() == state_filter
         ]
 
-        self.issue_table.setRowCount(len(filtered_issues))
+        self.table.setRowCount(len(filtered_issues))
 
         for row, issue in enumerate(filtered_issues):
             # Issue Number
             number_item = QTableWidgetItem(f"#{issue.get('number', 'N/A')}")
-            self.issue_table.setItem(row, 0, number_item)
+            self.table.setItem(row, 0, number_item)
 
             # Title
             title_item = QTableWidgetItem(issue.get("title", "Untitled"))
-            self.issue_table.setItem(row, 1, title_item)
+            self.table.setItem(row, 1, title_item)
 
             # Author
             author = issue.get("author", {})
@@ -631,41 +792,22 @@ class IssueListDialog(QDialog):
                 else str(author)
             )
             author_item = QTableWidgetItem(author_name)
-            self.issue_table.setItem(row, 2, author_item)
+            self.table.setItem(row, 2, author_item)
 
             # Status
             status = issue.get("state", "unknown").capitalize()
             status_item = QTableWidgetItem(status)
-            self.issue_table.setItem(row, 3, status_item)
+            self.table.setItem(row, 3, status_item)
 
             # Created date
             created = issue.get("createdAt", "Unknown")
             created_item = QTableWidgetItem(created)
-            self.issue_table.setItem(row, 4, created_item)
+            self.table.setItem(row, 4, created_item)
 
             # URL
             url = issue.get("url", "")
             url_item = QTableWidgetItem(url)
-            self.issue_table.setItem(row, 5, url_item)
-
-    def _filter_changed(self, _text: str) -> None:
-        """Handle state filter change."""
-        self._populate_table()
-
-    def _refresh_clicked(self) -> None:
-        """Handle refresh button click."""
-        # Emit signal or call callback to reload data
-        logger.info("Refresh button clicked - parent should reload issue data")
-
-    def _row_double_clicked(self, index) -> None:
-        """Handle row double-click to open issue in browser."""
-        row = index.row()
-        url_item = self.issue_table.item(row, 5)
-        if url_item:
-            url = url_item.text()
-            if url:
-                QDesktopServices.openUrl(QUrl(url))
-                logger.info(f"Opening issue in browser: {url}")
+            self.table.setItem(row, 5, url_item)
 
     def set_issue_data(self, issue_data: List[Dict]) -> None:
         """
@@ -675,4 +817,5 @@ class IssueListDialog(QDialog):
             issue_data: List of issue dictionaries
         """
         self.issue_data = issue_data
+        self._data = issue_data
         self._populate_table()

@@ -16,13 +16,12 @@ main window complexity and improve modularity.
 
 import logging
 import subprocess
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QMessageBox
 
 if TYPE_CHECKING:
-    from pathlib import Path
 
     from .main_window import AsciiDocEditor
 

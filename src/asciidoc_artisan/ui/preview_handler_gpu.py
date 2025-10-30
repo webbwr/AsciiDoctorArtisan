@@ -60,9 +60,7 @@ class WebEngineHandler(PreviewHandlerBase):
     - sync_preview_to_editor() - Sync scroll via JavaScript callback
     """
 
-    def __init__(
-        self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window
-    ):
+    def __init__(self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window):
         """
         Initialize WebEngine PreviewHandler.
 
@@ -80,9 +78,7 @@ class WebEngineHandler(PreviewHandlerBase):
                 f" {type(preview).__name__}"
             )
 
-        logger.info(
-            "PreviewHandler initialized with QWebEngineView (GPU-accelerated)"
-        )
+        logger.info("PreviewHandler initialized with QWebEngineView (GPU-accelerated)")
 
     def handle_preview_complete(self, html: str) -> None:
         """
@@ -206,9 +202,7 @@ def create_preview_widget(parent: Optional[QWidget] = None) -> QWidget:
         settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
         settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
         settings.setAttribute(QWebEngineSettings.PluginsEnabled, False)
-        settings.setAttribute(
-            QWebEngineSettings.LocalContentCanAccessRemoteUrls, False
-        )
+        settings.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, False)
 
         # Log GPU info
         logger.info(f"  GPU Type: {gpu_info.gpu_type}")

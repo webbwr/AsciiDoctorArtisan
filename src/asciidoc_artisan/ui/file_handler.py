@@ -184,14 +184,20 @@ class FileHandler(QObject):
                     f"Maximum allowed: {MAX_FILE_SIZE_MB}MB\n\n"
                     f"Large files may cause the application to freeze or crash."
                 )
-                self.status_manager.show_message("critical", "File Too Large", error_msg)
+                self.status_manager.show_message(
+                    "critical", "File Too Large", error_msg
+                )
                 self.is_opening_file = False
-                logger.warning(f"Rejected file {file_path.name}: {file_size_mb:.1f}MB > {MAX_FILE_SIZE_MB}MB")
+                logger.warning(
+                    f"Rejected file {file_path.name}: {file_size_mb:.1f}MB > {MAX_FILE_SIZE_MB}MB"
+                )
                 return
 
             # Log file size for monitoring
             if file_size_mb > 10:
-                logger.info(f"Opening large file: {file_path.name} ({file_size_mb:.1f}MB)")
+                logger.info(
+                    f"Opening large file: {file_path.name} ({file_size_mb:.1f}MB)"
+                )
 
         except Exception as e:
             logger.error(f"Failed to check file size for {file_path}: {e}")

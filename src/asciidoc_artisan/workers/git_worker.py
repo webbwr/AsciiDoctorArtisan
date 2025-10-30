@@ -19,17 +19,17 @@ Security:
 
 import logging
 import subprocess
-from pathlib import Path
 from typing import List
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import Signal, Slot
 
 from asciidoc_artisan.core import GitResult
+from asciidoc_artisan.workers.base_worker import BaseWorker
 
 logger = logging.getLogger(__name__)
 
 
-class GitWorker(QObject):
+class GitWorker(BaseWorker):
     """
     Background worker for Git command execution.
 
@@ -56,25 +56,6 @@ class GitWorker(QObject):
 
     command_complete = Signal(GitResult)
 
-    def __init__(self) -> None:
-        """Initialize Git worker with cancellation support."""
-        super().__init__()
-        self._cancelled = False
-
-    def cancel(self) -> None:
-        """Request cancellation of current operation.
-
-        Note: Git operations use blocking subprocess.run() so cancellation
-        only prevents new operations from starting. In-progress Git commands
-        cannot be interrupted.
-        """
-        logger.info("Git worker cancellation requested")
-        self._cancelled = True
-
-    def reset_cancellation(self) -> None:
-        """Reset cancellation flag for next operation."""
-        self._cancelled = False
-
     @Slot(list, str)
     def run_git_command(self, command: List[str], working_dir: str) -> None:
         """
@@ -95,7 +76,7 @@ class GitWorker(QObject):
             - No destructive force flags without user confirmation (NFR-008)
         """
         # Check for cancellation
-        if self._cancelled:
+        if self._check_cancellation():
             logger.info("Git operation cancelled before execution")
             self.command_complete.emit(
                 GitResult(False, "", "Operation cancelled by user", -1, "Cancelled")
@@ -109,7 +90,7 @@ class GitWorker(QObject):
 
         try:
             # Validate working directory
-            if not Path(working_dir).is_dir():
+            if not self._validate_working_directory(working_dir):
                 user_message = f"Error: Git working directory not found: {working_dir}"
                 self.command_complete.emit(
                     GitResult(False, "", user_message, None, user_message)

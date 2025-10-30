@@ -14,12 +14,15 @@ import io
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any, Callable, List, Optional
+from typing import Any, List, Optional
 
-from PySide6.QtCore import QObject, QRunnable, Signal
+from PySide6.QtCore import QObject, Signal
 
 from asciidoc_artisan.core import GitResult
-from asciidoc_artisan.workers.optimized_worker_pool import CancelableRunnable, TaskPriority
+from asciidoc_artisan.workers.optimized_worker_pool import (
+    CancelableRunnable,
+    TaskPriority,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -1,38 +1,124 @@
 """
-UI Dialogs - Preferences dialog.
+===============================================================================
+USER DIALOGS - Pop-up Windows for Settings and Configuration
+===============================================================================
 
-This module contains QDialog subclasses for user interaction:
-- PreferencesDialog: Application preferences (AI settings)
+FILE PURPOSE:
+This file contains dialog windows (pop-up windows) that let users change
+settings and configure features. When you click Edit → Preferences in the menu,
+these dialogs appear.
 
-Implements FR-055: AI-Enhanced Conversion user configuration.
+WHAT THIS FILE CONTAINS:
+1. Helper Functions: Reusable code for creating dialog buttons
+2. PreferencesDialog: Main settings window (AI conversion, grammar checking)
+3. OllamaSettingsDialog: AI model selection window
 
-Usage Example:
-    ```python
-    from asciidoc_artisan.ui.dialogs import PreferencesDialog
+FOR BEGINNERS - WHAT IS A DIALOG?:
+A "dialog" is a pop-up window that asks for user input or shows settings.
+Examples: "Save file" dialogs, "Confirm delete" dialogs, preferences windows.
 
-    dialog = PreferencesDialog(self.settings)
-    if dialog.exec():
-        self.settings = dialog.get_settings()
-        self._save_settings()
-    ```
+Qt provides QDialog as the base class for all dialog windows. Our dialogs
+inherit from QDialog and add custom UI elements (checkboxes, buttons, etc.).
+
+KEY QT CONCEPTS:
+- QDialog: Base class for pop-up windows
+- exec(): Shows dialog and waits for user to click OK/Cancel
+- accept(): User clicked OK - save changes
+- reject(): User clicked Cancel - discard changes
+- Signals/Slots: When button clicked → call function
+
+USAGE PATTERN:
+    dialog = PreferencesDialog(settings)  # Create dialog
+    if dialog.exec():  # Show dialog, wait for user
+        settings = dialog.get_settings()  # User clicked OK - get new settings
+        save_settings(settings)  # Save to disk
 """
 
-import os
-from typing import Optional
+import os  # For reading environment variables (API keys)
+from typing import Optional  # For type hints (helps catch bugs)
 
+# Import Qt widgets we need for building the UI
 from PySide6.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QDialog,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
+    QCheckBox,  # Checkbox widget (on/off toggle)
+    QComboBox,  # Dropdown menu widget
+    QDialog,  # Base class for pop-up windows
+    QGroupBox,  # Box that groups related widgets together
+    QHBoxLayout,  # Horizontal layout manager
+    QLabel,  # Text label widget
+    QPushButton,  # Clickable button widget
+    QVBoxLayout,  # Vertical layout manager
+    QWidget,  # Base class for all UI widgets
 )
 
+# Import our Settings data class
 from asciidoc_artisan.core import Settings
+
+
+# === HELPER FUNCTIONS ===
+# These functions are reused by multiple dialogs to avoid code duplication
+
+
+def _create_ok_cancel_buttons(dialog: QDialog) -> QHBoxLayout:
+    """
+    Create Standard OK/Cancel Buttons for Dialogs.
+
+    WHY THIS EXISTS:
+    Every dialog needs OK and Cancel buttons. Instead of writing the same
+    10 lines of code in every dialog, we write it once here and reuse it.
+    This follows the DRY principle: "Don't Repeat Yourself"
+
+    WHAT IT DOES:
+    1. Creates a horizontal layout (buttons side by side)
+    2. Adds a "stretch" (pushes buttons to the right side)
+    3. Creates OK button → connected to dialog.accept()
+    4. Creates Cancel button → connected to dialog.reject()
+    5. Returns the layout ready to add to your dialog
+
+    HOW TO USE:
+        layout = QVBoxLayout()
+        # ... add your dialog widgets here ...
+        layout.addLayout(_create_ok_cancel_buttons(self))  # Add buttons at bottom
+
+    PARAMETERS:
+        dialog: The QDialog that these buttons belong to. We need this to
+                connect the buttons to the dialog's accept/reject methods.
+
+    RETURNS:
+        A QHBoxLayout containing OK and Cancel buttons, properly connected.
+
+    TECHNICAL NOTE:
+    - dialog.accept() closes the dialog and returns True from exec()
+    - dialog.reject() closes the dialog and returns False from exec()
+    """
+    # Create horizontal layout for buttons (side by side)
+    button_layout = QHBoxLayout()
+
+    # Add a "stretch" - this pushes buttons to the right side of the window
+    # Without this, buttons would be left-aligned (looks bad)
+    button_layout.addStretch()
+
+    # === CREATE OK BUTTON ===
+    ok_button = QPushButton("OK")  # Create button with text "OK"
+
+    # Connect button click to dialog.accept()
+    # When user clicks OK: dialog closes, exec() returns True
+    ok_button.clicked.connect(dialog.accept)
+
+    # Add OK button to layout
+    button_layout.addWidget(ok_button)
+
+    # === CREATE CANCEL BUTTON ===
+    cancel_button = QPushButton("Cancel")  # Create button with text "Cancel"
+
+    # Connect button click to dialog.reject()
+    # When user clicks Cancel: dialog closes, exec() returns False
+    cancel_button.clicked.connect(dialog.reject)
+
+    # Add Cancel button to layout
+    button_layout.addWidget(cancel_button)
+
+    # Return the complete layout
+    return button_layout
 
 
 class PreferencesDialog(QDialog):
@@ -193,18 +279,7 @@ class PreferencesDialog(QDialog):
         layout.addWidget(grammar_group)
 
         # Dialog Buttons
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(self.accept)
-        button_layout.addWidget(ok_button)
-
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_button)
-
-        layout.addLayout(button_layout)
+        layout.addLayout(_create_ok_cancel_buttons(self))
 
     def _get_api_key_status(self) -> str:
         """
@@ -329,18 +404,7 @@ class OllamaSettingsDialog(QDialog):
         layout.addWidget(ollama_group)
 
         # Dialog Buttons
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(self.accept)
-        button_layout.addWidget(ok_button)
-
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_button)
-
-        layout.addLayout(button_layout)
+        layout.addLayout(_create_ok_cancel_buttons(self))
 
         # Update enabled state of controls
         self._on_enabled_changed()

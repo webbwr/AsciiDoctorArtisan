@@ -1,54 +1,170 @@
 """
-Theme Manager - Handles theme and appearance management for AsciiDoc Artisan.
+===============================================================================
+THEME MANAGER - Dark/Light Mode and CSS Generation
+===============================================================================
 
-Implements:
-- FR-041: Dark mode toggle (Ctrl+D) with persistence
+FILE PURPOSE:
+This file manages the application's appearance: dark mode, light mode, and
+CSS styling for the preview window.
 
-This module manages dark/light theme switching and color palette configuration,
-extracted from main_window.py as part of Phase 2 architectural refactoring.
+WHAT THIS FILE DOES:
+1. Toggles between dark and light themes (Ctrl+D keyboard shortcut)
+2. Applies color palettes to the entire application
+3. Generates CSS for the preview window (dark or light styles)
+4. Persists theme preference in settings
 
-The ThemeManager provides a clean interface for theme-related operations.
+FOR BEGINNERS - WHAT IS A THEME?:
+A theme controls the colors of the application. There are two themes:
+- Light mode: Light background, dark text (like reading a paper book)
+- Dark mode: Dark background, light text (easier on eyes at night)
+
+ANALOGY:
+Think of adjusting your phone's brightness:
+- Light mode = brightness up (daytime, outdoor use)
+- Dark mode = brightness down (nighttime, battery saving)
+
+The theme affects:
+- Application background (window color)
+- Text color (black on white vs white on black)
+- Button colors, menu colors, etc.
+- Preview window CSS (HTML styling)
+
+WHY THIS FILE WAS EXTRACTED:
+Before v1.5.0, theme logic was in main_window.py. We extracted it to:
+- Reduce main_window.py size (part of 67% reduction)
+- Separate concerns (main window doesn't need to know about color palettes)
+- Make theme logic testable independently
+- Follow Single Responsibility Principle
+
+KEY CONCEPTS:
+
+1. COLOR PALETTE:
+   Qt uses QPalette to define colors for UI elements:
+   - Window: Main background color
+   - WindowText: Text on windows
+   - Base: Input field backgrounds (text editors)
+   - Button: Button backgrounds
+   - HighlightedText: Selected text
+   etc.
+
+2. CSS GENERATION:
+   The preview window needs HTML/CSS styling. We generate CSS strings
+   with colors matching the current theme (dark or light).
+
+3. THEME PERSISTENCE:
+   When you toggle dark mode, it's saved to settings. Next time you
+   open the app, your theme preference is remembered.
+
+4. CACHE INVALIDATION:
+   When theme changes, we clear the CSS cache. This forces the preview
+   to regenerate with new theme colors.
+
+SPECIFICATIONS IMPLEMENTED:
+- FR-041: Dark mode toggle with keyboard shortcut (Ctrl+D)
+- NFR-015: Theme persistence in settings
+
+REFACTORING HISTORY:
+- v1.0: All theme code in main_window.py
+- v1.4.1: CSS generation moved to ThemeManager (63 lines reduced)
+- v1.5.0: Complete extraction to theme_manager.py
+
+VERSION: 1.5.0 (Phase 2 refactoring)
 """
 
-from typing import TYPE_CHECKING
+# === STANDARD LIBRARY IMPORTS ===
+from typing import TYPE_CHECKING  # Type hints without circular imports
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPalette
-from PySide6.QtWidgets import QApplication
+# === QT FRAMEWORK IMPORTS ===
+from PySide6.QtCore import Qt  # Qt constants (colors, key codes, etc.)
+from PySide6.QtGui import (
+    QColor,  # Color class (RGB values)
+    QPalette,  # Color palette for application theme
+)
+from PySide6.QtWidgets import QApplication  # Main application class
 
+# === TYPE CHECKING (Avoid Circular Imports) ===
 if TYPE_CHECKING:
     from .main_window import AsciiDocEditor
 
 
 class ThemeManager:
-    """Manages theme and appearance for AsciiDoc Artisan.
+    """
+    Theme Manager - Controls Dark/Light Mode and CSS Generation.
 
-    This class encapsulates all theme-related logic including dark/light mode
-    switching and color palette management.
+    FOR BEGINNERS - WHAT IS THIS CLASS?:
+    This class is like the "interior decorator" for the application. It:
+    - Paints the walls (sets background colors)
+    - Chooses the text color (dark or light)
+    - Styles the preview window (generates CSS)
+    - Remembers your preference (saves to settings)
 
-    Args:
+    RESPONSIBILITIES:
+    1. Apply dark or light theme to entire application
+    2. Generate CSS for preview window (matching theme)
+    3. Toggle between themes (on keyboard shortcut or menu click)
+    4. Update label colors (Editor/Preview labels at top of panes)
+    5. Clear CSS cache when theme changes
+
+    WHY IT EXISTS:
+    Before this class, theme logic was scattered in main_window.py. Now
+    it's all centralized in one place, making it easier to:
+    - Understand (all theme code in one file)
+    - Test (can test theme without main window)
+    - Modify (add new themes or colors)
+
+    USAGE:
+    Called by main_window.py:
+        theme_mgr = ThemeManager(self)
+        theme_mgr.apply_theme()  # Apply current theme
+        theme_mgr.toggle_dark_mode()  # Switch themes
+
+    PARAMETERS:
         editor: Reference to the main AsciiDocEditor window
     """
 
     def __init__(self, editor: "AsciiDocEditor") -> None:
-        """Initialize the ThemeManager with a reference to the main editor."""
+        """
+        Initialize Theme Manager.
+
+        WHAT THIS DOES:
+        Stores a reference to the main editor window. This allows the theme
+        manager to access settings, update labels, and trigger preview updates.
+
+        PARAMETERS:
+            editor: The main application window (AsciiDocEditor)
+
+        CREATES:
+            self.editor: Reference to main window
+        """
+        # Store reference to main editor window
         self.editor = editor
 
     def apply_theme(self) -> None:
-        """Apply the current theme (dark or light mode)."""
+        """
+        Apply Current Theme - Dark or Light Mode.
+
+        WHAT THIS DOES:
+        Checks the settings to see if dark mode is enabled, then applies
+        the appropriate theme (dark or light) to the entire application.
+
+        Also updates the Editor/Preview labels at the top of each pane
+        to match the theme (white text on dark, black text on light).
+        """
+        # Check if dark mode is enabled in settings
         if self.editor._settings.dark_mode:
+            # Apply dark color palette to application
             self._apply_dark_theme()
 
-            # Update label colors for dark mode
+            # Update label colors for dark mode (white text on dark background)
             if hasattr(self.editor, "editor_label"):
                 self.editor.editor_label.setStyleSheet("color: white;")
             if hasattr(self.editor, "preview_label"):
                 self.editor.preview_label.setStyleSheet("color: white;")
         else:
-            # Reset to system default light theme
+            # Light mode - reset to system default light theme
             QApplication.setPalette(QApplication.style().standardPalette())
 
-            # Update label colors for light mode
+            # Update label colors for light mode (black text on light background)
             if hasattr(self.editor, "editor_label"):
                 self.editor.editor_label.setStyleSheet("color: black;")
             if hasattr(self.editor, "preview_label"):

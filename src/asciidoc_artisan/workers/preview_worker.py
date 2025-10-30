@@ -47,8 +47,8 @@ except ImportError:
 # Import predictive renderer (v1.6.0)
 try:
     from asciidoc_artisan.workers.predictive_renderer import (
-        PredictiveRenderer,
         PredictivePreviewRenderer,
+        PredictiveRenderer,
     )
 
     PREDICTIVE_RENDERER_AVAILABLE = True
@@ -367,7 +367,9 @@ class PreviewWorker(QObject):
                 )
 
             if prerendered_count > 0:
-                logger.debug(f"Pre-rendering complete: {prerendered_count} blocks cached")
+                logger.debug(
+                    f"Pre-rendering complete: {prerendered_count} blocks cached"
+                )
 
         except Exception as exc:
             logger.debug(f"Pre-render failed: {exc}")

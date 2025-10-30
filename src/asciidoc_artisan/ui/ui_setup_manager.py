@@ -13,7 +13,7 @@ main window complexity and improve modularity.
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import QTimer, Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont, QGuiApplication
 from PySide6.QtWidgets import (
     QHBoxLayout,

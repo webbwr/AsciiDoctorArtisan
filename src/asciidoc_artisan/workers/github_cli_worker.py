@@ -20,17 +20,17 @@ Security:
 import json
 import logging
 import subprocess
-from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import Signal, Slot
 
 from asciidoc_artisan.core.models import GitHubResult
+from asciidoc_artisan.workers.base_worker import BaseWorker
 
 logger = logging.getLogger(__name__)
 
 
-class GitHubCLIWorker(QObject):
+class GitHubCLIWorker(BaseWorker):
     """
     Background worker for GitHub CLI command execution.
 
@@ -58,25 +58,6 @@ class GitHubCLIWorker(QObject):
     """
 
     github_result_ready = Signal(GitHubResult)
-
-    def __init__(self) -> None:
-        """Initialize GitHub CLI worker with cancellation support."""
-        super().__init__()
-        self._cancelled = False
-
-    def cancel(self) -> None:
-        """Request cancellation of current operation.
-
-        Note: GitHub CLI operations use blocking subprocess.run() so cancellation
-        only prevents new operations from starting. In-progress gh commands
-        cannot be interrupted.
-        """
-        logger.info("GitHub CLI worker cancellation requested")
-        self._cancelled = True
-
-    def reset_cancellation(self) -> None:
-        """Reset cancellation flag for next operation."""
-        self._cancelled = False
 
     @Slot(str, dict)
     def dispatch_github_operation(self, operation: str, kwargs: dict) -> None:
@@ -146,7 +127,7 @@ class GitHubCLIWorker(QObject):
             - Validates working directory exists before execution
         """
         # Check for cancellation
-        if self._cancelled:
+        if self._check_cancellation():
             logger.info("GitHub CLI operation cancelled before execution")
             self.github_result_ready.emit(
                 GitHubResult(
@@ -166,7 +147,7 @@ class GitHubCLIWorker(QObject):
 
         try:
             # Validate working directory if provided
-            if working_dir and not Path(working_dir).is_dir():
+            if working_dir and not self._validate_working_directory(working_dir):
                 user_message = f"Error: Working directory not found: {working_dir}"
                 self.github_result_ready.emit(
                     GitHubResult(

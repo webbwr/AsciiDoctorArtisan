@@ -16,7 +16,7 @@ The StatusManager provides centralized UI feedback management.
 import re
 from typing import TYPE_CHECKING, Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
 
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME
@@ -366,4 +366,6 @@ class StatusManager:
         self.hide_cancel_button()
 
         # Show feedback
-        self.editor.status_bar.showMessage(f"Cancelled {self._current_operation} operation", 3000)
+        self.editor.status_bar.showMessage(
+            f"Cancelled {self._current_operation} operation", 3000
+        )

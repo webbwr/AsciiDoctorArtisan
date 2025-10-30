@@ -105,6 +105,285 @@ class PandocWorker(QObject):
         self.ollama_enabled = enabled
         self.ollama_model = model
 
+    def _try_ai_conversion_with_fallback(
+        self,
+        source: Union[str, bytes, Path],
+        to_format: str,
+        from_format: str,
+        context: str,
+        output_file: Optional[Path],
+        start_time: float,
+        use_ai_conversion: bool,
+    ) -> tuple[Optional[str], Union[str, bytes, Path], str]:
+        """
+        Attempt AI conversion with automatic fallback to source.
+
+        Args:
+            source: Document content or Path to file
+            to_format: Target format
+            from_format: Source format
+            context: Context string for logging/signals
+            output_file: Output file path (for binary formats)
+            start_time: Conversion start time (for metrics)
+            use_ai_conversion: Whether AI conversion is requested
+
+        Returns:
+            Tuple of (result_or_none, updated_source, conversion_method)
+            - If AI succeeds for text output: (result_text, source, "ollama")
+            - If AI succeeds for binary output: (None, ollama_text, "ollama_pandoc")
+            - If AI fails or not requested: (None, source, "pandoc")
+        """
+        conversion_method = "pandoc"
+
+        # Try Ollama AI conversion first if requested
+        if use_ai_conversion and self.ollama_enabled and self.ollama_model:
+            # Get source content as string
+            if isinstance(source, Path):
+                source_content = source.read_text(encoding="utf-8")
+            elif isinstance(source, bytes):
+                source_content = source.decode("utf-8", errors="replace")
+            else:
+                source_content = str(source)
+
+            # Try Ollama conversion
+            try:
+                ollama_result = self._try_ollama_conversion(
+                    source_content, from_format, to_format
+                )
+
+                if ollama_result:
+                    # Ollama conversion succeeded
+                    conversion_method = "ollama"
+                    logger.info("Using Ollama AI conversion result")
+
+                    # Handle output
+                    if output_file and to_format in ["pdf", "docx"]:
+                        # For binary formats, save the text and convert with Pandoc
+                        # (Ollama can't directly create PDF/DOCX binaries)
+                        logger.info(
+                            f"Ollama produced {to_format} markup, using Pandoc for binary output"
+                        )
+                        # Continue to Pandoc with Ollama's result as source
+                        return None, ollama_result, "ollama_pandoc"
+                    else:
+                        # Text output - use Ollama result directly
+                        # Record metrics
+                        if METRICS_AVAILABLE and get_metrics_collector:
+                            duration_ms = (time.perf_counter() - start_time) * 1000
+                            metrics = get_metrics_collector()
+                            metrics.record_operation(
+                                f"conversion_{conversion_method}", duration_ms
+                            )
+
+                        return ollama_result, source, conversion_method
+
+                else:
+                    logger.warning(
+                        "Ollama conversion returned no result, falling back to Pandoc"
+                    )
+
+            except Exception as e:
+                logger.warning(f"Ollama conversion failed, falling back to Pandoc: {e}")
+                # Continue to Pandoc fallback
+
+        return None, source, conversion_method
+
+    def _detect_pdf_engine(self) -> str:
+        """
+        Detect available PDF engine for Pandoc PDF conversion.
+
+        Tries engines in priority order: wkhtmltopdf (fastest), weasyprint,
+        prince, pdflatex, xelatex, lualatex, context, pdfroff.
+
+        Returns:
+            Name of the first available PDF engine
+
+        Raises:
+            RuntimeError: If no PDF engine is available
+        """
+        pdf_engines = [
+            "wkhtmltopdf",
+            "weasyprint",
+            "prince",
+            "pdflatex",
+            "xelatex",
+            "lualatex",
+            "context",
+            "pdfroff",
+        ]
+
+        for engine in pdf_engines:
+            try:
+                subprocess.run(
+                    [engine, "--version"],
+                    capture_output=True,
+                    check=True,
+                    timeout=5,  # 5 second timeout for version check
+                )
+                logger.info(f"Using PDF engine: {engine}")
+                return engine
+            except (
+                FileNotFoundError,
+                subprocess.CalledProcessError,
+                subprocess.TimeoutExpired,
+                Exception,
+            ):
+                # Engine not found, returned error, timed out, or other issue
+                # Continue to next engine
+                continue
+
+        # No PDF engine available - this should not happen in production
+        logger.error(
+            "No PDF engine found. Install wkhtmltopdf, weasyprint, or pdflatex."
+        )
+        raise RuntimeError(
+            "PDF conversion requires a PDF engine. "
+            "Install wkhtmltopdf: sudo apt-get install wkhtmltopdf"
+        )
+
+    def _build_pandoc_args(self, from_format: str, to_format: str) -> list[str]:
+        """
+        Build Pandoc command-line arguments based on format conversion.
+
+        Args:
+            from_format: Source format (e.g., "docx", "markdown")
+            to_format: Target format (e.g., "pdf", "asciidoc")
+
+        Returns:
+            List of Pandoc command-line arguments
+        """
+        # Base Pandoc arguments
+        extra_args = [
+            "--wrap=preserve",
+            "--reference-links",
+            "--standalone",
+            "--toc-depth=3",
+        ]
+
+        # Format-specific arguments - input format
+        if from_format == "docx":
+            extra_args.extend(
+                [
+                    "--extract-media=.",
+                ]
+            )
+
+        # Format-specific arguments - output format
+        if to_format == "pdf":
+            # PDF-specific arguments
+            extra_args.extend(
+                [
+                    "--variable=geometry:margin=1in",
+                    "--variable=fontsize=11pt",
+                    "--highlight-style=tango",
+                ]
+            )
+
+            # Detect and configure PDF engine
+            pdf_engine = self._detect_pdf_engine()
+            extra_args.append(f"--pdf-engine={pdf_engine}")
+        elif to_format == "docx":
+            # DOCX-specific arguments (currently none)
+            pass
+        elif to_format == "markdown":
+            extra_args.extend(
+                [
+                    "--wrap=none",
+                ]
+            )
+
+        return extra_args
+
+    def _execute_pandoc_conversion(
+        self,
+        source: Union[str, bytes, Path],
+        to_format: str,
+        from_format: str,
+        output_file: Optional[Path],
+        extra_args: list[str],
+    ) -> str:
+        """
+        Execute Pandoc conversion with the given parameters.
+
+        Args:
+            source: Document content or Path to file
+            to_format: Target format
+            from_format: Source format
+            output_file: Output file path for binary formats (None for text output)
+            extra_args: Pandoc command-line arguments
+
+        Returns:
+            Result text (converted content or status message)
+        """
+        if output_file and to_format in ["pdf", "docx"]:
+            # Binary output to file
+            if isinstance(source, Path):
+                pypandoc.convert_file(
+                    source_file=str(source),
+                    to=to_format,
+                    format=from_format,
+                    outputfile=str(output_file),
+                    extra_args=extra_args,
+                )
+            else:
+                # Source is str or bytes
+                pypandoc.convert_text(
+                    source=source,
+                    to=to_format,
+                    format=from_format,
+                    outputfile=str(output_file),
+                    extra_args=extra_args,
+                )
+            result_text = f"File saved to: {output_file}"
+        else:
+            # Text output (load into editor)
+            if isinstance(source, Path):
+                source_content = source.read_text(encoding="utf-8")
+                converted = pypandoc.convert_text(
+                    source=source_content,
+                    to=to_format,
+                    format=from_format,
+                    extra_args=extra_args,
+                )
+            elif isinstance(source, bytes):
+                # Binary content (like DOCX) - save to temp file and use convert_file
+                import tempfile
+
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=f".{from_format}"
+                ) as tmp:
+                    tmp.write(source)
+                    tmp_path = tmp.name
+                try:
+                    converted = pypandoc.convert_file(
+                        source_file=tmp_path,
+                        to=to_format,
+                        format=from_format,
+                        extra_args=extra_args,
+                    )
+                finally:
+                    import os
+
+                    os.unlink(tmp_path)
+            else:
+                source_content = str(source)
+                converted = pypandoc.convert_text(
+                    source=source_content,
+                    to=to_format,
+                    format=from_format,
+                    extra_args=extra_args,
+                )
+            if isinstance(converted, bytes):
+                result_text = converted.decode("utf-8")
+            else:
+                result_text = str(converted)
+
+            # Post-process AsciiDoc output
+            if to_format == "asciidoc":
+                result_text = self._enhance_asciidoc_output(result_text)
+
+        return result_text
+
     @Slot(object, str, str, str, object, bool)
     def run_pandoc_conversion(
         self,
@@ -139,58 +418,22 @@ class PandocWorker(QObject):
             3. Post-process AsciiDoc output for quality
         """
         start_time = time.perf_counter()
-        conversion_method = "pandoc"
 
-        # Try Ollama AI conversion first if requested
-        if use_ai_conversion and self.ollama_enabled and self.ollama_model:
-            # Get source content as string
-            if isinstance(source, Path):
-                source_content = source.read_text(encoding="utf-8")
-            elif isinstance(source, bytes):
-                source_content = source.decode("utf-8", errors="replace")
-            else:
-                source_content = str(source)
+        # Try AI conversion with fallback
+        ai_result, source, conversion_method = self._try_ai_conversion_with_fallback(
+            source,
+            to_format,
+            from_format,
+            context,
+            output_file,
+            start_time,
+            use_ai_conversion,
+        )
 
-            # Try Ollama conversion
-            try:
-                ollama_result = self._try_ollama_conversion(
-                    source_content, from_format, to_format
-                )
-
-                if ollama_result:
-                    # Ollama conversion succeeded
-                    conversion_method = "ollama"
-                    logger.info("Using Ollama AI conversion result")
-
-                    # Handle output
-                    if output_file and to_format in ["pdf", "docx"]:
-                        # For binary formats, save the text and convert with Pandoc
-                        # (Ollama can't directly create PDF/DOCX binaries)
-                        logger.info(
-                            f"Ollama produced {to_format} markup, using Pandoc for binary output"
-                        )
-                        # Continue to Pandoc with Ollama's result as source
-                        source = ollama_result
-                        conversion_method = "ollama_pandoc"
-                    else:
-                        # Text output - use Ollama result directly
-                        # Record metrics
-                        if METRICS_AVAILABLE and get_metrics_collector:
-                            duration_ms = (time.perf_counter() - start_time) * 1000
-                            metrics = get_metrics_collector()
-                            metrics.record_operation(f"conversion_{conversion_method}", duration_ms)
-
-                        self.conversion_complete.emit(ollama_result, context)
-                        return
-
-                else:
-                    logger.warning(
-                        "Ollama conversion returned no result, falling back to Pandoc"
-                    )
-
-            except Exception as e:
-                logger.warning(f"Ollama conversion failed, falling back to Pandoc: {e}")
-                # Continue to Pandoc fallback
+        # If AI conversion completed successfully, we're done
+        if ai_result is not None:
+            self.conversion_complete.emit(ai_result, context)
+            return
 
         # Pandoc conversion path (fallback or primary if AI not requested)
         if not PANDOC_AVAILABLE or not pypandoc:
@@ -202,153 +445,13 @@ class PandocWorker(QObject):
         try:
             logger.info(f"Starting Pandoc conversion ({context})")
 
-            # Base Pandoc arguments
-            extra_args = [
-                "--wrap=preserve",
-                "--reference-links",
-                "--standalone",
-                "--toc-depth=3",
-            ]
+            # Build Pandoc arguments for format conversion
+            extra_args = self._build_pandoc_args(from_format, to_format)
 
-            # Format-specific arguments
-            if from_format == "docx":
-                extra_args.extend(
-                    [
-                        "--extract-media=.",
-                    ]
-                )
-
-            if to_format == "pdf":
-                # PDF-specific arguments
-                extra_args.extend(
-                    [
-                        "--variable=geometry:margin=1in",
-                        "--variable=fontsize=11pt",
-                        "--highlight-style=tango",
-                    ]
-                )
-
-                # Detect available PDF engine
-                pdf_engines = [
-                    "wkhtmltopdf",
-                    "weasyprint",
-                    "prince",
-                    "pdflatex",
-                    "xelatex",
-                    "lualatex",
-                    "context",
-                    "pdfroff",
-                ]
-
-                pdf_engine_found = False
-                for engine in pdf_engines:
-                    try:
-                        subprocess.run(
-                            [engine, "--version"],
-                            capture_output=True,
-                            check=True,
-                            timeout=5  # 5 second timeout for version check
-                        )
-                        extra_args.append(f"--pdf-engine={engine}")
-                        logger.info(f"Using PDF engine: {engine}")
-                        pdf_engine_found = True
-                        break
-                    except (
-                        FileNotFoundError,
-                        subprocess.CalledProcessError,
-                        subprocess.TimeoutExpired,
-                        Exception,
-                    ):
-                        # Engine not found, returned error, timed out, or other issue
-                        # Continue to next engine
-                        continue
-
-                if not pdf_engine_found:
-                    # No PDF engine available - this should not happen in production
-                    logger.error(
-                        "No PDF engine found. Install wkhtmltopdf, weasyprint, or pdflatex."
-                    )
-                    raise RuntimeError(
-                        "PDF conversion requires a PDF engine. "
-                        "Install wkhtmltopdf: sudo apt-get install wkhtmltopdf"
-                    )
-            elif to_format == "docx":
-                # DOCX-specific arguments (currently none)
-                pass
-            elif to_format == "markdown":
-                extra_args.extend(
-                    [
-                        "--wrap=none",
-                    ]
-                )
-
-            # Execute conversion
-            if output_file and to_format in ["pdf", "docx"]:
-                # Binary output to file
-                if isinstance(source, Path):
-                    pypandoc.convert_file(
-                        source_file=str(source),
-                        to=to_format,
-                        format=from_format,
-                        outputfile=str(output_file),
-                        extra_args=extra_args,
-                    )
-                else:
-                    # Source is str or bytes
-                    pypandoc.convert_text(
-                        source=source,
-                        to=to_format,
-                        format=from_format,
-                        outputfile=str(output_file),
-                        extra_args=extra_args,
-                    )
-                result_text = f"File saved to: {output_file}"
-            else:
-                # Text output (load into editor)
-                if isinstance(source, Path):
-                    source_content = source.read_text(encoding="utf-8")
-                    converted = pypandoc.convert_text(
-                        source=source_content,
-                        to=to_format,
-                        format=from_format,
-                        extra_args=extra_args,
-                    )
-                elif isinstance(source, bytes):
-                    # Binary content (like DOCX) - save to temp file and use convert_file
-                    import tempfile
-
-                    with tempfile.NamedTemporaryFile(
-                        delete=False, suffix=f".{from_format}"
-                    ) as tmp:
-                        tmp.write(source)
-                        tmp_path = tmp.name
-                    try:
-                        converted = pypandoc.convert_file(
-                            source_file=tmp_path,
-                            to=to_format,
-                            format=from_format,
-                            extra_args=extra_args,
-                        )
-                    finally:
-                        import os
-
-                        os.unlink(tmp_path)
-                else:
-                    source_content = str(source)
-                    converted = pypandoc.convert_text(
-                        source=source_content,
-                        to=to_format,
-                        format=from_format,
-                        extra_args=extra_args,
-                    )
-                if isinstance(converted, bytes):
-                    result_text = converted.decode("utf-8")
-                else:
-                    result_text = str(converted)
-
-                # Post-process AsciiDoc output
-                if to_format == "asciidoc":
-                    result_text = self._enhance_asciidoc_output(result_text)
+            # Execute Pandoc conversion
+            result_text = self._execute_pandoc_conversion(
+                source, to_format, from_format, output_file, extra_args
+            )
 
             # Record metrics
             if METRICS_AVAILABLE and get_metrics_collector:
@@ -452,7 +555,10 @@ class PandocWorker(QObject):
                 )
             except Exception as timeout_err:
                 # Catch any timeout or connection errors
-                if "timeout" in str(timeout_err).lower() or "timed out" in str(timeout_err).lower():
+                if (
+                    "timeout" in str(timeout_err).lower()
+                    or "timed out" in str(timeout_err).lower()
+                ):
                     logger.warning(f"Ollama API call timed out: {timeout_err}")
                     return None
                 raise  # Re-raise if not a timeout error

@@ -284,7 +284,7 @@ class DocumentBlockSplitter:
     ) -> DocumentBlock:
         """Create DocumentBlock from line range (optimized)."""
         # Extract content directly from line range
-        content = "\n".join(lines[start_line:end_line + 1])
+        content = "\n".join(lines[start_line : end_line + 1])
         block = DocumentBlock(
             id="",
             start_line=start_line,
@@ -294,7 +294,6 @@ class DocumentBlockSplitter:
         )
         block.id = block.compute_id()
         return block
-
 
 
 class IncrementalPreviewRenderer:

@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 from PySide6.QtCore import QObject, Signal
 
 from asciidoc_artisan.core import GitHubResult
+from asciidoc_artisan.ui.base_vcs_handler import BaseVCSHandler
 from asciidoc_artisan.ui.github_dialogs import (
     CreateIssueDialog,
     CreatePullRequestDialog,
@@ -26,7 +27,7 @@ from asciidoc_artisan.ui.github_dialogs import (
 logger = logging.getLogger(__name__)
 
 
-class GitHubHandler(QObject):
+class GitHubHandler(BaseVCSHandler, QObject):
     """Handle GitHub operations via gh CLI."""
 
     # Signals
@@ -45,15 +46,14 @@ class GitHubHandler(QObject):
             status_manager: Status manager instance
             git_handler: GitHandler instance (to share repository path)
         """
-        super().__init__()
-        self.window = parent_window
-        self.settings_manager = settings_manager
-        self.status_manager = status_manager
+        # Initialize both parent classes
+        BaseVCSHandler.__init__(self, parent_window, settings_manager, status_manager)
+        QObject.__init__(self)
+
+        # GitHub-specific dependencies
         self.git_handler = git_handler
 
-        # GitHub state
-        self.is_processing = False
-        self.last_operation = ""
+        # GitHub-specific state
         self.current_dialog: Optional[Any] = None
 
         # Cached data for list dialogs
@@ -337,12 +337,12 @@ class GitHubHandler(QObject):
             description = result.data.get("description", "No description")
             logger.info(f"Repository: {repo_name} - {description}")
 
-    def _ensure_ready(self) -> bool:
+    def _check_repository_ready(self) -> bool:
         """
-        Ensure GitHub CLI is ready for operations.
+        Check if Git repository is configured (required for GitHub operations).
 
         Returns:
-            True if ready, False otherwise
+            True if repository ready, False otherwise
         """
         # Check if Git repository is set (required for GitHub operations)
         if not self.git_handler.is_repository_set():
@@ -353,23 +353,15 @@ class GitHubHandler(QObject):
             )
             return False
 
-        # Check if already processing
-        if self.is_processing:
-            self.status_manager.show_message(
-                "warning", "Busy", "GitHub operation in progress."
-            )
-            return False
-
-        # Check if gh CLI is authenticated
-        # Note: This check is advisory - the worker will provide detailed error if needed
+        # Check if gh CLI is authenticated (advisory check)
+        # Note: Worker will provide detailed error if authentication fails
         # TODO: Add optional gh auth status check here if desired
 
         return True
 
-    def _update_ui_state(self) -> None:
-        """Update UI state (delegate to main window)."""
-        if hasattr(self.window, "_update_ui_state"):
-            self.window._update_ui_state()
+    def _get_busy_message(self) -> str:
+        """Get GitHub-specific busy message."""
+        return "GitHub operation in progress."
 
     def _get_current_branch(self) -> str:
         """

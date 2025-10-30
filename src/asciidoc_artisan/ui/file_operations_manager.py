@@ -1,65 +1,229 @@
 """
-File Operations Manager - Handles complex file operations with format conversion.
+===============================================================================
+FILE OPERATIONS MANAGER - File Open/Save with Format Conversion
+===============================================================================
 
-Implements:
-- File opening with PDF import and format conversion
-- File saving with multi-format export support
-- Format conversion via Pandoc/Ollama
-- Integration with worker threads for async operations
+FILE PURPOSE:
+This file manages all file operations: opening, saving, importing, and
+exporting files in different formats (AsciiDoc, Markdown, Word, PDF, HTML).
 
-Extracted from main_window.py as part of Phase 7 refactoring to consolidate
-all file operations and reach well under 1,000 lines.
+WHAT THIS FILE DOES:
+1. Opens files with automatic format conversion (PDF → AsciiDoc, DOCX → AsciiDoc)
+2. Saves files in multiple formats (AsciiDoc, Markdown, Word, PDF, HTML)
+3. Integrates with Pandoc for format conversion
+4. Uses worker threads for heavy operations (doesn't freeze UI)
+5. Handles large files efficiently (streaming for 50MB+ files)
+
+FOR BEGINNERS - WHAT ARE FILE OPERATIONS?:
+File operations are actions involving files on your computer:
+- Open: Read a file from disk into the editor
+- Save: Write the editor content back to disk
+- Import: Convert one format to another (PDF → AsciiDoc)
+- Export: Save in a different format (AsciiDoc → Word)
+
+ANALOGY:
+Think of a translator app:
+- Open: Read a document in English
+- Import: Translate Japanese document to English (PDF → AsciiDoc)
+- Save: Save your English document
+- Export: Translate your English to Spanish and save (AsciiDoc → Word)
+
+WHY THIS FILE WAS EXTRACTED:
+Before v1.5.0, all this code was in main_window.py (making it 1,700+ lines!).
+We extracted file operations to:
+- Make main_window.py smaller and easier to understand (now 561 lines)
+- Group related functionality together (Single Responsibility Principle)
+- Make testing easier (can test file operations separately)
+- Reduce coupling (main window doesn't need to know about Pandoc details)
+
+KEY CONCEPTS:
+
+1. FORMAT CONVERSION:
+   - PDF → AsciiDoc: Extract text from PDF using PyMuPDF (fast!)
+   - DOCX/MD/HTML → AsciiDoc: Use Pandoc to convert
+   - AsciiDoc → DOCX/MD/HTML/PDF: Use Pandoc to export
+
+2. WORKER THREADS:
+   - File conversion is slow (2-10 seconds for large files)
+   - We use PandocWorker (background thread) so UI stays responsive
+   - User can cancel long operations
+
+3. LARGE FILE HANDLING:
+   - Files over 1MB (LARGE_FILE_THRESHOLD_BYTES) are handled specially
+   - We stream data instead of loading everything at once
+   - Prevents memory crashes on 50MB+ files
+
+4. REENTRANCY GUARDS:
+   - _is_processing_pandoc flag prevents concurrent operations
+   - Can't start new conversion while one is running
+   - Prevents race conditions and corruption
+
+SPECIFICATIONS IMPLEMENTED:
+- FR-001 to FR-010: File operations (New, Open, Save, Save As)
+- FR-011: Multi-format support (AsciiDoc, Markdown, DOCX, PDF, HTML)
+- FR-012: PDF import via text extraction
+- FR-025 to FR-027: Pandoc integration for conversion
+- NFR-011: Large file support (50MB+)
+
+REFACTORING HISTORY:
+- v1.0: All code in main_window.py (1,700+ lines)
+- v1.5.0 Phase 7: Extracted to file_operations_manager.py (556 lines)
+- Result: Main window reduced by 67%
+
+VERSION: 1.5.0 (Major refactoring)
 """
 
-import io
-import logging
-import platform
-import uuid
-from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+# === STANDARD LIBRARY IMPORTS ===
+import io  # For in-memory file-like objects (BytesIO, StringIO)
+import logging  # For recording what the program does
+import platform  # For detecting Windows/Linux/Mac
+import uuid  # For generating unique IDs (temp files)
+from pathlib import Path  # Modern file path handling (better than strings)
+from typing import TYPE_CHECKING, Optional  # Type hints
 
-from PySide6.QtCore import Slot
-from PySide6.QtWidgets import QFileDialog
+# === QT FRAMEWORK IMPORTS ===
+from PySide6.QtWidgets import QFileDialog  # File open/save dialogs
 
+# === CORE IMPORTS (Constants and Utilities) ===
 from asciidoc_artisan.core import (
-    DEFAULT_FILENAME,
-    DOCX_FILTER,
-    ERR_ASCIIDOC_NOT_INITIALIZED,
-    HTML_FILTER,
-    MD_FILTER,
-    MSG_SAVED_ASCIIDOC,
-    MSG_SAVED_HTML,
-    PDF_FILTER,
-    SUPPORTED_OPEN_FILTER,
-    SUPPORTED_SAVE_FILTER,
-    atomic_save_text,
+    DEFAULT_FILENAME,  # "Untitled.adoc"
+    DOCX_FILTER,  # "Word Documents (*.docx)"
+    ERR_ASCIIDOC_NOT_INITIALIZED,  # Error message
+    HTML_FILTER,  # "HTML Files (*.html *.htm)"
+    MD_FILTER,  # "Markdown Files (*.md)"
+    MSG_SAVED_ASCIIDOC,  # "Saved as AsciiDoc"
+    MSG_SAVED_HTML,  # "Saved as HTML"
+    PDF_FILTER,  # "PDF Files (*.pdf)"
+    SUPPORTED_OPEN_FILTER,  # Combined filter for Open dialog
+    SUPPORTED_SAVE_FILTER,  # Combined filter for Save dialog
+    atomic_save_text,  # Safe file write (prevents corruption)
 )
-from asciidoc_artisan.core.large_file_handler import LargeFileHandler
+from asciidoc_artisan.core.large_file_handler import LargeFileHandler  # Streaming I/O for large files
 
+# === TYPE CHECKING (Avoid Circular Imports) ===
 if TYPE_CHECKING:
     from .main_window import AsciiDocEditor
 
+# === LOGGING SETUP ===
 logger = logging.getLogger(__name__)
 
 
 class FileOperationsManager:
-    """Manages file operations including format conversion and export.
+    """
+    File Operations Manager - Handles File Open/Save with Format Conversion.
 
-    This class encapsulates all complex file operations that involve
-    format conversion, PDF import, Pandoc integration, and worker threads.
+    FOR BEGINNERS - WHAT IS THIS CLASS?:
+    This class is like a "file translator" that can:
+    - Open files in different formats and convert them to AsciiDoc
+    - Save AsciiDoc files in different formats (Word, PDF, Markdown, HTML)
+    - Handle large files (50MB+) without freezing the app
+    - Work in the background (uses worker threads)
 
-    Args:
+    KEY RESPONSIBILITIES:
+    1. Open files with format conversion (open_file method)
+    2. Save files in multiple formats (save_file_as_format method)
+    3. PDF text extraction (using PyMuPDF library)
+    4. Pandoc integration for format conversion
+    5. Reentrancy guard to prevent concurrent operations
+
+    WHY IT EXISTS:
+    Before this class, all file operations were in main_window.py. This made
+    main_window.py huge (1,700+ lines) and hard to maintain. By extracting
+    file operations into this manager, we:
+    - Reduced main_window.py by 67% (to 561 lines)
+    - Made file operations testable independently
+    - Separated concerns (main window doesn't need to know about Pandoc)
+
+    USAGE:
+    Called by main_window.py for all file operations:
+        file_mgr = FileOperationsManager(self)
+        file_mgr.open_file()  # Opens file with format conversion
+        file_mgr.save_file_as_format("docx")  # Exports to Word
+
+    PARAMETERS:
         editor: Reference to the main AsciiDocEditor window
     """
 
     def __init__(self, editor: "AsciiDocEditor") -> None:
-        """Initialize the FileOperationsManager with a reference to the main editor."""
+        """
+        Initialize File Operations Manager.
+
+        WHAT THIS DOES:
+        1. Stores reference to main editor window
+        2. Sets up reentrancy guard (_is_processing_pandoc)
+        3. Initializes pending file path storage
+
+        PARAMETERS:
+            editor: The main application window (AsciiDocEditor)
+
+        CREATES:
+            self.editor: Reference to main window
+            self._is_processing_pandoc: Guard flag (prevents concurrent operations)
+            self._pending_file_path: Stores file path during async operations
+        """
+        # Store reference to main editor window
         self.editor = editor
+
+        # Reentrancy guard - prevents concurrent Pandoc operations
+        # If True, another operation is in progress (don't start a new one!)
         self._is_processing_pandoc = False
+
+        # Storage for file path during async operations
+        # When Pandoc worker finishes, we need to know which file we were working on
         self._pending_file_path: Optional[Path] = None
 
     def open_file(self) -> None:
-        """Open a file with proper Windows dialog and format conversion support."""
+        """
+        Open File with Format Conversion Support.
+
+        WHY THIS METHOD EXISTS:
+        Users need to open files in different formats (PDF, Word, Markdown, HTML)
+        and convert them to AsciiDoc. This method handles all the complexity:
+        - Shows file dialog (with Windows-specific fixes)
+        - Checks for unsaved changes (prompts to save)
+        - Detects file format by extension (.pdf, .docx, .md, etc.)
+        - Converts non-AsciiDoc files to AsciiDoc format
+        - Handles large files (50MB+) without freezing UI
+
+        WHAT IT DOES:
+        1. Checks if another operation is in progress (reentrancy guard)
+        2. Prompts to save if there are unsaved changes
+        3. Shows file open dialog (Windows-native or Qt dialog)
+        4. Detects file format by extension
+        5. For PDF: Extracts text using PyMuPDF
+        6. For DOCX/MD/HTML: Converts using Pandoc worker (background thread)
+        7. For AsciiDoc: Loads directly
+        8. Updates UI and status bar
+
+        FOR BEGINNERS - FILE FORMATS:
+        - .adoc/.asciidoc = AsciiDoc (native format)
+        - .pdf = PDF (read-only, extract text)
+        - .docx = Microsoft Word
+        - .md/.markdown = Markdown
+        - .html/.htm = Web page
+        - All non-AsciiDoc formats are converted to AsciiDoc
+
+        REENTRANCY GUARD:
+        The _is_processing_pandoc flag prevents starting a new operation while
+        one is running. This prevents:
+        - Race conditions (two operations modifying same data)
+        - File corruption
+        - UI state confusion
+
+        PARAMETERS:
+            None
+
+        RETURNS:
+            None
+
+        SIDE EFFECTS:
+            - Shows file dialog
+            - Loads file into editor
+            - Starts Pandoc worker for format conversion (if needed)
+            - Updates window title and status bar
+        """
+        # === STEP 1: CHECK REENTRANCY GUARD ===
+        # Don't start new operation if one is already running
         if self._is_processing_pandoc:
             self.editor.status_manager.show_message(
                 "warning", "Busy", "Already processing a file conversion."
@@ -93,44 +257,7 @@ class FileOperationsManager:
         try:
             suffix = file_path.suffix.lower()
             if suffix == ".pdf":
-                # PDF import via text extraction
-                from document_converter import pdf_extractor
-
-                if not pdf_extractor.is_available():
-                    self.editor.status_manager.show_message(
-                        "warning",
-                        "PDF Support Unavailable",
-                        "PDF text extraction requires PyMuPDF.\n\n"
-                        "To install:\n"
-                        "  pip install pymupdf\n\n"
-                        "After installation, restart the application.",
-                    )
-                    return
-
-                self.editor.status_bar.showMessage(
-                    f"Extracting text from PDF: {file_path.name}..."
-                )
-
-                success, asciidoc_text, error_msg = pdf_extractor.convert_to_asciidoc(
-                    file_path
-                )
-
-                if not success:
-                    self.editor.status_manager.show_message(
-                        "critical",
-                        "PDF Extraction Failed",
-                        f"Failed to extract text from PDF:\n\n{error_msg}\n\n"
-                        "The PDF may be encrypted, image-based, or corrupted.",
-                    )
-                    return
-
-                # Load extracted content into editor
-                self.editor.file_load_manager.load_content_into_editor(
-                    asciidoc_text, file_path
-                )
-                self.editor.status_bar.showMessage(
-                    f"PDF imported successfully: {file_path.name}", 5000
-                )
+                self._open_pdf_with_extraction(file_path)
                 return
             elif suffix in [
                 ".docx",
@@ -143,83 +270,10 @@ class FileOperationsManager:
                 ".org",
                 ".textile",
             ]:
-
-                if not self.editor.ui_state_manager.check_pandoc_availability(
-                    f"Opening {suffix.upper()[1:]}"
-                ):
-                    return
-
-                format_map = {
-                    ".docx": ("docx", "binary"),
-                    ".md": ("markdown", "text"),
-                    ".markdown": ("markdown", "text"),
-                    ".html": ("html", "text"),
-                    ".htm": ("html", "text"),
-                    ".tex": ("latex", "text"),
-                    ".rst": ("rst", "text"),
-                    ".org": ("org", "text"),
-                    ".textile": ("textile", "text"),
-                }
-
-                input_format, file_type = format_map.get(suffix, ("markdown", "text"))
-
-                # Use settings preference for AI conversion (defaults to Pandoc)
-                use_ai_for_import = (
-                    self.editor._settings_manager.get_ai_conversion_preference(
-                        self.editor._settings
-                    )
-                )
-
-                self._is_processing_pandoc = True
-                self._pending_file_path = file_path
-                self.editor._update_ui_state()
-
-                self.editor.editor.setPlainText(
-                    f"// Converting {file_path.name} to AsciiDoc...\n// Please wait..."
-                )
-                self.editor.preview.setHtml(
-                    "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
-                )
-                self.editor.status_bar.showMessage(
-                    f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc..."
-                )
-
-                file_content: str | bytes
-                if file_type == "binary":
-                    file_content = file_path.read_bytes()
-                else:
-                    file_content = file_path.read_text(encoding="utf-8")
-
-                logger.info(
-                    f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})"
-                )
-
-                self.editor.request_pandoc_conversion.emit(
-                    file_content,
-                    "asciidoc",
-                    input_format,
-                    f"converting '{file_path.name}'",
-                    None,
-                    use_ai_for_import,
-                )
+                self._open_with_pandoc_conversion(file_path, suffix)
+                return
             else:
-                # Use optimized loading for large files
-                file_path.stat().st_size
-                category = LargeFileHandler.get_file_size_category(file_path)
-
-                if category in ["medium", "large"]:
-                    logger.info(f"Loading {category} file with optimizations")
-                    success, content, error = (
-                        self.editor.large_file_handler.load_file_optimized(file_path)
-                    )
-                    if not success:
-                        raise Exception(error)
-                else:
-                    content = file_path.read_text(encoding="utf-8")
-
-                self.editor.file_load_manager.load_content_into_editor(
-                    content, file_path
-                )
+                self._open_native_file(file_path)
 
         except Exception as e:
             logger.exception(f"Failed to open file: {file_path}")
@@ -269,38 +323,9 @@ class FileOperationsManager:
                 f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}"
             )
 
-            format_type = "adoc"
-
-            if MD_FILTER in selected_filter:
-                format_type = "md"
-            elif DOCX_FILTER in selected_filter:
-                format_type = "docx"
-            elif HTML_FILTER in selected_filter:
-                format_type = "html"
-            elif PDF_FILTER in selected_filter:
-                format_type = "pdf"
-            elif file_path.suffix:
-
-                ext = file_path.suffix.lower()
-                if ext in [".md", ".markdown"]:
-                    format_type = "md"
-                elif ext == ".docx":
-                    format_type = "docx"
-                elif ext in [".html", ".htm"]:
-                    format_type = "html"
-                elif ext == ".pdf":
-                    format_type = "pdf"
-
-            if format_type == "md" and not file_path.suffix:
-                file_path = file_path.with_suffix(".md")
-            elif format_type == "docx" and not file_path.suffix:
-                file_path = file_path.with_suffix(".docx")
-            elif format_type == "html" and not file_path.suffix:
-                file_path = file_path.with_suffix(".html")
-            elif format_type == "pdf" and not file_path.suffix:
-                file_path = file_path.with_suffix(".pdf")
-            elif format_type == "adoc" and not file_path.suffix:
-                file_path = file_path.with_suffix(".adoc")
+            format_type, file_path = self._determine_save_format(
+                file_path, selected_filter
+            )
 
             if format_type != "adoc":
 
@@ -517,3 +542,180 @@ class FileOperationsManager:
             self.editor.status_manager.update_window_title()
 
         return True
+
+    # Helper methods for file opening
+
+    def _open_pdf_with_extraction(self, file_path: Path) -> None:
+        """Import PDF file via text extraction.
+
+        Args:
+            file_path: Path to PDF file to import
+        """
+        from document_converter import pdf_extractor
+
+        if not pdf_extractor.is_available():
+            self.editor.status_manager.show_message(
+                "warning",
+                "PDF Support Unavailable",
+                "PDF text extraction requires PyMuPDF.\n\n"
+                "To install:\n"
+                "  pip install pymupdf\n\n"
+                "After installation, restart the application.",
+            )
+            return
+
+        self.editor.status_bar.showMessage(
+            f"Extracting text from PDF: {file_path.name}..."
+        )
+
+        success, asciidoc_text, error_msg = pdf_extractor.convert_to_asciidoc(file_path)
+
+        if not success:
+            self.editor.status_manager.show_message(
+                "critical",
+                "PDF Extraction Failed",
+                f"Failed to extract text from PDF:\n\n{error_msg}\n\n"
+                "The PDF may be encrypted, image-based, or corrupted.",
+            )
+            return
+
+        # Load extracted content into editor
+        self.editor.file_load_manager.load_content_into_editor(asciidoc_text, file_path)
+        self.editor.status_bar.showMessage(
+            f"PDF imported successfully: {file_path.name}", 5000
+        )
+
+    def _open_with_pandoc_conversion(self, file_path: Path, suffix: str) -> None:
+        """Open file with Pandoc format conversion.
+
+        Args:
+            file_path: Path to file to import
+            suffix: File extension (e.g., '.docx', '.md')
+        """
+        if not self.editor.ui_state_manager.check_pandoc_availability(
+            f"Opening {suffix.upper()[1:]}"
+        ):
+            return
+
+        format_map = {
+            ".docx": ("docx", "binary"),
+            ".md": ("markdown", "text"),
+            ".markdown": ("markdown", "text"),
+            ".html": ("html", "text"),
+            ".htm": ("html", "text"),
+            ".tex": ("latex", "text"),
+            ".rst": ("rst", "text"),
+            ".org": ("org", "text"),
+            ".textile": ("textile", "text"),
+        }
+
+        input_format, file_type = format_map.get(suffix, ("markdown", "text"))
+
+        # Use settings preference for AI conversion (defaults to Pandoc)
+        use_ai_for_import = self.editor._settings_manager.get_ai_conversion_preference(
+            self.editor._settings
+        )
+
+        self._is_processing_pandoc = True
+        self._pending_file_path = file_path
+        self.editor._update_ui_state()
+
+        self.editor.editor.setPlainText(
+            f"// Converting {file_path.name} to AsciiDoc...\n// Please wait..."
+        )
+        self.editor.preview.setHtml(
+            "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
+        )
+        self.editor.status_bar.showMessage(
+            f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc..."
+        )
+
+        file_content: str | bytes
+        if file_type == "binary":
+            file_content = file_path.read_bytes()
+        else:
+            file_content = file_path.read_text(encoding="utf-8")
+
+        logger.info(
+            f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})"
+        )
+
+        self.editor.request_pandoc_conversion.emit(
+            file_content,
+            "asciidoc",
+            input_format,
+            f"converting '{file_path.name}'",
+            None,
+            use_ai_for_import,
+        )
+
+    def _open_native_file(self, file_path: Path) -> None:
+        """Open native AsciiDoc file with large file optimization.
+
+        Args:
+            file_path: Path to AsciiDoc file to open
+        """
+        # Use optimized loading for large files
+        file_path.stat().st_size
+        category = LargeFileHandler.get_file_size_category(file_path)
+
+        if category in ["medium", "large"]:
+            logger.info(f"Loading {category} file with optimizations")
+            success, content, error = (
+                self.editor.large_file_handler.load_file_optimized(file_path)
+            )
+            if not success:
+                raise Exception(error)
+        else:
+            content = file_path.read_text(encoding="utf-8")
+
+        self.editor.file_load_manager.load_content_into_editor(content, file_path)
+
+    # Helper methods for file saving
+
+    def _determine_save_format(
+        self, file_path: Path, selected_filter: str
+    ) -> tuple[str, Path]:
+        """Determine save format and ensure file path has correct extension.
+
+        Args:
+            file_path: Initial file path from dialog
+            selected_filter: Selected file filter from dialog
+
+        Returns:
+            Tuple of (format_type, corrected_file_path)
+        """
+        format_type = "adoc"
+
+        if MD_FILTER in selected_filter:
+            format_type = "md"
+        elif DOCX_FILTER in selected_filter:
+            format_type = "docx"
+        elif HTML_FILTER in selected_filter:
+            format_type = "html"
+        elif PDF_FILTER in selected_filter:
+            format_type = "pdf"
+        elif file_path.suffix:
+            ext = file_path.suffix.lower()
+            if ext in [".md", ".markdown"]:
+                format_type = "md"
+            elif ext == ".docx":
+                format_type = "docx"
+            elif ext in [".html", ".htm"]:
+                format_type = "html"
+            elif ext == ".pdf":
+                format_type = "pdf"
+
+        # Ensure proper file extension
+        if format_type == "md" and not file_path.suffix:
+            file_path = file_path.with_suffix(".md")
+        elif format_type == "docx" and not file_path.suffix:
+            file_path = file_path.with_suffix(".docx")
+        elif format_type == "html" and not file_path.suffix:
+            file_path = file_path.with_suffix(".html")
+        elif format_type == "pdf" and not file_path.suffix:
+            file_path = file_path.with_suffix(".pdf")
+        elif format_type == "adoc" and not file_path.suffix:
+            file_path = file_path.with_suffix(".adoc")
+
+        return format_type, file_path

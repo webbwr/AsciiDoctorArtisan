@@ -32,10 +32,10 @@ Usage Example:
 
 from .git_worker import GitWorker
 from .github_cli_worker import GitHubCLIWorker
+from .optimized_worker_pool import OptimizedWorkerPool, TaskPriority
 from .pandoc_worker import PandocWorker
 from .preview_worker import PreviewWorker
-from .optimized_worker_pool import OptimizedWorkerPool, TaskPriority
-from .worker_tasks import RenderTask, ConversionTask, GitTask
+from .worker_tasks import ConversionTask, GitTask, RenderTask
 
 __all__ = [
     "GitWorker",

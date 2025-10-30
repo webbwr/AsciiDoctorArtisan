@@ -22,11 +22,10 @@ Usage:
 """
 
 import logging
-import statistics
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import DefaultDict, Deque, Dict, List, Optional
+from typing import DefaultDict, Deque, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
