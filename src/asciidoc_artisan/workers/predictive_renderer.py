@@ -260,7 +260,7 @@ class PredictiveRenderer:
                 score += recency_score
 
         # Sequential editing bonus
-        if self._sequential_edits >= 2:
+        if self._sequential_edits >= 2 and self._last_edited_block is not None:
             if block_index == self._last_edited_block + 1:
                 score += 0.2  # Likely next in sequence
 

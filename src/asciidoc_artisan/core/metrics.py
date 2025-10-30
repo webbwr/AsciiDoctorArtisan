@@ -205,17 +205,19 @@ class MetricsCollector:
         Returns:
             Dictionary with all operation and cache statistics
         """
-        stats = {
+        stats: Dict[str, Any] = {
             "uptime_seconds": time.time() - self.start_time,
             "operations": {},
             "caches": {},
         }
 
+        operations_dict: Dict[str, Any] = stats["operations"]  # type: ignore
         for op_name, op_metrics in self.operations.items():
-            stats["operations"][op_name] = op_metrics.get_stats()
+            operations_dict[op_name] = op_metrics.get_stats()
 
+        caches_dict: Dict[str, Any] = stats["caches"]  # type: ignore
         for cache_name, cache_metrics in self.caches.items():
-            stats["caches"][cache_name] = cache_metrics.get_stats()
+            caches_dict[cache_name] = cache_metrics.get_stats()
 
         return stats
 

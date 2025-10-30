@@ -238,13 +238,16 @@ def create_preview_handler(
     """
     # Import here to avoid circular dependency
     from asciidoc_artisan.ui.preview_handler import PreviewHandler as TextBrowserHandler
+    from typing import cast
 
     if hasattr(preview, "page"):
         # QWebEngineView - use GPU-accelerated handler
-        return WebEngineHandler(editor, preview, parent_window)
+        from PySide6.QtWebEngineWidgets import QWebEngineView
+        return WebEngineHandler(editor, cast(QWebEngineView, preview), parent_window)
     else:
         # QTextBrowser - use software rendering handler
-        return TextBrowserHandler(editor, preview, parent_window)
+        from PySide6.QtWidgets import QTextBrowser
+        return TextBrowserHandler(editor, cast(QTextBrowser, preview), parent_window)
 
 
 # Backward compatibility alias

@@ -168,7 +168,7 @@ class PandocWorker(QObject):
                     else:
                         # Text output - use Ollama result directly
                         # Record metrics
-                        if METRICS_AVAILABLE and get_metrics_collector:
+                        if METRICS_AVAILABLE:
                             duration_ms = (time.perf_counter() - start_time) * 1000
                             metrics = get_metrics_collector()
                             metrics.record_operation(
@@ -454,7 +454,7 @@ class PandocWorker(QObject):
             )
 
             # Record metrics
-            if METRICS_AVAILABLE and get_metrics_collector:
+            if METRICS_AVAILABLE:
                 duration_ms = (time.perf_counter() - start_time) * 1000
                 metrics = get_metrics_collector()
                 metrics.record_operation(f"conversion_{conversion_method}", duration_ms)

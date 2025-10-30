@@ -58,7 +58,7 @@ class GitHandler(BaseVCSHandler):
         dir_path = QFileDialog.getExistingDirectory(
             self.window,
             "Select Git Repository",
-            start_dir,
+            start_dir or "",  # Convert None to empty string
             QFileDialog.Option.ShowDirsOnly,
         )
 
@@ -76,7 +76,7 @@ class GitHandler(BaseVCSHandler):
 
         # Save to settings
         settings.git_repo_path = dir_path
-        self.settings_manager.save_settings(settings)
+        self.settings_manager.save_settings(settings, self.window)
 
         # Update UI
         if hasattr(self.window, "status_bar"):

@@ -28,8 +28,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 try:
-    import aiofiles
-    import aiofiles.os
+    import aiofiles  # type: ignore[import-untyped]
+    import aiofiles.os  # type: ignore[import-untyped]
 
     AIOFILES_AVAILABLE = True
 except ImportError:
