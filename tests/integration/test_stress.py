@@ -206,8 +206,8 @@ def test_cache_with_many_entries():
     for i in range(10_000):
         cache.put(f"key_{i}", f"value_{i}" * 100)  # ~600 bytes per entry
 
-    # Should maintain max size
-    assert cache.size() <= 1000
+    # Should maintain max size (use len() not size())
+    assert len(cache) <= 1000
 
     # Should still be functional
     cache.put("test", "value")
