@@ -1,7 +1,7 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.5.0 (complete) / 1.6.0 (in progress)
+**Version**: 1.5.0 (complete) / 1.6.0 (complete) / 1.7.0 (in progress)
 **Last Updated**: October 29, 2025
 
 ## What This Is
@@ -546,6 +546,8 @@ The program MUST use:
 - pymupdf 1.23.0+ for PDF reading (3-5x faster)
 - keyring 24.0.0+ for safe keys
 - psutil 5.9.0+ for system check
+- pydantic 2.0.0+ for data checks (v1.7.0+)
+- aiofiles 24.1.0+ for async file work (v1.6.0+)
 - Pandoc for conversions
 - wkhtmltopdf for PDF
 - Ollama (optional) for local AI features
@@ -597,6 +599,66 @@ The program MUST run Git safely.
 **Test**: Run Git command. Must use safe method.
 
 **Test**: Try Git without Git folder. Must check first.
+
+---
+
+## Data Validation Rules (NEW v1.7.0)
+
+### Rule: Check Data Before Use
+
+The program MUST check all data before using it.
+
+**Test**: Send empty message. Program must reject it.
+
+**Test**: Send bad operation name. Program must reject it.
+
+### Rule: Validate Git Results
+
+All Git results MUST have:
+
+- Success flag (true or false)
+- Output text (can be empty)
+- Error text (can be empty)
+- Exit code (number or none)
+- User message (cannot be empty)
+
+**Test**: Make Git result with empty message. Must fail.
+
+**Test**: Make Git result with all fields. Must work.
+
+### Rule: Validate GitHub Results
+
+All GitHub results MUST have:
+
+- Success flag (true or false)
+- Data (can be empty)
+- Error text (can be empty)
+- User message (cannot be empty)
+- Operation name (must be valid: pr_create, pr_list, issue_create, issue_list, repo_view)
+
+**Test**: Make GitHub result with invalid operation. Must fail.
+
+**Test**: Make GitHub result with valid operation. Must work.
+
+### Rule: Clean User Input
+
+The program MUST clean user input:
+
+- Remove extra spaces from start and end
+- Check fields are not empty when required
+- Stop invalid data early
+
+**Test**: Send "  message  " with spaces. Must trim to "message".
+
+**Test**: Send "" empty string where required. Must reject.
+
+### Rule: Automatic JSON Support
+
+All data models MUST convert to/from JSON.
+
+**Test**: Make Git result. Convert to JSON. Must work.
+
+**Test**: Read JSON. Convert to Git result. Must work.
 
 ---
 
@@ -977,22 +1039,25 @@ Things for later:
 ## Summary
 
 **What It Does**:
-Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Works with GitHub. Changes file types. Shows document version. Starts in 1 second. Can cancel tasks.
+Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Works with GitHub. Changes file types. Shows document version. Starts in 1 second. Can cancel tasks. Checks data is correct.
 
 **Who It's For**:
 Writers, coders, students, teachers, teams.
 
 **Main Parts**:
-GPU-accelerated preview, file changes, Git, GitHub integration, works everywhere, safe, fast startup, clean code.
+GPU-accelerated preview, file changes, Git, GitHub integration, data validation, works everywhere, safe, fast startup, clean code.
 
 **Status**:
-Version 1.5.0 - Complete | v1.6.0 - In Progress (GitHub Integration)
+Version 1.5.0 - Complete | v1.6.0 - Complete | v1.7.0 - In Progress (Type Safety & Async I/O)
 
 **Reading Level**:
 Grade 5.0 - Easy to read!
 
 **Hardware Support**:
 GPU (NVIDIA, AMD, Intel), NPU (Intel), CPU (all systems)
+
+**Data Safety**:
+Runtime validation with Pydantic (v1.7.0+)
 
 ---
 
