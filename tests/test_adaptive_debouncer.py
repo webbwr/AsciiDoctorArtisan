@@ -294,12 +294,37 @@ class TestAdaptiveDebouncer:
         """Test render time multiplier when no render history exists."""
         debouncer = AdaptiveDebouncer()
 
-        # Calculate delay without any render time data
-        # This should hit the early return in _get_render_time_multiplier (line 291)
-        delay = debouncer.calculate_delay(document_size=50000)
+        # Directly test the internal method with empty history
+        # This hits the early return in _get_render_time_multiplier (line 291)
+        multiplier = debouncer._get_render_time_multiplier()
 
-        # Should get base delay without render time multiplier
-        assert 100 <= delay <= 2000
+        # Should return 1.0 when no render history
+        assert multiplier == 1.0
+
+    def test_render_time_multiplier_below_threshold(self):
+        """Test render time multiplier with fast renders."""
+        debouncer = AdaptiveDebouncer()
+
+        # Add fast render times (below 0.5s threshold)
+        debouncer._recent_render_times = [0.1, 0.2, 0.15, 0.18, 0.12]
+
+        multiplier = debouncer._get_render_time_multiplier()
+
+        # Should return 1.0 for fast renders
+        assert multiplier == 1.0
+
+    def test_render_time_multiplier_above_threshold(self):
+        """Test render time multiplier with slow renders."""
+        debouncer = AdaptiveDebouncer()
+
+        # Add slow render times (above 0.5s threshold)
+        debouncer._recent_render_times = [0.8, 0.9, 0.7, 0.85, 0.75]
+
+        multiplier = debouncer._get_render_time_multiplier()
+
+        # Should return configured multiplier (2.0) for slow renders
+        assert multiplier == debouncer.config.render_time_multiplier
+        assert multiplier == 2.0
 
     def test_on_render_complete_tracks_time(self):
         """Test on_render_complete tracks render times."""
