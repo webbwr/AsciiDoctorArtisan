@@ -19,18 +19,18 @@ class TestMainWindow:
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
         assert AsciiDocEditor is not None
 
-    @patch("asciidoc_artisan.ui.main_window.GitWorker")
-    @patch("asciidoc_artisan.ui.main_window.PandocWorker")
-    @patch("asciidoc_artisan.ui.main_window.PreviewWorker")
+    @patch("asciidoc_artisan.workers.git_worker.GitWorker")
+    @patch("asciidoc_artisan.workers.pandoc_worker.PandocWorker")
+    @patch("asciidoc_artisan.workers.preview_worker.PreviewWorker")
     def test_creation(self, mock_preview, mock_pandoc, mock_git, qapp):
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
         window = AsciiDocEditor()
         assert window is not None
         assert window.windowTitle() != ""
 
-    @patch("asciidoc_artisan.ui.main_window.GitWorker")
-    @patch("asciidoc_artisan.ui.main_window.PandocWorker")
-    @patch("asciidoc_artisan.ui.main_window.PreviewWorker")
+    @patch("asciidoc_artisan.workers.git_worker.GitWorker")
+    @patch("asciidoc_artisan.workers.pandoc_worker.PandocWorker")
+    @patch("asciidoc_artisan.workers.preview_worker.PreviewWorker")
     def test_has_editor_and_preview(self, mock_preview, mock_pandoc, mock_git, qapp):
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
         window = AsciiDocEditor()
@@ -38,20 +38,18 @@ class TestMainWindow:
         assert hasattr(window, "editor") or hasattr(window, "text_editor")
         assert hasattr(window, "preview") or hasattr(window, "preview_widget")
 
-    @patch("asciidoc_artisan.ui.main_window.GitWorker")
-    @patch("asciidoc_artisan.ui.main_window.PandocWorker")
-    @patch("asciidoc_artisan.ui.main_window.PreviewWorker")
+    @patch("asciidoc_artisan.workers.git_worker.GitWorker")
+    @patch("asciidoc_artisan.workers.pandoc_worker.PandocWorker")
+    @patch("asciidoc_artisan.workers.preview_worker.PreviewWorker")
     def test_has_workers(self, mock_preview, mock_pandoc, mock_git, qapp):
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
         window = AsciiDocEditor()
-        # Should have worker threads
-        assert hasattr(window, "git_worker")
-        assert hasattr(window, "pandoc_worker")
-        assert hasattr(window, "preview_worker")
+        # Should have worker_manager (not individual workers directly)
+        assert hasattr(window, "worker_manager")
 
-    @patch("asciidoc_artisan.ui.main_window.GitWorker")
-    @patch("asciidoc_artisan.ui.main_window.PandocWorker")
-    @patch("asciidoc_artisan.ui.main_window.PreviewWorker")
+    @patch("asciidoc_artisan.workers.git_worker.GitWorker")
+    @patch("asciidoc_artisan.workers.pandoc_worker.PandocWorker")
+    @patch("asciidoc_artisan.workers.preview_worker.PreviewWorker")
     def test_has_managers(self, mock_preview, mock_pandoc, mock_git, qapp):
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
         window = AsciiDocEditor()
@@ -59,9 +57,9 @@ class TestMainWindow:
         manager_attrs = [a for a in dir(window) if "manager" in a.lower()]
         assert len(manager_attrs) > 0
 
-    @patch("asciidoc_artisan.ui.main_window.GitWorker")
-    @patch("asciidoc_artisan.ui.main_window.PandocWorker")
-    @patch("asciidoc_artisan.ui.main_window.PreviewWorker")
+    @patch("asciidoc_artisan.workers.git_worker.GitWorker")
+    @patch("asciidoc_artisan.workers.pandoc_worker.PandocWorker")
+    @patch("asciidoc_artisan.workers.preview_worker.PreviewWorker")
     def test_window_geometry(self, mock_preview, mock_pandoc, mock_git, qapp):
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
         window = AsciiDocEditor()
