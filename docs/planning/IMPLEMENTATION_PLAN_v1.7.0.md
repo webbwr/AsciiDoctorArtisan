@@ -14,7 +14,7 @@ This plan combines v1.7.0 feature development with critical QA initiatives to ac
 - **Quality Score:** 82/100 → 95/100 (LEGENDARY)
 - **Test Coverage:** 60% → 100%
 - **Test Reliability:** 76.2% passing → 100% passing
-- **Essential Features:** Find/Replace, Type Hints, Spell Checker, Telemetry
+- **Essential Features:** Find/Replace, Type Hints, Telemetry
 
 **Strategy:** Execute QA Phase 1 (P0) first to unblock CI, then interleave features with QA work.
 
@@ -376,156 +376,9 @@ def process_file(path: Path, encoding: str = "utf-8") -> Optional[str]:
 - ✅ No regressions
 
 **Dependencies:** None
-**Blocks:** Task P1-3 (ui modules)
 
 ---
 
-### Week 5-6: ESSENTIAL FEATURES (P1) - Part 2
-**Focus:** Spell Checker, Type Hints (ui modules)
-**Effort:** 20-24 hours
-**Team:** 1 developer, full-time
-
----
-
-#### Task P1-3: Spell Checker Integration
-**Priority:** P1 | **Effort:** 12-16 hours | **User-Facing:** YES
-
-**Implementation:**
-
-**Phase 1: Choose Library** (1h)
-- Evaluate `language_tool_python` vs `pyspellchecker`
-- Decision: `pyspellchecker` (faster, no Java dependency)
-
-**Phase 2: Core Spell Checker** (4-6h)
-```python
-# File: src/asciidoc_artisan/core/spell_checker.py
-
-from spellchecker import SpellChecker
-from typing import List, Set, Dict
-from pathlib import Path
-
-class AsciiDocSpellChecker:
-    """Spell checker with AsciiDoc awareness."""
-
-    def __init__(self, language: str = "en"):
-        self.checker = SpellChecker(language=language)
-        self.custom_words: Set[str] = set()
-        self._load_custom_dictionary()
-
-    def check_text(self, text: str) -> List[Dict]:
-        """Check text, return misspellings with positions."""
-        # Skip code blocks, URLs, AsciiDoc syntax
-        words = self._extract_words(text)
-        misspellings = []
-
-        for word, position in words:
-            if self._should_check(word):
-                if word not in self.checker and word not in self.custom_words:
-                    suggestions = self.checker.candidates(word)
-                    misspellings.append({
-                        'word': word,
-                        'position': position,
-                        'suggestions': list(suggestions) if suggestions else []
-                    })
-
-        return misspellings
-
-    def _should_check(self, word: str) -> bool:
-        """Skip AsciiDoc keywords, code, URLs."""
-        # Skip :attribute:, include::, ifdef::, etc.
-        if word.startswith(':') or '::' in word:
-            return False
-        # Skip numbers, URLs
-        if word.isdigit() or word.startswith('http'):
-            return False
-        return True
-
-    def add_to_dictionary(self, word: str):
-        """Add word to custom dictionary."""
-        self.custom_words.add(word.lower())
-        self._save_custom_dictionary()
-```
-
-**Phase 3: UI Integration** (4-5h)
-```python
-# File: src/asciidoc_artisan/ui/spell_checker_ui.py
-
-from PySide6.QtWidgets import QTextEdit, QMenu
-from PySide6.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor
-from PySide6.QtCore import Qt
-
-class SpellCheckHighlighter(QSyntaxHighlighter):
-    """Highlight misspelled words with red underline."""
-
-    def __init__(self, spell_checker, document):
-        super().__init__(document)
-        self.spell_checker = spell_checker
-        self.error_format = QTextCharFormat()
-        self.error_format.setUnderlineColor(QColor(255, 0, 0))
-        self.error_format.setUnderlineStyle(
-            QTextCharFormat.SpellCheckUnderline
-        )
-
-    def highlightBlock(self, text: str):
-        """Highlight misspellings in block."""
-        misspellings = self.spell_checker.check_text(text)
-        for error in misspellings:
-            self.setFormat(
-                error['position'],
-                len(error['word']),
-                self.error_format
-            )
-
-class SpellCheckMenu:
-    """Context menu for spell suggestions."""
-
-    def create_menu(self, misspelling: Dict, editor: QTextEdit) -> QMenu:
-        """Create context menu with suggestions."""
-        menu = QMenu()
-
-        # Add top 5 suggestions
-        for suggestion in misspelling['suggestions'][:5]:
-            action = menu.addAction(suggestion)
-            action.triggered.connect(
-                lambda checked, s=suggestion: self._replace_word(editor, s)
-            )
-
-        menu.addSeparator()
-        ignore_action = menu.addAction("Ignore")
-        ignore_action.triggered.connect(
-            lambda: self._ignore_word(misspelling['word'])
-        )
-
-        add_action = menu.addAction("Add to Dictionary")
-        add_action.triggered.connect(
-            lambda: self._add_to_dict(misspelling['word'])
-        )
-
-        return menu
-```
-
-**Phase 4: Settings Integration** (1-2h)
-- Add spell check toggle
-- Add language selection
-- Add custom dictionary management
-
-**Phase 5: Testing** (2-3h)
-- 20 unit tests
-- Performance test (<100ms for typical documents)
-- AsciiDoc syntax exclusion tests
-
-**Success Criteria:**
-- ✅ Red underlines for misspellings
-- ✅ Right-click shows suggestions
-- ✅ Can add to custom dictionary
-- ✅ AsciiDoc syntax ignored
-- ✅ Performance <100ms per check
-- ✅ 20 tests passing
-
-**Dependencies:** None
-**User Impact:** HIGH - Essential feature
-
----
 
 #### Task P1-4: Type Hints (UI Modules)
 **Priority:** P1 | **Effort:** 8-10 hours | **Quality:** YES
@@ -1150,8 +1003,6 @@ P1-1 (Find/Replace) ──> [No blockers]
 
 P1-2 (Type Hints Core) ──> P1-4 (Type Hints UI) ──> P1-8 (Type Hints Workers)
 
-P1-3 (Spell Checker) ──> [No blockers]
-
 P1-5 (Cover Modules) ──> [Coverage goal]
 P1-6 (Async Tests) ───┬──> [Coverage goal]
 P1-7 (Edge Cases) ────┘
@@ -1175,7 +1026,7 @@ ALL P1 TASKS ──> P3-1 (Release)
 ```
 Week 1-2: P0-1, P0-2, P0-3 (Fix tests, CI)
 Week 3-4: P1-1, P1-2 (Find/Replace, Type Hints Core)
-Week 5-6: P1-3, P1-4 (Spell Checker, Type Hints UI)
+Week 5-6: P1-4 (Type Hints UI)
 ```
 
 **Stream 2: QA Push (After P0 complete)**
@@ -1207,7 +1058,6 @@ Week 11-12: P1-9, P2-3, P3-1 (Telemetry, Minor features, Docs)
 - ✅ 100% test coverage achieved
 - ✅ Find & Replace working
 - ✅ Type hints 100% complete
-- ✅ Spell checker integrated
 - ✅ 100% test pass rate
 
 ### Should-Have (P2)

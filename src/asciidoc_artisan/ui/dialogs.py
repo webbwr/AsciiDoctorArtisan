@@ -10,7 +10,7 @@ these dialogs appear.
 
 WHAT THIS FILE CONTAINS:
 1. Helper Functions: Reusable code for creating dialog buttons
-2. PreferencesDialog: Main settings window (AI conversion, grammar checking)
+2. PreferencesDialog: Main settings window (AI conversion)
 3. OllamaSettingsDialog: AI model selection window
 
 FOR BEGINNERS - WHAT IS A DIALOG?:
@@ -191,92 +191,6 @@ class PreferencesDialog(QDialog):
         ai_group.setLayout(ai_layout)
         layout.addWidget(ai_group)
 
-        # Grammar Settings Group (v1.3: Legendary Grammar System)
-        grammar_group = QGroupBox("Grammar Checking")
-        grammar_layout = QVBoxLayout()
-
-        self.grammar_enabled_checkbox = QCheckBox("Enable automatic grammar checking")
-        self.grammar_enabled_checkbox.setChecked(
-            getattr(self.settings, "grammar_enabled", True)
-        )
-        self.grammar_enabled_checkbox.setToolTip(
-            "Automatically check grammar as you type\n"
-            "Uses LanguageTool (offline) and Ollama AI (optional)"
-        )
-        grammar_layout.addWidget(self.grammar_enabled_checkbox)
-
-        self.grammar_ollama_checkbox = QCheckBox("Enable AI-powered style suggestions")
-        self.grammar_ollama_checkbox.setChecked(
-            getattr(self.settings, "grammar_use_ollama", True)
-        )
-        self.grammar_ollama_checkbox.setToolTip(
-            "Use Ollama AI for context-aware style checking\n"
-            "Provides deeper insights beyond basic grammar rules"
-        )
-        grammar_layout.addWidget(self.grammar_ollama_checkbox)
-
-        # Grammar mode selector
-        mode_layout = QHBoxLayout()
-        mode_layout.addWidget(QLabel("Checking mode:"))
-        self.grammar_mode_combo = QComboBox()
-        self.grammar_mode_combo.addItems(
-            [
-                "Hybrid (LanguageTool + AI)",
-                "LanguageTool Only",
-                "Ollama AI Only",
-                "Disabled",
-            ]
-        )
-        current_mode = getattr(self.settings, "grammar_mode", "hybrid")
-        mode_map = {"hybrid": 0, "languagetool": 1, "ollama": 2, "disabled": 3}
-        self.grammar_mode_combo.setCurrentIndex(mode_map.get(current_mode, 0))
-        self.grammar_mode_combo.setToolTip(
-            "Hybrid: Fast + smart (recommended)\n"
-            "LanguageTool Only: Fastest, rules-based\n"
-            "Ollama AI Only: Context-aware but slower\n"
-            "Disabled: Turn off grammar checking"
-        )
-        mode_layout.addWidget(self.grammar_mode_combo)
-        mode_layout.addStretch()
-        grammar_layout.addLayout(mode_layout)
-
-        # Performance profile selector
-        profile_layout = QHBoxLayout()
-        profile_layout.addWidget(QLabel("Performance:"))
-        self.grammar_profile_combo = QComboBox()
-        self.grammar_profile_combo.addItems(
-            [
-                "Balanced (Recommended)",
-                "Real-time (Fastest)",
-                "Thorough (Most Accurate)",
-            ]
-        )
-        current_profile = getattr(self.settings, "grammar_profile", "balanced")
-        profile_map = {"balanced": 0, "realtime": 1, "thorough": 2}
-        self.grammar_profile_combo.setCurrentIndex(profile_map.get(current_profile, 0))
-        self.grammar_profile_combo.setToolTip(
-            "Balanced: Good speed and accuracy\n"
-            "Real-time: Fastest, no AI suggestions\n"
-            "Thorough: Slower but most comprehensive"
-        )
-        profile_layout.addWidget(self.grammar_profile_combo)
-        profile_layout.addStretch()
-        grammar_layout.addLayout(profile_layout)
-
-        # Information Label
-        grammar_info_label = QLabel(
-            "• F7: Check grammar now\n"
-            "• Ctrl+.: Navigate to next issue\n"
-            "• Ctrl+I: Ignore current suggestion\n"
-            "• Grammar menu for more options"
-        )
-        grammar_info_label.setWordWrap(True)
-        grammar_info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
-        grammar_layout.addWidget(grammar_info_label)
-
-        grammar_group.setLayout(grammar_layout)
-        layout.addWidget(grammar_group)
-
         # Dialog Buttons
         layout.addLayout(_create_ok_cancel_buttons(self))
 
@@ -297,24 +211,9 @@ class PreferencesDialog(QDialog):
         Get updated settings from dialog.
 
         Returns:
-            Settings instance with updated ai_conversion_enabled and grammar values
+            Settings instance with updated ai_conversion_enabled
         """
         self.settings.ai_conversion_enabled = self.ai_enabled_checkbox.isChecked()
-
-        # Grammar settings (v1.3)
-        self.settings.grammar_enabled = self.grammar_enabled_checkbox.isChecked()
-        self.settings.grammar_use_ollama = self.grammar_ollama_checkbox.isChecked()
-
-        # Grammar mode
-        mode_index = self.grammar_mode_combo.currentIndex()
-        mode_map = {0: "hybrid", 1: "languagetool", 2: "ollama", 3: "disabled"}
-        self.settings.grammar_mode = mode_map.get(mode_index, "hybrid")
-
-        # Performance profile
-        profile_index = self.grammar_profile_combo.currentIndex()
-        profile_map = {0: "balanced", 1: "realtime", 2: "thorough"}
-        self.settings.grammar_profile = profile_map.get(profile_index, "balanced")
-
         return self.settings
 
 

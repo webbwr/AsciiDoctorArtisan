@@ -23,11 +23,6 @@ def mock_settings(qapp):
             self.sync_scroll = True
             self.auto_preview = True
             self.ai_conversion_enabled = False
-            # Grammar settings (used by PreferencesDialog with getattr)
-            self.grammar_enabled = True
-            self.grammar_use_ollama = True
-            self.grammar_mode = "hybrid"
-            self.grammar_profile = "balanced"
 
     return SimpleSettings()
 

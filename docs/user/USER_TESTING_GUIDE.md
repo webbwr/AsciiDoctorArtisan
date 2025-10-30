@@ -587,7 +587,6 @@ ollama run phi3:mini "What is AsciiDoc?"
 ### Future AI Features
 
 Not yet integrated into app, but ready:
-- Grammar checking
 - Text improvement
 - Format suggestions
 

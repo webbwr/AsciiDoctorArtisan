@@ -150,8 +150,6 @@ from asciidoc_artisan.ui.github_handler import (  # GitHub PR/Issue operations
 )
 
 # === REMOVED FEATURES (KEPT AS COMMENTS FOR REFERENCE) ===
-# Grammar functionality removed in v1.4.0 - users prefer external tools
-# from asciidoc_artisan.ui.grammar_manager import GrammarManager
 # MenuManager removed in v1.5.0 - replaced by ActionManager (better architecture)
 # from asciidoc_artisan.ui.menu_manager import MenuManager
 from asciidoc_artisan.ui.pandoc_result_handler import (  # Handles Pandoc results
@@ -326,9 +324,6 @@ class AsciiDocEditor(QMainWindow):
         self.github_handler = GitHubHandler(
             self, self._settings_manager, self.status_manager, self.git_handler
         )
-
-        # === Grammar (Removed in v1.4.0) ===
-        self.grammar_manager = None  # Placeholder for compatibility
 
         # === Actions & Menus ===
         self.action_manager = ActionManager(self)

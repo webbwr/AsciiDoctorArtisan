@@ -206,9 +206,6 @@ class EditorState:
 
     def _shutdown_threads(self) -> None:
         """Safely shut down worker threads."""
-        # Grammar functionality removed - no cleanup needed
-        # (grammar_manager is now None)
-
         # Shutdown main worker threads
         threads = [
             ("git_thread", self.window.git_thread),

@@ -331,17 +331,12 @@ Single-user application only:
    - Users discover errors during build
    - Effort: 16-24 hours
 
-4. **Spell Checker** (MEDIUM priority)
-   - No spelling/grammar checking
-   - Important for document quality
-   - Effort: 12-16 hours
-
-5. **Export to EPUB** (LOW priority)
+4. **Export to EPUB** (LOW priority)
    - Can export PDF, DOCX, HTML, MD
    - No EPUB support
    - Effort: 12-16 hours
 
-6. **Document Templates** (LOW priority)
+5. **Document Templates** (LOW priority)
    - No template system
    - Users start from scratch
    - Effort: 16-24 hours
@@ -394,22 +389,17 @@ Single-user application only:
    - Easier refactoring
    - Effort: 16-24 hours
 
-3. **Add Spell Checker** (MEDIUM)
-   - Document quality improvement
-   - Use pyspellchecker or language_tool_python
-   - Effort: 12-16 hours
-
-4. **Improve Async I/O Integration** (MEDIUM)
+3. **Improve Async I/O Integration** (MEDIUM)
    - Migrate more operations to async
    - Better responsiveness
    - Effort: 24-32 hours
 
-5. **Add Telemetry (Opt-in)** (MEDIUM)
+4. **Add Telemetry (Opt-in)** (MEDIUM)
    - Understand usage patterns
    - Guide feature prioritization
    - Effort: 16-24 hours
 
-**Total Effort:** 76-108 hours (2-3 months, 1 developer)
+**Total Effort:** 60-92 hours (2-3 months, 1 developer)
 
 ### 4.2 Near-Term (v1.8.0 - Next 6 months)
 
@@ -505,7 +495,6 @@ Single-user application only:
 ### 5.2 Proposed Additions
 
 **Essential (v1.7.0):**
-- 📦 pyspellchecker or language_tool_python (spell checking)
 - 📦 jedi or python-lsp-server (auto-completion foundation)
 - 📦 sentry-sdk (opt-in error reporting)
 
@@ -558,11 +547,6 @@ Single-user application only:
 **6. Find & Replace**
 - **Risk:** Minimal, well-understood feature
 - **Mitigation:** Standard implementations available
-- **Rollback:** Easy to disable
-
-**7. Spell Checker**
-- **Risk:** Minimal, isolated feature
-- **Mitigation:** Use battle-tested libraries
 - **Rollback:** Easy to disable
 
 ---
@@ -682,9 +666,8 @@ AsciiDoc Artisan is in an **excellent position** architecturally:
 **Priority 1 (v1.7.0 - Next 3 months):**
 1. Find & Replace
 2. Complete type hints
-3. Spell checker
-4. Improve async I/O
-5. Add opt-in telemetry
+3. Improve async I/O
+4. Add opt-in telemetry
 
 **Priority 2 (v1.8.0 - Next 6 months):**
 1. Auto-complete system
@@ -713,7 +696,7 @@ AsciiDoc Artisan is in an **excellent position** architecturally:
 **Proceed with v1.7.0 development immediately.**
 
 The architecture is sound, technical debt is low, and the codebase is ready for the next phase. Focus on:
-1. Essential features (find/replace, spell check)
+1. Essential features (find/replace)
 2. Developer experience (type hints, better async)
 3. Foundation for plugins (prepare for v1.8.0)
 
