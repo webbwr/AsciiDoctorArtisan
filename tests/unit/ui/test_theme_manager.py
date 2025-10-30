@@ -13,7 +13,12 @@ def qapp():
 
 @pytest.fixture
 def main_window(qapp):
-    return QMainWindow()
+    from unittest.mock import Mock
+    window = QMainWindow()
+    # ThemeManager needs _settings attribute with dark_mode property
+    window._settings = Mock()
+    window._settings.dark_mode = False
+    return window
 
 
 class TestThemeManager:
@@ -40,5 +45,5 @@ class TestThemeManager:
         from asciidoc_artisan.ui.theme_manager import ThemeManager
         manager = ThemeManager(main_window)
         if hasattr(manager, "apply_theme"):
-            manager.apply_theme("dark")
+            manager.apply_theme()  # No arguments - reads from settings
             # Should not raise exception
