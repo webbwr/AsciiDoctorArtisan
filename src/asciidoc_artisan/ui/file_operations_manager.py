@@ -553,7 +553,7 @@ class FileOperationsManager:
         Args:
             file_path: Path to PDF file to import
         """
-        from document_converter import pdf_extractor
+        from asciidoc_artisan.document_converter import pdf_extractor
 
         if not pdf_extractor.is_available():
             self.editor.status_manager.show_message(
