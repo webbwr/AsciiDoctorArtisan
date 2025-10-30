@@ -206,7 +206,7 @@ Smart GPU/NPU detection and usage:
 Comprehensive documentation structure:
 - 4-category hierarchy (architecture, developer, user, operations)
 - 17 markdown documents
-- CONFIG.md for configuration
+- docs/developer/CONFIGURATION.md for configuration
 - SPECIFICATIONS.md with 84 rules
 
 **Evidence:**
