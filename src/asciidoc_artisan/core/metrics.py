@@ -25,7 +25,7 @@ import logging
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import DefaultDict, Deque, Dict, Optional
+from typing import Any, DefaultDict, Deque, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +119,7 @@ class CacheMetrics:
             return 0.0
         return self.hits / total
 
-    def get_stats(self) -> Dict[str, any]:
+    def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         return {
             "hits": self.hits,
@@ -192,13 +192,13 @@ class MetricsCollector:
             return None
         return self.operations[operation_name].get_stats()
 
-    def get_cache_stats(self, cache_name: str) -> Optional[Dict[str, any]]:
+    def get_cache_stats(self, cache_name: str) -> Optional[Dict[str, Any]]:
         """Get statistics for a specific cache."""
         if cache_name not in self.caches:
             return None
         return self.caches[cache_name].get_stats()
 
-    def get_statistics(self) -> Dict[str, any]:
+    def get_statistics(self) -> Dict[str, Any]:
         """
         Get comprehensive statistics.
 
