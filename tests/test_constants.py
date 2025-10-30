@@ -86,3 +86,56 @@ class TestConstants:
         # Should have __name__
         assert hasattr(constants, "__name__")
         assert constants.__name__ == "asciidoc_artisan.core.constants"
+
+    def test_pypandoc_import_error_handling(self):
+        """Test handling when pypandoc is not available (lines 112-113)."""
+        import sys
+        from unittest.mock import patch
+        import importlib
+
+        # Save original modules
+        original_pypandoc = sys.modules.get('pypandoc')
+        original_constants = sys.modules.get('asciidoc_artisan.core.constants')
+
+        try:
+            # Remove modules
+            if 'pypandoc' in sys.modules:
+                del sys.modules['pypandoc']
+            if 'asciidoc_artisan.core.constants' in sys.modules:
+                del sys.modules['asciidoc_artisan.core.constants']
+
+            # Mock pypandoc import to raise ImportError
+            import builtins
+            original_import = builtins.__import__
+
+            def mock_import(name, *args, **kwargs):
+                if name == 'pypandoc':
+                    raise ImportError("Mock pypandoc not available")
+                return original_import(name, *args, **kwargs)
+
+            with patch('builtins.__import__', side_effect=mock_import):
+                # Reload to trigger the import error path
+                import asciidoc_artisan.core.constants as c
+                importlib.reload(c)
+
+                # PANDOC_AVAILABLE should be False
+                assert c.PANDOC_AVAILABLE is False
+
+        finally:
+            # Restore
+            try:
+                if original_pypandoc is not None:
+                    sys.modules['pypandoc'] = original_pypandoc
+                else:
+                    if 'pypandoc' in sys.modules:
+                        del sys.modules['pypandoc']
+
+                if original_constants is not None:
+                    sys.modules['asciidoc_artisan.core.constants'] = original_constants
+
+                # Reload back to normal
+                if 'asciidoc_artisan.core.constants' in sys.modules:
+                    import asciidoc_artisan.core.constants
+                    importlib.reload(asciidoc_artisan.core.constants)
+            except (ImportError, KeyError):
+                pass

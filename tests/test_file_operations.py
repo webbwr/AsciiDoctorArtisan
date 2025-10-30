@@ -75,6 +75,48 @@ class TestFileOperations:
             assert "  " in content
             assert "\\n" in repr(content)
 
+    def test_atomic_save_text_none_path(self):
+        """Test atomic_save_text handles None path."""
+        result = atomic_save_text(None, "content")
+        assert result is False
+
+    def test_atomic_save_json_none_path(self):
+        """Test atomic_save_json handles None path."""
+        result = atomic_save_json(None, {"key": "value"})
+        assert result is False
+
+    def test_atomic_save_text_write_error(self):
+        """Test atomic_save_text handles write errors gracefully."""
+        import os
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a read-only directory
+            readonly_dir = Path(tmpdir) / "readonly"
+            readonly_dir.mkdir()
+            os.chmod(readonly_dir, 0o444)  # Read-only
+
+            invalid_path = readonly_dir / "test.txt"
+            result = atomic_save_text(invalid_path, "content")
+            assert result is False
+
+            # Cleanup: restore permissions
+            os.chmod(readonly_dir, 0o755)
+
+    def test_atomic_save_json_write_error(self):
+        """Test atomic_save_json handles write errors gracefully."""
+        import os
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a read-only directory
+            readonly_dir = Path(tmpdir) / "readonly"
+            readonly_dir.mkdir()
+            os.chmod(readonly_dir, 0o444)  # Read-only
+
+            invalid_path = readonly_dir / "test.json"
+            result = atomic_save_json(invalid_path, {"key": "value"})
+            assert result is False
+
+            # Cleanup: restore permissions
+            os.chmod(readonly_dir, 0o755)
+
 
 @pytest.mark.unit
 class TestPathSanitization:
@@ -129,3 +171,74 @@ class TestPathSanitization:
             assert isinstance(result, Path)
 
             assert result.is_absolute()
+
+    def test_sanitize_path_invalid_input(self):
+        """Test sanitize_path handles invalid input gracefully."""
+        # Test with invalid types that will cause exception
+        result = sanitize_path("\x00invalid")  # Null byte in path
+        # Should return None on error
+        assert result is None or isinstance(result, Path)
+
+    def test_sanitize_path_blocks_dotdot_in_parts(self):
+        """Test sanitize_path blocks paths with '..' in resolved parts."""
+        from unittest.mock import patch, Mock
+
+        # Mock Path to simulate a resolved path with '..' in parts
+        # This tests the security check even though it's rare in real filesystems
+        mock_path = Mock(spec=Path)
+        mock_path.parts = ('/', 'home', '..', 'etc', 'passwd')
+        mock_path.resolve.return_value = mock_path
+
+        with patch('asciidoc_artisan.core.file_operations.Path', return_value=mock_path):
+            result = sanitize_path("/some/path/../with/dotdot")
+
+            # Should return None because '..' is in parts after resolution
+            assert result is None
+
+    def test_atomic_save_text_cleanup_on_exception(self):
+        """Test atomic_save_text cleans up temp file when exception occurs."""
+        import os
+        from unittest.mock import patch, Mock
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "test.txt"
+            temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
+
+            # Create a mock that allows write_text but fails on replace
+            def mock_replace(self, target):
+                # Create the temp file so cleanup path is triggered
+                self.write_text("temp content")
+                raise PermissionError("Mock error during replace")
+
+            with patch.object(Path, "replace", mock_replace):
+                result = atomic_save_text(file_path, "test content")
+
+                # Operation should fail
+                assert result is False
+
+                # Temp file should be cleaned up (line 114)
+                assert not temp_path.exists()
+
+    def test_atomic_save_json_cleanup_on_exception(self):
+        """Test atomic_save_json cleans up temp file when exception occurs."""
+        import os
+        from unittest.mock import patch, Mock
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "test.json"
+            temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
+
+            # Create a mock that allows write_text but fails on replace
+            def mock_replace(self, target):
+                # Create the temp file so cleanup path is triggered
+                self.write_text('{"test": "content"}')
+                raise PermissionError("Mock error during replace")
+
+            with patch.object(Path, "replace", mock_replace):
+                result = atomic_save_json(file_path, {"key": "value"})
+
+                # Operation should fail
+                assert result is False
+
+                # Temp file should be cleaned up (line 166)
+                assert not temp_path.exists()

@@ -375,3 +375,88 @@ class TestSizeAwareLRUCache:
 
         assert len(cache) == 3
         assert cache._total_size == 9000  # Sum of key2, key3, key4
+
+    def test_auto_size_bytes(self):
+        """Test auto-size calculation for bytes type."""
+        cache = SizeAwareLRUCache(max_size=10)
+
+        # Test bytes type (line 293-294)
+        cache.put("key1", b"hello world")
+        assert cache._item_sizes["key1"] == 11  # len(b"hello world")
+
+    def test_auto_size_numeric_types(self):
+        """Test auto-size calculation for int, float, bool types."""
+        cache = SizeAwareLRUCache(max_size=10)
+
+        # Test int type (line 295-296)
+        cache.put("key1", 42)
+        assert cache._item_sizes["key1"] == 8
+
+        # Test float type (line 295-296)
+        cache.put("key2", 3.14)
+        assert cache._item_sizes["key2"] == 8
+
+        # Test bool type (line 295-296)
+        cache.put("key3", True)
+        assert cache._item_sizes["key3"] == 8
+
+    def test_auto_size_fallback(self):
+        """Test auto-size fallback for unknown types."""
+        cache = SizeAwareLRUCache(max_size=10)
+
+        # Test unknown type (line 297-298)
+        cache.put("key1", {"complex": "object"})
+        assert cache._item_sizes["key1"] == 100  # Default estimate
+
+    def test_auto_size_exception_fallback(self):
+        """Test exception fallback during size calculation (lines 299-300)."""
+        cache = SizeAwareLRUCache(max_size=10)
+
+        # Create a string subclass that raises exception on encode()
+        class BadString(str):
+            def encode(self, *args, **kwargs):
+                raise RuntimeError("Cannot encode!")
+
+        # This should trigger the exception handler fallback (lines 299-300)
+        cache.put("key1", BadString("bad_value"))
+        assert cache._item_sizes["key1"] == 100  # Fallback on exception
+
+    def test_put_updates_existing_key(self):
+        """Test put() updates size when key already exists (lines 304-307)."""
+        cache = SizeAwareLRUCache(max_size=10)
+
+        # Put initial value with size 50
+        cache.put("key1", "old_value", size=50)
+        assert cache._total_size == 50
+
+        # Update same key with different size (lines 304-307)
+        cache.put("key1", "new_value", size=75)
+        assert cache._total_size == 75  # Old size removed, new size added
+        assert cache.get("key1") == "new_value"
+
+    def test_put_single_item_larger_than_max(self):
+        """Test adding a single item larger than max_total_size (line 316)."""
+        cache = SizeAwareLRUCache(max_size=10, max_total_size=100)
+
+        # Try to add a single item larger than max_total_size
+        # This triggers the break on line 316 when cache is empty
+        # (prevents infinite eviction loop)
+        cache.put("huge_key", "huge_value", size=200)
+
+        # Item still gets added (break just prevents infinite loop)
+        assert len(cache) == 1
+        assert cache.get("huge_key") == "huge_value"
+        assert cache._total_size == 200
+
+    def test_delete_nonexistent_key(self):
+        """Test delete() returns False for non-existent key (line 335)."""
+        cache = SizeAwareLRUCache(max_size=10)
+
+        cache.put("key1", "value1")
+
+        # Delete existing key returns True
+        assert cache.delete("key1") is True
+
+        # Delete non-existent key returns False (line 335)
+        assert cache.delete("key2") is False
+        assert cache.delete("key1") is False  # Already deleted
