@@ -136,7 +136,7 @@ class ConversionTask(CancelableRunnable):
             task_id = f"convert_{time.time()}"
 
         # Create conversion function
-        def convert_func() -> tuple[int, int]:
+        def convert_func() -> tuple[bool, Any, str]:
             """Perform conversion."""
             if self.is_canceled():
                 return (False, "", "Conversion cancelled")

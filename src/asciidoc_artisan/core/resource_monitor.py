@@ -200,7 +200,7 @@ class ResourceMonitor:
         try:
             # First call initializes the measurement
             # Second call (with interval) gives actual reading
-            return self.process.cpu_percent(interval=0.1)
+            return self.process.cpu_percent(interval=0.1)  # type: ignore[no-any-return]  # psutil returns float but typed as Any
         except Exception as e:
             logger.warning(f"Failed to get CPU usage: {e}")
             return 0.0

@@ -28,7 +28,7 @@ class HTMLConverter:
     Extracted to eliminate duplication between export methods.
     """
 
-    def __init__(self, asciidoc_api):
+    def __init__(self, asciidoc_api: Any) -> None:
         """
         Initialize HTMLConverter.
 

@@ -36,7 +36,7 @@ class LargeFileHandler(QObject):
     progress_update = Signal(int, str)  # (percentage, message)
     file_loaded = Signal(str, Path)  # (content, file_path)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._last_file_size = 0
 

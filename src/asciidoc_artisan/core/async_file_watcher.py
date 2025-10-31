@@ -118,7 +118,7 @@ class AsyncFileWatcher(QObject):
         self._last_size: Optional[int] = None
         self._file_exists: bool = False
 
-        self._watch_task: Optional[asyncio.Task] = None
+        self._watch_task: Optional[asyncio.Task[None]] = None
         self._running = False
 
         self._last_notification_time: float = 0.0

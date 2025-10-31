@@ -36,7 +36,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
         bool, str
     )  # Emitted when operation completes (success, message)
 
-    def __init__(self, parent_window, settings_manager, status_manager, git_handler):
+    def __init__(self, parent_window: Any, settings_manager: Any, status_manager: Any, git_handler: Any) -> None:
         """
         Initialize GitHubHandler.
 

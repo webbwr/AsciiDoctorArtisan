@@ -275,7 +275,7 @@ class AsciiDocEditor(QMainWindow):
         )
 
         # Large file handling
-        self.large_file_handler = LargeFileHandler()  # type: ignore[no-untyped-call]  # LargeFileHandler __init__ needs types
+        self.large_file_handler = LargeFileHandler()
         self.large_file_handler.progress_update.connect(
             self.file_load_manager.on_file_load_progress
         )
@@ -318,10 +318,10 @@ class AsciiDocEditor(QMainWindow):
         self.preview_handler.start_preview_updates()
 
         # === Git Integration ===
-        self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)  # type: ignore[no-untyped-call]  # GitHandler __init__ needs types
+        self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)
 
         # === GitHub Integration ===
-        self.github_handler = GitHubHandler(  # type: ignore[no-untyped-call]  # GitHubHandler __init__ needs types
+        self.github_handler = GitHubHandler(
             self, self._settings_manager, self.status_manager, self.git_handler
         )
 

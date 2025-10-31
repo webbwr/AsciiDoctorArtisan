@@ -20,7 +20,7 @@ Security:
 import json
 import logging
 import subprocess
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Signal, Slot
 
@@ -60,7 +60,7 @@ class GitHubCLIWorker(BaseWorker):
     github_result_ready = Signal(GitHubResult)
 
     @Slot(str, dict)
-    def dispatch_github_operation(self, operation: str, kwargs: dict) -> None:
+    def dispatch_github_operation(self, operation: str, kwargs: Dict[str, Any]) -> None:
         """
         Dispatch GitHub operation based on operation type.
 

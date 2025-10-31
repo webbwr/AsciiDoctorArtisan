@@ -246,7 +246,7 @@ class DialogManager:
         )
 
         if reply == QMessageBox.StandardButton.Save:
-            return self.editor.save_file()
+            return self.editor.save_file()  # type: ignore[no-any-return]  # save_file returns bool but QMessageBox comparison typed as Any
         elif reply == QMessageBox.StandardButton.Discard:
             return True
         else:

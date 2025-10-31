@@ -89,6 +89,8 @@ VERSION HISTORY:
 - v1.6.0: Added GitHub CLI integration (GitHubResult model)
 """
 
+from typing import Any
+
 # === EAGER IMPORTS (Load Immediately) ===
 # These are the most commonly used items - we import them RIGHT NOW (not lazily)
 # because we know the main window will need them within the first second
@@ -120,7 +122,7 @@ _CONSTANTS_CACHE = {}
 _MODULE_CACHE = {}
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """
     Lazy Import Handler - Load Modules Only When Accessed.
 

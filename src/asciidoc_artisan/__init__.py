@@ -117,6 +117,11 @@ SPECIFICATION COMPLIANCE:
 ✅ Technical debt: Resolved via refactoring
 
 USAGE EXAMPLES:
+"""
+
+from typing import Any
+
+"""
 
     # === SIMPLE USAGE (Most Common) ===
     # Just import and run the editor

@@ -147,7 +147,7 @@ class PreviewWorker(QObject):
 
                 # Initialize incremental renderer if available
                 if INCREMENTAL_RENDERER_AVAILABLE and IncrementalPreviewRenderer:  # type: ignore[truthy-function]
-                    self._incremental_renderer = IncrementalPreviewRenderer(  # type: ignore[no-untyped-call]  # incremental renderer __init__ needs types
+                    self._incremental_renderer = IncrementalPreviewRenderer(
                         self._asciidoc_api
                     )
                     logger.debug("PreviewWorker: Incremental renderer initialized")

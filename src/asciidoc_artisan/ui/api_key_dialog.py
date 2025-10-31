@@ -49,7 +49,7 @@ class APIKeySetupDialog(QDialog):
         ...     print("API key configured successfully")
     """
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: Optional[Any] = None) -> None:
         """Initialize the API Key Setup Dialog.
 
         Args:
@@ -288,5 +288,5 @@ class APIKeySetupDialog(QDialog):
             This retrieves from keyring, not from the input field
         """
         if SecureCredentials.is_available():
-            return self.credentials.get_anthropic_key()
+            return self.credentials.get_anthropic_key()  # type: ignore[no-any-return]  # SecureCredentials.get_anthropic_key() returns str but typed as Any
         return None
