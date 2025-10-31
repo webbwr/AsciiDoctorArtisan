@@ -14,7 +14,7 @@ import subprocess
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class GPUCacheEntry:
     """GPU detection cache entry."""
 
     timestamp: str  # ISO format
-    gpu_info: dict  # Serialized GPUInfo
+    gpu_info: Dict[str, Any]  # Serialized GPUInfo
     version: str  # App version
 
     @classmethod
@@ -504,7 +504,7 @@ def get_gpu_info(force_redetect: bool = False) -> GPUInfo:
     return _cached_gpu_info
 
 
-def main():
+def main() -> None:
     """CLI for GPU cache management."""
     import sys
 

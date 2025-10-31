@@ -26,7 +26,7 @@ Design Goals:
 import logging
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import psutil
 
@@ -87,7 +87,7 @@ class SystemMonitor:
     Uses psutil for cross-platform system monitoring.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize system monitor."""
         self._last_metrics: Optional[SystemMetrics] = None
         self._metrics_cache_duration = 1.0  # Cache for 1 second
@@ -326,7 +326,7 @@ class AdaptiveDebouncer:
         if len(self._recent_render_times) > self._max_recent_renders:
             self._recent_render_times.pop(0)
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> Dict[str, Any]:
         """
         Get debouncer statistics.
 

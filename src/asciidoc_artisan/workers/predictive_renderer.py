@@ -14,7 +14,7 @@ import logging
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Deque, List, Optional, Set, Tuple
+from typing import Any, Deque, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +198,7 @@ class PredictiveRenderer:
         """
         self._predictions_used += 1
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> Dict[str, Any]:
         """
         Get predictive rendering statistics.
 
@@ -275,8 +275,8 @@ class PredictivePreviewRenderer:
     """
 
     def __init__(
-        self, incremental_renderer, predictor: Optional[PredictiveRenderer] = None
-    ):
+        self, incremental_renderer: Any, predictor: Optional[PredictiveRenderer] = None
+    ) -> None:
         """
         Initialize predictive preview renderer.
 
@@ -357,7 +357,7 @@ class PredictivePreviewRenderer:
 
         return None
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> Dict[str, Any]:
         """Get predictive rendering statistics."""
         stats = self.predictor.get_statistics()
         stats["prerender_queue_size"] = len(self._prerender_queue)
