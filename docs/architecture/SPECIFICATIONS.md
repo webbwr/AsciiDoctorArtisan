@@ -225,92 +225,6 @@ The program MUST show Git status.
 
 ---
 
-## GitHub Rules (v1.6.0)
-
-### Rule: Use GitHub From App
-
-The program MUST work with GitHub.
-
-**Test**: In Git folder with GitHub, menu shows "GitHub".
-
-**Test**: Not in GitHub repo, shows error.
-
-### Rule: Make Pull Request
-
-The program MUST let you make pull requests.
-
-**Test**: Click Git → GitHub → Create Pull Request. Dialog must show.
-
-**Test**: Fill in title and branch. PR must be made.
-
-**Test**: Empty title must show red box.
-
-### Rule: See All Pull Requests
-
-The program MUST show all pull requests.
-
-**Test**: Click Git → GitHub → List Pull Requests. Table must show.
-
-**Test**: Filter by Open/Closed/Merged/All. List must update.
-
-**Test**: Double-click row. PR must open in web.
-
-### Rule: Make Issue
-
-The program MUST let you make issues.
-
-**Test**: Click Git → GitHub → Create Issue. Dialog must show.
-
-**Test**: Fill in title. Issue must be made.
-
-**Test**: Empty title must show red box.
-
-### Rule: See All Issues
-
-The program MUST show all issues.
-
-**Test**: Click Git → GitHub → List Issues. Table must show.
-
-**Test**: Filter by Open/Closed/All. List must update.
-
-**Test**: Double-click row. Issue must open in web.
-
-### Rule: Show Repo Info
-
-The program MUST show GitHub info.
-
-**Test**: Click Git → GitHub → Repository Info. Info must show.
-
-**Test**: See repo name, owner, and web link.
-
-### Rule: GitHub Runs In Background
-
-The program MUST do GitHub work in background.
-
-**Test**: While making PR, window must still work.
-
-**Test**: While loading PRs, window must still work.
-
-### Rule: GitHub Has Timeout
-
-The program MUST wait 60 seconds max.
-
-**Test**: If slow, must stop after 60 seconds.
-
-**Test**: Must show "timeout" message.
-
-### Rule: GitHub Shows Errors
-
-The program MUST show clear error messages.
-
-**Test**: No gh CLI installed. Shows "gh not found" message.
-
-**Test**: Not logged in. Shows "run gh auth login" message.
-
-**Test**: No network. Shows "check connection" message.
-
----
-
 ## File Change Rules
 
 ### Rule: Open Word Files
@@ -930,18 +844,11 @@ Clean code means:
 
 **What's New**:
 
-- ✅ **GitHub CLI Integration** (PR and Issue management)
 - ✅ **Block detection optimization** (10-14% faster)
 - ✅ **Predictive rendering** (smarter preview updates)
 - ✅ **Async I/O** (faster file operations with aiofiles)
 - ✅ **Worker pool migration** (better thread management)
-
-**GitHub Features**:
-- Create and list pull requests
-- Create and list issues
-- View repository info
-- Background execution (non-blocking UI)
-- 49 tests passing (100% coverage for GitHub features)
+- ✅ **Type hints completion** (100% coverage, mypy --strict: 0 errors)
 
 **Performance**:
 - Block detection: 10-14% faster
@@ -1074,22 +981,19 @@ Things for later:
 - Print preview
 - Change colors
 
-### Git - ✅ PARTLY IMPLEMENTED (v1.6.0)
+### Git - ✅ BASIC IMPLEMENTATION
 
 **Current Features**:
-- ✅ Make pull requests (v1.6.0)
-- ✅ See pull requests (v1.6.0)
-- ✅ Make issues (v1.6.0)
-- ✅ See issues (v1.6.0)
-- ✅ See repo info (v1.6.0)
+- ✅ Commit changes
+- ✅ Push to remote
+- ✅ Pull from remote
+- ✅ View status
 
 **Future Features**:
 - See old versions
 - Compare versions
 - Use branches
 - Merge help
-- Edit pull requests
-- Comment on issues
 
 ### Teams
 

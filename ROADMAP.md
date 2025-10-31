@@ -12,7 +12,7 @@
 | Version | Status | Target Date | Focus | Effort | Critical Tasks |
 |---------|--------|-------------|-------|--------|----------------|
 | v1.5.0 | ✅ COMPLETE | Oct 2025 | Performance | - | Startup optimization, refactoring |
-| v1.6.0 | ✅ COMPLETE | Oct 2025 | GitHub + Async | - | GitHub CLI, async I/O |
+| v1.6.0 | ✅ COMPLETE | Oct 2025 | Async I/O | - | Async file operations, type hints |
 | v1.7.0 | 🔄 IN PROGRESS | Q1 2026 | Essential Features | 24-36h | Find/Replace, Telemetry, QA fixes |
 | v1.8.0 | 📋 BACKLOG | Q2-Q3 2026 | Extensibility | 132-188h | Auto-complete, Plugin API, Spell Check |
 | v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 360-500h | LSP, Multi-core, Collaboration |
@@ -70,10 +70,10 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - **Documentation:** Comprehensive
 
 ### Feature Completeness
-- ✅ GitHub CLI integration (PR/Issue management)
 - ✅ Async I/O implementation
 - ✅ Incremental rendering with caching
 - ✅ Memory profiling system
+- ✅ Block detection optimization
 
 **Quality Score:** 82/100 (GOOD) → Target: 95/100 (LEGENDARY)
 
@@ -323,39 +323,6 @@ qtbot.addWidget(parent_window)  # Manage lifecycle
 - ✅ Troubleshooting guidance provided for developers
 
 **Success:** Root cause identified (environmental), tests documented, CI stable
-
----
-
-#### QA-3: Implement GitHub Handler Tests ✅ COMPLETE
-**Effort:** 8 hours (actual: <1 hour) | **Impact:** MEDIUM
-**Completed:** October 30, 2025
-
-**Problem:** 30 test stubs created, 29 passing but 1 incomplete (placeholder)
-
-**Implementation:** Fixed the incomplete test (test_show_repo_info_logs_data)
-- Changed from placeholder (`pass`) to proper test
-- Tests actual `_handle_repo_info()` logging behavior
-- Fixed GitHubResult creation (use `error=""` not `None`)
-- Verified logging output using caplog
-
-**Test Results:**
-- ✅ 30/30 tests passing (100%)
-- ✅ 0 skipped
-- ✅ All test categories complete
-
-**Test Categories Verified:**
-- Initialization (4 tests) ✅
-- Reentrancy guards (3 tests) ✅
-- Pull requests (5 tests) ✅
-- Issues (4 tests) ✅
-- Repository operations (2 tests) ✅
-- Error handling (4 tests) ✅
-- Signal/slot connections (2 tests) ✅
-- State management (2 tests) ✅
-- Integration workflows (2 tests) ✅
-- Cleanup (2 tests) ✅
-
-**Success:** 30/30 tests implemented and passing
 
 ---
 
