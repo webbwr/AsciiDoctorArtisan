@@ -1,6 +1,6 @@
 # Grandmaster Technical Writer Skill
 
-**Purpose:** Write and verify technical documentation at ≤5th grade reading level while preserving all technical content. Uses Japanese MA (間 - negative space/minimalism) and Socratic principles for maximum clarity and user delight.
+**Purpose:** Write and verify technical documentation at appropriate reading levels based on document type, while preserving all technical content. Uses Japanese MA (間 - negative space/minimalism) and Socratic principles for maximum clarity and user delight.
 
 **Mode:** Fully agentic and automatic. Self-iterates, tests, and fixes until perfect.
 
@@ -8,7 +8,7 @@
 1. Run automatically in the background
 2. Apply all 7 phases of spec-driven development
 3. Validate against all checklists
-4. Score the document for Grade 5.0 compliance
+4. Score the document for appropriate grade level (see Document Type Targets)
 5. Provide verification reports
 6. Iterate until all standards met
 
@@ -34,10 +34,60 @@ The skill will:
 1. ✅ Automatically run Phase 1 (SPECIFY) to understand intent
 2. ✅ Create a document specification
 3. ✅ Execute all 7 phases automatically
-4. ✅ Score and verify Grade ≤5.0
+4. ✅ Score and verify appropriate grade level for document type
 5. ✅ Present the perfected document with verification report
 
 No manual invocation needed!
+
+---
+
+## Document Type Targets
+
+Different documentation types have different readability goals based on their audience:
+
+| Document Type | Target Grade | Flesch Ease | Audience | Examples |
+|---------------|--------------|-------------|----------|----------|
+| **User Documentation** | ≤5.0 | 70+ (Easy) | End users, general public | README.md, how-to-use.md, user guides, tutorials |
+| **Developer Documentation** | ≤8.0 | 60+ (Standard) | Software developers | how-to-contribute.md, API docs, architecture guides |
+| **Technical Specifications** | ≤10.0 | 50+ (Fairly Difficult) | Technical experts | SPECIFICATIONS.md, design docs, RFC-style docs |
+| **QA/Test Documentation** | ≤8.0 | 60+ (Standard) | QA engineers, testers | Test plans, QA audits, coverage reports |
+
+### Document Type Detection
+
+The skill automatically detects document type based on:
+
+1. **File path patterns:**
+   - `docs/user/`, `docs/how-to/`, `README.md` → **User Documentation** (Grade ≤5.0)
+   - `docs/developer/`, `docs/api/`, `CONTRIBUTING.md` → **Developer Documentation** (Grade ≤8.0)
+   - `docs/architecture/`, `docs/spec/`, `SPECIFICATIONS.md` → **Technical Specifications** (Grade ≤10.0)
+   - `docs/qa/`, `docs/test/`, `TEST_*.md` → **QA Documentation** (Grade ≤8.0)
+
+2. **Content keywords:**
+   - Contains "how to use", "getting started", "tutorial" → **User** (Grade ≤5.0)
+   - Contains "API", "code", "implementation", "contribute" → **Developer** (Grade ≤8.0)
+   - Contains "specification", "requirement", "architecture", "design" → **Technical** (Grade ≤10.0)
+   - Contains "test", "quality", "audit", "coverage" → **QA** (Grade ≤8.0)
+
+3. **Filename patterns:**
+   - `README.md`, `INSTALL.md`, `QUICKSTART.md` → **User** (Grade ≤5.0)
+   - `CONTRIBUTING.md`, `DEVELOPMENT.md`, `API.md` → **Developer** (Grade ≤8.0)
+   - `SPECIFICATIONS.md`, `REQUIREMENTS.md`, `DESIGN.md` → **Technical** (Grade ≤10.0)
+   - `QA_*.md`, `TEST_*.md`, `COVERAGE.md` → **QA** (Grade ≤8.0)
+
+### Target Rationale
+
+- **User docs (≤5.0)**: Maximum accessibility for all skill levels
+- **Developer docs (≤8.0)**: Balance technical precision with clarity (middle school reading level)
+- **Technical specs (≤10.0)**: Allow necessary complexity while maintaining readability (high school level)
+- **QA docs (≤8.0)**: Clear for test engineers without oversimplification
+
+### Validation
+
+When processing a document, the skill will:
+1. Detect the document type
+2. Apply the appropriate grade target
+3. Report compliance: `✅ User Doc: Grade 4.2 (Target ≤5.0) PASS`
+4. Flag non-compliance: `❌ Developer Doc: Grade 12.3 (Target ≤8.0) FAIL - needs simplification`
 
 ---
 
@@ -67,14 +117,15 @@ No manual invocation needed!
 
 **Inspired by GitHub's Spec-Kit:** This skill uses spec-driven development principles, treating documentation as executable specifications that iterate to perfection.
 
-When this skill is invoked, it follows this structured cycle until Grade 5.0 is achieved:
+When this skill is invoked, it follows this structured cycle until appropriate grade target is achieved:
 
 ### Phase 1: SPECIFY (Intent)
 ```
 1.1 CLARIFY    → Identify gaps, ambiguities, underspecified areas
 1.2 AUDIENCE   → Define reader level, prerequisites, goals
-1.3 SCOPE      → List what to include/exclude
-1.4 SUCCESS    → Define completion criteria (Grade 5.0 + accuracy)
+1.3 DOC-TYPE   → Detect document type (User/Developer/Technical/QA)
+1.4 SCOPE      → List what to include/exclude
+1.5 SUCCESS    → Define completion criteria (Doc type grade target + accuracy)
 ```
 
 ### Phase 2: PLAN (Structure)
@@ -122,7 +173,13 @@ When this skill is invoked, it follows this structured cycle until Grade 5.0 is 
 7.3 DELIVER    → Present perfected document
 ```
 
-**Repeat Phases 3-5 until:** Grade ≤5.0 AND technically accurate AND checklist passes
+**Repeat Phases 3-5 until:** Grade ≤ target (based on doc type) AND technically accurate AND checklist passes
+
+**Grade Targets:**
+- User docs: ≤5.0
+- Developer docs: ≤8.0
+- Technical specs: ≤10.0
+- QA docs: ≤8.0
 
 ---
 
