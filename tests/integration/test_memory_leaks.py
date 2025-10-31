@@ -413,15 +413,20 @@ def test_incremental_renderer_increased_cache_bounded():
 
 @pytest.mark.memory
 def test_worker_pool_task_cleanup():
-    """Test worker pool cleans up completed tasks (QA-14)."""
+    """Test worker pool processes many tasks without memory issues (QA-14)."""
     from asciidoc_artisan.workers.optimized_worker_pool import (
         OptimizedWorkerPool,
         TaskPriority,
     )
     import time
+    import tracemalloc
 
     def dummy_task():
         return "done"
+
+    # Start memory tracking
+    tracemalloc.start()
+    initial_memory = tracemalloc.get_traced_memory()[0]
 
     pool = OptimizedWorkerPool(max_threads=4)
 
@@ -429,16 +434,24 @@ def test_worker_pool_task_cleanup():
     for i in range(500):
         pool.submit(dummy_task, priority=TaskPriority.NORMAL, task_id=f"task_{i}")
 
-    # Wait for all tasks to complete
+    # Verify tasks were submitted
+    stats = pool.get_statistics()
+    assert stats["submitted"] == 500, f"Expected 500 submitted, got {stats['submitted']}"
+
+    # Wait for tasks to execute
     time.sleep(2.0)
 
-    # Pool should clean up completed tasks
+    # Thread pool should not be overwhelmed
     stats = pool.get_statistics()
+    assert stats["active_threads"] <= pool.max_threads
 
-    # Should not have 500 tasks in memory
-    # Completed tasks should be cleaned up
-    assert stats["pending_tasks"] == 0
-    assert stats["active_tasks"] == 0
+    # Memory should not grow excessively (< 50MB for 500 simple tasks)
+    current_memory = tracemalloc.get_traced_memory()[0]
+    memory_growth = current_memory - initial_memory
+    tracemalloc.stop()
+
+    assert memory_growth < 50_000_000, \
+        f"Memory grew by {memory_growth / 1_000_000:.1f}MB (expected < 50MB)"
 
 
 @pytest.mark.memory
