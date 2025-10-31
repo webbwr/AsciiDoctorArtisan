@@ -31,6 +31,7 @@ import os  # For reading/setting environment variables
 import platform  # For detecting Windows/Linux/Mac
 import sys  # For command-line arguments and exit codes
 import warnings  # For suppressing non-critical warnings
+from typing import Any  # Type hints
 
 # === LOGGING SETUP ===
 # Configure logging - this creates a "diary" of what the program does
@@ -99,7 +100,7 @@ def _setup_gpu_acceleration() -> None:
     logger.info("GPU/NPU acceleration configured")
 
 
-def _create_app():
+def _create_app() -> Any:
     """
     Create the Main Application Object.
 
@@ -146,7 +147,7 @@ def _create_app():
     return app  # Return the application object
 
 
-async def _run_async_app(app) -> None:
+async def _run_async_app(app: Any) -> None:
     """
     Run Qt application asynchronously.
 
@@ -159,7 +160,7 @@ async def _run_async_app(app) -> None:
     v1.7.0: Added for Enhanced Async I/O (Task 4)
     """
     # Create a future that completes when the app quits
-    fut = asyncio.Future()
+    fut: asyncio.Future[None] = asyncio.Future()
 
     # Connect app's aboutToQuit signal to resolve the future
     app.aboutToQuit.connect(lambda: fut.set_result(None))

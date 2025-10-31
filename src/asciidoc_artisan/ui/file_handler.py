@@ -18,7 +18,7 @@ import logging
 import platform
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QPlainTextEdit
@@ -36,7 +36,7 @@ try:
 
     METRICS_AVAILABLE = True
 except ImportError:
-    get_metrics_collector = None  # type: ignore[assignment]
+    get_metrics_collector = None
     METRICS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
@@ -54,8 +54,8 @@ class FileHandler(QObject):
     )  # Emitted when file modified externally (v1.7.0)
 
     def __init__(
-        self, editor: QPlainTextEdit, parent_window, settings_manager, status_manager
-    ):
+        self, editor: QPlainTextEdit, parent_window: Any, settings_manager: Any, status_manager: Any
+    ) -> None:
         """
         Initialize FileHandler.
 
@@ -420,7 +420,7 @@ class FileHandler(QObject):
         )
 
         if reply == QMessageBox.StandardButton.Save:
-            return self.save_file()
+            return self.save_file()  # type: ignore[no-any-return]  # save_file returns bool but QMessageBox comparison returns Any
         elif reply == QMessageBox.StandardButton.Discard:
             return True
         else:  # Cancel

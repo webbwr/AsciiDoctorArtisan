@@ -91,7 +91,7 @@ VERSION: 1.6.0 (GitHub CLI integration)
 
 # === STANDARD LIBRARY IMPORTS ===
 import logging  # For recording what the program does (debug messages)
-from typing import TYPE_CHECKING  # For type hints without circular imports
+from typing import TYPE_CHECKING, Any, Optional  # For type hints without circular imports
 
 # === QT FRAMEWORK IMPORTS ===
 from PySide6.QtGui import (
@@ -250,8 +250,8 @@ class ActionManager:
         self,
         text: str,
         status_tip: str,
-        triggered,
-        shortcut=None,
+        triggered: Any,
+        shortcut: Optional[Any] = None,
         checkable: bool = False,
         checked: bool = False,
     ) -> QAction:
@@ -326,7 +326,7 @@ class ActionManager:
         # === STEP 1: CREATE ACTION ===
         # Create QAction object with text and parent window
         # Parent window ensures action is deleted when window closes
-        action = QAction(text, self.window)  # type: ignore[call-overload]
+        action = QAction(text, self.window)
 
         # === STEP 2: SET STATUS TIP ===
         # Status tip shows in status bar when user hovers over menu item
@@ -360,10 +360,10 @@ class ActionManager:
     def create_action(
         self,
         text: str,
-        triggered,
-        shortcut=None,
-        icon=None,
-        tooltip=None,
+        triggered: Any,
+        shortcut: Optional[Any] = None,
+        icon: Optional[Any] = None,
+        tooltip: Optional[str] = None,
         enabled: bool = True,
         checkable: bool = False,
         checked: bool = False,
