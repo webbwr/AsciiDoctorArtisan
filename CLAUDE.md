@@ -71,7 +71,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 5. **Test Coverage Improvement** ✅
    - **60%+ coverage** (up from 34%)
-   - **481+ total tests** (+88 new tests since v1.4.0)
+   - **621+ total tests** (+228 new tests since v1.4.0)
    - 69 test files across comprehensive test suite
 
 6. **Code Quality** 📊
@@ -84,6 +84,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Predictive rendering system
 - ✅ Async I/O with aiofiles
 - ✅ GitHub CLI Integration (complete - PR/Issue management)
+- ✅ Type hints completion (mypy --strict: 0 errors, 100% coverage)
 - 🚧 Worker pool migration (in progress)
 
 ## Quick Start for New Developers
@@ -539,8 +540,8 @@ StatusManager.show_message("PR #42 created!")
 
 - **Style:** Black + isort + ruff - enforced by pre-commit hooks
 - **Line length:** 88 characters (Black default, enforced consistently)
-- **Types:** Required for new code (mypy lenient mode)
-- **Testing:** pytest + pytest-qt (69 test files, 481+ tests), use `qtbot` for GUI tests
+- **Types:** Required for all code (mypy --strict mode, 100% coverage, 0 errors across 64 files)
+- **Testing:** pytest + pytest-qt (69 test files, 621+ tests), use `qtbot` for GUI tests
 - **Docs:** Docstrings for public APIs, update SPECIFICATIONS.md for new features
 - **Python:** 3.11+ (3.12 recommended for best performance)
 
@@ -660,4 +661,4 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 ---
 
-*This file is for Claude Code (claude.ai/code). Last updated: October 29, 2025*
+*This file is for Claude Code (claude.ai/code). Last updated: October 31, 2025*
