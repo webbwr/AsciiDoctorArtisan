@@ -233,6 +233,21 @@ def __getattr__(name: str):
         # Return the cached class/function
         return _MODULE_CACHE[name]
 
+    # === GROUP 2B: CPU PROFILER (Developer Tools - QA-15) ===
+    # Only used when profiling CPU performance - rarely accessed
+    if name in ("CPUProfiler", "ProfileResult", "get_cpu_profiler",
+                "enable_cpu_profiling", "disable_cpu_profiling"):
+        # Check if we've already imported cpu_profiler module
+        if name not in _MODULE_CACHE:
+            # First time accessing CPU profiler - import it now
+            from . import cpu_profiler
+
+            # Get the class/function and cache it
+            _MODULE_CACHE[name] = getattr(cpu_profiler, name)
+
+        # Return the cached class/function
+        return _MODULE_CACHE[name]
+
     # === GROUP 3: RESOURCE MONITOR (Performance Tracking) ===
     # Used for tracking memory usage and document metrics
     if name in ("DocumentMetrics", "ResourceMetrics", "ResourceMonitor"):
@@ -344,6 +359,13 @@ __all__ = [
     "MemorySnapshot",  # Snapshot of memory state at a point in time
     "get_profiler",  # Function to get singleton profiler instance
     "profile_memory",  # Decorator for profiling function memory usage
+    # === CORE CLASSES - CPU PROFILING (Developer Tools - QA-15) ===
+    # Tools for CPU performance analysis and hotspot detection
+    "CPUProfiler",  # Main CPU profiler class (profile code blocks)
+    "ProfileResult",  # CPU profile result data (time, hotspots)
+    "get_cpu_profiler",  # Function to get singleton CPU profiler instance
+    "enable_cpu_profiling",  # Enable global CPU profiling
+    "disable_cpu_profiling",  # Disable global CPU profiling
     # === FILE OPERATIONS (Security Functions) ===
     # Safe file I/O to prevent corruption and security vulnerabilities
     "sanitize_path",  # Clean file paths (prevent directory traversal attacks)
