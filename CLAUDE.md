@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **GitHub CLI (gh) 2.45.0+**: GitHub integration for PR/Issue management (v1.6.0)
 - **Python 3.11+**: Minimum version (3.12 recommended for best performance)
 
-**Version:** 1.5.0 (Complete) | v1.6.0 (In Progress)
+**Version:** 1.5.0 (Complete) | v1.6.0 (In Progress - Type Hints Complete!)
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane

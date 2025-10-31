@@ -28,8 +28,8 @@ from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Optional, Union
 
 try:
-    import aiofiles
-    import aiofiles.os
+    import aiofiles  # type: ignore[import-untyped]  # aiofiles has no type stubs
+    import aiofiles.os  # type: ignore[import-untyped]  # aiofiles has no type stubs
 
     AIOFILES_AVAILABLE = True
 except ImportError:
@@ -102,7 +102,7 @@ async def async_read_text(
         async with aiofiles.open(file_path, mode="r", encoding=encoding) as f:
             content = await f.read()
             logger.debug(f"Async read successful: {file_path} ({len(content)} chars)")
-            return content
+            return content  # type: ignore[no-any-return]  # aiofiles.read returns str but typed as Any
     except Exception as e:
         logger.error(f"Async read failed for {file_path}: {e}")
         return None
@@ -342,7 +342,7 @@ class AsyncFileContext:
             logger.error("aiofiles not available")
             raise RuntimeError("aiofiles not available for async file operations")
 
-        self._file = await aiofiles.open(  # type: ignore[call-overload]  # aiofiles typing issue
+        self._file = await aiofiles.open(
             self.file_path, mode=self.mode, encoding=self.encoding
         )
         return self._file
