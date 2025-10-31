@@ -139,7 +139,7 @@ class CPUProfiler:
 
             # Get hotspots (top 10 functions by cumulative time)
             stream = io.StringIO()
-            stats.stream = stream
+            stats.stream = stream  # type: ignore[attr-defined]  # pstats.Stats.stream is writable
             stats.sort_stats("cumulative")
             stats.print_stats(10)
 
@@ -268,7 +268,7 @@ class CPUProfiler:
         Returns:
             Dict with profiling results for all operations
         """
-        report = {"operations": {}, "summary": {}}
+        report: dict[str, dict[str, Any]] = {"operations": {}, "summary": {}}
 
         for name in self._results:
             stats = self.get_statistics(name)

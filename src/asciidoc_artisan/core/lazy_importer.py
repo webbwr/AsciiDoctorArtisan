@@ -113,12 +113,12 @@ class LazyModule:
         module = self._load_module()
         return getattr(module, name)
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         """Get module attributes."""
         module = self._load_module()
         return dir(module)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation."""
         if self._module is None:
             return f"<LazyModule '{self._module_name}' (not loaded)>"
@@ -145,19 +145,19 @@ class ImportProfiler:
             print(f"{module}: {time_ms:.2f}ms")
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize import profiler."""
-        self._original_import = None
+        self._original_import: Optional[Callable[..., Any]] = None
         self._import_times: Dict[str, float] = {}
         self._import_counts: Dict[str, int] = {}
 
-    def __enter__(self):
+    def __enter__(self) -> "ImportProfiler":
         """Start profiling imports."""
         import builtins
 
         self._original_import = builtins.__import__
 
-        def profiled_import(name, *args, **kwargs):  # type: ignore[no-untyped-def]
+        def profiled_import(name: str, *args: Any, **kwargs: Any) -> Any:
             start = time.time()
             module = self._original_import(name, *args, **kwargs)  # type: ignore[misc]
             elapsed = time.time() - start
@@ -175,14 +175,14 @@ class ImportProfiler:
         builtins.__import__ = profiled_import
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Stop profiling imports."""
         if self._original_import:
             import builtins
 
             builtins.__import__ = self._original_import
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get import statistics.
 
@@ -248,21 +248,21 @@ class ImportTracker:
     _instance: Optional["ImportTracker"] = None
     _initialized: bool
 
-    def __new__(cls):
+    def __new__(cls) -> "ImportTracker":
         """Singleton pattern."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize tracker (only once)."""
         if self._initialized:
             return
 
         self._initialized = True
         self._imports: Dict[str, ImportStats] = {}
-        self._lazy_modules: set = set()
+        self._lazy_modules: set[str] = set()
 
     def register_lazy_import(self, module_name: str) -> None:
         """
@@ -293,7 +293,7 @@ class ImportTracker:
             stats = self._imports[module_name]
             stats.access_count += 1
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get import statistics.
 
@@ -365,7 +365,7 @@ def lazy_import(module_name: str, package: Optional[str] = None) -> LazyModule:
     return LazyModule(module_name, package)
 
 
-def profile_imports(func: Callable) -> Callable:
+def profile_imports(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to profile imports.
 
@@ -386,11 +386,11 @@ def profile_imports(func: Callable) -> Callable:
         # Prints import report at end
     """
 
-    def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         profiler = ImportProfiler()
 
         with profiler:
-            result = func(*args, **kwargs)  # type: ignore[misc]
+            result = func(*args, **kwargs)
 
         profiler.print_report()
         return result
@@ -398,7 +398,7 @@ def profile_imports(func: Callable) -> Callable:
     return wrapper
 
 
-def get_import_statistics() -> dict:
+def get_import_statistics() -> dict[str, Any]:
     """
     Get global import statistics.
 
@@ -427,9 +427,9 @@ class ImportOptimizer:
             print(suggestion)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize optimizer."""
-        self._heavy_modules = {
+        self._heavy_modules: set[str] = {
             "pandas",
             "numpy",
             "matplotlib",
@@ -479,7 +479,7 @@ class ImportOptimizer:
 
         return suggestions
 
-    def get_heavy_modules(self) -> set:
+    def get_heavy_modules(self) -> set[str]:
         """
         Get list of known heavy modules.
 

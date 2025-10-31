@@ -342,7 +342,7 @@ class AsyncFileContext:
             logger.error("aiofiles not available")
             raise RuntimeError("aiofiles not available for async file operations")
 
-        self._file = await aiofiles.open(
+        self._file = await aiofiles.open(  # type: ignore[call-overload]  # aiofiles typing issue
             self.file_path, mode=self.mode, encoding=self.encoding
         )
         return self._file
