@@ -79,3 +79,6 @@ output/
 # Hypothesis and benchmark cache
 .hypothesis/
 .benchmarks/
+
+# Readability reports (generated)
+docs/READABILITY_REPORT_*.md
