@@ -17,7 +17,7 @@ Factory function create_preview_handler() simplifies usage in main_window.py.
 
 import logging
 import time
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QWidget
@@ -60,7 +60,7 @@ class WebEngineHandler(PreviewHandlerBase):
     - sync_preview_to_editor() - Sync scroll via JavaScript callback
     """
 
-    def __init__(self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window):
+    def __init__(self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window: Any) -> None:
         """
         Initialize WebEngine PreviewHandler.
 
@@ -220,7 +220,7 @@ def create_preview_widget(parent: Optional[QWidget] = None) -> QWidget:
 
 
 def create_preview_handler(
-    editor: QPlainTextEdit, preview: QWidget, parent_window
+    editor: QPlainTextEdit, preview: QWidget, parent_window: Any
 ) -> PreviewHandlerBase:
     """
     Create appropriate preview handler for the given widget.
@@ -259,7 +259,7 @@ def create_preview_handler(
 PreviewHandler = WebEngineHandler
 
 
-def get_preview_widget_info(preview_widget: QWidget) -> dict:
+def get_preview_widget_info(preview_widget: QWidget) -> Dict[str, Any]:
     """
     Get information about the preview widget.
 

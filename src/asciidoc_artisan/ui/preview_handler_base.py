@@ -81,7 +81,7 @@ VERSION: 1.5.0 (Base class refactoring)
 import logging  # For recording what the program does
 import time  # For timing render performance
 from abc import abstractmethod  # For creating abstract base classes
-from typing import Any, Optional  # Type hints
+from typing import Any, Dict, Optional  # Type hints
 
 # === QT FRAMEWORK IMPORTS ===
 from PySide6.QtCore import (
@@ -439,7 +439,7 @@ class PreviewHandlerBase(QObject):
         """
         # Delegate to ThemeManager for single source of truth
         if hasattr(self.window, "theme_manager"):
-            return self.window.theme_manager.get_preview_css()
+            return self.window.theme_manager.get_preview_css()  # type: ignore[no-any-return]  # ThemeManager returns Any
 
         # Fallback CSS if ThemeManager not available (shouldn't happen in production)
         return """
@@ -527,7 +527,7 @@ class PreviewHandlerBase(QObject):
         self._use_adaptive_debouncing = enabled
         logger.info(f"Adaptive debouncing {'enabled' if enabled else 'disabled'}")
 
-    def get_debouncer_stats(self) -> dict:
+    def get_debouncer_stats(self) -> Dict[str, Any]:
         """
         Get adaptive debouncer statistics.
 
@@ -535,7 +535,7 @@ class PreviewHandlerBase(QObject):
             Dictionary with stats, or empty dict if not available
         """
         if self._adaptive_debouncer:
-            return self._adaptive_debouncer.get_statistics()
+            return self._adaptive_debouncer.get_statistics()  # type: ignore[no-any-return]  # AdaptiveDebouncer returns Any
         return {}
 
     def reset_debouncer(self) -> None:

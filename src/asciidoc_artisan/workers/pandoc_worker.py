@@ -88,11 +88,11 @@ class PandocWorker(QObject):
     conversion_error = Signal(str, str)
     progress_update = Signal(str)
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize PandocWorker."""
         super().__init__()
-        self.ollama_model = None
-        self.ollama_enabled = False
+        self.ollama_model: Optional[str] = None
+        self.ollama_enabled: bool = False
 
     def set_ollama_config(self, enabled: bool, model: Optional[str]) -> None:
         """
@@ -577,7 +577,7 @@ class PandocWorker(QObject):
             logger.info(
                 f"Ollama conversion successful ({len(converted_text)} characters)"
             )
-            return converted_text
+            return converted_text  # type: ignore[no-any-return]  # ollama returns Any
 
         except ImportError:
             logger.error("Ollama library not available")
