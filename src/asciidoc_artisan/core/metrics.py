@@ -25,7 +25,7 @@ import logging
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Any, DefaultDict, Deque, Dict, Optional
+from typing import Any, Callable, DefaultDict, Deque, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +136,7 @@ class MetricsCollector:
     Thread-safe singleton for collecting performance metrics.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize metrics collector."""
         self.operations: DefaultDict[str, OperationMetrics] = defaultdict(
             lambda: OperationMetrics(operation_name="")
@@ -211,11 +211,11 @@ class MetricsCollector:
             "caches": {},
         }
 
-        operations_dict: Dict[str, Any] = stats["operations"]  # type: ignore
+        operations_dict: Dict[str, Any] = stats["operations"]
         for op_name, op_metrics in self.operations.items():
             operations_dict[op_name] = op_metrics.get_stats()
 
-        caches_dict: Dict[str, Any] = stats["caches"]  # type: ignore
+        caches_dict: Dict[str, Any] = stats["caches"]
         for cache_name, cache_metrics in self.caches.items():
             caches_dict[cache_name] = cache_metrics.get_stats()
 
@@ -307,7 +307,7 @@ def get_metrics_collector() -> MetricsCollector:
 
 
 # Decorator for automatic timing
-def measure_time(operation_name: str):
+def measure_time(operation_name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to automatically measure and record operation time.
 
@@ -321,8 +321,8 @@ def measure_time(operation_name: str):
         operation_name: Name to use for metrics
     """
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.perf_counter()
             try:
                 result = func(*args, **kwargs)

@@ -25,11 +25,11 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, AsyncGenerator, Dict, Optional, Union
 
 try:
-    import aiofiles  # type: ignore[import-untyped]
-    import aiofiles.os  # type: ignore[import-untyped]
+    import aiofiles
+    import aiofiles.os
 
     AIOFILES_AVAILABLE = True
 except ImportError:
@@ -110,7 +110,7 @@ async def async_read_text(
 
 async def async_read_text_chunked(
     file_path: Path, encoding: str = "utf-8", chunk_size: int = 8192
-):
+) -> AsyncGenerator[str, None]:
     """
     Asynchronously read text file in chunks (generator).
 
@@ -301,7 +301,7 @@ async def async_read_json(
     try:
         data = json.loads(content)
         logger.debug(f"JSON parse successful: {file_path}")
-        return data
+        return data  # type: ignore[no-any-return]  # JSON returns Any
     except json.JSONDecodeError as e:
         logger.error(f"JSON parse failed for {file_path}: {e}")
         return None
@@ -336,7 +336,7 @@ class AsyncFileContext:
         self.encoding = encoding
         self._file = None
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Any:
         """Enter async context - open file."""
         if not AIOFILES_AVAILABLE:
             logger.error("aiofiles not available")
@@ -347,7 +347,7 @@ class AsyncFileContext:
         )
         return self._file
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         """Exit async context - close file."""
         if self._file:
             await self._file.close()
@@ -403,7 +403,7 @@ async def async_copy_file(src: Path, dst: Path, chunk_size: int = 65536) -> bool
 
 
 # Convenience function to run async operations from sync code
-def run_async(coro):
+def run_async(coro: Any) -> Any:
     """
     Run async coroutine from synchronous code.
 

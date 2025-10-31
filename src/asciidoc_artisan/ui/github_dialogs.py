@@ -52,7 +52,7 @@ USAGE EXAMPLE:
 """
 
 import logging  # For recording events (validation errors, etc.)
-from typing import Dict, List, Optional  # Type hints for better code quality
+from typing import Any, Dict, List, Optional  # Type hints for better code quality
 
 # Qt imports for GUI
 from PySide6.QtCore import Qt, QUrl  # Qt constants and URL class
@@ -205,7 +205,7 @@ class BaseListDialog(QDialog):
     def __init__(
         self,
         parent: Optional[QWidget] = None,
-        data: Optional[List[Dict]] = None,
+        data: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         """Initialize base list dialog."""
         super().__init__(parent)
@@ -302,7 +302,7 @@ class BaseListDialog(QDialog):
         # Emit signal or trigger refresh logic
         # Subclasses should override or connect to handler
 
-    def _row_double_clicked(self, index) -> None:
+    def _row_double_clicked(self, index: Any) -> None:
         """Handle row double-click to open in browser. Subclasses can override."""
         row = index.row()
         url_item = self.table.item(row, 5)  # URL column
@@ -488,7 +488,7 @@ class PullRequestListDialog(BaseListDialog):
     def __init__(
         self,
         parent: Optional[QWidget] = None,
-        pr_data: Optional[List[Dict]] = None,
+        pr_data: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         """Initialize pull request list dialog."""
         self.pr_data = pr_data or []
@@ -511,7 +511,7 @@ class PullRequestListDialog(BaseListDialog):
         return "pull requests"
 
     @property
-    def pr_table(self):
+    def pr_table(self) -> Any:
         """Backward compatibility alias for table attribute."""
         return self.table
 
@@ -572,7 +572,7 @@ class PullRequestListDialog(BaseListDialog):
             url_item = QTableWidgetItem(url)
             self.table.setItem(row, 5, url_item)
 
-    def set_pr_data(self, pr_data: List[Dict]) -> None:
+    def set_pr_data(self, pr_data: List[Dict[str, Any]]) -> None:
         """
         Update PR data and refresh table.
 
@@ -725,7 +725,7 @@ class IssueListDialog(BaseListDialog):
     def __init__(
         self,
         parent: Optional[QWidget] = None,
-        issue_data: Optional[List[Dict]] = None,
+        issue_data: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         """Initialize issue list dialog."""
         self.issue_data = issue_data or []
@@ -748,7 +748,7 @@ class IssueListDialog(BaseListDialog):
         return "issues"
 
     @property
-    def issue_table(self):
+    def issue_table(self) -> Any:
         """Backward compatibility alias for table attribute."""
         return self.table
 
@@ -809,7 +809,7 @@ class IssueListDialog(BaseListDialog):
             url_item = QTableWidgetItem(url)
             self.table.setItem(row, 5, url_item)
 
-    def set_issue_data(self, issue_data: List[Dict]) -> None:
+    def set_issue_data(self, issue_data: List[Dict[str, Any]]) -> None:
         """
         Update issue data and refresh table.
 
