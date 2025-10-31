@@ -5,8 +5,10 @@ Provides line numbers alongside the QPlainTextEdit editor widget.
 Implements specification requirement: Line Numbers (Editor Specifications).
 """
 
+from typing import Any, Optional
+
 from PySide6.QtCore import QRect, QSize, Qt
-from PySide6.QtGui import QColor, QPainter
+from PySide6.QtGui import QColor, QPainter, QPaintEvent, QResizeEvent
 from PySide6.QtWidgets import QPlainTextEdit, QWidget
 
 
@@ -31,16 +33,16 @@ class LineNumberArea(QWidget):
 
     def sizeHint(self) -> QSize:
         """Return the recommended size for this widget."""
-        return QSize(self.editor.line_number_area_width(), 0)  # type: ignore[attr-defined]
+        return QSize(self.editor.line_number_area_width(), 0)
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QPaintEvent) -> None:
         """
         Paint line numbers.
 
         Args:
             event: Paint event
         """
-        self.editor.line_number_area_paint_event(event)  # type: ignore[attr-defined]
+        self.editor.line_number_area_paint_event(event)
 
 
 class LineNumberMixin:
@@ -54,13 +56,13 @@ class LineNumberMixin:
                 self.setup_line_numbers()
     """
 
-    def setup_line_numbers(self):
+    def setup_line_numbers(self) -> None:
         """Set up line number area and connect signals."""
-        self.line_number_area = LineNumberArea(self)  # type: ignore[arg-type]
+        self.line_number_area = LineNumberArea(self)  # type: ignore[arg-type]  # Mixin pattern on QPlainTextEdit
 
         # Connect signals for auto-update
-        self.blockCountChanged.connect(self.update_line_number_area_width)  # type: ignore[attr-defined]
-        self.updateRequest.connect(self.update_line_number_area)  # type: ignore[attr-defined]
+        self.blockCountChanged.connect(self.update_line_number_area_width)
+        self.updateRequest.connect(self.update_line_number_area)
 
         # Set initial width
         self.update_line_number_area_width(0)
@@ -73,16 +75,16 @@ class LineNumberMixin:
             Width in pixels for line number area
         """
         digits = 1
-        max_num = max(1, self.blockCount())  # type: ignore[attr-defined]
+        max_num = max(1, self.blockCount())
         while max_num >= 10:
             max_num //= 10
             digits += 1
 
         # Width = 3px padding + digit width + 3px padding
-        space = 3 + self.fontMetrics().horizontalAdvance("9") * digits + 3  # type: ignore[attr-defined]
-        return space
+        space = 3 + self.fontMetrics().horizontalAdvance("9") * digits + 3
+        return space  # type: ignore[no-any-return]  # QFontMetrics returns Any
 
-    def update_line_number_area_width(self, _):
+    def update_line_number_area_width(self, _: Any) -> None:
         """
         Update viewport margins to make room for line numbers.
 
@@ -91,7 +93,7 @@ class LineNumberMixin:
         """
         self.setViewportMargins(self.line_number_area_width(), 0, 0, 0)
 
-    def update_line_number_area(self, rect: QRect, dy: int):
+    def update_line_number_area(self, rect: QRect, dy: int) -> None:
         """
         Update line number area when editor scrolls or changes.
 
@@ -109,7 +111,7 @@ class LineNumberMixin:
         if rect.contains(self.viewport().rect()):
             self.update_line_number_area_width(0)
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event: QResizeEvent) -> None:
         """
         Handle resize events to reposition line number area.
 
@@ -123,7 +125,7 @@ class LineNumberMixin:
             QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height())
         )
 
-    def line_number_area_paint_event(self, event):
+    def line_number_area_paint_event(self, event: QPaintEvent) -> None:
         """
         Paint line numbers in the line number area.
 
@@ -184,7 +186,7 @@ class LineNumberPlainTextEdit(LineNumberMixin, QPlainTextEdit):
         editor.setPlainText("Line 1\\nLine 2\\nLine 3")
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         """
         Initialize editor with line numbers.
 
