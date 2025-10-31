@@ -1,3 +1,4 @@
+from typing import Any, Dict, Optional
 """
 Virtual Scrolling Preview - Optimized rendering for large documents.
 
@@ -138,7 +139,7 @@ class VirtualScrollPreview:
         # Only renders visible lines + buffer
     """
 
-    def __init__(self, asciidoc_api, config: Optional[VirtualScrollConfig] = None):
+    def __init__(self, asciidoc_api: Any, config: Optional[VirtualScrollConfig] = None):
         """
         Initialize virtual scroll preview.
 
@@ -294,7 +295,7 @@ class VirtualScrollPreview:
         self._actual_line_height = measured_height
         logger.debug(f"Updated line height: {measured_height}px")
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> Dict[str, Any]:
         """
         Get virtual scrolling statistics.
 

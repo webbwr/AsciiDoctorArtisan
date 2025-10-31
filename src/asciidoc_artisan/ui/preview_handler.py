@@ -17,6 +17,7 @@ Extracted from monolithic main_window.py to improve maintainability.
 
 import logging
 import time
+from typing import Any
 
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 
@@ -41,7 +42,7 @@ class PreviewHandler(PreviewHandlerBase):
     - sync_preview_to_editor() - Sync scroll via scrollbar
     """
 
-    def __init__(self, editor: QPlainTextEdit, preview: QTextBrowser, parent_window):
+    def __init__(self, editor: QPlainTextEdit, preview: QTextBrowser, parent_window: Any) -> None:
         """
         Initialize TextBrowser PreviewHandler.
 

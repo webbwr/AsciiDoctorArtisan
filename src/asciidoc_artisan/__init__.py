@@ -161,7 +161,7 @@ __version__ = "1.5.0"
 # === LAZY IMPORT MAGIC METHOD ===
 # This is a Python "magic method" (special method with __ prefix and suffix)
 # __getattr__ is called when someone tries to access an attribute that doesn't exist yet
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """
     Lazy Import Handler - Only Load Modules When Actually Used.
 

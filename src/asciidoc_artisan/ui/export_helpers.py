@@ -15,7 +15,7 @@ Extracted from export_manager.py to follow Single Responsibility Principle.
 import io
 import logging
 import subprocess
-from typing import Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 

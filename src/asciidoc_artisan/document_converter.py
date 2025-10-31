@@ -412,7 +412,7 @@ class PDFExtractor:
         return cell
 
     @staticmethod
-    def _format_table_as_asciidoc(table: list) -> str:
+    def _format_table_as_asciidoc(table: list[list[str]]) -> str:
         """
         Format extracted table as AsciiDoc table syntax with improved formatting.
 

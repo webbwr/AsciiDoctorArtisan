@@ -34,7 +34,7 @@ import logging
 import re
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -308,7 +308,7 @@ class IncrementalPreviewRenderer:
     5. Assembling final HTML from cache
     """
 
-    def __init__(self, asciidoc_api):
+    def __init__(self, asciidoc_api: Any) -> None:
         """
         Initialize incremental renderer.
 

@@ -12,7 +12,7 @@ Security Features:
 """
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (

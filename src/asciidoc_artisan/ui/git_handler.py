@@ -12,7 +12,7 @@ Extracted from main_window.py to improve maintainability and testability.
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFileDialog, QInputDialog

@@ -265,7 +265,7 @@ class HardwareDetector:
         return caps
 
 
-def print_hardware_report():
+def print_hardware_report() -> None:
     """Print a human-readable hardware report."""
     caps = HardwareDetector.detect_all()
 
