@@ -1,49 +1,58 @@
-# GitHub CLI Integration - User Guide
+# GitHub and AsciiDoc Artisan
 
 **Version:** 1.6.0+
 **Date:** October 29, 2025
-**Status:** Production Ready
+**Status:** Ready to use
 
 ---
 
-## Overview
+## What This Does
 
-AsciiDoc Artisan now integrates with GitHub CLI (`gh`) to provide seamless pull request and issue management directly from the editor. This feature allows you to:
+AsciiDoc Artisan works with GitHub. You can do GitHub tasks right in the app.
 
-- Create and list pull requests
-- Create and list issues
-- View repository information
-- Open PRs and issues in your browser
+What you can do:
+- Make pull requests (PRs)
+- See your pull requests
+- Make issues
+- See your issues
+- Look at repo info
+- Open PRs in your web browser
+- Open issues in your web browser
 
-All GitHub operations run in the background, keeping the editor responsive.
+All GitHub tasks run in the background. The app stays fast.
 
 ---
 
-## Requirements
+## What You Need
 
-### 1. GitHub CLI Installation
+### 1. GitHub CLI Program
 
-The GitHub CLI (`gh`) must be installed on your system.
+You need a program called GitHub CLI. Its short name is `gh`.
 
-**Check if gh is installed:**
+**Check if you have it:**
+
+Type this in your terminal:
 ```bash
 gh --version
-# Should show: gh version 2.45.0 or higher
 ```
 
-**Install GitHub CLI:**
+You should see: `gh version 2.45.0` or higher.
 
-**Linux (Debian/Ubuntu):**
+**Get GitHub CLI:**
+
+Pick your computer type:
+
+**Linux (Ubuntu or Debian):**
 ```bash
 sudo apt install gh
 ```
 
-**Linux (Fedora/RHEL):**
+**Linux (Fedora or Red Hat):**
 ```bash
 sudo dnf install gh
 ```
 
-**macOS:**
+**Mac:**
 ```bash
 brew install gh
 ```
@@ -51,112 +60,126 @@ brew install gh
 **Windows:**
 ```bash
 winget install --id GitHub.cli
-# or use: choco install gh
 ```
 
-**Other methods:** See https://cli.github.com/manual/installation
+Or use: `choco install gh`
+
+**Need help?** Go to: https://cli.github.com/manual/installation
 
 ---
 
-### 2. GitHub Authentication
+### 2. Log In to GitHub
 
-You must authenticate with GitHub before using integration features.
+You must log in to GitHub first.
 
-**Authenticate:**
+**To log in:**
+
+Type this:
 ```bash
 gh auth login
 ```
 
-Follow the prompts to:
-1. Choose GitHub.com or GitHub Enterprise Server
-2. Choose authentication method (SSH or HTTPS)
-3. Complete authentication via browser or token
+Then answer these questions:
+1. Pick GitHub.com or GitHub Enterprise
+2. Pick SSH or HTTPS
+3. Log in with your web browser or token
 
-**Verify authentication:**
+**Check if you are logged in:**
+
+Type this:
 ```bash
 gh auth status
 ```
 
-You should see:
+You should see this:
 ```
 ✓ Logged in to github.com as your-username
-✓ Git operations for github.com configured to use ssh protocol.
+✓ Git operations set up
 ✓ Token: gho_************************************
 ```
 
 ---
 
-### 3. Repository Setup
+### 3. Set Up Your Repo
 
-The Git repository must be linked to a GitHub remote.
+Your Git folder must link to GitHub.
 
-**In AsciiDoc Artisan:**
-1. Go to **Git → Set Repository**
-2. Select your Git repository folder
-3. Verify the repository is connected to GitHub
+**In the app:**
+1. Click **Git**
+2. Click **Set Repository**
+3. Pick your Git folder
+4. Check it links to GitHub
 
-**Verify from command line:**
+**Check from terminal:**
+
+Type these commands:
 ```bash
 cd /path/to/your/repo
 git remote -v
-# Should show GitHub URL like:
-# origin  git@github.com:username/repo.git (fetch)
+```
+
+You should see a GitHub web address like:
+```
+origin  git@github.com:username/repo.git (fetch)
 ```
 
 ---
 
-## Features
+## What You Can Do
 
-### 1. Create Pull Request
+### 1. Make a Pull Request
 
-**Menu:** Git → GitHub → Create Pull Request...
+**Where to find it:** Git → GitHub → Create Pull Request
 
-**Steps:**
-1. Click **Git → GitHub → Create Pull Request**
-2. Fill in the dialog:
-   - **Title** (required): Brief, descriptive PR title
-   - **Base branch**: Target branch (default: `main`)
-   - **Head branch**: Your feature branch (auto-populated)
-   - **Description**: Detailed explanation of changes
-   - **Draft PR**: Check to create as draft (optional)
-3. Click **Create PR**
+**How to do it:**
 
-**Dialog Fields:**
+1. Click **Git** in the menu
+2. Click **GitHub**
+3. Click **Create Pull Request**
+4. Fill in the form:
+   - **Title** (you must fill this): Short name for your PR
+   - **Base branch**: Where your code will go (often `main`)
+   - **Head branch**: Your branch with changes (filled in for you)
+   - **Description**: What you changed and why
+   - **Draft PR**: Check this if not ready yet
+5. Click **Create PR**
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| Title | ✅ Yes | Short PR title (e.g., "Add user authentication") |
-| Base branch | ✅ Yes | Target branch to merge into (usually `main` or `develop`) |
-| Head branch | ✅ Yes | Your feature branch with changes |
-| Description | ❌ No | Detailed explanation, testing notes, screenshots |
-| Draft PR | ❌ No | Create as draft (not ready for review) |
+**What each field means:**
 
-**Validation:**
-- Title cannot be empty
-- Base branch cannot equal head branch
-- If validation fails, the field shows a red border
+| Field | Must fill? | What it is |
+|-------|-----------|------------|
+| Title | Yes ✅ | Short name like "Add dark mode" |
+| Base branch | Yes ✅ | Where to put your code (like `main`) |
+| Head branch | Yes ✅ | Your branch with changes |
+| Description | No ❌ | Tell what you changed |
+| Draft PR | No ❌ | Check if not ready to merge |
 
-**Result:**
-- Status bar shows: "PR #42 created!" with PR number
-- PR opens automatically in your browser (optional)
+**The app checks:**
+- Title box is not empty
+- Base and head are not the same
+- If wrong, the box turns red
+
+**What happens:**
+- Status bar says: "PR #42 created!"
+- PR opens in your web browser
 
 **Example:**
 ```
-Title: Add dark mode support
+Title: Add dark mode
 Base: main
 Head: feature/dark-mode
 Description:
-  This PR adds dark mode support to the application.
+  This PR adds dark mode.
 
-  Changes:
-  - Added theme toggle in settings
-  - Updated CSS for dark theme
-  - Added user preference persistence
+  What changed:
+  - Added toggle in settings
+  - Made new CSS for dark theme
+  - Saves your choice
 
-  Testing:
-  - Verified toggle works in all dialogs
-  - Checked theme persists across sessions
-Draft: ☐ (unchecked)
+  Tests done:
+  - Toggle works in all windows
+  - Choice saves when you close app
+Draft: ☐ (not checked)
 ```
 
 ---
@@ -165,36 +188,36 @@ Draft: ☐ (unchecked)
 
 **Menu:** Git → GitHub → List Pull Requests
 
-**Features:**
-- View all PRs in a table
+**What it does:**
+- Shows all PRs in a table
 - Filter by state: Open / Closed / Merged / All
 - Double-click to open PR in browser
 - Refresh button to reload data
 
 **Table Columns:**
 
-| Column | Description |
-|--------|-------------|
+| Column | What it shows |
+|--------|---------------|
 | Number | PR number (#42) |
 | Title | PR title |
-| Author | GitHub username of PR creator |
+| Author | GitHub user who made the PR |
 | Status | Open, Closed, or Merged |
-| Created | Creation date |
-| URL | Full GitHub URL |
+| Created | Date the PR was made |
+| URL | Full GitHub link |
 
 **State Filter:**
 - **Open**: Show only open PRs (default)
 - **Closed**: Show only closed PRs
 - **Merged**: Show only merged PRs
-- **All**: Show all PRs regardless of state
+- **All**: Show all PRs
 
-**Actions:**
+**What you can do:**
 - **Double-click row**: Opens PR in browser
-- **Refresh button**: Fetches latest PR data from GitHub
+- **Refresh button**: Gets latest PR data from GitHub
 - **Close button**: Closes dialog
 
-**Empty State:**
-If no PRs match the filter, the dialog shows:
+**When no PRs exist:**
+If no PRs match the filter, you see:
 ```
 No pull requests found
 ```
@@ -205,55 +228,55 @@ No pull requests found
 
 **Menu:** Git → GitHub → Create Issue...
 
-**Steps:**
+**How to do it:**
 1. Click **Git → GitHub → Create Issue**
-2. Fill in the dialog:
-   - **Title** (required): Brief issue description
-   - **Labels**: Comma-separated labels (optional)
-   - **Description**: Detailed issue explanation
+2. Fill in the form:
+   - **Title** (required): Short issue name
+   - **Labels**: Comma-separated tags (optional)
+   - **Description**: Full details
 3. Click **Create Issue**
 
-**Dialog Fields:**
+**Form Fields:**
 
-| Field | Required | Description |
-|-------|----------|-------------|
+| Field | Required | What it means |
+|-------|----------|---------------|
 | Title | ✅ Yes | Short issue title (e.g., "Login button not working") |
 | Labels | ❌ No | Comma-separated (e.g., "bug, high-priority, ui") |
-| Description | ❌ No | Detailed explanation, steps to reproduce, expected behavior |
+| Description | ❌ No | Full details, steps to reproduce, what should happen |
 
 **Common Labels:**
-- `bug` - Something isn't working
-- `enhancement` - New feature or request
-- `documentation` - Documentation improvements
-- `question` - Further information requested
-- `help wanted` - Extra attention needed
+- `bug` - Something is not working
+- `enhancement` - New feature request
+- `documentation` - Doc improvements
+- `question` - Need more info
+- `help wanted` - Need extra help
 
-**Validation:**
+**Form Checks:**
 - Title cannot be empty
-- If validation fails, the field shows a red border
+- If check fails, field shows red border
 
-**Result:**
+**What you see:**
 - Status bar shows: "Issue #15 created!" with issue number
-- Issue opens automatically in your browser (optional)
+- Issue opens in browser (optional)
 
 **Example:**
 ```
-Title: Application crashes when opening large files
+Title: App crashes when opening large files
 Labels: bug, high-priority
 Description:
   **Problem:**
-  The application crashes when attempting to open AsciiDoc files larger than 100MB.
+  The app crashes when opening AsciiDoc files larger than 100MB.
 
-  **Expected Behavior:**
-  Large files should open successfully or show a warning message.
+  **What should happen:**
+  Large files should open or show a warning.
 
-  **Steps to Reproduce:**
+  **How to make it happen:**
   1. Create an AsciiDoc file > 100MB
   2. Go to File → Open
-  3. Select the large file
-  4. Application freezes and crashes
+  3. Pick the large file
+  4. App freezes and crashes
 
-  **Environment:**
+  **Your setup:**
   - OS: Ubuntu 22.04
   - Version: 1.5.0
   - File size: 125MB
@@ -265,197 +288,197 @@ Description:
 
 **Menu:** Git → GitHub → List Issues
 
-**Features:**
-- View all issues in a table
+**What it does:**
+- Shows all issues in a table
 - Filter by state: Open / Closed / All
 - Double-click to open issue in browser
 - Refresh button to reload data
 
 **Table Columns:**
 
-| Column | Description |
-|--------|-------------|
+| Column | What it shows |
+|--------|---------------|
 | Number | Issue number (#15) |
 | Title | Issue title |
-| Author | GitHub username of issue creator |
+| Author | GitHub user who made the issue |
 | Status | Open or Closed |
-| Created | Creation date |
-| URL | Full GitHub URL |
+| Created | Date the issue was made |
+| URL | Full GitHub link |
 
 **State Filter:**
 - **Open**: Show only open issues (default)
 - **Closed**: Show only closed issues
-- **All**: Show all issues regardless of state
+- **All**: Show all issues
 
-**Actions:**
+**What you can do:**
 - **Double-click row**: Opens issue in browser
-- **Refresh button**: Fetches latest issue data from GitHub
+- **Refresh button**: Gets latest issue data from GitHub
 - **Close button**: Closes dialog
 
 ---
 
-### 5. Repository Info
+### 5. View Repo Info
 
 **Menu:** Git → GitHub → Repository Info
 
-**Features:**
-- View repository name and owner
-- See repository description
-- Check visibility (public/private)
-- View statistics (stars, forks, watchers)
+**What it does:**
+- Shows repo name and owner
+- Shows repo description
+- Shows if public or private
+- Shows stats (stars, forks, watchers)
 
-**Information Displayed:**
-- Repository full name (owner/repo)
+**Info shown:**
+- Full repo name (owner/repo)
 - Description
 - Default branch
-- Visibility (public/private)
+- Public or private
 - Homepage URL
-- Statistics (if available)
+- Stats (if available)
 
 ---
 
 ## Keyboard Shortcuts
 
-Currently, GitHub operations do not have keyboard shortcuts. Access them via:
+There are no shortcuts yet for GitHub features. Use the menu:
 
 **Menu Bar:**
 ```
 Git → GitHub → [Feature]
 ```
 
-**Future Enhancement:** Keyboard shortcuts may be added in v1.7.0+
+**Future Plan:** Shortcuts may be added in v1.7.0+
 
 ---
 
 ## Error Handling
 
-### Common Errors and Solutions
+### Common Errors and Fixes
 
 #### 1. "gh CLI not found"
 
-**Error Message:**
+**Error:**
 ```
 Git command not found. Ensure Git is installed and in system PATH.
 ```
 
-**Solution:**
+**How to fix:**
 1. Install GitHub CLI: `sudo apt install gh` (Linux) or `brew install gh` (macOS)
-2. Verify installation: `gh --version`
+2. Check install: `gh --version`
 3. Restart AsciiDoc Artisan
 
 ---
 
-#### 2. "Not authenticated with GitHub"
+#### 2. "Not signed in to GitHub"
 
-**Error Message:**
+**Error:**
 ```
 Authentication required. Please run 'gh auth login' to authenticate.
 ```
 
-**Solution:**
+**How to fix:**
 1. Open terminal
 2. Run: `gh auth login`
-3. Follow authentication prompts
-4. Verify: `gh auth status`
-5. Try operation again in AsciiDoc Artisan
+3. Follow sign-in steps
+4. Check: `gh auth status`
+5. Try again in AsciiDoc Artisan
 
 ---
 
-#### 3. "No repository set"
+#### 3. "No repo set"
 
-**Error Message:**
+**Error:**
 ```
 No Repository
 Please set a Git repository first (Git → Set Repository).
 ```
 
-**Solution:**
+**How to fix:**
 1. Go to **Git → Set Repository**
-2. Select folder containing `.git` directory
-3. Verify repository is connected to GitHub remote
-4. Try operation again
+2. Pick folder with `.git` directory
+3. Check repo is linked to GitHub
+4. Try again
 
 ---
 
-#### 4. "Not a Git repository"
+#### 4. "Not a Git repo"
 
-**Error Message:**
+**Error:**
 ```
 Directory is not a Git repository.
 ```
 
-**Solution:**
-1. Navigate to project directory in terminal
-2. Initialize Git: `git init`
+**How to fix:**
+1. Go to project folder in terminal
+2. Init Git: `git init`
 3. Add remote: `git remote add origin git@github.com:username/repo.git`
-4. Set repository in AsciiDoc Artisan
-5. Try operation again
+4. Set repo in AsciiDoc Artisan
+5. Try again
 
 ---
 
-#### 5. "Operation timed out"
+#### 5. "Task took too long"
 
-**Error Message:**
+**Error:**
 ```
 GitHub operation timed out after 60s.
 Check network connection or try again.
 ```
 
-**Solution:**
+**How to fix:**
 1. Check internet connection
-2. Verify GitHub is accessible: `curl https://github.com`
-3. Try operation again
-4. If persistent, check firewall settings
+2. Test GitHub: `curl https://github.com`
+3. Try again
+4. If still fails, check firewall
 
 ---
 
-#### 6. "Permission denied"
+#### 6. "Access denied"
 
-**Error Message:**
+**Error:**
 ```
 Permission denied. Check repository access rights.
 ```
 
-**Solution:**
-1. Verify you have write access to the repository
-2. Check SSH key is configured: `gh auth status`
-3. Try re-authenticating: `gh auth login`
-4. Verify repository URL: `git remote -v`
+**How to fix:**
+1. Check you can write to the repo
+2. Check SSH key: `gh auth status`
+3. Try signing in again: `gh auth login`
+4. Check repo URL: `git remote -v`
 
 ---
 
-## Limitations
+## Limits
 
-### Current Limitations (v1.6.0)
+### Current Limits (v1.6.0)
 
-1. **Draft PRs**: Draft flag is sent but requires gh CLI 2.45.0+
-2. **Labels on PR Creation**: Only available via issue creation
-3. **Assignees**: Cannot assign PRs/issues to users
-4. **Reviewers**: Cannot request PR reviewers
-5. **Milestones**: Cannot assign milestones
+1. **Draft PRs**: Draft flag needs gh CLI 2.45.0+
+2. **Labels on PR**: Only works for issues, not PRs
+3. **Assignees**: Cannot assign PRs or issues to users
+4. **Reviewers**: Cannot ask for PR reviews
+5. **Milestones**: Cannot add milestones
 6. **Projects**: Cannot add to GitHub Projects
-7. **Branches**: Cannot create/delete branches from UI
-8. **CI Status**: Cannot view CI/CD status in PR list
+7. **Branches**: Cannot make or delete branches in app
+8. **CI Status**: Cannot see build status in PR list
 
-### Planned Features (v1.7.0+)
+### Coming in v1.7.0+
 
-- PR templates auto-loading
-- Issue templates auto-loading
-- CI/CD status indicator in PR list
-- Assignee and reviewer selection
-- Label management from UI
-- Branch management
+- PR templates auto-load
+- Issue templates auto-load
+- Build status in PR list
+- Assign users and reviewers
+- Label tools in app
+- Branch tools
 - Diff viewer for PRs
 - Comment on PRs and issues
-- Merge PRs from UI
+- Merge PRs from app
 
 ---
 
-## Best Practices
+## Good Habits
 
-### 1. Commit Before Creating PR
+### 1. Commit Before Making PR
 
-Always commit and push your changes before creating a PR:
+Save and push your changes first:
 
 ```bash
 # In terminal
@@ -464,19 +487,19 @@ git commit -m "Your commit message"
 git push origin feature-branch
 ```
 
-Or use AsciiDoc Artisan's Git integration:
+Or use AsciiDoc Artisan Git tools:
 1. **Git → Commit** (Ctrl+Shift+C)
 2. **Git → Push** (Ctrl+Shift+U)
 3. **Git → GitHub → Create Pull Request**
 
 ---
 
-### 2. Use Descriptive Titles
+### 2. Use Clear Titles
 
 **Good PR Titles:**
-- ✅ "Add user authentication with JWT tokens"
-- ✅ "Fix memory leak in preview rendering"
-- ✅ "Update documentation for GitHub CLI integration"
+- ✅ "Add user login with JWT tokens"
+- ✅ "Fix memory leak in preview"
+- ✅ "Update docs for GitHub CLI"
 
 **Bad PR Titles:**
 - ❌ "Fix bug"
@@ -485,99 +508,99 @@ Or use AsciiDoc Artisan's Git integration:
 
 ---
 
-### 3. Write Clear Descriptions
+### 3. Write Clear Details
 
-Include in PR/issue descriptions:
-- **What**: What changes were made?
-- **Why**: Why were these changes needed?
-- **How**: How were the changes implemented?
-- **Testing**: How were the changes tested?
+Add to PR and issue details:
+- **What**: What did you change?
+- **Why**: Why did you change it?
+- **How**: How did you do it?
+- **Testing**: How did you test it?
 
 **Example:**
 ```markdown
 ## Summary
-Adds dark mode support to the application.
+Adds dark mode to the app.
 
-## Motivation
-Users requested dark mode for better readability in low-light environments.
+## Why
+Users asked for dark mode for low light.
 
 ## Changes
-- Added theme toggle in settings dialog
-- Implemented CSS for dark theme
-- Added theme preference persistence
+- Added theme toggle in settings
+- Made CSS for dark theme
+- Saved theme choice
 
 ## Testing
-- Manual testing on Linux, macOS, Windows
-- Verified theme persists across sessions
-- Checked all dialogs render correctly
+- Tested on Linux, macOS, Windows
+- Checked theme saves
+- Checked all dialogs look good
 ```
 
 ---
 
-### 4. Use Labels Effectively
+### 4. Use Labels Well
 
-Organize issues with labels:
-- `bug` - Defects and errors
+Sort issues with labels:
+- `bug` - Errors and defects
 - `enhancement` - New features
-- `documentation` - Docs improvements
-- `question` - Questions and discussions
-- `good first issue` - Easy for new contributors
-- `help wanted` - Need community help
+- `documentation` - Doc fixes
+- `question` - Questions
+- `good first issue` - Easy for new people
+- `help wanted` - Need help from others
 
 ---
 
 ### 5. Keep PRs Small
 
-Smaller PRs are easier to review:
+Small PRs are easier to review:
 - ✅ One feature per PR
-- ✅ < 500 lines changed
+- ✅ Less than 500 lines changed
 - ✅ Clear, focused changes
-- ❌ Multiple unrelated features
-- ❌ Massive refactoring + new features
+- ❌ Many features in one PR
+- ❌ Big rewrites plus new features
 
 ---
 
-## Troubleshooting
+## Fixing Problems
 
-### Check System Status
+### Check Your Setup
 
-**1. Verify gh CLI:**
+**1. Check gh CLI:**
 ```bash
 gh --version
-# Expected: gh version 2.45.0 or higher
+# You should see: gh version 2.45.0 or higher
 ```
 
-**2. Verify authentication:**
+**2. Check sign in:**
 ```bash
 gh auth status
-# Should show: ✓ Logged in to github.com
+# You should see: ✓ Logged in to github.com
 ```
 
-**3. Verify repository:**
+**3. Check repo:**
 ```bash
 cd /path/to/repo
 git remote -v
-# Should show GitHub URL
+# You should see GitHub URL
 ```
 
 **4. Test gh CLI:**
 ```bash
 gh pr list
-# Should show PRs or "no pull requests found"
+# You should see PRs or "no pull requests found"
 ```
 
 ---
 
-### Enable Debug Logging
+### Turn On Debug Logs
 
-To enable detailed logging for troubleshooting:
+To see more details for fixing problems:
 
 1. Run AsciiDoc Artisan from terminal:
 ```bash
 python3 src/main.py
 ```
 
-2. Check logs for GitHub operations:
+2. Look for GitHub logs:
 ```
 INFO - Dispatching GitHub operation: create_pull_request
 INFO - Executing gh command: ['gh', 'pr', 'create', '--json', ...]
@@ -594,91 +617,91 @@ ERROR - Git command not found
 
 ### Clear GitHub Cache
 
-If experiencing stale data:
+If you see old data:
 
 ```bash
 # Clear gh CLI cache
 rm -rf ~/.cache/gh/
 
-# Re-authenticate
+# Sign in again
 gh auth login
 ```
 
 ---
 
-## Security Considerations
+## Security Notes
 
-### 1. Credentials
+### 1. Sign-In Info
 
-- GitHub CLI stores credentials securely using OS keyring
-- AsciiDoc Artisan never stores GitHub credentials
-- All authentication handled by `gh` CLI
+- GitHub CLI stores sign-in info safely in OS keyring
+- AsciiDoc Artisan never stores GitHub sign-in info
+- All sign-in handled by `gh` CLI
 
 ### 2. API Rate Limits
 
-GitHub API has rate limits:
-- Authenticated: 5,000 requests/hour
-- Unauthenticated: 60 requests/hour
+GitHub API has limits:
+- Signed in: 5,000 requests per hour
+- Not signed in: 60 requests per hour
 
-AsciiDoc Artisan operations count toward your rate limit.
+AsciiDoc Artisan uses your limit.
 
-### 3. Permissions
+### 3. Access Rights
 
-GitHub CLI requires these permissions:
-- `repo` - Full control of private repositories
-- `read:org` - Read org and team membership
+GitHub CLI needs these rights:
+- `repo` - Full control of private repos
+- `read:org` - Read team info
 
-Grant only necessary permissions during authentication.
+Only grant what is needed when signing in.
 
 ---
 
-## FAQ
+## Questions and Answers
 
 ### Q: Can I use GitHub Enterprise?
 
-**A:** Yes! Authenticate with your GitHub Enterprise instance:
+**A:** Yes! Sign in to your GitHub Enterprise:
 ```bash
 gh auth login --hostname github.company.com
 ```
 
-Then use AsciiDoc Artisan normally. All operations will use your Enterprise instance.
+Then use AsciiDoc Artisan normally. All actions use your Enterprise.
 
 ---
 
-### Q: Can I create PRs across forks?
+### Q: Can I make PRs across forks?
 
-**A:** Yes, but you must specify the head branch with owner:
+**A:** Yes, but you must add the owner to head branch:
 ```
 Head: your-username:feature-branch
 ```
 
-This tells GitHub to create a PR from your fork.
+This tells GitHub to make a PR from your fork.
 
 ---
 
-### Q: Why are some PRs not showing in the list?
+### Q: Why are some PRs missing from the list?
 
-**A:** Check the state filter (top of dialog):
+**A:** Check the state filter at top of dialog:
 - Default is "Open" - only shows open PRs
 - Switch to "All" to see all PRs
 
-Also check you're viewing the correct repository (Git → Set Repository).
+Also check you are in the right repo (Git → Set Repository).
 
 ---
 
-### Q: Can I edit existing PRs or issues?
+### Q: Can I edit PRs or issues?
 
-**A:** Not yet. v1.6.0 supports creating and viewing only. Editing will be added in v1.7.0.
+**A:** Not yet. v1.6.0 can create and view only. Editing comes in v1.7.0.
 
-For now, click the PR/issue row to open in browser, then edit there.
+For now, click the PR or issue row to open in browser, then edit there.
 
 ---
 
 ### Q: Does this work offline?
 
-**A:** No. GitHub integration requires internet connection to communicate with GitHub API.
+**A:** No. GitHub features need internet to talk to GitHub API.
 
-Git operations (commit, add, status) work offline, but GitHub features require network access.
+Git tools (commit, add, status) work offline, but GitHub features need network.
 
 ---
 
@@ -703,49 +726,49 @@ winget upgrade --id GitHub.cli
 
 ### Q: Can I use this with GitLab or Bitbucket?
 
-**A:** No. This integration is GitHub-specific using GitHub CLI.
+**A:** No. This works only with GitHub using GitHub CLI.
 
-GitLab and Bitbucket support may be added in future versions if there's demand.
+GitLab and Bitbucket may be added later if people ask for it.
 
 ---
 
 ## Getting Help
 
-### Documentation
+### Docs
 - **User Guide**: This file
-- **Architecture**: See `CLAUDE.md` for developer documentation
-- **Specifications**: See `SPECIFICATIONS.md` for functional requirements
+- **Dev Guide**: See `CLAUDE.md` for dev docs
+- **Rules**: See `SPECIFICATIONS.md` for feature rules
 
-### Support Channels
+### Help Channels
 - **GitHub Issues**: Report bugs at https://github.com/webbwr/AsciiDoctorArtisan/issues
 - **Discussions**: Ask questions at https://github.com/webbwr/AsciiDoctorArtisan/discussions
 
-### Reporting Issues
+### How to Report Issues
 
 When reporting issues, include:
 1. AsciiDoc Artisan version: Help → About
 2. gh CLI version: `gh --version`
-3. Operating system and version
-4. Steps to reproduce
-5. Expected vs actual behavior
-6. Log output (if available)
+3. Your OS and version
+4. How to make it happen
+5. What should happen vs what does happen
+6. Log output (if you have it)
 
 **Example Issue Report:**
 ```markdown
-**Environment:**
+**Your Setup:**
 - AsciiDoc Artisan: 1.6.0
 - gh CLI: 2.45.0
 - OS: Ubuntu 22.04
 
-**Steps to Reproduce:**
+**How to Make It Happen:**
 1. Click Git → GitHub → Create Pull Request
-2. Fill in title and description
+2. Fill in title and details
 3. Click Create PR
 
-**Expected:**
-PR should be created successfully
+**What Should Happen:**
+PR should be created
 
-**Actual:**
+**What Does Happen:**
 Error message: "Authentication required"
 
 **Logs:**
@@ -754,39 +777,39 @@ ERROR - GitHub operation failed: authentication required
 
 ---
 
-## Changelog
+## Change Log
 
-### v1.6.0 (October 2025) - Initial Release
+### v1.6.0 (October 2025) - First Release
 - ✅ Create pull requests
-- ✅ List pull requests with state filtering
+- ✅ List pull requests with state filter
 - ✅ Create issues with labels
-- ✅ List issues with state filtering
-- ✅ View repository information
-- ✅ Open PRs/issues in browser
-- ✅ Background operations (non-blocking UI)
-- ✅ Timeout protection (60s for network ops)
-- ✅ Comprehensive error handling
+- ✅ List issues with state filter
+- ✅ View repo info
+- ✅ Open PRs and issues in browser
+- ✅ Background tasks (UI stays fast)
+- ✅ Timeout safety (60s for network)
+- ✅ Full error handling
 
-### Planned for v1.7.0
-- 🚧 PR templates auto-loading
-- 🚧 Issue templates auto-loading
-- 🚧 CI/CD status in PR list
-- 🚧 Assignee selection
-- 🚧 Reviewer requests
-- 🚧 PR merging from UI
-
----
-
-## Conclusion
-
-The GitHub CLI integration brings powerful collaboration features directly into AsciiDoc Artisan. You can now manage pull requests and issues without leaving your editor, streamlining your workflow.
-
-For technical details and architecture information, see:
-- **Developer Guide**: `CLAUDE.md`
-- **Implementation Report**: `/tmp/github_cli_integration_complete.md`
+### Coming in v1.7.0
+- 🚧 PR templates auto-load
+- 🚧 Issue templates auto-load
+- 🚧 Build status in PR list
+- 🚧 Pick assignees
+- 🚧 Request reviews
+- 🚧 Merge PRs from app
 
 ---
 
-**Document Version:** 1.0
+## Wrap Up
+
+The GitHub CLI feature brings team tools into AsciiDoc Artisan. You can now manage PRs and issues without leaving your editor. This makes your work easier.
+
+For tech details and design info, see:
+- **Dev Guide**: `CLAUDE.md`
+- **Build Report**: `/tmp/github_cli_integration_complete.md`
+
+---
+
+**Doc Version:** 1.0
 **Last Updated:** October 29, 2025
-**Author:** AsciiDoc Artisan Development Team
+**Made By:** AsciiDoc Artisan Dev Team
