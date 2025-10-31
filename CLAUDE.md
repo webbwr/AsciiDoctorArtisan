@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **GitHub CLI (gh) 2.45.0+**: GitHub integration for PR/Issue management (v1.6.0)
 - **Python 3.11+**: Minimum version (3.12 recommended for best performance)
 
-**Version:** 1.5.0 (Complete) | v1.6.0 (In Progress - Type Hints Complete!)
+**Version:** 1.6.0 (Complete) | v1.7.0 (In Progress - Type Hints & Async I/O Complete!)
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane
@@ -79,12 +79,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - Comprehensive metrics collection system
    - Memory profiling and optimization
 
-**v1.6.0 In Progress:**
+**v1.6.0 Complete (October 2025):**
 - ✅ Block detection optimization (10-14% improvement)
 - ✅ Predictive rendering system
 - ✅ Async I/O with aiofiles
-- ✅ GitHub CLI Integration (complete - PR/Issue management)
+- ✅ GitHub CLI Integration (PR/Issue management)
 - ✅ Type hints completion (mypy --strict: 0 errors, 100% coverage)
+
+**v1.7.0 In Progress (Q1 2026):**
+- 🚧 Find & Replace system (pending)
+- 🚧 Spell checker integration (pending)
+- 🚧 Telemetry system - opt-in (pending)
 - 🚧 Worker pool migration (in progress)
 
 ## Quick Start for New Developers
@@ -478,7 +483,7 @@ StatusManager.show_message("PR #42 created!")
 | `README.md` | User-facing documentation and installation guide |
 | `.pre-commit-config.yaml` | Pre-commit hook configuration |
 | `.ruff.toml` | Ruff linter configuration |
-| `ROADMAP_v1.5.0.md` | Version roadmap and progress tracking |
+| `ROADMAP.md` | Version roadmap and progress tracking (v1.6.0 complete, v1.7.0 in progress) |
 
 ## Critical "Gotchas" - Read This First!
 
@@ -628,7 +633,7 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 **Core Documentation:**
 - **SPECIFICATIONS.md** — Complete functional requirements (84 rules across all features)
 - **README.md** — User-facing installation and usage guide (Grade 5.0 reading level)
-- **ROADMAP_v1.5.0.md** — Current roadmap (v1.5.0 complete, v1.6.0 in progress)
+- **ROADMAP.md** — 2026-2027 strategic plan (v1.6.0 complete, v1.7.0 in progress)
 
 **Implementation Details:**
 - **docs/IMPLEMENTATION_REFERENCE.md** — v1.5.0 feature implementation details

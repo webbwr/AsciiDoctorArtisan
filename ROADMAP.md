@@ -1,9 +1,9 @@
 # AsciiDoc Artisan Development Roadmap
 ## 2026-2027 Strategic Plan
 
-**Last Updated:** October 29, 2025
+**Last Updated:** October 31, 2025
 **Planning Horizon:** 18-24 months
-**Status:** v1.5.0 ✅ | v1.6.0 ✅ | v1.7.0 PLANNED
+**Status:** v1.5.0 ✅ | v1.6.0 ✅ | v1.7.0 IN PROGRESS
 
 ---
 
@@ -13,7 +13,7 @@
 |---------|--------|-------------|-------|--------|----------------|
 | v1.5.0 | ✅ COMPLETE | Oct 2025 | Performance | - | Startup optimization, refactoring |
 | v1.6.0 | ✅ COMPLETE | Oct 2025 | GitHub + Async | - | GitHub CLI, async I/O |
-| v1.7.0 | 🔄 IN PROGRESS | Q1 2026 | Polish + QA | 52-76h | Find/Replace, Type Hints, QA fixes |
+| v1.7.0 | 🔄 IN PROGRESS | Q1 2026 | Polish + QA | 28-44h | Find/Replace, Spell Check, QA fixes |
 | v1.8.0 | 📋 BACKLOG | Q2-Q3 2026 | Extensibility | 120-172h | Auto-complete, Plugin API |
 | v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 360-500h | LSP, Multi-core, Collaboration |
 
@@ -64,7 +64,8 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ### Quality Metrics
 - **Test coverage:** 60%+ (up from 34%)
-- **Test suite:** 68 files, 481+ tests
+- **Test suite:** 69 files, 621+ tests
+- **Type hints:** 100% (mypy --strict: 0 errors, 64 files)
 - **Tech debt:** LOW (<30% duplication)
 - **Documentation:** Comprehensive
 
@@ -82,13 +83,13 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 **Target Date:** Q1 2026 (January - March)
 **Duration:** 2-3 months
-**Effort:** 52-76 hours (Task 4 complete: -24h saved)
+**Effort:** 28-44 hours (Tasks 2 & 4 complete: -48h saved)
 **Focus:** Essential text editor features + code quality
 
 ### Goals
 
 1. ⭐ Add missing essential features (Find/Replace, Spell Checker)
-2. ⭐ Complete type hint coverage (60% → 100%)
+2. ✅ ~~Complete type hint coverage (60% → 100%)~~ **COMPLETE** (Oct 31, 2025)
 3. ✅ ~~Enhance async I/O integration~~ **COMPLETE** (Oct 29, 2025)
 4. 🔧 Improve user experience (error messages, shortcuts)
 5. 📊 Enable telemetry (opt-in)
@@ -106,6 +107,24 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - Zero performance regression (1.05s startup maintained)
 
 **Documentation:** See `docs/TASK_4_COMPLETION_SUMMARY.md`
+
+#### ✅ Type Hint Completion (Former Task 2)
+**Completed:** October 31, 2025 | **Effort:** 16-24 hours
+
+**Delivered:**
+- 100% type hint coverage across 64 source files
+- mypy --strict: 0 errors (all modules pass)
+- Fixed KeyringError fallback class definition
+- Fixed aiofiles.open type overload issues
+- Fixed import ordering in virtual_scroll_preview.py
+- Removed unused type: ignore comments
+
+**Verification:**
+- ✅ ruff check: Pass
+- ✅ black --check: Pass
+- ✅ mypy --strict: 0 errors in 63 source files
+
+**Impact:** Improved code quality, better IDE support, fewer runtime type errors
 
 ---
 
@@ -129,24 +148,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ---
 
-#### Task 2: Type Hint Completion ⭐
-**Priority:** HIGH | **Effort:** 16-24 hours
-
-**Current:** 60% type coverage
-**Target:** 100% type coverage
-
-**Approach:**
-1. Audit all 59 modules for missing hints (4h)
-2. Add hints to core/ modules (6h)
-3. Add hints to ui/ modules (8h)
-4. Add hints to workers/ modules (4h)
-5. Run `mypy --strict`, fix issues (4h)
-
-**Success:** mypy passes strict mode, all public APIs typed
-
----
-
-#### Task 3: Spell Checker Integration ⭐
+#### Task 2: Spell Checker Integration ⭐
 **Priority:** HIGH | **Effort:** 12-16 hours
 
 **Features:**
@@ -165,7 +167,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ---
 
-#### Task 4: Telemetry System (Opt-In) ⭐
+#### Task 3: Telemetry System (Opt-In) ⭐
 **Priority:** MEDIUM | **Effort:** 16-24 hours
 
 **Purpose:** Understand user behavior, guide feature prioritization
@@ -203,9 +205,9 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 | Criterion | Target | Priority | Status |
 |-----------|--------|----------|--------|
 | Find & Replace working | ✅ Yes | CRITICAL | Pending |
-| Type hint coverage | 100% | HIGH | Pending |
+| Type hint coverage | 100% | ~~HIGH~~ | ✅ **DONE** (Oct 31) |
 | Spell checker integrated | ✅ Yes | HIGH | Pending |
-| Async I/O complete | ✅ Yes | ~~MEDIUM~~ | ✅ **DONE** |
+| Async I/O complete | ✅ Yes | ~~MEDIUM~~ | ✅ **DONE** (Oct 29) |
 | Telemetry opt-in | ✅ Yes | MEDIUM | Pending |
 | Test coverage | 100% | HIGH | 60% (↑40% needed) |
 | Startup time | <0.9s | MEDIUM | 1.05s (↓0.15s needed) |
@@ -217,8 +219,8 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ```
 Month 1 (Jan 2026):
-  Week 1-2: Find & Replace + Spell Checker
-  Week 3-4: Type Hints (core + ui modules)
+  Week 1-2: Find & Replace
+  Week 3-4: Spell Checker
 
 Month 2 (Feb 2026):
   Week 1-2: Telemetry System
@@ -228,6 +230,8 @@ Month 3 (Mar 2026):
   Week 1-2: Bug fixes + polish
   Week 3-4: Documentation + release prep
 ```
+
+**Note:** Type Hints and Async I/O tasks completed ahead of schedule (Oct 2025)
 
 **Release Target:** March 31, 2026
 
