@@ -18,7 +18,7 @@ import logging
 import os
 import platform
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QRect, QStandardPaths, QTimer
 from PySide6.QtWidgets import QMainWindow, QSplitter
@@ -57,7 +57,7 @@ class SettingsManager:
         ```
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the settings manager."""
         self._settings_path = self.get_settings_path()
 
@@ -66,7 +66,7 @@ class SettingsManager:
         self._pending_save_timer.setSingleShot(True)
         self._pending_save_timer.setInterval(100)  # 100ms delay
         self._pending_save_timer.timeout.connect(self._do_deferred_save)
-        self._pending_save_data: Optional[dict] = None
+        self._pending_save_data: Optional[Dict[str, Any]] = None
 
     def get_settings_path(self) -> Path:
         """
@@ -103,9 +103,9 @@ class SettingsManager:
             logger.info(f"Using config directory: {config_dir}")
         except Exception as e:
             logger.warning(f"Could not create config directory {config_dir}: {e}")
-            return Path.home() / SETTINGS_FILENAME
+            return Path.home() / SETTINGS_FILENAME  # type: ignore[no-any-return]  # Path / str returns Any in some contexts
 
-        return config_dir / SETTINGS_FILENAME
+        return config_dir / SETTINGS_FILENAME  # type: ignore[no-any-return]  # Path / str returns Any in some contexts
 
     def create_default_settings(self) -> Settings:
         """

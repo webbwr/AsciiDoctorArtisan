@@ -23,7 +23,7 @@ import logging
 import os
 import shutil
 import tempfile
-from typing import Optional, Set
+from typing import Any, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class ResourceManager:
 
     _instance: Optional["ResourceManager"] = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize ResourceManager."""
         self._temp_files: Set[str] = set()
         self._temp_directories: Set[str] = set()
@@ -249,7 +249,7 @@ class ResourceManager:
 
         self._cleaned_up = True
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get resource statistics.
 
@@ -262,7 +262,7 @@ class ResourceManager:
             "cleaned_up": self._cleaned_up,
         }
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Cleanup on deletion."""
         self.cleanup_all()
 
@@ -314,11 +314,10 @@ class TempFileContext:
         )
         return self.path
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Clean up temp file."""
         if self.path:
             self.rm.cleanup_file(self.path)
-        return False
 
 
 class TempDirectoryContext:
@@ -366,8 +365,7 @@ class TempDirectoryContext:
         )
         return self.path
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Clean up temp directory."""
         if self.path:
             self.rm.cleanup_directory(self.path)
-        return False

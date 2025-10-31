@@ -25,7 +25,7 @@ Design Goals:
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Coroutine, Dict, Optional
 
 from PySide6.QtCore import QObject, Signal
 
@@ -83,7 +83,7 @@ class QtAsyncFileManager(QObject):
     operation_failed = Signal(str, Path, str)  # operation, path, error
     file_changed_externally = Signal(Path)  # path
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Qt async file manager."""
         super().__init__()
 
@@ -92,7 +92,7 @@ class QtAsyncFileManager(QObject):
         self._watched_file: Optional[Path] = None
 
         # Track running operations
-        self._running_operations: set = set()
+        self._running_operations: set[int] = set()
 
         logger.info("QtAsyncFileManager initialized")
 
@@ -340,7 +340,7 @@ class QtAsyncFileManager(QObject):
             self._watched_file = None
 
             # Stop old watcher asynchronously
-            async def _stop_old_watcher():
+            async def _stop_old_watcher() -> None:
                 await old_watcher.stop()
 
             asyncio.ensure_future(_stop_old_watcher())
