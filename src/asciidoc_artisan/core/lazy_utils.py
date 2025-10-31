@@ -84,10 +84,10 @@ class lazy_property(Generic[T]):
 
         # Check if already computed
         if hasattr(obj, self.attr_name):
-            return getattr(obj, self.attr_name)
+            return getattr(obj, self.attr_name)  # type: ignore[no-any-return]
 
         # Compute value
-        value = self.func(obj)
+        value: T = self.func(obj)
 
         # Cache it
         setattr(obj, self.attr_name, value)
@@ -163,7 +163,7 @@ class LazyImport:
 
         return getattr(self._module, name)
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         """Get module attributes."""
         if self._module is None:
             self._module = importlib.import_module(self.module_name)
@@ -171,7 +171,7 @@ class LazyImport:
         return dir(self._module)
 
 
-def defer_method(func: Callable) -> Callable:
+def defer_method(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to defer method execution.
 
@@ -200,11 +200,11 @@ def defer_method(func: Callable) -> Callable:
     """
 
     @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> None:
         if not hasattr(self, "_deferred_calls"):
             self._deferred_calls = []
 
-        def deferred_call():
+        def deferred_call() -> Any:
             return func(self, *args, **kwargs)
 
         self._deferred_calls.append(deferred_call)
@@ -247,12 +247,12 @@ class LazyInitializer:
                 self.initializer.initialize_remaining()
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize lazy initializer."""
-        self._initializers: dict[str, Callable] = {}
+        self._initializers: dict[str, Callable[[], None]] = {}
         self._initialized: set[str] = set()
 
-    def register(self, name: str, initializer: Callable) -> None:
+    def register(self, name: str, initializer: Callable[[], None]) -> None:
         """
         Register deferred initializer.
 
@@ -302,7 +302,7 @@ class LazyInitializer:
         """
         return name in self._initialized
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get initialization statistics.
 
@@ -340,7 +340,7 @@ class cached_property:
         obj.data  # Returns cached value
     """
 
-    def __init__(self, func: Callable):
+    def __init__(self, func: Callable[[Any], Any]):
         """
         Initialize cached property.
 

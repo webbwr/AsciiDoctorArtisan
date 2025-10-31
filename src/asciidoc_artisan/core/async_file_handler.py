@@ -28,7 +28,7 @@ Design Goals:
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, TextIO
+from typing import Any, Generator, List, Optional, TextIO
 
 from PySide6.QtCore import QObject, QThread, Signal
 
@@ -83,7 +83,7 @@ class AsyncFileHandler(QObject):
     write_error = Signal(str, str)  # path, error
     progress = Signal(str, int, int)  # operation, current, total
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize async file handler."""
         super().__init__()
         self._thread = QThread()
@@ -108,7 +108,7 @@ class AsyncFileHandler(QObject):
 
         executor = ThreadPoolExecutor(max_workers=1)
 
-        def read_task():
+        def read_task() -> None:
             try:
                 path = Path(file_path)
                 if not path.exists():
@@ -149,7 +149,7 @@ class AsyncFileHandler(QObject):
 
         executor = ThreadPoolExecutor(max_workers=1)
 
-        def write_task():
+        def write_task() -> None:
             try:
                 path = Path(file_path)
 
@@ -191,7 +191,7 @@ class AsyncFileHandler(QObject):
 
         executor = ThreadPoolExecutor(max_workers=1)
 
-        def stream_task():
+        def stream_task() -> None:
             try:
                 path = Path(file_path)
                 if not path.exists():
@@ -257,7 +257,7 @@ class AsyncFileHandler(QObject):
 
         executor = ThreadPoolExecutor(max_workers=1)
 
-        def stream_task():
+        def stream_task() -> None:
             try:
                 path = Path(file_path)
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -326,17 +326,17 @@ class FileStreamReader:
         self.chunk_size = chunk_size
         self._file: Optional[TextIO] = None
 
-    def __enter__(self):
+    def __enter__(self) -> "FileStreamReader":
         """Context manager entry."""
         self._file = open(self.file_path, "r", encoding="utf-8")
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         if self._file:
             self._file.close()
 
-    def read_chunks(self):
+    def read_chunks(self) -> Generator[str, None, None]:
         """
         Read file in chunks (generator).
 
@@ -389,7 +389,7 @@ class FileStreamWriter:
         self._file: Optional[TextIO] = None
         self.bytes_written = 0
 
-    def __enter__(self):
+    def __enter__(self) -> "FileStreamWriter":
         """Context manager entry."""
         # Create parent directories
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -397,7 +397,7 @@ class FileStreamWriter:
         self._file = open(self.file_path, "w", encoding="utf-8")
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         if self._file:
             self._file.close()
