@@ -13,8 +13,8 @@
 |---------|--------|-------------|-------|--------|----------------|
 | v1.5.0 | ✅ COMPLETE | Oct 2025 | Performance | - | Startup optimization, refactoring |
 | v1.6.0 | ✅ COMPLETE | Oct 2025 | GitHub + Async | - | GitHub CLI, async I/O |
-| v1.7.0 | 🔄 IN PROGRESS | Q1 2026 | Polish + QA | 28-44h | Find/Replace, Spell Check, QA fixes |
-| v1.8.0 | 📋 BACKLOG | Q2-Q3 2026 | Extensibility | 120-172h | Auto-complete, Plugin API |
+| v1.7.0 | 🔄 IN PROGRESS | Q1 2026 | Essential Features | 24-36h | Find/Replace, Telemetry, QA fixes |
+| v1.8.0 | 📋 BACKLOG | Q2-Q3 2026 | Extensibility | 132-188h | Auto-complete, Plugin API, Spell Check |
 | v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 360-500h | LSP, Multi-core, Collaboration |
 
 **Current Priority:** v1.7.0 + QA Initiative (parallel execution)
@@ -83,16 +83,16 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 **Target Date:** Q1 2026 (January - March)
 **Duration:** 2-3 months
-**Effort:** 28-44 hours (Tasks 2 & 4 complete: -48h saved)
+**Effort:** 24-36 hours (Tasks 2 & 4 complete: -48h saved, Spell Checker deferred: -12h)
 **Focus:** Essential text editor features + code quality
 
 ### Goals
 
-1. ⭐ Add missing essential features (Find/Replace, Spell Checker)
+1. ⭐ Add essential Find/Replace functionality
 2. ✅ ~~Complete type hint coverage (60% → 100%)~~ **COMPLETE** (Oct 31, 2025)
 3. ✅ ~~Enhance async I/O integration~~ **COMPLETE** (Oct 29, 2025)
 4. 🔧 Improve user experience (error messages, shortcuts)
-5. 📊 Enable telemetry (opt-in)
+5. 📊 Enable telemetry (opt-in) for usage analytics
 
 ### Completed Tasks
 
@@ -148,26 +148,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ---
 
-#### Task 2: Spell Checker Integration ⭐
-**Priority:** HIGH | **Effort:** 12-16 hours
-
-**Features:**
-- Real-time spell checking with underlines
-- Right-click suggestions menu
-- Custom dictionary support
-- Language selection
-
-**Deliverables:**
-- `core/spell_checker.py` (~250 lines)
-- `ui/spell_checker_ui.py` (~150 lines)
-- 20 tests
-- Dependency: `language_tool_python` or `pyspellchecker`
-
-**Success:** Spell checking works, <100ms performance
-
----
-
-#### Task 3: Telemetry System (Opt-In) ⭐
+#### Task 2: Telemetry System (Opt-In) ⭐
 **Priority:** MEDIUM | **Effort:** 16-24 hours
 
 **Purpose:** Understand user behavior, guide feature prioritization
@@ -206,12 +187,13 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 |-----------|--------|----------|--------|
 | Find & Replace working | ✅ Yes | CRITICAL | Pending |
 | Type hint coverage | 100% | ~~HIGH~~ | ✅ **DONE** (Oct 31) |
-| Spell checker integrated | ✅ Yes | HIGH | Pending |
 | Async I/O complete | ✅ Yes | ~~MEDIUM~~ | ✅ **DONE** (Oct 29) |
 | Telemetry opt-in | ✅ Yes | MEDIUM | Pending |
 | Test coverage | 100% | HIGH | 60% (↑40% needed) |
 | Startup time | <0.9s | MEDIUM | 1.05s (↓0.15s needed) |
 | Zero critical bugs | ✅ Yes | CRITICAL | Pending |
+
+**Note:** Spell checker integration deferred to v1.8.0
 
 ---
 
@@ -220,18 +202,20 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 ```
 Month 1 (Jan 2026):
   Week 1-2: Find & Replace
-  Week 3-4: Spell Checker
+  Week 3-4: Telemetry System
 
 Month 2 (Feb 2026):
-  Week 1-2: Telemetry System
-  Week 3-4: Testing + Minor tasks
+  Week 1-2: Testing + Minor tasks
+  Week 3-4: Bug fixes + polish
 
 Month 3 (Mar 2026):
-  Week 1-2: Bug fixes + polish
-  Week 3-4: Documentation + release prep
+  Week 1-2: Documentation + release prep
+  Week 3-4: Buffer / Early release
 ```
 
-**Note:** Type Hints and Async I/O tasks completed ahead of schedule (Oct 2025)
+**Notes:**
+- Type Hints and Async I/O tasks completed ahead of schedule (Oct 2025)
+- Spell Checker deferred to v1.8.0 to focus on essential features
 
 **Release Target:** March 31, 2026
 
@@ -774,7 +758,7 @@ After Phase 5:  97/100 (GRANDMASTER)  +2 points
 
 **Target Date:** Q2-Q3 2026 (April - September)
 **Duration:** 4-6 months
-**Effort:** 120-172 hours
+**Effort:** 132-188 hours (includes Spell Checker from v1.7.0)
 **Focus:** Auto-completion, syntax checking, plugin architecture
 
 ### Goals
@@ -857,6 +841,7 @@ class Plugin:
 
 | Task | Effort | Description |
 |------|--------|-------------|
+| Spell Checker Integration | 12-16h | Real-time spell checking (deferred from v1.7.0) |
 | Multi-Level Caching | 24-32h | Memory + disk + persistent cache |
 | Document Templates | 16-24h | Built-in templates, custom creation |
 | Improved Git Integration | 8-12h | Status bar, color coding, quick commit |
