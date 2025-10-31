@@ -36,7 +36,7 @@ import pstats
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Generator, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ class CPUProfiler:
         logger.debug(f"CPUProfiler initialized (enabled={enabled})")
 
     @contextmanager
-    def profile(self, name: str):
+    def profile(self, name: str) -> Generator[None, None, None]:
         """
         Context manager for profiling a code block.
 
@@ -287,7 +287,7 @@ class CPUProfiler:
 
         return report
 
-    def reset(self):
+    def reset(self) -> None:
         """Clear all profiling results."""
         self._results.clear()
         self._profilers.clear()
@@ -324,14 +324,14 @@ def get_cpu_profiler() -> CPUProfiler:
     return _cpu_profiler
 
 
-def enable_cpu_profiling():
+def enable_cpu_profiling() -> None:
     """Enable global CPU profiling."""
     profiler = get_cpu_profiler()
     profiler.enabled = True
     logger.info("CPU profiling enabled")
 
 
-def disable_cpu_profiling():
+def disable_cpu_profiling() -> None:
     """Disable global CPU profiling."""
     profiler = get_cpu_profiler()
     profiler.enabled = False

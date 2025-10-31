@@ -26,7 +26,7 @@ import logging
 import time
 import tracemalloc
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -248,7 +248,7 @@ class MemoryProfiler:
             logger.info(f"  From: {snap1.description}")
             logger.info(f"  To: {snap2.description}")
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get profiler statistics.
 
@@ -314,7 +314,7 @@ def get_profiler() -> MemoryProfiler:
     return _global_profiler
 
 
-def profile_memory(description: str = ""):
+def profile_memory(description: str = "") -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to profile memory usage of a function.
 
@@ -330,8 +330,8 @@ def profile_memory(description: str = ""):
         description: Description for the profiled function
     """
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             profiler = get_profiler()
 
             # Auto-start if not running
@@ -354,7 +354,7 @@ def profile_memory(description: str = ""):
     return decorator
 
 
-def main():
+def main() -> None:
     """CLI for memory profiler demonstration."""
 
     print("Memory Profiler Demo")

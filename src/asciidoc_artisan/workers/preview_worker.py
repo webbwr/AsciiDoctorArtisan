@@ -147,7 +147,7 @@ class PreviewWorker(QObject):
 
                 # Initialize incremental renderer if available
                 if INCREMENTAL_RENDERER_AVAILABLE and IncrementalPreviewRenderer:  # type: ignore[truthy-function]
-                    self._incremental_renderer = IncrementalPreviewRenderer(
+                    self._incremental_renderer = IncrementalPreviewRenderer(  # type: ignore[no-untyped-call]  # incremental renderer __init__ needs types
                         self._asciidoc_api
                     )
                     logger.debug("PreviewWorker: Incremental renderer initialized")
@@ -318,7 +318,7 @@ class PreviewWorker(QObject):
         except Exception as exc:
             logger.warning(f"Prediction request failed: {exc}")
 
-    def _schedule_prerender(self, blocks: list, max_blocks: int = 3) -> None:
+    def _schedule_prerender(self, blocks: list[Any], max_blocks: int = 3) -> None:
         """
         Schedule pre-rendering of predicted blocks (v1.6.0).
 
@@ -374,7 +374,7 @@ class PreviewWorker(QObject):
         except Exception as exc:
             logger.debug(f"Pre-render failed: {exc}")
 
-    def get_predictive_stats(self) -> dict:
+    def get_predictive_stats(self) -> dict[str, Any]:
         """
         Get predictive rendering statistics (v1.6.0).
 
@@ -382,10 +382,10 @@ class PreviewWorker(QObject):
             Dictionary with prediction stats, or empty dict if not available
         """
         if self._predictive_renderer:
-            return self._predictive_renderer.get_statistics()
+            return self._predictive_renderer.get_statistics()  # type: ignore[no-any-return]  # predictive renderer returns Any
         return {}
 
-    def get_cache_stats(self) -> dict:
+    def get_cache_stats(self) -> dict[str, Any]:
         """
         Get cache statistics from incremental renderer.
 
@@ -393,7 +393,7 @@ class PreviewWorker(QObject):
             Dictionary with cache stats, or empty dict if not available
         """
         if self._incremental_renderer:
-            return self._incremental_renderer.get_cache_stats()
+            return self._incremental_renderer.get_cache_stats()  # type: ignore[no-any-return]  # incremental renderer returns Any
         return {}
 
     def clear_cache(self) -> None:
