@@ -28,7 +28,13 @@ try:
     KEYRING_AVAILABLE = True
 except ImportError:  # pragma: no cover - Import-time exception, tested via subprocess
     KEYRING_AVAILABLE = False  # pragma: no cover
-    KeyringError = Exception  # pragma: no cover
+
+    # Create a dummy KeyringError class when keyring is not available
+    class KeyringError(Exception):  # type: ignore[no-redef]  # pragma: no cover
+        """Fallback KeyringError when keyring module is not available."""
+
+        pass
+
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +212,7 @@ class SecureCredentials:
                 logger.info(f"No API key found for service: {service}")
                 SecurityAudit.log_event("get_key", service, success=False)
 
-            return api_key  # type: ignore[no-any-return]  # keyring.get_password returns str but typed as Any
+            return api_key
         except KeyringError as e:
             logger.error(f"Failed to retrieve API key for {service}: {e}")
             SecurityAudit.log_event("get_key", service, success=False)

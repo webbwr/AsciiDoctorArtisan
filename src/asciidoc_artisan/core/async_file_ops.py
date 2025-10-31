@@ -28,8 +28,8 @@ from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Optional, Union
 
 try:
-    import aiofiles  # type: ignore[import-untyped]  # aiofiles has no type stubs
-    import aiofiles.os  # type: ignore[import-untyped]  # aiofiles has no type stubs
+    import aiofiles
+    import aiofiles.os
 
     AIOFILES_AVAILABLE = True
 except ImportError:
@@ -102,7 +102,7 @@ async def async_read_text(
         async with aiofiles.open(file_path, mode="r", encoding=encoding) as f:
             content = await f.read()
             logger.debug(f"Async read successful: {file_path} ({len(content)} chars)")
-            return content  # type: ignore[no-any-return]  # aiofiles.read returns str but typed as Any
+            return content
     except Exception as e:
         logger.error(f"Async read failed for {file_path}: {e}")
         return None
@@ -322,7 +322,9 @@ class AsyncFileContext:
         ...     await f.write("Hello, async world!")
     """
 
-    def __init__(self, file_path: Path, mode: str = "r", encoding: str = "utf-8"):
+    def __init__(
+        self, file_path: Path, mode: str = "r", encoding: Optional[str] = "utf-8"
+    ):
         """
         Initialize async file context.
 
@@ -342,9 +344,15 @@ class AsyncFileContext:
             logger.error("aiofiles not available")
             raise RuntimeError("aiofiles not available for async file operations")
 
-        self._file = await aiofiles.open(
-            self.file_path, mode=self.mode, encoding=self.encoding
-        )
+        # Only pass encoding for text modes
+        if self.encoding is not None and "b" not in self.mode:
+            self._file = await aiofiles.open(  # type: ignore[call-overload]
+                str(self.file_path), mode=self.mode, encoding=self.encoding
+            )
+        else:
+            self._file = await aiofiles.open(  # type: ignore[call-overload]
+                str(self.file_path), mode=self.mode
+            )
         return self._file
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:

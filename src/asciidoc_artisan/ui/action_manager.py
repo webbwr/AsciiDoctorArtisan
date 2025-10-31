@@ -91,7 +91,11 @@ VERSION: 1.6.0 (GitHub CLI integration)
 
 # === STANDARD LIBRARY IMPORTS ===
 import logging  # For recording what the program does (debug messages)
-from typing import TYPE_CHECKING, Any, Optional  # For type hints without circular imports
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Optional,
+)  # For type hints without circular imports
 
 # === QT FRAMEWORK IMPORTS ===
 from PySide6.QtGui import (

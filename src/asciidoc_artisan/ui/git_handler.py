@@ -32,7 +32,9 @@ class GitHandler(BaseVCSHandler):
         bool, str
     )  # Emitted when operation completes (success, message)
 
-    def __init__(self, parent_window: Any, settings_manager: Any, status_manager: Any) -> None:
+    def __init__(
+        self, parent_window: Any, settings_manager: Any, status_manager: Any
+    ) -> None:
         """
         Initialize GitHandler.
 

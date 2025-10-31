@@ -314,7 +314,9 @@ def get_profiler() -> MemoryProfiler:
     return _global_profiler
 
 
-def profile_memory(description: str = "") -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def profile_memory(
+    description: str = "",
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to profile memory usage of a function.
 

@@ -25,7 +25,7 @@ Design Goals:
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any, Coroutine, Dict, Optional
+from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QObject, Signal
 

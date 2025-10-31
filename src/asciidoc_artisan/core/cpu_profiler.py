@@ -197,7 +197,11 @@ class CPUProfiler:
                     func_info = " ".join(parts[5:])
 
                     hotspots.append(
-                        {"function": func_info, "cumtime": cumtime, "ncalls": int(ncalls)}
+                        {
+                            "function": func_info,
+                            "cumtime": cumtime,
+                            "ncalls": int(ncalls),
+                        }
                     )
                 except (ValueError, IndexError):
                     continue

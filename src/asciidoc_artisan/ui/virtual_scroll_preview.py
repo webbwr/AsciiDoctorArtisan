@@ -1,4 +1,3 @@
-from typing import Any, Dict, Optional
 """
 Virtual Scrolling Preview - Optimized rendering for large documents.
 
@@ -23,7 +22,7 @@ Design Goals:
 
 import logging
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from PySide6.QtWidgets import QWidget
 

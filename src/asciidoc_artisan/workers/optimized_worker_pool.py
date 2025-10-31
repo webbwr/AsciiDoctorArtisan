@@ -84,7 +84,9 @@ class CancelableRunnable(QRunnable):
     Checks cancellation flag before and during execution.
     """
 
-    def __init__(self, func: Callable[..., Any], task_id: str, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, func: Callable[..., Any], task_id: str, *args: Any, **kwargs: Any
+    ) -> None:
         """
         Initialize cancelable runnable.
 

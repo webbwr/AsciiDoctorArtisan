@@ -60,7 +60,9 @@ class WebEngineHandler(PreviewHandlerBase):
     - sync_preview_to_editor() - Sync scroll via JavaScript callback
     """
 
-    def __init__(self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window: Any) -> None:
+    def __init__(
+        self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window: Any
+    ) -> None:
         """
         Initialize WebEngine PreviewHandler.
 

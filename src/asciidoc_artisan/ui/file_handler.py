@@ -54,7 +54,11 @@ class FileHandler(QObject):
     )  # Emitted when file modified externally (v1.7.0)
 
     def __init__(
-        self, editor: QPlainTextEdit, parent_window: Any, settings_manager: Any, status_manager: Any
+        self,
+        editor: QPlainTextEdit,
+        parent_window: Any,
+        settings_manager: Any,
+        status_manager: Any,
     ) -> None:
         """
         Initialize FileHandler.

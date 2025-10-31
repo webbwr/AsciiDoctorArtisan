@@ -66,7 +66,9 @@ class EditorState:
         self.editor.setFont(font)
 
         # Update preview zoom factor (QWebEngineView only - QTextBrowser doesn't support zoom)
-        if hasattr(self.preview, "zoomFactor") and hasattr(self.preview, "setZoomFactor"):
+        if hasattr(self.preview, "zoomFactor") and hasattr(
+            self.preview, "setZoomFactor"
+        ):
             current_zoom = self.preview.zoomFactor()
             zoom_delta = 0.1 * delta  # Convert delta to zoom factor change
             new_zoom = max(0.25, min(5.0, current_zoom + zoom_delta))

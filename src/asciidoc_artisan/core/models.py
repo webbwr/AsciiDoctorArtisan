@@ -120,7 +120,8 @@ class GitHubResult(BaseModel):
 
     success: bool = Field(..., description="True if operation succeeded")
     data: Optional[Dict[str, Any] | list[Dict[str, Any]]] = Field(
-        default=None, description="Parsed JSON data from GitHub CLI (dict for single results, list for list operations)"
+        default=None,
+        description="Parsed JSON data from GitHub CLI (dict for single results, list for list operations)",
     )
     error: str = Field(default="", description="Error message from GitHub CLI")
     user_message: str = Field(..., description="Human-readable status message")

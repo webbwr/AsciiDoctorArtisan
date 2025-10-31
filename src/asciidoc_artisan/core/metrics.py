@@ -307,7 +307,9 @@ def get_metrics_collector() -> MetricsCollector:
 
 
 # Decorator for automatic timing
-def measure_time(operation_name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def measure_time(
+    operation_name: str,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to automatically measure and record operation time.
 

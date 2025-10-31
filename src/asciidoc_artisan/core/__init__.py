@@ -94,7 +94,6 @@ from typing import Any
 # === EAGER IMPORTS (Load Immediately) ===
 # These are the most commonly used items - we import them RIGHT NOW (not lazily)
 # because we know the main window will need them within the first second
-
 # File operations (security-critical - used everywhere in the app)
 from .file_operations import (
     atomic_save_json,  # Save JSON files atomically (no corruption risk)
@@ -237,8 +236,13 @@ def __getattr__(name: str) -> Any:
 
     # === GROUP 2B: CPU PROFILER (Developer Tools - QA-15) ===
     # Only used when profiling CPU performance - rarely accessed
-    if name in ("CPUProfiler", "ProfileResult", "get_cpu_profiler",
-                "enable_cpu_profiling", "disable_cpu_profiling"):
+    if name in (
+        "CPUProfiler",
+        "ProfileResult",
+        "get_cpu_profiler",
+        "enable_cpu_profiling",
+        "disable_cpu_profiling",
+    ):
         # Check if we've already imported cpu_profiler module
         if name not in _MODULE_CACHE:
             # First time accessing CPU profiler - import it now
