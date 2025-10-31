@@ -1,38 +1,43 @@
 # AsciiDoc Artisan
 
-A simple program. It helps you write papers with GPU-accelerated performance.
+A simple program. It helps you write papers. It is very fast.
 
 ## What It Does
 
-This program:
-- Shows your work as you type (10-50x faster with GPU)
+This program does many things:
+- Shows your work as you type
 - Saves your work with Git
-- Works with GitHub (make PRs and issues)
-- Opens Word, PDF, Markdown, HTML files (3-5x faster)
-- Saves to Word, PDF, Markdown, HTML
-- Changes file types with AI or Pandoc
+- Works with GitHub
+- Opens Word files
+- Opens PDF files
+- Opens Markdown files
+- Opens HTML files
+- Saves to all those types
+- Changes file types for you
 - Works on all computers
-- Uses GPU for speed (automatic)
-- Uses NPU for AI tasks (when available)
-- Uses local AI for smart conversions (optional)
-- Shows document version in status bar
+- Uses your graphics card (GPU) for speed
+- Works with AI to help you
+
+The GPU makes it 10-50x faster. That means much faster than before.
 
 ## What You Need
 
-You need these programs:
+You need these programs first:
 - **Python 3.11** - Makes it run
 - **Pandoc** - Changes file types
 - **wkhtmltopdf** - Makes PDF files
-- **Git** - Saves work online (optional)
-- **GitHub CLI (gh)** - Work with GitHub (optional, from cli.github.com)
-- **Ollama** - AI file changes (optional, from ollama.com)
-- **GPU drivers** - For hardware acceleration (automatic)
+
+You might want these too:
+- **Git** - Saves work online (not required)
+- **GitHub CLI** - Work with GitHub (not required)
+- **Ollama** - AI help (not required)
+- **GPU drivers** - For speed (not required)
 
 ## Install It
 
-### Easy Way (Best)
+### Easy Way
 
-We have scripts. They do it all.
+We have scripts. They do it all for you.
 
 **Mac or Linux:**
 ```bash
@@ -49,13 +54,13 @@ cd AsciiDoctorArtisan
 .\Install-AsciiDocArtisan.ps1
 ```
 
-The script:
+The script does this:
 - Gets Python parts
 - Gets Pandoc
 - Checks Git
 - Tests it
 
-### Do It By Hand
+### Install By Hand
 
 If you want to do it yourself:
 
@@ -65,8 +70,8 @@ pip install -r requirements.txt
 ```
 
 2. Get Pandoc and PDF tool:
-   - **Linux**: `sudo apt install pandoc wkhtmltopdf`
-   - **Mac**: `brew install pandoc wkhtmltopdf`
+   - **Linux**: Type `sudo apt install pandoc wkhtmltopdf`
+   - **Mac**: Type `brew install pandoc wkhtmltopdf`
    - **Windows**: Get from pandoc.org and wkhtmltopdf.org
 
 ## Use It
@@ -78,175 +83,203 @@ Type this:
 python3 src/main.py
 ```
 
-On Windows:
+On Windows, type this:
 ```bash
 python src\main.py
 ```
 
-Or click the start file.
+Or just click the start file.
 
 ### Fast Keys
 
-| Press | Does |
-|-------|------|
+| Press | What It Does |
+|-------|--------------|
 | Ctrl+N | New file |
 | Ctrl+O | Open file |
 | Ctrl+S | Save |
 | Ctrl+Q | Close |
-| Ctrl+F | Find |
+| Ctrl+F | Find text |
 | Ctrl+D | Dark mode |
-| Ctrl++ | Big text |
-| Ctrl+- | Small text |
+| Ctrl++ | Make text big |
+| Ctrl+- | Make text small |
 
 ### Open Files
 
-**What you can open:**
+**You can open these:**
 - AsciiDoc files (.adoc)
 - Markdown files (.md)
 - Word files (.docx)
 - Web files (.html)
 - PDF files (.pdf)
 
-All files open fast. PDF files open 3-5x faster than before.
+All files open fast. PDF files open 3 to 5 times faster than before.
 
-**How to open:**
-1. Click `File` then `Open`
+**How to open a file:**
+1. Click `File` then click `Open`
 2. Pick your file
-3. Click Open
+3. Click the Open button
 
-It changes to AsciiDoc for you.
+The program changes it to AsciiDoc for you.
 
 ### Save Files
 
-**Save your work:**
-1. Click `File` then `Save`
-2. Type a name
-3. Click Save
+**To save your work:**
+1. Click `File` then click `Save`
+2. Type a name for your file
+3. Click the Save button
 
-**Save as other types:**
-1. Click `File` then `Save As`
-2. Pick type:
+**To save as a different type:**
+1. Click `File` then click `Save As`
+2. Pick what type you want:
    - AsciiDoc (.adoc)
    - Markdown (.md)
    - Word (.docx)
    - PDF (.pdf)
    - Web page (.html)
-3. Type a name
-4. Click Save
+3. Type a name for your file
+4. Click the Save button
 
-It changes it for you. No wait.
+The program changes it for you. No wait time.
 
 ### Use Git
 
-If in a Git folder:
+If you are in a Git folder, you can use Git.
 
-**Pull** (Get new work):
-- Click `Git` then `Pull`
+**Pull** means get new work from the web:
+- Click `Git` then click `Pull`
 
-**Commit** (Save work):
-1. Click `Git` then `Commit`
+**Commit** means save your work:
+1. Click `Git` then click `Commit`
 2. Type what you did
 3. Click OK
 
-**Push** (Send to web):
-- Click `Git` then `Push`
+**Push** means send work to the web:
+- Click `Git` then click `Push`
 
-## GPU Acceleration (New in v1.4!)
+## GPU Speed
 
-This app uses your graphics card for speed:
-- **10-50x faster preview** - GPU-accelerated rendering
-- **70-90% less CPU use** - Smooth performance
-- **Automatic detection** - Works with NVIDIA, AMD, Intel GPUs
-- **NPU support** - Uses Intel NPU for AI tasks
-- **Smooth scrolling** - 60fps+ with hardware acceleration
-- **Auto fallback** - Works without GPU too
+New in v1.4!
 
-**What it detects:**
-- NVIDIA GPUs (CUDA, OpenCL, Vulkan)
-- AMD GPUs (ROCm, OpenCL, Vulkan)
-- Intel GPUs (OpenCL, Vulkan)
-- Intel NPU (OpenVINO)
+This app uses your graphics card. This makes it very fast.
 
-No setup needed. It detects your hardware and uses it automatically.
+What you get:
+- Preview is 10 to 50 times faster
+- Uses 70% to 90% less CPU
+- Finds your GPU by itself
+- Works with NVIDIA cards
+- Works with AMD cards
+- Works with Intel cards
+- Still works if no GPU found
 
-**Check GPU status:**
-The app shows in logs at startup:
+**What GPUs work:**
+- NVIDIA (with CUDA, OpenCL, or Vulkan)
+- AMD (with ROCm, OpenCL, or Vulkan)
+- Intel (with OpenCL or Vulkan)
+- Intel NPU (with OpenVINO)
+
+No setup needed. The app finds your card. It uses it by itself.
+
+**Check if GPU works:**
+
+The app shows this at start:
 ```
-[INFO] GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU (nvidia)
+[INFO] GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU
 [INFO] Compute capabilities: cuda, opencl, vulkan
-[INFO] QWebEngineView with acceleration
+[INFO] Using GPU for preview
 ```
 
-## AI Features (v1.2+)
+## AI Help
 
-Smart document conversions with local AI:
+New in v1.2!
 
-**What it does:**
-- **Smarter conversions**: AI understands document structure better than rule-based tools
-- **Local AI**: Uses Ollama running on your computer (no cloud, no data leaves your machine)
-- **Pick your model**: Choose from installed models (phi3, llama2, mistral, etc.)
-- **Auto fallback**: Uses Pandoc if AI not available or if conversion fails
-- **Real-time status**: Status bar shows which method is active
+The app can use AI. This makes file changes better.
 
-**Why use AI?**
-- Better preserves document formatting and structure
-- Understands context (e.g., code blocks, tables, lists)
-- Handles complex documents with nested elements
-- Improves quality of Markdown ↔ AsciiDoc conversions
+**What AI does:**
+- Makes smarter file changes
+- Keeps your format better
+- Knows what code blocks are
+- Knows what tables are
+- Works better with complex files
+
+**Where does AI run?**
+
+AI runs on your own computer. Your files never leave your machine. This keeps your work safe.
+
+**What AI programs work:**
+- Ollama (we use this)
+- Models: phi3, llama2, mistral
 
 ### Turn On AI
 
-**Step 1: Install Ollama**
-```bash
-# Visit ollama.com and follow installation instructions for your OS
-# Or use these quick commands:
+**Step 1: Get Ollama**
 
-# macOS
+Visit ollama.com. Follow the steps for your computer.
+
+Or type these:
+
+For Mac:
+```bash
 brew install ollama
-
-# Linux
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Windows
-# Download installer from ollama.com
 ```
 
-**Step 2: Install an AI model**
+For Linux:
 ```bash
-# Recommended lightweight model (good for most documents)
-ollama pull phi3:mini
-
-# Other options:
-ollama pull llama2        # Better quality, slower
-ollama pull mistral       # Balanced performance
-ollama pull codellama     # Best for code-heavy documents
+curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-**Step 3: Enable in AsciiDoc Artisan**
+For Windows: Get the installer from ollama.com
+
+**Step 2: Get an AI model**
+
+Type this:
+```bash
+ollama pull phi3:mini
+```
+
+This gets a small, fast AI model. Good for most work.
+
+Other choices:
+```bash
+ollama pull llama2        # Better but slower
+ollama pull mistral       # Middle choice
+ollama pull codellama     # Good for code files
+```
+
+**Step 3: Turn it on**
+
 1. Open the app
-2. Go to: **Tools** → **AI Status** → **Settings**
-3. Check "Enable Ollama AI"
-4. Select your model from the dropdown
-5. Click "Save"
+2. Click **Tools**
+3. Click **AI Status**
+4. Click **Settings**
+5. Check the "Enable Ollama AI" box
+6. Pick your model from the list
+7. Click "Save"
 
-**Step 4: Verify it's working**
-- Status bar shows: `AI: phi3:mini` (or your chosen model)
-- Try converting a document (File → Import or File → Export)
-- AI will process the conversion automatically
+**Step 4: Check it works**
 
-**Note:** If Ollama isn't running or the model isn't available, the app automatically uses Pandoc instead.
+Look at the status bar. It should say: `AI: phi3:mini`
 
-## The Right Side
+Try to change a file type. The AI will do it for you.
 
-The right side shows your work:
-- Updates when you stop typing (instant with GPU)
+**Note:** If Ollama is not running, the app uses Pandoc instead. The app still works.
+
+## The Preview
+
+The right side shows your work as you type.
+
+What it does:
+- Updates when you stop typing
 - Moves as you write
-- Shows bold, lists, titles
-- Smooth 60fps scrolling
+- Shows bold text
+- Shows lists
+- Shows titles
+- Scrolls at 60 frames per second
 
-## Where It Saves
+With GPU, this is instant. No wait time.
 
-Settings save here:
+## Where Settings Save
+
+The app saves your settings here:
 - **Linux**: `~/.config/AsciiDocArtisan/`
 - **Windows**: `%APPDATA%/AsciiDocArtisan/`
 - **Mac**: `~/Library/Application Support/AsciiDocArtisan/`
@@ -254,82 +287,110 @@ Settings save here:
 ## Fix Problems
 
 ### Can't find pypandoc
-Type this: `pip install pypandoc`
+
+Type this in your terminal:
+```bash
+pip install pypandoc
+```
 
 ### Can't find Pandoc
+
 Get it from pandoc.org
 
 ### Git does not work
+
 Make sure you are in a Git folder.
-Type `git status` to check.
+
+To check, type:
+```bash
+git status
+```
 
 ### Won't start on Windows
+
 Run the install script again.
 
-### GPU not detected
-Check if you have GPU drivers installed:
-- NVIDIA: `nvidia-smi`
-- AMD: `rocm-smi`
-- Intel: `glxinfo | grep "OpenGL renderer"`
+### GPU not found
 
-The app works without GPU (uses CPU instead).
+Check if you have GPU drivers.
+
+To check NVIDIA:
+```bash
+nvidia-smi
+```
+
+To check AMD:
+```bash
+rocm-smi
+```
+
+To check Intel:
+```bash
+glxinfo | grep "OpenGL renderer"
+```
+
+The app works without a GPU. It just uses your CPU instead.
 
 ## What's Inside
 
-Main parts:
+Main parts of the program:
 
 ```
 AsciiDoctorArtisan/
-├── src/         # Code
-├── templates/   # Examples
-├── docs/        # Help
-├── tests/       # Tests
-├── scripts/     # Tools
-└── LICENSE     # Rules
+├── src/         # The code
+├── templates/   # Example files
+├── docs/        # Help files
+├── tests/       # Test code
+├── scripts/     # Helper tools
+└── LICENSE      # Legal rules
 ```
 
 ## Help Us
 
-You can help!
-1. Copy the code
-2. Make it better
-3. Send it back
+You can help make this better!
 
-See [how-to-contribute.md](docs/how-to-contribute.md) for more.
+How to help:
+1. Copy the code to your computer
+2. Make it better
+3. Send it back to us
+
+See our guide: [how-to-contribute.md](docs/how-to-contribute.md)
 
 ## License
 
-This is free! MIT License.
+This is free to use! We use the MIT License.
 
 ## Get Help
 
-Need help?
+Need more help?
 - [How to Use](docs/how-to-use.md) - All features
-- [GitHub Integration](docs/GITHUB_CLI_INTEGRATION.md) - Pull requests and issues
-- Look at GitHub
-- Make a new issue
+- [GitHub Guide](docs/GITHUB_CLI_INTEGRATION.md) - Pull requests and issues
+- Look at our GitHub page
+- Make a new issue on GitHub
 
-**Reading Level**: Grade 5.0
+**Reading Level**: Grade 5.0 or below
 
 ## Version
 
 **Current Version**: 1.6.0
 
-**What's New in v1.6.0:**
-- ✅ GitHub CLI integration (create PRs and issues)
-- ✅ Async I/O with aiofiles (non-blocking file operations)
-- ✅ Type hints: 100% coverage (mypy --strict: 0 errors)
-- ✅ 60%+ test coverage (621+ tests, 69 test files)
-- ✅ Block detection optimization (10-14% improvement)
-- ✅ Predictive rendering system (28% latency reduction)
-- ✅ Fast startup maintained (1.05 seconds)
-- ✅ GPU acceleration (10-50x faster rendering)
+**What's New:**
+- Works with GitHub now
+- Can make pull requests
+- Can make issues
+- Faster file reading (async I/O)
+- All type hints added (100%)
+- Over 621 tests now
+- Faster block detection (10-14% better)
+- Preview shows faster (28% better)
+- Starts in 1.05 seconds
+- GPU makes it 10-50x faster
 
 ## Thank You
 
-This uses:
-- **PySide6** - Makes windows (with GPU acceleration)
-- **asciidoc3** - Makes HTML
-- **pypandoc** - Changes files
-- **pymupdf** - Fast PDF reading
-- **ollama** - Local AI (optional)
+This app uses these tools:
+- **PySide6** - Makes the windows (with GPU speed)
+- **asciidoc3** - Makes HTML files
+- **pypandoc** - Changes file types
+- **pymupdf** - Reads PDF files fast
+- **ollama** - Runs AI on your computer (if you want)

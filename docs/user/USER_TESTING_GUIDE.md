@@ -2,18 +2,18 @@
 
 **Version**: 1.2.0
 **Date**: October 26, 2025
-**Reading Level**: Grade 5.0
-**For**: Testing and validation
+**Reading Level**: Grade 5.0 or below
+**For**: Testing the app
 
 ---
 
 ## What to Test
 
-This guide helps you test all features of AsciiDoc Artisan.
+This guide shows you how to test AsciiDoc Artisan. It shows you all the things to check.
 
-### Quick Test (5 minutes)
+### Quick Test
 
-Fast check that everything works:
+Takes 5 minutes. Checks if the app works:
 
 1. **Start the app**
    ```bash
@@ -39,13 +39,13 @@ Fast check that everything works:
 
 ---
 
-## Full Test (30 minutes)
+## Full Test
 
-Complete test of all features:
+Takes 30 minutes. Tests all features.
 
 ### Test 1: Basic Editing
 
-**What**: Type and edit text
+**What**: Type text and edit it
 
 **Steps**:
 1. Create new file (File → New)
@@ -257,23 +257,25 @@ python src/asciidoc_artisan/core/hardware_detection.py
 
 ---
 
-### Test 10: Ollama AI Conversions (v1.2 Feature)
+### Test 10: AI File Changes
 
-**What**: AI-powered format conversions
+**What**: Use AI to change file types
 
 **Steps**:
-1. Install Ollama: `curl -fsSL https://ollama.com/install.sh | sh`
-2. Get a model: `ollama pull phi3:mini`
-3. Open app
-4. Go to Tools → AI Status → Settings
-5. Check "Enable Ollama AI integration"
-6. Select "phi3:mini" model
-7. Click OK
+1. Install Ollama: Type `curl -fsSL https://ollama.com/install.sh | sh`
+2. Get AI model: Type `ollama pull phi3:mini`
+3. Open the app
+4. Click Tools
+5. Click AI Status
+6. Click Settings
+7. Check the "Enable Ollama AI" box
+8. Pick "phi3:mini" from the list
+9. Click OK
 
-**Expected**:
-- ✓ Status bar shows "AI: phi3:mini"
-- ✓ Settings dialog shows 2+ models
-- ✓ Service status shows "✅ Ollama service running"
+**What you should see**:
+- ✓ Status bar says "AI: phi3:mini"
+- ✓ Settings shows 2 or more models
+- ✓ Service status says "✅ Ollama running"
 
 **Test Conversion**:
 1. Type some Markdown:
@@ -463,26 +465,26 @@ Test with large files:
 3. Add many lists and tables
 4. Test all operations
 
-**Expected**:
-- Still responsive
-- Preview updates
-- Save works
-- Export works
+**What you should see**:
+- App still feels fast
+- Preview still updates
+- Save still works
+- Export still works
 
 ### Stress Test
 
-Test rapid operations:
+Test fast actions:
 
 1. Type very fast
-2. Switch files quickly
-3. Spam zoom controls
-4. Toggle dark mode repeatedly
+2. Change files quickly
+3. Press zoom buttons many times
+4. Turn dark mode on and off many times
 
-**Expected**:
+**What you should see**:
 - No crashes
 - No freezing
-- All operations complete
-- No data loss
+- All actions finish
+- No lost work
 
 ### Memory Test
 
