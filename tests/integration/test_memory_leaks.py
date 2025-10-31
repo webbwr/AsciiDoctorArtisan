@@ -288,3 +288,197 @@ def test_signal_disconnection():
     # Cleanup
     sender.deleteLater()
     receiver.deleteLater()
+
+
+# === QA-14: New Memory Leak Tests for QA-10, QA-11, QA-12, QA-13 === #
+
+
+@pytest.mark.memory
+def test_theme_manager_css_cache_bounded():
+    """Test theme manager CSS cache doesn't leak (QA-11)."""
+    from asciidoc_artisan.ui.theme_manager import ThemeManager
+    from unittest.mock import Mock
+    import sys
+
+    # Create mock editor
+    mock_editor = Mock()
+    mock_editor._settings = Mock(dark_mode=False)
+
+    # Create theme manager
+    manager = ThemeManager(mock_editor)
+
+    # Get initial cache state
+    initial_cache_size = sys.getsizeof(manager._cached_light_css or "")
+
+    # Generate CSS multiple times
+    for i in range(1000):
+        # Toggle dark mode
+        mock_editor._settings.dark_mode = (i % 2 == 0)
+        css = manager.get_preview_css()
+
+    # Cache should be bounded (only 2 entries max - dark and light)
+    light_cache_size = sys.getsizeof(manager._cached_light_css or "")
+    dark_cache_size = sys.getsizeof(manager._cached_dark_css or "")
+
+    # Total cache should be small (< 100KB)
+    total_cache_size = light_cache_size + dark_cache_size
+    assert total_cache_size < 100_000, \
+        f"CSS cache using {total_cache_size / 1_000:.1f}KB"
+
+
+@pytest.mark.memory
+def test_settings_manager_deferred_save_no_leak():
+    """Test settings manager deferred save doesn't leak timers (QA-12)."""
+    from asciidoc_artisan.ui.settings_manager import SettingsManager
+    from asciidoc_artisan.core.settings import Settings
+    from unittest.mock import Mock
+    import gc
+
+    manager = SettingsManager()
+
+    # Create mock settings
+    mock_settings = Settings()
+    mock_window = Mock()
+
+    # Trigger many deferred saves (should coalesce)
+    for i in range(1000):
+        manager.save_settings(mock_settings, mock_window)
+
+    # Only one timer should exist (single-shot timer that coalesces saves)
+    assert manager._pending_save_timer.isSingleShot()
+    assert manager._pending_save_timer.interval() == 100
+
+    # Stop timer to prevent it from firing
+    manager._pending_save_timer.stop()
+
+    # Force garbage collection
+    gc.collect()
+
+
+@pytest.mark.memory
+@pytest.mark.asyncio
+async def test_async_file_watcher_adaptive_polling_no_leak():
+    """Test async file watcher adaptive polling doesn't leak state (QA-13)."""
+    from asciidoc_artisan.core.async_file_watcher import AsyncFileWatcher
+    import tempfile
+    from pathlib import Path
+    import asyncio
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_file = Path(tmpdir) / "test.txt"
+        test_file.write_text("Initial content")
+
+        watcher = AsyncFileWatcher(poll_interval=0.1, debounce_period=0.05)
+        watcher.set_file(test_file)
+
+        await watcher.start()
+
+        # Simulate activity for a while
+        for i in range(50):
+            test_file.write_text(f"Content {i}")
+            await asyncio.sleep(0.05)
+
+        await watcher.stop()
+
+        # State should be bounded
+        assert watcher._activity_streak < 100  # Should not grow unbounded
+        assert watcher._idle_count < 100  # Should not grow unbounded
+
+
+@pytest.mark.memory
+def test_incremental_renderer_increased_cache_bounded():
+    """Test incremental renderer with increased cache is still bounded (QA-10)."""
+    from asciidoc_artisan.workers.incremental_renderer import IncrementalPreviewRenderer
+    from unittest.mock import Mock
+    import sys
+
+    mock_api = Mock()
+    renderer = IncrementalPreviewRenderer(mock_api)
+
+    # Add many more entries than MAX_CACHE_SIZE (500)
+    for i in range(2000):
+        block_id = f"block_{i}"
+        html = f"<h2>Section {i}</h2><p>Content {i}</p>" * 10  # ~500 bytes each
+        renderer.cache.put(block_id, html)
+
+    # Cache should be bounded to MAX_CACHE_SIZE (500)
+    assert len(renderer.cache._cache) <= 500
+
+    # Memory usage should be reasonable
+    # 500 blocks * ~500 bytes = ~250KB
+    cache_memory = sys.getsizeof(renderer.cache._cache)
+    assert cache_memory < 5_000_000, \
+        f"Cache using {cache_memory / 1_000_000:.1f}MB"
+
+
+@pytest.mark.memory
+def test_worker_pool_task_cleanup():
+    """Test worker pool cleans up completed tasks (QA-14)."""
+    from asciidoc_artisan.workers.optimized_worker_pool import (
+        OptimizedWorkerPool,
+        TaskPriority,
+    )
+    import time
+
+    def dummy_task():
+        return "done"
+
+    pool = OptimizedWorkerPool(max_threads=4)
+
+    # Submit many tasks
+    for i in range(500):
+        pool.submit(dummy_task, priority=TaskPriority.NORMAL, task_id=f"task_{i}")
+
+    # Wait for all tasks to complete
+    time.sleep(2.0)
+
+    # Pool should clean up completed tasks
+    stats = pool.get_statistics()
+
+    # Should not have 500 tasks in memory
+    # Completed tasks should be cleaned up
+    assert stats["pending_tasks"] == 0
+    assert stats["active_tasks"] == 0
+
+
+@pytest.mark.memory
+def test_metrics_collector_bounded_operations():
+    """Test metrics collector doesn't leak operation data (QA-14)."""
+    from asciidoc_artisan.core.metrics import get_metrics_collector
+
+    collector = get_metrics_collector()
+    collector.reset()
+
+    # Record many different operations
+    for i in range(1000):
+        collector.record_operation(f"op_{i % 10}", 0.1)
+
+    # Should only have 10 different operations tracked
+    assert len(collector.operations) <= 10
+
+    # Each operation should have bounded history
+    for op_name, op_metrics in collector.operations.items():
+        assert len(op_metrics.durations) <= 1000
+
+
+@pytest.mark.memory
+def test_memory_profiler_no_leak():
+    """Test memory profiler doesn't leak profiling data (QA-14)."""
+    from asciidoc_artisan.core.memory_profiler import MemoryProfiler
+    import time
+
+    profiler = MemoryProfiler()
+
+    # Start profiling
+    with profiler.profile("test_operation"):
+        time.sleep(0.01)
+
+    # Get report (should not leak data)
+    report = profiler.get_report()
+
+    # Reset profiler
+    profiler.reset()
+
+    # Check memory is released
+    report_after_reset = profiler.get_report()
+    assert len(report_after_reset) == 0
