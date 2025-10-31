@@ -313,16 +313,17 @@ Need help?
 
 ## Version
 
-**Current Version**: 1.5.0
+**Current Version**: 1.6.0
 
-**What's New in v1.5.0:**
-- ✅ Fast startup (1.05 seconds)
-- ✅ Worker pool system
-- ✅ Operation cancellation
-- ✅ 60%+ test coverage (481+ tests, 69 test files)
-- ✅ Main window: 561 lines (67% smaller)
-- ✅ GPU acceleration (10-50x faster from v1.4.0)
-- ✅ Grandmaster TechWriter skill (automatic Grade 5.0 docs)
+**What's New in v1.6.0:**
+- ✅ GitHub CLI integration (create PRs and issues)
+- ✅ Async I/O with aiofiles (non-blocking file operations)
+- ✅ Type hints: 100% coverage (mypy --strict: 0 errors)
+- ✅ 60%+ test coverage (621+ tests, 69 test files)
+- ✅ Block detection optimization (10-14% improvement)
+- ✅ Predictive rendering system (28% latency reduction)
+- ✅ Fast startup maintained (1.05 seconds)
+- ✅ GPU acceleration (10-50x faster rendering)
 
 ## Thank You
 
