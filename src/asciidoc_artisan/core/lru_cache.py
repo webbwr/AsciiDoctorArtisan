@@ -20,7 +20,7 @@ Features:
 
 import logging
 from collections import OrderedDict
-from typing import Generic, Optional, TypeVar
+from typing import Any, Dict, Generic, Iterator, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -172,19 +172,19 @@ class LRUCache(Generic[K, V]):
         if not self.delete(key):
             raise KeyError(key)
 
-    def keys(self):
+    def keys(self) -> Any:  # OrderedDict keys view
         """Get cache keys."""
         return self._cache.keys()
 
-    def values(self):
+    def values(self) -> Any:  # OrderedDict values view
         """Get cache values."""
         return self._cache.values()
 
-    def items(self):
+    def items(self) -> Any:  # OrderedDict items view
         """Get cache items."""
         return self._cache.items()
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> Dict[str, Any]:
         """
         Get cache statistics.
 
@@ -340,7 +340,7 @@ class SizeAwareLRUCache(LRUCache[K, V]):
         self._item_sizes.clear()
         self._total_size = 0
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics including size info."""
         stats = super().get_stats()
         stats["total_size"] = self._total_size

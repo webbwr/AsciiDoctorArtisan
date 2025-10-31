@@ -84,7 +84,7 @@ class CancelableRunnable(QRunnable):
     Checks cancellation flag before and during execution.
     """
 
-    def __init__(self, func: Callable, task_id: str, *args, **kwargs):
+    def __init__(self, func: Callable[..., Any], task_id: str, *args: Any, **kwargs: Any) -> None:
         """
         Initialize cancelable runnable.
 
@@ -242,13 +242,13 @@ class OptimizedWorkerPool:
 
     def submit(
         self,
-        func: Callable,
-        *args,
+        func: Callable[..., Any],
+        *args: Any,
         priority: TaskPriority = TaskPriority.NORMAL,
         coalescable: bool = False,
         coalesce_key: Optional[str] = None,
         task_id: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> str:
         """
         Submit task to worker pool.
