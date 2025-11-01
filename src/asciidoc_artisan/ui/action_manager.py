@@ -217,11 +217,12 @@ class ActionManager:
         self.convert_paste_act: QAction  # Paste and convert format (Ctrl+Shift+V)
         self.preferences_act: QAction  # Open settings dialog
 
-        # View menu actions (6 actions)
+        # View menu actions (7 actions)
         self.zoom_in_act: QAction  # Increase font size (Ctrl++)
         self.zoom_out_act: QAction  # Decrease font size (Ctrl+-)
         self.dark_mode_act: QAction  # Toggle dark/light theme (F11)
         self.sync_scrolling_act: QAction  # Toggle scroll synchronization
+        self.maximize_window_act: QAction  # Maximize application window (F11)
         self.maximize_editor_act: QAction  # Maximize editor pane
         self.maximize_preview_act: QAction  # Maximize preview pane
 
@@ -583,7 +584,7 @@ class ActionManager:
             shortcut="Ctrl+,",
         )
 
-        # === VIEW MENU ACTIONS (6 actions) ===
+        # === VIEW MENU ACTIONS (7 actions) ===
         # These actions control the UI appearance: zoom, theme, scroll sync, maximize
 
         # Zoom in (Ctrl++) - makes editor text larger
@@ -615,6 +616,13 @@ class ActionManager:
             self.window._toggle_sync_scrolling,
             checkable=True,
             checked=self._sync_scrolling,
+        )
+
+        self.maximize_window_act = self._create_action(
+            "Maximize &Window",
+            "Maximize application window to full screen",
+            self.window._toggle_maximize_window,
+            shortcut="F11",
         )
 
         self.maximize_editor_act = self._create_action(
@@ -858,7 +866,8 @@ class ActionManager:
         # Separator
         view_menu.addSeparator()
 
-        # Pane maximize toggles
+        # Window and pane maximize toggles
+        view_menu.addAction(self.maximize_window_act)  # Maximize window (F11)
         view_menu.addAction(self.maximize_editor_act)  # Maximize editor (Ctrl+Shift+E)
         view_menu.addAction(
             self.maximize_preview_act

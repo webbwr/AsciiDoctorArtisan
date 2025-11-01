@@ -567,6 +567,13 @@ class AsciiDocEditor(QMainWindow):
         """Toggle maximize/restore for a specific pane (delegates to EditorState)."""
         self.editor_state.toggle_pane_maximize(pane)
 
+    def _toggle_maximize_window(self) -> None:
+        """Toggle maximize/restore application window to full screen."""
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()
+
     def convert_and_paste_from_clipboard(self) -> None:
         """Convert clipboard content to AsciiDoc (delegates to ExportManager)."""
         self.export_manager.convert_and_paste_from_clipboard()
