@@ -62,18 +62,18 @@ class Settings:
     last_file: Optional[str] = None
     git_repo_path: Optional[str] = None
     dark_mode: bool = True
-    maximized: bool = False
+    maximized: bool = True  # Start maximized by default
     window_geometry: Optional[Dict[str, int]] = None
     splitter_sizes: Optional[List[int]] = None
     font_size: int = EDITOR_FONT_SIZE
     auto_save_enabled: bool = True
     auto_save_interval: int = 300
     ai_conversion_enabled: bool = False
-    ollama_enabled: bool = False
-    ollama_model: Optional[str] = None
+    ollama_enabled: bool = True  # Enable Ollama by default for chat
+    ollama_model: Optional[str] = "phi3:mini"  # Default model for chat
 
     # Chat settings (v1.7.0)
-    ollama_chat_enabled: bool = False
+    ollama_chat_enabled: bool = True  # Enable chat by default
     ollama_chat_history: List[Dict[str, Any]] = field(default_factory=list)
     ollama_chat_max_history: int = 100
     ollama_chat_context_mode: str = "document"

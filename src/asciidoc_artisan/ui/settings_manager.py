@@ -362,16 +362,28 @@ class SettingsManager:
             - Logs restoration actions
         """
         # Restore splitter sizes (delayed to ensure layout complete)
-        if settings.splitter_sizes and len(settings.splitter_sizes) == 2:
+        # Support both 2-pane (legacy) and 3-pane (with chat) layouts
+        if settings.splitter_sizes:
             sizes = list(settings.splitter_sizes)
-            # Only restore if both panes have reasonable sizes (not maximized)
-            # Ensure both panes are visible by requiring both > 0
-            if all(s > 0 for s in sizes):
-                QTimer.singleShot(100, lambda: splitter.setSizes(sizes))
-                logger.info(f"Restoring splitter sizes: {settings.splitter_sizes}")
+            num_panes = len(splitter.sizes())
+
+            # Handle migration from 2-pane to 3-pane layout
+            if len(sizes) == 2 and num_panes == 3:
+                # Legacy 2-pane settings: add chat pane with 0 width (hidden)
+                sizes.append(0)
+                logger.info("Migrating 2-pane splitter settings to 3-pane layout")
+
+            if len(sizes) == num_panes:
+                # Only restore if first two panes have reasonable sizes
+                # Third pane (chat) can be 0 (hidden)
+                if sizes[0] > 0 and sizes[1] > 0:
+                    QTimer.singleShot(100, lambda: splitter.setSizes(sizes))
+                    logger.info(f"Restoring splitter sizes: {sizes}")
+                else:
+                    logger.info(f"Ignoring maximized splitter sizes: {sizes}")
             else:
-                logger.info(
-                    f"Ignoring maximized splitter sizes: {settings.splitter_sizes}"
+                logger.warning(
+                    f"Splitter size mismatch: saved={len(sizes)}, actual={num_panes}"
                 )
 
         # Restore font size

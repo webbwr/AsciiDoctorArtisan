@@ -244,26 +244,51 @@ class ChatManager(QObject):
 
     def _update_visibility(self) -> None:
         """Update chat UI visibility based on settings."""
-        # Chat bar visible when: ollama_enabled=True AND ollama_model is set
-        bar_visible = bool(
-            self._settings.ollama_enabled and self._settings.ollama_model
+        # Chat pane visible when: ollama_enabled=True AND ollama_model is set AND ollama_chat_enabled=True
+        chat_visible = bool(
+            self._settings.ollama_enabled
+            and self._settings.ollama_model
+            and self._settings.ollama_chat_enabled
         )
-
-        # Chat panel visible when: bar is visible AND ollama_chat_enabled=True
-        panel_visible = bar_visible and self._settings.ollama_chat_enabled
 
         logger.info(
             f"Chat visibility update: ollama_enabled={self._settings.ollama_enabled}, "
             f"ollama_model={self._settings.ollama_model}, "
             f"ollama_chat_enabled={self._settings.ollama_chat_enabled}, "
-            f"bar_visible={bar_visible}, panel_visible={panel_visible}"
+            f"chat_visible={chat_visible}"
         )
 
-        self._chat_bar.setVisible(bar_visible)
-        self._chat_panel.setVisible(panel_visible)
+        # Get reference to chat container from parent
+        parent = self.parent()
+        if parent and hasattr(parent, 'chat_container'):
+            # Control entire chat pane visibility
+            parent.chat_container.setVisible(chat_visible)
 
-        self.visibility_changed.emit(bar_visible, panel_visible)
-        logger.info(f"Chat widgets visibility set: bar={bar_visible}, panel={panel_visible}")
+            # Update splitter sizes to show/hide chat pane with proportional sizing
+            if hasattr(parent, 'splitter') and len(parent.splitter.sizes()) == 3:
+                sizes = parent.splitter.sizes()
+                if chat_visible and sizes[2] == 0:
+                    # Show chat with proportional sizing: 2/5 editor, 2/5 preview, 1/5 chat
+                    # Use QTimer to delay until layout is stable
+                    from PySide6.QtCore import QTimer
+                    def show_chat():
+                        window_width = parent.width()
+                        editor_width = int(window_width * 0.4)
+                        preview_width = int(window_width * 0.4)
+                        chat_width = int(window_width * 0.2)
+                        parent.splitter.setSizes([editor_width, preview_width, chat_width])
+                        logger.info(f"Chat pane shown (proportional): {editor_width}, {preview_width}, {chat_width}")
+                    QTimer.singleShot(150, show_chat)
+                elif not chat_visible and sizes[2] > 0:
+                    # Hide chat and redistribute: 1/2 editor, 1/2 preview
+                    window_width = parent.width()
+                    editor_width = int(window_width * 0.5)
+                    preview_width = int(window_width * 0.5)
+                    parent.splitter.setSizes([editor_width, preview_width, 0])
+                    logger.info(f"Chat pane hidden (redistributed): {editor_width}, {preview_width}, 0")
+
+        self.visibility_changed.emit(chat_visible, chat_visible)
+        logger.info(f"Chat pane visibility set: {chat_visible}")
 
     def _on_message_sent(self, message: str, model: str, context_mode: str) -> None:
         """
@@ -427,17 +452,21 @@ class ChatManager(QObject):
         logger.info("Chat settings updated")
 
     def toggle_panel_visibility(self) -> None:
-        """Toggle chat panel visibility (for toolbar button)."""
-        current = self._chat_panel.isVisible()
+        """Toggle chat pane visibility (for toolbar button)."""
+        parent = self.parent()
+        if not parent or not hasattr(parent, 'chat_container'):
+            return
+
+        current = parent.chat_container.isVisible()
         new_visible = not current
 
         self._settings.ollama_chat_enabled = new_visible
-        self._chat_panel.setVisible(new_visible)
+        self._update_visibility()
         self.settings_changed.emit()
 
         state = "shown" if new_visible else "hidden"
-        self.status_message.emit(f"Chat panel {state}")
-        logger.info(f"Chat panel visibility toggled: {new_visible}")
+        self.status_message.emit(f"Chat pane {state}")
+        logger.info(f"Chat pane visibility toggled: {new_visible}")
 
     def export_chat_history(self) -> str:
         """

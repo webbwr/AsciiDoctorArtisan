@@ -70,13 +70,12 @@ class UISetupManager:
         self.editor.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
 
         # Create main container widget and layout
-        # This allows us to add chat components below the splitter
         main_container = QWidget()
         main_layout = QVBoxLayout(main_container)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Create main splitter (editor + preview)
+        # Create main splitter (editor + preview + chat)
         self.editor.splitter = QSplitter(Qt.Orientation.Horizontal, self.editor)
 
         # Setup editor pane
@@ -87,29 +86,21 @@ class UISetupManager:
         preview_container = self._create_preview_pane()
         self.editor.splitter.addWidget(preview_container)
 
-        # Configure splitter
-        self.editor.splitter.setStretchFactor(0, 1)
-        self.editor.splitter.setStretchFactor(1, 1)
+        # Setup chat pane (persistent right pane)
+        chat_container = self._create_chat_pane()
+        self.editor.splitter.addWidget(chat_container)
 
-        # Set default 50/50 split - ensure both panes visible
-        # This will be overridden by saved settings if they exist
-        QTimer.singleShot(0, lambda: self.editor.splitter.setSizes([400, 400]))
+        # Configure splitter stretch factors - all panes user-resizable
+        self.editor.splitter.setStretchFactor(0, 2)  # Editor (2/5 when chat visible)
+        self.editor.splitter.setStretchFactor(1, 2)  # Preview (2/5 when chat visible)
+        self.editor.splitter.setStretchFactor(2, 1)  # Chat (1/5 when visible, user-resizable)
+
+        # Set default proportional splits
+        # Will be overridden by saved settings if they exist
+        QTimer.singleShot(0, lambda: self._set_default_splitter_sizes())
 
         # Add splitter to main layout
         main_layout.addWidget(self.editor.splitter, 1)  # Stretch factor 1
-
-        # Create chat panel (initially hidden, shown when AI enabled)
-        from .chat_panel_widget import ChatPanelWidget
-        self.editor.chat_panel = ChatPanelWidget(self.editor)
-        self.editor.chat_panel.setMaximumHeight(300)  # Limit height to 300px
-        self.editor.chat_panel.hide()  # Hidden by default
-        main_layout.addWidget(self.editor.chat_panel, 0)  # No stretch
-
-        # Create chat bar (initially hidden, shown when AI enabled + model set)
-        from .chat_bar_widget import ChatBarWidget
-        self.editor.chat_bar = ChatBarWidget(self.editor)
-        self.editor.chat_bar.hide()  # Hidden by default
-        main_layout.addWidget(self.editor.chat_bar, 0)  # No stretch
 
         # Set main container as central widget
         self.editor.setCentralWidget(main_container)
@@ -178,6 +169,47 @@ class UISetupManager:
 
         return preview_container
 
+    def _create_chat_pane(self) -> QWidget:
+        """Create the chat pane with toolbar, chat panel, and chat bar.
+
+        Returns:
+            QWidget containing chat pane
+        """
+        chat_container = QWidget()
+        chat_layout = QVBoxLayout(chat_container)
+        chat_layout.setContentsMargins(0, 0, 0, 0)
+        chat_layout.setSpacing(0)
+
+        # Set minimum and maximum width constraints for chat pane
+        # Min: 250px (enough for controls), Max: 600px (not too wide)
+        chat_container.setMinimumWidth(250)
+        chat_container.setMaximumWidth(600)
+
+        # Create toolbar
+        chat_toolbar = self._create_toolbar(
+            "AI Chat", "#ff9800", "chat", "rgba(255, 152, 0, 0.2)"
+        )
+        chat_layout.addWidget(chat_toolbar)
+
+        # Create chat panel (message display)
+        from .chat_panel_widget import ChatPanelWidget
+        self.editor.chat_panel = ChatPanelWidget(self.editor)
+        chat_layout.addWidget(self.editor.chat_panel, 1)  # Stretch to fill
+
+        # Create chat bar (input controls) at bottom
+        from .chat_bar_widget import ChatBarWidget
+        self.editor.chat_bar = ChatBarWidget(self.editor)
+        self.editor.chat_bar.setMinimumHeight(50)  # Ensure chat bar is visible
+        chat_layout.addWidget(self.editor.chat_bar, 0)  # No stretch
+
+        # Store reference to chat container for visibility control
+        self.editor.chat_container = chat_container
+
+        # Initially hide chat pane (will be shown when AI enabled)
+        chat_container.hide()
+
+        return chat_container
+
     def _create_toolbar(
         self, label_text: str, color: str, pane_name: str, highlight_color: str
     ) -> QWidget:
@@ -210,8 +242,10 @@ class UISetupManager:
         # Store label reference in editor for theme updates
         if pane_name == "editor":
             self.editor.editor_label = label
-        else:
+        elif pane_name == "preview":
             self.editor.preview_label = label
+        elif pane_name == "chat":
+            self.editor.chat_label = label
 
         # Create maximize button
         max_btn = QPushButton("⬜")
@@ -241,10 +275,35 @@ class UISetupManager:
         # Store button reference in editor
         if pane_name == "editor":
             self.editor.editor_max_btn = max_btn
-        else:
+        elif pane_name == "preview":
             self.editor.preview_max_btn = max_btn
+        elif pane_name == "chat":
+            self.editor.chat_max_btn = max_btn
 
         return toolbar
+
+    def _set_default_splitter_sizes(self) -> None:
+        """Set default splitter sizes based on window width and chat visibility."""
+        # Get current window width
+        window_width = self.editor.width()
+
+        # Check if chat is visible
+        chat_visible = (hasattr(self.editor, 'chat_container') and
+                       self.editor.chat_container.isVisible())
+
+        if chat_visible:
+            # Proportional: 2/5 editor, 2/5 preview, 1/5 chat
+            editor_width = int(window_width * 0.4)
+            preview_width = int(window_width * 0.4)
+            chat_width = int(window_width * 0.2)
+            self.editor.splitter.setSizes([editor_width, preview_width, chat_width])
+            logger.info(f"Default sizes (with chat): {editor_width}, {preview_width}, {chat_width}")
+        else:
+            # Without chat: 1/2 editor, 1/2 preview, 0 chat
+            editor_width = int(window_width * 0.5)
+            preview_width = int(window_width * 0.5)
+            self.editor.splitter.setSizes([editor_width, preview_width, 0])
+            logger.info(f"Default sizes (no chat): {editor_width}, {preview_width}, 0")
 
     def setup_dynamic_sizing(self) -> None:
         """Set up window to dynamically resize based on screen size."""
@@ -252,23 +311,25 @@ class UISetupManager:
         if screen:
             available = screen.availableGeometry()
 
-            # Calculate dimensions (80% of available space)
-            width = int(available.width() * 0.8)
-            height = int(available.height() * 0.8)
+            # Start maximized by default (user preference)
+            # Override with saved settings if not maximized
+            if self.editor._start_maximized:
+                self.editor.showMaximized()
+            else:
+                # Calculate dimensions (80% of available space)
+                width = int(available.width() * 0.8)
+                height = int(available.height() * 0.8)
 
-            # Ensure minimum size
-            width = max(width, MIN_WINDOW_WIDTH)
-            height = max(height, MIN_WINDOW_HEIGHT)
+                # Ensure minimum size
+                width = max(width, MIN_WINDOW_WIDTH)
+                height = max(height, MIN_WINDOW_HEIGHT)
 
-            # Center window on screen
-            x = available.x() + (available.width() - width) // 2
-            y = available.y() + (available.height() - height) // 2
+                # Center window on screen
+                x = available.x() + (available.width() - width) // 2
+                y = available.y() + (available.height() - height) // 2
 
-            # Apply geometry if not maximized
-            if not self.editor._start_maximized:
+                # Apply saved geometry or calculated geometry
                 if self.editor._initial_geometry:
                     self.editor.setGeometry(self.editor._initial_geometry)
                 else:
                     self.editor.setGeometry(x, y, width, height)
-            else:
-                self.editor.showMaximized()
