@@ -339,9 +339,6 @@ class GitHubHandler(BaseVCSHandler, QObject):
     def _handle_repo_info(self, result: GitHubResult) -> None:
         """Handle successful repo info retrieval."""
         if result.data:
-            from PySide6.QtCore import Qt
-            from PySide6.QtWidgets import QMessageBox
-
             # Extract repository information
             repo_name = result.data.get("nameWithOwner", "Unknown")
             name = result.data.get("name", "Unknown")
@@ -355,27 +352,17 @@ class GitHubHandler(BaseVCSHandler, QObject):
             default_branch_ref = result.data.get("defaultBranchRef", {})
             default_branch = default_branch_ref.get("name", "Unknown") if default_branch_ref else "Unknown"
 
-            logger.info(f"Repository: {repo_name} - {description}")
+            # Log detailed information
+            logger.info(f"Repository: {repo_name}")
+            logger.info(f"  Description: {description}")
+            logger.info(f"  Default Branch: {default_branch}")
+            logger.info(f"  Visibility: {visibility}")
+            logger.info(f"  Stars: {stars}, Forks: {forks}")
+            logger.info(f"  URL: {url}")
 
-            # Build info message
-            info_text = f"""<h3>{repo_name}</h3>
-<p><b>Repository Name:</b> {name}</p>
-<p><b>Description:</b> {description}</p>
-<p><b>Default Branch:</b> {default_branch}</p>
-<p><b>Visibility:</b> {visibility}</p>
-<p><b>Stars:</b> {stars}</p>
-<p><b>Forks:</b> {forks}</p>
-<p><b>URL:</b> <a href="{url}">{url}</a></p>
-"""
-
-            # Show dialog
-            msg_box = QMessageBox(self.window)
-            msg_box.setWindowTitle("Repository Information")
-            msg_box.setTextFormat(Qt.RichText)
-            msg_box.setText(info_text)
-            msg_box.setIcon(QMessageBox.Icon.Information)
-            msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg_box.exec()
+            # Show concise info in status bar
+            status_msg = f"{repo_name} | {visibility} | ★{stars} ⑂{forks} | {default_branch}"
+            self.status_manager.show_message("info", "Repository Info", status_msg)
 
     def _check_repository_ready(self) -> bool:
         """
