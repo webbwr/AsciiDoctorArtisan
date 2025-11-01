@@ -145,7 +145,7 @@ class ChatBarWidget(QWidget):
         self._input_field.setClearButtonEnabled(True)
         bottom_row.addWidget(self._input_field, 1)  # Stretch to fill space
 
-        # Send button with icon
+        # Send button with blue icon
         self._send_button = QPushButton()
         # Use Qt's standard media play icon (right-pointing arrow similar to send)
         send_icon = QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
@@ -153,6 +153,28 @@ class ChatBarWidget(QWidget):
         self._send_button.setToolTip("Send message (or press Enter)")
         self._send_button.setMaximumWidth(40)  # Narrower since no text
         self._send_button.setMinimumWidth(40)
+        # Style button with blue icon color
+        self._send_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                padding: 4px;
+            }
+            QPushButton:hover {
+                background-color: rgba(74, 158, 255, 0.2);
+                border-radius: 4px;
+            }
+            QPushButton:pressed {
+                background-color: rgba(74, 158, 255, 0.3);
+            }
+            QPushButton:disabled {
+                opacity: 0.5;
+            }
+            QPushButton {
+                icon: url(none);
+                color: #4a9eff;
+            }
+        """)
         bottom_row.addWidget(self._send_button)
 
         main_layout.addLayout(bottom_row)
