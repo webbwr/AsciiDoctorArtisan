@@ -311,8 +311,14 @@ class OllamaChatWorker(QThread):
             shell=False,  # Security: never use shell=True
         )
 
-        # Response is in stdout
+        # Response is in stdout - strip ANSI escape codes
         response_text = result.stdout.strip()
+
+        # Remove ANSI escape sequences (spinner, colors, etc.)
+        import re
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        response_text = ansi_escape.sub('', response_text)
+        response_text = response_text.strip()
 
         if not response_text:
             raise ValueError("Empty response from Ollama")
