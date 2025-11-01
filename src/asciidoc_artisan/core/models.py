@@ -147,6 +147,7 @@ class GitHubResult(BaseModel):
             "issue_create",
             "issue_list",
             "repo_view",
+            "repo_info",
             # Generic subcommands (from args[0])
             "pr",
             "issue",
