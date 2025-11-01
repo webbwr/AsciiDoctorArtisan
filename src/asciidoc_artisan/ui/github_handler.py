@@ -339,6 +339,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
     def _handle_repo_info(self, result: GitHubResult) -> None:
         """Handle successful repo info retrieval."""
         if result.data:
+            from PySide6.QtCore import Qt
             from PySide6.QtWidgets import QMessageBox
 
             # Extract repository information
@@ -370,10 +371,10 @@ class GitHubHandler(BaseVCSHandler, QObject):
             # Show dialog
             msg_box = QMessageBox(self.window)
             msg_box.setWindowTitle("Repository Information")
-            msg_box.setTextFormat(1)  # RichText
+            msg_box.setTextFormat(Qt.RichText)
             msg_box.setText(info_text)
-            msg_box.setIcon(QMessageBox.Information)
-            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.setIcon(QMessageBox.Icon.Information)
+            msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
             msg_box.exec()
 
     def _check_repository_ready(self) -> bool:
