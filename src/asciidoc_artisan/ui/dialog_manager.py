@@ -191,9 +191,13 @@ class DialogManager:
                 self.editor._settings.ollama_enabled, self.editor._settings.ollama_model
             )
 
+            # Update ChatManager with new settings (bidirectional sync)
+            self.editor.chat_manager.update_settings(self.editor._settings)
+
             logger.info(
                 f"Ollama settings updated: enabled={self.editor._settings.ollama_enabled}, "
-                f"model={self.editor._settings.ollama_model}"
+                f"model={self.editor._settings.ollama_model}, "
+                f"chat_enabled={self.editor._settings.ollama_chat_enabled}"
             )
 
     def show_message(self, level: str, title: str, text: str) -> None:

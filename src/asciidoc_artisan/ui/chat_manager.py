@@ -439,6 +439,9 @@ class ChatManager(QObject):
         """
         self._settings = settings
 
+        # Reload available models (in case new ones were installed)
+        self._load_available_models()
+
         # Update model selector
         if settings.ollama_model:
             self._chat_bar.set_model(settings.ollama_model)
