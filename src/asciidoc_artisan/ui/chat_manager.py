@@ -23,6 +23,7 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 
 import json
 import logging
+import subprocess
 import time
 from typing import List, Optional
 
@@ -136,23 +137,71 @@ class ChatManager(QObject):
         """
         Load available Ollama models into chat bar selector.
 
-        TODO: Implement actual model detection via `ollama list` in v1.7.1.
-        For now, uses hardcoded common models.
+        Attempts to detect installed models via `ollama list` command.
+        Falls back to hardcoded defaults if Ollama is not available.
         """
-        # Hardcoded models for v1.7.0 (detect dynamically in v1.7.1)
-        default_models = [
-            "phi3:mini",
-            "llama2",
-            "mistral",
-            "codellama",
-        ]
+        models: List[str] = []
+        ollama_available = False
 
-        # Add current model if not in default list
-        if self._settings.ollama_model and self._settings.ollama_model not in default_models:
-            default_models.insert(0, self._settings.ollama_model)
+        try:
+            # Try to detect installed models
+            result = subprocess.run(
+                ["ollama", "list"],
+                capture_output=True,
+                text=True,
+                timeout=3,
+                check=False,
+            )
 
-        self._chat_bar.set_models(default_models)
-        logger.debug(f"Loaded {len(default_models)} models")
+            if result.returncode == 0:
+                ollama_available = True
+                # Parse output: skip header line, extract model names
+                lines = result.stdout.strip().split("\n")
+                if len(lines) > 1:  # Skip header
+                    for line in lines[1:]:
+                        parts = line.split()
+                        if parts:
+                            # Model name is first column (e.g., "phi3:mini")
+                            model_name = parts[0]
+                            models.append(model_name)
+
+                if models:
+                    logger.info(f"Ollama detected: {len(models)} model(s) available")
+                    self.status_message.emit(f"Ollama: {len(models)} model(s) found")
+                else:
+                    logger.warning("Ollama running but no models installed")
+                    self.status_message.emit("Ollama: No models installed (run 'ollama pull phi3:mini')")
+            else:
+                logger.warning(f"Ollama command failed: {result.stderr.strip()}")
+
+        except FileNotFoundError:
+            logger.info("Ollama not found in PATH")
+            self.status_message.emit("Ollama not installed (see docs/OLLAMA_CHAT_GUIDE.md)")
+
+        except subprocess.TimeoutExpired:
+            logger.warning("Ollama list command timed out")
+            self.status_message.emit("Ollama not responding")
+
+        except Exception as e:
+            logger.warning(f"Error detecting Ollama models: {e}")
+
+        # Fallback to default models if detection failed
+        if not models:
+            models = [
+                "phi3:mini",
+                "llama2",
+                "mistral",
+                "codellama",
+            ]
+            if not ollama_available:
+                logger.info("Using default model list (Ollama not detected)")
+
+        # Add current model if not in list
+        if self._settings.ollama_model and self._settings.ollama_model not in models:
+            models.insert(0, self._settings.ollama_model)
+
+        self._chat_bar.set_models(models)
+        logger.debug(f"Loaded {len(models)} models into chat bar")
 
     def _load_chat_history(self) -> None:
         """Load chat history from settings and display in panel."""
