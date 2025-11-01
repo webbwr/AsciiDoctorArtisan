@@ -371,6 +371,44 @@ Local AI for document conversion with automatic Pandoc fallback:
 - Status bar shows active conversion method
 - Settings: `ollama_enabled: bool`, `ollama_model: Optional[str]`
 
+### Ollama AI Chat (v1.7.0)
+
+**Code:** `workers/ollama_chat_worker.py`, `ui/chat_{bar,panel,manager}.py`
+
+Interactive AI chat with 4 context modes:
+
+**Architecture:**
+```
+User Input (ChatBarWidget)
+    ↓
+ChatManager.message_sent_to_worker Signal
+    ↓
+OllamaChatWorker.send_message() [Background Thread]
+    ↓ Ollama API call with system prompt + context
+OllamaChatWorker.chat_response_ready Signal
+    ↓
+ChatManager.handle_response_ready()
+    ↓
+ChatPanelWidget.add_message() [Display]
+```
+
+**4 Context Modes:**
+1. **Document Q&A** - Questions about current document (includes 2KB doc text)
+2. **Syntax Help** - AsciiDoc formatting assistance
+3. **General Chat** - General questions
+4. **Editing Suggestions** - Document improvement feedback (includes doc text)
+
+**UI Components:**
+- **ChatBarWidget** - Input bar above status bar (shown when AI enabled + model set)
+- **ChatPanelWidget** - Message display (max 300px height, collapsible)
+- **ChatManager** - Orchestrates bar ↔ worker ↔ panel, manages history (100 msg limit)
+
+**Settings:**
+- `ollama_chat_enabled`, `ollama_chat_history`, `ollama_chat_max_history`
+- `ollama_chat_context_mode`, `ollama_chat_send_document`
+
+**Integration:** `main_window.py:342,395-422`, `ui_setup_manager.py:101-112`, `worker_manager.py:161-170`
+
 ### Document Version Display (v1.4.0)
 
 **Location:** `ui/status_manager.py:extract_document_version()`
@@ -471,8 +509,12 @@ StatusManager.show_message("PR #42 created!")
 | `src/asciidoc_artisan/core/file_operations.py` | Atomic file I/O and path sanitization |
 | `src/asciidoc_artisan/workers/git_worker.py` | Git subprocess operations |
 | `src/asciidoc_artisan/workers/github_cli_worker.py` | GitHub CLI subprocess operations (v1.6.0) |
+| `src/asciidoc_artisan/workers/ollama_chat_worker.py` | Ollama AI chat worker thread (v1.7.0) |
 | `src/asciidoc_artisan/workers/pandoc_worker.py` | Document format conversion (Ollama + Pandoc) |
 | `src/asciidoc_artisan/workers/preview_worker.py` | AsciiDoc → HTML rendering |
+| `src/asciidoc_artisan/ui/chat_bar_widget.py` | Chat input controls (v1.7.0) |
+| `src/asciidoc_artisan/ui/chat_panel_widget.py` | Chat message display (v1.7.0) |
+| `src/asciidoc_artisan/ui/chat_manager.py` | Chat orchestration layer (v1.7.0) |
 | `src/asciidoc_artisan/ui/github_handler.py` | GitHub UI coordination and dialog management (v1.6.0) |
 | `src/asciidoc_artisan/ui/github_dialogs.py` | GitHub dialogs for PR/Issue management (v1.6.0) |
 | `src/document_converter.py` | Document import/export (DOCX, PDF) |

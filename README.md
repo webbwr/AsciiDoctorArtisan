@@ -17,8 +17,17 @@ This program does many things:
 - Works on all computers
 - Uses your graphics card (GPU) for speed
 - Works with AI to help you
+- Chat with AI about your work (new!)
 
 The GPU makes it 10-50x faster. That means much faster than before.
+
+AI chat helps you in 4 ways:
+- Ask about your paper
+- Learn AsciiDoc rules
+- Get help with writing
+- Fix your work
+
+All AI works on your computer. No cloud needed.
 
 ## What You Need
 
