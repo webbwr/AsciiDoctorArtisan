@@ -359,9 +359,11 @@ class GitHubHandler(BaseVCSHandler, QObject):
             logger.info(f"  Stars: {stars}, Forks: {forks}")
             logger.info(f"  URL: {url}")
 
-            # Show concise info in status bar (no dialog)
+            # Show concise info in status bar (no dialog) - permanent until replaced
             status_msg = f"{repo_name} | {visibility} | ★{stars} ⑂{forks} | {default_branch}"
-            self.status_manager.show_status(status_msg, timeout=10000)  # Show for 10 seconds
+            logger.info(f"Calling show_status with: {status_msg}")
+            self.status_manager.show_status(status_msg, timeout=0)  # Permanent (timeout=0)
+            logger.info("show_status returned")
 
     def _check_repository_ready(self) -> bool:
         """
