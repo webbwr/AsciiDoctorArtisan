@@ -252,11 +252,18 @@ class ChatManager(QObject):
         # Chat panel visible when: bar is visible AND ollama_chat_enabled=True
         panel_visible = bar_visible and self._settings.ollama_chat_enabled
 
+        logger.info(
+            f"Chat visibility update: ollama_enabled={self._settings.ollama_enabled}, "
+            f"ollama_model={self._settings.ollama_model}, "
+            f"ollama_chat_enabled={self._settings.ollama_chat_enabled}, "
+            f"bar_visible={bar_visible}, panel_visible={panel_visible}"
+        )
+
         self._chat_bar.setVisible(bar_visible)
         self._chat_panel.setVisible(panel_visible)
 
         self.visibility_changed.emit(bar_visible, panel_visible)
-        logger.debug(f"Chat visibility: bar={bar_visible}, panel={panel_visible}")
+        logger.info(f"Chat widgets visibility set: bar={bar_visible}, panel={panel_visible}")
 
     def _on_message_sent(self, message: str, model: str, context_mode: str) -> None:
         """

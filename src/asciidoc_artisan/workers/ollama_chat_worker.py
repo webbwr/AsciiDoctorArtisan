@@ -275,28 +275,35 @@ class OllamaChatWorker(QThread):
             subprocess.TimeoutExpired: If API call exceeds 60s timeout
             subprocess.CalledProcessError: If Ollama returns error
         """
-        # Build Ollama CLI command
+        # Build prompt from messages
+        # Format: system prompt + history + user message
+        full_prompt = ""
+        for msg in messages:
+            role = msg["role"]
+            content = msg["content"]
+
+            if role == "system":
+                full_prompt += f"System: {content}\n\n"
+            elif role == "user":
+                full_prompt += f"User: {content}\n\n"
+            elif role == "assistant":
+                full_prompt += f"Assistant: {content}\n\n"
+
+        full_prompt += "Assistant: "  # Prompt for response
+
+        # Build Ollama CLI command (simple run without JSON format)
         cmd = [
             "ollama",
             "run",
             self._current_model or "phi3:mini",
-            "--format",
-            "json",
         ]
 
-        # Prepare request JSON
-        request_data = {
-            "model": self._current_model,
-            "messages": messages,
-            "stream": False,  # v1.7.0: No streaming yet
-        }
+        logger.debug(f"Calling Ollama with model: {self._current_model}")
 
-        logger.debug(f"Calling Ollama API: {self._current_model}")
-
-        # Call Ollama CLI
+        # Call Ollama CLI with prompt as stdin
         result = subprocess.run(
             cmd,
-            input=json.dumps(request_data),
+            input=full_prompt,
             capture_output=True,
             text=True,
             timeout=60,  # 60 second timeout
@@ -304,12 +311,11 @@ class OllamaChatWorker(QThread):
             shell=False,  # Security: never use shell=True
         )
 
-        # Parse response
-        response_data = json.loads(result.stdout)
-        response_text = response_data.get("message", {}).get("content", "")
+        # Response is in stdout
+        response_text = result.stdout.strip()
 
         if not response_text:
-            raise ValueError("Empty response from Ollama API")
+            raise ValueError("Empty response from Ollama")
 
         return response_text
 
