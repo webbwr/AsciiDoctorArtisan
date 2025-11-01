@@ -128,9 +128,25 @@ class EditorState:
         if self.maximized_pane is None:
             self.saved_splitter_sizes = self.splitter.sizes()
 
+        # Check if chat pane exists and is visible
+        has_chat = len(self.splitter.sizes()) == 3
+        chat_visible = (has_chat and hasattr(self.window, 'chat_container') and
+                       self.window.chat_container.isVisible())
+
         if pane == "editor":
-            # Maximize editor, hide preview
-            self.splitter.setSizes([self.splitter.width(), 0])
+            # Maximize editor, hide preview, preserve chat visibility
+            if has_chat:
+                if chat_visible:
+                    # Keep chat visible with its current/saved size
+                    chat_size = self.saved_splitter_sizes[2] if self.saved_splitter_sizes else 200
+                    self.splitter.setSizes([self.splitter.width() - chat_size, 0, chat_size])
+                else:
+                    # Chat hidden, only editor/preview matter
+                    self.splitter.setSizes([self.splitter.width(), 0, 0])
+            else:
+                # Two pane layout (no chat)
+                self.splitter.setSizes([self.splitter.width(), 0])
+
             self.editor_max_btn.setText("⬛")
             self.editor_max_btn.setToolTip("Restore editor")
 
@@ -139,8 +155,19 @@ class EditorState:
             self.preview_max_btn.setToolTip("Maximize preview")
             self.status_bar.showMessage("Editor maximized", 3000)
         else:
-            # Maximize preview, hide editor
-            self.splitter.setSizes([0, self.splitter.width()])
+            # Maximize preview, hide editor, preserve chat visibility
+            if has_chat:
+                if chat_visible:
+                    # Keep chat visible with its current/saved size
+                    chat_size = self.saved_splitter_sizes[2] if self.saved_splitter_sizes else 200
+                    self.splitter.setSizes([0, self.splitter.width() - chat_size, chat_size])
+                else:
+                    # Chat hidden, only editor/preview matter
+                    self.splitter.setSizes([0, self.splitter.width(), 0])
+            else:
+                # Two pane layout (no chat)
+                self.splitter.setSizes([0, self.splitter.width()])
+
             self.preview_max_btn.setText("⬛")
             self.preview_max_btn.setToolTip("Restore preview")
 
@@ -150,22 +177,57 @@ class EditorState:
             self.status_bar.showMessage("Preview maximized", 3000)
 
         self.maximized_pane = pane
-        logger.debug(f"Pane maximized: {pane}")
+        logger.debug(f"Pane maximized: {pane}, chat_visible={chat_visible}")
 
     def restore_panes(self) -> None:
-        """Restore panes to their previous sizes."""
-        if self.saved_splitter_sizes and len(self.saved_splitter_sizes) == 2:
-            total = sum(self.saved_splitter_sizes)
-            if total > 0:
-                self.splitter.setSizes(self.saved_splitter_sizes)
+        """Restore panes to their previous sizes, preserving chat visibility."""
+        has_chat = len(self.splitter.sizes()) == 3
+        chat_visible = (has_chat and hasattr(self.window, 'chat_container') and
+                       self.window.chat_container.isVisible())
+
+        if self.saved_splitter_sizes:
+            # Restore saved sizes
+            if len(self.saved_splitter_sizes) == 3:
+                # Three pane layout (editor, preview, chat)
+                total = sum(self.saved_splitter_sizes)
+                if total > 0:
+                    self.splitter.setSizes(self.saved_splitter_sizes)
+                else:
+                    # Fallback proportional split
+                    width = self.splitter.width()
+                    if chat_visible:
+                        # 2/5 editor, 2/5 preview, 1/5 chat
+                        self.splitter.setSizes([int(width * 0.4), int(width * 0.4), int(width * 0.2)])
+                    else:
+                        # Chat hidden, 50/50 editor/preview
+                        self.splitter.setSizes([width // 2, width // 2, 0])
+            elif len(self.saved_splitter_sizes) == 2:
+                # Two pane layout - need to adapt for three pane splitter
+                total = sum(self.saved_splitter_sizes)
+                if total > 0 and has_chat:
+                    # Distribute saved sizes and add chat
+                    if chat_visible:
+                        width = self.splitter.width()
+                        chat_size = int(width * 0.2)
+                        remaining = width - chat_size
+                        editor_size = int(remaining * 0.5)
+                        preview_size = remaining - editor_size
+                        self.splitter.setSizes([editor_size, preview_size, chat_size])
+                    else:
+                        # Chat hidden
+                        self.splitter.setSizes([self.saved_splitter_sizes[0], self.saved_splitter_sizes[1], 0])
+                elif total > 0:
+                    # No chat pane, restore as-is
+                    self.splitter.setSizes(self.saved_splitter_sizes)
+                else:
+                    # Fallback
+                    self._apply_default_sizes(has_chat, chat_visible)
             else:
-                # Fallback to 50/50 split
-                width = self.splitter.width()
-                self.splitter.setSizes([width // 2, width // 2])
+                # Invalid saved sizes, use defaults
+                self._apply_default_sizes(has_chat, chat_visible)
         else:
-            # No saved sizes, use 50/50 split
-            width = self.splitter.width()
-            self.splitter.setSizes([width // 2, width // 2])
+            # No saved sizes, use defaults
+            self._apply_default_sizes(has_chat, chat_visible)
 
         # Reset button states
         self.editor_max_btn.setText("⬜")
@@ -177,7 +239,21 @@ class EditorState:
 
         self.maximized_pane = None
         self.status_bar.showMessage("View restored", 3000)
-        logger.debug("Panes restored")
+        logger.debug(f"Panes restored, chat_visible={chat_visible}")
+
+    def _apply_default_sizes(self, has_chat: bool, chat_visible: bool) -> None:
+        """Apply default splitter sizes based on layout."""
+        width = self.splitter.width()
+        if has_chat:
+            if chat_visible:
+                # 2/5 editor, 2/5 preview, 1/5 chat
+                self.splitter.setSizes([int(width * 0.4), int(width * 0.4), int(width * 0.2)])
+            else:
+                # Chat hidden, 50/50 editor/preview
+                self.splitter.setSizes([width // 2, width // 2, 0])
+        else:
+            # Two pane only
+            self.splitter.setSizes([width // 2, width // 2])
 
     def handle_close_event(self, event: Any) -> None:
         """
