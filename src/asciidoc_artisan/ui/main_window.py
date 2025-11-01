@@ -398,7 +398,9 @@ class AsciiDocEditor(QMainWindow):
             self.ollama_chat_worker.send_message
         )
         self.chat_manager.status_message.connect(self.status_manager.show_message)
-        self.chat_manager.settings_changed.connect(self._save_settings_deferred)
+        self.chat_manager.settings_changed.connect(
+            lambda: self._settings_manager.save_settings(self._settings)
+        )
 
         # Connect OllamaChatWorker responses back to ChatManager
         self.ollama_chat_worker.chat_response_ready.connect(
