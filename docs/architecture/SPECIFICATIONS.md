@@ -1,8 +1,8 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.7.0 (in progress) - Type hints complete, code quality improved
-**Last Updated**: October 31, 2025
+**Version**: 1.7.0 (in progress) - Type hints complete, Ollama AI Chat planned
+**Last Updated**: November 1, 2025
 
 ## What This Is
 
@@ -20,6 +20,7 @@ It:
 - Opens Word, PDF, Markdown files (10-50x faster with GPU)
 - Saves to Word, PDF, Markdown
 - Uses Git to save versions
+- **Chat with AI** (ask about document, get AsciiDoc help, edit suggestions)
 - Works on all computers
 - Uses GPU for speed (10-50x faster preview with hardware acceleration)
 - Uses NPU for AI tasks when available
@@ -222,6 +223,110 @@ The program MUST show Git status.
 **Test**: In Git folder, status bar shows folder name.
 
 **Test**: Not in Git folder, shows "Not in Git".
+
+---
+
+## Ollama AI Chat Rules (NEW v1.7.0)
+
+### Rule: Show Chat Bar When AI Active
+
+The program MUST show chat bar when AI is on and model is set.
+
+**Test**: Turn on AI. Set model. Chat bar must show above status bar.
+
+**Test**: Turn off AI. Chat bar must hide.
+
+**Test**: AI on, but no model. Chat bar must hide.
+
+### Rule: Chat Input
+
+The program MUST let user type messages to AI.
+
+**Test**: Type in chat bar. Press Enter. AI must respond.
+
+**Test**: Click Send button. AI must respond.
+
+**Test**: Type when no model set. Input must be disabled.
+
+### Rule: Chat Panel Display
+
+The program MUST show chat history in panel.
+
+**Test**: Send message. Chat panel must show user message and AI response.
+
+**Test**: Chat panel must show timestamps.
+
+**Test**: User messages must be on right. AI messages must be on left.
+
+### Rule: Context Modes
+
+The program MUST support four chat modes.
+
+**Test**: Select "Document" mode. AI must know about current document.
+
+**Test**: Select "Syntax" mode. AI must help with AsciiDoc syntax.
+
+**Test**: Select "General" mode. AI must chat about anything.
+
+**Test**: Select "Editing" mode. AI must suggest document improvements.
+
+### Rule: Model Selector
+
+The program MUST let user switch AI models in chat bar.
+
+**Test**: Click model dropdown. Must show all installed Ollama models.
+
+**Test**: Select different model. Next message must use new model.
+
+**Test**: No Ollama installed. Dropdown must be empty.
+
+### Rule: Chat History Saved
+
+The program MUST save chat history.
+
+**Test**: Send messages. Close app. Reopen. Chat history must still be there.
+
+**Test**: Clear history button. All messages must disappear.
+
+**Test**: Max 100 messages saved. Old ones must be removed.
+
+### Rule: Stop AI Generation
+
+The program MUST let user stop AI.
+
+**Test**: Send long message. Click Stop button. AI must stop responding.
+
+**Test**: After stop, new message must work.
+
+### Rule: Chat Panel Collapsible
+
+The program MUST let user hide chat panel.
+
+**Test**: Click hide button. Chat panel must disappear.
+
+**Test**: Click show button. Chat panel must appear.
+
+**Test**: Chat bar must stay visible when panel hidden.
+
+### Rule: Document Context
+
+The program MUST send document to AI when in Document or Editing mode.
+
+**Test**: Document mode. Ask "What is this about?" AI must describe document.
+
+**Test**: Syntax mode. Document must NOT be sent to AI.
+
+**Test**: Change document. AI must know new content (after 500ms delay).
+
+### Rule: Chat Errors Shown
+
+The program MUST show AI errors in chat.
+
+**Test**: Ollama not running. Send message. Chat must show connection error.
+
+**Test**: Invalid model. Chat must show model not found error.
+
+**Test**: Network error. Chat must show error message.
 
 ---
 

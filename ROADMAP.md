@@ -88,16 +88,17 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 **Target Date:** Q1 2026 (January - March)
 **Duration:** 2-3 months
-**Effort:** 24-36 hours (Tasks 2 & 4 complete: -48h saved, Spell Checker deferred: -12h)
-**Focus:** Essential text editor features + code quality
+**Effort:** 58-78 hours (Tasks 2 & 4 complete: -48h saved, Spell Checker deferred: -12h, **Ollama Chat added: +34-42h**)
+**Focus:** AI-powered assistance + essential text editor features + code quality
 
 ### Goals
 
-1. ⭐ Add essential Find/Replace functionality
-2. ✅ ~~Complete type hint coverage (60% → 100%)~~ **COMPLETE** (Oct 31, 2025)
-3. ✅ ~~Enhance async I/O integration~~ **COMPLETE** (Oct 29, 2025)
-4. 🔧 Improve user experience (error messages, shortcuts)
-5. 📊 Enable telemetry (opt-in) for usage analytics
+1. ⭐⭐ **Add Ollama AI Chat Interface** (Priority 1 - NEW)
+2. ⭐ Add essential Find/Replace functionality
+3. ✅ ~~Complete type hint coverage (60% → 100%)~~ **COMPLETE** (Oct 31, 2025)
+4. ✅ ~~Enhance async I/O integration~~ **COMPLETE** (Oct 29, 2025)
+5. 🔧 Improve user experience (error messages, shortcuts)
+6. 📊 Enable telemetry (opt-in) for usage analytics
 
 ### Completed Tasks
 
@@ -135,8 +136,69 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ### Remaining Tasks
 
+#### Task 0: Ollama AI Chat Interface ⭐⭐
+**Priority:** CRITICAL | **Effort:** 34-42 hours | **Status:** Planned (Nov 2025)
+
+**Purpose:** Natural language interaction with Ollama AI models for document assistance
+
+**Features:**
+1. **Chat Bar** (above status bar)
+   - Text input field with Enter-to-send
+   - Model selector dropdown (switch models without settings dialog)
+   - Clear chat history button
+   - Stop/Cancel generation button
+   - Only visible when AI enabled + valid model selected
+
+2. **Chat Panel** (dedicated conversation area)
+   - Collapsible panel below main editor/preview
+   - Conversation history display (user + AI messages)
+   - Context mode tabs: Document | Syntax | General | Editing
+   - Markdown formatting with code block highlighting
+   - Timestamps and message metadata
+
+3. **Context-Aware AI Interaction**
+   - **Document Mode:** AI can analyze current document content
+   - **Syntax Mode:** AsciiDoc help and formatting guidance
+   - **General Mode:** Free-form conversation
+   - **Editing Mode:** Document improvement suggestions
+
+4. **Chat History Persistence**
+   - Save full conversation history to settings
+   - Reload on app restart
+   - Max 100 messages per session (configurable)
+
+**Deliverables:**
+- `workers/ollama_chat_worker.py` (~350 lines) - Background AI processing
+- `ui/chat_bar_widget.py` (~250 lines) - Input bar UI
+- `ui/chat_panel_widget.py` (~300 lines) - Conversation display
+- `ui/chat_manager.py` (~400 lines) - Orchestration logic
+- `core/models.py` - ChatMessage dataclass (+40 lines)
+- `core/settings.py` - Chat settings fields (+50 lines)
+- Integration updates to 6 existing files (~640 lines total)
+- 110 tests across 5 test files
+- User guide: `docs/user/OLLAMA_CHAT_GUIDE.md`
+
+**Architecture:**
+- Manager Pattern: ChatManager orchestrates all components
+- Worker Thread: OllamaChatWorker for non-blocking AI calls
+- Signal/Slot: Qt-safe communication between UI and worker
+- Conditional Visibility: Show/hide based on AI settings state
+
+**Success Criteria:**
+- ✅ Chat UI appears only when AI enabled + model valid
+- ✅ All 4 context modes functional
+- ✅ History persists across sessions
+- ✅ Stop button cancels ongoing generation
+- ✅ Document context updates on edit (debounced 500ms)
+- ✅ 100% test coverage for new code
+- ✅ No memory leaks (verified with profiler)
+
+**Timeline:** 2 weeks (Week 1: Core components, Week 2: Integration + Testing)
+
+---
+
 #### Task 1: Find & Replace System ⭐
-**Priority:** CRITICAL | **Effort:** 8-12 hours
+**Priority:** HIGH | **Effort:** 8-12 hours
 
 **Features:**
 - Find text with regex support
