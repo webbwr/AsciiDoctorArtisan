@@ -46,6 +46,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,  # Horizontal layout manager
     QLabel,  # Text label widget
     QPushButton,  # Clickable button widget
+    QSpinBox,  # Number input widget with up/down arrows
     QVBoxLayout,  # Vertical layout manager
     QWidget,  # Base class for all UI widgets
 )
@@ -301,6 +302,99 @@ class OllamaSettingsDialog(QDialog):
         ollama_group.setLayout(ollama_layout)
         layout.addWidget(ollama_group)
 
+        # === Chat Settings Group (v1.7.0) ===
+        chat_group = QGroupBox("Chat Settings (Experimental)")
+        chat_layout = QVBoxLayout()
+
+        # Enable/Disable Chat Toggle
+        self.chat_enabled_checkbox = QCheckBox("Enable AI chat interface")
+        self.chat_enabled_checkbox.setChecked(
+            getattr(self.settings, "ollama_chat_enabled", False)
+        )
+        self.chat_enabled_checkbox.setToolTip(
+            "Show chat bar and panel for interactive conversations with AI\n"
+            "Requires Ollama AI to be enabled above"
+        )
+        chat_layout.addWidget(self.chat_enabled_checkbox)
+
+        # Max History Setting
+        history_layout = QHBoxLayout()
+        history_label = QLabel("Max chat history:")
+        history_layout.addWidget(history_label)
+
+        self.max_history_spin = QSpinBox()
+        self.max_history_spin.setRange(10, 500)
+        self.max_history_spin.setValue(
+            getattr(self.settings, "ollama_chat_max_history", 100)
+        )
+        self.max_history_spin.setToolTip(
+            "Maximum number of messages to store in chat history\n"
+            "Older messages are automatically removed"
+        )
+        history_layout.addWidget(self.max_history_spin)
+        history_layout.addStretch()
+
+        chat_layout.addLayout(history_layout)
+
+        # Default Context Mode
+        mode_layout = QHBoxLayout()
+        mode_label = QLabel("Default context mode:")
+        mode_layout.addWidget(mode_label)
+
+        self.context_mode_combo = QComboBox()
+        self.context_mode_combo.addItems([
+            "Document Q&A",
+            "Syntax Help",
+            "General Chat",
+            "Editing Suggestions",
+        ])
+        self.context_mode_combo.setToolTip(
+            "Default interaction mode when chat starts\n"
+            "You can change this in the chat bar at any time"
+        )
+
+        # Map current setting to combo index
+        current_mode = getattr(self.settings, "ollama_chat_context_mode", "document")
+        mode_index_map = {
+            "document": 0,
+            "syntax": 1,
+            "general": 2,
+            "editing": 3,
+        }
+        self.context_mode_combo.setCurrentIndex(mode_index_map.get(current_mode, 0))
+
+        mode_layout.addWidget(self.context_mode_combo)
+        mode_layout.addStretch()
+
+        chat_layout.addLayout(mode_layout)
+
+        # Send Document Content Toggle
+        self.send_document_checkbox = QCheckBox(
+            "Include document content in context-aware modes"
+        )
+        self.send_document_checkbox.setChecked(
+            getattr(self.settings, "ollama_chat_send_document", True)
+        )
+        self.send_document_checkbox.setToolTip(
+            "For 'Document Q&A' and 'Editing Suggestions' modes:\n"
+            "Send current document content to AI for better context\n"
+            "Disable if you have privacy concerns about local documents"
+        )
+        chat_layout.addWidget(self.send_document_checkbox)
+
+        # Chat Information Label
+        chat_info_label = QLabel(
+            "• Chat provides 4 interaction modes for different needs\n"
+            "• All conversations are stored locally\n"
+            "• Chat history is saved in application settings"
+        )
+        chat_info_label.setWordWrap(True)
+        chat_info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
+        chat_layout.addWidget(chat_info_label)
+
+        chat_group.setLayout(chat_layout)
+        layout.addWidget(chat_group)
+
         # Dialog Buttons
         layout.addLayout(_create_ok_cancel_buttons(self))
 
@@ -428,7 +522,7 @@ class OllamaSettingsDialog(QDialog):
         Get updated settings from dialog.
 
         Returns:
-            Settings instance with updated Ollama configuration
+            Settings instance with updated Ollama configuration and chat settings
         """
         # Store Ollama enabled state
         self.settings.ollama_enabled = self.ollama_enabled_checkbox.isChecked()
@@ -438,5 +532,21 @@ class OllamaSettingsDialog(QDialog):
             self.settings.ollama_model = self.model_combo.currentText()
         else:
             self.settings.ollama_model = None
+
+        # === Store Chat Settings (v1.7.0) ===
+        self.settings.ollama_chat_enabled = self.chat_enabled_checkbox.isChecked()
+        self.settings.ollama_chat_max_history = self.max_history_spin.value()
+        self.settings.ollama_chat_send_document = self.send_document_checkbox.isChecked()
+
+        # Map context mode combo index to setting value
+        mode_value_map = {
+            0: "document",
+            1: "syntax",
+            2: "general",
+            3: "editing",
+        }
+        self.settings.ollama_chat_context_mode = mode_value_map.get(
+            self.context_mode_combo.currentIndex(), "document"
+        )
 
         return self.settings
