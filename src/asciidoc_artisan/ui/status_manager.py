@@ -13,6 +13,7 @@ extracted from main_window.py as part of Phase 2 architectural refactoring.
 The StatusManager provides centralized UI feedback management.
 """
 
+import logging
 import re
 from typing import TYPE_CHECKING, Optional
 
@@ -20,6 +21,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
 
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
 
@@ -133,6 +136,7 @@ class StatusManager:
             message: Status message to display
             timeout: Duration in milliseconds (0 = permanent)
         """
+        logger.debug(f"Status bar: '{message}' (timeout={timeout}ms)")
         self.editor.status_bar.showMessage(message, timeout)
 
     def prompt_save_before_action(self, action: str) -> bool:
