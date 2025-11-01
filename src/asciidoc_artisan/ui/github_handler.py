@@ -233,10 +233,8 @@ class GitHubHandler(BaseVCSHandler, QObject):
         self.last_operation = "repo_info"
         self._update_ui_state()
 
-        # Show status
-        self.status_manager.show_message(
-            "info", "Repository Info", "Fetching repository information..."
-        )
+        # Show status in status bar (no dialog)
+        self.status_manager.show_status("Fetching repository information...", timeout=5000)
 
         # Emit signal to worker
         repo_path = self.git_handler.get_repository_path()
@@ -275,8 +273,9 @@ class GitHubHandler(BaseVCSHandler, QObject):
             elif result.operation == "repo_info":
                 self._handle_repo_info(result)
 
-            # Show success message
-            self.status_manager.show_message("info", "Success", result.user_message)
+            # Show success message (skip dialog for repo_info - already shown in status bar)
+            if result.operation != "repo_info":
+                self.status_manager.show_message("info", "Success", result.user_message)
             logger.info(
                 f"GitHub {self.last_operation} succeeded: {result.user_message}"
             )
@@ -360,9 +359,9 @@ class GitHubHandler(BaseVCSHandler, QObject):
             logger.info(f"  Stars: {stars}, Forks: {forks}")
             logger.info(f"  URL: {url}")
 
-            # Show concise info in status bar
+            # Show concise info in status bar (no dialog)
             status_msg = f"{repo_name} | {visibility} | ★{stars} ⑂{forks} | {default_branch}"
-            self.status_manager.show_message("info", "Repository Info", status_msg)
+            self.status_manager.show_status(status_msg, timeout=10000)  # Show for 10 seconds
 
     def _check_repository_ready(self) -> bool:
         """
