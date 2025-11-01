@@ -25,6 +25,7 @@ from PySide6.QtCore import QThread
 from asciidoc_artisan.workers import (
     GitHubCLIWorker,
     GitWorker,
+    OllamaChatWorker,
     OptimizedWorkerPool,
     PandocWorker,
     PreviewWorker,
@@ -76,6 +77,8 @@ class WorkerManager:
         self.pandoc_worker: PandocWorker | None = None
         self.preview_thread: QThread | None = None
         self.preview_worker: PreviewWorker | None = None
+        self.ollama_chat_thread: QThread | None = None
+        self.ollama_chat_worker: OllamaChatWorker | None = None
 
         # Worker pool (v1.5.0)
         self.use_worker_pool = use_worker_pool
@@ -155,7 +158,18 @@ class WorkerManager:
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
         self.preview_thread.start()
 
-        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview)")
+        # Ollama Chat Worker (v1.7.0)
+        self.ollama_chat_thread = QThread(self.editor)
+        self.ollama_chat_worker = OllamaChatWorker()
+        self.ollama_chat_worker.moveToThread(self.ollama_chat_thread)
+
+        # Chat worker signals will be connected via ChatManager
+        # (ChatManager connects to worker signals after initialization)
+
+        self.ollama_chat_thread.finished.connect(self.ollama_chat_worker.deleteLater)
+        self.ollama_chat_thread.start()
+
+        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview, Chat)")
 
         # Store references on main window for backward compatibility
         self.editor.git_thread = self.git_thread
@@ -166,6 +180,8 @@ class WorkerManager:
         self.editor.pandoc_worker = self.pandoc_worker
         self.editor.preview_thread = self.preview_thread
         self.editor.preview_worker = self.preview_worker
+        self.editor.ollama_chat_thread = self.ollama_chat_thread
+        self.editor.ollama_chat_worker = self.ollama_chat_worker
 
     def get_pool_statistics(self) -> Dict[str, Any]:
         """

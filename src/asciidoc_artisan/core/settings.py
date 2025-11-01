@@ -25,9 +25,11 @@ class Settings:
     """
     Application settings with persistence support.
 
-    Attributes match the specification in SPECIFICATIONS.md (v1.2.0).
+    Attributes match the specification in SPECIFICATIONS.md (v1.7.0).
 
-    All 13 fields:
+    All 18 fields (13 original + 5 chat settings):
+
+    Core Settings:
     - last_directory: Last directory used for file operations
     - last_file: Last opened document path
     - git_repo_path: Detected Git repository root
@@ -38,9 +40,18 @@ class Settings:
     - font_size: Persisted editor font size
     - auto_save_enabled: Auto-save feature toggle
     - auto_save_interval: Auto-save interval in seconds
+
+    AI Settings:
     - ai_conversion_enabled: Deprecated (cloud AI removed in v1.2.0)
     - ollama_enabled: Enable Ollama AI integration (v1.1+)
     - ollama_model: Selected Ollama AI model name (v1.1+)
+
+    Chat Settings (v1.7.0):
+    - ollama_chat_enabled: Enable AI chat interface
+    - ollama_chat_history: List of saved chat messages
+    - ollama_chat_max_history: Maximum messages to store (default: 100)
+    - ollama_chat_context_mode: Default interaction mode (document/syntax/general/editing)
+    - ollama_chat_send_document: Include document content in context
 
     Security Note:
         Settings are stored locally only. No data is sent to cloud services.
@@ -60,6 +71,13 @@ class Settings:
     ai_conversion_enabled: bool = False
     ollama_enabled: bool = False
     ollama_model: Optional[str] = None
+
+    # Chat settings (v1.7.0)
+    ollama_chat_enabled: bool = False
+    ollama_chat_history: List[Dict[str, Any]] = field(default_factory=list)
+    ollama_chat_max_history: int = 100
+    ollama_chat_context_mode: str = "document"
+    ollama_chat_send_document: bool = True
 
     def to_dict(self) -> Dict[str, Any]:
         """

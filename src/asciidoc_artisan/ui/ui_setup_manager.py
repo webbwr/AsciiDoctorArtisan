@@ -65,13 +65,19 @@ class UISetupManager:
         self.editor = editor
 
     def setup_ui(self) -> None:
-        """Set up the complete UI including editor, preview, and toolbars."""
+        """Set up the complete UI including editor, preview, chat, and toolbars."""
         # Set minimum window size
         self.editor.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
 
-        # Create main splitter
+        # Create main container widget and layout
+        # This allows us to add chat components below the splitter
+        main_container = QWidget()
+        main_layout = QVBoxLayout(main_container)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # Create main splitter (editor + preview)
         self.editor.splitter = QSplitter(Qt.Orientation.Horizontal, self.editor)
-        self.editor.setCentralWidget(self.editor.splitter)
 
         # Setup editor pane
         editor_container = self._create_editor_pane()
@@ -88,6 +94,25 @@ class UISetupManager:
         # Set default 50/50 split - ensure both panes visible
         # This will be overridden by saved settings if they exist
         QTimer.singleShot(0, lambda: self.editor.splitter.setSizes([400, 400]))
+
+        # Add splitter to main layout
+        main_layout.addWidget(self.editor.splitter, 1)  # Stretch factor 1
+
+        # Create chat panel (initially hidden, shown when AI enabled)
+        from .chat_panel_widget import ChatPanelWidget
+        self.editor.chat_panel = ChatPanelWidget(self.editor)
+        self.editor.chat_panel.setMaximumHeight(300)  # Limit height to 300px
+        self.editor.chat_panel.hide()  # Hidden by default
+        main_layout.addWidget(self.editor.chat_panel, 0)  # No stretch
+
+        # Create chat bar (initially hidden, shown when AI enabled + model set)
+        from .chat_bar_widget import ChatBarWidget
+        self.editor.chat_bar = ChatBarWidget(self.editor)
+        self.editor.chat_bar.hide()  # Hidden by default
+        main_layout.addWidget(self.editor.chat_bar, 0)  # No stretch
+
+        # Set main container as central widget
+        self.editor.setCentralWidget(main_container)
 
         # Setup synchronized scrolling
         self.editor._setup_synchronized_scrolling()

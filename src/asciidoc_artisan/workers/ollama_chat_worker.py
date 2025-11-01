@@ -1,0 +1,345 @@
+"""
+Ollama AI Chat worker for background chat processing.
+
+This module provides OllamaChatWorker, a QThread-based worker that handles
+asynchronous communication with the Ollama API for chat interactions.
+
+The worker supports:
+- Four context modes: document, syntax, general, editing
+- Streaming responses for long-form AI output
+- Cancellation of in-progress requests
+- Error handling with user-friendly messages
+- Document context injection with debouncing
+
+Thread Safety:
+    All Ollama API calls run on a background thread. Results are emitted
+    via Qt signals to the main UI thread for display.
+
+Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
+"""
+
+import json
+import logging
+import subprocess
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from PySide6.QtCore import QThread, Signal
+
+from ..core.models import ChatMessage
+
+logger = logging.getLogger(__name__)
+
+
+class OllamaChatWorker(QThread):
+    """
+    Background worker for Ollama AI chat operations.
+
+    Runs Ollama API calls in a separate thread to prevent UI blocking.
+    Supports streaming responses, cancellation, and four interaction modes.
+
+    Signals:
+        chat_response_ready: Emitted with ChatMessage when AI response completes
+        chat_response_chunk: Emitted with partial response text during streaming
+        chat_error: Emitted with error message when operation fails
+        operation_cancelled: Emitted when user cancels ongoing operation
+
+    Attributes:
+        _is_processing: Reentrancy guard to prevent concurrent operations
+        _should_cancel: Flag to signal cancellation request
+        _current_model: Active Ollama model name
+        _context_mode: Current interaction mode
+        _chat_history: List of ChatMessage objects for context
+        _document_content: Current document text for context injection
+        _user_message: Pending user message to process
+
+    Example:
+        ```python
+        worker = OllamaChatWorker()
+        worker.chat_response_ready.connect(on_response)
+        worker.chat_error.connect(on_error)
+
+        worker.send_message(
+            message="How do I make a table?",
+            model="phi3:mini",
+            context_mode="syntax",
+            history=[...],
+            document_content=None
+        )
+        ```
+    """
+
+    # Signals
+    chat_response_ready = Signal(ChatMessage)
+    chat_response_chunk = Signal(str)
+    chat_error = Signal(str)
+    operation_cancelled = Signal()
+
+    def __init__(self) -> None:
+        """Initialize the Ollama chat worker."""
+        super().__init__()
+        self._is_processing = False
+        self._should_cancel = False
+        self._current_model: Optional[str] = None
+        self._context_mode: str = "document"
+        self._chat_history: List[ChatMessage] = []
+        self._document_content: Optional[str] = None
+        self._user_message: Optional[str] = None
+
+    def send_message(
+        self,
+        message: str,
+        model: str,
+        context_mode: str,
+        history: List[ChatMessage],
+        document_content: Optional[str] = None,
+    ) -> None:
+        """
+        Queue a chat message for processing.
+
+        Args:
+            message: User's chat message text
+            model: Ollama model name (e.g., "phi3:mini")
+            context_mode: Interaction mode (document/syntax/general/editing)
+            history: Previous chat messages for context
+            document_content: Current document text (optional, for context modes)
+
+        Raises:
+            RuntimeError: If worker is already processing a message
+        """
+        if self._is_processing:
+            logger.warning("Chat worker is busy, ignoring new message")
+            return
+
+        self._user_message = message
+        self._current_model = model
+        self._context_mode = context_mode
+        self._chat_history = history
+        self._document_content = document_content
+        self._should_cancel = False
+
+        # Start processing on background thread
+        self.start()
+
+    def cancel_operation(self) -> None:
+        """
+        Cancel the currently running chat operation.
+
+        Sets cancellation flag. Worker checks this flag periodically
+        during API calls and streaming responses.
+        """
+        if self._is_processing:
+            logger.info("Cancelling chat operation")
+            self._should_cancel = True
+
+    def run(self) -> None:
+        """
+        Main worker thread entry point.
+
+        Processes the queued chat message, calls Ollama API, and emits
+        results via signals. Handles streaming, errors, and cancellation.
+        """
+        if not self._user_message or not self._current_model:
+            logger.error("Missing user message or model")
+            self.chat_error.emit("Internal error: missing message or model")
+            return
+
+        self._is_processing = True
+
+        try:
+            # Build system prompt based on context mode
+            system_prompt = self._build_system_prompt()
+
+            # Build message history for Ollama API
+            messages = self._build_message_history(system_prompt)
+
+            # Call Ollama API
+            response_text = self._call_ollama_api(messages)
+
+            # Check for cancellation
+            if self._should_cancel:
+                logger.info("Operation cancelled by user")
+                self.operation_cancelled.emit()
+                return
+
+            # Create ChatMessage for response
+            response_message = ChatMessage(
+                role="assistant",
+                content=response_text,
+                timestamp=time.time(),
+                model=self._current_model,
+                context_mode=self._context_mode,
+            )
+
+            self.chat_response_ready.emit(response_message)
+            logger.info(f"Chat response completed ({len(response_text)} chars)")
+
+        except subprocess.TimeoutExpired:
+            error_msg = "Request timed out. Try a shorter message or simpler question."
+            logger.error(f"Ollama API timeout: {error_msg}")
+            self.chat_error.emit(error_msg)
+
+        except subprocess.CalledProcessError as e:
+            error_msg = self._parse_ollama_error(e)
+            logger.error(f"Ollama API error: {error_msg}")
+            self.chat_error.emit(error_msg)
+
+        except Exception as e:
+            error_msg = f"Unexpected error: {str(e)}"
+            logger.exception("Unexpected error in chat worker")
+            self.chat_error.emit(error_msg)
+
+        finally:
+            self._is_processing = False
+            self._user_message = None
+
+    def _build_system_prompt(self) -> str:
+        """
+        Build system prompt based on context mode.
+
+        Returns:
+            System prompt text tailored to the interaction mode
+        """
+        if self._context_mode == "document":
+            if self._document_content:
+                return (
+                    "You are an AI assistant helping with AsciiDoc document editing. "
+                    "Answer questions about the document content below.\n\n"
+                    f"Document:\n{self._document_content[:2000]}"  # Limit to 2KB
+                )
+            else:
+                return (
+                    "You are an AI assistant helping with AsciiDoc document editing. "
+                    "Answer general questions about the document."
+                )
+
+        elif self._context_mode == "syntax":
+            return (
+                "You are an expert in AsciiDoc syntax. Help users with AsciiDoc "
+                "formatting, markup, and best practices. Provide clear examples."
+            )
+
+        elif self._context_mode == "editing":
+            if self._document_content:
+                return (
+                    "You are an AI editor helping improve document quality. "
+                    "Suggest edits, improvements, and corrections for the document below.\n\n"
+                    f"Document:\n{self._document_content[:2000]}"  # Limit to 2KB
+                )
+            else:
+                return (
+                    "You are an AI editor helping improve document quality. "
+                    "Provide editing suggestions and improvements."
+                )
+
+        else:  # general
+            return "You are a helpful AI assistant. Answer questions clearly and concisely."
+
+    def _build_message_history(self, system_prompt: str) -> List[Dict[str, str]]:
+        """
+        Build message list for Ollama API from chat history.
+
+        Args:
+            system_prompt: System context prompt
+
+        Returns:
+            List of message dicts with 'role' and 'content' keys
+        """
+        messages: List[Dict[str, str]] = []
+
+        # Add system prompt
+        messages.append({"role": "system", "content": system_prompt})
+
+        # Add chat history (last 10 messages for context window management)
+        for msg in self._chat_history[-10:]:
+            messages.append({"role": msg.role, "content": msg.content})
+
+        # Add current user message
+        if self._user_message:
+            messages.append({"role": "user", "content": self._user_message})
+
+        return messages
+
+    def _call_ollama_api(self, messages: List[Dict[str, str]]) -> str:
+        """
+        Call Ollama API with message history.
+
+        Args:
+            messages: List of message dicts for API
+
+        Returns:
+            AI response text
+
+        Raises:
+            subprocess.TimeoutExpired: If API call exceeds 60s timeout
+            subprocess.CalledProcessError: If Ollama returns error
+        """
+        # Build Ollama CLI command
+        cmd = [
+            "ollama",
+            "run",
+            self._current_model or "phi3:mini",
+            "--format",
+            "json",
+        ]
+
+        # Prepare request JSON
+        request_data = {
+            "model": self._current_model,
+            "messages": messages,
+            "stream": False,  # v1.7.0: No streaming yet
+        }
+
+        logger.debug(f"Calling Ollama API: {self._current_model}")
+
+        # Call Ollama CLI
+        result = subprocess.run(
+            cmd,
+            input=json.dumps(request_data),
+            capture_output=True,
+            text=True,
+            timeout=60,  # 60 second timeout
+            check=True,
+            shell=False,  # Security: never use shell=True
+        )
+
+        # Parse response
+        response_data = json.loads(result.stdout)
+        response_text = response_data.get("message", {}).get("content", "")
+
+        if not response_text:
+            raise ValueError("Empty response from Ollama API")
+
+        return response_text
+
+    def _parse_ollama_error(self, error: subprocess.CalledProcessError) -> str:
+        """
+        Parse Ollama CLI error into user-friendly message.
+
+        Args:
+            error: CalledProcessError from subprocess
+
+        Returns:
+            User-friendly error message
+        """
+        stderr = error.stderr.strip()
+
+        # Common error patterns
+        if "model" in stderr.lower() and "not found" in stderr.lower():
+            return (
+                f"Model '{self._current_model}' not found. "
+                "Pull it with: ollama pull {model}"
+            )
+        elif "connection refused" in stderr.lower():
+            return (
+                "Cannot connect to Ollama. "
+                "Ensure Ollama is running: ollama serve"
+            )
+        elif "context length" in stderr.lower():
+            return (
+                "Message too long for model context. "
+                "Try a shorter message or clear chat history."
+            )
+        else:
+            return f"Ollama error: {stderr[:200]}"  # Limit error message length

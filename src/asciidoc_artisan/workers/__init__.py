@@ -32,6 +32,7 @@ Usage Example:
 
 from .git_worker import GitWorker
 from .github_cli_worker import GitHubCLIWorker
+from .ollama_chat_worker import OllamaChatWorker
 from .optimized_worker_pool import OptimizedWorkerPool, TaskPriority
 from .pandoc_worker import PandocWorker
 from .preview_worker import PreviewWorker
@@ -40,6 +41,7 @@ from .worker_tasks import ConversionTask, GitTask, RenderTask
 __all__ = [
     "GitWorker",
     "GitHubCLIWorker",
+    "OllamaChatWorker",
     "PandocWorker",
     "PreviewWorker",
     "OptimizedWorkerPool",
