@@ -48,6 +48,36 @@ class GitHandler(BaseVCSHandler):
         # Git-specific state
         self.pending_commit_message: Optional[str] = None
 
+    def initialize(self) -> None:
+        """
+        Initialize Git handler from settings.
+
+        Loads saved Git repository path from settings and validates it.
+        Called after UI setup is complete.
+        """
+        settings = self.settings_manager.load_settings()
+
+        # Load repository path from settings
+        if hasattr(settings, "git_repo_path") and settings.git_repo_path:
+            repo_path = settings.git_repo_path
+
+            # Validate it's still a Git repository
+            if (Path(repo_path) / ".git").is_dir():
+                logger.info(f"Git repository loaded from settings: {repo_path}")
+
+                # Update UI state
+                if hasattr(self.window, "_update_ui_state"):
+                    self.window._update_ui_state()
+            else:
+                logger.warning(
+                    f"Saved Git repository no longer valid: {repo_path}"
+                )
+                # Clear invalid path from settings
+                settings.git_repo_path = None
+                self.settings_manager.save_settings(settings, self.window)
+        else:
+            logger.debug("No Git repository configured in settings")
+
     def select_repository(self) -> None:
         """Select a Git repository via file dialog."""
         settings = self.settings_manager.load_settings()

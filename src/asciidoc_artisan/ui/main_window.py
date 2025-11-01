@@ -321,6 +321,7 @@ class AsciiDocEditor(QMainWindow):
 
         # === Git Integration ===
         self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)
+        self.git_handler.initialize()  # Load repository from settings
 
         # === GitHub Integration ===
         self.github_handler = GitHubHandler(
