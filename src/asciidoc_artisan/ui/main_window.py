@@ -152,6 +152,7 @@ from asciidoc_artisan.ui.github_handler import (  # GitHub PR/Issue operations
 # === REMOVED FEATURES (KEPT AS COMMENTS FOR REFERENCE) ===
 # MenuManager removed in v1.5.0 - replaced by ActionManager (better architecture)
 # from asciidoc_artisan.ui.menu_manager import MenuManager
+from asciidoc_artisan.ui.chat_manager import ChatManager  # Manages AI chat (v1.7.0)
 from asciidoc_artisan.ui.pandoc_result_handler import (  # Handles Pandoc results
     PandocResultHandler,
 )
@@ -336,6 +337,12 @@ class AsciiDocEditor(QMainWindow):
         # === Editor State ===
         self.editor_state = EditorState(self)
 
+        # === Chat System (v1.7.0) ===
+        # ChatManager must be initialized AFTER UISetupManager creates chat_bar and chat_panel
+        self.chat_manager = ChatManager(
+            self.chat_bar, self.chat_panel, self._settings, parent=self
+        )
+
         # === Finalization ===
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
         self.theme_manager.apply_theme()
@@ -384,6 +391,35 @@ class AsciiDocEditor(QMainWindow):
     def _setup_workers_and_threads(self) -> None:
         """Set up worker threads (delegates to WorkerManager)."""
         self.worker_manager.setup_workers_and_threads()
+
+        # === Chat System Signal Connections (v1.7.0) ===
+        # Connect ChatManager to OllamaChatWorker
+        self.chat_manager.message_sent_to_worker.connect(
+            self.ollama_chat_worker.send_message
+        )
+        self.chat_manager.status_message.connect(self.status_manager.show_message)
+        self.chat_manager.settings_changed.connect(self._save_settings_deferred)
+
+        # Connect OllamaChatWorker responses back to ChatManager
+        self.ollama_chat_worker.chat_response_ready.connect(
+            self.chat_manager.handle_response_ready
+        )
+        self.ollama_chat_worker.chat_response_chunk.connect(
+            self.chat_manager.handle_response_chunk
+        )
+        self.ollama_chat_worker.chat_error.connect(self.chat_manager.handle_error)
+        self.ollama_chat_worker.operation_cancelled.connect(
+            self.chat_manager.handle_operation_cancelled
+        )
+
+        # Connect chat bar cancel button to worker cancellation
+        self.chat_bar.cancel_requested.connect(self.ollama_chat_worker.cancel_operation)
+
+        # Initialize chat manager (loads history, sets visibility)
+        self.chat_manager.set_document_content_provider(
+            lambda: self.editor.toPlainText()
+        )
+        self.chat_manager.initialize()
 
     def _start_preview_timer(self) -> None:
         """
