@@ -105,9 +105,9 @@ class GitHubCLIWorker(BaseWorker):
             )
             self.github_result_ready.emit(result)
 
-    @Slot(list, str)
+    @Slot(list, str, str)
     def run_gh_command(
-        self, args: List[str], working_dir: Optional[str] = None
+        self, args: List[str], working_dir: Optional[str] = None, operation: Optional[str] = None
     ) -> None:
         """
         Execute a GitHub CLI command.
@@ -117,6 +117,7 @@ class GitHubCLIWorker(BaseWorker):
         Args:
             args: GitHub CLI arguments (e.g., ["pr", "list", "--json", "number,title"])
             working_dir: Optional working directory (defaults to current directory)
+            operation: Optional operation name for result tracking (defaults to args[0])
 
         Emits:
             github_result_ready: GitHubResult with success/failure and parsed JSON data
@@ -135,14 +136,15 @@ class GitHubCLIWorker(BaseWorker):
                     data=None,
                     error="Operation cancelled by user",
                     user_message="Cancelled",
-                    operation="cancelled",
+                    operation=operation or "cancelled",
                 )
             )
             self.reset_cancellation()
             return
 
-        # Determine operation for logging
-        operation = args[0] if args else "unknown"
+        # Determine operation for logging (use provided operation or fallback to args[0])
+        if operation is None:
+            operation = args[0] if args else "unknown"
         user_message = "GitHub CLI command failed."
 
         try:
@@ -311,7 +313,7 @@ class GitHubCLIWorker(BaseWorker):
             "--json",
             "number,url",
         ]
-        self.run_gh_command(args, working_dir)
+        self.run_gh_command(args, working_dir, operation="pr_create")
 
     @Slot(str)
     def list_pull_requests(
@@ -337,7 +339,7 @@ class GitHubCLIWorker(BaseWorker):
         if state:
             args.extend(["--state", state])
 
-        self.run_gh_command(args, working_dir)
+        self.run_gh_command(args, working_dir, operation="pr_list")
 
     @Slot(str, str)
     def create_issue(
@@ -364,7 +366,7 @@ class GitHubCLIWorker(BaseWorker):
             "--json",
             "number,url",
         ]
-        self.run_gh_command(args, working_dir)
+        self.run_gh_command(args, working_dir, operation="issue_create")
 
     @Slot(str)
     def list_issues(
@@ -390,7 +392,7 @@ class GitHubCLIWorker(BaseWorker):
         if state:
             args.extend(["--state", state])
 
-        self.run_gh_command(args, working_dir)
+        self.run_gh_command(args, working_dir, operation="issue_list")
 
     @Slot()
     def get_repo_info(self, working_dir: Optional[str] = None) -> None:
@@ -409,7 +411,7 @@ class GitHubCLIWorker(BaseWorker):
             "--json",
             "name,nameWithOwner,description,stargazerCount,forkCount,defaultBranchRef,visibility,url",
         ]
-        self.run_gh_command(args, working_dir)
+        self.run_gh_command(args, working_dir, operation="repo_info")
 
     def _parse_gh_error(self, stderr: str, command: List[str]) -> str:
         """
