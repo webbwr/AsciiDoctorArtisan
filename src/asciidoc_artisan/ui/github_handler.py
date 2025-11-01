@@ -339,9 +339,42 @@ class GitHubHandler(BaseVCSHandler, QObject):
     def _handle_repo_info(self, result: GitHubResult) -> None:
         """Handle successful repo info retrieval."""
         if result.data:
+            from PySide6.QtWidgets import QMessageBox
+
+            # Extract repository information
             repo_name = result.data.get("nameWithOwner", "Unknown")
+            name = result.data.get("name", "Unknown")
             description = result.data.get("description", "No description")
+            stars = result.data.get("stargazerCount", 0)
+            forks = result.data.get("forkCount", 0)
+            visibility = result.data.get("visibility", "Unknown")
+            url = result.data.get("url", "")
+
+            # Get default branch name from nested object
+            default_branch_ref = result.data.get("defaultBranchRef", {})
+            default_branch = default_branch_ref.get("name", "Unknown") if default_branch_ref else "Unknown"
+
             logger.info(f"Repository: {repo_name} - {description}")
+
+            # Build info message
+            info_text = f"""<h3>{repo_name}</h3>
+<p><b>Repository Name:</b> {name}</p>
+<p><b>Description:</b> {description}</p>
+<p><b>Default Branch:</b> {default_branch}</p>
+<p><b>Visibility:</b> {visibility}</p>
+<p><b>Stars:</b> {stars}</p>
+<p><b>Forks:</b> {forks}</p>
+<p><b>URL:</b> <a href="{url}">{url}</a></p>
+"""
+
+            # Show dialog
+            msg_box = QMessageBox(self.window)
+            msg_box.setWindowTitle("Repository Information")
+            msg_box.setTextFormat(1)  # RichText
+            msg_box.setText(info_text)
+            msg_box.setIcon(QMessageBox.Information)
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.exec()
 
     def _check_repository_ready(self) -> bool:
         """
