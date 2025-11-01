@@ -54,6 +54,9 @@ class GitHandler(BaseVCSHandler):
 
         Loads saved Git repository path from settings and validates it.
         Called after UI setup is complete.
+
+        Note: Does not update UI state - UI state will be updated later
+        in the initialization sequence when all managers are ready.
         """
         settings = self.settings_manager.load_settings()
 
@@ -64,10 +67,7 @@ class GitHandler(BaseVCSHandler):
             # Validate it's still a Git repository
             if (Path(repo_path) / ".git").is_dir():
                 logger.info(f"Git repository loaded from settings: {repo_path}")
-
-                # Update UI state
-                if hasattr(self.window, "_update_ui_state"):
-                    self.window._update_ui_state()
+                # Note: UI state will be updated later in initialization sequence
             else:
                 logger.warning(
                     f"Saved Git repository no longer valid: {repo_path}"
