@@ -55,10 +55,10 @@ class DebounceConfig:
     Uses __slots__ for memory efficiency.
     """
 
-    # Base delays (milliseconds)
-    min_delay: int = 100
-    max_delay: int = 2000
-    default_delay: int = 350
+    # Base delays (milliseconds) - Optimized for low latency
+    min_delay: int = 50  # Reduced from 100ms
+    max_delay: int = 1000  # Reduced from 2000ms
+    default_delay: int = 200  # Reduced from 350ms
 
     # Document size thresholds (characters)
     small_doc_threshold: int = 10_000
@@ -242,15 +242,15 @@ class AdaptiveDebouncer:
         return delay
 
     def _get_delay_for_size(self, size: int) -> float:
-        """Get base delay for document size."""
+        """Get base delay for document size - Optimized for low latency."""
         if size < self.config.small_doc_threshold:
-            return 200
+            return 100  # Reduced from 200ms (50% faster)
         elif size < self.config.medium_doc_threshold:
-            return 350
+            return 200  # Reduced from 350ms (43% faster)
         elif size < self.config.large_doc_threshold:
-            return 500
+            return 300  # Reduced from 500ms (40% faster)
         else:
-            return 800
+            return 500  # Reduced from 800ms (37.5% faster)
 
     def _get_cpu_multiplier(self) -> float:
         """Get CPU load multiplier."""

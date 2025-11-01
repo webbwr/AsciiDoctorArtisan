@@ -117,9 +117,9 @@ logger = logging.getLogger(__name__)
 # === DEBOUNCE INTERVAL CONSTANTS ===
 # These define how long to wait before updating preview
 # Shorter intervals = faster updates but more CPU usage
-PREVIEW_FAST_INTERVAL_MS = 200  # 200ms for small documents (fast typing)
-PREVIEW_NORMAL_INTERVAL_MS = 500  # 500ms for medium documents (normal)
-PREVIEW_SLOW_INTERVAL_MS = 1000  # 1000ms for large documents (slow typing)
+PREVIEW_FAST_INTERVAL_MS = 100  # 100ms for small documents (50% faster)
+PREVIEW_NORMAL_INTERVAL_MS = 250  # 250ms for medium documents (50% faster)
+PREVIEW_SLOW_INTERVAL_MS = 500  # 500ms for large documents (50% faster)
 
 # === CONTENT SECURITY POLICY (CSP) ===
 # Security rules for preview HTML to prevent XSS attacks

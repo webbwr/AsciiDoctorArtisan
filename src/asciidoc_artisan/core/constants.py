@@ -20,7 +20,7 @@ DEFAULT_FILENAME = "untitled.adoc"
 SETTINGS_FILENAME = "AsciiDocArtisan.json"
 
 # UI Configuration
-PREVIEW_UPDATE_INTERVAL_MS = 350  # Preview debounce delay (FR-004)
+PREVIEW_UPDATE_INTERVAL_MS = 200  # Preview debounce delay - Optimized (was 350ms)
 EDITOR_FONT_FAMILY = "Consolas" if platform.system() == "Windows" else "Courier New"
 EDITOR_FONT_SIZE = 12
 MIN_FONT_SIZE = 8
@@ -61,10 +61,10 @@ MIN_WINDOW_HEIGHT = 600
 # Auto-save Settings
 AUTO_SAVE_INTERVAL_MS = 300000  # 5 minutes
 
-# Preview Timer Settings
-PREVIEW_FAST_INTERVAL_MS = 200  # For small documents
-PREVIEW_NORMAL_INTERVAL_MS = 500  # For medium documents
-PREVIEW_SLOW_INTERVAL_MS = 1000  # For large documents
+# Preview Timer Settings - Optimized for low latency
+PREVIEW_FAST_INTERVAL_MS = 100  # For small documents (50% faster)
+PREVIEW_NORMAL_INTERVAL_MS = 250  # For medium documents (50% faster)
+PREVIEW_SLOW_INTERVAL_MS = 500  # For large documents (50% faster)
 
 # File Size Thresholds
 LARGE_FILE_THRESHOLD_BYTES = 100000  # 100 KB

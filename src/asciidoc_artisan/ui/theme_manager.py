@@ -86,6 +86,69 @@ from PySide6.QtWidgets import QApplication  # Main application class
 if TYPE_CHECKING:
     from .main_window import AsciiDocEditor
 
+# === PRE-GENERATED CSS CONSTANTS (Performance Optimization) ===
+# CSS strings are static and never change at runtime
+# Pre-generating them as constants eliminates method call overhead
+DARK_MODE_CSS = """
+body {
+    background:#1e1e1e; color:#dcdcdc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 20px; line-height: 1.6; max-width: 900px; margin: 0 auto;
+}
+h1,h2,h3,h4,h5,h6 { color:#ececec; margin-top: 1.5em; margin-bottom: 0.5em; }
+h1 { font-size: 2.2em; border-bottom: 2px solid #444; padding-bottom: 0.3em; }
+h2 { font-size: 1.8em; border-bottom: 1px solid #333; padding-bottom: 0.2em; }
+h3 { font-size: 1.4em; }
+a { color:#80d0ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { background:#2a2a2a; color:#f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+pre { background:#2a2a2a; color:#f0f0f0; padding: 15px; overflow-x: auto; border-radius: 5px; }
+pre code { background: none; padding: 0; }
+blockquote { border-left: 4px solid #666; margin: 1em 0; padding-left: 1em; color: #aaa; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+th { background: #2a2a2a; font-weight: bold; }
+ul, ol { padding-left: 2em; margin: 1em 0; }
+.admonitionblock { margin: 1em 0; padding: 1em; border-radius: 5px; }
+.admonitionblock.note { background: #1e3a5f; border-left: 4px solid #4a90e2; }
+.admonitionblock.tip { background: #1e4d2b; border-left: 4px solid #5cb85c; }
+.admonitionblock.warning { background: #5d4037; border-left: 4px solid #ff9800; }
+.admonitionblock.caution { background: #5d4037; border-left: 4px solid #f44336; }
+.admonitionblock.important { background: #4a148c; border-left: 4px solid #9c27b0; }
+.imageblock { text-align: center; margin: 1em 0; }
+.imageblock img { max-width: 100%; height: auto; }
+"""
+
+LIGHT_MODE_CSS = """
+body {
+    background:#ffffff; color:#333333;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 20px; line-height: 1.6; max-width: 900px; margin: 0 auto;
+}
+h1,h2,h3,h4,h5,h6 { color:#111111; margin-top: 1.5em; margin-bottom: 0.5em; }
+h1 { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 0.3em; }
+h2 { font-size: 1.8em; border-bottom: 1px solid #eee; padding-bottom: 0.2em; }
+h3 { font-size: 1.4em; }
+a { color:#007bff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { background:#f8f8f8; color:#333; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; border: 1px solid #e1e4e8; }
+pre { background:#f8f8f8; color:#333; padding: 15px; overflow-x: auto; border-radius: 5px; border: 1px solid #e1e4e8; }
+pre code { background: none; padding: 0; border: none; }
+blockquote { border-left: 4px solid #ddd; margin: 1em 0; padding-left: 1em; color: #666; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background: #f8f8f8; font-weight: bold; }
+ul, ol { padding-left: 2em; margin: 1em 0; }
+.admonitionblock { margin: 1em 0; padding: 1em; border-radius: 5px; }
+.admonitionblock.note { background: #e3f2fd; border-left: 4px solid #2196f3; }
+.admonitionblock.tip { background: #e8f5e9; border-left: 4px solid #4caf50; }
+.admonitionblock.warning { background: #fff3e0; border-left: 4px solid #ff9800; }
+.admonitionblock.caution { background: #ffebee; border-left: 4px solid #f44336; }
+.admonitionblock.important { background: #f3e5f5; border-left: 4px solid #9c27b0; }
+.imageblock { text-align: center; margin: 1em 0; }
+.imageblock img { max-width: 100%; height: auto; }
+"""
+
 
 class ThemeManager:
     """
@@ -220,25 +283,24 @@ class ThemeManager:
     def get_preview_css(self) -> str:
         """Get CSS for preview rendering based on current theme.
 
-        Uses cached CSS to avoid regenerating strings on every update.
-        CSS is only generated once per theme and reused.
+        Returns pre-generated CSS constants for zero overhead.
+        CSS is defined at module level and never changes.
 
         Returns:
             CSS string for dark or light mode preview rendering
         """
+        # Return module-level constants (zero method call overhead)
         if self.editor._settings.dark_mode:
-            # Return cached dark CSS or generate if not cached
-            if self._cached_dark_css is None:
-                self._cached_dark_css = self._get_dark_mode_css()
-            return self._cached_dark_css
+            return DARK_MODE_CSS
         else:
-            # Return cached light CSS or generate if not cached
-            if self._cached_light_css is None:
-                self._cached_light_css = self._get_light_mode_css()
-            return self._cached_light_css
+            return LIGHT_MODE_CSS
 
     def _get_dark_mode_css(self) -> str:
-        """Get CSS for dark mode preview."""
+        """Get CSS for dark mode preview - DEPRECATED, use constant."""
+        return DARK_MODE_CSS
+
+    def _get_dark_mode_css_old(self) -> str:
+        """Old implementation - kept for reference only."""
         return """
             body {
                 background:#1e1e1e; color:#dcdcdc;
@@ -270,33 +332,5 @@ class ThemeManager:
         """
 
     def _get_light_mode_css(self) -> str:
-        """Get CSS for light mode preview."""
-        return """
-            body {
-                background:#ffffff; color:#333333;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                padding: 20px; line-height: 1.6; max-width: 900px; margin: 0 auto;
-            }
-            h1,h2,h3,h4,h5,h6 { color:#111111; margin-top: 1.5em; margin-bottom: 0.5em; }
-            h1 { font-size: 2.2em; border-bottom: 2px solid #ddd; padding-bottom: 0.3em; }
-            h2 { font-size: 1.8em; border-bottom: 1px solid #eee; padding-bottom: 0.2em; }
-            h3 { font-size: 1.4em; }
-            a { color:#007bff; text-decoration: none; }
-            a:hover { text-decoration: underline; }
-            code { background:#f8f8f8; color:#333; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; border: 1px solid #e1e4e8; }
-            pre { background:#f8f8f8; color:#333; padding: 15px; overflow-x: auto; border-radius: 5px; border: 1px solid #e1e4e8; }
-            pre code { background: none; padding: 0; border: none; }
-            blockquote { border-left: 4px solid #ddd; margin: 1em 0; padding-left: 1em; color: #666; }
-            table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background: #f8f8f8; font-weight: bold; }
-            ul, ol { padding-left: 2em; margin: 1em 0; }
-            .admonitionblock { margin: 1em 0; padding: 1em; border-radius: 5px; }
-            .admonitionblock.note { background: #e3f2fd; border-left: 4px solid #2196f3; }
-            .admonitionblock.tip { background: #e8f5e9; border-left: 4px solid #4caf50; }
-            .admonitionblock.warning { background: #fff3e0; border-left: 4px solid #ff9800; }
-            .admonitionblock.caution { background: #ffebee; border-left: 4px solid #f44336; }
-            .admonitionblock.important { background: #f3e5f5; border-left: 4px solid #9c27b0; }
-            .imageblock { text-align: center; margin: 1em 0; }
-            .imageblock img { max-width: 100%; height: auto; }
-        """
+        """Get CSS for light mode preview - DEPRECATED, use constant."""
+        return LIGHT_MODE_CSS

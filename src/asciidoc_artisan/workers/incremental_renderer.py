@@ -29,18 +29,33 @@ Block Structure:
     - Paragraphs between headings
 """
 
+import gc
 import hashlib
 import logging
 import re
+import sys
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
-# Cache settings
-MAX_CACHE_SIZE = 500  # Max blocks in cache (increased from 100 for better performance)
-BLOCK_HASH_LENGTH = 16  # Hash length for block IDs
+# Cache settings - Optimized for memory efficiency
+MAX_CACHE_SIZE = 200  # Max blocks in cache (reduced from 500 for lower memory usage)
+BLOCK_HASH_LENGTH = 12  # Hash length for block IDs (reduced from 16, still unique enough)
+
+# String interning for common AsciiDoc tokens - Reduces memory usage
+COMMON_TOKENS = [
+    "=", "==", "===", "====", "=====",  # Headings
+    "*", "**", "_", "__", "`", "``",  # Formatting
+    ":", "::", ":::", "::::",  # Lists and attributes
+    "//", "////",  # Comments
+    "----", "....", "____",  # Blocks
+    "[", "]", "{", "}", "(", ")",  # Delimiters
+    "<<", ">>", "->", "<-",  # Links and arrows
+]
+# Intern common tokens to save memory (single string object for each)
+INTERNED_TOKENS = {token: sys.intern(token) for token in COMMON_TOKENS}
 
 
 @dataclass(slots=True)
@@ -132,10 +147,13 @@ class BlockCache:
             self._cache.popitem(last=False)
 
     def clear(self) -> None:
-        """Clear all cached blocks."""
+        """Clear all cached blocks and trigger garbage collection."""
         self._cache.clear()
         self._hits = 0
         self._misses = 0
+        # Trigger garbage collection to free memory immediately
+        gc.collect()
+        logger.debug("Cache cleared and garbage collected")
 
     def get_stats(self) -> Dict[str, Union[int, float]]:
         """
