@@ -432,6 +432,9 @@ class AsciiDocEditor(QMainWindow):
         )
         self.chat_manager.initialize()
 
+        # Initialize GitHub handler (fetches repo info if Git repository is set)
+        self.github_handler.initialize()
+
     def _start_preview_timer(self) -> None:
         """
         Start preview update timer with adaptive debouncing.

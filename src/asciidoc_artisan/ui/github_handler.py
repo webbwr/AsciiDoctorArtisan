@@ -66,6 +66,19 @@ class GitHubHandler(BaseVCSHandler, QObject):
         self.cached_prs: List[Dict[str, Any]] = []
         self.cached_issues: List[Dict[str, Any]] = []
 
+    def initialize(self) -> None:
+        """
+        Initialize GitHub handler and fetch repository info if Git repo is set.
+
+        Called after UI setup is complete and Git repository is loaded.
+        Automatically fetches and displays repository information in status bar.
+        """
+        # Check if Git repository is set
+        if self.git_handler.is_repository_set():
+            # Silently fetch repository info to update status bar
+            logger.info("Git repository is set, fetching GitHub repository info...")
+            self.get_repo_info(silent=True)
+
     def create_pull_request(self) -> None:
         """Show dialog and create a GitHub pull request."""
         if not self._ensure_ready():
@@ -223,18 +236,24 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
         logger.info("Listing issues")
 
-    def get_repo_info(self) -> None:
-        """Get GitHub repository information."""
+    def get_repo_info(self, silent: bool = False) -> None:
+        """Get GitHub repository information.
+
+        Args:
+            silent: If True, fetches info silently without showing "Fetching..." status
+                   (used for automatic updates on startup)
+        """
         if not self._ensure_ready():
             return
 
         # Start operation
         self.is_processing = True
-        self.last_operation = "repo_info"
+        self.last_operation = "repo_info" if not silent else "repo_info_silent"
         self._update_ui_state()
 
-        # Show status in status bar (no dialog)
-        self.status_manager.show_status("Fetching repository information...", timeout=5000)
+        # Show status in status bar only if not silent
+        if not silent:
+            self.status_manager.show_status("Fetching repository information...", timeout=5000)
 
         # Emit signal to worker
         repo_path = self.git_handler.get_repository_path()
@@ -246,7 +265,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
         # Emit our signal
         self.github_operation_started.emit("repo_info")
 
-        logger.info("Fetching repository info")
+        logger.info(f"Fetching repository info (silent={silent})")
 
     def handle_github_result(self, result: GitHubResult) -> None:
         """
@@ -359,10 +378,16 @@ class GitHubHandler(BaseVCSHandler, QObject):
             logger.info(f"  Stars: {stars}, Forks: {forks}")
             logger.info(f"  URL: {url}")
 
-            # Show full repository information in a dialog
-            from PySide6.QtWidgets import QMessageBox
+            # Update status bar with concise info
+            status_msg = f"GitHub: {repo_name} | {visibility} | ★{stars} ⑂{forks} | {default_branch}"
+            self.status_manager.show_status(status_msg, timeout=0)  # Permanent
+            logger.info(f"Status bar updated: {status_msg}")
 
-            info_text = f"""<b>Repository:</b> {repo_name}<br><br>
+            # Show full repository information in a dialog (only if user explicitly requested it, not on silent startup fetch)
+            if self.last_operation == "repo_info" and self.last_operation != "repo_info_silent":
+                from PySide6.QtWidgets import QMessageBox
+
+                info_text = f"""<b>Repository:</b> {repo_name}<br><br>
 <b>Description:</b> {description}<br><br>
 <b>Default Branch:</b> {default_branch}<br>
 <b>Visibility:</b> {visibility}<br>
@@ -370,15 +395,15 @@ class GitHubHandler(BaseVCSHandler, QObject):
 <b>Forks:</b> {forks} ⑂<br><br>
 <b>URL:</b> <a href="{url}">{url}</a>"""
 
-            msg_box = QMessageBox(self.window)
-            msg_box.setWindowTitle("Repository Information")
-            msg_box.setTextFormat(Qt.RichText)
-            msg_box.setText(info_text)
-            msg_box.setIcon(QMessageBox.Icon.Information)
-            msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg_box.exec()
+                msg_box = QMessageBox(self.window)
+                msg_box.setWindowTitle("Repository Information")
+                msg_box.setTextFormat(Qt.RichText)
+                msg_box.setText(info_text)
+                msg_box.setIcon(QMessageBox.Icon.Information)
+                msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+                msg_box.exec()
 
-            logger.info("Repository info dialog shown")
+                logger.info("Repository info dialog shown")
 
     def _check_repository_ready(self) -> bool:
         """
