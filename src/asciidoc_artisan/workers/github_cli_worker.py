@@ -407,7 +407,7 @@ class GitHubCLIWorker(BaseWorker):
             "repo",
             "view",
             "--json",
-            "name,description,stargazerCount,forkCount,openIssues,defaultBranch,visibility",
+            "name,nameWithOwner,description,stargazerCount,forkCount,defaultBranchRef,visibility,url",
         ]
         self.run_gh_command(args, working_dir)
 

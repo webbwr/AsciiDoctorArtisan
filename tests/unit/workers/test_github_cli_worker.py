@@ -404,10 +404,13 @@ class TestGitHubCLIWorkerRepository:
             returncode=0,
             stdout=json.dumps({
                 "name": "AsciiDoctorArtisan",
+                "nameWithOwner": "user/AsciiDoctorArtisan",
                 "description": "AsciiDoc editor",
                 "stargazerCount": 42,
                 "forkCount": 10,
-                "openIssues": {"totalCount": 5}
+                "defaultBranchRef": {"name": "main"},
+                "visibility": "PUBLIC",
+                "url": "https://github.com/user/AsciiDoctorArtisan"
             }),
             stderr="",
         )
