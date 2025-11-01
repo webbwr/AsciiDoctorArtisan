@@ -219,6 +219,7 @@ class AsciiDocEditor(QMainWindow):
     request_github_command = Signal(str, dict)  # operation_type, kwargs
     request_pandoc_conversion = Signal(object, str, str, str, object, bool)
     request_preview_render = Signal(str)
+    request_load_file_content = Signal(str, object, str)  # content, file_path, context
 
     def __init__(self) -> None:
         super().__init__()
@@ -391,6 +392,13 @@ class AsciiDocEditor(QMainWindow):
     def _setup_workers_and_threads(self) -> None:
         """Set up worker threads (delegates to WorkerManager)."""
         self.worker_manager.setup_workers_and_threads()
+
+        # === File Load Signal Connection (threading fix) ===
+        # Connect file load request signal to handler in main thread
+        self.request_load_file_content.connect(
+            self.pandoc_result_handler._handle_file_load_request,
+            Qt.ConnectionType.QueuedConnection  # Force main thread execution
+        )
 
         # === Chat System Signal Connections (v1.7.0) ===
         # Connect ChatManager to OllamaChatWorker

@@ -20,7 +20,7 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any, Dict
 
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, Qt
 
 from asciidoc_artisan.workers import (
     GitHubCLIWorker,
@@ -134,10 +134,12 @@ class WorkerManager:
             self.pandoc_worker.run_pandoc_conversion
         )
         self.pandoc_worker.conversion_complete.connect(
-            self.editor.pandoc_result_handler.handle_pandoc_result
+            self.editor.pandoc_result_handler.handle_pandoc_result,
+            Qt.ConnectionType.QueuedConnection  # Force main thread execution
         )
         self.pandoc_worker.conversion_error.connect(
-            self.editor.pandoc_result_handler.handle_pandoc_error_result
+            self.editor.pandoc_result_handler.handle_pandoc_error_result,
+            Qt.ConnectionType.QueuedConnection  # Force main thread execution
         )
         self.pandoc_thread.finished.connect(self.pandoc_worker.deleteLater)
         self.pandoc_thread.start()

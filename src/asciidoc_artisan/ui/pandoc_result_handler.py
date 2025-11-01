@@ -35,6 +35,18 @@ class PandocResultHandler:
         """Initialize the PandocResultHandler with a reference to the main editor."""
         self.editor = editor
 
+    def _handle_file_load_request(self, result: str, pending_path, context: str) -> None:
+        """Handle file load request in main thread.
+
+        Args:
+            result: Converted content
+            pending_path: Path to the file being loaded
+            context: Context description
+        """
+        self.editor.file_load_manager.load_content_into_editor(result, pending_path)
+        logger.info(f"Successfully converted {context}")
+        QTimer.singleShot(100, self.editor.update_preview)
+
     @Slot(str, str)
     def handle_pandoc_result(self, result: str, context: str) -> None:
         """Handle successful Pandoc conversion result.
@@ -51,15 +63,12 @@ class PandocResultHandler:
 
         # Handle file import operations
         if self.editor.file_operations_manager._pending_file_path:
-
-            self.editor.file_load_manager.load_content_into_editor(
-                result, self.editor.file_operations_manager._pending_file_path
-            )
+            # Capture variables and emit signal to load in main thread
+            pending_path = self.editor.file_operations_manager._pending_file_path
             self.editor.file_operations_manager._pending_file_path = None
 
-            logger.info(f"Successfully converted {context}")
-
-            QTimer.singleShot(100, self.editor.update_preview)
+            # Emit signal to request file load in main thread
+            self.editor.request_load_file_content.emit(result, pending_path, context)
 
     @Slot(str, str)
     def handle_pandoc_error_result(self, error: str, context: str) -> None:
