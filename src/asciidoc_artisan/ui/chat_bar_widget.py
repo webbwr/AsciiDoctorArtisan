@@ -145,20 +145,21 @@ class ChatBarWidget(QWidget):
         self._input_field.setClearButtonEnabled(True)
         bottom_row.addWidget(self._input_field, 1)  # Stretch to fill space
 
-        # Send button with blue text
-        self._send_button = QPushButton("Send")
+        # Send button with blue icon
+        self._send_button = QPushButton()
+        self._send_button.setIcon(
+            self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+        )
         self._send_button.setToolTip("Send message (or press Enter)")
-        self._send_button.setMaximumWidth(60)
-        self._send_button.setMinimumWidth(60)
-        # Style button with blue text
+        self._send_button.setMaximumWidth(40)
+        self._send_button.setMinimumWidth(40)
+        # Style button with blue colors
         self._send_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: 1px solid #4a9eff;
                 border-radius: 4px;
-                color: #4a9eff;
-                font-weight: bold;
-                padding: 4px 8px;
+                padding: 4px;
             }
             QPushButton:hover {
                 background-color: rgba(74, 158, 255, 0.2);
@@ -167,7 +168,6 @@ class ChatBarWidget(QWidget):
                 background-color: rgba(74, 158, 255, 0.3);
             }
             QPushButton:disabled {
-                color: #4a9eff;
                 opacity: 0.5;
                 border-color: rgba(74, 158, 255, 0.5);
             }
