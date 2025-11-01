@@ -20,7 +20,6 @@ It:
 - Opens Word, PDF, Markdown files (10-50x faster with GPU)
 - Saves to Word, PDF, Markdown
 - Uses Git to save versions
-- Works with GitHub (make PRs and issues)
 - Works on all computers
 - Uses GPU for speed (10-50x faster preview with hardware acceleration)
 - Uses NPU for AI tasks when available
@@ -28,6 +27,7 @@ It:
 - Starts fast (1.05 seconds in v1.5.0)
 - Can cancel long tasks
 - Uses less code (easier to fix)
+- Tracks memory use (148.9% growth baseline documented)
 
 Think of it like Word, but for AsciiDoc.
 
@@ -222,72 +222,6 @@ The program MUST show Git status.
 **Test**: In Git folder, status bar shows folder name.
 
 **Test**: Not in Git folder, shows "Not in Git".
-
----
-
-## GitHub Rules (NEW v1.6.0)
-
-### Rule: Create Pull Requests
-
-The program MUST let you create PRs using GitHub CLI.
-
-**Test**: Open Git menu → GitHub → Create Pull Request. Dialog must show.
-
-**Test**: Fill in title and branch. PR must be created.
-
-**Test**: Without gh auth, must show error message.
-
-### Rule: List Pull Requests
-
-The program MUST show list of PRs.
-
-**Test**: Open Git menu → GitHub → List Pull Requests. Dialog must show PRs.
-
-**Test**: Filter by state (Open/Closed/Merged/All). List must update.
-
-**Test**: Double-click PR. Must open in browser.
-
-### Rule: Create Issues
-
-The program MUST let you create issues using GitHub CLI.
-
-**Test**: Open Git menu → GitHub → Create Issue. Dialog must show.
-
-**Test**: Fill in title and body. Issue must be created.
-
-### Rule: List Issues
-
-The program MUST show list of issues.
-
-**Test**: Open Git menu → GitHub → List Issues. Dialog must show issues.
-
-**Test**: Filter by state (Open/Closed/All). List must update.
-
-**Test**: Double-click issue. Must open in browser.
-
-### Rule: View Repository Info
-
-The program MUST show repo info.
-
-**Test**: Open Git menu → GitHub → View Repository Info. Dialog must show repo details.
-
-**Test**: Must show: name, description, stars, forks, open issues, URL.
-
-### Rule: GitHub Authentication
-
-The program MUST check for GitHub CLI auth.
-
-**Test**: Without `gh auth`, GitHub menu items must be disabled.
-
-**Test**: With `gh auth`, GitHub menu items must be enabled.
-
-### Rule: GitHub Operations Run in Background
-
-GitHub operations MUST run off the main thread.
-
-**Test**: Click Create PR. Window must stay responsive.
-
-**Test**: Status bar must show "Creating PR..." message.
 
 ---
 
@@ -606,20 +540,6 @@ All Git results MUST have:
 
 **Test**: Make Git result with all fields. Must work.
 
-### Rule: Validate GitHub Results
-
-All GitHub results MUST have:
-
-- Success flag (true or false)
-- Data (can be empty)
-- Error text (can be empty)
-- User message (cannot be empty)
-- Operation name (must be valid: pr_create, pr_list, issue_create, issue_list, repo_view)
-
-**Test**: Make GitHub result with invalid operation. Must fail.
-
-**Test**: Make GitHub result with valid operation. Must work.
-
 ### Rule: Clean User Input
 
 The program MUST clean user input:
@@ -921,24 +841,21 @@ Clean code means:
 
 **What's New**:
 
-- ✅ **GitHub CLI Integration** (create PRs and issues, view repo info)
 - ✅ **Block detection optimization** (10-14% faster)
 - ✅ **Predictive rendering** (smarter preview updates)
 - ✅ **Async I/O** (faster file operations with aiofiles)
 - ✅ **Worker pool migration** (better thread management)
 - ✅ **Type hints completion** (100% coverage, mypy --strict: 0 errors)
+- ✅ **Memory optimization analysis** (148.9% growth baseline documented)
 
 **Performance**:
 - Block detection: 10-14% faster
 - File I/O: Async with aiofiles
 - Preview: Predictive rendering reduces unnecessary updates
 
-**GitHub Features**:
-- Create pull requests from editor
-- List and view PRs
-- Create issues
-- List and view issues
-- View repository info
+**CI/CD**:
+- GitHub Actions workflows removed (November 2025)
+- Dependabot for dependency updates
 
 ### Version 1.5.0
 
@@ -1080,22 +997,6 @@ Things for later:
 - Branch management (create, switch, delete)
 - Merge conflict resolution UI
 
-### GitHub - ✅ IMPLEMENTED (v1.6.0)
-
-**Current Features**:
-- ✅ Create pull requests
-- ✅ List and view PRs
-- ✅ Create issues
-- ✅ List and view issues
-- ✅ View repository info
-- ✅ Background operations (non-blocking)
-
-**Future Features**:
-- PR review and comments
-- Issue labels and milestones
-- Workflow triggers
-- Release management
-
 ### Teams
 
 - Share files
@@ -1136,13 +1037,13 @@ Things for later:
 ## Summary
 
 **What It Does**:
-Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Works with GitHub (PRs and issues). Changes file types. Shows document version. Starts in 1 second. Can cancel tasks. Has 100% test coverage.
+Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Changes file types. Shows document version. Starts in 1 second. Can cancel tasks. Has 100% test coverage. Tracks memory use.
 
 **Who It's For**:
 Writers, coders, students, teachers, teams.
 
 **Main Parts**:
-GPU-accelerated preview, file changes, Git, GitHub integration (v1.6.0), works everywhere, safe, fast startup, clean code, 100% test coverage.
+GPU-accelerated preview, file changes, Git, works everywhere, safe, fast startup, clean code, 100% test coverage, memory profiling.
 
 **Status**:
 Version 1.5.0 - Complete | v1.6.0 - Complete | v1.7.0 - In Progress (QA Initiative ✅ Complete)
