@@ -11,6 +11,7 @@ main window complexity and improve modularity.
 """
 
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QTimer, Slot
@@ -35,7 +36,7 @@ class PandocResultHandler:
         """Initialize the PandocResultHandler with a reference to the main editor."""
         self.editor = editor
 
-    def _handle_file_load_request(self, result: str, pending_path, context: str) -> None:
+    def _handle_file_load_request(self, result: str, pending_path: Path, context: str) -> None:
         """Handle file load request in main thread.
 
         Args:

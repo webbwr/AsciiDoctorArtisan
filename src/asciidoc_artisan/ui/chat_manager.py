@@ -25,7 +25,7 @@ import json
 import logging
 import subprocess
 import time
-from typing import List, Optional
+from typing import Any, Callable, List, Optional, cast
 
 from PySide6.QtCore import QObject, QTimer, Signal
 
@@ -72,8 +72,8 @@ class ChatManager(QObject):
 
     def __init__(
         self,
-        chat_bar,  # ChatBarWidget
-        chat_panel,  # ChatPanelWidget
+        chat_bar: Any,  # ChatBarWidget (circular import)
+        chat_panel: Any,  # ChatPanelWidget (circular import)
         settings: Settings,
         parent: Optional[QObject] = None,
     ) -> None:
@@ -271,7 +271,7 @@ class ChatManager(QObject):
                     # Show chat with proportional sizing: 2/5 editor, 2/5 preview, 1/5 chat
                     # Use QTimer to delay until layout is stable
                     from PySide6.QtCore import QTimer
-                    def show_chat():
+                    def show_chat() -> None:
                         window_width = parent.width()
                         editor_width = int(window_width * 0.4)
                         preview_width = int(window_width * 0.4)
@@ -420,7 +420,7 @@ class ChatManager(QObject):
         self.status_message.emit("AI request cancelled")
         logger.info("AI operation cancelled")
 
-    def set_document_content_provider(self, provider) -> None:
+    def set_document_content_provider(self, provider: Callable[[], str]) -> None:
         """
         Set callable that provides current document content.
 
@@ -478,7 +478,7 @@ class ChatManager(QObject):
         Returns:
             Plain text representation of chat history
         """
-        return self._chat_panel.export_to_text()
+        return cast(str, self._chat_panel.export_to_text())
 
     def get_message_count(self) -> int:
         """
@@ -487,7 +487,7 @@ class ChatManager(QObject):
         Returns:
             Message count
         """
-        return self._chat_panel.get_message_count()
+        return cast(int, self._chat_panel.get_message_count())
 
     def is_processing(self) -> bool:
         """
