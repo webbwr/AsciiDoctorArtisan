@@ -100,7 +100,7 @@ async def async_read_text(
 
     try:
         async with aiofiles.open(file_path, mode="r", encoding=encoding) as f:
-            content = await f.read()
+            content: str = await f.read()
             logger.debug(f"Async read successful: {file_path} ({len(content)} chars)")
             return content
     except Exception as e:

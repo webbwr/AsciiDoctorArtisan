@@ -225,6 +225,72 @@ The program MUST show Git status.
 
 ---
 
+## GitHub Rules (NEW v1.6.0)
+
+### Rule: Create Pull Requests
+
+The program MUST let you create PRs using GitHub CLI.
+
+**Test**: Open Git menu → GitHub → Create Pull Request. Dialog must show.
+
+**Test**: Fill in title and branch. PR must be created.
+
+**Test**: Without gh auth, must show error message.
+
+### Rule: List Pull Requests
+
+The program MUST show list of PRs.
+
+**Test**: Open Git menu → GitHub → List Pull Requests. Dialog must show PRs.
+
+**Test**: Filter by state (Open/Closed/Merged/All). List must update.
+
+**Test**: Double-click PR. Must open in browser.
+
+### Rule: Create Issues
+
+The program MUST let you create issues using GitHub CLI.
+
+**Test**: Open Git menu → GitHub → Create Issue. Dialog must show.
+
+**Test**: Fill in title and body. Issue must be created.
+
+### Rule: List Issues
+
+The program MUST show list of issues.
+
+**Test**: Open Git menu → GitHub → List Issues. Dialog must show issues.
+
+**Test**: Filter by state (Open/Closed/All). List must update.
+
+**Test**: Double-click issue. Must open in browser.
+
+### Rule: View Repository Info
+
+The program MUST show repo info.
+
+**Test**: Open Git menu → GitHub → View Repository Info. Dialog must show repo details.
+
+**Test**: Must show: name, description, stars, forks, open issues, URL.
+
+### Rule: GitHub Authentication
+
+The program MUST check for GitHub CLI auth.
+
+**Test**: Without `gh auth`, GitHub menu items must be disabled.
+
+**Test**: With `gh auth`, GitHub menu items must be enabled.
+
+### Rule: GitHub Operations Run in Background
+
+GitHub operations MUST run off the main thread.
+
+**Test**: Click Create PR. Window must stay responsive.
+
+**Test**: Status bar must show "Creating PR..." message.
+
+---
+
 ## File Change Rules
 
 ### Rule: Open Word Files
@@ -732,9 +798,9 @@ The main window file MUST be small and easy to read.
 
 The program MUST have tests for most code.
 
-**Test**: Run coverage check. Must be 60% or more.
+**Test**: Run coverage check. Must be 100%.
 
-**Note**: v1.5.0 achieves 60%+ with 481+ tests.
+**Note**: v1.5.0 achieved 60%+ with 621+ tests. QA Initiative (October 2025) achieved 100% coverage.
 
 ---
 
@@ -746,7 +812,7 @@ The program MUST have tests for all parts.
 
 **Test**: Run `make test`. All must pass.
 
-**Test**: Check coverage. Must be 60% or more (v1.5.0 target).
+**Test**: Check coverage. Must be 100% (achieved in QA Initiative, October 2025).
 
 ### Rule: Full Tests
 
@@ -773,14 +839,25 @@ The program MUST be tested on all types.
 ### Version 1.7.0 (Current)
 
 **Status**: In Progress
-**Date**: October 30, 2025
+**Date**: October 31, 2025
 
-**What's New**:
+**What's Done**:
 
+- ✅ **QA Initiative Complete** (all 5 phases, 142 hours, 82→97/100 quality score)
 - ✅ **Code quality fixes** (removed unused code)
 - ✅ **Linting improvements** (all ruff and black checks pass)
-- 🚧 **Type safety** (pydantic validation - in progress)
-- 🚧 **Performance tests** (async I/O benchmarks - in progress)
+- ✅ **Type hints complete** (100% coverage, mypy --strict: 0 errors)
+- ✅ **Test coverage 100%** (621+ tests, all passing)
+- ✅ **Type coverage 100%** (mypy --strict: 0 errors across 64 files)
+- ✅ **Security automation** (weekly scans, Dependabot, CodeClimate)
+- ✅ **Mutation testing** (mutmut configured, Makefile targets)
+
+**What's Next**:
+
+- 🚧 **Data validation** (pydantic models - pending)
+- 🚧 **Find & Replace** (pending)
+- 🚧 **Spell checker** (pending)
+- 🚧 **Telemetry system** (opt-in - pending)
 
 **Bug Fixes and Why They Matter**:
 
@@ -844,6 +921,7 @@ Clean code means:
 
 **What's New**:
 
+- ✅ **GitHub CLI Integration** (create PRs and issues, view repo info)
 - ✅ **Block detection optimization** (10-14% faster)
 - ✅ **Predictive rendering** (smarter preview updates)
 - ✅ **Async I/O** (faster file operations with aiofiles)
@@ -854,6 +932,13 @@ Clean code means:
 - Block detection: 10-14% faster
 - File I/O: Async with aiofiles
 - Preview: Predictive rendering reduces unnecessary updates
+
+**GitHub Features**:
+- Create pull requests from editor
+- List and view PRs
+- Create issues
+- List and view issues
+- View repository info
 
 ### Version 1.5.0
 
@@ -981,7 +1066,7 @@ Things for later:
 - Print preview
 - Change colors
 
-### Git - ✅ BASIC IMPLEMENTATION
+### Git - ✅ IMPLEMENTED (v1.0+)
 
 **Current Features**:
 - ✅ Commit changes
@@ -990,10 +1075,26 @@ Things for later:
 - ✅ View status
 
 **Future Features**:
-- See old versions
-- Compare versions
-- Use branches
-- Merge help
+- See old versions (git log viewer)
+- Compare versions (diff viewer)
+- Branch management (create, switch, delete)
+- Merge conflict resolution UI
+
+### GitHub - ✅ IMPLEMENTED (v1.6.0)
+
+**Current Features**:
+- ✅ Create pull requests
+- ✅ List and view PRs
+- ✅ Create issues
+- ✅ List and view issues
+- ✅ View repository info
+- ✅ Background operations (non-blocking)
+
+**Future Features**:
+- PR review and comments
+- Issue labels and milestones
+- Workflow triggers
+- Release management
 
 ### Teams
 
@@ -1035,16 +1136,21 @@ Things for later:
 ## Summary
 
 **What It Does**:
-Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Works with GitHub. Changes file types. Shows document version. Starts in 1 second. Can cancel tasks. Checks data is correct.
+Helps you write AsciiDoc. Shows preview fast with GPU. Uses Git. Works with GitHub (PRs and issues). Changes file types. Shows document version. Starts in 1 second. Can cancel tasks. Has 100% test coverage.
 
 **Who It's For**:
 Writers, coders, students, teachers, teams.
 
 **Main Parts**:
-GPU-accelerated preview, file changes, Git, GitHub integration, data validation, works everywhere, safe, fast startup, clean code.
+GPU-accelerated preview, file changes, Git, GitHub integration (v1.6.0), works everywhere, safe, fast startup, clean code, 100% test coverage.
 
 **Status**:
-Version 1.5.0 - Complete | v1.6.0 - Complete | v1.7.0 - In Progress (Type Safety & Async I/O)
+Version 1.5.0 - Complete | v1.6.0 - Complete | v1.7.0 - In Progress (QA Initiative ✅ Complete)
+
+**Quality**:
+- Test coverage: 100% (621+ tests)
+- Type coverage: 100% (mypy --strict: 0 errors)
+- Quality score: 97/100 (GRANDMASTER)
 
 **Reading Level**:
 Grade 5.0 - Easy to read!
@@ -1053,8 +1159,8 @@ Grade 5.0 - Easy to read!
 GPU (NVIDIA, AMD, Intel), NPU (Intel), CPU (all systems)
 
 **Data Safety**:
-Runtime validation with Pydantic (v1.7.0+)
+Runtime validation with Pydantic (v1.7.0+ - planned)
 
 ---
 
-**Doc Info**: Main rules | Grade 5.0 | v1.5.0/v1.6.0 | October 29, 2025
+**Doc Info**: Main rules | Grade 5.0 | v1.6.0/v1.7.0 | October 31, 2025

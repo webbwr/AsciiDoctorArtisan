@@ -13,7 +13,7 @@ TEMPLATE_OUTPUT = $(TEMPLATE_DIR)/output
 ASCIIDOCTOR = asciidoctor
 ASCIIDOCTOR_PDF = asciidoctor-pdf
 
-.PHONY: help install install-dev test lint format clean build run
+.PHONY: help install install-dev test lint format clean build run mutate mutate-report
 
 # Default target
 help:
@@ -28,6 +28,8 @@ help:
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make build        - Build package"
 	@echo "  make run          - Run the application"
+	@echo "  make mutate       - Run mutation testing (slow)"
+	@echo "  make mutate-report - Show mutation testing report"
 	@echo ""
 	@echo "AsciiDoc Template Commands:"
 	@echo "  make template-html    - Build template HTML documentation"
@@ -76,6 +78,17 @@ build: clean
 
 run:
 	$(PYTHON) $(SRC_DIR)/main.py
+
+# Mutation Testing (Phase 5 QA)
+mutate:
+	@echo "Running mutation testing (this may take a while)..."
+	mutmut run --paths-to-mutate=$(SRC_DIR)/asciidoc_artisan/core/,$(SRC_DIR)/asciidoc_artisan/workers/
+
+mutate-report:
+	@echo "Mutation Testing Results:"
+	mutmut results
+	@echo ""
+	@echo "For detailed report, run: mutmut html"
 
 # AsciiDoc Template Targets
 .PHONY: template-html template-pdf template-clean

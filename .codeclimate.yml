@@ -1,0 +1,72 @@
+version: "2"
+
+checks:
+  argument-count:
+    enabled: true
+    config:
+      threshold: 5
+  complex-logic:
+    enabled: true
+    config:
+      threshold: 4
+  file-lines:
+    enabled: true
+    config:
+      threshold: 500
+  method-complexity:
+    enabled: true
+    config:
+      threshold: 10
+  method-count:
+    enabled: true
+    config:
+      threshold: 20
+  method-lines:
+    enabled: true
+    config:
+      threshold: 50
+  nested-control-flow:
+    enabled: true
+    config:
+      threshold: 4
+  return-statements:
+    enabled: true
+    config:
+      threshold: 5
+  similar-code:
+    enabled: true
+    config:
+      threshold: 50
+  identical-code:
+    enabled: true
+    config:
+      threshold: 40
+
+plugins:
+  bandit:
+    enabled: true
+  pep8:
+    enabled: false  # Using ruff instead
+  radon:
+    enabled: true
+    config:
+      threshold: "C"
+  sonar-python:
+    enabled: true
+
+exclude_patterns:
+  - "tests/"
+  - "**/__pycache__/"
+  - "**/*.pyc"
+  - "**/test_*.py"
+  - "venv/"
+  - "build/"
+  - "dist/"
+  - "*.egg-info/"
+  - ".mypy_cache/"
+  - ".pytest_cache/"
+  - ".ruff_cache/"
+  - "htmlcov/"
+  - "docs/"
+  - "scripts/"
+  - "templates/"

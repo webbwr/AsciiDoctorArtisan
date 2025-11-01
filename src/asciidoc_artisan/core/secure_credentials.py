@@ -203,7 +203,7 @@ class SecureCredentials:
 
         try:
             username = f"{service}_key"
-            api_key = keyring.get_password(self.SERVICE_NAME, username)
+            api_key: Optional[str] = keyring.get_password(self.SERVICE_NAME, username)
 
             if api_key:
                 logger.info(f"Successfully retrieved API key for service: {service}")

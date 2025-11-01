@@ -1,111 +1,148 @@
-# Claude Code Skills
+# Claude Code Skills - Quick Reference
 
 This directory contains custom skills for Claude Code.
 
-## Available Skills
+## Grandmaster TechWriter (TW)
 
-### grandmaster-techwriter.md
+**Status:** ✅ Registered & Auto-Activated
+**Aliases:** `tw`, `techwriter`, `grade5`
+**Triggers:** All .md, .rst, .txt, .adoc files
 
-**Purpose:** Write and verify technical documentation at ≤5th grade reading level while preserving all technical content.
+### Quick Commands
 
-**Methodology:** Combines three powerful approaches:
+```bash
+tw check README.md              # Check readability
+tw improve docs/guide.md        # Apply improvements
+tw watch CHANGELOG.md           # Watch for changes
+tw batch docs/                  # Check all .md files
+tw help                         # Show help
+```
+
+### What It Does
+
+Writes technical documentation at ≤5th grade reading level while preserving 100% technical accuracy.
+
+**7-Phase Process:**
+1. **SPECIFY** - Understand intent & target audience
+2. **PLAN** - Structure content logically
+3. **DRAFT** - Write first version
+4. **ANALYZE** - Check readability metrics
+5. **REFINE** - Simplify & improve clarity
+6. **VALIDATE** - Verify all checks pass
+7. **DELIGHT** - Final polish for user experience
+
+**Methodology:**
 - **Japanese MA (間)** - Minimalism and negative space
-- **Socratic Method** - Questions guide discovery
-- **GitHub Spec-Kit** - Spec-driven development with validation
+- **Socratic Method** - Progressive concept building
+- **Spec-Kit Validation** - "Unit tests for English"
 
-**Key Features:**
-- 7-phase spec-driven process (Specify → Plan → Draft → Analyze → Refine → Validate → Delight)
-- "Unit tests for English" (completeness, clarity, consistency checklists)
-- Automatic readability testing (Flesch-Kincaid)
-- Self-iterating until Grade 5.0 + all checklists pass
-- Technical accuracy verification
-- Living documentation approach
-- User delight optimization
+### Target Metrics
 
-**Auto-Activation:** ✅ ENABLED
+| Metric | Target | Purpose |
+|--------|--------|---------|
+| Grade Level | ≤5.0 | 5th grade reading level |
+| Reading Ease | ≥70 | Easy to understand |
+| Sentence Length | ≤15 words | Quick comprehension |
+| Syllables/Word | ≤1.5 | Simple vocabulary |
 
-This skill automatically activates for all documentation operations:
-- Writing/editing .md, .rst, .adoc, .txt files
-- Creating README, CONTRIBUTING, CHANGELOG files
-- Any operation involving "document" or "explain"
+### Auto-Activation
 
-No manual invocation needed! The skill runs automatically, scores documents, and ensures Grade 5.0 compliance.
+The skill automatically runs when you:
+- Write or edit documentation files (.md, .rst, .adoc, .txt)
+- Create README, CONTRIBUTING, or CHANGELOG files
+- Use commands containing "document" or "explain"
 
-**Manual Usage:**
+**No manual invocation needed** - it works behind the scenes!
 
-Three ways to invoke:
+### Manual Usage
 
-1. **Via bash aliases** (recommended):
-```bash
-tw check README.md          # Check readability
-tw improve docs/guide.md    # Apply improvements
-tw watch CHANGELOG.md       # Watch for changes
-tw batch docs/              # Check all .md files
-
-# Aliases: tw, techwriter, grade5 (all work the same)
-techwriter check README.md
-grade5 batch docs/
-```
-
-2. **Via script directly**:
-```bash
-./scripts/tw check README.md
-./scripts/tw improve docs/guide.md
-./scripts/tw watch docs/guide.md
-./scripts/tw batch docs/
-```
-
-3. **Via Claude Code** (when registered):
+**Via Claude Code:**
 ```
 @grandmaster-techwriter [file-to-improve]
 ```
 
-**Supporting Tools:**
-- `scripts/readability_check.py` - Automatic readability verification
-- `scripts/techwriter` - CLI wrapper with watch/batch modes
-- `.claude/config.json` - Auto-activation configuration
-- `.git/hooks/pre-commit-readability` - Git hook for validation
-- `.pre-commit-config.yaml` - Pre-commit readability check
-
-## Testing Readability
-
-Test any document's readability:
-
+**Via CLI:**
 ```bash
-# Test a file
+# Check readability
 python3 scripts/readability_check.py README.md
-
-# Test from stdin
-cat file.md | python3 scripts/readability_check.py --stdin
 
 # Get JSON output
 python3 scripts/readability_check.py --json README.md
+
+# Test from stdin
+cat file.md | python3 scripts/readability_check.py --stdin
 ```
 
-**Metrics:**
-- **Grade Level:** Target ≤5.0 (5th grade)
-- **Reading Ease:** Target ≥70 (Easy)
-- **Sentence Length:** Target ≤15 words average
-- **Syllables:** Target ≤1.5 per word
+### Example Transformation
 
-## Philosophy
+**Before (Grade 10.2):**
+```
+The application utilizes a multi-threaded architecture where Git
+operations are executed asynchronously via QThread workers to
+prevent blocking the main UI event loop.
+```
+
+**After (Grade 4.8):**
+```
+The app uses multiple threads. This means work happens at the
+same time.
+
+Git tasks run in worker threads. These are separate from the
+main window. Why? So the app stays fast. The screen never freezes.
+```
+
+### Key Principles
+
+**MA (間) - Minimalism:**
+- Short sentences create breathing room
+- White space is content
+- One idea per sentence
+- Remove the unnecessary
+
+**Technical Integrity:**
+- Never sacrifice accuracy
+- Preserve precision
+- Explain specialized terms on first use
+- Verify all facts
+
+**User Delight:**
+- Make reading effortless
+- Progressive disclosure of complexity
+- Clear examples
+- Actionable guidance
+
+### File Locations
+
+```
+.claude/skills/
+├── grandmaster-techwriter.md    # Skill implementation (932 lines)
+├── manifest.json                 # Auto-activation config
+├── aliases.sh                    # Shell aliases
+└── README.md                     # This file
+
+scripts/
+├── tw                            # CLI wrapper
+└── readability_check.py          # Automatic verification
+```
+
+### Adding New Skills
+
+1. Create `skillname.md` in this directory
+2. Add entry to `manifest.json`
+3. Document it in this README
+4. Add supporting tools to `scripts/` if needed
+
+### Philosophy
 
 > "Perfection is achieved not when there is nothing more to add,
-> but when there is nothing left to take away."
+> but when there is nothing left to take away." — Antoine de Saint-Exupéry
 
-These skills help create technical documentation that:
+These skills help create documentation that:
 - Respects the reader's time
 - Maintains technical accuracy
 - Achieves maximum clarity
 - Delights users
 
-## Adding New Skills
-
-1. Create `skillname.md` in this directory
-2. Follow the existing pattern
-3. Document the skill in this README
-4. Add supporting tools to `scripts/` if needed
-
 ---
 
-*Last updated: October 29, 2025*
+*Last updated: October 31, 2025*

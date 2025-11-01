@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Python 3.11+**: Minimum version (3.12 recommended for best performance)
 
 **Version:** 1.6.0 (Complete) | v1.7.0 (In Progress - Type Hints & Async I/O Complete!)
+**Package Version:** 1.5.0 (see `pyproject.toml`) - version bump to 1.6.0 pending
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane
@@ -72,7 +73,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 5. **Test Coverage Improvement** ✅
    - **60%+ coverage** (up from 34%)
    - **621+ total tests** (+228 new tests since v1.4.0)
-   - 69 test files across comprehensive test suite
+   - 74 test files across comprehensive test suite
 
 6. **Code Quality** 📊
    - Preview handler duplication: 60% → <30%
@@ -546,7 +547,7 @@ StatusManager.show_message("PR #42 created!")
 - **Style:** Black + isort + ruff - enforced by pre-commit hooks
 - **Line length:** 88 characters (Black default, enforced consistently)
 - **Types:** Required for all code (mypy --strict mode, 100% coverage, 0 errors across 64 files)
-- **Testing:** pytest + pytest-qt (69 test files, 621+ tests), use `qtbot` for GUI tests
+- **Testing:** pytest + pytest-qt (74 test files, 621+ tests), use `qtbot` for GUI tests
 - **Docs:** Docstrings for public APIs, update SPECIFICATIONS.md for new features
 - **Python:** 3.11+ (3.12 recommended for best performance)
 
@@ -667,3 +668,4 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 ---
 
 *This file is for Claude Code (claude.ai/code). Last updated: October 31, 2025*
+*Development version: v1.6.0 (complete), v1.7.0 (in progress) | Package version: 1.5.0 (pyproject.toml)*
