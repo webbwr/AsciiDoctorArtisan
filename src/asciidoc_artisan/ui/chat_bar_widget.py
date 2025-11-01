@@ -21,7 +21,7 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 import logging
 from typing import List, Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -145,30 +145,12 @@ class ChatBarWidget(QWidget):
         self._input_field.setClearButtonEnabled(True)
         bottom_row.addWidget(self._input_field, 1)  # Stretch to fill space
 
-        # Send button with blue icon
+        # Send button with standard media play icon
         self._send_button = QPushButton()
-
-        # Create blue icon with larger size
-        from PySide6.QtGui import QPixmap, QPainter, QColor, QIcon
-        from PySide6.QtCore import QSize
-
-        # Get the standard icon and render it at larger size
-        standard_icon = self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
-        pixmap = standard_icon.pixmap(QSize(24, 24))  # Increased from 16x16 to 24x24
-
-        # Create blue-tinted pixmap
-        blue_pixmap = QPixmap(pixmap.size())
-        blue_pixmap.fill(QColor(0, 0, 0, 0))  # Transparent background
-
-        painter = QPainter(blue_pixmap)
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
-        painter.drawPixmap(0, 0, pixmap)
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-        painter.fillRect(blue_pixmap.rect(), QColor(74, 158, 255))  # #4a9eff blue
-        painter.end()
-
-        self._send_button.setIcon(QIcon(blue_pixmap))
-        self._send_button.setIconSize(QSize(24, 24))  # Set icon size explicitly
+        self._send_button.setIcon(
+            self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+        )
+        self._send_button.setIconSize(QSize(24, 24))  # Set larger icon size
         self._send_button.setToolTip("Send message (or press Enter)")
         self._send_button.setMaximumWidth(40)
         self._send_button.setMinimumWidth(40)
