@@ -3,7 +3,7 @@
 
 **Last Updated:** November 1, 2025
 **Planning Horizon:** 18-24 months
-**Status:** v1.5.0 ✅ | v1.6.0 ✅ | QA Initiative ✅ | v1.7.0 IN PROGRESS | **Phase 1 Optimization ✅**
+**Status:** v1.5.0 ✅ | v1.6.0 ✅ | QA Initiative ✅ | **Phase 1 Optimization ✅** | v1.7.0 IN PROGRESS
 
 ---
 
@@ -75,14 +75,21 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - ✅ Memory profiling system (148.9% growth baseline documented)
 - ✅ Block detection optimization
 
-### November 2025 Updates
+### November 2025 Updates ✅
 - ✅ Memory optimization analysis complete (3-phase improvement plan)
 - ✅ GitHub Actions workflows removed (simplified automation)
 - ✅ Specifications updated (aligned with current features)
 - ✅ **Phase 1 Optimization Complete** (November 1, 2025)
-  - Preview latency: 40-50% faster
-  - Memory footprint: 30% reduction
-  - CSS generation: Zero overhead
+  - Preview latency: 40-50% faster (100-300ms vs 200-500ms)
+  - Memory footprint: 30% reduction (~104% growth vs 148.9%)
+  - CSS generation: Zero overhead (module constants)
+  - Cache size: 60% smaller (200 vs 500 blocks)
+  - String interning: 5-10% memory savings
+- ✅ Documentation consolidated and cleaned up (November 1, 2025)
+  - README.md updated to v1.7.0
+  - PERFORMANCE_GUIDE.md comprehensive user/developer guide
+  - Project docs archived (REFACTORING_PLAN.md, OPTIMIZATION_SUMMARY.md)
+  - docs/README.md index updated with all guides
 
 ### Phase 1 Performance Optimization ✅ (November 1, 2025)
 
