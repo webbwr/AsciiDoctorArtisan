@@ -13,7 +13,7 @@ Works with GitHandler to share repository path.
 import logging
 from typing import Any, Dict, List, Optional
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Qt, Signal
 
 from asciidoc_artisan.core import GitHubResult
 from asciidoc_artisan.ui.base_vcs_handler import BaseVCSHandler
@@ -359,11 +359,26 @@ class GitHubHandler(BaseVCSHandler, QObject):
             logger.info(f"  Stars: {stars}, Forks: {forks}")
             logger.info(f"  URL: {url}")
 
-            # Show concise info in status bar (no dialog) - permanent until replaced
-            status_msg = f"{repo_name} | {visibility} | ★{stars} ⑂{forks} | {default_branch}"
-            logger.info(f"Calling show_status with: {status_msg}")
-            self.status_manager.show_status(status_msg, timeout=0)  # Permanent (timeout=0)
-            logger.info("show_status returned")
+            # Show full repository information in a dialog
+            from PySide6.QtWidgets import QMessageBox
+
+            info_text = f"""<b>Repository:</b> {repo_name}<br><br>
+<b>Description:</b> {description}<br><br>
+<b>Default Branch:</b> {default_branch}<br>
+<b>Visibility:</b> {visibility}<br>
+<b>Stars:</b> {stars} ★<br>
+<b>Forks:</b> {forks} ⑂<br><br>
+<b>URL:</b> <a href="{url}">{url}</a>"""
+
+            msg_box = QMessageBox(self.window)
+            msg_box.setWindowTitle("Repository Information")
+            msg_box.setTextFormat(Qt.RichText)
+            msg_box.setText(info_text)
+            msg_box.setIcon(QMessageBox.Icon.Information)
+            msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg_box.exec()
+
+            logger.info("Repository info dialog shown")
 
     def _check_repository_ready(self) -> bool:
         """

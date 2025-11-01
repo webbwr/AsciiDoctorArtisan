@@ -112,6 +112,9 @@ class UISetupManager:
         self.editor.status_bar = QStatusBar(self.editor)
         self.editor.setStatusBar(self.editor.status_bar)
 
+        # Clear status bar on startup
+        self.editor.status_bar.clearMessage()
+
         # Initialize status manager widgets now that status bar exists
         self.editor.status_manager.initialize_widgets()
 
