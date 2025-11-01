@@ -232,6 +232,12 @@ def main() -> None:
     if profiler:
         profiler.take_snapshot("after_window_show")  # Snapshot 4: After window shown
 
+    # === STEP 6.5: APPLY FONT SETTINGS ===
+    # Apply saved font settings from last session
+    if hasattr(window, "dialog_manager"):
+        window.dialog_manager._apply_font_settings()
+        logger.info("Font settings applied on startup")
+
     # === STEP 7: RENDER INITIAL PREVIEW ===
     # Generate the first preview so user sees content immediately
     window.update_preview()

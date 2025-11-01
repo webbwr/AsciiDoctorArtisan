@@ -193,6 +193,7 @@ class PreviewHandlerBase(QObject):
         self.sync_scrolling_enabled = True
         self.is_syncing_scroll = False
         self._css_cache: Optional[str] = None
+        self._custom_css: str = ""  # Custom CSS for font settings
 
         # Preview timer (adaptive based on document size)
         self.preview_timer = QTimer()
@@ -418,12 +419,30 @@ class PreviewHandlerBase(QObject):
         Get preview CSS (cached for performance).
 
         Returns:
-            CSS content as string
+            CSS content as string (includes custom CSS for fonts)
         """
         if self._css_cache is None:
             self._css_cache = self._generate_preview_css()
 
+        # Append custom CSS (for font settings)
+        if self._custom_css:
+            return self._css_cache + "\n" + self._custom_css
+
         return self._css_cache
+
+    def set_custom_css(self, css: str) -> None:
+        """
+        Set custom CSS for preview (e.g., font settings).
+
+        Args:
+            css: Custom CSS string to append to preview CSS
+        """
+        self._custom_css = css
+        # Clear cache to force regeneration with new custom CSS
+        self._css_cache = None
+        # Trigger preview update to apply new CSS
+        self.preview_timer.start(100)  # Schedule update in 100ms
+        logger.debug("Custom CSS applied to preview")
 
     def clear_css_cache(self) -> None:
         """Clear CSS cache (call when theme changes)."""

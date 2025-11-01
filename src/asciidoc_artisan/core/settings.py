@@ -27,7 +27,7 @@ class Settings:
 
     Attributes match the specification in SPECIFICATIONS.md (v1.7.0).
 
-    All 18 fields (13 original + 5 chat settings):
+    All 24 fields (13 original + 5 chat settings + 6 font settings):
 
     Core Settings:
     - last_directory: Last directory used for file operations
@@ -37,9 +37,17 @@ class Settings:
     - maximized: Window maximization state
     - window_geometry: Window size/position when not maximized
     - splitter_sizes: Editor and preview pane widths
-    - font_size: Persisted editor font size
+    - font_size: Persisted editor font size (deprecated, use editor_font_size)
     - auto_save_enabled: Auto-save feature toggle
     - auto_save_interval: Auto-save interval in seconds
+
+    Font Settings (v1.7.0):
+    - editor_font_family: Editor font family (default: "Courier New")
+    - editor_font_size: Editor font size in points (default: 12)
+    - preview_font_family: Preview pane font family (default: "Arial")
+    - preview_font_size: Preview pane font size in points (default: 12)
+    - chat_font_family: Chat pane font family (default: "Arial")
+    - chat_font_size: Chat pane font size in points (default: 11)
 
     AI Settings:
     - ai_conversion_enabled: Deprecated (cloud AI removed in v1.2.0)
@@ -78,6 +86,14 @@ class Settings:
     ollama_chat_max_history: int = 100
     ollama_chat_context_mode: str = "document"
     ollama_chat_send_document: bool = True
+
+    # Font settings (v1.7.0)
+    editor_font_family: str = "Courier New"
+    editor_font_size: int = 12
+    preview_font_family: str = "Arial"
+    preview_font_size: int = 12
+    chat_font_family: str = "Arial"
+    chat_font_size: int = 11
 
     def to_dict(self) -> Dict[str, Any]:
         """

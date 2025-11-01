@@ -685,6 +685,10 @@ class AsciiDocEditor(QMainWindow):
         """Show application settings editor dialog (delegates to DialogManager)."""
         self.dialog_manager.show_app_settings()
 
+    def _show_font_settings(self) -> None:
+        """Show font settings dialog (delegates to DialogManager)."""
+        self.dialog_manager.show_font_settings()
+
     def _show_message(self, level: str, title: str, text: str) -> None:
         """Show message box (delegates to DialogManager)."""
         self.dialog_manager.show_message(level, title, text)
@@ -740,6 +744,10 @@ class AsciiDocEditor(QMainWindow):
         # Update splitter sizes if available
         if settings.splitter_sizes and hasattr(self, "splitter"):
             self.splitter.setSizes(settings.splitter_sizes)
+
+        # Apply font settings
+        if hasattr(self, "dialog_manager"):
+            self.dialog_manager._apply_font_settings()
 
         logger.info("Application refreshed from updated settings")
 

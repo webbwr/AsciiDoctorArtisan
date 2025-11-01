@@ -776,3 +776,195 @@ class SettingsEditorDialog(QDialog):
             QMessageBox.information(
                 self, "Settings Cleared", "All settings have been reset to defaults."
             )
+
+
+class FontSettingsDialog(QDialog):
+    """
+    Font Settings dialog for customizing fonts in editor, preview, and chat.
+
+    Allows users to:
+    - Set font family for editor pane (monospace recommended)
+    - Set font size for editor pane
+    - Set font family for preview pane
+    - Set font size for preview pane
+    - Set font family for chat pane
+    - Set font size for chat pane
+
+    Args:
+        settings: Current Settings instance to edit
+        parent: Parent QWidget (optional)
+
+    Example:
+        ```python
+        dialog = FontSettingsDialog(self.settings)
+        if dialog.exec():
+            new_settings = dialog.get_settings()
+            self._apply_font_settings(new_settings)
+        ```
+    """
+
+    def __init__(self, settings: Settings, parent: Optional[QWidget] = None) -> None:
+        """Initialize font settings dialog."""
+        super().__init__(parent)
+        self.settings = settings
+        self._init_ui()
+
+    def _init_ui(self) -> None:
+        """Initialize the font settings UI."""
+        self.setWindowTitle("Font Settings")
+        self.setMinimumWidth(500)
+
+        layout = QVBoxLayout(self)
+
+        # Header
+        header_label = QLabel("Customize Fonts")
+        header_label.setStyleSheet("QLabel { font-size: 14pt; font-weight: bold; }")
+        layout.addWidget(header_label)
+
+        info_label = QLabel(
+            "Set font family and size for editor, preview, and chat panes."
+        )
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
+        layout.addWidget(info_label)
+
+        # Editor Font Group
+        editor_group = QGroupBox("Editor Font")
+        editor_layout = QVBoxLayout()
+
+        # Editor font family
+        editor_family_layout = QHBoxLayout()
+        editor_family_layout.addWidget(QLabel("Font Family:"))
+        self.editor_font_combo = QComboBox()
+        self._populate_font_list(self.editor_font_combo)
+        self.editor_font_combo.setCurrentText(self.settings.editor_font_family)
+        editor_family_layout.addWidget(self.editor_font_combo)
+        editor_layout.addLayout(editor_family_layout)
+
+        # Editor font size
+        editor_size_layout = QHBoxLayout()
+        editor_size_layout.addWidget(QLabel("Font Size:"))
+        self.editor_size_spin = QSpinBox()
+        self.editor_size_spin.setRange(6, 72)
+        self.editor_size_spin.setValue(self.settings.editor_font_size)
+        self.editor_size_spin.setSuffix(" pt")
+        editor_size_layout.addWidget(self.editor_size_spin)
+        editor_size_layout.addStretch()
+        editor_layout.addLayout(editor_size_layout)
+
+        editor_group.setLayout(editor_layout)
+        layout.addWidget(editor_group)
+
+        # Preview Font Group
+        preview_group = QGroupBox("Preview Font")
+        preview_layout = QVBoxLayout()
+
+        # Preview font family
+        preview_family_layout = QHBoxLayout()
+        preview_family_layout.addWidget(QLabel("Font Family:"))
+        self.preview_font_combo = QComboBox()
+        self._populate_font_list(self.preview_font_combo)
+        self.preview_font_combo.setCurrentText(self.settings.preview_font_family)
+        preview_family_layout.addWidget(self.preview_font_combo)
+        preview_layout.addLayout(preview_family_layout)
+
+        # Preview font size
+        preview_size_layout = QHBoxLayout()
+        preview_size_layout.addWidget(QLabel("Font Size:"))
+        self.preview_size_spin = QSpinBox()
+        self.preview_size_spin.setRange(6, 72)
+        self.preview_size_spin.setValue(self.settings.preview_font_size)
+        self.preview_size_spin.setSuffix(" pt")
+        preview_size_layout.addWidget(self.preview_size_spin)
+        preview_size_layout.addStretch()
+        preview_layout.addLayout(preview_size_layout)
+
+        preview_group.setLayout(preview_layout)
+        layout.addWidget(preview_group)
+
+        # Chat Font Group
+        chat_group = QGroupBox("Chat Font")
+        chat_layout = QVBoxLayout()
+
+        # Chat font family
+        chat_family_layout = QHBoxLayout()
+        chat_family_layout.addWidget(QLabel("Font Family:"))
+        self.chat_font_combo = QComboBox()
+        self._populate_font_list(self.chat_font_combo)
+        self.chat_font_combo.setCurrentText(self.settings.chat_font_family)
+        chat_family_layout.addWidget(self.chat_font_combo)
+        chat_layout.addLayout(chat_family_layout)
+
+        # Chat font size
+        chat_size_layout = QHBoxLayout()
+        chat_size_layout.addWidget(QLabel("Font Size:"))
+        self.chat_size_spin = QSpinBox()
+        self.chat_size_spin.setRange(6, 72)
+        self.chat_size_spin.setValue(self.settings.chat_font_size)
+        self.chat_size_spin.setSuffix(" pt")
+        chat_size_layout.addWidget(self.chat_size_spin)
+        chat_size_layout.addStretch()
+        chat_layout.addLayout(chat_size_layout)
+
+        chat_group.setLayout(chat_layout)
+        layout.addWidget(chat_group)
+
+        # Dialog Buttons
+        layout.addLayout(_create_ok_cancel_buttons(self))
+
+    def _populate_font_list(self, combo: QComboBox) -> None:
+        """Populate combo box with common fonts."""
+        # Common monospace fonts for editor
+        monospace_fonts = [
+            "Courier New",
+            "Consolas",
+            "Monaco",
+            "Menlo",
+            "Ubuntu Mono",
+            "Fira Code",
+            "Source Code Pro",
+            "JetBrains Mono",
+            "DejaVu Sans Mono",
+        ]
+
+        # Common sans-serif fonts for preview/chat
+        sans_fonts = [
+            "Arial",
+            "Helvetica",
+            "Verdana",
+            "Tahoma",
+            "Trebuchet MS",
+            "Segoe UI",
+            "Ubuntu",
+            "Roboto",
+            "Open Sans",
+        ]
+
+        # Common serif fonts
+        serif_fonts = [
+            "Times New Roman",
+            "Georgia",
+            "Garamond",
+            "Palatino",
+            "Book Antiqua",
+        ]
+
+        # Combine all fonts
+        all_fonts = sorted(set(monospace_fonts + sans_fonts + serif_fonts))
+        combo.addItems(all_fonts)
+
+    def get_settings(self) -> Settings:
+        """
+        Get updated settings with font changes.
+
+        Returns:
+            Settings instance with new font values
+        """
+        self.settings.editor_font_family = self.editor_font_combo.currentText()
+        self.settings.editor_font_size = self.editor_size_spin.value()
+        self.settings.preview_font_family = self.preview_font_combo.currentText()
+        self.settings.preview_font_size = self.preview_size_spin.value()
+        self.settings.chat_font_family = self.chat_font_combo.currentText()
+        self.settings.chat_font_size = self.chat_size_spin.value()
+
+        return self.settings

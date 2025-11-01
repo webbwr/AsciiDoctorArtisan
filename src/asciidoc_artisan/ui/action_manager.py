@@ -733,6 +733,13 @@ class ActionManager:
             self.window._show_ollama_settings,
         )
 
+        # Font Settings - customize fonts for editor, preview, and chat
+        self.font_settings_act = self._create_action(
+            "&Font Settings...",
+            "Customize fonts for editor, preview, and chat panes",
+            self.window._show_font_settings,
+        )
+
         # Application Settings - edit all stored settings
         self.app_settings_act = self._create_action(
             "Application &Settings...",
@@ -931,7 +938,8 @@ class ActionManager:
         # Separator before settings
         tools_menu.addSeparator()
 
-        # Application Settings
+        # Font and Application Settings
+        tools_menu.addAction(self.font_settings_act)  # Customize fonts
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
 
         # === HELP MENU ===

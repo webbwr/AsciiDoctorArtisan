@@ -213,6 +213,70 @@ class DialogManager:
             self.editor._refresh_from_settings()
             logger.info("Application settings updated via settings editor")
 
+    def show_font_settings(self) -> None:
+        """Show font settings dialog."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(self.editor._settings, self.editor)
+        if dialog.exec():
+            # Get updated settings
+            updated_settings = dialog.get_settings()
+            self.editor._settings = updated_settings
+
+            # Save settings
+            self.editor._settings_manager.save_settings(updated_settings, self.editor)
+
+            # Apply fonts to all panes
+            self._apply_font_settings()
+
+            logger.info(
+                f"Font settings updated: editor={updated_settings.editor_font_family} "
+                f"{updated_settings.editor_font_size}pt, "
+                f"preview={updated_settings.preview_font_family} "
+                f"{updated_settings.preview_font_size}pt, "
+                f"chat={updated_settings.chat_font_family} "
+                f"{updated_settings.chat_font_size}pt"
+            )
+
+    def _apply_font_settings(self) -> None:
+        """Apply font settings to editor, preview, and chat panes."""
+        from PySide6.QtGui import QFont
+
+        settings = self.editor._settings
+
+        # Apply editor font
+        editor_font = QFont(settings.editor_font_family, settings.editor_font_size)
+        self.editor.editor.setFont(editor_font)
+        logger.debug(
+            f"Applied editor font: {settings.editor_font_family} {settings.editor_font_size}pt"
+        )
+
+        # Apply preview font (CSS for QTextBrowser or QWebEngineView)
+        preview_css = f"""
+        body {{
+            font-family: '{settings.preview_font_family}', sans-serif;
+            font-size: {settings.preview_font_size}pt;
+        }}
+        """
+        if hasattr(self.editor, "preview_handler") and self.editor.preview_handler:
+            self.editor.preview_handler.set_custom_css(preview_css)
+            logger.debug(
+                f"Applied preview font: {settings.preview_font_family} {settings.preview_font_size}pt"
+            )
+
+        # Apply chat font
+        if hasattr(self.editor, "chat_manager") and self.editor.chat_manager:
+            chat_font = QFont(settings.chat_font_family, settings.chat_font_size)
+            # Apply to chat panel widget
+            if (
+                hasattr(self.editor.chat_manager, "chat_panel")
+                and self.editor.chat_manager.chat_panel
+            ):
+                self.editor.chat_manager.chat_panel.setFont(chat_font)
+                logger.debug(
+                    f"Applied chat font: {settings.chat_font_family} {settings.chat_font_size}pt"
+                )
+
     def show_message(self, level: str, title: str, text: str) -> None:
         """
         Show a message box with the specified level, title, and text.
