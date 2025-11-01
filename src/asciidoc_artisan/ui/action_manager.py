@@ -239,11 +239,12 @@ class ActionManager:
         self.github_list_issues_act: QAction  # List issues
         self.github_repo_info_act: QAction  # View repository info
 
-        # Tools menu actions (4 actions)
+        # Tools menu actions (5 actions)
         self.pandoc_status_act: QAction  # Show Pandoc installation status
         self.pandoc_formats_act: QAction  # Show supported formats
         self.ollama_status_act: QAction  # Show Ollama AI status
         self.ollama_settings_act: QAction  # Configure Ollama AI settings
+        self.app_settings_act: QAction  # Edit application settings
 
         # Help menu actions (1 action)
         self.about_act: QAction  # Show About dialog
@@ -732,6 +733,13 @@ class ActionManager:
             self.window._show_ollama_settings,
         )
 
+        # Application Settings - edit all stored settings
+        self.app_settings_act = self._create_action(
+            "Application &Settings...",
+            "View and edit all application settings",
+            self.window._show_app_settings,
+        )
+
         # === HELP MENU ACTIONS (1 action) ===
         # These actions provide help and information about the application
 
@@ -919,6 +927,12 @@ class ActionManager:
         # Pandoc utilities
         tools_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
         tools_menu.addAction(self.pandoc_formats_act)  # Show supported formats
+
+        # Separator before settings
+        tools_menu.addSeparator()
+
+        # Application Settings
+        tools_menu.addAction(self.app_settings_act)  # Edit all app settings
 
         # === HELP MENU ===
         help_menu = menubar.addMenu("&Help")

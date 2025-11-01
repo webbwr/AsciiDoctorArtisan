@@ -681,6 +681,10 @@ class AsciiDocEditor(QMainWindow):
         """Show Ollama AI settings dialog (delegates to DialogManager)."""
         self.dialog_manager.show_ollama_settings()
 
+    def _show_app_settings(self) -> None:
+        """Show application settings editor dialog (delegates to DialogManager)."""
+        self.dialog_manager.show_app_settings()
+
     def _show_message(self, level: str, title: str, text: str) -> None:
         """Show message box (delegates to DialogManager)."""
         self.dialog_manager.show_message(level, title, text)
@@ -696,6 +700,48 @@ class AsciiDocEditor(QMainWindow):
     def _show_about(self) -> None:
         """Show about dialog (delegates to DialogManager)."""
         self.dialog_manager.show_about()
+
+    def _refresh_from_settings(self) -> None:
+        """Refresh application state from updated settings."""
+        # Reload settings from the updated settings object
+        settings = self._settings
+
+        # Apply theme
+        if settings.dark_mode:
+            self.theme_manager.apply_dark_theme()
+        else:
+            self.theme_manager.apply_light_theme()
+
+        # Update font size
+        from PySide6.QtGui import QFont
+        from asciidoc_artisan.core import EDITOR_FONT_FAMILY
+
+        font = QFont(EDITOR_FONT_FAMILY, settings.font_size)
+        self.editor.setFont(font)
+
+        # Update AI status bar
+        self._update_ai_status_bar()
+
+        # Update PandocWorker with new Ollama configuration
+        if hasattr(self, "pandoc_worker"):
+            self.pandoc_worker.set_ollama_config(
+                settings.ollama_enabled, settings.ollama_model
+            )
+
+        # Update ChatManager with new settings
+        if hasattr(self, "chat_manager"):
+            self.chat_manager.update_settings(settings)
+
+        # Update window geometry if not maximized
+        if not settings.maximized and settings.window_geometry:
+            geom = settings.window_geometry
+            self.setGeometry(geom["x"], geom["y"], geom["width"], geom["height"])
+
+        # Update splitter sizes if available
+        if settings.splitter_sizes and hasattr(self, "splitter"):
+            self.splitter.setSizes(settings.splitter_sizes)
+
+        logger.info("Application refreshed from updated settings")
 
     def closeEvent(self, event: Any) -> None:
         """Handle window close event (delegates to EditorState)."""

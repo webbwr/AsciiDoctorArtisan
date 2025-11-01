@@ -200,6 +200,19 @@ class DialogManager:
                 f"chat_enabled={self.editor._settings.ollama_chat_enabled}"
             )
 
+    def show_app_settings(self) -> None:
+        """Show application settings editor dialog."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        dialog = SettingsEditorDialog(
+            self.editor._settings, self.editor._settings_manager, self.editor
+        )
+        if dialog.exec():
+            # Settings are saved automatically in the dialog
+            # Just refresh the UI from the updated settings
+            self.editor._refresh_from_settings()
+            logger.info("Application settings updated via settings editor")
+
     def show_message(self, level: str, title: str, text: str) -> None:
         """
         Show a message box with the specified level, title, and text.
