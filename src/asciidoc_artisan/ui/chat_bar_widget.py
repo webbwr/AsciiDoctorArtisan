@@ -147,9 +147,25 @@ class ChatBarWidget(QWidget):
 
         # Send button with blue icon
         self._send_button = QPushButton()
-        self._send_button.setIcon(
-            self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
-        )
+
+        # Create blue icon
+        icon = self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+        from PySide6.QtGui import QPixmap, QPainter, QColor
+        from PySide6.QtCore import QSize
+
+        # Create a blue-tinted pixmap
+        pixmap = icon.pixmap(QSize(16, 16))
+        blue_pixmap = QPixmap(pixmap.size())
+        blue_pixmap.fill(QColor(0, 0, 0, 0))  # Transparent background
+
+        painter = QPainter(blue_pixmap)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        painter.drawPixmap(0, 0, pixmap)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        painter.fillRect(blue_pixmap.rect(), QColor(74, 158, 255))  # Blue color
+        painter.end()
+
+        self._send_button.setIcon(QIcon(blue_pixmap))
         self._send_button.setToolTip("Send message (or press Enter)")
         self._send_button.setMaximumWidth(40)
         self._send_button.setMinimumWidth(40)
