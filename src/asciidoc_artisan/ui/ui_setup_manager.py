@@ -199,7 +199,7 @@ class UISetupManager:
         # Create chat bar (input controls) at bottom
         from .chat_bar_widget import ChatBarWidget
         self.editor.chat_bar = ChatBarWidget(self.editor)
-        self.editor.chat_bar.setMinimumHeight(50)  # Ensure chat bar is visible
+        self.editor.chat_bar.setMinimumHeight(70)  # Two rows: controls + input
         chat_layout.addWidget(self.editor.chat_bar, 0)  # No stretch
 
         # Store reference to chat container for visibility control

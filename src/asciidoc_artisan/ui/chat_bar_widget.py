@@ -87,9 +87,21 @@ class ChatBarWidget(QWidget):
 
     def _setup_ui(self) -> None:
         """Set up the widget layout and controls."""
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-        layout.setSpacing(8)
+        from PySide6.QtWidgets import QVBoxLayout
+
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(4)
+
+        # Top row: Model selector, context selector, and action buttons
+        top_row = QHBoxLayout()
+        top_row.setSpacing(6)
+
+        # Model selector
+        self._model_selector = QComboBox()
+        self._model_selector.setToolTip("Select Ollama model")
+        self._model_selector.setMaximumWidth(120)
+        top_row.addWidget(self._model_selector)
 
         # Context mode selector
         self._context_selector = QComboBox()
@@ -100,39 +112,43 @@ class ChatBarWidget(QWidget):
             "Editing Suggestions",
         ])
         self._context_selector.setToolTip("Select interaction mode")
-        self._context_selector.setMaximumWidth(150)
-        layout.addWidget(self._context_selector)
+        self._context_selector.setMaximumWidth(120)
+        top_row.addWidget(self._context_selector)
 
-        # Model selector
-        self._model_selector = QComboBox()
-        self._model_selector.setToolTip("Select Ollama model")
-        self._model_selector.setMaximumWidth(150)
-        layout.addWidget(self._model_selector)
+        top_row.addStretch(1)  # Push buttons to the right
+
+        # Clear button
+        self._clear_button = QPushButton("Clear")
+        self._clear_button.setToolTip("Clear chat history")
+        self._clear_button.setMaximumWidth(60)
+        top_row.addWidget(self._clear_button)
+
+        # Cancel button (hidden by default, shown during processing)
+        self._cancel_button = QPushButton("Cancel")
+        self._cancel_button.setToolTip("Cancel ongoing generation")
+        self._cancel_button.setMaximumWidth(60)
+        self._cancel_button.hide()
+        top_row.addWidget(self._cancel_button)
+
+        main_layout.addLayout(top_row)
+
+        # Bottom row: Input field and send button
+        bottom_row = QHBoxLayout()
+        bottom_row.setSpacing(6)
 
         # Input field
         self._input_field = QLineEdit()
         self._input_field.setPlaceholderText("Ask AI a question... (Enter to send)")
         self._input_field.setClearButtonEnabled(True)
-        layout.addWidget(self._input_field, 1)  # Stretch to fill space
+        bottom_row.addWidget(self._input_field, 1)  # Stretch to fill space
 
         # Send button
         self._send_button = QPushButton("Send")
         self._send_button.setToolTip("Send message (or press Enter)")
-        self._send_button.setMaximumWidth(80)
-        layout.addWidget(self._send_button)
+        self._send_button.setMaximumWidth(60)
+        bottom_row.addWidget(self._send_button)
 
-        # Clear button
-        self._clear_button = QPushButton("Clear")
-        self._clear_button.setToolTip("Clear chat history")
-        self._clear_button.setMaximumWidth(80)
-        layout.addWidget(self._clear_button)
-
-        # Cancel button (hidden by default, shown during processing)
-        self._cancel_button = QPushButton("Cancel")
-        self._cancel_button.setToolTip("Cancel ongoing generation")
-        self._cancel_button.setMaximumWidth(80)
-        self._cancel_button.hide()
-        layout.addWidget(self._cancel_button)
+        main_layout.addLayout(bottom_row)
 
         # Set initial state
         self._send_button.setEnabled(False)  # Disabled until text entered
