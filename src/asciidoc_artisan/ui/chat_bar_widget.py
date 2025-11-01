@@ -22,11 +22,14 @@ import logging
 from typing import List, Optional
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
+    QApplication,
     QComboBox,
     QHBoxLayout,
     QLineEdit,
     QPushButton,
+    QStyle,
     QWidget,
 )
 
@@ -142,10 +145,14 @@ class ChatBarWidget(QWidget):
         self._input_field.setClearButtonEnabled(True)
         bottom_row.addWidget(self._input_field, 1)  # Stretch to fill space
 
-        # Send button
-        self._send_button = QPushButton("Send")
+        # Send button with icon
+        self._send_button = QPushButton()
+        # Use Qt's standard media play icon (right-pointing arrow similar to send)
+        send_icon = QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+        self._send_button.setIcon(send_icon)
         self._send_button.setToolTip("Send message (or press Enter)")
-        self._send_button.setMaximumWidth(60)
+        self._send_button.setMaximumWidth(40)  # Narrower since no text
+        self._send_button.setMinimumWidth(40)
         bottom_row.addWidget(self._send_button)
 
         main_layout.addLayout(bottom_row)
