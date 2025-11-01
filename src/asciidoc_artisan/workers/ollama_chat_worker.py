@@ -205,13 +205,16 @@ class OllamaChatWorker(QThread):
             if self._document_content:
                 return (
                     "You are an AI assistant helping with AsciiDoc document editing. "
-                    "Answer questions about the document content below.\n\n"
-                    f"Document:\n{self._document_content[:2000]}"  # Limit to 2KB
+                    "The user is working on the document shown below. This is your PRIMARY context. "
+                    "Answer questions about this document, suggest improvements, and help with editing.\n\n"
+                    f"CURRENT DOCUMENT CONTENT:\n{self._document_content[:2000]}\n"  # Limit to 2KB
+                    f"\n[Document truncated to 2000 characters for context efficiency]"
                 )
             else:
                 return (
                     "You are an AI assistant helping with AsciiDoc document editing. "
-                    "Answer general questions about the document."
+                    "The document editor is currently empty or no content is available. "
+                    "You can answer general questions about AsciiDoc or help with document planning."
                 )
 
         elif self._context_mode == "syntax":
@@ -224,13 +227,16 @@ class OllamaChatWorker(QThread):
             if self._document_content:
                 return (
                     "You are an AI editor helping improve document quality. "
-                    "Suggest edits, improvements, and corrections for the document below.\n\n"
-                    f"Document:\n{self._document_content[:2000]}"  # Limit to 2KB
+                    "The user is working on the document shown below. This is your PRIMARY context. "
+                    "Suggest specific edits, improvements, and corrections based on this content.\n\n"
+                    f"CURRENT DOCUMENT CONTENT:\n{self._document_content[:2000]}\n"  # Limit to 2KB
+                    f"\n[Document truncated to 2000 characters for context efficiency]"
                 )
             else:
                 return (
                     "You are an AI editor helping improve document quality. "
-                    "Provide editing suggestions and improvements."
+                    "The document editor is currently empty or no content is available. "
+                    "You can provide general writing advice or help with document structure."
                 )
 
         else:  # general
