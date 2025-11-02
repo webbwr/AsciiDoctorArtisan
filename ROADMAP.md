@@ -13,28 +13,30 @@
 |---------|--------|-------------|-------|--------|----------------|
 | v1.5.0 | ✅ COMPLETE | Oct 2025 | Performance | - | Startup optimization, refactoring |
 | v1.6.0 | ✅ COMPLETE | Oct 2025 | Async I/O | - | Async file operations, type hints |
-| v1.7.0 | ✅ COMPLETE | Nov 2025 | AI Integration | - | Ollama Chat with 4 context modes |
+| v1.7.0 | ✅ COMPLETE | Nov 2025 | AI Integration | 36-45h | Ollama Chat with 4 context modes |
 | v1.7.1 | ✅ COMPLETE | Nov 2, 2025 | Quality | 2h | 100% test coverage (82/82 tests), docs |
-| v1.8.0 | 📋 NEXT | Q1-Q2 2026 | Essential Features | 24-36h | Find/Replace, Telemetry, Spell Check |
-| v2.0.0 | 📋 BACKLOG | Q3-Q4 2026 | Next-Gen | 240-360h | LSP, Plugins, Multi-core, Marketplace |
+| v1.8.0 | 📋 NEXT | Q1-Q2 2026 | Essential Features | 48-72h | Find/Replace, Spell Check, Telemetry |
+| v1.9.0 | 📋 PLANNED | Q2-Q3 2026 | Advanced Editing | 102-160h | Auto-complete, Syntax Checking, Templates |
+| v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 240-360h | LSP, Plugins, Multi-core, Marketplace |
 
-**Current Priority:** v1.8.0 Essential Features
+**Current Priority:** v1.8.0 Essential Features (Find/Replace, Spell Check, Telemetry)
 
 ---
 
 ## Table of Contents
 
 1. [Vision & Principles](#vision-statement)
-2. [Current State (v1.6.0)](#current-state-v160-)
-3. [v1.7.0 Plan (Q1 2026)](#version-170-polish--essential-features)
-4. [Quality Assurance Initiative](#quality-assurance-initiative-critical)
-5. [v1.8.0 Plan (Q2-Q3 2026)](#version-180-advanced-features--extensibility)
-6. [v2.0.0 Plan (Q4 2026-Q2 2027)](#version-200-next-generation-architecture)
-7. [Future Vision](#beyond-v200-future-vision)
-8. [Performance Budget](#performance-budget)
-9. [Resources & Budget](#resource-requirements)
-10. [Risk Management](#risk-management)
-11. [Success Metrics](#success-metrics--kpis)
+2. [Current State (v1.7.1)](#current-state-v160-)
+3. [v1.7.0 Complete](#version-170-ai-integration--complete)
+4. [Quality Assurance Initiative](#quality-assurance-initiative--complete)
+5. [v1.8.0 Plan (Q1-Q2 2026)](#version-180-essential-features--next)
+6. [v1.9.0 Plan (Q2-Q3 2026)](#version-190-advanced-editing)
+7. [v2.0.0 Plan (Q4 2026-Q2 2027)](#version-200-next-generation-architecture)
+8. [Future Vision](#beyond-v200-future-vision)
+9. [Performance Budget](#performance-budget)
+10. [Resources & Budget](#resource-requirements)
+11. [Risk Management](#risk-management)
+12. [Success Metrics](#success-metrics--kpis)
 
 ---
 
@@ -140,14 +142,17 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 **Focus:** Ollama AI Chat with context-aware assistance
 **Status:** ✅ RELEASED
 
-### Goals
+### Completed Goals
 
-1. ⭐⭐ **Add Ollama AI Chat Interface** (Priority 1 - NEW)
-2. ⭐ Add essential Find/Replace functionality
-3. ✅ ~~Complete type hint coverage (60% → 100%)~~ **COMPLETE** (Oct 31, 2025)
-4. ✅ ~~Enhance async I/O integration~~ **COMPLETE** (Oct 29, 2025)
-5. 🔧 Improve user experience (error messages, shortcuts)
-6. 📊 Enable telemetry (opt-in) for usage analytics
+1. ✅ **Add Ollama AI Chat Interface** - COMPLETE (Nov 2, 2025)
+2. ✅ **Complete type hint coverage (60% → 100%)** - COMPLETE (Oct 31, 2025)
+3. ✅ **Enhance async I/O integration** - COMPLETE (Oct 29, 2025)
+
+### Deferred to v1.8.0
+
+2. 📋 Add essential Find/Replace functionality → **MOVED TO v1.8.0**
+5. 📋 Improve user experience (error messages, shortcuts) → **MOVED TO v1.8.0**
+6. 📋 Enable telemetry (opt-in) for usage analytics → **MOVED TO v1.8.0**
 
 ### Completed Tasks
 
@@ -386,20 +391,341 @@ Month 3 (Mar 2026):
 
 ---
 
-## Version 1.8.0 (Advanced Features & Extensibility)
+## Version 1.8.0 (Essential Features) 📋 NEXT
 
-**Target Date:** Q2-Q3 2026 (April - September)
-**Duration:** 4-6 months
-**Effort:** 92-128 hours (Plugin Architecture deferred to v2.0.0)
-**Focus:** Auto-completion, syntax checking, advanced editing
+**Target Date:** Q1-Q2 2026 (January - June)
+**Duration:** 6-8 weeks
+**Effort:** 48-72 hours (includes v1.7.0 deferred items)
+**Focus:** Find/Replace, Telemetry, Spell Checking - core editor features
+**Status:** 📋 PLANNING
+
+---
+
+### Overview
+
+v1.8.0 completes the **essential feature set** for a professional document editor by adding Find/Replace, Telemetry, and Spell Checking. These were originally planned for v1.7.0 but deferred to focus on Ollama AI Chat integration.
+
+**Key Priorities:**
+1. **User-requested features first** (Find/Replace is #1 user request)
+2. **Quality over quantity** (100% test coverage maintained)
+3. **Privacy-first** (Telemetry is opt-in with clear controls)
+
+---
 
 ### Goals
 
-1. ⭐⭐ Add advanced editing features (auto-complete, syntax errors)
-2. ⭐ Improve multi-level caching
-3. ⭐ Add document template system
-4. 🔧 Improve Git integration and export presets
-5. 📦 ~~Plugin architecture~~ → **DEFERRED to v2.0.0**
+**Critical (Moved from v1.7.0):**
+1. ⭐⭐⭐ **Find & Replace System** (Priority 1 - Most requested feature)
+2. ⭐⭐ **Spell Checker Integration** (Essential for document editing)
+3. ⭐ **Telemetry System (Opt-In)** (Understand user needs, improve quality)
+
+**Deferred from Original v1.8.0 Plan:**
+- ❌ Auto-complete → **DEFERRED to v1.9.0** (lower priority than Find/Replace)
+- ❌ Syntax Error Detection → **DEFERRED to v1.9.0** (lower priority)
+- ❌ Multi-level caching → **DEFERRED to v1.9.0** (optimization, not essential)
+- ❌ Document templates → **DEFERRED to v1.9.0** (nice-to-have)
+- ❌ Plugin architecture → **DEFERRED to v2.0.0** (already planned)
+
+---
+
+### Critical Tasks
+
+#### Task 1: Find & Replace System ⭐⭐⭐
+**Priority:** CRITICAL | **Effort:** 8-12 hours | **Status:** 📋 Planning
+
+**Rationale:** Most requested feature by users. Essential for any text editor.
+
+**Features:**
+- Find text with Ctrl+F (quick find bar)
+- Replace dialog with Ctrl+H
+- Case-sensitive/insensitive toggle
+- Whole word matching
+- Regular expression support
+- Find in selection
+- Replace preview (confirmation)
+- Highlight all matches
+- Match count display
+
+**Deliverables:**
+- `ui/find_replace_dialog.py` (~300 lines) - Find/Replace UI
+- `core/search_engine.py` (~200 lines) - Search logic, regex handling
+- `tests/test_find_replace_dialog.py` (~150 lines) - UI tests
+- `tests/test_search_engine.py` (~200 lines) - Search algorithm tests
+- Integration with `main_window.py`, `menu_manager.py`
+
+**Success Criteria:**
+- ✅ Ctrl+F opens find bar
+- ✅ Ctrl+H opens replace dialog
+- ✅ Incremental search (<50ms response)
+- ✅ All matches highlighted
+- ✅ Regex patterns work
+- ✅ Replace preview shown
+- ✅ Undo support
+- ✅ 25+ tests, 100% coverage
+
+**Risk:** Performance with large documents (10,000+ lines)
+**Mitigation:** Incremental search, limit highlight count to 1,000 matches
+
+---
+
+#### Task 2: Spell Checker Integration ⭐⭐
+**Priority:** HIGH | **Effort:** 12-16 hours | **Status:** 📋 Planning
+
+**Rationale:** Essential for document editing. Deferred from v1.7.0.
+
+**Features:**
+- Real-time spell checking (red underlines)
+- Right-click context menu with suggestions
+- Language selection (English, Spanish, French, German)
+- Personal dictionary (add/remove words)
+- AsciiDoc-aware (skip code blocks, macros, attributes)
+- Toggle spell checking on/off
+- Ignore URLs, emails, file paths
+
+**AsciiDoc Integration:**
+- Skip checking in:
+  - Code blocks (`[source]`, listing)
+  - Inline code (monospace)
+  - Attributes (`:name:`)
+  - Macros (`image::`, `include::`)
+  - Comments (`//`)
+
+**Deliverables:**
+- `core/spell_checker.py` (~300 lines) - Spell check logic
+- `ui/spell_check_highlighter.py` (~250 lines) - QSyntaxHighlighter
+- `tests/test_spell_checker.py` (~150 lines) - Core logic tests
+- `tests/test_spell_check_highlighter.py` (~100 lines) - UI tests
+- Integration with `line_number_area.py`, `settings_manager.py`
+
+**Dependency:** `pyspellchecker` (pure Python, no system deps)
+
+**Success Criteria:**
+- ✅ Spelling errors underlined in red
+- ✅ Right-click shows suggestions
+- ✅ Personal dictionary works
+- ✅ Code blocks skipped correctly
+- ✅ Language selection works
+- ✅ Performance acceptable (<100ms per edit)
+- ✅ 25+ tests, 100% coverage
+
+**Risk:** False positives for technical terms
+**Mitigation:** Personal dictionary, AsciiDoc context detection
+
+---
+
+#### Task 3: Telemetry System (Opt-In) ⭐
+**Priority:** MEDIUM | **Effort:** 16-24 hours | **Status:** 📋 Planning
+
+**Rationale:** Understand usage patterns to prioritize features. Privacy-first design.
+
+**Features:**
+- Opt-in dialog on first launch (clear, GDPR-compliant)
+- Feature usage tracking (menu clicks, dialogs opened)
+- Crash reports (stack traces only, NO document content)
+- Performance metrics (startup time, render latency)
+- Error patterns (exception types, frequency)
+- System info (OS, Python version, GPU type)
+- Privacy controls in Settings → Privacy
+
+**Privacy Requirements:**
+- ❌ NO personal data (names, emails, IP addresses)
+- ❌ NO document content
+- ❌ NO file paths
+- ✅ Anonymous session IDs only
+- ✅ GDPR compliant
+- ✅ Easy opt-out anytime
+
+**Deliverables:**
+- `core/telemetry.py` (~300 lines) - TelemetryManager
+- `ui/telemetry_dialog.py` (~200 lines) - Opt-in UI
+- `tests/test_telemetry.py` (~250 lines) - Privacy tests, event tracking
+- Integration with `main_window.py`, `settings_manager.py`, `main.py`
+- Privacy policy: `docs/user/PRIVACY_POLICY.md` (~600 lines)
+
+**Dependency:** `sentry-sdk` (optional, only if user opts in)
+
+**Backend:** Sentry.io (free tier: 5,000 events/month)
+
+**Success Criteria:**
+- ✅ Opt-in dialog shown on first launch
+- ✅ Clear explanation of data collection
+- ✅ Telemetry can be disabled in Settings
+- ✅ No PII sent (verified with tests)
+- ✅ Crash reports include stack traces only
+- ✅ Feature usage tracked correctly
+- ✅ 30+ tests, 100% coverage
+
+**Risk:** User privacy concerns, negative perception
+**Mitigation:** Clear opt-in, transparent data collection, open source code
+
+---
+
+### Minor Tasks (Optional)
+
+| Task | Effort | Priority | Description |
+|------|--------|----------|-------------|
+| Improved Error Messages | 4-6h | LOW | User-friendly dialogs, actionable errors |
+| Keyboard Shortcuts Customization | 6-8h | LOW | Editable shortcuts, conflict detection |
+| Recent Files Improvements | 4-6h | LOW | Pin favorites, show paths, clear list |
+
+**Note:** Minor tasks are optional and may be deferred to v1.9.0 if time is limited.
+
+---
+
+### Implementation Timeline
+
+**Total Duration:** 6-8 weeks (January - February 2026)
+
+```
+Week 1-2 (Jan 6-19, 2026):
+  Task 1: Find & Replace System (8-12h)
+  - Implement SearchEngine
+  - Create FindReplaceDialog
+  - Write 25 tests
+  - Integration
+
+Week 3-4 (Jan 20 - Feb 2, 2026):
+  Task 2: Spell Checker Integration (12-16h)
+  - Implement SpellChecker
+  - Create SpellCheckHighlighter
+  - Write 25 tests
+  - Integration
+
+Week 5-6 (Feb 3-16, 2026):
+  Task 3: Telemetry System (16-24h)
+  - Implement TelemetryManager
+  - Create TelemetryDialog
+  - Write 30 tests
+  - Set up Sentry backend
+  - Privacy documentation
+
+Week 7-8 (Feb 17 - Mar 2, 2026):
+  Testing & Documentation (8-12h)
+  - Full integration testing
+  - User documentation
+  - Bug fixes
+  - Release prep
+```
+
+**Buffer:** 2 weeks (Mar 3-16, 2026) for unexpected issues
+
+---
+
+### Success Criteria
+
+| Criterion | Target | Priority | Status |
+|-----------|--------|----------|--------|
+| Find & Replace working | ✅ Yes | CRITICAL | 📋 Pending |
+| Spell checking active | ✅ Yes | HIGH | 📋 Pending |
+| Telemetry opt-in | ✅ Yes | MEDIUM | 📋 Pending |
+| Test coverage | 100% | HIGH | 📋 Pending |
+| All 80+ tests passing | ✅ Yes | CRITICAL | 📋 Pending |
+| User docs complete | ✅ Yes | HIGH | 📋 Pending |
+| Zero critical bugs | ✅ Yes | CRITICAL | 📋 Pending |
+| Startup time | <1.1s | MEDIUM | 1.05s (maintained) |
+
+**Total Tests:** 90+ (25 Find/Replace + 25 Spell Check + 30 Telemetry + 10 Integration)
+
+---
+
+### Documentation Deliverables
+
+**User Documentation:**
+1. `docs/user/FIND_REPLACE_GUIDE.md` (~500 lines) - How to use Find & Replace
+2. `docs/user/SPELL_CHECK_GUIDE.md` (~400 lines) - Spell checking guide
+3. `docs/user/PRIVACY_POLICY.md` (~600 lines) - Telemetry privacy policy
+
+**Developer Documentation:**
+4. `docs/dev/TELEMETRY_ARCHITECTURE.md` (~500 lines) - Telemetry design
+
+**Total Documentation:** ~2,000 lines
+
+---
+
+### Release Checklist
+
+**Pre-release:**
+- [ ] All 90+ tests passing
+- [ ] 100% test coverage verified
+- [ ] User documentation complete (3 guides)
+- [ ] Privacy policy reviewed
+- [ ] Sentry backend configured
+- [ ] Performance benchmarked (<1.1s startup)
+- [ ] Manual testing complete
+
+**Release:**
+- [ ] Update version: 1.7.0 → 1.8.0 (pyproject.toml)
+- [ ] Update CHANGELOG.md
+- [ ] Update README.md (new features)
+- [ ] Git commit: "Release v1.8.0: Essential Features"
+- [ ] Git tag: v1.8.0
+- [ ] GitHub release notes
+
+**Post-release:**
+- [ ] Monitor telemetry data
+- [ ] Track user feedback
+- [ ] Fix critical bugs (hotfix 1.8.1 if needed)
+- [ ] Plan v1.9.0 (Auto-complete, Syntax Checking)
+
+---
+
+### What Moved to v1.9.0
+
+The following tasks from the original v1.8.0 plan are deferred to v1.9.0:
+
+| Task | Effort | Reason for Deferral |
+|------|--------|---------------------|
+| Auto-Complete System | 24-32h | Lower priority than Find/Replace |
+| Syntax Error Detection | 16-24h | Lower priority than Spell Checking |
+| Multi-Level Caching | 24-32h | Optimization, not essential feature |
+| Document Templates | 16-24h | Nice-to-have, not critical |
+| Improved Git Integration | 8-12h | Lower priority |
+| Export Presets | 6-8h | Lower priority |
+| Editor Themes | 8-12h | Lower priority |
+
+**v1.9.0 Total Effort:** 102-160 hours (planned for Q2-Q3 2026)
+
+---
+
+**Release Target:** March 31, 2026 (with 2-week buffer)
+
+---
+
+## Version 1.9.0 (Advanced Editing)
+
+**Target Date:** Q2-Q3 2026 (April - September)
+**Duration:** 4-6 months
+**Effort:** 102-160 hours
+**Focus:** Auto-completion, syntax checking, templates
+**Status:** 📋 PLANNED
+
+---
+
+### Overview
+
+v1.9.0 adds **advanced editing features** that were originally planned for v1.8.0 but deferred to focus on essential features (Find/Replace, Spell Check, Telemetry). These features enhance the editing experience but are not critical for basic document editing.
+
+**Key Priorities:**
+1. **Auto-completion** - Speed up AsciiDoc writing
+2. **Syntax checking** - Catch errors early
+3. **Document templates** - Quick start for common documents
+
+---
+
+### Goals
+
+**Critical (Moved from v1.8.0):**
+1. ⭐⭐ **Auto-Complete System** (Priority 1 - Speed up editing)
+2. ⭐⭐ **Syntax Error Detection** (Catch mistakes early)
+3. ⭐ **Document Templates** (Quick start for new documents)
+
+**Optional:**
+- Multi-Level Caching (performance optimization)
+- Improved Git Integration (better status indicators)
+- Export Presets (save export configurations)
+- Editor Themes (syntax highlighting themes)
+
+---
 
 ### Critical Tasks
 
@@ -412,6 +738,7 @@ Month 3 (Mar 2026):
 - Cross-reference completion
 - Include file completion
 - Snippet expansion
+- Ctrl+Space trigger
 
 **Deliverables:**
 - `core/autocomplete.py` (~400 lines)
@@ -419,7 +746,7 @@ Month 3 (Mar 2026):
 - `core/asciidoc_parser.py` (~300 lines)
 - 30 tests
 
-**Success:** Ctrl+Space triggers completion, <50ms performance
+**Success:** <50ms completion response, 100% coverage
 
 ---
 
@@ -438,33 +765,42 @@ Month 3 (Mar 2026):
 3. Style warnings (inconsistent heading levels)
 4. Best practices (missing attributes)
 
-**Success:** Real-time errors shown, quick fixes available
+**Deliverables:**
+- `core/syntax_checker.py` (~400 lines)
+- `ui/syntax_error_highlighter.py` (~300 lines)
+- 25 tests
+
+**Success:** Real-time errors shown, 100% coverage
 
 ---
 
-#### ~~Task 3: Plugin Architecture (Phase 1)~~ → **DEFERRED to v2.0.0** 📦
-**Original Priority:** CRITICAL | **Effort:** 40-60 hours
+#### Task 3: Document Templates ⭐
+**Priority:** MEDIUM | **Effort:** 16-24 hours
 
-**Reason for Deferral:**
-- Focus v1.8.0 on core editing features (auto-complete, syntax checking)
-- Plugin system better suited for v2.0.0 alongside LSP and marketplace
-- Allows more time for API design and community feedback
-- Reduces v1.8.0 scope to 92-128 hours (more achievable)
+**Features:**
+- Built-in templates (article, book, man page)
+- Custom template creation
+- Template variables (author, date, version)
+- Template preview
+- Template categories
 
-**Moved to:** Version 2.0.0 (see below)
+**Deliverables:**
+- `core/template_manager.py` (~300 lines)
+- `ui/template_dialog.py` (~250 lines)
+- 20 tests
+
+**Success:** Templates load, variables work, 100% coverage
 
 ---
 
 ### Minor Tasks
 
-| Task | Effort | Description |
-|------|--------|-------------|
-| Spell Checker Integration | 12-16h | Real-time spell checking (deferred from v1.7.0) |
-| Multi-Level Caching | 24-32h | Memory + disk + persistent cache (builds on v1.6.0 memory optimization analysis) |
-| Document Templates | 16-24h | Built-in templates, custom creation |
-| Improved Git Integration | 8-12h | Status bar, color coding, quick commit |
-| Export Presets | 6-8h | Save configurations, one-click export |
-| Editor Themes | 8-12h | Syntax highlighting themes, import/export |
+| Task | Effort | Priority | Description |
+|------|--------|----------|-------------|
+| Multi-Level Caching | 24-32h | LOW | Memory + disk + persistent cache |
+| Improved Git Integration | 8-12h | LOW | Status bar, color coding, quick commit |
+| Export Presets | 6-8h | LOW | Save export configurations |
+| Editor Themes | 8-12h | LOW | Syntax highlighting themes |
 
 ---
 
@@ -474,10 +810,14 @@ Month 3 (Mar 2026):
 |-----------|--------|----------|
 | Auto-complete working | ✅ Yes | CRITICAL |
 | Syntax checking active | ✅ Yes | HIGH |
-| ~~Plugin API released~~ | ~~v1.0~~ Deferred | ~~CRITICAL~~ |
-| ~~5+ community plugins~~ | ~~Yes~~ Deferred | ~~HIGH~~ |
+| Templates available | ✅ Yes | MEDIUM |
 | Test coverage | 100% | HIGH |
-| Startup time | <0.8s | MEDIUM |
+| All 75+ tests passing | ✅ Yes | CRITICAL |
+| Startup time | <1.1s | MEDIUM |
+
+**Total Tests:** 75+ (30 Auto-complete + 25 Syntax + 20 Templates)
+
+---
 
 **Release Target:** September 30, 2026
 
