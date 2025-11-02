@@ -1117,10 +1117,6 @@ class AsciiDocEditor(QMainWindow):
         """Prompt to save before action (delegates to DialogManager)."""
         return self.dialog_manager.prompt_save_before_action(action)
 
-    def _show_preferences_dialog(self) -> None:
-        """Show preferences dialog (delegates to DialogManager)."""
-        self.dialog_manager.show_preferences_dialog()
-
     def _show_about(self) -> None:
         """Show about dialog (delegates to DialogManager)."""
         self.dialog_manager.show_about()

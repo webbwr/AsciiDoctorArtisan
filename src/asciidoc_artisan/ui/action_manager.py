@@ -220,7 +220,6 @@ class ActionManager:
         self.replace_act: QAction  # Find and replace (Ctrl+H) - v1.8.0
         self.find_next_act: QAction  # Find next match (F3) - v1.8.0
         self.find_previous_act: QAction  # Find previous match (Shift+F3) - v1.8.0
-        self.preferences_act: QAction  # Open settings dialog
 
         # View menu actions (7 actions)
         self.zoom_in_act: QAction  # Increase font size (Ctrl++)
@@ -617,13 +616,6 @@ class ActionManager:
             "Find previous occurrence",
             self.window._handle_find_previous,
             shortcut=QKeySequence.StandardKey.FindPrevious,
-        )
-
-        self.preferences_act = self._create_action(
-            "&Preferences...",
-            "Configure application preferences",
-            self.window._show_preferences_dialog,
-            shortcut="Ctrl+,",
         )
 
         # === VIEW MENU ACTIONS (7 actions) ===
@@ -1027,7 +1019,6 @@ class ActionManager:
         tools_menu.addSeparator()
 
         # Application Settings (bottom section)
-        tools_menu.addAction(self.preferences_act)  # Preferences (Ctrl+,)
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
 
         # === HELP MENU ===

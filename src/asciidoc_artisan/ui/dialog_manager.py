@@ -370,25 +370,6 @@ class DialogManager:
             # User cancelled the action.
             return False
 
-    def show_preferences_dialog(self) -> None:
-        """
-        Show preferences dialog for configuring application settings.
-
-        FR-055: AI-Enhanced Conversion option configuration UI
-        """
-        from asciidoc_artisan.ui.dialogs import PreferencesDialog
-
-        dialog = PreferencesDialog(self.editor._settings, self.editor)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.editor._settings = dialog.get_settings()
-            self.editor._settings_manager.save_settings(
-                self.editor._settings, self.editor, self.editor._current_file_path
-            )
-            self.editor.status_bar.showMessage("Preferences updated", 3000)
-            logger.info(
-                f"AI conversion preference updated: {self.editor._settings.ai_conversion_enabled}"
-            )
-
     def show_about(self) -> None:
         """Show about dialog."""
         about_text = """
