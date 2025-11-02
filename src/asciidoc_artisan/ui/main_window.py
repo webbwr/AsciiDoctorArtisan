@@ -95,9 +95,7 @@ from PySide6.QtCore import (
 # If not available (e.g., on older systems), fall back to QTextBrowser
 # This is called "graceful degradation" - app works even without GPU
 try:
-    from PySide6.QtWebEngineWidgets import (  # Web browser widget
-        QWebEngineView,  # noqa: F401
-    )
+    from PySide6.QtWebEngineWidgets import QWebEngineView  # noqa: F401
 
     WEBENGINE_AVAILABLE = True  # Flag: GPU preview available
 except ImportError:

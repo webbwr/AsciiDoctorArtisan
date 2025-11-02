@@ -217,7 +217,9 @@ class ChatMessage(BaseModel):
     role: str = Field(..., description='Message sender: "user" or "assistant"')
     content: str = Field(..., description="Message text content")
     timestamp: float = Field(..., description="Unix timestamp when message was created")
-    model: str = Field(..., description="Ollama model name (e.g., gnokit/improve-grammer)")
+    model: str = Field(
+        ..., description="Ollama model name (e.g., gnokit/improve-grammer)"
+    )
     context_mode: str = Field(
         ..., description='Context mode: "document", "syntax", "general", or "editing"'
     )

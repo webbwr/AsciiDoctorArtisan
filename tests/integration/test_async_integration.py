@@ -18,6 +18,7 @@ import pytest
 from PySide6.QtCore import QTimer
 from pytestqt.qtbot import QtBot
 
+from asciidoc_artisan.core import Settings
 from asciidoc_artisan.core.async_file_watcher import AsyncFileWatcher
 from asciidoc_artisan.core.qt_async_file_manager import QtAsyncFileManager
 from asciidoc_artisan.ui import AsciiDocEditor
@@ -33,7 +34,17 @@ def qasync_app(qapp):
 @pytest.fixture
 def editor_with_async(qtbot, qasync_app):
     """Create AsciiDocEditor with async file manager."""
-    with patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"):
+    # Use real Settings object with safe defaults
+    test_settings = Settings()
+    test_settings.ollama_model = None
+    test_settings.ollama_enabled = False
+    test_settings.git_repo_path = None
+    test_settings.last_file = None
+
+    with patch(
+        "asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings",
+        return_value=test_settings,
+    ):
         window = AsciiDocEditor()
 
         # Mock dialog to prevent UI during tests

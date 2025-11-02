@@ -142,7 +142,9 @@ class ChatManager(QObject):
         """
         default_model = "gnokit/improve-grammer"
         logger.info(f"Auto-downloading default model: {default_model}")
-        self.status_message.emit(f"Downloading {default_model}... (this may take a few minutes)")
+        self.status_message.emit(
+            f"Downloading {default_model}... (this may take a few minutes)"
+        )
 
         try:
             # Run ollama pull in subprocess (non-blocking for UI)
@@ -150,7 +152,7 @@ class ChatManager(QObject):
                 ["ollama", "pull", default_model],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
             )
             logger.info(f"Started download of {default_model}")
         except Exception as e:
@@ -493,7 +495,9 @@ class ChatManager(QObject):
             # Model is invalid - keep current model and show error
             current_model = self._settings.ollama_model or "none"
             logger.warning(f"Model validation failed: {model} not found")
-            self.status_message.emit(f"✗ Model '{model}' not available (keeping {current_model})")
+            self.status_message.emit(
+                f"✗ Model '{model}' not available (keeping {current_model})"
+            )
 
             # Revert selector to current valid model
             if current_model and current_model != "none":

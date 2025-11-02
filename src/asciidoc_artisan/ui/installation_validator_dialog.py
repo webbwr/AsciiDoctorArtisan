@@ -17,13 +17,12 @@ from typing import Dict, List, Optional, Tuple
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
     QDialog,
-    QVBoxLayout,
     QHBoxLayout,
-    QPushButton,
-    QTextEdit,
     QLabel,
     QProgressBar,
-    QGroupBox,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,11 +60,15 @@ class ValidationWorker(QThread):
             logger.error(f"Worker error: {e}", exc_info=True)
             # Emit empty results on error
             if self.action == "validate":
-                self.validation_complete.emit({
-                    "python_packages": [("ERROR", "✗", "error", f"Validation failed: {str(e)}")],
-                    "system_binaries": [],
-                    "optional_tools": [],
-                })
+                self.validation_complete.emit(
+                    {
+                        "python_packages": [
+                            ("ERROR", "✗", "error", f"Validation failed: {str(e)}")
+                        ],
+                        "system_binaries": [],
+                        "optional_tools": [],
+                    }
+                )
 
     def _validate_installation(self):
         """Validate all application requirements."""
@@ -78,9 +81,7 @@ class ValidationWorker(QThread):
         # Check Python version
         py_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         if sys.version_info >= (3, 14):
-            results["python_packages"].append(
-                ("Python", "✓", py_version, "Version OK")
-            )
+            results["python_packages"].append(("Python", "✓", py_version, "Version OK"))
         else:
             results["python_packages"].append(
                 ("Python", "✗", py_version, "Requires Python 3.14+")
@@ -140,30 +141,41 @@ class ValidationWorker(QThread):
 
             if package_name == "PySide6":
                 import PySide6
+
                 version = getattr(PySide6, "__version__", "unknown")
             elif package_name == "asciidoc3":
                 import asciidoc3
+
                 version = getattr(asciidoc3, "__version__", "unknown")
             elif package_name == "pypandoc":
                 import pypandoc
+
                 version = getattr(pypandoc, "__version__", "unknown")
             elif package_name == "pymupdf":
                 import fitz
-                version = getattr(fitz, "__version__", getattr(fitz, "version", "unknown"))
+
+                version = getattr(
+                    fitz, "__version__", getattr(fitz, "version", "unknown")
+                )
             elif package_name == "keyring":
                 import keyring
+
                 version = getattr(keyring, "__version__", "unknown")
             elif package_name == "psutil":
                 import psutil
+
                 version = getattr(psutil, "__version__", "unknown")
             elif package_name == "pydantic":
                 import pydantic
+
                 version = getattr(pydantic, "__version__", "unknown")
             elif package_name == "aiofiles":
                 import aiofiles
+
                 version = getattr(aiofiles, "__version__", "unknown")
             elif package_name == "ollama":
                 import ollama
+
                 version = getattr(ollama, "__version__", "unknown")
             else:
                 return ("✗", "unknown", "Unknown package")
@@ -266,7 +278,9 @@ class ValidationWorker(QThread):
             self.update_progress.emit(f"Found requirements: {requirements_file}")
 
             # Run pip install --upgrade
-            self.update_progress.emit("Running pip install --upgrade -r requirements.txt...")
+            self.update_progress.emit(
+                "Running pip install --upgrade -r requirements.txt..."
+            )
 
             result = subprocess.run(
                 [
@@ -329,7 +343,9 @@ class ValidationWorker(QThread):
             logger.debug(f"Package {package_name} not found in metadata")
             return "unknown"
         except Exception as e:
-            logger.warning(f"Error getting version for {package_name} from metadata: {e}")
+            logger.warning(
+                f"Error getting version for {package_name} from metadata: {e}"
+            )
             return "unknown"
 
     def _get_version_from_pip(self, package_name: str) -> str:
@@ -357,7 +373,9 @@ class ValidationWorker(QThread):
                 for line in result.stdout.split("\n"):
                     if line.startswith("Version:"):
                         version = line.split(":", 1)[1].strip()
-                        logger.info(f"Found version {version} for {package_name} via pip")
+                        logger.info(
+                            f"Found version {version} for {package_name} via pip"
+                        )
                         return version
 
             return "unknown"
@@ -606,11 +624,15 @@ class InstallationValidatorDialog(QDialog):
 
         output.append("")
         output.append("=" * 70)
-        output.append("Legend: ✓=OK, ⚠=Warning, ✗=Missing/Error, ○=Optional not installed")
+        output.append(
+            "Legend: ✓=OK, ⚠=Warning, ✗=Missing/Error, ○=Optional not installed"
+        )
         output.append("=" * 70)
 
         result_text = "\n".join(output)
-        logger.info(f"Setting text with {len(result_text)} characters, {len(output)} lines")
+        logger.info(
+            f"Setting text with {len(result_text)} characters, {len(output)} lines"
+        )
         self.results_text.setPlainText(result_text)
         logger.info("Text set successfully")
 

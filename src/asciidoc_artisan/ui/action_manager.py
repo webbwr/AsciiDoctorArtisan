@@ -91,11 +91,11 @@ VERSION: 1.6.0 (GitHub CLI integration)
 
 # === STANDARD LIBRARY IMPORTS ===
 import logging  # For recording what the program does (debug messages)
-from typing import (
+from typing import (  # For type hints without circular imports
     TYPE_CHECKING,
     Any,
     Optional,
-)  # For type hints without circular imports
+)
 
 # === QT FRAMEWORK IMPORTS ===
 from PySide6.QtGui import (
@@ -240,7 +240,9 @@ class ActionManager:
         self.github_repo_info_act: QAction  # View repository info
 
         # Tools menu actions (7 actions)
-        self.validate_install_act: QAction  # Validate installation and update dependencies
+        self.validate_install_act: (
+            QAction  # Validate installation and update dependencies
+        )
         self.toggle_theme_act: QAction  # Toggle dark/light theme
         self.pandoc_status_act: QAction  # Show Pandoc installation status
         self.pandoc_formats_act: QAction  # Show supported formats
@@ -943,7 +945,9 @@ class ActionManager:
         tools_menu = menubar.addMenu("&Tools")
 
         # System & Validation (top section)
-        tools_menu.addAction(self.validate_install_act)  # Validate requirements and update dependencies
+        tools_menu.addAction(
+            self.validate_install_act
+        )  # Validate requirements and update dependencies
 
         tools_menu.addSeparator()
 

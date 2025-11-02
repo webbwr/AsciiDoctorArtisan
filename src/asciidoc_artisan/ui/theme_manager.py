@@ -233,7 +233,9 @@ class ThemeManager:
                 self.editor.chat_label.setStyleSheet("color: white;")
 
             # Update chat panel messages to dark mode
-            if hasattr(self.editor, "chat_manager") and hasattr(self.editor.chat_manager, "_chat_panel"):
+            if hasattr(self.editor, "chat_manager") and hasattr(
+                self.editor.chat_manager, "_chat_panel"
+            ):
                 self.editor.chat_manager._chat_panel.set_dark_mode(True)
         else:
             # Light mode - reset to system default light theme
@@ -248,7 +250,9 @@ class ThemeManager:
                 self.editor.chat_label.setStyleSheet("color: black;")
 
             # Update chat panel messages to light mode
-            if hasattr(self.editor, "chat_manager") and hasattr(self.editor.chat_manager, "_chat_panel"):
+            if hasattr(self.editor, "chat_manager") and hasattr(
+                self.editor.chat_manager, "_chat_panel"
+            ):
                 self.editor.chat_manager._chat_panel.set_dark_mode(False)
 
     def _apply_dark_theme(self) -> None:
