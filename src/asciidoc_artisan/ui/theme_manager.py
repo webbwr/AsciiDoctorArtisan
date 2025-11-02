@@ -229,6 +229,8 @@ class ThemeManager:
                 self.editor.editor_label.setStyleSheet("color: white;")
             if hasattr(self.editor, "preview_label"):
                 self.editor.preview_label.setStyleSheet("color: white;")
+            if hasattr(self.editor, "chat_label"):
+                self.editor.chat_label.setStyleSheet("color: white;")
         else:
             # Light mode - reset to system default light theme
             QApplication.setPalette(QApplication.style().standardPalette())
@@ -238,6 +240,8 @@ class ThemeManager:
                 self.editor.editor_label.setStyleSheet("color: black;")
             if hasattr(self.editor, "preview_label"):
                 self.editor.preview_label.setStyleSheet("color: black;")
+            if hasattr(self.editor, "chat_label"):
+                self.editor.chat_label.setStyleSheet("color: black;")
 
     def _apply_dark_theme(self) -> None:
         """Apply dark theme color palette to the application."""
