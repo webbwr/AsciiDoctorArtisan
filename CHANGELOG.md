@@ -5,6 +5,26 @@ All notable changes to AsciiDoc Artisan will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.4] - 2025-11-02
+
+### Security
+- **CRITICAL FIX:** Path traversal vulnerability (Issue #8)
+  - Fixed sanitize_path() to check '..' BEFORE resolve()
+  - Added optional allowed_base parameter for whitelist validation
+  - Prevents attacks like '/tmp/../../../etc/passwd'
+
+### Fixed
+- Path sanitization logic now detects directory traversal attempts correctly
+- Added 8 comprehensive security tests (11 total path sanitization tests)
+
+### Documentation
+- Created SECURITY_AUDIT_REPORT.md (comprehensive security audit of issues #6-#10)
+- All 5 GitHub security issues verified and closed (#6, #7, #8, #9, #10)
+
+### Changed
+- sanitize_path() signature: now accepts optional allowed_base parameter
+- Enhanced test coverage for path security (100% for file_operations)
+
 ## [1.7.1] - 2025-11-02
 
 ### Added

@@ -24,39 +24,69 @@ from typing import Any, Dict, Optional, Union
 logger = logging.getLogger(__name__)
 
 
-def sanitize_path(path_input: Union[str, Path]) -> Optional[Path]:
+def sanitize_path(
+    path_input: Union[str, Path], allowed_base: Optional[Path] = None
+) -> Optional[Path]:
     """
     Sanitize file path to prevent directory traversal attacks.
 
     Implements FR-016 and NFR-009 security requirements by:
+    - Checking for '..' components BEFORE resolving (security fix)
     - Resolving symbolic links and relative paths to absolute paths
-    - Blocking paths containing '..' components
+    - Optionally validating path is within allowed base directory
     - Preventing directory traversal attacks
 
     Args:
         path_input: Path as string or Path object
+        allowed_base: Optional base directory - if provided, resolved path
+                     must be within this directory tree
 
     Returns:
         Resolved Path object if safe, None if suspicious patterns detected
 
     Security:
+        - Checks for '..' BEFORE resolve() to catch traversal attempts
         - Resolves symbolic links and relative paths
-        - Blocks paths containing '..' components
-        - Prevents directory traversal attacks
+        - Optional whitelist validation via allowed_base
+        - Prevents directory traversal attacks (NFR-009)
 
     Examples:
         >>> sanitize_path("/home/user/doc.adoc")
         PosixPath('/home/user/doc.adoc')
         >>> sanitize_path("../../etc/passwd")
         None  # Blocked due to '..' traversal
+        >>> sanitize_path("/home/user/doc.adoc", allowed_base=Path("/home/user"))
+        PosixPath('/home/user/doc.adoc')
+        >>> sanitize_path("/etc/passwd", allowed_base=Path("/home/user"))
+        None  # Blocked - outside allowed base
     """
     try:
-        path = Path(path_input).resolve()
-
-        if ".." in path.parts:
-            logger.warning(f"Path sanitization blocked suspicious path: {path_input}")
+        # SECURITY FIX: Check for '..' BEFORE resolve() to catch traversal attempts
+        # Previously, resolve() eliminated '..' before we could detect it
+        path_obj = Path(path_input)
+        if ".." in path_obj.parts:
+            logger.warning(
+                f"Path sanitization blocked suspicious path (contains '..'): {path_input}"
+            )
             return None
-        return path
+
+        # Now resolve to absolute path (eliminate symlinks, relative components)
+        resolved_path = path_obj.resolve()
+
+        # Optional: Validate path is within allowed base directory
+        if allowed_base is not None:
+            allowed_base_resolved = allowed_base.resolve()
+            try:
+                # Check if resolved_path is relative to allowed_base
+                resolved_path.relative_to(allowed_base_resolved)
+            except ValueError:
+                logger.warning(
+                    f"Path sanitization blocked path outside allowed base: "
+                    f"{path_input} (base: {allowed_base})"
+                )
+                return None
+
+        return resolved_path
     except Exception as e:
         logger.error(f"Path sanitization failed for {path_input}: {e}")
         return None

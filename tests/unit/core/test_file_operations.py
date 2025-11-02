@@ -140,18 +140,20 @@ class TestPathSanitization:
 
     def test_sanitize_path_blocks_traversal(self):
         """Test sanitize_path blocks directory traversal attempts."""
-
+        # SECURITY TEST: Verify Issue #8 fix - paths with '..' are blocked BEFORE resolve()
         dangerous_paths = [
             "../../../etc/passwd",
             "test/../../secret",
             "/home/../etc/shadow",
+            "../../etc/passwd",
+            "/tmp/../../../etc/passwd",
+            "/home/user/../../etc/passwd",
         ]
 
         for dangerous_path in dangerous_paths:
             result = sanitize_path(dangerous_path)
-
-            if result is not None:
-                assert ".." not in result.parts
+            # After fix, all paths with '..' should be blocked (return None)
+            assert result is None, f"Dangerous path not blocked: {dangerous_path}"
 
     def test_sanitize_path_handles_path_objects(self):
         """Test sanitize_path accepts Path objects."""
@@ -163,14 +165,11 @@ class TestPathSanitization:
 
     def test_sanitize_path_rejects_parent_traversal(self):
         """Test sanitize_path detects and rejects parent directory traversal."""
-
+        # SECURITY TEST: This path contains '..' and should be blocked
         dangerous_path = "/home/user/documents/../../etc/passwd"
         result = sanitize_path(dangerous_path)
-
-        if result is not None:
-            assert isinstance(result, Path)
-
-            assert result.is_absolute()
+        # After fix, should be blocked (return None)
+        assert result is None, f"Parent traversal not blocked: {dangerous_path}"
 
     def test_sanitize_path_invalid_input(self):
         """Test sanitize_path handles invalid input gracefully."""
@@ -180,19 +179,40 @@ class TestPathSanitization:
         assert result is None or isinstance(result, Path)
 
     def test_sanitize_path_blocks_dotdot_in_parts(self):
-        """Test sanitize_path blocks paths with '..' in resolved parts."""
-        from unittest.mock import patch, Mock
+        """Test sanitize_path blocks paths with '..' in parts before resolution."""
+        # SECURITY TEST: Verify '..' is detected in path.parts BEFORE resolve()
+        test_path = "/some/path/../with/dotdot"
+        result = sanitize_path(test_path)
+        # Should return None because '..' is detected before resolve()
+        assert result is None
 
-        # Mock Path to simulate a resolved path with '..' in parts
-        # This tests the security check even though it's rare in real filesystems
-        mock_path = Mock(spec=Path)
-        mock_path.parts = ('/', 'home', '..', 'etc', 'passwd')
-        mock_path.resolve.return_value = mock_path
+    def test_sanitize_path_with_allowed_base(self):
+        """Test sanitize_path with allowed_base parameter."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            base_dir = Path(tmpdir)
+            safe_file = base_dir / "subdir" / "file.txt"
+            outside_file = Path("/etc/passwd")
 
-        with patch('asciidoc_artisan.core.file_operations.Path', return_value=mock_path):
-            result = sanitize_path("/some/path/../with/dotdot")
+            # Path within allowed base should be accepted
+            result = sanitize_path(str(safe_file), allowed_base=base_dir)
+            assert result is not None
+            assert result == safe_file.resolve()
 
-            # Should return None because '..' is in parts after resolution
+            # Path outside allowed base should be rejected
+            result = sanitize_path(str(outside_file), allowed_base=base_dir)
+            assert result is None
+
+    def test_sanitize_path_traversal_with_allowed_base(self):
+        """Test sanitize_path blocks traversal even with allowed_base."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            base_dir = Path(tmpdir)
+            # Try to escape using '..'
+            dangerous_path = str(base_dir / ".." / ".." / "etc" / "passwd")
+
+            result = sanitize_path(dangerous_path, allowed_base=base_dir)
+            # Should be blocked due to '..' in path
             assert result is None
 
     def test_atomic_save_text_cleanup_on_exception(self):
