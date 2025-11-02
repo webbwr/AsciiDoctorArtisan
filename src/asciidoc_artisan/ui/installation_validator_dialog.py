@@ -8,6 +8,7 @@ Author: AsciiDoc Artisan Team
 Version: 1.7.4
 """
 
+import logging
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +25,8 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QGroupBox,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ValidationWorker(QThread):
@@ -45,10 +48,24 @@ class ValidationWorker(QThread):
 
     def run(self):
         """Run validation or update in background thread."""
-        if self.action == "validate":
-            self._validate_installation()
-        elif self.action == "update":
-            self._update_dependencies()
+        try:
+            if self.action == "validate":
+                logger.info("Starting validation...")
+                self._validate_installation()
+                logger.info("Validation complete")
+            elif self.action == "update":
+                logger.info("Starting dependency update...")
+                self._update_dependencies()
+                logger.info("Update complete")
+        except Exception as e:
+            logger.error(f"Worker error: {e}", exc_info=True)
+            # Emit empty results on error
+            if self.action == "validate":
+                self.validation_complete.emit({
+                    "python_packages": [("ERROR", "✗", "error", f"Validation failed: {str(e)}")],
+                    "system_binaries": [],
+                    "optional_tools": [],
+                })
 
     def _validate_installation(self):
         """Validate all application requirements."""
@@ -119,41 +136,34 @@ class ValidationWorker(QThread):
         """
         try:
             # Import package to check if installed
+            version = "unknown"
+
             if package_name == "PySide6":
                 import PySide6
-
-                version = PySide6.__version__
+                version = getattr(PySide6, "__version__", "unknown")
             elif package_name == "asciidoc3":
                 import asciidoc3
-
                 version = getattr(asciidoc3, "__version__", "unknown")
             elif package_name == "pypandoc":
                 import pypandoc
-
                 version = getattr(pypandoc, "__version__", "unknown")
             elif package_name == "pymupdf":
                 import fitz
-
-                version = fitz.__version__
+                version = getattr(fitz, "__version__", getattr(fitz, "version", "unknown"))
             elif package_name == "keyring":
                 import keyring
-
                 version = getattr(keyring, "__version__", "unknown")
             elif package_name == "psutil":
                 import psutil
-
-                version = psutil.__version__
+                version = getattr(psutil, "__version__", "unknown")
             elif package_name == "pydantic":
                 import pydantic
-
-                version = pydantic.__version__
+                version = getattr(pydantic, "__version__", "unknown")
             elif package_name == "aiofiles":
                 import aiofiles
-
                 version = getattr(aiofiles, "__version__", "unknown")
             elif package_name == "ollama":
                 import ollama
-
                 version = getattr(ollama, "__version__", "unknown")
             else:
                 return ("✗", "unknown", "Unknown package")
@@ -162,15 +172,20 @@ class ValidationWorker(QThread):
             if version == "unknown":
                 return ("⚠", version, "Installed (version unknown)")
 
-            if self._version_compare(version, min_version) >= 0:
-                return ("✓", version, "Version OK")
-            else:
-                return ("⚠", version, f"Upgrade recommended (>={min_version})")
+            # Safely compare versions
+            try:
+                if self._version_compare(version, min_version) >= 0:
+                    return ("✓", version, "Version OK")
+                else:
+                    return ("⚠", version, f"Upgrade recommended (>={min_version})")
+            except Exception:
+                # Version comparison failed, assume OK if installed
+                return ("⚠", version, "Installed (version check failed)")
 
         except ImportError:
             return ("✗", "not installed", f"Required: >={min_version}")
         except Exception as e:
-            return ("✗", "error", f"Check failed: {str(e)}")
+            return ("✗", "error", f"Check failed: {str(e)[:50]}")
 
     def _check_system_binary(
         self, binary_name: str, required: bool
