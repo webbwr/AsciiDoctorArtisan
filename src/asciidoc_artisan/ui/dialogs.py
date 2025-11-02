@@ -34,10 +34,13 @@ USAGE PATTERN:
         save_settings(settings)  # Save to disk
 """
 
+import logging  # For debug logging
 import os  # For reading environment variables (API keys)
 from typing import Any, Optional  # For type hints (helps catch bugs)
 
 from PySide6.QtCore import Qt  # Qt constants and enums
+
+logger = logging.getLogger(__name__)
 
 # Import Qt widgets we need for building the UI
 from PySide6.QtWidgets import (
@@ -396,8 +399,10 @@ class OllamaSettingsDialog(QDialog):
             "Set or change your Anthropic API key for AI conversations\n"
             "Keys are stored securely in your system keyring"
         )
+        # Connect button click to API key configuration dialog
         api_key_button.clicked.connect(self._configure_api_key)
         chat_layout.addWidget(api_key_button)
+        logger.info("API Key button created and connected to _configure_api_key")
 
         # Chat Information Label
         chat_info_label = QLabel(
@@ -565,10 +570,14 @@ class OllamaSettingsDialog(QDialog):
         Allows user to set or change their Anthropic API key for AI conversations.
         Key is stored securely in the system keyring.
         """
+        logger.info("Configure API key button clicked - opening dialog")
+
         from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
 
         api_dialog = APIKeySetupDialog(self)
-        api_dialog.exec()
+        logger.info("APIKeySetupDialog created, showing dialog...")
+        result = api_dialog.exec()
+        logger.info(f"API Key dialog closed with result: {result}")
 
     def _on_model_changed(self) -> None:
         """Handle model selection change."""
