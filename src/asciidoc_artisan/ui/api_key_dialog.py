@@ -161,18 +161,24 @@ class APIKeySetupDialog(QDialog):
         # Enable test button if key looks valid (format check only).
         # Anthropic keys start with "sk-ant-" and are longer than 20 chars.
         is_valid = text.startswith("sk-ant-") and len(text) > 20
+        logger.debug(f"API key input changed: len={len(text)}, valid={is_valid}")
         self.test_button.setEnabled(is_valid)
+        logger.debug(f"Test button enabled state: {self.test_button.isEnabled()}")
 
     def _test_api_key(self) -> None:
         """Test the entered API key."""
+        logger.info("Test API Key button clicked")
         api_key = self.anthropic_key_input.text().strip()
+        logger.debug(f"API key length: {len(api_key)}")
 
         if not api_key:
+            logger.warning("No API key entered")
             QMessageBox.warning(self, "No API Key", "Please enter an API key to test.")
             return
 
         # Basic validation (format check only - no network call).
         if not api_key.startswith("sk-ant-"):
+            logger.warning(f"Invalid API key format: does not start with 'sk-ant-'")
             QMessageBox.warning(
                 self,
                 "Invalid Format",
@@ -183,6 +189,7 @@ class APIKeySetupDialog(QDialog):
 
         # Format valid - actual API testing would require network call.
         # We skip that here to avoid blocking the UI.
+        logger.info("API key format is valid")
         QMessageBox.information(
             self,
             "Key Format Valid",
