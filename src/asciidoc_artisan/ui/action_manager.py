@@ -208,7 +208,7 @@ class ActionManager:
         self.save_as_pdf_act: QAction  # Export to PDF format
         self.exit_act: QAction  # Exit application (Ctrl+Q)
 
-        # Edit menu actions (10 actions - includes Find actions v1.8.0)
+        # Edit menu actions (11 actions - includes Find/Replace actions v1.8.0)
         self.undo_act: QAction  # Undo last action (Ctrl+Z)
         self.redo_act: QAction  # Redo last undone action (Ctrl+Y)
         self.cut_act: QAction  # Cut selected text (Ctrl+X)
@@ -216,6 +216,7 @@ class ActionManager:
         self.paste_act: QAction  # Paste from clipboard (Ctrl+V)
         self.convert_paste_act: QAction  # Paste and convert format (Ctrl+Shift+V)
         self.find_act: QAction  # Find text in document (Ctrl+F) - v1.8.0
+        self.replace_act: QAction  # Find and replace (Ctrl+H) - v1.8.0
         self.find_next_act: QAction  # Find next match (F3) - v1.8.0
         self.find_previous_act: QAction  # Find previous match (Shift+F3) - v1.8.0
         self.preferences_act: QAction  # Open settings dialog
@@ -585,14 +586,21 @@ class ActionManager:
             shortcut="Ctrl+Shift+V",
         )
 
-        # === FIND ACTIONS (v1.8.0) ===
-        # Quick find bar for text search
+        # === FIND & REPLACE ACTIONS (v1.8.0) ===
+        # Quick find/replace bar for text search and replacement
 
         self.find_act = self._create_action(
             "&Find...",
             "Find text in document",
             lambda: self.window.find_bar.show_and_focus(),
             shortcut=QKeySequence.StandardKey.Find,
+        )
+
+        self.replace_act = self._create_action(
+            "R&eplace...",
+            "Find and replace text",
+            lambda: self.window.find_bar.show_replace_and_focus(),
+            shortcut=QKeySequence.StandardKey.Replace,
         )
 
         self.find_next_act = self._create_action(
@@ -906,8 +914,9 @@ class ActionManager:
         # Separator
         edit_menu.addSeparator()
 
-        # Find & Search group (v1.8.0)
+        # Find & Replace group (v1.8.0)
         edit_menu.addAction(self.find_act)  # Find (Ctrl+F)
+        edit_menu.addAction(self.replace_act)  # Replace (Ctrl+H)
         edit_menu.addAction(self.find_next_act)  # Find Next (F3)
         edit_menu.addAction(self.find_previous_act)  # Find Previous (Shift+F3)
 

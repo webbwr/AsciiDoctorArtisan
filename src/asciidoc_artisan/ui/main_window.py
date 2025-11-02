@@ -398,6 +398,10 @@ class AsciiDocEditor(QMainWindow):
         self.find_bar.find_previous_requested.connect(self._handle_find_previous)
         self.find_bar.closed.connect(self._handle_find_closed)
 
+        # Connect replace signals (v1.8.0)
+        self.find_bar.replace_requested.connect(self._handle_replace)
+        self.find_bar.replace_all_requested.connect(self._handle_replace_all)
+
         # Update search engine text when editor content changes
         self.editor.textChanged.connect(
             lambda: self.search_engine.set_text(self.editor.toPlainText())
@@ -795,6 +799,122 @@ class AsciiDocEditor(QMainWindow):
         self._clear_search_highlighting()
         self.editor.setFocus()  # Return focus to editor
         logger.debug("Find bar closed, focus returned to editor")
+
+    @Slot(str)
+    def _handle_replace(self, replace_text: str) -> None:
+        """Replace current match and find next.
+
+        Args:
+            replace_text: Text to replace with
+        """
+        search_text = self.find_bar.get_search_text()
+        if not search_text:
+            return
+
+        try:
+            # Get current selection
+            cursor = self.editor.textCursor()
+            if not cursor.hasSelection():
+                # No selection, find next match first
+                self._handle_find_next()
+                cursor = self.editor.textCursor()
+                if not cursor.hasSelection():
+                    return
+
+            # Verify selection matches search text
+            selected_text = cursor.selectedText()
+            case_sensitive = self.find_bar.is_case_sensitive()
+
+            # Check if selection matches search text
+            if case_sensitive:
+                matches = selected_text == search_text
+            else:
+                matches = selected_text.lower() == search_text.lower()
+
+            if matches:
+                # Replace the selected text
+                cursor.insertText(replace_text)
+                self.editor.setTextCursor(cursor)
+
+                # Update search engine with new text
+                self.search_engine.set_text(self.editor.toPlainText())
+
+                # Find next occurrence
+                self._handle_find_next()
+
+                logger.info(f"Replaced '{search_text}' with '{replace_text}'")
+            else:
+                # Selection doesn't match, just find next
+                self._handle_find_next()
+
+        except Exception as e:
+            logger.error(f"Replace error: {e}")
+
+    @Slot(str)
+    def _handle_replace_all(self, replace_text: str) -> None:
+        """Replace all occurrences after confirmation.
+
+        Args:
+            replace_text: Text to replace with
+        """
+        from PySide6.QtWidgets import QMessageBox
+
+        search_text = self.find_bar.get_search_text()
+        if not search_text:
+            return
+
+        try:
+            # Count matches first
+            matches = self.search_engine.find_all(
+                search_text, case_sensitive=self.find_bar.is_case_sensitive()
+            )
+            match_count = len(matches)
+
+            if match_count == 0:
+                self.status_manager.show_status("No matches to replace", 2000)
+                return
+
+            # Show confirmation dialog
+            reply = QMessageBox.question(
+                self,
+                "Replace All",
+                f"Replace {match_count} occurrence(s) of '{search_text}' with '{replace_text}'?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                # Perform replace all
+                new_text, count = self.search_engine.replace_all(
+                    search_text,
+                    replace_text,
+                    case_sensitive=self.find_bar.is_case_sensitive(),
+                )
+
+                # Update editor with new text
+                cursor = self.editor.textCursor()
+                cursor_pos = cursor.position()  # Save cursor position
+
+                self.editor.setPlainText(new_text)
+
+                # Restore cursor position (approximately)
+                cursor.setPosition(min(cursor_pos, len(new_text)))
+                self.editor.setTextCursor(cursor)
+
+                # Clear highlights and update status
+                self._clear_search_highlighting()
+                self.find_bar.update_match_count(0, 0)
+                self.status_manager.show_status(
+                    f"Replaced {count} occurrence(s)", 3000
+                )
+
+                logger.info(
+                    f"Replaced all: {count} occurrences of '{search_text}' with '{replace_text}'"
+                )
+
+        except Exception as e:
+            logger.error(f"Replace all error: {e}")
+            self.status_manager.show_status(f"Replace failed: {e}", 3000)
 
     def _select_match(self, match) -> None:
         """Select a search match in the editor.
