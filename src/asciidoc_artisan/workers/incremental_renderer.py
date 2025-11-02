@@ -44,7 +44,8 @@ logger = logging.getLogger(__name__)
 MAX_CACHE_SIZE = 200  # Max blocks in cache (reduced from 500 for lower memory usage)
 BLOCK_HASH_LENGTH = 12  # Hash length for block IDs (reduced from 16, still unique enough)
 
-# String interning for common AsciiDoc tokens - Reduces memory usage
+# String interning for common tokens - Reduces memory usage (Phase 1 + Phase 2)
+# Phase 1: Basic AsciiDoc syntax tokens
 COMMON_TOKENS = [
     "=", "==", "===", "====", "=====",  # Headings
     "*", "**", "_", "__", "`", "``",  # Formatting
@@ -54,8 +55,36 @@ COMMON_TOKENS = [
     "[", "]", "{", "}", "(", ")",  # Delimiters
     "<<", ">>", "->", "<-",  # Links and arrows
 ]
-# Intern common tokens to save memory (single string object for each)
-INTERNED_TOKENS = {token: sys.intern(token) for token in COMMON_TOKENS}
+
+# Phase 2: Common AsciiDoc attributes
+COMMON_ATTRIBUTES = [
+    ":author:", ":version:", ":revnumber:", ":rev:",
+    ":title:", ":date:", ":doctype:", ":toc:",
+    ":icons:", ":numbered:", ":stem:", ":source-highlighter:",
+    ":imagesdir:", ":includedir:", ":docinfo:",
+]
+
+# Phase 2: Common HTML tags and attributes
+COMMON_HTML = [
+    "<div>", "</div>", "<span>", "</span>",
+    "<p>", "</p>", "<h1>", "</h1>", "<h2>", "</h2>", "<h3>", "</h3>",
+    "<ul>", "</ul>", "<ol>", "</ol>", "<li>", "</li>",
+    "<code>", "</code>", "<pre>", "</pre>",
+    "<table>", "</table>", "<tr>", "</tr>", "<td>", "</td>", "<th>", "</th>",
+    "<a>", "</a>", "<img>", "<br>", "<hr>",
+    "class=", "id=", "style=", "href=", "src=", "alt=",
+]
+
+# Phase 2: Common CSS properties
+COMMON_CSS = [
+    "color:", "background-color:", "font-size:", "margin:", "padding:",
+    "text-align:", "font-family:", "font-weight:", "display:",
+    "border:", "width:", "height:", "position:", "top:", "left:",
+]
+
+# Combine all and intern
+ALL_INTERNED_STRINGS = COMMON_TOKENS + COMMON_ATTRIBUTES + COMMON_HTML + COMMON_CSS
+INTERNED_TOKENS = {token: sys.intern(token) for token in ALL_INTERNED_STRINGS}
 
 
 @dataclass(slots=True)
