@@ -115,6 +115,11 @@ class EditorState:
         # Apply the theme
         self._settings.dark_mode = dark_mode
         self.theme_manager.apply_theme()
+
+        # Clear CSS cache so preview regenerates with new theme colors
+        if hasattr(self.window, "preview_handler"):
+            self.window.preview_handler.clear_css_cache()
+
         self.window.update_preview()
         logger.info(f"Dark mode: {self._settings.dark_mode}")
 
