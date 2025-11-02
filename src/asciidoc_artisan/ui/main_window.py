@@ -448,7 +448,7 @@ class AsciiDocEditor(QMainWindow):
             # Generate session ID if not exists
             if not self._settings.telemetry_session_id:
                 self._settings.telemetry_session_id = str(uuid.uuid4())
-                self._settings_manager.save_settings(self._settings)
+                self._settings_manager.save_settings(self._settings, self)
 
             # Initialize collector
             self.telemetry_collector = TelemetryCollector(
@@ -482,7 +482,7 @@ class AsciiDocEditor(QMainWindow):
             self._settings.telemetry_enabled = True
             self._settings.telemetry_session_id = str(uuid.uuid4())
             self._settings.telemetry_opt_in_shown = True
-            self._settings_manager.save_settings(self._settings)
+            self._settings_manager.save_settings(self._settings, self)
 
             # Initialize collector
             self.telemetry_collector = TelemetryCollector(
@@ -495,7 +495,7 @@ class AsciiDocEditor(QMainWindow):
             # User declined - keep telemetry disabled
             self._settings.telemetry_enabled = False
             self._settings.telemetry_opt_in_shown = True
-            self._settings_manager.save_settings(self._settings)
+            self._settings_manager.save_settings(self._settings, self)
 
             # Create inactive collector
             self.telemetry_collector = TelemetryCollector(enabled=False)
