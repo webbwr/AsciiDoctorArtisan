@@ -231,6 +231,10 @@ class ThemeManager:
                 self.editor.preview_label.setStyleSheet("color: white;")
             if hasattr(self.editor, "chat_label"):
                 self.editor.chat_label.setStyleSheet("color: white;")
+
+            # Update chat panel messages to dark mode
+            if hasattr(self.editor, "chat_manager") and hasattr(self.editor.chat_manager, "_chat_panel"):
+                self.editor.chat_manager._chat_panel.set_dark_mode(True)
         else:
             # Light mode - reset to system default light theme
             QApplication.setPalette(QApplication.style().standardPalette())
@@ -242,6 +246,10 @@ class ThemeManager:
                 self.editor.preview_label.setStyleSheet("color: black;")
             if hasattr(self.editor, "chat_label"):
                 self.editor.chat_label.setStyleSheet("color: black;")
+
+            # Update chat panel messages to light mode
+            if hasattr(self.editor, "chat_manager") and hasattr(self.editor.chat_manager, "_chat_panel"):
+                self.editor.chat_manager._chat_panel.set_dark_mode(False)
 
     def _apply_dark_theme(self) -> None:
         """Apply dark theme color palette to the application."""

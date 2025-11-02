@@ -74,6 +74,7 @@ class ChatPanelWidget(QWidget):
         super().__init__(parent)
         self._messages: List[ChatMessage] = []
         self._auto_scroll = True
+        self._dark_mode = False  # Track current theme
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -111,6 +112,42 @@ class ChatPanelWidget(QWidget):
         </div>
         """
         self._text_display.setHtml(empty_html)
+
+    def set_dark_mode(self, enabled: bool) -> None:
+        """
+        Update theme colors for dark/light mode.
+
+        Args:
+            enabled: True for dark mode, False for light mode
+        """
+        self._dark_mode = enabled
+        # Refresh all messages with new theme
+        self.refresh_display()
+
+    def _get_colors(self) -> dict:
+        """Get theme-aware colors for message styling."""
+        if self._dark_mode:
+            return {
+                "user_bg": "#1e3a5f",
+                "user_border": "#4a90e2",
+                "user_text": "#ffffff",
+                "user_meta": "#aaaaaa",
+                "ai_bg": "#1e4d2b",
+                "ai_border": "#5cb85c",
+                "ai_text": "#ffffff",
+                "ai_meta": "#aaaaaa",
+            }
+        else:
+            return {
+                "user_bg": "#e3f2fd",
+                "user_border": "#2196f3",
+                "user_text": "#000000",
+                "user_meta": "#666666",
+                "ai_bg": "#f5f5f5",
+                "ai_border": "#4caf50",
+                "ai_text": "#000000",
+                "ai_meta": "#666666",
+            }
 
     def add_user_message(
         self,
@@ -206,15 +243,17 @@ class ChatPanelWidget(QWidget):
             "editing": "✏️ Edit",
         }.get(message.context_mode, message.context_mode)
 
+        colors = self._get_colors()
+
         if message.role == "user":
             # User message styling
             html = f"""
-            <div style='margin: 10px; padding: 10px; background-color: #e3f2fd;
-                        border-left: 4px solid #2196f3; border-radius: 4px;'>
-                <div style='font-size: 10px; color: #666; margin-bottom: 5px;'>
+            <div style='margin: 10px; padding: 10px; background-color: {colors['user_bg']};
+                        border-left: 4px solid {colors['user_border']}; border-radius: 4px;'>
+                <div style='font-size: 10px; color: {colors['user_meta']}; margin-bottom: 5px;'>
                     <b>You</b> • {time_str} • {mode_display}
                 </div>
-                <div style='font-size: 12px; color: #000;'>
+                <div style='font-size: 12px; color: {colors['user_text']};'>
                     {self._escape_html(message.content)}
                 </div>
             </div>
@@ -222,12 +261,12 @@ class ChatPanelWidget(QWidget):
         else:
             # AI message styling
             html = f"""
-            <div style='margin: 10px; padding: 10px; background-color: #f5f5f5;
-                        border-left: 4px solid #4caf50; border-radius: 4px;'>
-                <div style='font-size: 10px; color: #666; margin-bottom: 5px;'>
+            <div style='margin: 10px; padding: 10px; background-color: {colors['ai_bg']};
+                        border-left: 4px solid {colors['ai_border']}; border-radius: 4px;'>
+                <div style='font-size: 10px; color: {colors['ai_meta']}; margin-bottom: 5px;'>
                     <b>AI ({message.model})</b> • {time_str} • {mode_display}
                 </div>
-                <div style='font-size: 12px; color: #000; white-space: pre-wrap;'>
+                <div style='font-size: 12px; color: {colors['ai_text']}; white-space: pre-wrap;'>
                     {self._escape_html(message.content)}
                 </div>
             </div>
@@ -293,6 +332,16 @@ class ChatPanelWidget(QWidget):
             self._render_message(message)
 
         logger.info(f"Loaded {len(messages)} messages")
+
+    def refresh_display(self) -> None:
+        """Refresh all messages with current theme."""
+        if not self._messages:
+            self._show_empty_state()
+            return
+
+        self._text_display.clear()
+        for message in self._messages:
+            self._render_message(message)
 
     def get_messages(self) -> List[ChatMessage]:
         """
