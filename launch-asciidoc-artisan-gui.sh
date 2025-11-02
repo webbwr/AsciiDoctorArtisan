@@ -113,8 +113,8 @@ check_python_version() {
 
     log_info "Python version: $PYTHON_VERSION"
 
-    if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 11 ]); then
-        log_error "Python 3.11+ required, found $PYTHON_VERSION"
+    if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 14 ]); then
+        log_error "Python 3.14+ required, found $PYTHON_VERSION"
         return 1
     fi
 

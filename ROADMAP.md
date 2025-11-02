@@ -17,7 +17,7 @@
 | v1.7.1 | ✅ COMPLETE | Nov 2, 2025 | Quality | 2h | 100% test coverage (82/82 tests), docs |
 | v1.7.2 | ✅ COMPLETE | Nov 2, 2025 | UX Enhancement | 2h | Undo/redo UI buttons, 38 tests |
 | v1.7.3 | ✅ COMPLETE | Nov 2, 2025 | AI Enhancement | 1h | Model validation, real-time status, 10 tests |
-| v1.8.0 | 📋 NEXT | Q1-Q2 2026 | Essential Features | 48-72h | Find/Replace, Spell Check, Telemetry |
+| v1.8.0 | 📋 NEXT | Q1-Q2 2026 | Essential Features | 24-36h | Find/Replace, Spell Check, Telemetry |
 | v1.9.0 | 📋 PLANNED | Q2-Q3 2026 | Advanced Editing | 102-160h | Auto-complete, Syntax Checking, Templates |
 | v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 240-360h | LSP, Plugins, Multi-core, Marketplace |
 
@@ -72,7 +72,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ### Quality Metrics
 - **Test coverage:** 60%+ (up from 34%)
-- **Test suite:** 69 files, 621+ tests
+- **Test suite:** 80 files, 1,425 tests
 - **Type hints:** 100% (mypy --strict: 0 errors, 64 files)
 - **Tech debt:** LOW (<30% duplication)
 - **Documentation:** Comprehensive

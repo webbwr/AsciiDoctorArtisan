@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asciidoc-artisan"
-version = "1.7.0"
+version = "1.7.3"
 description = "A modern AsciiDoc editor with live preview and document conversion"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 license = {text = "MIT"}
 authors = [
     {name = "webbwr", email = "webbwr@users.noreply.github.com"}
@@ -19,8 +19,7 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Documentation",
     "Topic :: Text Editors",
     "Topic :: Text Processing :: Markup :: AsciiDoc",
@@ -62,7 +61,7 @@ asciidoc-artisan = "adp_windows:main"
 
 [tool.black]
 line-length = 88
-target-version = ['py311', 'py312']
+target-version = ['py314']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -89,7 +88,7 @@ ensure_newline_before_comments = true
 
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -111,7 +110,7 @@ ignore = [
 "__init__.py" = ["F401"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false

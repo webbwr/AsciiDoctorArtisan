@@ -13,10 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **pymupdf 1.23.0+**: Fast PDF reading (3-5x faster than pdfplumber)
 - **wkhtmltopdf**: System binary for PDF generation
 - **GitHub CLI (gh) 2.45.0+**: GitHub integration for PR/Issue management (v1.6.0)
-- **Python 3.11+**: Minimum version (3.12 recommended for best performance)
+- **Python 3.14+**: Minimum version required
 
-**Version:** 1.7.1 ✅ COMPLETE (100% Test Coverage - 82/82 tests passing)
-**Package Version:** 1.5.0 (see `pyproject.toml`) - version bump to 1.7.1 pending
+**Version:** 1.7.3 ✅ COMPLETE (AI Model Validation with Real-time Status Updates)
+**Package Version:** 1.7.3 (see `pyproject.toml`)
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane

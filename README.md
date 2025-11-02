@@ -32,7 +32,7 @@ All AI works on your computer. No cloud needed.
 ## What You Need
 
 You need these programs first:
-- **Python 3.11** - Makes it run
+- **Python 3.14** - Makes it run
 - **Pandoc** - Changes file types
 - **wkhtmltopdf** - Makes PDF files
 

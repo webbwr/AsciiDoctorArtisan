@@ -4,7 +4,7 @@
 #
 # PURPOSE:
 #   Automates complete installation of AsciiDoc Artisan with:
-#   - Python 3.11+ verification
+#   - Python 3.14+ verification
 #   - Virtual environment creation
 #   - All dependencies (Python packages + system tools)
 #   - Installation validation
@@ -15,7 +15,7 @@
 #
 # WHAT IT DOES:
 #   1. Detects OS and package manager
-#   2. Checks Python version (needs 3.11+)
+#   2. Checks Python version (needs 3.14+)
 #   3. Verifies pip is installed
 #   4. Installs system dependencies (Pandoc, Git)
 #   5. Creates virtual environment (optional)
@@ -49,7 +49,7 @@ NC='\033[0m'         # No Color (reset)
 ################################################################################
 
 # Minimum Python version required (Major.Minor)
-PYTHON_MIN_VERSION="3.11"
+PYTHON_MIN_VERSION="3.14"
 
 # Required Python packages with minimum versions
 # These are the core dependencies needed to run AsciiDoc Artisan
@@ -168,7 +168,7 @@ print_info "Package manager: $PACKAGE_MANAGER"
 
 ################################################################################
 # STEP 2: CHECK PYTHON INSTALLATION
-# Finds suitable Python version (3.11+) and sets PYTHON_CMD variable
+# Finds suitable Python version (3.14+) and sets PYTHON_CMD variable
 ################################################################################
 print_header "Step 2: Checking Python Installation"
 
@@ -176,8 +176,8 @@ print_header "Step 2: Checking Python Installation"
 PYTHON_CMD=""
 
 # Try common Python commands in order of preference
-# Prefer specific versions (3.12, 3.11) over generic (python3, python)
-for cmd in python3.12 python3.11 python3 python; do
+# Prefer specific versions (3.14) over generic (python3, python)
+for cmd in python3.14 python3 python; do
     # Check if command exists
     if command -v $cmd &> /dev/null; then
         # Get version string (e.g., "Python 3.12.0")
@@ -203,10 +203,10 @@ if [ -z "$PYTHON_CMD" ]; then
     echo ""
     echo "Installation instructions:"
     if [ "$OS_NAME" = "macOS" ]; then
-        echo "  brew install python@3.12"
+        echo "  brew install python@3.14"
     elif [ "$PACKAGE_MANAGER" = "apt" ]; then
         echo "  sudo apt update"
-        echo "  sudo apt install python3.12 python3.12-venv python3-pip"
+        echo "  sudo apt install python3.14 python3.14-venv python3-pip"
     else
         echo "  Please install Python $PYTHON_MIN_VERSION or higher from python.org"
     fi

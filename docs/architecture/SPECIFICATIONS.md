@@ -51,13 +51,13 @@ The program MUST work on Windows, Mac, and Linux.
 
 **Test**: Run on each type. It must start with no errors.
 
-### Rule: Needs Python 3.11
+### Rule: Needs Python 3.14
 
-The program MUST need Python 3.11 or newer.
+The program MUST need Python 3.14 or newer.
 
-**Test**: Try with Python 3.10. It must show an error.
+**Test**: Try with Python 3.13. It must show an error.
 
-**Test**: Use Python 3.11. It must work.
+**Test**: Use Python 3.14. It must work.
 
 ### Rule: Free To Use
 
