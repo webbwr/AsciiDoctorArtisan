@@ -849,16 +849,16 @@ class ActionManager:
 
         MENU ORGANIZATION:
         - File: New, Open, Save, Save As (with 5 export formats), Exit
-        - Edit: Undo, Redo, Cut, Copy, Paste, Convert & Paste, Preferences
+        - Edit: Undo, Redo, Cut, Copy, Paste, Convert & Paste, Find & Replace
         - View: Zoom In/Out, Dark Mode, Sync Scrolling, Maximize Editor/Preview
         - Git: Set Repo, Commit, Pull, Push, GitHub submenu (5 actions)
-        - Tools: AI Status (Ollama submenu), Pandoc Status, Pandoc Formats
+        - Tools: Validation, Theme/Font/Spell, Pandoc/AI Status, Preferences, Settings
         - Help: About
 
         SEPARATORS:
         Separators (horizontal lines) visually group related actions:
         - File menu: [New/Open/Save/SaveAs] | [Exit]
-        - Edit menu: [Undo/Redo] | [Cut/Copy/Paste] | [Convert&Paste] | [Preferences]
+        - Edit menu: [Undo/Redo] | [Cut/Copy/Paste] | [Convert&Paste] | [Find/Replace]
 
         PARAMETERS:
             None
@@ -929,12 +929,6 @@ class ActionManager:
         edit_menu.addAction(self.replace_act)  # Replace (Ctrl+H)
         edit_menu.addAction(self.find_next_act)  # Find Next (F3)
         edit_menu.addAction(self.find_previous_act)  # Find Previous (Shift+F3)
-
-        # Separator
-        edit_menu.addSeparator()
-
-        # Preferences dialog
-        edit_menu.addAction(self.preferences_act)  # Preferences (Ctrl+,)
 
         # === VIEW MENU ===
         view_menu = menubar.addMenu("&View")
@@ -1025,6 +1019,7 @@ class ActionManager:
         tools_menu.addSeparator()
 
         # Application Settings (bottom section)
+        tools_menu.addAction(self.preferences_act)  # Preferences (Ctrl+,)
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
 
         # === HELP MENU ===
