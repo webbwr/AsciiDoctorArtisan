@@ -87,17 +87,27 @@ pip install -r requirements.txt
 
 ### Start It
 
-Type this:
+**Best way (fast):**
 ```bash
-python3 src/main.py
+./run.sh
+```
+Or use Make:
+```bash
+make run
 ```
 
-On Windows, type this:
+**Other ways:**
 ```bash
-python src\main.py
+python3 -OO src/main.py  # Fast mode
+python3 src/main.py      # Normal mode
 ```
 
-Or just click the start file.
+On Windows:
+```bash
+python -OO src\main.py
+```
+
+The `-OO` flag makes it faster. It removes doc text. It uses less memory.
 
 ### Fast Keys
 

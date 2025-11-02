@@ -43,6 +43,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **v1.6.0**: GitHub CLI integration, type hints 100%, async I/O complete
 - **v1.7.0**: Ollama AI Chat with 4 context modes (Document Q&A, Syntax Help, General, Editing)
 - **v1.7.1**: 100% test coverage (82/82 tests), comprehensive documentation
+- **v1.7.4**: Installation validator, dependency updater, optimized startup (-OO flag)
 - **Current**: Production-ready with AI chat, hardware acceleration, 100% test coverage
 
 ## What's New in v1.5.0
@@ -54,6 +55,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. **Startup Performance** ⚡
    - **1.05s startup** (beats v1.6.0 target of 1.5s!)
    - Lazy import system for heavy modules
+   - **Python -OO optimization** (strips docstrings, reduces memory)
    - 3-5x faster than v1.4.0
 
 2. **Main Window Refactoring** 🏗️
@@ -150,8 +152,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Daily Development Workflow
 
 ```bash
-# Run the app
-make run                    # or: python src/main.py
+# Run the app (optimized)
+make run                    # Uses python3 -OO (fast, low memory)
+./run.sh                    # Launcher script (activates venv + -OO)
+python3 -OO src/main.py     # Direct optimized run
+python3 src/main.py         # Normal mode (keeps docstrings)
 
 # Test your changes
 make test                   # Run all tests with coverage (generates htmlcov/index.html)

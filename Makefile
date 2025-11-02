@@ -77,7 +77,7 @@ build: clean
 	$(PYTHON) -m build
 
 run:
-	$(PYTHON) $(SRC_DIR)/main.py
+	$(PYTHON) -OO $(SRC_DIR)/main.py
 
 # Mutation Testing (Phase 5 QA)
 mutate:
