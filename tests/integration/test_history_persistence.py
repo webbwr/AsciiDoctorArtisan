@@ -20,7 +20,7 @@ def settings():
     """Create fresh settings."""
     s = Settings()
     s.ollama_enabled = True
-    s.ollama_model = "phi3:mini"
+    s.ollama_model = "gnokit/improve-grammer"
     s.ollama_chat_enabled = True
     s.ollama_chat_history = []
     s.ollama_chat_max_history = 100
@@ -59,14 +59,14 @@ class TestHistoryPersistence:
         msg1 = ChatMessage(
             role="user",
             content="Hello",
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
             timestamp=time.time(),
         )
         msg2 = ChatMessage(
             role="assistant",
             content="Hi there!",
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
             timestamp=time.time(),
         )
@@ -124,7 +124,7 @@ class TestHistoryPersistence:
             msg = ChatMessage(
                 role="user",
                 content=f"Message {i}",
-                model="phi3:mini",
+                model="gnokit/improve-grammer",
                 context_mode="general",
                 timestamp=time.time(),
             )
@@ -166,7 +166,7 @@ class TestHistoryPersistence:
         user_msg = ChatMessage(
             role="user",
             content="User question",
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="document",
             timestamp=time.time(),
         )
@@ -176,7 +176,7 @@ class TestHistoryPersistence:
         ai_msg = ChatMessage(
             role="assistant",
             content="AI response",
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="document",
             timestamp=time.time(),
         )
@@ -200,7 +200,7 @@ class TestHistoryPersistence:
         msg = ChatMessage(
             role="user",
             content="Test",
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
             timestamp=original_time,
         )
@@ -224,7 +224,7 @@ class TestHistoryPersistence:
         msg = ChatMessage(
             role="user",
             content="Test",
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="editing",
             timestamp=time.time(),
         )
@@ -271,7 +271,7 @@ class TestClearHistory:
             msg = ChatMessage(
                 role="user",
                 content=f"Message {i}",
-                model="phi3:mini",
+                model="gnokit/improve-grammer",
                 context_mode="general",
                 timestamp=time.time(),
             )
@@ -294,7 +294,7 @@ class TestClearHistory:
         msg = ChatMessage(
             role="user",
             content="Test",
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
             timestamp=time.time(),
         )

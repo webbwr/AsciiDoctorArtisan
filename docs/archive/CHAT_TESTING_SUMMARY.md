@@ -193,7 +193,7 @@
 
 ### Prerequisites:
 - Ollama installed and running
-- Model downloaded (phi3:mini recommended)
+- Model downloaded (gnokit/improve-grammer recommended)
 - Network connectivity
 
 ### Manual Test Steps:
@@ -202,7 +202,7 @@
 ollama serve
 
 # 2. Download model
-ollama pull phi3:mini
+ollama pull gnokit/improve-grammer
 
 # 3. Launch app
 python src/main.py

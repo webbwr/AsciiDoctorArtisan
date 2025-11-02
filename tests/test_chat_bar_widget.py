@@ -99,7 +99,7 @@ class TestChatBarWidgetModelManagement:
 
     def test_set_models(self, chat_bar):
         """Test setting available models."""
-        models = ["phi3:mini", "llama2", "mistral"]
+        models = ["gnokit/improve-grammer", "llama2", "mistral"]
         chat_bar.set_models(models)
 
         assert chat_bar._model_selector.count() == len(models)
@@ -108,7 +108,7 @@ class TestChatBarWidgetModelManagement:
 
     def test_set_model_selects_current(self, chat_bar):
         """Test setting current model."""
-        models = ["phi3:mini", "llama2", "mistral"]
+        models = ["gnokit/improve-grammer", "llama2", "mistral"]
         chat_bar.set_models(models)
         chat_bar.set_model("llama2")
 
@@ -117,15 +117,15 @@ class TestChatBarWidgetModelManagement:
 
     def test_get_model_returns_current(self, chat_bar):
         """Test getting current model."""
-        models = ["phi3:mini"]
+        models = ["gnokit/improve-grammer"]
         chat_bar.set_models(models)
-        chat_bar.set_model("phi3:mini")
+        chat_bar.set_model("gnokit/improve-grammer")
 
-        assert chat_bar.get_current_model() == "phi3:mini"
+        assert chat_bar.get_current_model() == "gnokit/improve-grammer"
 
     def test_model_changed_signal_emits(self, chat_bar, qtbot):
         """Test model_changed signal emits when model changes."""
-        models = ["phi3:mini", "llama2"]
+        models = ["gnokit/improve-grammer", "llama2"]
         chat_bar.set_models(models)
 
         with qtbot.waitSignal(chat_bar.model_changed, timeout=1000) as blocker:
@@ -190,9 +190,9 @@ class TestChatBarWidgetMessageInput:
 
     def test_send_button_click_emits_signal(self, chat_bar, qtbot):
         """Test clicking send button emits message_sent signal."""
-        models = ["phi3:mini"]
+        models = ["gnokit/improve-grammer"]
         chat_bar.set_models(models)
-        chat_bar.set_model("phi3:mini")
+        chat_bar.set_model("gnokit/improve-grammer")
 
         test_message = "Test message"
         qtbot.keyClicks(chat_bar._input_field, test_message)
@@ -202,13 +202,13 @@ class TestChatBarWidgetMessageInput:
 
         message, model, context_mode = blocker.args
         assert message == test_message
-        assert model == "phi3:mini"
+        assert model == "gnokit/improve-grammer"
 
     def test_enter_key_sends_message(self, chat_bar, qtbot):
         """Test pressing Enter sends message."""
-        models = ["phi3:mini"]
+        models = ["gnokit/improve-grammer"]
         chat_bar.set_models(models)
-        chat_bar.set_model("phi3:mini")
+        chat_bar.set_model("gnokit/improve-grammer")
 
         test_message = "Test message"
         chat_bar._input_field.setText(test_message)
@@ -221,9 +221,9 @@ class TestChatBarWidgetMessageInput:
 
     def test_empty_message_not_sent(self, chat_bar, qtbot):
         """Test empty messages are not sent."""
-        models = ["phi3:mini"]
+        models = ["gnokit/improve-grammer"]
         chat_bar.set_models(models)
-        chat_bar.set_model("phi3:mini")
+        chat_bar.set_model("gnokit/improve-grammer")
 
         chat_bar._input_field.clear()
 

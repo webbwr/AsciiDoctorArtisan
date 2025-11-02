@@ -453,7 +453,7 @@ M src/asciidoc_artisan/workers/ollama_chat_worker.py # Implementation
 ### Mitigation
 
 - 📋 Clear documentation in user guide
-- 📋 Recommended phi3:mini (2GB, fast)
+- 📋 Recommended gnokit/improve-grammer (2GB, fast)
 - 📋 Graceful error messages if Ollama not running
 
 ---

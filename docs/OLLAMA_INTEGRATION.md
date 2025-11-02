@@ -16,7 +16,6 @@
 - **Status:** ✅ INSTALLED and RUNNING
 - **Available Models:**
   - `gnokit/improve-grammer` - Default model for AsciiDoc Artisan
-  - `phi3:mini` (2.2 GB) - Recommended alternative
   - `deepseek-coder:6.7b` (3.8 GB)
   - `qwen3-coder:30b` (18 GB)
   - `qwen3:30b` (18 GB)
@@ -35,7 +34,7 @@
 
 **Key Implementation:**
 ```python
-cmd = ["ollama", "run", self._current_model or "phi3:mini"]
+cmd = ["ollama", "run", self._current_model or "gnokit/improve-grammer"]
 result = subprocess.run(
     cmd, input=full_prompt, capture_output=True,
     text=True, timeout=60, check=True, shell=False
@@ -91,10 +90,10 @@ curl https://ollama.ai/install.sh | sh
 ollama serve &
 
 # Pull recommended model
-ollama pull phi3:mini
+ollama pull gnokit/improve-grammer
 
 # Test
-ollama run phi3:mini "Hello!"
+ollama run gnokit/improve-grammer "Hello!"
 ```
 
 ### For Windows
@@ -103,7 +102,7 @@ ollama run phi3:mini "Hello!"
 # Run installer
 # Open terminal and verify:
 ollama list
-ollama pull phi3:mini
+ollama pull gnokit/improve-grammer
 ```
 
 ## Configuration
@@ -132,7 +131,7 @@ Location: `core/settings.py`
 ## Performance Considerations
 
 ### Model Sizes and Speed
-- **phi3:mini (2.2 GB)** - Fast, recommended for most users
+- **gnokit/improve-grammer (2.2 GB)** - Fast, recommended for most users
 - **deepseek-coder:6.7b (3.8 GB)** - Better code understanding, slower
 - **Large models (18-30 GB)** - Best quality, much slower, high memory usage
 
@@ -156,7 +155,7 @@ Location: `core/settings.py`
 
 ### 3. Model Not Downloaded
 **Symptom:** "Model not found" errors
-**Fix:** Download model: `ollama pull phi3:mini`
+**Fix:** Download model: `ollama pull gnokit/improve-grammer`
 
 ## Future Enhancements
 

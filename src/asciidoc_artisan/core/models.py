@@ -199,7 +199,7 @@ class ChatMessage(BaseModel):
             role="user",
             content="How do I create a table in AsciiDoc?",
             timestamp=time.time(),
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="syntax"
         )
 
@@ -208,7 +208,7 @@ class ChatMessage(BaseModel):
             role="assistant",
             content="Here's how to create a table:\\n|===\\n|Header 1 |Header 2\\n|Cell 1   |Cell 2\\n|===",
             timestamp=time.time(),
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="syntax"
         )
         ```
@@ -217,7 +217,7 @@ class ChatMessage(BaseModel):
     role: str = Field(..., description='Message sender: "user" or "assistant"')
     content: str = Field(..., description="Message text content")
     timestamp: float = Field(..., description="Unix timestamp when message was created")
-    model: str = Field(..., description="Ollama model name (e.g., phi3:mini)")
+    model: str = Field(..., description="Ollama model name (e.g., gnokit/improve-grammer)")
     context_mode: str = Field(
         ..., description='Context mode: "document", "syntax", "general", or "editing"'
     )

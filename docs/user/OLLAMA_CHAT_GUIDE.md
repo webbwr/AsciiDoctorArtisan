@@ -14,7 +14,7 @@ Use AI chat to get help while writing. Chat works on your computer. No internet 
 Open your terminal. Type this:
 
 ```bash
-ollama pull phi3:mini
+ollama pull gnokit/improve-grammer
 ```
 
 Wait a few minutes. This gets the AI model. It is free.
@@ -141,7 +141,7 @@ Leave this open. Try chat again.
 
 **Slow responses?**
 
-- Use a smaller model (phi3:mini is fast)
+- Use a smaller model (gnokit/improve-grammer is fast)
 - Close other programs
 - Give your computer more RAM
 
@@ -165,7 +165,7 @@ Delete this file to erase all history.
 ## Models We Like
 
 **Fast (500MB-2GB):**
-- phi3:mini (best for most tasks)
+- gnokit/improve-grammer (best for most tasks)
 - llama3.2:1b (very fast, less smart)
 
 **Smart (4GB-8GB):**

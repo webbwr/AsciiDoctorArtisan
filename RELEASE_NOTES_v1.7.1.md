@@ -51,7 +51,7 @@ The v1.7.0 release introduced the **Ollama AI Chat** feature:
 - Persistent chat history (100 message limit)
 - Cancellation support (60-second timeout)
 - Document context injection (2KB max)
-- Model switching (phi3:mini, deepseek-coder, qwen3, etc.)
+- Model switching (gnokit/improve-grammer, deepseek-coder, qwen3, etc.)
 
 **UI Components** 🎨
 - `ChatBarWidget` - Input interface with model/mode selectors
@@ -86,19 +86,19 @@ pip install -r requirements.txt
 **Linux/WSL2:**
 ```bash
 curl https://ollama.ai/install.sh | sh
-ollama pull phi3:mini  # Recommended model (2.2 GB)
+ollama pull gnokit/improve-grammer  # Recommended model (2.2 GB)
 ```
 
 **macOS:**
 ```bash
 brew install ollama
-ollama pull phi3:mini
+ollama pull gnokit/improve-grammer
 ```
 
 **Windows:**
 - Download installer from https://ollama.ai/download
 - Run installer
-- Open terminal: `ollama pull phi3:mini`
+- Open terminal: `ollama pull gnokit/improve-grammer`
 
 **3. Run Application:**
 ```bash
@@ -233,7 +233,7 @@ python src/main.py
 - Memory efficiency: Excellent
 
 **Ollama Chat Response Times:**
-- phi3:mini: 1-3 seconds (typical)
+- gnokit/improve-grammer: 1-3 seconds (typical)
 - deepseek-coder:6.7b: 3-5 seconds
 - Large models (30b): 10-30 seconds
 
@@ -308,7 +308,7 @@ pip install -r requirements.txt  # Re-install to ensure all deps up to date
 
 **Required Actions:**
 1. Install Ollama binary (optional but recommended)
-2. Pull recommended model: `ollama pull phi3:mini`
+2. Pull recommended model: `ollama pull gnokit/improve-grammer`
 3. Enable chat in Settings → Ollama
 
 **Configuration:**

@@ -59,7 +59,7 @@ class ChatBarWidget(QWidget):
     Example:
         ```python
         chat_bar = ChatBarWidget()
-        chat_bar.set_models(["gnokit/improve-grammer", "phi3:mini", "deepseek-coder"])
+        chat_bar.set_models(["gnokit/improve-grammer", "deepseek-coder"])
         chat_bar.set_model("gnokit/improve-grammer")
         chat_bar.message_sent.connect(on_message_sent)
 
@@ -257,7 +257,7 @@ class ChatBarWidget(QWidget):
         Set available Ollama models in selector.
 
         Args:
-            models: List of model names (e.g., ["phi3:mini", "llama2"])
+            models: List of model names (e.g., ["gnokit/improve-grammer", "llama2"])
         """
         self._model_selector.clear()
         if models:

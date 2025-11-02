@@ -96,7 +96,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Ollama AI Chat with 4 context modes (Document Q&A, Syntax Help, General, Editing)
 - ✅ Persistent chat history (100 message limit)
 - ✅ Background worker thread (non-blocking UI)
-- ✅ Model switching (phi3:mini, deepseek-coder, qwen3, etc.)
+- ✅ Model switching (gnokit/improve-grammer, deepseek-coder, qwen3, etc.)
 - ✅ 82 comprehensive tests (50 tests at 91% pass rate initially)
 
 **v1.7.1 Complete (November 2, 2025):**
@@ -388,7 +388,7 @@ git commit --no-verify         # Bypass hooks (emergency only)
 
 Local AI for document conversion with automatic Pandoc fallback:
 - Enable via Tools → AI Status → Settings
-- Supports: `phi3:mini` (recommended), `llama2`, `mistral`, `codellama`
+- Supports: `gnokit/improve-grammer` (recommended), `llama2`, `mistral`, `codellama`
 - Status bar shows active conversion method
 - Settings: `ollama_enabled: bool`, `ollama_model: Optional[str]`
 

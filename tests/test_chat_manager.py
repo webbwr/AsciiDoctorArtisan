@@ -25,7 +25,7 @@ def mock_chat_bar():
     bar.set_enabled = Mock()
     bar.set_processing = Mock()
     bar.clear_input = Mock()
-    bar.get_model = Mock(return_value="phi3:mini")
+    bar.get_model = Mock(return_value="gnokit/improve-grammer")
     bar.get_context_mode = Mock(return_value="document")
     bar.set_models = Mock()
     bar.set_model = Mock()
@@ -54,7 +54,7 @@ def settings():
     """Create settings for testing."""
     return Settings(
         ollama_enabled=True,
-        ollama_model="phi3:mini",
+        ollama_model="gnokit/improve-grammer",
         ollama_chat_enabled=True,
         ollama_chat_history=[],
         ollama_chat_max_history=100,
@@ -99,7 +99,7 @@ class TestChatManagerVisibility:
     def test_should_show_with_enabled_and_model(self, chat_manager, settings):
         """Test chat should show when enabled with model."""
         settings.ollama_enabled = True
-        settings.ollama_model = "phi3:mini"
+        settings.ollama_model = "gnokit/improve-grammer"
         settings.ollama_chat_enabled = True
 
         should_show = chat_manager._should_show_chat()
@@ -124,7 +124,7 @@ class TestChatManagerVisibility:
     ):
         """Test update_visibility emits visibility_changed signal."""
         settings.ollama_enabled = True
-        settings.ollama_model = "phi3:mini"
+        settings.ollama_model = "gnokit/improve-grammer"
         settings.ollama_chat_enabled = True
 
         with qtbot.waitSignal(chat_manager.visibility_changed, timeout=1000) as blocker:
@@ -141,7 +141,7 @@ class TestChatManagerMessageHandling:
     def test_handle_user_message(self, chat_manager, mock_chat_panel):
         """Test handling user message adds to panel."""
         message = "Hello, AI!"
-        model = "phi3:mini"
+        model = "gnokit/improve-grammer"
         context_mode = "general"
 
         chat_manager._handle_user_message(message, model, context_mode)
@@ -156,7 +156,7 @@ class TestChatManagerMessageHandling:
     def test_handle_user_message_emits_to_worker(self, chat_manager, qtbot):
         """Test user message is emitted to worker."""
         message = "Test message"
-        model = "phi3:mini"
+        model = "gnokit/improve-grammer"
         context_mode = "document"
 
         with qtbot.waitSignal(
@@ -175,7 +175,7 @@ class TestChatManagerMessageHandling:
             role="assistant",
             content="AI response here",
             timestamp=time.time(),
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
         )
 
@@ -190,7 +190,7 @@ class TestChatManagerMessageHandling:
             role="assistant",
             content="Response",
             timestamp=time.time(),
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
         )
 
@@ -212,7 +212,7 @@ class TestChatManagerHistoryManagement:
                 "role": "user",
                 "content": "Hello",
                 "timestamp": time.time(),
-                "model": "phi3:mini",
+                "model": "gnokit/improve-grammer",
                 "context_mode": "general",
             }
         ]
@@ -229,7 +229,7 @@ class TestChatManagerHistoryManagement:
             role="user",
             content="Test",
             timestamp=time.time(),
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
         )
 
@@ -250,7 +250,7 @@ class TestChatManagerHistoryManagement:
                 role="user",
                 content=f"Message {i}",
                 timestamp=time.time(),
-                model="phi3:mini",
+                model="gnokit/improve-grammer",
                 context_mode="general",
             )
             chat_manager._chat_history.append(msg)
@@ -368,11 +368,11 @@ class TestModelValidation:
         with patch("subprocess.run") as mock_run:
             # Mock ollama list output with valid model
             mock_run.return_value = Mock(
-                returncode=0, stdout="NAME\nphi3:mini\nqwen2.5-coder:7b\n", stderr=""
+                returncode=0, stdout="NAME\ngnokit/improve-grammer\nqwen2.5-coder:7b\n", stderr=""
             )
 
             # Validate existing model
-            assert chat_manager._validate_model("phi3:mini") is True
+            assert chat_manager._validate_model("gnokit/improve-grammer") is True
             mock_run.assert_called_once()
 
     def test_validate_model_not_found(self, chat_manager):
@@ -380,7 +380,7 @@ class TestModelValidation:
         with patch("subprocess.run") as mock_run:
             # Mock ollama list output without target model
             mock_run.return_value = Mock(
-                returncode=0, stdout="NAME\nphi3:mini\nqwen2.5-coder:7b\n", stderr=""
+                returncode=0, stdout="NAME\ngnokit/improve-grammer\nqwen2.5-coder:7b\n", stderr=""
             )
 
             # Validate non-existent model
@@ -396,13 +396,13 @@ class TestModelValidation:
         """Test validation when Ollama is not installed."""
         with patch("subprocess.run", side_effect=FileNotFoundError):
             # Should return False when ollama command not found
-            assert chat_manager._validate_model("phi3:mini") is False
+            assert chat_manager._validate_model("gnokit/improve-grammer") is False
 
     def test_validate_model_timeout(self, chat_manager):
         """Test validation handles timeout gracefully."""
         with patch("subprocess.run", side_effect=TimeoutError):
             # Should return True on timeout to avoid blocking
-            assert chat_manager._validate_model("phi3:mini") is True
+            assert chat_manager._validate_model("gnokit/improve-grammer") is True
 
     def test_validate_model_command_error(self, chat_manager):
         """Test validation when ollama command fails."""
@@ -413,7 +413,7 @@ class TestModelValidation:
             )
 
             # Should return False when command fails
-            assert chat_manager._validate_model("phi3:mini") is False
+            assert chat_manager._validate_model("gnokit/improve-grammer") is False
 
     def test_on_model_changed_valid(self, chat_manager):
         """Test model change with valid model."""
@@ -435,7 +435,7 @@ class TestModelValidation:
     def test_on_model_changed_invalid(self, chat_manager, mock_chat_bar):
         """Test model change with invalid model."""
         # Set current valid model
-        chat_manager._settings.ollama_model = "phi3:mini"
+        chat_manager._settings.ollama_model = "gnokit/improve-grammer"
 
         with patch.object(chat_manager, "_validate_model", return_value=False):
             # Mock status_message signal
@@ -446,14 +446,14 @@ class TestModelValidation:
             chat_manager._on_model_changed("invalid-model")
 
             # Settings should NOT be updated (keeps old model)
-            assert chat_manager._settings.ollama_model == "phi3:mini"
+            assert chat_manager._settings.ollama_model == "gnokit/improve-grammer"
 
             # Status bar should show error
             assert any("✗" in msg for msg in status_messages)
             assert any("not available" in msg for msg in status_messages)
 
             # Chat bar should revert to current model
-            mock_chat_bar.set_model.assert_called_with("phi3:mini")
+            mock_chat_bar.set_model.assert_called_with("gnokit/improve-grammer")
 
     def test_on_model_changed_empty(self, chat_manager):
         """Test model change with empty model name."""

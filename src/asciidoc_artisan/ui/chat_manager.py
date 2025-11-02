@@ -185,7 +185,7 @@ class ChatManager(QObject):
                     for line in lines[1:]:
                         parts = line.split()
                         if parts:
-                            # Model name is first column (e.g., "phi3:mini")
+                            # Model name is first column (e.g., "gnokit/improve-grammer")
                             model_name = parts[0]
                             models.append(model_name)
 
@@ -219,7 +219,6 @@ class ChatManager(QObject):
         if not models:
             models = [
                 "gnokit/improve-grammer",
-                "phi3:mini",
                 "deepseek-coder",
                 "codellama",
             ]
@@ -280,7 +279,7 @@ class ChatManager(QObject):
         Uses a 2-second timeout to avoid blocking the UI.
 
         Args:
-            model: Model name to validate (e.g., "phi3:mini")
+            model: Model name to validate (e.g., "gnokit/improve-grammer")
 
         Returns:
             True if model is installed, False otherwise

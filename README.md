@@ -252,7 +252,7 @@ For Windows: Get the installer from ollama.com
 
 Type this:
 ```bash
-ollama pull phi3:mini
+ollama pull gnokit/improve-grammer
 ```
 
 This gets a small, fast AI model. Good for most work.
@@ -276,7 +276,7 @@ ollama pull codellama     # Good for code files
 
 **Step 4: Check it works**
 
-Look at the status bar. It should say: `AI: phi3:mini`
+Look at the status bar. It should say: `AI: gnokit/improve-grammer`
 
 Try to change a file type. The AI will do it for you.
 

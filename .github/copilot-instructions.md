@@ -86,7 +86,7 @@ make clean
 
 ### New Features (v1.2+)
 
-- **Ollama AI Integration:** Local AI for document conversion (phi3:mini, llama2, mistral)
+- **Ollama AI Integration:** Local AI for document conversion (gnokit/improve-grammer, llama2, mistral)
 - **Incremental Rendering:** Block-based caching for 3-5x faster preview updates
 - **WSLg Compatibility:** Uses QTextBrowser instead of QWebEngineView
 

@@ -28,7 +28,7 @@ The v1.7.0 Ollama Chat feature has been fully implemented, tested, and integrate
 3. ✅ **Ollama Integration Complete**
    - Python package: `ollama 0.6.0` installed in venv
    - System binary: `/usr/local/bin/ollama` running
-   - 5 models available including recommended `phi3:mini`
+   - 5 models available including recommended `gnokit/improve-grammer`
    - Comprehensive documentation created
 
 4. ✅ **Documentation Added**
@@ -184,7 +184,6 @@ Current coverage for Ollama Chat feature:
 | Model | Size | Speed | Use Case |
 |-------|------|-------|----------|
 | **gnokit/improve-grammer** ⭐ | - | Fast | Default model for AsciiDoc Artisan |
-| phi3:mini | 2.2 GB | Fast | Recommended alternative |
 | deepseek-coder:6.7b | 3.8 GB | Medium | Better code understanding |
 | qwen3-coder:30b | 18 GB | Slow | High quality code assistance |
 | qwen3:30b | 18 GB | Slow | General purpose, high quality |
@@ -304,13 +303,13 @@ pip install -r requirements.txt
 **Linux/WSL2:**
 ```bash
 curl https://ollama.ai/install.sh | sh
-ollama pull phi3:mini
+ollama pull gnokit/improve-grammer
 ```
 
 **Windows:**
 - Download from https://ollama.ai/download
 - Run installer
-- Open terminal: `ollama pull phi3:mini`
+- Open terminal: `ollama pull gnokit/improve-grammer`
 
 **4. Verify setup:**
 ```bash
@@ -345,7 +344,7 @@ python src/main.py
 ### Runtime Performance
 
 **Ollama Chat Response Times:**
-- **phi3:mini:** 1-3 seconds (typical)
+- **gnokit/improve-grammer:** 1-3 seconds (typical)
 - **deepseek-coder:6.7b:** 3-5 seconds
 - **Large models (30b):** 10-30 seconds
 
@@ -447,7 +446,7 @@ pytest tests/test_ollama_chat_worker.py -m integration -v
 ```json
 {
   "ollama_enabled": true,
-  "ollama_model": "phi3:mini",
+  "ollama_model": "gnokit/improve-grammer",
   "ollama_chat_enabled": true,
   "ollama_chat_history": [],
   "ollama_chat_max_history": 100,
@@ -529,7 +528,7 @@ pytest tests/test_ollama_chat_worker.py -m integration -v
 ### ✅ Integration
 - [x] Python package installed (ollama 0.6.0)
 - [x] System binary available (/usr/local/bin/ollama)
-- [x] 5 models available including phi3:mini
+- [x] 5 models available including gnokit/improve-grammer
 - [x] Import test successful
 - [x] CLI test successful
 

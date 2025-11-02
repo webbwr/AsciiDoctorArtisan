@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent chat history (100 message limit, JSON serialization)
 - Cancellation support with 60-second timeout for AI operations
 - Document context injection with debouncing (2KB max)
-- Model switching (phi3:mini, deepseek-coder, qwen3, etc.)
+- Model switching (gnokit/improve-grammer, deepseek-coder, qwen3, etc.)
 
 ### Changed
 - Added `ollama>=0.4.0` as production dependency
@@ -150,7 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ollama AI for document conversion** - smart format conversion using local AI
 - Automatic Pandoc fallback if Ollama unavailable
 - Status bar shows active conversion method (AI or Pandoc)
-- Model selection: phi3:mini (recommended), llama2, mistral, codellama
+- Model selection: gnokit/improve-grammer (recommended), llama2, mistral, codellama
 
 ### Changed
 - Document conversion now AI-assisted with better quality

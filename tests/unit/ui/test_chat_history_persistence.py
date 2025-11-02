@@ -20,7 +20,7 @@ def settings():
     """Create fresh settings for testing."""
     s = Settings()
     s.ollama_enabled = True
-    s.ollama_model = "phi3:mini"
+    s.ollama_model = "gnokit/improve-grammer"
     s.ollama_chat_enabled = True
     s.ollama_chat_history = []
     s.ollama_chat_max_history = 100
@@ -70,7 +70,7 @@ class TestHistorySaving:
         """Test history is saved after adding messages."""
         # Add a user message
         chat_manager._chat_panel.add_user_message(
-            "Test message", "phi3:mini", "general"
+            "Test message", "gnokit/improve-grammer", "general"
         )
 
         # Get history
@@ -81,7 +81,7 @@ class TestHistorySaving:
     def test_history_includes_timestamps(self, chat_manager, settings):
         """Test saved history includes timestamps."""
         # Add message
-        chat_manager._chat_panel.add_user_message("Test", "phi3:mini", "general")
+        chat_manager._chat_panel.add_user_message("Test", "gnokit/improve-grammer", "general")
 
         # Check history
         history = chat_manager._chat_panel.get_message_history()
@@ -93,11 +93,11 @@ class TestHistorySaving:
         """Test saved history includes all required fields."""
         # Add user message
         chat_manager._chat_panel.add_user_message(
-            "User question", "phi3:mini", "document"
+            "User question", "gnokit/improve-grammer", "document"
         )
 
         # Add AI response
-        chat_manager._chat_panel.add_ai_message("AI answer", "phi3:mini")
+        chat_manager._chat_panel.add_ai_message("AI answer", "gnokit/improve-grammer")
 
         # Get history
         history = chat_manager._chat_panel.get_message_history()
@@ -107,14 +107,14 @@ class TestHistorySaving:
         user_msg = history[0]
         assert user_msg["role"] == "user"
         assert user_msg["content"] == "User question"
-        assert user_msg["model"] == "phi3:mini"
+        assert user_msg["model"] == "gnokit/improve-grammer"
         assert user_msg["context_mode"] == "document"
 
         # Check AI message fields
         ai_msg = history[1]
         assert ai_msg["role"] == "assistant"
         assert ai_msg["content"] == "AI answer"
-        assert ai_msg["model"] == "phi3:mini"
+        assert ai_msg["model"] == "gnokit/improve-grammer"
 
     def test_max_history_limit(self, chat_manager, settings):
         """Test history respects max limit."""
@@ -123,7 +123,7 @@ class TestHistorySaving:
         # Add 15 messages (exceeds limit)
         for i in range(15):
             chat_manager._chat_panel.add_user_message(
-                f"Message {i}", "phi3:mini", "general"
+                f"Message {i}", "gnokit/improve-grammer", "general"
             )
 
         # Get history
@@ -151,14 +151,14 @@ class TestHistoryLoading:
             {
                 "role": "user",
                 "content": "Hello",
-                "model": "phi3:mini",
+                "model": "gnokit/improve-grammer",
                 "context_mode": "general",
                 "timestamp": "2025-11-02T10:00:00",
             },
             {
                 "role": "assistant",
                 "content": "Hi there!",
-                "model": "phi3:mini",
+                "model": "gnokit/improve-grammer",
                 "timestamp": "2025-11-02T10:00:01",
             },
         ]
@@ -196,8 +196,8 @@ class TestHistoryPersistence:
         manager1.initialize()
 
         # Add messages
-        chat_panel.add_user_message("Question 1", "phi3:mini", "general")
-        chat_panel.add_ai_message("Answer 1", "phi3:mini")
+        chat_panel.add_user_message("Question 1", "gnokit/improve-grammer", "general")
+        chat_panel.add_ai_message("Answer 1", "gnokit/improve-grammer")
 
         # Save to settings
         history1 = chat_panel.get_message_history()
@@ -225,8 +225,8 @@ class TestHistoryClearOperation:
     def test_clear_removes_messages(self, chat_manager, settings):
         """Test clearing removes all messages."""
         # Add messages
-        chat_manager._chat_panel.add_user_message("Test 1", "phi3:mini", "general")
-        chat_manager._chat_panel.add_ai_message("Response 1", "phi3:mini")
+        chat_manager._chat_panel.add_user_message("Test 1", "gnokit/improve-grammer", "general")
+        chat_manager._chat_panel.add_ai_message("Response 1", "gnokit/improve-grammer")
 
         assert chat_manager._chat_panel.get_message_count() == 2
 
@@ -239,7 +239,7 @@ class TestHistoryClearOperation:
     def test_clear_updates_settings(self, chat_manager, settings):
         """Test clearing updates settings."""
         # Add messages
-        chat_manager._chat_panel.add_user_message("Test", "phi3:mini", "general")
+        chat_manager._chat_panel.add_user_message("Test", "gnokit/improve-grammer", "general")
 
         # Manually save to settings
         settings.ollama_chat_history = (
@@ -289,8 +289,8 @@ class TestHistoryFormat:
         import json
 
         # Add messages
-        chat_manager._chat_panel.add_user_message("Test", "phi3:mini", "general")
-        chat_manager._chat_panel.add_ai_message("Response", "phi3:mini")
+        chat_manager._chat_panel.add_user_message("Test", "gnokit/improve-grammer", "general")
+        chat_manager._chat_panel.add_ai_message("Response", "gnokit/improve-grammer")
 
         # Get history
         history = chat_manager._chat_panel.get_message_history()
@@ -306,7 +306,7 @@ class TestHistoryFormat:
     def test_history_dict_format(self, chat_manager, settings):
         """Test history uses dict format (not ChatMessage objects)."""
         # Add message
-        chat_manager._chat_panel.add_user_message("Test", "phi3:mini", "general")
+        chat_manager._chat_panel.add_user_message("Test", "gnokit/improve-grammer", "general")
 
         # Get history
         history = chat_manager._chat_panel.get_message_history()
@@ -350,7 +350,7 @@ class TestHistoryRecovery:
             {
                 "role": "user",
                 "content": "Valid message",
-                "model": "phi3:mini",
+                "model": "gnokit/improve-grammer",
                 "context_mode": "general",
                 "timestamp": "2025-11-02T10:00:00",
             },
@@ -358,7 +358,7 @@ class TestHistoryRecovery:
             {
                 "role": "assistant",
                 "content": "Another valid",
-                "model": "phi3:mini",
+                "model": "gnokit/improve-grammer",
                 "timestamp": "2025-11-02T10:00:01",
             },
         ]

@@ -34,14 +34,14 @@ def sample_chat_history():
             role="user",
             content="Hello",
             timestamp=time.time() - 100,
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
         ),
         ChatMessage(
             role="assistant",
             content="Hi! How can I help?",
             timestamp=time.time() - 90,
-            model="phi3:mini",
+            model="gnokit/improve-grammer",
             context_mode="general",
         ),
     ]
@@ -72,7 +72,7 @@ class TestOllamaChatWorkerMessageSending:
     def test_send_message_queues_correctly(self, chat_worker):
         """Test message is queued correctly."""
         message = "How do I make a table?"
-        model = "phi3:mini"
+        model = "gnokit/improve-grammer"
         context_mode = "syntax"
         history = []
 
@@ -86,7 +86,7 @@ class TestOllamaChatWorkerMessageSending:
     def test_send_message_with_document_content(self, chat_worker):
         """Test message sending with document context."""
         message = "Explain this document"
-        model = "phi3:mini"
+        model = "gnokit/improve-grammer"
         context_mode = "document"
         history = []
         doc_content = "= My Document\nSome content here"
@@ -97,7 +97,7 @@ class TestOllamaChatWorkerMessageSending:
 
     def test_send_message_starts_worker(self, chat_worker):
         """Test sending message starts the worker thread."""
-        chat_worker.send_message("Hello", "phi3:mini", "general", [])
+        chat_worker.send_message("Hello", "gnokit/improve-grammer", "general", [])
 
         # Worker should start
         assert chat_worker.isRunning() or not chat_worker.isFinished()
@@ -131,7 +131,7 @@ class TestOllamaChatWorkerContextModes:
     )
     def test_valid_context_modes(self, chat_worker, context_mode):
         """Test all valid context modes are accepted."""
-        chat_worker.send_message("Test", "phi3:mini", context_mode, [])
+        chat_worker.send_message("Test", "gnokit/improve-grammer", context_mode, [])
         assert chat_worker._context_mode == context_mode
 
     def test_context_mode_affects_system_prompt(self, chat_worker):
@@ -169,7 +169,7 @@ class TestOllamaChatWorkerReentrancy:
         chat_worker._is_processing = True
 
         # Try to send another message
-        chat_worker.send_message("Second message", "phi3:mini", "general", [])
+        chat_worker.send_message("Second message", "gnokit/improve-grammer", "general", [])
 
         # Should not update state since already processing
         # (implementation detail - may vary)
@@ -216,7 +216,7 @@ class TestOllamaChatWorkerIntegration:
             assert len(message.content) > 0
 
         chat_worker.chat_response_ready.connect(on_response)
-        chat_worker.send_message("Hello", "phi3:mini", "general", [])
+        chat_worker.send_message("Hello", "gnokit/improve-grammer", "general", [])
 
         # Wait for response (with timeout)
         chat_worker.wait(10000)  # 10 second timeout
@@ -231,7 +231,7 @@ class TestOllamaChatWorkerIntegration:
             chunks_received.append(chunk)
 
         chat_worker.chat_response_chunk.connect(on_chunk)
-        chat_worker.send_message("Tell me a story", "phi3:mini", "general", [])
+        chat_worker.send_message("Tell me a story", "gnokit/improve-grammer", "general", [])
 
         chat_worker.wait(15000)  # 15 second timeout
         assert len(chunks_received) > 0

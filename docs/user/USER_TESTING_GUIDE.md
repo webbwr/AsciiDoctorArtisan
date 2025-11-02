@@ -263,17 +263,17 @@ python src/asciidoc_artisan/core/hardware_detection.py
 
 **Steps**:
 1. Install Ollama: Type `curl -fsSL https://ollama.com/install.sh | sh`
-2. Get AI model: Type `ollama pull phi3:mini`
+2. Get AI model: Type `ollama pull gnokit/improve-grammer`
 3. Open the app
 4. Click Tools
 5. Click AI Status
 6. Click Settings
 7. Check the "Enable Ollama AI" box
-8. Pick "phi3:mini" from the list
+8. Pick "gnokit/improve-grammer" from the list
 9. Click OK
 
 **What you should see**:
-- ✓ Status bar says "AI: phi3:mini"
+- ✓ Status bar says "AI: gnokit/improve-grammer"
 - ✓ Settings shows 2 or more models
 - ✓ Service status says "✅ Ollama running"
 
@@ -309,7 +309,7 @@ This is **bold** text.
 2. Toggle Ollama back on
 
 **Expected**:
-- ✓ Status bar immediately shows "AI: phi3:mini"
+- ✓ Status bar immediately shows "AI: gnokit/improve-grammer"
 
 ---
 
@@ -578,7 +578,7 @@ If Ollama is installed:
 systemctl status ollama
 
 # Test model
-ollama run phi3:mini "What is AsciiDoc?"
+ollama run gnokit/improve-grammer "What is AsciiDoc?"
 ```
 
 **Expected**:
