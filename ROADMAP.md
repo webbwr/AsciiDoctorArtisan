@@ -18,7 +18,7 @@
 | v1.8.0 | 📋 NEXT | Q1-Q2 2026 | Essential Features | 24-36h | Find/Replace, Telemetry, Spell Check |
 | v2.0.0 | 📋 BACKLOG | Q3-Q4 2026 | Next-Gen | 240-360h | LSP, Plugins, Multi-core, Marketplace |
 
-**Current Priority:** v1.8.0 Essential Features (v1.7.1 Quality ✅ Complete - 100% Test Coverage Achieved)
+**Current Priority:** v1.8.0 Essential Features
 
 ---
 

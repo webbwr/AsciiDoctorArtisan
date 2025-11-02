@@ -39,10 +39,14 @@ Project planning and task completion summaries.
 ### 📦 Archive (`archive/`)
 Historical project documentation and completed initiatives.
 
+- **README.md** - Archive index and guide
 - **REFACTORING_PLAN.md** - Phase 1-3 optimization strategy (Complete)
 - **OPTIMIZATION_SUMMARY.md** - Phase 1 technical report (Complete)
 - **PHASE_2_SUMMARY.md** - Phase 2 analysis and completion report (Nov 2025)
 - **READABILITY_REPORT_20251031.md** - Documentation readability audit (Oct 2025)
+- **PROJECT_STATUS_v1.7.0.md** - v1.7.0/v1.7.1 project status report (583 lines)
+- **TEST_FAILURE_ANALYSIS_v1.7.1.md** - Test fix documentation (4-phase approach)
+- **CHAT_*.md** (4 files) - Historical session reports from v1.7.0 development
 
 ### 🔍 QA (`qa/`)
 Quality assurance and testing documentation.
@@ -66,10 +70,8 @@ Key files in the project root:
 - **README.md** - Project overview and quick start (v1.7.1)
 - **CLAUDE.md** - AI assistant configuration and project context
 - **ROADMAP.md** - 2026-2027 strategic plan (v1.7.1 Complete ✅)
-- **CHANGELOG.md** - Complete version history (v1.0.0 to v1.7.1) ⭐ NEW
-- **RELEASE_NOTES_v1.7.1.md** - Comprehensive release notes ⭐ NEW
-- **PROJECT_STATUS_v1.7.0.md** - Project status report (583 lines) ⭐ NEW
-- **TEST_FAILURE_ANALYSIS.md** - Test fix documentation (100% pass rate) ⭐ NEW
+- **CHANGELOG.md** - Complete version history (v1.0.0 to v1.7.1)
+- **RELEASE_NOTES_v1.7.1.md** - Comprehensive release notes
 - **LICENSE** - Project license (MIT)
 - **SECURITY.md** - Security policy
 

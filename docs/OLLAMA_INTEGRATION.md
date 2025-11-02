@@ -175,10 +175,10 @@ Location: `core/settings.py`
 
 ## Documentation References
 
-- **User Guide:** `docs/GITHUB_CLI_INTEGRATION.md` (similar structure needed for Ollama)
-- **Specifications:** `SPECIFICATIONS.md` (lines 228-329 - Ollama AI Chat Rules)
-- **Architecture:** `CLAUDE.md` (Ollama sections)
-- **Test Analysis:** `TEST_FAILURE_ANALYSIS.md`
+- **User Guide:** `user/GITHUB_CLI_INTEGRATION.md` (similar structure needed for Ollama)
+- **Specifications:** `architecture/SPECIFICATIONS.md` (lines 228-329 - Ollama AI Chat Rules)
+- **Architecture:** `../CLAUDE.md` (Ollama sections)
+- **Test Analysis:** `archive/TEST_FAILURE_ANALYSIS_v1.7.1.md`
 
 ---
 

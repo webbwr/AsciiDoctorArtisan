@@ -363,7 +363,7 @@ How to help:
 2. Make it better
 3. Send it back to us
 
-See our guide: [how-to-contribute.md](docs/how-to-contribute.md)
+See our guide: [how-to-contribute.md](docs/developer/how-to-contribute.md)
 
 ## License
 
