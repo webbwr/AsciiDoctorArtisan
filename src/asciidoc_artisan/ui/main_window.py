@@ -341,6 +341,12 @@ class AsciiDocEditor(QMainWindow):
         self.action_manager.create_actions()
         self.action_manager.create_menus()
 
+        # Update spell check menu text to show initial state (ON/OFF)
+        self.spell_check_manager._update_menu_text()
+
+        # Update telemetry menu text to show initial state (ON/OFF)
+        self._update_telemetry_menu_text()
+
         # === Export System ===
         self.export_manager = ExportManager(self)
 
@@ -507,6 +513,48 @@ class AsciiDocEditor(QMainWindow):
             # Dialog will show again on next launch
             self.telemetry_collector = TelemetryCollector(enabled=False)
             logger.info("User deferred telemetry decision (first launch)")
+
+    def toggle_telemetry(self) -> None:
+        """Toggle telemetry on/off."""
+        from asciidoc_artisan.core import TelemetryCollector
+
+        # Toggle the setting
+        self._settings.telemetry_enabled = not self._settings.telemetry_enabled
+
+        # Update menu item text to show current state
+        self._update_telemetry_menu_text()
+
+        if self._settings.telemetry_enabled:
+            # Generate session ID if not exists
+            if not self._settings.telemetry_session_id:
+                import uuid
+
+                self._settings.telemetry_session_id = str(uuid.uuid4())
+
+            # Reinitialize collector with new enabled state
+            self.telemetry_collector = TelemetryCollector(
+                enabled=True, session_id=self._settings.telemetry_session_id
+            )
+            self.status_manager.show_message("Telemetry enabled")
+            logger.info("Telemetry enabled by user")
+        else:
+            # Disable telemetry
+            self.telemetry_collector = TelemetryCollector(enabled=False)
+            self.status_manager.show_message("Telemetry disabled")
+            logger.info("Telemetry disabled by user")
+
+        # Save settings
+        self._settings_manager.save_settings(self._settings, self)
+
+    def _update_telemetry_menu_text(self) -> None:
+        """Update the toggle telemetry menu item text to show current state (ON/OFF)."""
+        if hasattr(self, 'action_manager') and hasattr(
+            self.action_manager, 'toggle_telemetry_act'
+        ):
+            state = "ON" if self._settings.telemetry_enabled else "OFF"
+            self.action_manager.toggle_telemetry_act.setText(
+                f"Toggle &Telemetry ({state})"
+            )
 
     def _setup_synchronized_scrolling(self) -> None:
         """Set up synchronized scrolling (delegates to ScrollManager)."""

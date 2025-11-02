@@ -802,6 +802,13 @@ class ActionManager:
             shortcut=Qt.Key.Key_F7,
         )
 
+        # Telemetry Toggle - enable/disable telemetry collection
+        self.toggle_telemetry_act = self._create_action(
+            "Toggle &Telemetry",
+            "Enable or disable telemetry collection",
+            self.window.toggle_telemetry,
+        )
+
         # Application Settings - edit all stored settings
         self.app_settings_act = self._create_action(
             "Application &Settings...",
@@ -1002,6 +1009,7 @@ class ActionManager:
         tools_menu.addAction(self.toggle_theme_act)  # Toggle dark/light theme
         tools_menu.addAction(self.font_settings_act)  # Customize fonts
         tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7)
+        tools_menu.addAction(self.toggle_telemetry_act)  # Toggle telemetry collection
 
         tools_menu.addSeparator()
 

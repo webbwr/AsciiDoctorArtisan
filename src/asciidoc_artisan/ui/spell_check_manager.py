@@ -92,11 +92,14 @@ class SpellCheckManager:
         self.enabled = not self.enabled
         self.main_window._settings.spell_check_enabled = self.enabled
 
+        # Update menu item text to show current state
+        self._update_menu_text()
+
         if self.enabled:
             # Perform immediate spell check
             self._perform_spell_check()
             self.main_window.status_manager.show_message(
-                "Spell check enabled", duration_ms=2000
+                "Spell check enabled"
             )
             logger.info("Spell check enabled")
         else:
@@ -104,9 +107,19 @@ class SpellCheckManager:
             self._clear_highlights()
             self.errors = []
             self.main_window.status_manager.show_message(
-                "Spell check disabled", duration_ms=2000
+                "Spell check disabled"
             )
             logger.info("Spell check disabled")
+
+    def _update_menu_text(self) -> None:
+        """Update the toggle menu item text to show current state (ON/OFF)."""
+        if hasattr(self.main_window, 'action_manager') and hasattr(
+            self.main_window.action_manager, 'toggle_spell_check_act'
+        ):
+            state = "ON" if self.enabled else "OFF"
+            self.main_window.action_manager.toggle_spell_check_act.setText(
+                f"Toggle &Spell Check ({state})"
+            )
 
     def set_language(self, language: str) -> None:
         """
