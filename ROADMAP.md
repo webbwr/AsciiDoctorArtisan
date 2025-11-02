@@ -535,11 +535,11 @@ Month 3 (Mar 2026):
 
 ## Version 1.8.0 (Essential Features) 📋 NEXT
 
-**Target Date:** Q1-Q2 2026 (January - June)
-**Duration:** 6-8 weeks
-**Effort:** 48-72 hours (includes v1.7.0 deferred items)
-**Focus:** Find/Replace, Telemetry, Spell Checking - core editor features
-**Status:** 📋 PLANNING
+**Target Date:** November 2, 2025 (ACCELERATED - completed early)
+**Duration:** 1 day (Nov 2, 2025)
+**Effort:** 18 hours actual / 48-72 hours estimated (75% time savings)
+**Focus:** Find/Replace, Spell Checking, Theme Toggle - core editor features
+**Status:** 🚧 IN PROGRESS (2/3 tasks complete, Telemetry remaining)
 
 ---
 
@@ -557,9 +557,12 @@ v1.8.0 completes the **essential feature set** for a professional document edito
 ### Goals
 
 **Critical (Moved from v1.7.0):**
-1. ⭐⭐⭐ **Find & Replace System** (Priority 1 - Most requested feature)
-2. ⭐⭐ **Spell Checker Integration** (Essential for document editing)
-3. ⭐ **Telemetry System (Opt-In)** (Understand user needs, improve quality)
+1. ✅ ⭐⭐⭐ **Find & Replace System** (Priority 1 - Most requested feature) - COMPLETE
+2. ✅ ⭐⭐ **Spell Checker Integration** (Essential for document editing) - COMPLETE
+3. 📋 ⭐ **Telemetry System (Opt-In)** (Understand user needs, improve quality) - PLANNED
+
+**Bonus Enhancements:**
+1. ✅ **F11 Theme Toggle** (Improved UX for dark/light mode switching) - COMPLETE
 
 **Deferred from Original v1.8.0 Plan:**
 - ❌ Auto-complete → **DEFERRED to v1.9.0** (lower priority than Find/Replace)
@@ -658,6 +661,36 @@ v1.8.0 completes the **essential feature set** for a professional document edito
 - AsciiDoc-aware checking (skip code blocks, etc.) deferred to future enhancement
 - Current implementation checks all text uniformly
 - Can be extended with AsciiDoc parsing in future versions
+
+---
+
+#### Task 2.5: F11 Theme Toggle (Bonus Enhancement) ⭐
+**Priority:** LOW | **Effort:** 0.5 hours actual | **Status:** ✅ COMPLETE (Nov 2, 2025)
+
+**Rationale:** Improve UX for theme switching with dedicated function key.
+
+**Features Implemented:**
+- ✅ F11 keyboard shortcut for theme toggle
+- ✅ Bidirectional toggle (Dark ↔ Light ↔ Dark)
+- ✅ Syncs with View menu checkbox
+- ✅ Updates all UI elements (editor, preview, chat, labels)
+- ✅ Persists theme preference across restarts
+
+**Deliverables Completed:**
+- ✅ Updated `action_manager.py` with F11 shortcut
+- ✅ Imported Qt.Key constants for keyboard shortcuts
+- ✅ Updated README.md keyboard shortcuts table
+- ✅ Verified toggle behavior in both directions
+
+**Git Commits:**
+- `276781f` - Feature: Add F11 keyboard shortcut for theme toggle
+
+**Success Criteria:**
+- ✅ F11 toggles Dark → Light
+- ✅ F11 toggles Light → Dark
+- ✅ View menu checkbox syncs automatically
+- ✅ Theme persists across app restarts
+- ✅ All UI elements update correctly
 
 ---
 

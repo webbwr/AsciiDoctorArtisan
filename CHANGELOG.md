@@ -5,6 +5,82 @@ All notable changes to AsciiDoc Artisan will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-11-02 (IN PROGRESS)
+
+### Added
+- **Find & Replace System** - Fast text search and replacement
+  - SearchEngine with regex support (`core/search_engine.py`, 420 lines)
+  - Non-modal find bar at bottom of window (`ui/find_bar_widget.py`, 380+ lines)
+  - Keyboard shortcuts: Ctrl+F (Find), Ctrl+H (Replace), F3 (Next), Shift+F3 (Previous)
+  - Live search with yellow highlighting for all matches
+  - Match counter display (e.g., "5 of 23")
+  - Collapsible replace controls with toggle button
+  - Replace All with confirmation dialog
+  - Case-sensitive and whole word search options
+  - Wrap-around navigation support
+- **Spell Checker Integration** - Real-time spell checking with suggestions
+  - SpellChecker engine with pyspellchecker (`core/spell_checker.py`, 306 lines)
+  - SpellCheckManager UI integration (`ui/spell_check_manager.py`, 368 lines)
+  - Red squiggly underlines for misspelled words
+  - Right-click context menu with up to 5 suggestions
+  - "Add to Dictionary" (persists across sessions)
+  - "Ignore Word" (session only)
+  - F7 keyboard shortcut to toggle spell checking on/off
+  - Debounced checking (500ms delay after typing stops)
+  - Multiple language support (en, es, fr, de, etc.)
+  - Custom dictionary persistence in settings
+- **F11 Theme Toggle** - Quick keyboard shortcut for dark/light mode
+  - F11 key toggles between Dark and Light themes
+  - Bidirectional toggle (Dark ↔ Light ↔ Dark)
+  - Syncs with View menu checkbox
+  - Updates all UI elements (editor, preview, chat, labels)
+  - Persists theme preference across restarts
+
+### Dependencies
+- Added `pyspellchecker>=0.8.0` for spell checking functionality
+
+### Changed
+- Enhanced Settings with 3 new spell check fields:
+  - `spell_check_enabled: bool` (default: True)
+  - `spell_check_language: str` (default: "en")
+  - `spell_check_custom_words: List[str]` (persistent)
+- Updated keyboard shortcuts:
+  - F7: Toggle spell checking
+  - F11: Toggle dark/light theme (replaces Ctrl+D)
+  - Ctrl+F: Open find bar
+  - Ctrl+H: Open find & replace
+  - F3: Find next
+  - Shift+F3: Find previous
+- Enhanced `action_manager.py` with Qt.Key imports for function keys
+
+### Testing
+- Added 54 tests for Find & Replace system
+  - 21 tests for FindBarWidget (UI components)
+  - 33 tests for SearchEngine (core logic)
+- Spell checker core functionality verified
+  - Word checking, suggestions, dictionary management
+  - Performance: <100ms per spell check operation
+
+### Documentation
+- Updated README.md with Find & Replace and Spell Check sections
+- Updated ROADMAP.md with v1.8.0 progress (2/3 tasks complete)
+- Updated CLAUDE.md with v1.8.0 feature details
+- Updated docs/user/how-to-use.md with new shortcuts and features
+- All documentation maintains Grade 5.0 reading level
+
+### Git Commits (November 2, 2025)
+- `be8768e` - SearchEngine core logic (Phase 1)
+- `fee32ef` - FindBarWidget UI (Phase 2)
+- `d99ed32` - Find/Replace integration (Phase 3)
+- `4757c91` - Replace functionality (Phase 4)
+- `8e1d95f` - Find/Replace documentation
+- `d0ff4dc` - README and ROADMAP updates
+- `0fefa20` - Spell checker implementation
+- `ee1ca6a` - Spell checker linting fixes
+- `19afce1` - Spell checker documentation
+- `276781f` - F11 keyboard shortcut for theme toggle
+- `a3d78cd` - Documentation updates for v1.8.0
+
 ## [1.7.4] - 2025-11-02
 
 ### Security
