@@ -1,14 +1,7 @@
 """Tests for ui.settings_manager module."""
 
 import pytest
-from PySide6.QtWidgets import QApplication, QMainWindow
-
-
-@pytest.fixture
-def qapp():
-    import os
-    os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    return QApplication.instance() or QApplication([])
+from PySide6.QtWidgets import QMainWindow
 
 
 @pytest.fixture

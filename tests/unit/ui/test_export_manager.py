@@ -1,15 +1,8 @@
 """Tests for ui.export_manager module."""
 
 import pytest
-from PySide6.QtWidgets import QApplication, QMainWindow, QPlainTextEdit
+from PySide6.QtWidgets import QMainWindow, QPlainTextEdit
 from unittest.mock import Mock, patch
-
-
-@pytest.fixture
-def qapp():
-    import os
-    os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    return QApplication.instance() or QApplication([])
 
 
 @pytest.fixture

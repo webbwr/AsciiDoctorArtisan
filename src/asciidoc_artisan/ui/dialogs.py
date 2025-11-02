@@ -297,7 +297,7 @@ class OllamaSettingsDialog(QDialog):
         info_label = QLabel(
             "• Ollama runs locally on your computer\n"
             "• No API keys or cloud services required\n"
-            "• Install models with: ollama pull <model-name>\n"
+            "• Install models with: ollama pull qwen2.5-coder:7b\n"
             "• See docs/OLLAMA_SETUP.md for more information"
         )
         info_label.setWordWrap(True)

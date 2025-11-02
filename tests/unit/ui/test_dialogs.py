@@ -2,14 +2,6 @@
 
 import pytest
 from unittest.mock import Mock
-from PySide6.QtWidgets import QApplication
-
-
-@pytest.fixture
-def qapp():
-    import os
-    os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    return QApplication.instance() or QApplication([])
 
 
 @pytest.fixture

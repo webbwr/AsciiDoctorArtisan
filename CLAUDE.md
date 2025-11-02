@@ -727,3 +727,4 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 *This file is for Claude Code (claude.ai/code). Last updated: November 2, 2025*
 *Development version: v1.7.1 ✅ COMPLETE (100% test coverage) | Package version: 1.5.0 (pyproject.toml)*
+- always apply this core principle to everything you do: "Conceptual simplicity, structural complexity achieves a greater state of humanity."

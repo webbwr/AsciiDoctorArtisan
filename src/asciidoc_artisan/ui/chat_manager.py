@@ -134,6 +134,29 @@ class ChatManager(QObject):
 
         logger.info("Chat manager initialized")
 
+    def _auto_download_default_model(self) -> None:
+        """
+        Automatically download the default model if Ollama is running but no models installed.
+
+        Runs 'ollama pull qwen2.5-coder:7b' in background and updates status.
+        """
+        default_model = "qwen2.5-coder:7b"
+        logger.info(f"Auto-downloading default model: {default_model}")
+        self.status_message.emit(f"Downloading {default_model}... (this may take a few minutes)")
+
+        try:
+            # Run ollama pull in subprocess (non-blocking for UI)
+            subprocess.Popen(
+                ["ollama", "pull", default_model],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            logger.info(f"Started download of {default_model}")
+        except Exception as e:
+            logger.error(f"Failed to auto-download model: {e}")
+            self.status_message.emit(f"Auto-download failed: {e}")
+
     def _load_available_models(self) -> None:
         """
         Load available Ollama models into chat bar selector.
@@ -172,8 +195,10 @@ class ChatManager(QObject):
                 else:
                     logger.warning("Ollama running but no models installed")
                     self.status_message.emit(
-                        "Ollama: No models installed (run 'ollama pull phi3:mini')"
+                        "Ollama: No models installed (run 'ollama pull qwen2.5-coder:7b')"
                     )
+                    # Auto-download default model if none installed
+                    self._auto_download_default_model()
             else:
                 logger.warning(f"Ollama command failed: {result.stderr.strip()}")
 
@@ -193,9 +218,9 @@ class ChatManager(QObject):
         # Fallback to default models if detection failed
         if not models:
             models = [
+                "qwen2.5-coder:7b",
                 "phi3:mini",
-                "llama2",
-                "mistral",
+                "deepseek-coder",
                 "codellama",
             ]
             if not ollama_available:

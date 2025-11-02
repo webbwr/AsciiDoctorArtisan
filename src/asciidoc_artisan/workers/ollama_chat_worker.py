@@ -60,7 +60,7 @@ class OllamaChatWorker(QThread):
 
         worker.send_message(
             message="How do I make a table?",
-            model="phi3:mini",
+            model="qwen2.5-coder:7b",
             context_mode="syntax",
             history=[...],
             document_content=None
@@ -98,7 +98,7 @@ class OllamaChatWorker(QThread):
 
         Args:
             message: User's chat message text
-            model: Ollama model name (e.g., "phi3:mini")
+            model: Ollama model name (e.g., "qwen2.5-coder:7b")
             context_mode: Interaction mode (document/syntax/general/editing)
             history: Previous chat messages for context
             document_content: Current document text (optional, for context modes)
@@ -299,7 +299,7 @@ class OllamaChatWorker(QThread):
         cmd = [
             "ollama",
             "run",
-            self._current_model or "phi3:mini",
+            self._current_model or "qwen2.5-coder:7b",
         ]
 
         logger.debug(f"Calling Ollama with model: {self._current_model}")

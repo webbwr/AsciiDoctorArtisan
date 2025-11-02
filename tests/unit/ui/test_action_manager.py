@@ -5,18 +5,9 @@ Tests QAction creation and management functionality.
 """
 
 import pytest
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QMainWindow
 from PySide6.QtGui import QAction
 from unittest.mock import Mock, MagicMock, patch
-
-
-@pytest.fixture
-def qapp():
-    """Create QApplication instance."""
-    import os
-    os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    app = QApplication.instance() or QApplication([])
-    yield app
 
 
 @pytest.fixture

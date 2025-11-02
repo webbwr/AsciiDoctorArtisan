@@ -59,8 +59,8 @@ class ChatBarWidget(QWidget):
     Example:
         ```python
         chat_bar = ChatBarWidget()
-        chat_bar.set_models(["phi3:mini", "llama2", "mistral"])
-        chat_bar.set_model("phi3:mini")
+        chat_bar.set_models(["qwen2.5-coder:7b", "phi3:mini", "deepseek-coder"])
+        chat_bar.set_model("qwen2.5-coder:7b")
         chat_bar.message_sent.connect(on_message_sent)
 
         chat_bar.show()  # When AI enabled + model set

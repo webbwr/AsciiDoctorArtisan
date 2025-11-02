@@ -5,17 +5,8 @@ Tests dialog coordination and management functionality.
 """
 
 import pytest
-from PySide6.QtWidgets import QApplication, QMainWindow, QDialog
+from PySide6.QtWidgets import QMainWindow, QDialog
 from unittest.mock import Mock, MagicMock, patch
-
-
-@pytest.fixture
-def qapp():
-    """Create QApplication instance."""
-    import os
-    os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    app = QApplication.instance() or QApplication([])
-    yield app
 
 
 @pytest.fixture

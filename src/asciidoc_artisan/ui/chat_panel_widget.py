@@ -55,8 +55,8 @@ class ChatPanelWidget(QWidget):
     Example:
         ```python
         chat_panel = ChatPanelWidget()
-        chat_panel.add_user_message("How do I make a table?", model="phi3:mini", mode="syntax")
-        chat_panel.add_ai_message("Here's how...", model="phi3:mini")
+        chat_panel.add_user_message("How do I make a table?", model="qwen2.5-coder:7b", mode="syntax")
+        chat_panel.add_ai_message("Here's how...", model="qwen2.5-coder:7b")
         chat_panel.show()
         ```
     """
