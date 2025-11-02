@@ -553,7 +553,7 @@ class AsciiDocEditor(QMainWindow):
         ):
             state = "ON" if self._settings.telemetry_enabled else "OFF"
             self.action_manager.toggle_telemetry_act.setText(
-                f"Toggle &Telemetry ({state})"
+                f"&Telemetry ({state})"
             )
 
     def _setup_synchronized_scrolling(self) -> None:

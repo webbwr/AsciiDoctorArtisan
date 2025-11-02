@@ -118,7 +118,7 @@ class SpellCheckManager:
         ):
             state = "ON" if self.enabled else "OFF"
             self.main_window.action_manager.toggle_spell_check_act.setText(
-                f"Toggle &Spell Check ({state})"
+                f"&Spell Check ({state})"
             )
 
     def set_language(self, language: str) -> None:

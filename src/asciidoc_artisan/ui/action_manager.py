@@ -796,7 +796,7 @@ class ActionManager:
 
         # Spell Check Toggle - enable/disable spell checking (F7)
         self.toggle_spell_check_act = self._create_action(
-            "Toggle &Spell Check",
+            "&Spell Check",
             "Enable or disable spell checking (F7)",
             self.window.spell_check_manager.toggle_spell_check,
             shortcut=Qt.Key.Key_F7,
@@ -804,7 +804,7 @@ class ActionManager:
 
         # Telemetry Toggle - enable/disable telemetry collection
         self.toggle_telemetry_act = self._create_action(
-            "Toggle &Telemetry",
+            "&Telemetry",
             "Enable or disable telemetry collection",
             self.window.toggle_telemetry,
         )
