@@ -98,6 +98,7 @@ from typing import (  # For type hints without circular imports
 )
 
 # === QT FRAMEWORK IMPORTS ===
+from PySide6.QtCore import Qt  # Qt constants and enums (Key codes, etc.)
 from PySide6.QtGui import (
     QAction,  # Menu item class (represents one menu action like "New" or "Save")
     QKeySequence,  # Keyboard shortcut class (like Ctrl+S, Ctrl+C)
@@ -644,8 +645,9 @@ class ActionManager:
 
         self.dark_mode_act = self._create_action(
             "&Dark Mode",
-            "Toggle dark mode",
+            "Toggle dark mode (F11)",
             self.window._toggle_dark_mode,
+            shortcut=Qt.Key.Key_F11,
             checkable=True,
             checked=self._settings.dark_mode,
         )

@@ -123,7 +123,7 @@ The `-OO` flag makes it faster. It removes doc text. It uses less memory.
 | F3 | Find next |
 | Shift+F3 | Find before |
 | F7 | Turn spell check on or off |
-| Ctrl+D | Dark mode |
+| F11 | Dark mode |
 | Ctrl++ | Make text big |
 | Ctrl+- | Make text small |
 
