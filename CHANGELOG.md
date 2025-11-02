@@ -35,15 +35,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Syncs with View menu checkbox
   - Updates all UI elements (editor, preview, chat, labels)
   - Persists theme preference across restarts
+- **Privacy-First Telemetry System** - Optional usage analytics (opt-in only)
+  - TelemetryCollector with local-only storage (`core/telemetry_collector.py`, 464 lines)
+  - GDPR-compliant opt-in dialog (`ui/telemetry_opt_in_dialog.py`, 262 lines)
+  - Anonymous session IDs (UUIDs, no personal data)
+  - Data sanitization (removes paths, emails, IPs)
+  - 30-day retention with auto-rotation
+  - 10MB max file size with auto-cleanup
+  - Tracks: feature usage, error patterns, performance metrics, system info
+  - Does NOT track: names, emails, IPs, document content, file paths, keystrokes
+  - Three-option dialog: Accept, Decline, Remind Me Later
+  - Easy opt-out anytime in Settings
 
 ### Dependencies
 - Added `pyspellchecker>=0.8.0` for spell checking functionality
 
 ### Changed
-- Enhanced Settings with 3 new spell check fields:
-  - `spell_check_enabled: bool` (default: True)
-  - `spell_check_language: str` (default: "en")
-  - `spell_check_custom_words: List[str]` (persistent)
+- Enhanced Settings with 6 new fields:
+  - Spell check (3 fields):
+    - `spell_check_enabled: bool` (default: True)
+    - `spell_check_language: str` (default: "en")
+    - `spell_check_custom_words: List[str]` (persistent)
+  - Telemetry (3 fields):
+    - `telemetry_enabled: bool` (default: False, opt-in only)
+    - `telemetry_session_id: Optional[str]` (anonymous UUID)
+    - `telemetry_opt_in_shown: bool` (dialog shown flag)
 - Updated keyboard shortcuts:
   - F7: Toggle spell checking
   - F11: Toggle dark/light theme (replaces Ctrl+D)
@@ -60,12 +76,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spell checker core functionality verified
   - Word checking, suggestions, dictionary management
   - Performance: <100ms per spell check operation
+- Added 31 tests for Telemetry System
+  - Event tracking, buffering, data sanitization
+  - Privacy protections, file rotation, destruction
+  - 100% test pass rate
 
 ### Documentation
 - Updated README.md with Find & Replace and Spell Check sections
-- Updated ROADMAP.md with v1.8.0 progress (2/3 tasks complete)
+- Updated ROADMAP.md with v1.8.0 progress (3/3 tasks complete)
 - Updated CLAUDE.md with v1.8.0 feature details
 - Updated docs/user/how-to-use.md with new shortcuts and features
+- Updated CHANGELOG.md with complete v1.8.0 documentation
 - All documentation maintains Grade 5.0 reading level
 
 ### Git Commits (November 2, 2025)
@@ -80,6 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `19afce1` - Spell checker documentation
 - `276781f` - F11 keyboard shortcut for theme toggle
 - `a3d78cd` - Documentation updates for v1.8.0
+- `cf45b77` - ROADMAP and CHANGELOG updates
+- `1fe3ee0` - Privacy-First Telemetry System
 
 ## [1.7.4] - 2025-11-02
 
