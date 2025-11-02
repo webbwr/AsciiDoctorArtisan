@@ -63,9 +63,13 @@ Security, deployment, and operational documentation.
 ### 📄 Root Documentation
 Key files in the project root:
 
-- **README.md** - Project overview and quick start (v1.7.0)
+- **README.md** - Project overview and quick start (v1.7.1)
 - **CLAUDE.md** - AI assistant configuration and project context
-- **ROADMAP.md** - 2026-2027 strategic plan (Phase 1 Complete ✅)
+- **ROADMAP.md** - 2026-2027 strategic plan (v1.7.1 Complete ✅)
+- **CHANGELOG.md** - Complete version history (v1.0.0 to v1.7.1) ⭐ NEW
+- **RELEASE_NOTES_v1.7.1.md** - Comprehensive release notes ⭐ NEW
+- **PROJECT_STATUS_v1.7.0.md** - Project status report (583 lines) ⭐ NEW
+- **TEST_FAILURE_ANALYSIS.md** - Test fix documentation (100% pass rate) ⭐ NEW
 - **LICENSE** - Project license (MIT)
 - **SECURITY.md** - Security policy
 
@@ -89,21 +93,26 @@ Start here: [Security Policy](../SECURITY.md)
 
 ## Recent Updates
 
-### v1.7.1 Phase 2 Optimization (November 1, 2025) ✅
-- **String interning:** Expanded from 17 to 67+ tokens
-- **Memory usage:** Additional 15-25% reduction for string allocations
-- **Worker pool migration:** Deferred (architectural complexity)
-- **Async I/O completion:** Deferred (minimal gains)
-- **Time invested:** 2 hours (smart, focused approach)
+### v1.7.1 - 100% Test Coverage (November 2, 2025) ✅
+- **Test pass rate:** 100% (82/82 tests passing)
+- **Bug fixes:** All 24 test failures fixed (4-phase approach)
+- **Documentation:** 770+ lines of new documentation
+  - CHANGELOG.md - Complete version history
+  - RELEASE_NOTES_v1.7.1.md - User-facing release notes
+  - PROJECT_STATUS_v1.7.0.md - Comprehensive status report
+  - OLLAMA_INTEGRATION.md - Integration guide
+  - TEST_FAILURE_ANALYSIS.md - Test fix documentation
+- **Quality:** Production-ready, enterprise-grade
+- **Git:** Tagged as v1.7.1, released November 2, 2025
 
-### v1.7.0 Phase 1 Optimization (November 1, 2025) ✅
-- **Preview latency:** 40-50% faster
-- **Memory usage:** 30% reduction
-- **CSS generation:** Zero overhead
-- **Documentation:** PERFORMANCE_GUIDE.md added
-- **Archives:** Optimization docs moved to archive/
+### v1.7.0 - Ollama AI Chat (November 1, 2025) ✅
+- **AI Chat:** 4 context modes (document, syntax, general, editing)
+- **History:** Persistent chat history (100 message limit)
+- **UI:** ChatBarWidget, ChatPanelWidget, ChatManager
+- **Worker:** Background threading for non-blocking AI
+- **Tests:** 82 comprehensive tests (50 at 91% initially)
 
-### v1.6.0 Completion (October 31, 2025) ✅
+### v1.6.0 - GitHub CLI & Type Hints (October 31, 2025) ✅
 - **Type hints:** 100% coverage (mypy --strict: 0 errors)
 - **Async I/O:** Complete implementation
 - **GitHub CLI:** Full integration with PR/Issue management
@@ -111,4 +120,4 @@ Start here: [Security Policy](../SECURITY.md)
 
 ---
 
-*Documentation last organized: November 1, 2025*
+*Documentation last organized: November 2, 2025*
