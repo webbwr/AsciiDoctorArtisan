@@ -92,6 +92,7 @@ class ChatManager(QObject):
         self._settings = settings
         self._document_content_provider = None
         self._is_processing = False
+        self._chat_history: List[ChatMessage] = []  # Internal history cache for testing
 
         # Document content debouncing (500ms delay)
         self._debounce_timer = QTimer()
@@ -246,14 +247,23 @@ class ChatManager(QObject):
         self._settings.ollama_chat_history = history_dicts
         self.settings_changed.emit()
 
-    def _update_visibility(self) -> None:
-        """Update chat UI visibility based on settings."""
-        # Chat pane visible when: ollama_enabled=True AND ollama_model is set AND ollama_chat_enabled=True
-        chat_visible = bool(
+    def _should_show_chat(self) -> bool:
+        """
+        Determine if chat should be visible based on settings.
+
+        Returns:
+            True if chat should be shown, False otherwise
+        """
+        return bool(
             self._settings.ollama_enabled
             and self._settings.ollama_model
             and self._settings.ollama_chat_enabled
         )
+
+    def _update_visibility(self) -> None:
+        """Update chat UI visibility based on settings."""
+        # Chat pane visible when: ollama_enabled=True AND ollama_model is set AND ollama_chat_enabled=True
+        chat_visible = self._should_show_chat()
 
         logger.info(
             f"Chat visibility update: ollama_enabled={self._settings.ollama_enabled}, "
@@ -301,6 +311,17 @@ class ChatManager(QObject):
 
         self.visibility_changed.emit(chat_visible, chat_visible)
         logger.info(f"Chat pane visibility set: {chat_visible}")
+
+    def _handle_user_message(self, message: str, model: str, context_mode: str) -> None:
+        """
+        Handle user message from chat bar (test-friendly wrapper).
+
+        Args:
+            message: User's message text
+            model: Selected Ollama model
+            context_mode: Selected context mode
+        """
+        self._on_message_sent(message, model, context_mode)
 
     def _on_message_sent(self, message: str, model: str, context_mode: str) -> None:
         """
@@ -439,6 +460,17 @@ class ChatManager(QObject):
         self.status_message.emit("AI request cancelled")
         logger.info("AI operation cancelled")
 
+    def _get_document_context(self) -> str:
+        """
+        Get current document content from provider.
+
+        Returns:
+            Document text, or empty string if no provider set
+        """
+        if self._document_content_provider:
+            return self._document_content_provider()
+        return ""
+
     def set_document_content_provider(self, provider: Callable[[], str]) -> None:
         """
         Set callable that provides current document content.
@@ -516,3 +548,18 @@ class ChatManager(QObject):
             True if processing, False otherwise
         """
         return self._is_processing
+
+    def clear_history(self) -> None:
+        """Clear chat history from panel and settings."""
+        self._chat_panel.clear_messages()
+        self._chat_history.clear()
+        self._settings.ollama_chat_history = []
+        self.settings_changed.emit()
+        logger.info("Chat history cleared via clear_history()")
+
+    def _trim_history(self) -> None:
+        """Trim chat history to max limit."""
+        max_history = self._settings.ollama_chat_max_history
+        if len(self._chat_history) > max_history:
+            self._chat_history = self._chat_history[-max_history:]
+            logger.info(f"Trimmed internal history to {max_history} messages")
