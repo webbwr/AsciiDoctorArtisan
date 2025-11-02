@@ -239,7 +239,9 @@ class ActionManager:
         self.github_list_issues_act: QAction  # List issues
         self.github_repo_info_act: QAction  # View repository info
 
-        # Tools menu actions (5 actions)
+        # Tools menu actions (7 actions)
+        self.validate_install_act: QAction  # Validate installation and update dependencies
+        self.toggle_theme_act: QAction  # Toggle dark/light theme
         self.pandoc_status_act: QAction  # Show Pandoc installation status
         self.pandoc_formats_act: QAction  # Show supported formats
         self.ollama_status_act: QAction  # Show Ollama AI status
@@ -705,14 +707,23 @@ class ActionManager:
             self.window._trigger_github_repo_info,
         )
 
-        # === TOOLS MENU ACTIONS (5 actions) ===
-        # These actions show status of external tools: Pandoc, Ollama AI
+        # === TOOLS MENU ACTIONS (7 actions) ===
+        # These actions show status of external tools and control app appearance
 
         # Installation Validator - validates all requirements and updates dependencies
         self.validate_install_act = self._create_action(
             "&Validate Installation...",
             "Check installation requirements and update dependencies",
             self.window._show_installation_validator,
+        )
+
+        # Theme Toggle - switches between dark and light theme
+        self.toggle_theme_act = self._create_action(
+            "Toggle &Theme (Dark/Light)",
+            "Switch between dark and light theme",
+            self.window._toggle_dark_mode,
+            checkable=True,
+            checked=self._settings.dark_mode,
         )
 
         # Pandoc status - shows if Pandoc is installed and working
@@ -933,26 +944,30 @@ class ActionManager:
         # === TOOLS MENU ===
         tools_menu = menubar.addMenu("&Tools")
 
-        # Installation Validator
+        # System & Validation (top section)
         tools_menu.addAction(self.validate_install_act)  # Validate requirements and update dependencies
 
-        # Separator
         tools_menu.addSeparator()
+
+        # Appearance (theme)
+        tools_menu.addAction(self.toggle_theme_act)  # Toggle dark/light theme
+        tools_menu.addAction(self.font_settings_act)  # Customize fonts
+
+        tools_menu.addSeparator()
+
+        # External Tools Status
+        tools_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
+        tools_menu.addAction(self.pandoc_formats_act)  # Show supported formats
 
         # AI Status submenu (Ollama integration)
         ai_status_menu = tools_menu.addMenu("&AI Status")
         ai_status_menu.addAction(self.ollama_status_act)  # Check Ollama status
         ai_status_menu.addAction(self.ollama_settings_act)  # Configure Ollama
 
-        # Pandoc utilities
-        tools_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
-        tools_menu.addAction(self.pandoc_formats_act)  # Show supported formats
-
         # Separator before settings
         tools_menu.addSeparator()
 
-        # Font and Application Settings
-        tools_menu.addAction(self.font_settings_act)  # Customize fonts
+        # Application Settings (bottom section)
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
 
         # === HELP MENU ===
