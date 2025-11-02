@@ -87,30 +87,15 @@ class EditorState:
             )
 
     def toggle_dark_mode(self) -> None:
-        """Toggle dark mode on/off - syncs both View and Tools menu actions."""
-        # Check which action was clicked and get its state
-        # If toggle_theme_act was clicked, use its state; otherwise use dark_mode_act
-        if self.action_manager.toggle_theme_act.isChecked() != self.action_manager.dark_mode_act.isChecked():
-            # Actions are out of sync - one was just clicked
-            # Use the one that differs from current settings as the source
-            if self.action_manager.toggle_theme_act.isChecked() != self._settings.dark_mode:
-                dark_mode = self.action_manager.toggle_theme_act.isChecked()
-            else:
-                dark_mode = self.action_manager.dark_mode_act.isChecked()
-        else:
-            # Actions are in sync - use either one
-            dark_mode = self.action_manager.dark_mode_act.isChecked()
+        """Toggle dark mode on/off - syncs View menu checkbox."""
+        # Simply flip the current dark mode state
+        dark_mode = not self._settings.dark_mode
 
-        # Sync both menu actions to same state
+        # Update View menu checkbox (dark_mode_act is still checkable)
         # Block signals to prevent recursive calls
         self.action_manager.dark_mode_act.blockSignals(True)
-        self.action_manager.toggle_theme_act.blockSignals(True)
-
         self.action_manager.dark_mode_act.setChecked(dark_mode)
-        self.action_manager.toggle_theme_act.setChecked(dark_mode)
-
         self.action_manager.dark_mode_act.blockSignals(False)
-        self.action_manager.toggle_theme_act.blockSignals(False)
 
         # Apply the theme
         self._settings.dark_mode = dark_mode

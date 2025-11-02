@@ -722,8 +722,6 @@ class ActionManager:
             "Toggle &Theme (Dark/Light)",
             "Switch between dark and light theme",
             self.window._toggle_dark_mode,
-            checkable=True,
-            checked=self._settings.dark_mode,
         )
 
         # Pandoc status - shows if Pandoc is installed and working
