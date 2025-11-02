@@ -9,10 +9,12 @@ Learn to use AsciiDoc Artisan.
 1. [Get Started](#get-started)
 2. [Write Docs](#write-docs)
 3. [Save and Open](#save-and-open)
-4. [Use Git](#use-git)
-5. [Change Types](#change-types)
-6. [Settings](#settings)
-7. [Tips](#tips)
+4. [Find and Replace](#find-and-replace)
+5. [Spell Check](#spell-check)
+6. [Use Git](#use-git)
+7. [Change Types](#change-types)
+8. [Settings](#settings)
+9. [Tips](#tips)
 
 ## Get Started
 
@@ -22,6 +24,8 @@ It helps you write docs.
 
 **What it does:**
 - Shows doc as you type
+- Finds and changes words
+- Checks your words
 - Saves to Git
 - Opens Word and PDF
 - Saves to Word and PDF
@@ -244,8 +248,11 @@ Work fast:
 | Ctrl+O | Open |
 | Ctrl+S | Save |
 | Ctrl+F | Find |
-| Ctrl+G | Go to line |
-| Ctrl+D | Dark |
+| Ctrl+H | Find and replace |
+| F3 | Find next |
+| Shift+F3 | Find before |
+| F7 | Spell check on/off |
+| F11 | Dark mode on/off |
 | Ctrl++ | Bigger |
 | Ctrl+- | Smaller |
 | Ctrl+Q | Close |
@@ -255,8 +262,27 @@ Work fast:
 Look for words:
 1. Press Ctrl+F
 2. Type word
-3. Press Enter
-4. Press Enter for next
+3. Click Next or press F3
+4. Click Previous or press Shift+F3
+5. Press Esc to close
+
+### Find and Replace
+
+Change words:
+1. Press Ctrl+H
+2. Type word to find
+3. Type new word
+4. Click Replace (one)
+5. Click Replace All (all)
+
+### Spell Check
+
+Check words:
+1. Press F7 to turn on
+2. See red lines
+3. Right-click word
+4. Pick correct word
+5. Or add to list
 
 ### Go to Line
 

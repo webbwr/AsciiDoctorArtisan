@@ -109,8 +109,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **v1.8.0 In Progress (November 2, 2025):**
 - ✅ Find & Replace system (Phase 1-4 complete)
-- 📋 Spell checker integration
-- 📋 Telemetry system (opt-in)
+- ✅ Spell checker integration (complete)
+- ✅ F11 keyboard shortcut for theme toggle
+- 📋 Telemetry system (opt-in, planned)
 
 ## What's New in v1.8.0 (In Progress)
 
@@ -149,8 +150,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
    - **Test Coverage:** 54 tests passing (21 FindBar + 33 SearchEngine)
 
+2. **Spell Checker Integration** ✅ (Complete)
+   - **SpellChecker** core engine (`core/spell_checker.py`)
+     * Real-time spell checking with pyspellchecker
+     * Word-by-word checking with suggestions
+     * Custom dictionary support (persists across sessions)
+     * Multiple language support (en, es, fr, de, etc.)
+     * Session-based word ignoring
+     * Fast regex pattern matching
+
+   - **SpellCheckManager** UI integration (`ui/spell_check_manager.py`)
+     * Red squiggly underlines for misspelled words
+     * Debounced checking (500ms delay after typing stops)
+     * Right-click context menu with up to 5 suggestions
+     * "Add to Dictionary" (persists)
+     * "Ignore Word" (session only)
+     * Standard editor actions (Cut, Copy, Paste, Select All)
+
+   - **Keyboard Shortcuts:**
+     * `F7` - Toggle spell checking on/off
+     * Right-click - Context menu with suggestions
+
+   - **Settings Integration:**
+     * `spell_check_enabled: bool` (default: True)
+     * `spell_check_language: str` (default: "en")
+     * `spell_check_custom_words: List[str]` (persists)
+
+3. **Theme Toggle Enhancement** ✅ (Complete)
+   - **F11 Keyboard Shortcut:**
+     * `F11` - Toggle between Dark and Light themes
+     * Syncs with View menu checkbox
+     * Updates all UI elements (editor, preview, chat, labels)
+     * Persists theme preference across restarts
+
 **Remaining Features:**
-- 📋 Spell checker integration (planned)
 - 📋 Telemetry system (opt-in, planned)
 
 ## Quick Start for New Developers
@@ -580,6 +613,8 @@ StatusManager.show_message("PR #42 created!")
 | `src/asciidoc_artisan/ui/chat_manager.py` | Chat orchestration layer (v1.7.0) |
 | `src/asciidoc_artisan/core/search_engine.py` | Text search and replace engine (v1.8.0) |
 | `src/asciidoc_artisan/ui/find_bar_widget.py` | Find/Replace bar widget (collapsible, v1.8.0) |
+| `src/asciidoc_artisan/core/spell_checker.py` | Spell checking engine with pyspellchecker (v1.8.0) |
+| `src/asciidoc_artisan/ui/spell_check_manager.py` | Spell check UI integration and context menu (v1.8.0) |
 | `src/asciidoc_artisan/ui/github_handler.py` | GitHub UI coordination and dialog management (v1.6.0) |
 | `src/asciidoc_artisan/ui/github_dialogs.py` | GitHub dialogs for PR/Issue management (v1.6.0) |
 | `src/document_converter.py` | Document import/export (DOCX, PDF) |
@@ -775,5 +810,5 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 ---
 
 *This file is for Claude Code (claude.ai/code). Last updated: November 2, 2025*
-*Development version: v1.7.1 ✅ COMPLETE (100% test coverage) | Package version: 1.5.0 (pyproject.toml)*
+*Development version: v1.8.0 🚧 IN PROGRESS (Find & Replace ✅, Spell Check ✅, Telemetry 📋) | Package version: 1.5.0 (pyproject.toml)*
 - always apply this core principle to everything you do: "Conceptual simplicity, structural complexity achieves a greater state of humanity."
