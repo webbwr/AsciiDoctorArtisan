@@ -14,9 +14,9 @@
 # PySide6-Essentials includes core Qt modules
 # GPU acceleration is automatic with proper graphics drivers installed
 
-PySide6==6.9.0
-PySide6-Addons==6.9.0
-PySide6-Essentials==6.9.0
+PySide6==6.10.0
+PySide6-Addons==6.10.0
+PySide6-Essentials==6.10.0
 
 # ============================================================================
 # DOCUMENT PROCESSING
@@ -26,24 +26,24 @@ PySide6-Essentials==6.9.0
 asciidoc3==3.2.3
 
 # Document Conversion (requires Pandoc system binary)
-pypandoc==1.13
+pypandoc==1.15
 
 # PDF Text Extraction (GPU optimized)
-pymupdf==1.23.0
+pymupdf==1.26.5
 
 # ============================================================================
 # SYSTEM INTEGRATION
 # ============================================================================
 
 # Secure Credential Storage (OS keyring)
-keyring==24.3.0
+keyring==25.6.0
 
 # System Resource Monitoring
-psutil==5.9.0
+psutil==7.1.3
 
 # Local AI Integration (document conversion)
 # Note: Requires Ollama system binary
-ollama==0.4.0
+ollama==0.6.0
 
 # ============================================================================
 # PERFORMANCE OPTIMIZATION
