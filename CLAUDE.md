@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **GitHub CLI (gh) 2.45.0+**: GitHub integration for PR/Issue management (v1.6.0)
 - **Python 3.14+**: Minimum version required
 
-**Version:** 1.7.3 ✅ COMPLETE (AI Model Validation with Real-time Status Updates)
+**Version:** 1.8.0 🚧 IN PROGRESS (Find & Replace + Essential Features)
 **Package Version:** 1.7.3 (see `pyproject.toml`)
 
 **Architecture:**
@@ -44,7 +44,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **v1.7.0**: Ollama AI Chat with 4 context modes (Document Q&A, Syntax Help, General, Editing)
 - **v1.7.1**: 100% test coverage (82/82 tests), comprehensive documentation
 - **v1.7.4**: Installation validator, dependency updater, optimized startup (-OO flag)
-- **Current**: Production-ready with AI chat, hardware acceleration, 100% test coverage
+- **v1.8.0**: Find & Replace system (search engine, collapsible UI, keyboard shortcuts)
+- **Current**: Production-ready with AI chat, hardware acceleration, Find & Replace
 
 ## What's New in v1.5.0
 
@@ -106,10 +107,51 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Ollama integration verified and documented
 - ✅ Production-ready quality
 
-**v1.8.0 Planned (Q1-Q2 2026):**
-- 📋 Find & Replace system
+**v1.8.0 In Progress (November 2, 2025):**
+- ✅ Find & Replace system (Phase 1-4 complete)
 - 📋 Spell checker integration
 - 📋 Telemetry system (opt-in)
+
+## What's New in v1.8.0 (In Progress)
+
+**Status:** 🚧 IN PROGRESS (November 2, 2025)
+
+**Completed Features:**
+
+1. **Find & Replace System** ✅ (Phases 1-4 Complete)
+   - **SearchEngine** core logic (`core/search_engine.py`)
+     * Fast regex-based search (50ms for 10K lines)
+     * Case-sensitive/insensitive search
+     * Whole word matching
+     * Find next/previous with wrap-around
+     * Replace all with confirmation dialog
+
+   - **FindBarWidget** UI (`ui/find_bar_widget.py`)
+     * Non-modal find bar at bottom of window (VSCode-style)
+     * Live search as you type
+     * Match counter (e.g., "5 of 23")
+     * Yellow highlighting for all matches
+     * Collapsible replace controls (toggle with ▶/▼ button)
+     * Two-row layout: Find row + Replace row
+
+   - **Keyboard Shortcuts:**
+     * `Ctrl+F` - Open Find
+     * `Ctrl+H` - Open Find & Replace
+     * `F3` - Find Next
+     * `Shift+F3` - Find Previous
+     * `Esc` - Close find bar
+
+   - **Replace Operations:**
+     * Single replace: Replace current match, find next
+     * Replace All: Confirmation dialog, bulk replacement
+     * Case-sensitive support
+     * Status bar feedback with replacement count
+
+   - **Test Coverage:** 54 tests passing (21 FindBar + 33 SearchEngine)
+
+**Remaining Features:**
+- 📋 Spell checker integration (planned)
+- 📋 Telemetry system (opt-in, planned)
 
 ## Quick Start for New Developers
 
@@ -536,6 +578,8 @@ StatusManager.show_message("PR #42 created!")
 | `src/asciidoc_artisan/ui/chat_bar_widget.py` | Chat input controls (v1.7.0) |
 | `src/asciidoc_artisan/ui/chat_panel_widget.py` | Chat message display (v1.7.0) |
 | `src/asciidoc_artisan/ui/chat_manager.py` | Chat orchestration layer (v1.7.0) |
+| `src/asciidoc_artisan/core/search_engine.py` | Text search and replace engine (v1.8.0) |
+| `src/asciidoc_artisan/ui/find_bar_widget.py` | Find/Replace bar widget (collapsible, v1.8.0) |
 | `src/asciidoc_artisan/ui/github_handler.py` | GitHub UI coordination and dialog management (v1.6.0) |
 | `src/asciidoc_artisan/ui/github_dialogs.py` | GitHub dialogs for PR/Issue management (v1.6.0) |
 | `src/document_converter.py` | Document import/export (DOCX, PDF) |
