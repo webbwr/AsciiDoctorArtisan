@@ -15,8 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **GitHub CLI (gh) 2.45.0+**: GitHub integration for PR/Issue management (v1.6.0)
 - **Python 3.14+**: Minimum version required
 
-**Version:** 1.8.0 🚧 IN PROGRESS (Find & Replace + Essential Features)
-**Package Version:** 1.7.3 (see `pyproject.toml`)
+**Version:** 1.8.0 ✅ COMPLETE (Find & Replace, Spell Checker, Telemetry)
+**Package Version:** 1.5.0 (see `pyproject.toml`)
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane
