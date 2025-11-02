@@ -1007,11 +1007,9 @@ class ActionManager:
 
         # External Tools Status
         tools_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
-        tools_menu.addAction(self.pandoc_formats_act)  # Show supported formats
 
         # AI Status submenu (Ollama + Anthropic integration)
         ai_status_menu = tools_menu.addMenu("&AI Status")
-        ai_status_menu.addAction(self.ollama_status_act)  # Check Ollama status
         ai_status_menu.addAction(self.ollama_settings_act)  # Configure Ollama
         ai_status_menu.addAction(self.anthropic_settings_act)  # Configure Anthropic API key
 
@@ -1024,6 +1022,12 @@ class ActionManager:
         # === HELP MENU ===
         help_menu = menubar.addMenu("&Help")
         help_menu.addAction(self.about_act)  # Show About dialog
+
+        help_menu.addSeparator()
+
+        # System Status Information
+        help_menu.addAction(self.ollama_status_act)  # Check Ollama AI status
+        help_menu.addAction(self.pandoc_formats_act)  # Show Pandoc supported formats
 
         # All menus created! Log success message
         logger.debug("Menus created successfully")
