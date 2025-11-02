@@ -36,8 +36,11 @@ qasync>=0.28.0
 # Data validation and settings (v1.7.0 - enhanced type safety)
 pydantic>=2.0.0
 
-# AI document conversion (Ollama integration)
+# AI document conversion and chat (Ollama integration v1.2+, chat v1.7.0)
 # Note: Requires Ollama system binary for local AI features
+# Install: curl https://ollama.ai/install.sh | sh (Linux/Mac)
+# Download: https://ollama.ai/download (Windows)
+# Models: ollama pull phi3:mini (recommended for AsciiDoc Artisan)
 ollama>=0.4.0
 
 # ============================================================================
