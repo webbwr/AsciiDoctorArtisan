@@ -43,6 +43,33 @@ This folder has old project documents. These documents are done. They tell the h
 - What it covered: Plan for streamlining and organizing all docs
 - Result: 5 fixes implemented, 2 files archived, paths corrected
 
+### Test Refactoring Plans (November 2025)
+
+**TEST_REFACTORING_MASTER_ROADMAP.md** - Complete refactoring roadmap
+- Made in: November 2, 2025
+- What it covered: 4-phase plan to optimize 1,294 tests
+- Impact: 170-250 test reduction, 30-40% maintenance savings
+
+**TEST_REFACTORING_PHASE1_PLAN.md** - Quick wins (ZERO risk)
+- Time: 2-3 hours
+- Tasks: Remove 21 duplicate fixtures, delete 1 duplicate file
+- Reduction: ~30-40 tests
+
+**TEST_REFACTORING_PHASE2_PLAN.md** - Parametrization (LOW risk)
+- Time: 4-6 hours
+- Tasks: Convert 8 test groups to use @pytest.mark.parametrize
+- Reduction: ~20-30 tests
+
+**TEST_REFACTORING_PHASE3_PLAN.md** - Consolidation (MEDIUM risk)
+- Time: 8-12 hours
+- Tasks: Merge 4 test groups (GPU, Async, Preview, Chat)
+- Reduction: ~110-160 tests, -7 files
+
+**TEST_REFACTORING_PHASE4_PLAN.md** - Optimization (LOW-MEDIUM risk)
+- Time: 4-6 hours
+- Tasks: Strengthen weak tests, optimize slow tests
+- Reduction: ~10-20 tests, 10-20% faster execution
+
 ### Chat Feature Work (November 2025)
 
 **CHAT_COMPLETION_REPORT.md** - Session report

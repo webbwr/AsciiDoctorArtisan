@@ -44,9 +44,10 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 **Core Principles:**
 1. **Performance First** - Fast startup, responsive UI, efficient rendering
-2. **Extensibility** - Plugin architecture for community contributions
-3. **Quality** - High test coverage, type safety, comprehensive documentation
-4. **User-Centric** - Essential features, intuitive UX, accessibility
+2. **MA** - Minimalism: conceptual simplicity, structural complexity achieves a greater state of humanity
+3. **Extensibility** - Plugin architecture for community contributions
+4. **Quality** - High test coverage, type safety, comprehensive documentation
+5. **User-Centric** - Essential features, intuitive UX, accessibility
 
 ---
 
