@@ -414,8 +414,10 @@ class InstallationValidatorDialog(QDialog):
         self.setWindowTitle("Installation Validator")
         self.setMinimumSize(700, 600)
         self.worker: Optional[ValidationWorker] = None
+        self.parent_editor = parent  # Store reference to parent for theme access
 
         self._setup_ui()
+        self._apply_theme()  # Apply theme before validation
         self._start_validation()
 
     def _setup_ui(self):
@@ -423,23 +425,22 @@ class InstallationValidatorDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Header
-        header = QLabel("Installation Validator")
-        header.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;")
-        layout.addWidget(header)
+        self.header = QLabel("Installation Validator")
+        self.header.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;")
+        layout.addWidget(self.header)
 
-        description = QLabel(
+        # Description
+        self.description = QLabel(
             "This tool validates all application requirements and allows you to\n"
             "update Python dependencies to their latest versions."
         )
-        description.setStyleSheet("padding: 5px 10px; color: gray;")
-        layout.addWidget(description)
+        self.description.setStyleSheet("padding: 5px 10px;")
+        layout.addWidget(self.description)
 
         # Results display
         self.results_text = QTextEdit()
         self.results_text.setReadOnly(True)
-        self.results_text.setStyleSheet(
-            "font-family: monospace; padding: 10px; background-color: #f5f5f5; color: #000000;"
-        )
+        self.results_text.setStyleSheet("font-family: monospace; padding: 10px;")
         layout.addWidget(self.results_text)
 
         # Progress bar (hidden initially)
@@ -462,9 +463,6 @@ class InstallationValidatorDialog(QDialog):
         button_layout.addWidget(self.validate_btn)
 
         self.update_btn = QPushButton("Update Dependencies")
-        self.update_btn.setStyleSheet(
-            "background-color: #4CAF50; color: white; font-weight: bold; padding: 8px;"
-        )
         self.update_btn.clicked.connect(self._start_update)
         button_layout.addWidget(self.update_btn)
 
@@ -475,6 +473,69 @@ class InstallationValidatorDialog(QDialog):
         button_layout.addWidget(self.close_btn)
 
         layout.addLayout(button_layout)
+
+    def _apply_theme(self):
+        """Apply theme based on parent editor's dark mode setting."""
+        # Check if parent has settings and dark mode attribute
+        if self.parent_editor and hasattr(self.parent_editor, "_settings"):
+            dark_mode = self.parent_editor._settings.dark_mode
+        else:
+            # Default to light mode if parent not available
+            dark_mode = False
+
+        if dark_mode:
+            # Dark theme colors
+            dialog_bg = "#2b2b2b"
+            text_color = "#e0e0e0"
+            desc_color = "#a0a0a0"
+            results_bg = "#1e1e1e"
+            results_text = "#d0d0d0"
+            button_bg = "#3c3c3c"
+            button_text = "#e0e0e0"
+            update_btn_bg = "#2e7d32"  # Darker green for dark mode
+            update_btn_text = "#ffffff"
+        else:
+            # Light theme colors
+            dialog_bg = "#ffffff"
+            text_color = "#000000"
+            desc_color = "#666666"
+            results_bg = "#f5f5f5"
+            results_text = "#000000"
+            button_bg = "#f0f0f0"
+            button_text = "#000000"
+            update_btn_bg = "#4CAF50"  # Bright green for light mode
+            update_btn_text = "#ffffff"
+
+        # Apply to dialog
+        self.setStyleSheet(f"background-color: {dialog_bg}; color: {text_color};")
+
+        # Apply to header
+        self.header.setStyleSheet(
+            f"font-size: 16px; font-weight: bold; padding: 10px; color: {text_color};"
+        )
+
+        # Apply to description
+        self.description.setStyleSheet(f"padding: 5px 10px; color: {desc_color};")
+
+        # Apply to results text
+        self.results_text.setStyleSheet(
+            f"font-family: monospace; padding: 10px; "
+            f"background-color: {results_bg}; color: {results_text};"
+        )
+
+        # Apply to buttons
+        self.validate_btn.setStyleSheet(
+            f"background-color: {button_bg}; color: {button_text}; padding: 8px;"
+        )
+
+        self.update_btn.setStyleSheet(
+            f"background-color: {update_btn_bg}; color: {update_btn_text}; "
+            f"font-weight: bold; padding: 8px;"
+        )
+
+        self.close_btn.setStyleSheet(
+            f"background-color: {button_bg}; color: {button_text}; padding: 8px;"
+        )
 
     def _start_validation(self):
         """Start validation in background thread."""
