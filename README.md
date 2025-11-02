@@ -6,6 +6,7 @@ A simple program. It helps you write papers. It is very fast.
 
 This program does many things:
 - Shows your work as you type
+- Finds and changes words (new!)
 - Saves your work with Git
 - Works with GitHub
 - Opens Word files
@@ -17,7 +18,7 @@ This program does many things:
 - Works on all computers
 - Uses your graphics card (GPU) for speed
 - Works with AI to help you
-- Chat with AI about your work (new!)
+- Chat with AI about your work
 
 The GPU makes it 10-50x faster. That means much faster than before.
 
@@ -118,6 +119,9 @@ The `-OO` flag makes it faster. It removes doc text. It uses less memory.
 | Ctrl+S | Save |
 | Ctrl+Q | Close |
 | Ctrl+F | Find text |
+| Ctrl+H | Find and replace text |
+| F3 | Find next |
+| Shift+F3 | Find before |
 | Ctrl+D | Dark mode |
 | Ctrl++ | Make text big |
 | Ctrl+- | Make text small |
@@ -159,6 +163,36 @@ The program changes it to AsciiDoc for you.
 4. Click the Save button
 
 The program changes it for you. No wait time.
+
+### Find and Replace
+
+New in v1.8!
+
+You can find words in your work. You can change them too.
+
+**To find words:**
+1. Press `Ctrl+F`
+2. Type what you want to find
+3. It shows all matches in yellow
+4. Click `Next` to go to each one
+5. Click `Previous` to go back
+
+The bar shows how many it found (like "5 of 23").
+
+**To change words:**
+1. Press `Ctrl+H`
+2. Type what you want to find
+3. Type what you want instead
+4. Click `Replace` to change one at a time
+5. Click `Replace All` to change them all
+
+When you click `Replace All`, it asks you first. This keeps you safe.
+
+**Match case:**
+- Check the box to match big and small letters
+- Uncheck to match all letters the same
+
+Press `Esc` to close the find bar.
 
 ### Use Git
 
