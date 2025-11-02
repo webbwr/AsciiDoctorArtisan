@@ -138,9 +138,9 @@ class ChatManager(QObject):
         """
         Automatically download the default model if Ollama is running but no models installed.
 
-        Runs 'ollama pull qwen2.5-coder:7b' in background and updates status.
+        Runs 'ollama pull gnokit/improve-grammer' in background and updates status.
         """
-        default_model = "qwen2.5-coder:7b"
+        default_model = "gnokit/improve-grammer"
         logger.info(f"Auto-downloading default model: {default_model}")
         self.status_message.emit(f"Downloading {default_model}... (this may take a few minutes)")
 
@@ -218,7 +218,7 @@ class ChatManager(QObject):
         # Fallback to default models if detection failed
         if not models:
             models = [
-                "qwen2.5-coder:7b",
+                "gnokit/improve-grammer",
                 "phi3:mini",
                 "deepseek-coder",
                 "codellama",

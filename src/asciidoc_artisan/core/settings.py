@@ -78,7 +78,7 @@ class Settings:
     auto_save_interval: int = 300
     ai_conversion_enabled: bool = False
     ollama_enabled: bool = True  # Enable Ollama by default for chat
-    ollama_model: Optional[str] = "qwen2.5-coder:7b"  # Default model for chat
+    ollama_model: Optional[str] = "gnokit/improve-grammer"  # Default model for chat
 
     # Chat settings (v1.7.0)
     ollama_chat_enabled: bool = True  # Enable chat by default

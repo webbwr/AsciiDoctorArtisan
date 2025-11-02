@@ -15,11 +15,11 @@
 - **Binary:** `/usr/local/bin/ollama`
 - **Status:** ✅ INSTALLED and RUNNING
 - **Available Models:**
-  - `phi3:mini` (2.2 GB) - Recommended for AsciiDoc Artisan
+  - `gnokit/improve-grammer` - Default model for AsciiDoc Artisan
+  - `phi3:mini` (2.2 GB) - Recommended alternative
   - `deepseek-coder:6.7b` (3.8 GB)
   - `qwen3-coder:30b` (18 GB)
   - `qwen3:30b` (18 GB)
-  - `gpt-oss:20b-cloud`
 
 ## Integration Points
 

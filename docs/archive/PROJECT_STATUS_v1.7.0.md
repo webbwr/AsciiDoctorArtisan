@@ -183,11 +183,11 @@ Current coverage for Ollama Chat feature:
 
 | Model | Size | Speed | Use Case |
 |-------|------|-------|----------|
-| **phi3:mini** ⭐ | 2.2 GB | Fast | Recommended for AsciiDoc Artisan |
+| **gnokit/improve-grammer** ⭐ | - | Fast | Default model for AsciiDoc Artisan |
+| phi3:mini | 2.2 GB | Fast | Recommended alternative |
 | deepseek-coder:6.7b | 3.8 GB | Medium | Better code understanding |
 | qwen3-coder:30b | 18 GB | Slow | High quality code assistance |
 | qwen3:30b | 18 GB | Slow | General purpose, high quality |
-| gpt-oss:20b-cloud | - | Varies | Cloud-based model |
 
 ### Integration Points
 
