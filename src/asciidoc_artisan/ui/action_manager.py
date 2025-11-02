@@ -793,6 +793,14 @@ class ActionManager:
             self.window._show_font_settings,
         )
 
+        # Spell Check Toggle - enable/disable spell checking (F7)
+        self.toggle_spell_check_act = self._create_action(
+            "Toggle &Spell Check",
+            "Enable or disable spell checking (F7)",
+            self.window.spell_check_manager.toggle_spell_check,
+            shortcut=Qt.Key.Key_F7,
+        )
+
         # Application Settings - edit all stored settings
         self.app_settings_act = self._create_action(
             "Application &Settings...",
@@ -998,6 +1006,7 @@ class ActionManager:
         # Appearance (theme)
         tools_menu.addAction(self.toggle_theme_act)  # Toggle dark/light theme
         tools_menu.addAction(self.font_settings_act)  # Customize fonts
+        tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7)
 
         tools_menu.addSeparator()
 

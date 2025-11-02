@@ -8,7 +8,7 @@ Implements specification requirement: Line Numbers (Editor Specifications).
 from typing import Any, Optional
 
 from PySide6.QtCore import QRect, QSize, Qt
-from PySide6.QtGui import QColor, QPainter, QPaintEvent, QResizeEvent
+from PySide6.QtGui import QColor, QContextMenuEvent, QPainter, QPaintEvent, QResizeEvent
 from PySide6.QtWidgets import QPlainTextEdit, QWidget
 
 
@@ -195,3 +195,19 @@ class LineNumberPlainTextEdit(LineNumberMixin, QPlainTextEdit):
         """
         super().__init__(parent)
         self.setup_line_numbers()
+        self.spell_check_manager = None  # Set by main window
+
+    def contextMenuEvent(self, event: QContextMenuEvent) -> None:
+        """
+        Handle context menu event (right-click).
+
+        If spell check manager is set and enabled, use its context menu
+        with spelling suggestions. Otherwise, use default context menu.
+
+        Args:
+            event: Context menu event
+        """
+        if self.spell_check_manager is not None:
+            self.spell_check_manager.show_context_menu(event)
+        else:
+            super().contextMenuEvent(event)

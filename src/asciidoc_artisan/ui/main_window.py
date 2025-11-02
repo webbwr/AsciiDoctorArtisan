@@ -165,6 +165,7 @@ from asciidoc_artisan.ui.scroll_manager import (  # Syncs editor/preview scroll
     ScrollManager,
 )
 from asciidoc_artisan.ui.settings_manager import SettingsManager  # Loads/saves settings
+from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager  # Spell checking
 from asciidoc_artisan.ui.status_manager import StatusManager  # Status bar updates
 from asciidoc_artisan.ui.theme_manager import ThemeManager  # Dark/light mode switcher
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager  # Sets up UI widgets
@@ -347,6 +348,13 @@ class AsciiDocEditor(QMainWindow):
         # === Find & Search System (v1.8.0) ===
         # SearchEngine must be initialized AFTER UISetupManager creates find_bar
         self._setup_find_system()
+
+        # === Spell Check System (v1.8.0) ===
+        # SpellCheckManager must be initialized AFTER UISetupManager creates editor
+        self.spell_check_manager = SpellCheckManager(self)
+        # Connect editor to spell check manager for context menu
+        self.editor.spell_check_manager = self.spell_check_manager
+        logger.info("SpellCheckManager initialized")
 
         # === Finalization ===
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)

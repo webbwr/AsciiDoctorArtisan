@@ -314,6 +314,20 @@ def __getattr__(name: str) -> Any:
         # Return the cached class/function
         return _MODULE_CACHE[name]
 
+    # === GROUP 6: SPELL CHECKER (v1.8.0) ===
+    # Integrated spell checking with custom dictionary support
+    if name in ("SpellChecker", "SpellError"):
+        # Check if we've already imported spell checker
+        if name not in _MODULE_CACHE:
+            # First time accessing spell checker - import it now
+            from . import spell_checker
+
+            # Get the class and cache it
+            _MODULE_CACHE[name] = getattr(spell_checker, name)
+
+        # Return the cached class
+        return _MODULE_CACHE[name]
+
     # === UNKNOWN ATTRIBUTE ===
     # If we get here, they asked for something not in our public API
     # Raise AttributeError (same as Python does for missing attributes)
@@ -387,6 +401,10 @@ __all__ = [
     "async_read_json",  # Read JSON file asynchronously
     "async_copy_file",  # Copy file asynchronously (chunked for large files)
     "AsyncFileContext",  # Async context manager for file operations
+    # === SPELL CHECKER (v1.8.0) ===
+    # Integrated spell checking with custom dictionary support
+    "SpellChecker",  # Main spell checker class (word checking, suggestions)
+    "SpellError",  # Data structure for spelling errors (word, position, suggestions)
     # === CONSTANTS - APPLICATION METADATA ===
     # Basic application information
     "APP_NAME",  # "AsciiDoc Artisan" (shown in title bar, about dialog)

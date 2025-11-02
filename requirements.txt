@@ -43,6 +43,10 @@ pydantic>=2.0.0
 # Models: ollama pull phi3:mini (recommended for AsciiDoc Artisan)
 ollama>=0.4.0
 
+# Spell checking (v1.8.0 - integrated spell checker)
+# Pure Python spell checker with built-in dictionaries
+pyspellchecker>=0.8.0
+
 # ============================================================================
 # DEVELOPMENT DEPENDENCIES (Optional - for testing and code quality)
 # ============================================================================

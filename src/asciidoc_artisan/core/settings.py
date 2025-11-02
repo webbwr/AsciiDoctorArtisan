@@ -25,9 +25,9 @@ class Settings:
     """
     Application settings with persistence support.
 
-    Attributes match the specification in SPECIFICATIONS.md (v1.7.0).
+    Attributes match the specification in SPECIFICATIONS.md (v1.8.0).
 
-    All 24 fields (13 original + 5 chat settings + 6 font settings):
+    All 27 fields (13 original + 5 chat settings + 6 font settings + 3 spell check):
 
     Core Settings:
     - last_directory: Last directory used for file operations
@@ -60,6 +60,11 @@ class Settings:
     - ollama_chat_max_history: Maximum messages to store (default: 100)
     - ollama_chat_context_mode: Default interaction mode (document/syntax/general/editing)
     - ollama_chat_send_document: Include document content in context
+
+    Spell Check Settings (v1.8.0):
+    - spell_check_enabled: Enable spell checking (default: True)
+    - spell_check_language: Language code (default: "en")
+    - spell_check_custom_words: Custom dictionary words
 
     Security Note:
         Settings are stored locally only. No data is sent to cloud services.
@@ -94,6 +99,11 @@ class Settings:
     preview_font_size: int = 12
     chat_font_family: str = "Arial"
     chat_font_size: int = 11
+
+    # Spell check settings (v1.8.0)
+    spell_check_enabled: bool = True
+    spell_check_language: str = "en"
+    spell_check_custom_words: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """
