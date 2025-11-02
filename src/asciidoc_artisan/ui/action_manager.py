@@ -58,7 +58,7 @@ SPECIFICATIONS IMPLEMENTED:
 
 MENU STRUCTURE:
 File    Edit    View    Git        Tools           Help
-├─New   ├─Undo  ├─Zoom  ├─Set Repo ├─AI Status     ├─About
+├─New   ├─Undo  ├─Zoom  ├─Set Repo ├─AI Settings   ├─About
 ├─Open  ├─Redo  ├─Dark  ├─Commit   │ ├─Ollama
 ├─Save  ├─Cut   ├─Sync  ├─Pull     ├─Pandoc Status
 ├─Save As Copy  ├─Max   ├─Push     └─Pandoc Formats
@@ -858,7 +858,7 @@ class ActionManager:
         - Edit: Undo, Redo, Cut, Copy, Paste, Convert & Paste, Find & Replace
         - View: Zoom In/Out, Dark Mode, Sync Scrolling, Maximize Editor/Preview
         - Git: Set Repo, Commit, Pull, Push, GitHub submenu (5 actions)
-        - Tools: Validation, Theme/Font/Spell, Pandoc/AI Status, Preferences, Settings
+        - Tools: Validation, Theme/Font/Spell, Pandoc/AI Settings, Preferences, Settings
         - Help: About
 
         SEPARATORS:
@@ -1013,10 +1013,10 @@ class ActionManager:
 
         tools_menu.addSeparator()
 
-        # AI Status submenu (Ollama + Anthropic integration)
-        ai_status_menu = tools_menu.addMenu("&AI Status")
-        ai_status_menu.addAction(self.ollama_settings_act)  # Configure Ollama
-        ai_status_menu.addAction(self.anthropic_settings_act)  # Configure Anthropic API key
+        # AI Settings submenu (Ollama + Anthropic integration)
+        ai_settings_menu = tools_menu.addMenu("&AI Settings")
+        ai_settings_menu.addAction(self.ollama_settings_act)  # Configure Ollama
+        ai_settings_menu.addAction(self.anthropic_settings_act)  # Configure Anthropic API key
 
         # Separator before settings
         tools_menu.addSeparator()
