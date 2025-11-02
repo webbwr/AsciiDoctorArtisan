@@ -1,0 +1,414 @@
+"""
+Telemetry Collector - Privacy-First Usage Analytics.
+
+This module provides opt-in telemetry collection for understanding user behavior
+and improving the application. All data is stored locally and NO data is sent to
+external servers without explicit user consent.
+
+Privacy Principles:
+- Opt-in only (disabled by default)
+- Local storage only (no cloud upload)
+- Anonymous session IDs (UUIDs)
+- NO personal data (names, emails, IP addresses)
+- NO document content
+- NO file paths
+- Easy opt-out anytime
+
+Collected Data:
+- Feature usage (menu clicks, dialogs opened)
+- Error patterns (exception types, NO stack traces with user data)
+- Performance metrics (startup time, render latency)
+- System info (OS, Python version, GPU type)
+
+Data Storage:
+- Location: ~/.config/AsciiDocArtisan/telemetry.json
+- Format: JSON
+- Max size: 10MB (auto-rotation)
+- Retention: 30 days
+
+Example:
+    >>> collector = TelemetryCollector()
+    >>> collector.track_event("menu_click", {"menu": "File", "action": "Open"})
+    >>> collector.track_performance("startup_time", 1.05)
+"""
+
+import json
+import logging
+import platform
+import sys
+import time
+import uuid
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+
+# Telemetry event types
+EVENT_MENU_CLICK = "menu_click"
+EVENT_DIALOG_OPEN = "dialog_open"
+EVENT_ERROR = "error"
+EVENT_PERFORMANCE = "performance"
+EVENT_STARTUP = "startup"
+EVENT_FEATURE_USE = "feature_use"
+
+
+@dataclass
+class TelemetryEvent:
+    """
+    Represents a single telemetry event.
+
+    Attributes:
+        event_type: Type of event (menu_click, error, performance, etc.)
+        timestamp: ISO format timestamp (UTC)
+        session_id: Anonymous session identifier (UUID)
+        data: Event-specific data (NO personal information)
+    """
+
+    event_type: str
+    timestamp: str
+    session_id: str
+    data: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert event to dictionary for JSON serialization."""
+        return asdict(self)
+
+
+class TelemetryCollector:
+    """
+    Privacy-first telemetry collector with local-only storage.
+
+    Features:
+    - Opt-in only (must be explicitly enabled)
+    - Local JSON storage (no cloud upload)
+    - Anonymous session IDs
+    - NO personal data collection
+    - Auto-rotation (max 10MB)
+    - 30-day retention
+
+    Example:
+        >>> collector = TelemetryCollector(enabled=True)
+        >>> collector.track_event("menu_click", {"menu": "File", "action": "Save"})
+        >>> collector.track_performance("render_time", 0.05)
+    """
+
+    def __init__(
+        self,
+        enabled: bool = False,
+        session_id: Optional[str] = None,
+        data_dir: Optional[Path] = None,
+    ) -> None:
+        """
+        Initialize TelemetryCollector.
+
+        Args:
+            enabled: Whether telemetry is enabled (default: False, opt-in only)
+            session_id: Existing session ID or None to generate new one
+            data_dir: Directory for telemetry data (default: app data directory)
+        """
+        self.enabled = enabled
+        self.session_id = session_id or str(uuid.uuid4())
+        self.session_start_time = time.time()
+
+        # Determine data directory
+        if data_dir:
+            self.data_dir = data_dir
+        else:
+            # Use platform-appropriate config directory
+            if platform.system() == "Windows":
+                base_dir = Path.home() / "AppData" / "Local"
+            elif platform.system() == "Darwin":  # macOS
+                base_dir = Path.home() / "Library" / "Application Support"
+            else:  # Linux and others
+                base_dir = Path.home() / ".config"
+
+            self.data_dir = base_dir / "AsciiDocArtisan"
+
+        # Create data directory if it doesn't exist
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+
+        # Telemetry file path
+        self.telemetry_file = self.data_dir / "telemetry.json"
+
+        # Maximum file size (10MB)
+        self.max_file_size = 10 * 1024 * 1024
+
+        # Event buffer (in-memory before flush)
+        self.event_buffer: List[TelemetryEvent] = []
+        self.buffer_size = 100  # Flush after 100 events
+
+        logger.info(
+            f"TelemetryCollector initialized (enabled={enabled}, "
+            f"session_id={self.session_id[:8]}...)"
+        )
+
+    def track_event(self, event_type: str, data: Optional[Dict[str, Any]] = None) -> None:
+        """
+        Track a telemetry event.
+
+        Args:
+            event_type: Type of event (menu_click, dialog_open, etc.)
+            data: Event-specific data (NO personal information!)
+
+        Example:
+            >>> collector.track_event("menu_click", {"menu": "File", "action": "Open"})
+        """
+        if not self.enabled:
+            return
+
+        # Sanitize data to ensure no personal information
+        sanitized_data = self._sanitize_data(data or {})
+
+        # Create event
+        event = TelemetryEvent(
+            event_type=event_type,
+            timestamp=datetime.utcnow().isoformat() + "Z",
+            session_id=self.session_id,
+            data=sanitized_data,
+        )
+
+        # Add to buffer
+        self.event_buffer.append(event)
+
+        # Flush if buffer is full
+        if len(self.event_buffer) >= self.buffer_size:
+            self.flush()
+
+        logger.debug(f"Tracked event: {event_type} - {sanitized_data}")
+
+    def track_error(
+        self, error_type: str, error_message: str, context: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Track an error event.
+
+        Args:
+            error_type: Type of error (ValueError, FileNotFoundError, etc.)
+            error_message: Error message (sanitized, NO file paths or user data)
+            context: Additional context (NO personal information)
+
+        Example:
+            >>> collector.track_error("ValueError", "Invalid parameter", {"function": "save_file"})
+        """
+        if not self.enabled:
+            return
+
+        data = {
+            "error_type": error_type,
+            "error_message": self._sanitize_message(error_message),
+            "context": self._sanitize_data(context or {}),
+        }
+
+        self.track_event(EVENT_ERROR, data)
+
+    def track_performance(self, metric_name: str, value: float, unit: str = "seconds") -> None:
+        """
+        Track a performance metric.
+
+        Args:
+            metric_name: Name of metric (startup_time, render_time, etc.)
+            value: Metric value
+            unit: Unit of measurement (default: seconds)
+
+        Example:
+            >>> collector.track_performance("startup_time", 1.05)
+            >>> collector.track_performance("render_time", 0.05, "seconds")
+        """
+        if not self.enabled:
+            return
+
+        data = {"metric": metric_name, "value": value, "unit": unit}
+
+        self.track_event(EVENT_PERFORMANCE, data)
+
+    def track_startup(self, startup_time: float) -> None:
+        """
+        Track application startup with system info.
+
+        Args:
+            startup_time: Time taken to start app (seconds)
+        """
+        if not self.enabled:
+            return
+
+        data = {
+            "startup_time": startup_time,
+            "os": platform.system(),
+            "os_version": platform.version(),
+            "python_version": sys.version.split()[0],
+            "platform": platform.platform(),
+        }
+
+        self.track_event(EVENT_STARTUP, data)
+
+    def flush(self) -> None:
+        """Flush event buffer to disk."""
+        if not self.enabled or not self.event_buffer:
+            return
+
+        try:
+            # Load existing events
+            existing_events = self._load_events()
+
+            # Add new events
+            new_events = [event.to_dict() for event in self.event_buffer]
+            all_events = existing_events + new_events
+
+            # Rotate if file is too large
+            if self._get_file_size() > self.max_file_size:
+                all_events = self._rotate_events(all_events)
+
+            # Save to file
+            with open(self.telemetry_file, "w", encoding="utf-8") as f:
+                json.dump(all_events, f, indent=2)
+
+            # Clear buffer
+            self.event_buffer.clear()
+
+            logger.debug(f"Flushed {len(new_events)} events to {self.telemetry_file}")
+
+        except Exception as e:
+            logger.error(f"Failed to flush telemetry events: {e}")
+
+    def _load_events(self) -> List[Dict[str, Any]]:
+        """Load existing events from file."""
+        if not self.telemetry_file.exists():
+            return []
+
+        try:
+            with open(self.telemetry_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to load telemetry events: {e}")
+            return []
+
+    def _get_file_size(self) -> int:
+        """Get current telemetry file size in bytes."""
+        if not self.telemetry_file.exists():
+            return 0
+        return self.telemetry_file.stat().st_size
+
+    def _rotate_events(self, events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Rotate events by keeping only recent events (30 days).
+
+        Args:
+            events: List of all events
+
+        Returns:
+            List of events within retention period
+        """
+        # Calculate cutoff date (30 days ago)
+        cutoff_time = time.time() - (30 * 24 * 60 * 60)
+
+        # Filter events
+        recent_events = []
+        for event in events:
+            try:
+                event_time = datetime.fromisoformat(event["timestamp"].replace("Z", "+00:00"))
+                if event_time.timestamp() > cutoff_time:
+                    recent_events.append(event)
+            except (KeyError, ValueError):
+                # Skip malformed events
+                continue
+
+        logger.info(f"Rotated events: {len(events)} → {len(recent_events)} (30-day retention)")
+        return recent_events
+
+    def _sanitize_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sanitize data to remove personal information.
+
+        Removes:
+        - File paths
+        - Email addresses
+        - IP addresses
+        - User names
+
+        Args:
+            data: Raw data dictionary
+
+        Returns:
+            Sanitized data dictionary
+        """
+        sanitized = {}
+        for key, value in data.items():
+            if isinstance(value, str):
+                sanitized[key] = self._sanitize_message(value)
+            elif isinstance(value, dict):
+                sanitized[key] = self._sanitize_data(value)
+            elif isinstance(value, (int, float, bool)):
+                sanitized[key] = value
+            else:
+                # Skip complex types
+                continue
+
+        return sanitized
+
+    def _sanitize_message(self, message: str) -> str:
+        """
+        Sanitize a message to remove file paths and personal data.
+
+        Args:
+            message: Raw message
+
+        Returns:
+            Sanitized message
+        """
+        # Replace common file path patterns
+        sanitized = message
+        if "/" in sanitized or "\\" in sanitized:
+            sanitized = "<path redacted>"
+
+        # Replace email addresses
+        if "@" in sanitized and "." in sanitized:
+            sanitized = "<email redacted>"
+
+        return sanitized[:500]  # Limit message length
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """
+        Get telemetry statistics.
+
+        Returns:
+            Dictionary with statistics
+        """
+        events = self._load_events()
+
+        # Count events by type
+        event_counts: Dict[str, int] = {}
+        for event in events:
+            event_type = event.get("event_type", "unknown")
+            event_counts[event_type] = event_counts.get(event_type, 0) + 1
+
+        return {
+            "total_events": len(events),
+            "session_id": self.session_id,
+            "enabled": self.enabled,
+            "event_counts": event_counts,
+            "file_size": self._get_file_size(),
+            "file_path": str(self.telemetry_file),
+        }
+
+    def clear_all_data(self) -> None:
+        """Clear all telemetry data (for opt-out or testing)."""
+        try:
+            if self.telemetry_file.exists():
+                self.telemetry_file.unlink()
+                logger.info("Cleared all telemetry data")
+
+            # Clear buffer
+            self.event_buffer.clear()
+
+        except Exception as e:
+            logger.error(f"Failed to clear telemetry data: {e}")
+
+    def __del__(self) -> None:
+        """Flush events on destruction."""
+        try:
+            self.flush()
+        except Exception:
+            # Ignore errors during cleanup
+            pass

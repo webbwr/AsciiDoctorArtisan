@@ -66,9 +66,15 @@ class Settings:
     - spell_check_language: Language code (default: "en")
     - spell_check_custom_words: Custom dictionary words
 
+    Telemetry Settings (v1.8.0):
+    - telemetry_enabled: Enable privacy-first telemetry (default: False, opt-in only)
+    - telemetry_session_id: Persistent anonymous session ID (UUID)
+    - telemetry_opt_in_shown: Whether opt-in dialog has been shown
+
     Security Note:
         Settings are stored locally only. No data is sent to cloud services.
         Use Ollama for local AI features (see docs/OLLAMA_SETUP.md).
+        Telemetry is local-only (NO cloud upload) and completely optional.
     """
 
     last_directory: str = field(default_factory=lambda: str(Path.home()))
@@ -104,6 +110,11 @@ class Settings:
     spell_check_enabled: bool = True
     spell_check_language: str = "en"
     spell_check_custom_words: List[str] = field(default_factory=list)
+
+    # Telemetry settings (v1.8.0)
+    telemetry_enabled: bool = False  # Opt-in only (GDPR compliant)
+    telemetry_session_id: Optional[str] = None  # Anonymous UUID, generated on first enable
+    telemetry_opt_in_shown: bool = False  # Whether opt-in dialog has been shown
 
     def to_dict(self) -> Dict[str, Any]:
         """

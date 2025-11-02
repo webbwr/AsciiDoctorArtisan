@@ -356,6 +356,10 @@ class AsciiDocEditor(QMainWindow):
         self.editor.spell_check_manager = self.spell_check_manager
         logger.info("SpellCheckManager initialized")
 
+        # === Telemetry System (v1.8.0) ===
+        # Privacy-first telemetry (opt-in only, local storage)
+        self._setup_telemetry()
+
         # === Finalization ===
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
         self.theme_manager.apply_theme()
@@ -416,6 +420,92 @@ class AsciiDocEditor(QMainWindow):
         )
 
         logger.info("Find & Replace system initialized")
+
+    def _setup_telemetry(self) -> None:
+        """Initialize Telemetry System (v1.8.0).
+
+        Privacy-first telemetry with:
+        - Opt-in only (disabled by default)
+        - Local storage only (NO cloud upload)
+        - Anonymous session IDs
+        - GDPR compliance
+        - Easy opt-out anytime
+        """
+        import time
+        import uuid
+
+        from asciidoc_artisan.core import TelemetryCollector
+
+        # Show opt-in dialog on first launch (if not already shown)
+        if not self._settings.telemetry_opt_in_shown:
+            # Delay dialog to allow UI to fully initialize
+            QTimer.singleShot(1000, lambda: self._show_telemetry_opt_in_dialog())
+            return
+
+        # Initialize telemetry if enabled
+        if self._settings.telemetry_enabled:
+            # Generate session ID if not exists
+            if not self._settings.telemetry_session_id:
+                self._settings.telemetry_session_id = str(uuid.uuid4())
+                self._settings_manager.save_settings(self._settings)
+
+            # Initialize collector
+            self.telemetry_collector = TelemetryCollector(
+                enabled=True, session_id=self._settings.telemetry_session_id
+            )
+
+            # Track startup
+            startup_time = time.time() - getattr(self, "_app_start_time", time.time())
+            self.telemetry_collector.track_startup(startup_time)
+
+            logger.info(
+                f"TelemetryCollector initialized (session: {self._settings.telemetry_session_id[:8]}...)"
+            )
+        else:
+            # Telemetry disabled - create inactive collector
+            self.telemetry_collector = TelemetryCollector(enabled=False)
+            logger.info("TelemetryCollector disabled (opt-in not accepted)")
+
+    def _show_telemetry_opt_in_dialog(self) -> None:
+        """Show telemetry opt-in dialog (first launch only)."""
+        import uuid
+
+        from asciidoc_artisan.core import TelemetryCollector
+        from asciidoc_artisan.ui.telemetry_opt_in_dialog import TelemetryOptInDialog
+
+        dialog = TelemetryOptInDialog(self)
+        result = dialog.exec()
+
+        if result == TelemetryOptInDialog.Result.ACCEPTED:
+            # User accepted - enable telemetry
+            self._settings.telemetry_enabled = True
+            self._settings.telemetry_session_id = str(uuid.uuid4())
+            self._settings.telemetry_opt_in_shown = True
+            self._settings_manager.save_settings(self._settings)
+
+            # Initialize collector
+            self.telemetry_collector = TelemetryCollector(
+                enabled=True, session_id=self._settings.telemetry_session_id
+            )
+
+            logger.info("User accepted telemetry (first launch)")
+
+        elif result == TelemetryOptInDialog.Result.DECLINED:
+            # User declined - keep telemetry disabled
+            self._settings.telemetry_enabled = False
+            self._settings.telemetry_opt_in_shown = True
+            self._settings_manager.save_settings(self._settings)
+
+            # Create inactive collector
+            self.telemetry_collector = TelemetryCollector(enabled=False)
+
+            logger.info("User declined telemetry (first launch)")
+
+        else:
+            # User wants to decide later - don't mark as shown
+            # Dialog will show again on next launch
+            self.telemetry_collector = TelemetryCollector(enabled=False)
+            logger.info("User deferred telemetry decision (first launch)")
 
     def _setup_synchronized_scrolling(self) -> None:
         """Set up synchronized scrolling (delegates to ScrollManager)."""
