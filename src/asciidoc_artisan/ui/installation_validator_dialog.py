@@ -366,7 +366,7 @@ class InstallationValidatorDialog(QDialog):
         self.results_text = QTextEdit()
         self.results_text.setReadOnly(True)
         self.results_text.setStyleSheet(
-            "font-family: monospace; padding: 10px; background-color: #f5f5f5;"
+            "font-family: monospace; padding: 10px; background-color: #f5f5f5; color: #000000;"
         )
         layout.addWidget(self.results_text)
 
