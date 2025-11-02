@@ -122,6 +122,7 @@ The `-OO` flag makes it faster. It removes doc text. It uses less memory.
 | Ctrl+H | Find and replace text |
 | F3 | Find next |
 | Shift+F3 | Find before |
+| F7 | Turn spell check on or off |
 | Ctrl+D | Dark mode |
 | Ctrl++ | Make text big |
 | Ctrl+- | Make text small |
@@ -193,6 +194,31 @@ When you click `Replace All`, it asks you first. This keeps you safe.
 - Uncheck to match all letters the same
 
 Press `Esc` to close the find bar.
+
+### Spell Check
+
+New in v1.8!
+
+The app can check your words. It shows red lines under wrong words.
+
+**To use spell check:**
+1. It works by itself when you type
+2. Wrong words get red lines under them
+3. Right-click on a red word to see fixes
+4. Pick the right word from the list
+
+**To turn spell check on or off:**
+- Press `F7` key
+- Or click `Tools` then click `Toggle Spell Check`
+
+**When you see a red line:**
+1. Right-click the word
+2. See a list of correct words
+3. Click one to fix it
+4. Or click `Add to Dictionary` to save the word
+5. Or click `Ignore` to skip it this time
+
+The spell check looks at all your words. It works while you type. It finds words that are not right.
 
 ### Use Git
 
@@ -427,7 +453,14 @@ Need more help?
 
 ## Version
 
-**Current Version**: 1.7.1 (100% Test Coverage!)
+**Current Version**: 1.8.0 (In Progress)
+
+**What's New in v1.8.0:**
+- Find and Replace words in your work
+- Spell check with red lines under wrong words
+- Right-click to see word fixes
+- Add words to your own word list
+- Press F7 to turn spell check on or off
 
 **What's New in v1.7.1:**
 - All 82 tests passing (100% pass rate)
