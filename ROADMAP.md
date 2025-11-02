@@ -3,7 +3,7 @@
 
 **Last Updated:** November 2, 2025
 **Planning Horizon:** 18-24 months
-**Status:** v1.5.0 ✅ | v1.6.0 ✅ | QA Initiative ✅ | **Phase 1 Optimization ✅** | **Phase 2 Optimization ✅** | **v1.7.0 ✅** | **v1.7.1 ✅ COMPLETE** (100% Test Coverage)
+**Status:** v1.5.0 ✅ | v1.6.0 ✅ | QA Initiative ✅ | **Phase 1 Optimization ✅** | **Phase 2 Optimization ✅** | **v1.7.0 ✅** | **v1.7.1 ✅** | **v1.7.2 ✅ COMPLETE** (Undo/Redo UI Enhancement)
 
 ---
 
@@ -15,6 +15,7 @@
 | v1.6.0 | ✅ COMPLETE | Oct 2025 | Async I/O | - | Async file operations, type hints |
 | v1.7.0 | ✅ COMPLETE | Nov 2025 | AI Integration | 36-45h | Ollama Chat with 4 context modes |
 | v1.7.1 | ✅ COMPLETE | Nov 2, 2025 | Quality | 2h | 100% test coverage (82/82 tests), docs |
+| v1.7.2 | ✅ COMPLETE | Nov 2, 2025 | UX Enhancement | 2h | Undo/redo UI buttons, 38 tests |
 | v1.8.0 | 📋 NEXT | Q1-Q2 2026 | Essential Features | 48-72h | Find/Replace, Spell Check, Telemetry |
 | v1.9.0 | 📋 PLANNED | Q2-Q3 2026 | Advanced Editing | 102-160h | Auto-complete, Syntax Checking, Templates |
 | v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 240-360h | LSP, Plugins, Multi-core, Marketplace |
@@ -26,17 +27,18 @@
 ## Table of Contents
 
 1. [Vision & Principles](#vision-statement)
-2. [Current State (v1.7.1)](#current-state-v160-)
-3. [v1.7.0 Complete](#version-170-ai-integration--complete)
-4. [Quality Assurance Initiative](#quality-assurance-initiative--complete)
-5. [v1.8.0 Plan (Q1-Q2 2026)](#version-180-essential-features--next)
-6. [v1.9.0 Plan (Q2-Q3 2026)](#version-190-advanced-editing)
-7. [v2.0.0 Plan (Q4 2026-Q2 2027)](#version-200-next-generation-architecture)
-8. [Future Vision](#beyond-v200-future-vision)
-9. [Performance Budget](#performance-budget)
-10. [Resources & Budget](#resource-requirements)
-11. [Risk Management](#risk-management)
-12. [Success Metrics](#success-metrics--kpis)
+2. [Current State (v1.7.2)](#current-state-v172-)
+3. [v1.7.2 Complete](#version-172-ux-enhancement--complete)
+4. [v1.7.0 Complete](#version-170-ai-integration--complete)
+5. [Quality Assurance Initiative](#quality-assurance-initiative--complete)
+6. [v1.8.0 Plan (Q1-Q2 2026)](#version-180-essential-features--next)
+7. [v1.9.0 Plan (Q2-Q3 2026)](#version-190-advanced-editing)
+8. [v2.0.0 Plan (Q4 2026-Q2 2027)](#version-200-next-generation-architecture)
+9. [Future Vision](#beyond-v200-future-vision)
+10. [Performance Budget](#performance-budget)
+11. [Resources & Budget](#resource-requirements)
+12. [Risk Management](#risk-management)
+13. [Success Metrics](#success-metrics--kpis)
 
 ---
 
@@ -53,7 +55,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ---
 
-## Current State (v1.6.0) ✅
+## Current State (v1.7.2) ✅
 
 ### Architecture Excellence
 - **Modular design** with manager pattern (59 source modules)
@@ -131,6 +133,74 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - All optimizations backward compatible
 
 **Quality Score:** 82/100 (GOOD) → Target: 95/100 (LEGENDARY)
+
+---
+
+## Version 1.7.2 (UX Enhancement) ✅ COMPLETE
+
+**Completed:** November 2, 2025
+**Duration:** 2 hours (implementation + testing)
+**Actual Effort:** ~2 hours
+**Focus:** Undo/Redo UI enhancement with comprehensive testing
+**Status:** ✅ RELEASED
+
+### Overview
+
+Added visual undo/redo buttons to the editor toolbar, improving user experience and accessibility. The existing keyboard shortcuts (Ctrl+Z, Ctrl+Shift+Z) remain functional, but now users have convenient toolbar buttons that automatically enable/disable based on undo/redo availability.
+
+### Completed Goals
+
+1. ✅ **Add Undo/Redo Toolbar Buttons** - COMPLETE (Nov 2, 2025)
+   - Two icon buttons (↶ undo, ↷ redo) in editor toolbar
+   - Positioned before the maximize button
+   - Match existing button styling (green border, transparent background, hover effects)
+   - Tooltips: "Undo (Ctrl+Z)" and "Redo (Ctrl+Shift+Z)"
+
+2. ✅ **Automatic State Management** - COMPLETE (Nov 2, 2025)
+   - Buttons auto-enable when undo/redo available
+   - Buttons auto-disable when undo/redo not available
+   - Connected to Qt document signals (undoAvailable, redoAvailable)
+   - Initial state set correctly on startup
+
+3. ✅ **Comprehensive Test Suite** - COMPLETE (Nov 2, 2025)
+   - **38 tests total** (100% passing)
+   - **TestUndoRedoButtons:** 15 tests for button UI and behavior
+   - **TestEditorUndoRedo:** 17 tests for editor undo/redo functionality
+   - **TestUndoRedoIntegration:** 6 tests for integration scenarios
+   - Tests cover: button existence, styling, state management, keyboard shortcuts, large documents, Unicode, special characters, rapid operations
+
+### Technical Implementation
+
+**Files Modified:**
+- `src/asciidoc_artisan/ui/ui_setup_manager.py` - Button creation and signal connections
+- `tests/unit/ui/test_undo_redo.py` - 615 lines, 38 comprehensive tests
+
+**Implementation Details:**
+- Buttons created in `_create_toolbar()` method for editor pane only
+- Signal connections deferred until after editor widget creation
+- Used `beginEditBlock()`/`endEditBlock()` pattern for multiple undo operations
+- Qt's `setPlainText()` clears undo stack - used `insertPlainText()` for testable undo actions
+
+**Test Coverage:**
+- Button properties (size, text, tooltips, styling)
+- State management (enable/disable based on availability)
+- Click handlers (undo/redo via button clicks)
+- Editor operations (single/multiple undo/redo, cursor position, empty documents)
+- Integration (file load, preview updates, keyboard shortcuts, modified flag)
+- Stress testing (rapid operations, memory leaks, large documents)
+- Edge cases (Unicode, special characters, empty documents)
+
+### Quality Metrics
+
+- **Test Pass Rate:** 100% (38/38 tests passing)
+- **Test Duration:** ~12.5 seconds total
+- **Code Quality:** Follows existing patterns, minimal duplication
+- **User Impact:** Enhanced UX, improved accessibility
+
+### Documentation Updates
+
+- ✅ SPECIFICATIONS.md updated with undo/redo button requirements
+- ✅ ROADMAP.md updated with v1.7.2 release notes
 
 ---
 

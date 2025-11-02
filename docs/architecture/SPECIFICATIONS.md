@@ -115,11 +115,27 @@ The program MUST let you copy, cut, paste.
 
 ### Rule: Undo And Redo
 
-The program MUST let you undo.
+The program MUST let you undo and redo changes.
+
+**Features**:
+- Keyboard shortcuts: Ctrl+Z (undo), Ctrl+Shift+Z (redo)
+- UI buttons in editor toolbar (↶ undo, ↷ redo)
+- Buttons automatically enable/disable based on undo/redo availability
+- Multiple levels of undo/redo supported
 
 **Test**: Make a change. Press Ctrl+Z. Change must go away.
 
-**Test**: Press Ctrl+Y. Change must come back.
+**Test**: Press Ctrl+Shift+Z (or Ctrl+Y). Change must come back.
+
+**Test**: Click undo button (↶). Change must go away.
+
+**Test**: Click redo button (↷). Change must come back.
+
+**Implementation**: v1.7.2 (November 2, 2025)
+- Undo/redo buttons added to editor toolbar
+- 38 comprehensive tests added (100% passing)
+- Buttons match maximize button styling (green border, transparent background)
+- Buttons positioned before maximize button in editor toolbar
 
 ### Rule: Find Words
 

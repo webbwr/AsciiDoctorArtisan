@@ -124,23 +124,22 @@ class TestUndoRedoButtons:
         editor = main_window.editor
         qapp = QApplication.instance()
 
-        # Clear and make changes
-        editor.clear()
+        # Set initial text and clear undo stack
+        editor.setPlainText("Initial")
         editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        editor.insertPlainText("First")
-        qapp.processEvents()
-
-        editor.insertPlainText(" Second")
+        # Now make a change
+        editor.selectAll()
+        editor.insertPlainText("Modified")
         qapp.processEvents()
 
         # Click undo button
         main_window.editor_undo_btn.click()
         qapp.processEvents()
 
-        # Text should be reverted
-        assert editor.toPlainText() == "First"
+        # Text should be reverted to Initial
+        assert editor.toPlainText() == "Initial"
 
     def test_redo_button_click(self, main_window):
         """Test that clicking redo button triggers redo."""
@@ -218,16 +217,22 @@ class TestEditorUndoRedo:
     def test_single_edit_undo(self, main_window):
         """Test undo after single edit operation."""
         editor = main_window.editor
+        qapp = QApplication.instance()
+
         original = "Original text"
         modified = "Modified text"
 
+        # Set original and clear stack
         editor.setPlainText(original)
-        qapp = QApplication.instance()
+        editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        editor.setPlainText(modified)
+        # Make a change by replacing text
+        editor.selectAll()
+        editor.insertPlainText(modified)
         qapp.processEvents()
 
+        # Undo should restore original
         editor.undo()
         qapp.processEvents()
 
@@ -259,41 +264,83 @@ class TestEditorUndoRedo:
         editor = main_window.editor
         qapp = QApplication.instance()
 
-        texts = ["Text 1", "Text 2", "Text 3", "Text 4"]
+        # Start with initial text
+        editor.setPlainText("Start")
+        editor.document().clearUndoRedoStacks()
+        qapp.processEvents()
 
-        # Apply changes
-        for text in texts:
-            editor.setPlainText(text)
+        # Make multiple changes using textCursor beginEditBlock/endEditBlock
+        # to create separate undo operations
+        from PySide6.QtGui import QTextCursor
+
+        changes = [" One", " Two", " Three"]
+        for change in changes:
+            cursor = editor.textCursor()
+            cursor.beginEditBlock()  # Start separate undo command
+            cursor.movePosition(QTextCursor.MoveOperation.End)
+            cursor.insertText(change)
+            cursor.endEditBlock()  # End separate undo command
             qapp.processEvents()
 
-        # Undo all changes (should go back to Text 3, 2, 1, then empty)
-        for i in range(len(texts) - 1, 0, -1):
-            editor.undo()
-            qapp.processEvents()
-            assert editor.toPlainText() == texts[i - 1]
+        # Verify we have the full text
+        assert editor.toPlainText() == "Start One Two Three"
+
+        # Undo changes one by one
+        editor.undo()
+        qapp.processEvents()
+        assert editor.toPlainText() == "Start One Two"
+
+        editor.undo()
+        qapp.processEvents()
+        assert editor.toPlainText() == "Start One"
+
+        editor.undo()
+        qapp.processEvents()
+        assert editor.toPlainText() == "Start"
 
     def test_multiple_redo_operations(self, main_window):
         """Test multiple consecutive redo operations."""
         editor = main_window.editor
         qapp = QApplication.instance()
 
-        texts = ["Text 1", "Text 2", "Text 3"]
+        # Start with initial text
+        editor.setPlainText("Base")
+        editor.document().clearUndoRedoStacks()
+        qapp.processEvents()
 
-        # Apply changes
-        for text in texts:
-            editor.setPlainText(text)
+        # Make multiple changes using textCursor beginEditBlock/endEditBlock
+        # to create separate undo operations
+        from PySide6.QtGui import QTextCursor
+
+        changes = [" A", " B", " C"]
+        for change in changes:
+            cursor = editor.textCursor()
+            cursor.beginEditBlock()  # Start separate undo command
+            cursor.movePosition(QTextCursor.MoveOperation.End)
+            cursor.insertText(change)
+            cursor.endEditBlock()  # End separate undo command
             qapp.processEvents()
 
-        # Undo all
-        for _ in range(len(texts)):
+        # Undo all changes
+        for _ in range(len(changes)):
             editor.undo()
             qapp.processEvents()
 
-        # Redo all (should restore Text 1, 2, 3)
-        for text in texts:
-            editor.redo()
-            qapp.processEvents()
-            assert editor.toPlainText() == text
+        # Should be back to Base
+        assert editor.toPlainText() == "Base"
+
+        # Redo all changes
+        editor.redo()
+        qapp.processEvents()
+        assert editor.toPlainText() == "Base A"
+
+        editor.redo()
+        qapp.processEvents()
+        assert editor.toPlainText() == "Base A B"
+
+        editor.redo()
+        qapp.processEvents()
+        assert editor.toPlainText() == "Base A B C"
 
     def test_undo_redo_with_cursor_position(self, main_window):
         """Test that undo/redo preserves cursor position appropriately."""
@@ -345,10 +392,12 @@ class TestEditorUndoRedo:
         # AsciiDoc formatted text
         formatted_text = "= Document Title\n\n== Section\n\nParagraph."
         editor.setPlainText(formatted_text)
+        editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        # Modify
-        editor.setPlainText("Modified")
+        # Modify by selecting and replacing
+        editor.selectAll()
+        editor.insertPlainText("Modified")
         qapp.processEvents()
 
         # Undo
@@ -388,13 +437,17 @@ class TestEditorUndoRedo:
         editor = main_window.editor
         qapp = QApplication.instance()
 
-        # Start with empty
-        editor.clear()
+        # Start with empty and clear stack
+        editor.setPlainText("")
+        editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
         # Add text
-        editor.setPlainText("Some text")
+        editor.insertPlainText("Some text")
         qapp.processEvents()
+
+        # Verify text was added
+        assert editor.toPlainText() == "Some text"
 
         # Undo to empty
         editor.undo()
@@ -416,12 +469,17 @@ class TestEditorUndoRedo:
         undo_signals = []
         redo_signals = []
 
+        # Start clean
+        editor.setPlainText("")
+        editor.document().clearUndoRedoStacks()
+        qapp.processEvents()
+
         # Connect to signals
         editor.document().undoAvailable.connect(lambda x: undo_signals.append(x))
         editor.document().redoAvailable.connect(lambda x: redo_signals.append(x))
 
         # Make change (should emit undoAvailable(True))
-        editor.setPlainText("Test")
+        editor.insertPlainText("Test")
         qapp.processEvents()
 
         assert len(undo_signals) > 0
@@ -442,10 +500,12 @@ class TestEditorUndoRedo:
         # Create large document
         large_text = "\n".join([f"Line {i}" for i in range(1000)])
         editor.setPlainText(large_text)
+        editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        # Modify
-        editor.setPlainText("Modified")
+        # Modify by replacing text
+        editor.selectAll()
+        editor.insertPlainText("Modified")
         qapp.processEvents()
 
         # Undo should work even with large document
@@ -462,9 +522,11 @@ class TestEditorUndoRedo:
 
         special_text = "Special: «»‹› ™ © ® ± × ÷ ≈ ≠ ≤ ≥"
         editor.setPlainText(special_text)
+        editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        editor.setPlainText("Modified")
+        editor.selectAll()
+        editor.insertPlainText("Modified")
         qapp.processEvents()
 
         editor.undo()
@@ -479,9 +541,11 @@ class TestEditorUndoRedo:
 
         unicode_text = "Unicode: 你好世界 مرحبا العالم Привет мир"
         editor.setPlainText(unicode_text)
+        editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        editor.setPlainText("Modified")
+        editor.selectAll()
+        editor.insertPlainText("Modified")
         qapp.processEvents()
 
         editor.undo()
@@ -507,8 +571,9 @@ class TestUndoRedoIntegration:
         editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        # Make edit
-        editor.setPlainText("Modified after load")
+        # Make edit by replacing text
+        editor.selectAll()
+        editor.insertPlainText("Modified after load")
         qapp.processEvents()
 
         # Undo should work
@@ -522,8 +587,13 @@ class TestUndoRedoIntegration:
         editor = main_window.editor
         qapp = QApplication.instance()
 
-        # Programmatic change
-        editor.setPlainText("Programmatic")
+        # Start clean
+        editor.clear()
+        editor.document().clearUndoRedoStacks()
+        qapp.processEvents()
+
+        # Programmatic change using insertPlainText
+        editor.insertPlainText("Programmatic")
         qapp.processEvents()
 
         # Buttons should update
@@ -552,10 +622,14 @@ class TestUndoRedoIntegration:
         editor = main_window.editor
         qapp = QApplication.instance()
 
+        # Set initial text
         editor.setPlainText("Original")
+        editor.document().clearUndoRedoStacks()
         qapp.processEvents()
 
-        editor.setPlainText("Modified")
+        # Modify text
+        editor.selectAll()
+        editor.insertPlainText("Modified")
         qapp.processEvents()
 
         # Simulate Ctrl+Z
@@ -580,11 +654,12 @@ class TestUndoRedoIntegration:
 
         # Start clean
         editor.clear()
+        editor.document().clearUndoRedoStacks()
         editor.document().setModified(False)
         qapp.processEvents()
 
         # Make change (should set modified)
-        editor.setPlainText("Modified")
+        editor.insertPlainText("Modified")
         qapp.processEvents()
 
         assert editor.document().isModified()
