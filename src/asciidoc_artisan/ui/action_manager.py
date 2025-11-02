@@ -1005,24 +1005,17 @@ class ActionManager:
 
         tools_menu.addSeparator()
 
-        # Appearance (theme)
-        tools_menu.addAction(self.toggle_theme_act)  # Toggle dark/light theme
-        tools_menu.addAction(self.font_settings_act)  # Customize fonts
-        tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7)
-        tools_menu.addAction(self.toggle_telemetry_act)  # Toggle telemetry collection
-
-        tools_menu.addSeparator()
-
+        # Tools menu items (alphabetically sorted)
         # AI Settings submenu (Ollama + Anthropic integration)
         ai_settings_menu = tools_menu.addMenu("&AI Settings")
         ai_settings_menu.addAction(self.ollama_settings_act)  # Configure Ollama
         ai_settings_menu.addAction(self.anthropic_settings_act)  # Configure Anthropic API key
 
-        # Separator before settings
-        tools_menu.addSeparator()
-
-        # Application Settings (bottom section)
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
+        tools_menu.addAction(self.font_settings_act)  # Customize fonts
+        tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7)
+        tools_menu.addAction(self.toggle_telemetry_act)  # Toggle telemetry collection
+        tools_menu.addAction(self.toggle_theme_act)  # Toggle dark/light theme
 
         # === HELP MENU ===
         help_menu = menubar.addMenu("&Help")
