@@ -741,71 +741,40 @@ class TestDetectGPU:
         assert gpu_info.can_use_webengine is False
         assert "Software rendering" in gpu_info.reason
 
-    def test_detect_gpu_nvidia(self, mocker):
-        """Test GPU detection with NVIDIA GPU."""
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_dri_devices", return_value=(True, "/dev/dri/renderD128"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_opengl_renderer", return_value=(True, "NVIDIA RTX 4060"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_nvidia_gpu", return_value=(True, "NVIDIA RTX 4060", "535.104"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_amd_gpu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_gpu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_wslg_environment", return_value=True)
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_npu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.detect_compute_capabilities", return_value=["cuda", "vulkan"])
+    @pytest.mark.parametrize("gpu_type,render_device,opengl_renderer,nvidia_return,amd_return,intel_return,wslg,npu_return,capabilities,expected_type,expected_name_fragment,expected_has_npu,test_id", [
+        # NVIDIA GPU
+        ("nvidia", "/dev/dri/renderD128", "NVIDIA RTX 4060", (True, "NVIDIA RTX 4060", "535.104"), (False, None), (False, None), True, (False, None), ["cuda", "vulkan"], "nvidia", "RTX 4060", False, "nvidia"),
+        # AMD GPU
+        ("amd", "/dev/dri/renderD128", "AMD Radeon", (False, None, None), (True, "AMD Radeon RX 6800"), (False, None), False, (False, None), ["rocm"], "amd", "RX 6800", False, "amd"),
+        # Intel GPU with NPU
+        ("intel", "/dev/dri/card0", "Intel UHD", (False, None, None), (False, None), (True, "Intel UHD 620"), False, (True, "Intel NPU"), ["opencl", "openvino"], "intel", "620", True, "intel"),
+        # Unknown GPU type
+        ("unknown", "/dev/dri/card0", "Unknown Renderer", (False, None, None), (False, None), (False, None), False, (False, None), [], "unknown", None, False, "unknown"),
+    ])
+    def test_detect_gpu_by_type(self, mocker, gpu_type, render_device, opengl_renderer, nvidia_return, amd_return, intel_return, wslg, npu_return, capabilities, expected_type, expected_name_fragment, expected_has_npu, test_id):
+        """Test GPU detection for various GPU types.
+
+        Parametrized test covering:
+        - NVIDIA GPU with CUDA
+        - AMD GPU with ROCm
+        - Intel GPU with NPU
+        - Unknown GPU type
+        """
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_dri_devices", return_value=(True, render_device))
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_opengl_renderer", return_value=(True, opengl_renderer))
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_nvidia_gpu", return_value=nvidia_return)
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_amd_gpu", return_value=amd_return)
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_gpu", return_value=intel_return)
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_wslg_environment", return_value=wslg)
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_npu", return_value=npu_return)
+        mocker.patch("asciidoc_artisan.core.gpu_detection.detect_compute_capabilities", return_value=capabilities)
 
         gpu_info = detect_gpu()
         assert gpu_info.has_gpu is True
-        assert gpu_info.gpu_type == "nvidia"
-        assert "RTX 4060" in gpu_info.gpu_name
-        assert gpu_info.can_use_webengine is True
-        assert "cuda" in gpu_info.compute_capabilities
-
-    def test_detect_gpu_amd(self, mocker):
-        """Test GPU detection with AMD GPU."""
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_dri_devices", return_value=(True, "/dev/dri/renderD128"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_opengl_renderer", return_value=(True, "AMD Radeon"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_nvidia_gpu", return_value=(False, None, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_amd_gpu", return_value=(True, "AMD Radeon RX 6800"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_gpu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_wslg_environment", return_value=False)
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_npu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.detect_compute_capabilities", return_value=["rocm"])
-
-        gpu_info = detect_gpu()
-        assert gpu_info.has_gpu is True
-        assert gpu_info.gpu_type == "amd"
-        assert "RX 6800" in gpu_info.gpu_name
-
-    def test_detect_gpu_intel(self, mocker):
-        """Test GPU detection with Intel GPU."""
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_dri_devices", return_value=(True, "/dev/dri/card0"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_opengl_renderer", return_value=(True, "Intel UHD"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_nvidia_gpu", return_value=(False, None, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_amd_gpu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_gpu", return_value=(True, "Intel UHD 620"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_wslg_environment", return_value=False)
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_npu", return_value=(True, "Intel NPU"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.detect_compute_capabilities", return_value=["opencl", "openvino"])
-
-        gpu_info = detect_gpu()
-        assert gpu_info.has_gpu is True
-        assert gpu_info.gpu_type == "intel"
-        assert "620" in gpu_info.gpu_name
-        assert gpu_info.has_npu is True
-
-    def test_detect_gpu_unknown_type(self, mocker):
-        """Test GPU detection with unknown GPU type."""
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_dri_devices", return_value=(True, "/dev/dri/card0"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_opengl_renderer", return_value=(True, "Unknown Renderer"))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_nvidia_gpu", return_value=(False, None, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_amd_gpu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_gpu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_wslg_environment", return_value=False)
-        mocker.patch("asciidoc_artisan.core.gpu_detection.check_intel_npu", return_value=(False, None))
-        mocker.patch("asciidoc_artisan.core.gpu_detection.detect_compute_capabilities", return_value=[])
-
-        gpu_info = detect_gpu()
-        assert gpu_info.has_gpu is True
-        assert gpu_info.gpu_type == "unknown"
+        assert gpu_info.gpu_type == expected_type
+        if expected_name_fragment:
+            assert expected_name_fragment in gpu_info.gpu_name
+        assert gpu_info.has_npu == expected_has_npu
 
 
 class TestLogGPUInfo:

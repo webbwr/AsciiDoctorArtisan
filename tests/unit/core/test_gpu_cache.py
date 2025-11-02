@@ -65,34 +65,25 @@ def test_cache_entry_to_gpu_info(sample_gpu_info):
     assert reconstructed.compute_capabilities == sample_gpu_info.compute_capabilities
 
 
-def test_cache_entry_validation_fresh():
-    """Test cache entry is valid when fresh."""
+@pytest.mark.parametrize("timestamp,ttl_days,expected_valid,test_id", [
+    (datetime.now().isoformat(), 7, True, "fresh"),
+    ((datetime.now() - timedelta(days=10)).isoformat(), 7, False, "expired"),
+    ("invalid-timestamp", 7, False, "invalid_timestamp"),
+])
+def test_cache_entry_validation(timestamp, ttl_days, expected_valid, test_id):
+    """Test cache entry validation with various timestamp scenarios.
+
+    Parametrized test covering:
+    - Fresh entries (valid)
+    - Expired entries (invalid)
+    - Invalid timestamp format (invalid)
+    """
     entry = GPUCacheEntry(
-        timestamp=datetime.now().isoformat(),
+        timestamp=timestamp,
         gpu_info={},
         version="1.4.1"
     )
-    assert entry.is_valid(ttl_days=7)
-
-
-def test_cache_entry_validation_expired():
-    """Test cache entry is invalid when expired."""
-    old_entry = GPUCacheEntry(
-        timestamp=(datetime.now() - timedelta(days=10)).isoformat(),
-        gpu_info={},
-        version="1.4.1"
-    )
-    assert not old_entry.is_valid(ttl_days=7)
-
-
-def test_cache_entry_validation_invalid_timestamp():
-    """Test cache entry handles invalid timestamp."""
-    bad_entry = GPUCacheEntry(
-        timestamp="invalid-timestamp",
-        gpu_info={},
-        version="1.4.1"
-    )
-    assert not bad_entry.is_valid(ttl_days=7)
+    assert entry.is_valid(ttl_days=ttl_days) == expected_valid
 
 
 def test_cache_save_creates_file(mock_cache_file, sample_gpu_info):
