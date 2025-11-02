@@ -1,7 +1,7 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.7.3 ✅ COMPLETE - AI Model Validation with Real-time Status Updates
+**Version**: 1.7.4 🚧 IN PROGRESS - Installation Validator & Dependency Updater
 **Last Updated**: November 2, 2025
 
 ## What This Is
@@ -94,6 +94,38 @@ The install script MUST offer to make a safe space for tools.
 The install script MUST test everything.
 
 **Test**: After install, script must check all parts work.
+
+### Rule: Validate Installation (v1.7.4)
+
+The program MUST let you check all requirements and update dependencies.
+
+**Features** (v1.7.4):
+- Validates Python version (must be 3.14+)
+- Checks all required Python packages with version numbers
+- Checks required system binaries (Pandoc, wkhtmltopdf)
+- Checks optional tools (Git, GitHub CLI, Ollama)
+- Shows status for each requirement (✓=OK, ⚠=Warning, ✗=Missing, ○=Optional)
+- One-click dependency update button
+- Background thread for validation (non-blocking UI)
+- Background thread for updates (non-blocking UI)
+- Automatic re-validation after successful update
+
+**Implementation**: v1.7.4 (November 2, 2025)
+- Menu: Tools → Validate Installation
+- Dialog shows all requirements in monospace font
+- Update requires confirmation dialog
+- Updates via pip install --upgrade -r requirements.txt
+- 5-minute timeout for updates
+- Progress bar and status messages during update
+- Comprehensive test suite (40+ tests)
+
+**Test**: Open Tools → Validate Installation. Must show all requirements.
+
+**Test**: Click Update Dependencies. Must show confirmation dialog.
+
+**Test**: Confirm update. Must update packages and show progress.
+
+**Test**: After update. Must re-validate automatically.
 
 ---
 

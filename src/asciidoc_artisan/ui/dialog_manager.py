@@ -51,6 +51,15 @@ class DialogManager:
         """Initialize the DialogManager with a reference to the main editor."""
         self.editor = editor
 
+    def show_installation_validator(self) -> None:
+        """Show installation validator dialog."""
+        from asciidoc_artisan.ui.installation_validator_dialog import (
+            InstallationValidatorDialog,
+        )
+
+        dialog = InstallationValidatorDialog(self.editor)
+        dialog.exec()
+
     def show_pandoc_status(self) -> None:
         """Show detailed pandoc installation status."""
         status = "Pandoc Status:\n\n"

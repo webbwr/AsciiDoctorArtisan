@@ -665,6 +665,10 @@ class AsciiDocEditor(QMainWindow):
     # Dialog Methods (Phase 6b: Delegated to DialogManager)
     # ========================================================================
 
+    def _show_installation_validator(self) -> None:
+        """Show installation validator dialog (delegates to DialogManager)."""
+        self.dialog_manager.show_installation_validator()
+
     def _show_pandoc_status(self) -> None:
         """Show detailed pandoc installation status (delegates to DialogManager)."""
         self.dialog_manager.show_pandoc_status()

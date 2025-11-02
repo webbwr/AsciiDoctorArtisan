@@ -705,8 +705,15 @@ class ActionManager:
             self.window._trigger_github_repo_info,
         )
 
-        # === TOOLS MENU ACTIONS (4 actions) ===
+        # === TOOLS MENU ACTIONS (5 actions) ===
         # These actions show status of external tools: Pandoc, Ollama AI
+
+        # Installation Validator - validates all requirements and updates dependencies
+        self.validate_install_act = self._create_action(
+            "&Validate Installation...",
+            "Check installation requirements and update dependencies",
+            self.window._show_installation_validator,
+        )
 
         # Pandoc status - shows if Pandoc is installed and working
         self.pandoc_status_act = self._create_action(
@@ -925,6 +932,12 @@ class ActionManager:
 
         # === TOOLS MENU ===
         tools_menu = menubar.addMenu("&Tools")
+
+        # Installation Validator
+        tools_menu.addAction(self.validate_install_act)  # Validate requirements and update dependencies
+
+        # Separator
+        tools_menu.addSeparator()
 
         # AI Status submenu (Ollama integration)
         ai_status_menu = tools_menu.addMenu("&AI Status")

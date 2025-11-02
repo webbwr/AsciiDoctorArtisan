@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asciidoc-artisan"
-version = "1.7.3"
+version = "1.7.4"
 description = "A modern AsciiDoc editor with live preview and document conversion"
 readme = "README.md"
 requires-python = ">=3.14"
