@@ -253,6 +253,7 @@ class ActionManager:
         self.pandoc_formats_act: QAction  # Show supported formats
         self.ollama_status_act: QAction  # Show Ollama AI status
         self.ollama_settings_act: QAction  # Configure Ollama AI settings
+        self.anthropic_settings_act: QAction  # Configure Anthropic API key
         self.app_settings_act: QAction  # Edit application settings
 
         # Help menu actions (1 action)
@@ -783,9 +784,15 @@ class ActionManager:
         )
 
         self.ollama_settings_act = self._create_action(
-            "&Settings...",
+            "&Ollama Settings...",
             "Configure Ollama AI integration and select model",
             self.window._show_ollama_settings,
+        )
+
+        self.anthropic_settings_act = self._create_action(
+            "&Anthropic Settings...",
+            "Configure Anthropic API key for AI conversations",
+            self.window._show_anthropic_settings,
         )
 
         # Font Settings - customize fonts for editor, preview, and chat
@@ -1010,10 +1017,11 @@ class ActionManager:
         tools_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
         tools_menu.addAction(self.pandoc_formats_act)  # Show supported formats
 
-        # AI Status submenu (Ollama integration)
+        # AI Status submenu (Ollama + Anthropic integration)
         ai_status_menu = tools_menu.addMenu("&AI Status")
         ai_status_menu.addAction(self.ollama_status_act)  # Check Ollama status
         ai_status_menu.addAction(self.ollama_settings_act)  # Configure Ollama
+        ai_status_menu.addAction(self.anthropic_settings_act)  # Configure Anthropic API key
 
         # Separator before settings
         tools_menu.addSeparator()

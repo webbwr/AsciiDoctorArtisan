@@ -1097,6 +1097,10 @@ class AsciiDocEditor(QMainWindow):
         """Show Ollama AI settings dialog (delegates to DialogManager)."""
         self.dialog_manager.show_ollama_settings()
 
+    def _show_anthropic_settings(self) -> None:
+        """Show Anthropic API key settings dialog (delegates to DialogManager)."""
+        self.dialog_manager.show_anthropic_settings()
+
     def _show_app_settings(self) -> None:
         """Show application settings editor dialog (delegates to DialogManager)."""
         self.dialog_manager.show_app_settings()

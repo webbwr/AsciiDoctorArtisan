@@ -223,6 +223,14 @@ class DialogManager:
                 f"chat_enabled={self.editor._settings.ollama_chat_enabled}"
             )
 
+    def show_anthropic_settings(self) -> None:
+        """Show Anthropic API key configuration dialog."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        # Show API key configuration dialog.
+        dialog = APIKeySetupDialog(self.editor)
+        dialog.exec()  # Modal dialog - wait for user to close it
+
     def show_app_settings(self) -> None:
         """Show application settings editor dialog."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
