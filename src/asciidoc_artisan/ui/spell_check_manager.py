@@ -13,7 +13,7 @@ Implements specification requirement: Spell Checker (v1.8.0).
 import logging
 from typing import TYPE_CHECKING, List, Optional
 
-from PySide6.QtCore import QPoint, Qt, QTimer
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import (
     QAction,
     QColor,
