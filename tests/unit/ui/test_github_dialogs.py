@@ -54,35 +54,37 @@ class TestCreatePullRequestDialog:
         # Check for draft checkbox
         assert hasattr(dialog, "draft_checkbox")
 
-    def test_dialog_validation_empty_title(self, qtbot):
-        """Test dialog validation rejects empty title."""
+    @pytest.mark.parametrize("title,base,head,expected_accepted,test_id", [
+        ("", "main", "feature-branch", False, "empty_title"),
+        ("Test PR Title", "main", "feature-branch", True, "valid_input"),
+    ])
+    def test_dialog_validation(self, qtbot, title, base, head, expected_accepted, test_id):
+        """Test dialog validation with various inputs.
+
+        Parametrized test covering:
+        - Empty title (rejected)
+        - Valid input (accepted)
+        """
         dialog = CreatePullRequestDialog()
         qtbot.addWidget(dialog)
 
-        # Clear title field
-        dialog.title_input.clear()
+        # Set input values
+        if title:
+            dialog.title_input.setText(title)
+        else:
+            dialog.title_input.clear()
 
-        # Call internal validation (simulates user clicking OK)
-        dialog._validate_and_accept()
-
-        # Should not accept dialog (validation failed)
-        assert dialog.result() != QDialog.Accepted
-
-    def test_dialog_validation_valid_input(self, qtbot):
-        """Test dialog accepts with valid input."""
-        dialog = CreatePullRequestDialog()
-        qtbot.addWidget(dialog)
-
-        # Set valid title
-        dialog.title_input.setText("Test PR Title")
-        dialog.base_input.setText("main")
-        dialog.head_input.setCurrentText("feature-branch")
+        dialog.base_input.setText(base)
+        dialog.head_input.setCurrentText(head)
 
         # Call internal validation
         dialog._validate_and_accept()
 
-        # Should accept dialog
-        assert dialog.result() == QDialog.Accepted
+        # Check expected result
+        if expected_accepted:
+            assert dialog.result() == QDialog.Accepted
+        else:
+            assert dialog.result() != QDialog.Accepted
 
     def test_dialog_get_pr_data(self, qtbot):
         """Test retrieving data from dialog."""
@@ -253,33 +255,34 @@ class TestCreateIssueDialog:
         # Check for labels field (actual name: labels_input)
         assert hasattr(dialog, "labels_input")
 
-    def test_dialog_validation_empty_title(self, qtbot):
-        """Test dialog validation rejects empty title."""
+    @pytest.mark.parametrize("title,expected_accepted,test_id", [
+        ("", False, "empty_title"),
+        ("Test Issue Title", True, "valid_input"),
+    ])
+    def test_dialog_validation(self, qtbot, title, expected_accepted, test_id):
+        """Test dialog validation with various inputs.
+
+        Parametrized test covering:
+        - Empty title (rejected)
+        - Valid input (accepted)
+        """
         dialog = CreateIssueDialog()
         qtbot.addWidget(dialog)
 
-        # Clear title field
-        dialog.title_input.clear()
+        # Set input value
+        if title:
+            dialog.title_input.setText(title)
+        else:
+            dialog.title_input.clear()
 
         # Call internal validation
         dialog._validate_and_accept()
 
-        # Should not accept dialog
-        assert dialog.result() != QDialog.Accepted
-
-    def test_dialog_validation_valid_input(self, qtbot):
-        """Test dialog accepts with valid input."""
-        dialog = CreateIssueDialog()
-        qtbot.addWidget(dialog)
-
-        # Set valid title
-        dialog.title_input.setText("Test Issue Title")
-
-        # Call internal validation
-        dialog._validate_and_accept()
-
-        # Should accept dialog
-        assert dialog.result() == QDialog.Accepted
+        # Check expected result
+        if expected_accepted:
+            assert dialog.result() == QDialog.Accepted
+        else:
+            assert dialog.result() != QDialog.Accepted
 
     def test_dialog_get_issue_data(self, qtbot):
         """Test retrieving data from dialog."""
