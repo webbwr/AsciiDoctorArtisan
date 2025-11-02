@@ -59,16 +59,16 @@ class SpellCheckManager:
         self.editor = main_window.editor
 
         # Initialize spell checker
-        language = main_window.settings.spell_check_language or "en"
+        language = main_window._settings.spell_check_language or "en"
         self.spell_checker = SpellChecker(language=language)
 
         # Load custom words from settings
-        custom_words = getattr(main_window.settings, "spell_check_custom_words", [])
+        custom_words = getattr(main_window._settings, "spell_check_custom_words", [])
         for word in custom_words:
             self.spell_checker.add_to_dictionary(word)
 
         # Spell check state
-        self.enabled = main_window.settings.spell_check_enabled
+        self.enabled = main_window._settings.spell_check_enabled
         self.errors: List[SpellError] = []
 
         # Debounce timer for spell checking (check 500ms after typing stops)
@@ -90,7 +90,7 @@ class SpellCheckManager:
     def toggle_spell_check(self) -> None:
         """Toggle spell checking on/off (F7)."""
         self.enabled = not self.enabled
-        self.main_window.settings.spell_check_enabled = self.enabled
+        self.main_window._settings.spell_check_enabled = self.enabled
 
         if self.enabled:
             # Perform immediate spell check
@@ -116,7 +116,7 @@ class SpellCheckManager:
             language: Language code (e.g., 'en', 'es', 'fr', 'de')
         """
         self.spell_checker.set_language(language)
-        self.main_window.settings.spell_check_language = language
+        self.main_window._settings.spell_check_language = language
         logger.info(f"Spell check language changed to: {language}")
 
         # Re-check with new language
@@ -134,7 +134,7 @@ class SpellCheckManager:
 
         # Save custom dictionary to settings
         custom_words = self.spell_checker.get_custom_words()
-        self.main_window.settings.spell_check_custom_words = custom_words
+        self.main_window._settings.spell_check_custom_words = custom_words
 
         # Re-check to remove this word's highlights
         if self.enabled:
