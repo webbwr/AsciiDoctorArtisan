@@ -328,6 +328,14 @@ class AsciiDocEditor(QMainWindow):
             self, self._settings_manager, self.status_manager, self.git_handler
         )
 
+        # === Spell Check System (v1.8.0) ===
+        # SpellCheckManager must be initialized BEFORE ActionManager (actions reference it)
+        # and AFTER UISetupManager creates editor
+        self.spell_check_manager = SpellCheckManager(self)
+        # Connect editor to spell check manager for context menu
+        self.editor.spell_check_manager = self.spell_check_manager
+        logger.info("SpellCheckManager initialized")
+
         # === Actions & Menus ===
         self.action_manager = ActionManager(self)
         self.action_manager.create_actions()
@@ -348,13 +356,6 @@ class AsciiDocEditor(QMainWindow):
         # === Find & Search System (v1.8.0) ===
         # SearchEngine must be initialized AFTER UISetupManager creates find_bar
         self._setup_find_system()
-
-        # === Spell Check System (v1.8.0) ===
-        # SpellCheckManager must be initialized AFTER UISetupManager creates editor
-        self.spell_check_manager = SpellCheckManager(self)
-        # Connect editor to spell check manager for context menu
-        self.editor.spell_check_manager = self.spell_check_manager
-        logger.info("SpellCheckManager initialized")
 
         # === Telemetry System (v1.8.0) ===
         # Privacy-first telemetry (opt-in only, local storage)
