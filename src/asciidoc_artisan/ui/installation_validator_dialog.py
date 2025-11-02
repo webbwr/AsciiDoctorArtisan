@@ -409,13 +409,16 @@ class InstallationValidatorDialog(QDialog):
         if self.worker and self.worker.isRunning():
             return
 
+        logger.info("Starting validation UI...")
         self.results_text.setPlainText("Validating installation...\n")
         self.validate_btn.setEnabled(False)
         self.update_btn.setEnabled(False)
 
         self.worker = ValidationWorker(action="validate")
+        logger.info("Connecting signals...")
         self.worker.validation_complete.connect(self._show_validation_results)
         self.worker.finished.connect(self._validation_finished)
+        logger.info("Starting worker thread...")
         self.worker.start()
 
     def _validation_finished(self):
@@ -430,6 +433,11 @@ class InstallationValidatorDialog(QDialog):
         Args:
             results: {category: [(name, status, version, message)]}
         """
+        logger.info(f"Displaying validation results: {len(results)} categories")
+        logger.info(f"Python packages: {len(results.get('python_packages', []))}")
+        logger.info(f"System binaries: {len(results.get('system_binaries', []))}")
+        logger.info(f"Optional tools: {len(results.get('optional_tools', []))}")
+
         output = []
 
         # Python packages
@@ -468,7 +476,10 @@ class InstallationValidatorDialog(QDialog):
         output.append("Legend: ✓=OK, ⚠=Warning, ✗=Missing/Error, ○=Optional not installed")
         output.append("=" * 70)
 
-        self.results_text.setPlainText("\n".join(output))
+        result_text = "\n".join(output)
+        logger.info(f"Setting text with {len(result_text)} characters, {len(output)} lines")
+        self.results_text.setPlainText(result_text)
+        logger.info("Text set successfully")
 
     def _start_update(self):
         """Start dependency update in background thread."""
