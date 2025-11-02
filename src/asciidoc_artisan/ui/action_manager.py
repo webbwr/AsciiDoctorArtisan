@@ -1013,9 +1013,6 @@ class ActionManager:
 
         tools_menu.addSeparator()
 
-        # External Tools Status
-        tools_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
-
         # AI Status submenu (Ollama + Anthropic integration)
         ai_status_menu = tools_menu.addMenu("&AI Status")
         ai_status_menu.addAction(self.ollama_settings_act)  # Configure Ollama
@@ -1034,6 +1031,7 @@ class ActionManager:
         help_menu.addSeparator()
 
         # System Status Information
+        help_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
         help_menu.addAction(self.ollama_status_act)  # Check Ollama AI status
         help_menu.addAction(self.pandoc_formats_act)  # Show Pandoc supported formats
 
