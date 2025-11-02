@@ -136,13 +136,15 @@ class StatusManager:
             message: Status message to display
             timeout: Duration in milliseconds (0 = permanent)
         """
-        logger.info(f"[STATUS_BAR] Attempting to show: '{message}' (timeout={timeout}ms)")
-        if not hasattr(self.editor, 'status_bar') or self.editor.status_bar is None:
+        logger.info(
+            f"[STATUS_BAR] Attempting to show: '{message}' (timeout={timeout}ms)"
+        )
+        if not hasattr(self.editor, "status_bar") or self.editor.status_bar is None:
             logger.error("[STATUS_BAR] ERROR: status_bar not found or is None!")
             return
-        logger.info(f"[STATUS_BAR] status_bar exists, calling showMessage()")
+        logger.info("[STATUS_BAR] status_bar exists, calling showMessage()")
         self.editor.status_bar.showMessage(message, timeout)
-        logger.info(f"[STATUS_BAR] showMessage() completed, checking current message...")
+        logger.info("[STATUS_BAR] showMessage() completed, checking current message...")
         current_msg = self.editor.status_bar.currentMessage()
         logger.info(f"[STATUS_BAR] Current message in status bar: '{current_msg}'")
 

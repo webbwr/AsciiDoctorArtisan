@@ -24,7 +24,7 @@ import logging
 import time
 from typing import List, Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import (
     QTextBrowser,
@@ -113,7 +113,11 @@ class ChatPanelWidget(QWidget):
         self._text_display.setHtml(empty_html)
 
     def add_user_message(
-        self, content: str, model: str, context_mode: str, timestamp: Optional[float] = None
+        self,
+        content: str,
+        model: str,
+        context_mode: str,
+        timestamp: Optional[float] = None,
     ) -> None:
         """
         Add a user message to the chat display.
@@ -140,7 +144,11 @@ class ChatPanelWidget(QWidget):
         logger.debug(f"Added user message: {content[:50]}...")
 
     def add_ai_message(
-        self, content: str, model: str, context_mode: str, timestamp: Optional[float] = None
+        self,
+        content: str,
+        model: str,
+        context_mode: str,
+        timestamp: Optional[float] = None,
     ) -> None:
         """
         Add an AI response message to the chat display.
@@ -346,7 +354,9 @@ class ChatPanelWidget(QWidget):
         lines = ["Chat History Export", "=" * 50, ""]
 
         for message in self._messages:
-            time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
+            time_str = time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp)
+            )
             role = "You" if message.role == "user" else f"AI ({message.model})"
             lines.append(f"[{time_str}] {role} ({message.context_mode}):")
             lines.append(message.content)

@@ -253,7 +253,9 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
         # Show status in status bar only if not silent
         if not silent:
-            self.status_manager.show_status("Fetching repository information...", timeout=5000)
+            self.status_manager.show_status(
+                "Fetching repository information...", timeout=5000
+            )
 
         # Emit signal to worker
         repo_path = self.git_handler.get_repository_path()
@@ -359,7 +361,6 @@ class GitHubHandler(BaseVCSHandler, QObject):
         if result.data:
             # Extract repository information
             repo_name = result.data.get("nameWithOwner", "Unknown")
-            name = result.data.get("name", "Unknown")
             description = result.data.get("description", "No description")
             stars = result.data.get("stargazerCount", 0)
             forks = result.data.get("forkCount", 0)
@@ -368,7 +369,11 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
             # Get default branch name from nested object
             default_branch_ref = result.data.get("defaultBranchRef", {})
-            default_branch = default_branch_ref.get("name", "Unknown") if default_branch_ref else "Unknown"
+            default_branch = (
+                default_branch_ref.get("name", "Unknown")
+                if default_branch_ref
+                else "Unknown"
+            )
 
             # Log detailed information
             logger.info(f"Repository: {repo_name}")
@@ -384,7 +389,10 @@ class GitHubHandler(BaseVCSHandler, QObject):
             logger.info(f"Status bar updated: {status_msg}")
 
             # Show full repository information in a dialog (only if user explicitly requested it, not on silent startup fetch)
-            if self.last_operation == "repo_info" and self.last_operation != "repo_info_silent":
+            if (
+                self.last_operation == "repo_info"
+                and self.last_operation != "repo_info_silent"
+            ):
                 from PySide6.QtWidgets import QMessageBox
 
                 info_text = f"""<b>Repository:</b> {repo_name}<br><br>

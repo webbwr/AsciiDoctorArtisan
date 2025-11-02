@@ -93,7 +93,9 @@ class UISetupManager:
         # Configure splitter stretch factors - all panes user-resizable
         self.editor.splitter.setStretchFactor(0, 2)  # Editor (2/5 when chat visible)
         self.editor.splitter.setStretchFactor(1, 2)  # Preview (2/5 when chat visible)
-        self.editor.splitter.setStretchFactor(2, 1)  # Chat (1/5 when visible, user-resizable)
+        self.editor.splitter.setStretchFactor(
+            2, 1
+        )  # Chat (1/5 when visible, user-resizable)
 
         # Set default proportional splits
         # Will be overridden by saved settings if they exist
@@ -196,11 +198,13 @@ class UISetupManager:
 
         # Create chat panel (message display)
         from .chat_panel_widget import ChatPanelWidget
+
         self.editor.chat_panel = ChatPanelWidget(self.editor)
         chat_layout.addWidget(self.editor.chat_panel, 1)  # Stretch to fill
 
         # Create chat bar (input controls) at bottom
         from .chat_bar_widget import ChatBarWidget
+
         self.editor.chat_bar = ChatBarWidget(self.editor)
         self.editor.chat_bar.setMinimumHeight(70)  # Two rows: controls + input
         chat_layout.addWidget(self.editor.chat_bar, 0)  # No stretch
@@ -291,8 +295,10 @@ class UISetupManager:
         window_width = self.editor.width()
 
         # Check if chat is visible
-        chat_visible = (hasattr(self.editor, 'chat_container') and
-                       self.editor.chat_container.isVisible())
+        chat_visible = (
+            hasattr(self.editor, "chat_container")
+            and self.editor.chat_container.isVisible()
+        )
 
         if chat_visible:
             # Proportional: 2/5 editor, 2/5 preview, 1/5 chat
@@ -300,7 +306,9 @@ class UISetupManager:
             preview_width = int(window_width * 0.4)
             chat_width = int(window_width * 0.2)
             self.editor.splitter.setSizes([editor_width, preview_width, chat_width])
-            logger.info(f"Default sizes (with chat): {editor_width}, {preview_width}, {chat_width}")
+            logger.info(
+                f"Default sizes (with chat): {editor_width}, {preview_width}, {chat_width}"
+            )
         else:
             # Without chat: 1/2 editor, 1/2 preview, 0 chat
             editor_width = int(window_width * 0.5)

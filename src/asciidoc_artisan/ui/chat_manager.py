@@ -21,10 +21,8 @@ Integration Points:
 Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 """
 
-import json
 import logging
 import subprocess
-import time
 from typing import Any, Callable, List, Optional, cast
 
 from PySide6.QtCore import QObject, QTimer, Signal
@@ -66,7 +64,9 @@ class ChatManager(QObject):
 
     # Signals
     visibility_changed = Signal(bool, bool)  # bar_visible, panel_visible
-    message_sent_to_worker = Signal(str, str, str, list, object)  # message, model, mode, history, doc_content
+    message_sent_to_worker = Signal(
+        str, str, str, list, object
+    )  # message, model, mode, history, doc_content
     status_message = Signal(str)
     settings_changed = Signal()
 
@@ -170,13 +170,17 @@ class ChatManager(QObject):
                     self.status_message.emit(f"Ollama: {len(models)} model(s) found")
                 else:
                     logger.warning("Ollama running but no models installed")
-                    self.status_message.emit("Ollama: No models installed (run 'ollama pull phi3:mini')")
+                    self.status_message.emit(
+                        "Ollama: No models installed (run 'ollama pull phi3:mini')"
+                    )
             else:
                 logger.warning(f"Ollama command failed: {result.stderr.strip()}")
 
         except FileNotFoundError:
             logger.info("Ollama not found in PATH")
-            self.status_message.emit("Ollama not installed (see docs/OLLAMA_CHAT_GUIDE.md)")
+            self.status_message.emit(
+                "Ollama not installed (see docs/OLLAMA_CHAT_GUIDE.md)"
+            )
 
         except subprocess.TimeoutExpired:
             logger.warning("Ollama list command timed out")
@@ -260,24 +264,30 @@ class ChatManager(QObject):
 
         # Get reference to chat container from parent
         parent = self.parent()
-        if parent and hasattr(parent, 'chat_container'):
+        if parent and hasattr(parent, "chat_container"):
             # Control entire chat pane visibility
             parent.chat_container.setVisible(chat_visible)
 
             # Update splitter sizes to show/hide chat pane with proportional sizing
-            if hasattr(parent, 'splitter') and len(parent.splitter.sizes()) == 3:
+            if hasattr(parent, "splitter") and len(parent.splitter.sizes()) == 3:
                 sizes = parent.splitter.sizes()
                 if chat_visible and sizes[2] == 0:
                     # Show chat with proportional sizing: 2/5 editor, 2/5 preview, 1/5 chat
                     # Use QTimer to delay until layout is stable
                     from PySide6.QtCore import QTimer
+
                     def show_chat() -> None:
                         window_width = parent.width()
                         editor_width = int(window_width * 0.4)
                         preview_width = int(window_width * 0.4)
                         chat_width = int(window_width * 0.2)
-                        parent.splitter.setSizes([editor_width, preview_width, chat_width])
-                        logger.info(f"Chat pane shown (proportional): {editor_width}, {preview_width}, {chat_width}")
+                        parent.splitter.setSizes(
+                            [editor_width, preview_width, chat_width]
+                        )
+                        logger.info(
+                            f"Chat pane shown (proportional): {editor_width}, {preview_width}, {chat_width}"
+                        )
+
                     QTimer.singleShot(150, show_chat)
                 elif not chat_visible and sizes[2] > 0:
                     # Hide chat and redistribute: 1/2 editor, 1/2 preview
@@ -285,7 +295,9 @@ class ChatManager(QObject):
                     editor_width = int(window_width * 0.5)
                     preview_width = int(window_width * 0.5)
                     parent.splitter.setSizes([editor_width, preview_width, 0])
-                    logger.info(f"Chat pane hidden (redistributed): {editor_width}, {preview_width}, 0")
+                    logger.info(
+                        f"Chat pane hidden (redistributed): {editor_width}, {preview_width}, 0"
+                    )
 
         self.visibility_changed.emit(chat_visible, chat_visible)
         logger.info(f"Chat pane visibility set: {chat_visible}")
@@ -308,14 +320,21 @@ class ChatManager(QObject):
         self._chat_panel.add_user_message(message, model, context_mode)
 
         # Get current chat history
-        history = self._chat_panel.get_messages()[:-1]  # Exclude just-added user message
+        history = self._chat_panel.get_messages()[
+            :-1
+        ]  # Exclude just-added user message
 
         # Get document content if needed
         document_content = None
-        if context_mode in ("document", "editing") and self._settings.ollama_chat_send_document:
+        if (
+            context_mode in ("document", "editing")
+            and self._settings.ollama_chat_send_document
+        ):
             if self._document_content_provider:
                 document_content = self._document_content_provider()
-                logger.debug(f"Including document content ({len(document_content or '')} chars)")
+                logger.debug(
+                    f"Including document content ({len(document_content or '')} chars)"
+                )
 
         # Emit signal to send to worker
         self.message_sent_to_worker.emit(
@@ -457,7 +476,7 @@ class ChatManager(QObject):
     def toggle_panel_visibility(self) -> None:
         """Toggle chat pane visibility (for toolbar button)."""
         parent = self.parent()
-        if not parent or not hasattr(parent, 'chat_container'):
+        if not parent or not hasattr(parent, "chat_container"):
             return
 
         current = parent.chat_container.isVisible()

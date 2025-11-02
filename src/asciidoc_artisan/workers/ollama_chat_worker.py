@@ -18,12 +18,10 @@ Thread Safety:
 Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 """
 
-import json
 import logging
 import subprocess
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from PySide6.QtCore import QThread, Signal
 
@@ -322,8 +320,9 @@ class OllamaChatWorker(QThread):
 
         # Remove ANSI escape sequences (spinner, colors, etc.)
         import re
-        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        response_text = ansi_escape.sub('', response_text)
+
+        ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+        response_text = ansi_escape.sub("", response_text)
         response_text = response_text.strip()
 
         if not response_text:
@@ -350,10 +349,7 @@ class OllamaChatWorker(QThread):
                 "Pull it with: ollama pull {model}"
             )
         elif "connection refused" in stderr.lower():
-            return (
-                "Cannot connect to Ollama. "
-                "Ensure Ollama is running: ollama serve"
-            )
+            return "Cannot connect to Ollama. " "Ensure Ollama is running: ollama serve"
         elif "context length" in stderr.lower():
             return (
                 "Message too long for model context. "

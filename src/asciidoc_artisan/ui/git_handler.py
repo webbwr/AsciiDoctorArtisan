@@ -69,9 +69,7 @@ class GitHandler(BaseVCSHandler):
                 logger.info(f"Git repository loaded from settings: {repo_path}")
                 # Note: UI state will be updated later in initialization sequence
             else:
-                logger.warning(
-                    f"Saved Git repository no longer valid: {repo_path}"
-                )
+                logger.warning(f"Saved Git repository no longer valid: {repo_path}")
                 # Clear invalid path from settings
                 settings.git_repo_path = None
                 self.settings_manager.save_settings(settings, self.window)

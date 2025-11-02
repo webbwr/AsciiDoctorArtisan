@@ -253,9 +253,7 @@ class ChatMessage(BaseModel):
         """Validate context mode is known."""
         allowed_modes = {"document", "syntax", "general", "editing"}
         if v not in allowed_modes:
-            raise ValueError(
-                f"context_mode must be one of {allowed_modes}, got '{v}'"
-            )
+            raise ValueError(f"context_mode must be one of {allowed_modes}, got '{v}'")
         return v
 
     model_config = {

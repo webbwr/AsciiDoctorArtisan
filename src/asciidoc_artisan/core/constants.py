@@ -15,7 +15,7 @@ import platform
 
 # Application Metadata
 APP_NAME = "AsciiDoc Artisan"
-APP_VERSION = "1.5.0"  # Current release version
+APP_VERSION = "1.7.0"  # Current release version
 DEFAULT_FILENAME = "untitled.adoc"
 SETTINGS_FILENAME = "AsciiDocArtisan.json"
 

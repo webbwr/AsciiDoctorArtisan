@@ -24,7 +24,7 @@ The __init__.py file "re-exports" things from deeper modules to make them
 easily accessible. This is called "creating a public API."
 
 WHAT THIS FILE DOES:
-1. Defines the package version (__version__ = "1.5.0")
+1. Defines the package version (__version__ = "1.7.0")
 2. Re-exports commonly used classes/functions (public API)
 3. Uses LAZY IMPORTS for fast startup (1.05s target)
 4. Lists all exports in __all__ (for "from X import *")
@@ -159,8 +159,8 @@ KEY LEARNING POINTS FOR BEGINNERS:
 
 # === PACKAGE VERSION ===
 # Semantic versioning: MAJOR.MINOR.PATCH
-# 1.5.0 = Version 1, Release 5, Patch 0
-__version__ = "1.5.0"
+# 1.7.0 = Version 1, Release 7, Patch 0
+__version__ = "1.7.0"
 
 
 # === LAZY IMPORT MAGIC METHOD ===
@@ -284,7 +284,7 @@ def __getattr__(name: str) -> Any:
 #
 __all__ = [
     # === VERSION STRING ===
-    "__version__",  # Package version number (e.g., "1.5.0")
+    "__version__",  # Package version number (e.g., "1.7.0")
     # === MAIN APPLICATION ===
     "AsciiDocEditor",  # The main window - the entire editor application
     # === SETTINGS & DATA MODELS ===

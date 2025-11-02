@@ -37,6 +37,8 @@ USAGE PATTERN:
 import os  # For reading environment variables (API keys)
 from typing import Any, Optional  # For type hints (helps catch bugs)
 
+from PySide6.QtCore import Qt  # Qt constants and enums
+
 # Import Qt widgets we need for building the UI
 from PySide6.QtWidgets import (
     QCheckBox,  # Checkbox widget (on/off toggle)
@@ -45,17 +47,14 @@ from PySide6.QtWidgets import (
     QGroupBox,  # Box that groups related widgets together
     QHBoxLayout,  # Horizontal layout manager
     QLabel,  # Text label widget
-    QLineEdit,  # Single line text input widget
     QMessageBox,  # Message box for confirmations
     QPushButton,  # Clickable button widget
-    QScrollArea,  # Scroll area widget for large content
     QSpinBox,  # Number input widget with up/down arrows
     QTableWidget,  # Table widget for displaying data
     QTableWidgetItem,  # Item for QTableWidget cells
     QVBoxLayout,  # Vertical layout manager
     QWidget,  # Base class for all UI widgets
 )
-from PySide6.QtCore import Qt  # Qt constants and enums
 
 # Import our Settings data class
 from asciidoc_artisan.core import Settings
@@ -348,12 +347,14 @@ class OllamaSettingsDialog(QDialog):
         mode_layout.addWidget(mode_label)
 
         self.context_mode_combo = QComboBox()
-        self.context_mode_combo.addItems([
-            "Document Q&A",
-            "Syntax Help",
-            "General Chat",
-            "Editing Suggestions",
-        ])
+        self.context_mode_combo.addItems(
+            [
+                "Document Q&A",
+                "Syntax Help",
+                "General Chat",
+                "Editing Suggestions",
+            ]
+        )
         self.context_mode_combo.setToolTip(
             "Default interaction mode when chat starts\n"
             "You can change this in the chat bar at any time"
@@ -542,7 +543,9 @@ class OllamaSettingsDialog(QDialog):
         # === Store Chat Settings (v1.7.0) ===
         self.settings.ollama_chat_enabled = self.chat_enabled_checkbox.isChecked()
         self.settings.ollama_chat_max_history = self.max_history_spin.value()
-        self.settings.ollama_chat_send_document = self.send_document_checkbox.isChecked()
+        self.settings.ollama_chat_send_document = (
+            self.send_document_checkbox.isChecked()
+        )
 
         # Map context mode combo index to setting value
         mode_value_map = {

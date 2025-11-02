@@ -21,10 +21,8 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 import logging
 from typing import List, Optional
 
-from PySide6.QtCore import Qt, Signal, QSize
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import QSize, Signal
 from PySide6.QtWidgets import (
-    QApplication,
     QComboBox,
     QHBoxLayout,
     QLineEdit,
@@ -108,12 +106,14 @@ class ChatBarWidget(QWidget):
 
         # Context mode selector
         self._context_selector = QComboBox()
-        self._context_selector.addItems([
-            "Document Q&A",
-            "Syntax Help",
-            "General Chat",
-            "Editing Suggestions",
-        ])
+        self._context_selector.addItems(
+            [
+                "Document Q&A",
+                "Syntax Help",
+                "General Chat",
+                "Editing Suggestions",
+            ]
+        )
         self._context_selector.setToolTip("Select interaction mode")
         self._context_selector.setMaximumWidth(120)
         top_row.addWidget(self._context_selector)
@@ -155,7 +155,8 @@ class ChatBarWidget(QWidget):
         self._send_button.setMaximumWidth(40)
         self._send_button.setMinimumWidth(40)
         # Style button with blue colors
-        self._send_button.setStyleSheet("""
+        self._send_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: transparent;
                 border: 1px solid #4a9eff;
@@ -172,7 +173,8 @@ class ChatBarWidget(QWidget):
                 opacity: 0.5;
                 border-color: rgba(74, 158, 255, 0.5);
             }
-        """)
+        """
+        )
         bottom_row.addWidget(self._send_button)
 
         main_layout.addLayout(bottom_row)

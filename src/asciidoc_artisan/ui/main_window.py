@@ -130,6 +130,11 @@ from asciidoc_artisan.core.large_file_handler import (  # Handles files >10MB
 # These "manager" classes handle different parts of the UI
 # This is the "Delegation Pattern" - main window delegates to specialists
 from asciidoc_artisan.ui.action_manager import ActionManager  # Creates menu actions
+
+# === REMOVED FEATURES (KEPT AS COMMENTS FOR REFERENCE) ===
+# MenuManager removed in v1.5.0 - replaced by ActionManager (better architecture)
+# from asciidoc_artisan.ui.menu_manager import MenuManager
+from asciidoc_artisan.ui.chat_manager import ChatManager  # Manages AI chat (v1.7.0)
 from asciidoc_artisan.ui.dialog_manager import DialogManager  # Manages pop-up dialogs
 from asciidoc_artisan.ui.editor_state import (  # Tracks editor state (cursor, undo, etc.)
     EditorState,
@@ -148,11 +153,6 @@ from asciidoc_artisan.ui.git_handler import (  # Git operations (commit/push/pul
 from asciidoc_artisan.ui.github_handler import (  # GitHub PR/Issue operations
     GitHubHandler,
 )
-
-# === REMOVED FEATURES (KEPT AS COMMENTS FOR REFERENCE) ===
-# MenuManager removed in v1.5.0 - replaced by ActionManager (better architecture)
-# from asciidoc_artisan.ui.menu_manager import MenuManager
-from asciidoc_artisan.ui.chat_manager import ChatManager  # Manages AI chat (v1.7.0)
 from asciidoc_artisan.ui.pandoc_result_handler import (  # Handles Pandoc results
     PandocResultHandler,
 )
@@ -398,7 +398,7 @@ class AsciiDocEditor(QMainWindow):
         # Connect file load request signal to handler in main thread
         self.request_load_file_content.connect(
             self.pandoc_result_handler._handle_file_load_request,
-            Qt.ConnectionType.QueuedConnection  # Force main thread execution
+            Qt.ConnectionType.QueuedConnection,  # Force main thread execution
         )
 
         # === Chat System Signal Connections (v1.7.0) ===
@@ -718,6 +718,7 @@ class AsciiDocEditor(QMainWindow):
 
         # Update font size
         from PySide6.QtGui import QFont
+
         from asciidoc_artisan.core import EDITOR_FONT_FAMILY
 
         font = QFont(EDITOR_FONT_FAMILY, settings.font_size)

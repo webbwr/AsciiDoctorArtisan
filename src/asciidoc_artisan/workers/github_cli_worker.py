@@ -107,7 +107,10 @@ class GitHubCLIWorker(BaseWorker):
 
     @Slot(list, str, str)
     def run_gh_command(
-        self, args: List[str], working_dir: Optional[str] = None, operation: Optional[str] = None
+        self,
+        args: List[str],
+        working_dir: Optional[str] = None,
+        operation: Optional[str] = None,
     ) -> None:
         """
         Execute a GitHub CLI command.
