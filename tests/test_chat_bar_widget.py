@@ -112,7 +112,7 @@ class TestChatBarWidgetModelManagement:
         chat_bar.set_models(models)
         chat_bar.set_model("llama2")
 
-        assert chat_bar.get_model() == "llama2"
+        assert chat_bar.get_current_model() == "llama2"
         assert chat_bar._model_selector.currentText() == "llama2"
 
     def test_get_model_returns_current(self, chat_bar):
@@ -121,7 +121,7 @@ class TestChatBarWidgetModelManagement:
         chat_bar.set_models(models)
         chat_bar.set_model("phi3:mini")
 
-        assert chat_bar.get_model() == "phi3:mini"
+        assert chat_bar.get_current_model() == "phi3:mini"
 
     def test_model_changed_signal_emits(self, chat_bar, qtbot):
         """Test model_changed signal emits when model changes."""
@@ -145,7 +145,7 @@ class TestChatBarWidgetContextModes:
     def test_default_context_mode(self, chat_bar):
         """Test default context mode is document."""
         # Default should be "document"
-        context = chat_bar.get_context_mode()
+        context = chat_bar.get_current_context_mode()
         assert context in ["document", "syntax", "general", "editing"]
 
     def test_set_context_mode(self, chat_bar):
@@ -153,7 +153,7 @@ class TestChatBarWidgetContextModes:
         modes = ["document", "syntax", "general", "editing"]
         for mode in modes:
             chat_bar.set_context_mode(mode)
-            assert chat_bar.get_context_mode() == mode
+            assert chat_bar.get_current_context_mode() == mode
 
     def test_context_mode_changed_signal(self, chat_bar, qtbot):
         """Test context_mode_changed signal emits."""
@@ -177,10 +177,10 @@ class TestChatBarWidgetMessageInput:
         assert chat_bar._input_field.text() == test_message
 
     def test_get_message_returns_input_text(self, chat_bar, qtbot):
-        """Test get_message returns input field text."""
+        """Test input field text can be read."""
         test_message = "Test message"
         qtbot.keyClicks(chat_bar._input_field, test_message)
-        assert chat_bar.get_message() == test_message
+        assert chat_bar._input_field.text() == test_message
 
     def test_clear_input_clears_field(self, chat_bar, qtbot):
         """Test clear_input clears the input field."""
@@ -259,7 +259,7 @@ class TestChatBarWidgetEnabledState:
 
     def test_set_enabled_enables_controls(self, chat_bar):
         """Test set_enabled enables all controls."""
-        chat_bar.set_enabled(True)
+        chat_bar.set_enabled_state(True)
 
         assert chat_bar._input_field.isEnabled()
         assert chat_bar._send_button.isEnabled()
@@ -268,7 +268,7 @@ class TestChatBarWidgetEnabledState:
 
     def test_set_enabled_disables_controls(self, chat_bar):
         """Test set_enabled(False) disables controls."""
-        chat_bar.set_enabled(False)
+        chat_bar.set_enabled_state(False)
 
         assert not chat_bar._input_field.isEnabled()
         assert not chat_bar._send_button.isEnabled()

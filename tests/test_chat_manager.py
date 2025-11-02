@@ -124,7 +124,7 @@ class TestChatManagerVisibility:
         settings.ollama_model = "phi3:mini"
         settings.ollama_chat_enabled = True
 
-        chat_manager.update_visibility()
+        chat_manager._update_visibility()
 
         # Should show both bar and panel
         assert mock_chat_bar.setVisible.called or mock_chat_bar.show.called
@@ -214,7 +214,7 @@ class TestChatManagerHistoryManagement:
             }
         ]
 
-        chat_manager._load_history_from_settings()
+        chat_manager._load_chat_history()
 
         # History should be loaded
         # (implementation detail - may vary)
@@ -231,7 +231,7 @@ class TestChatManagerHistoryManagement:
         )
 
         chat_manager._chat_history = [message]
-        chat_manager._save_history_to_settings()
+        chat_manager._save_chat_history()
 
         # Settings should be updated
         # (implementation detail - may vary)
