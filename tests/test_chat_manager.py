@@ -40,6 +40,7 @@ def mock_chat_panel():
     panel.add_message = Mock()
     panel.clear_messages = Mock()
     panel.get_message_count = Mock(return_value=0)
+    panel.get_messages = Mock(return_value=[])  # Return empty list, not Mock
     panel.export_to_text = Mock(return_value="")
     panel.export_to_html = Mock(return_value="")
     panel.set_visible = Mock()
