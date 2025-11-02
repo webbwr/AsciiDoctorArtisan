@@ -208,13 +208,16 @@ class ActionManager:
         self.save_as_pdf_act: QAction  # Export to PDF format
         self.exit_act: QAction  # Exit application (Ctrl+Q)
 
-        # Edit menu actions (7 actions)
+        # Edit menu actions (10 actions - includes Find actions v1.8.0)
         self.undo_act: QAction  # Undo last action (Ctrl+Z)
         self.redo_act: QAction  # Redo last undone action (Ctrl+Y)
         self.cut_act: QAction  # Cut selected text (Ctrl+X)
         self.copy_act: QAction  # Copy selected text (Ctrl+C)
         self.paste_act: QAction  # Paste from clipboard (Ctrl+V)
         self.convert_paste_act: QAction  # Paste and convert format (Ctrl+Shift+V)
+        self.find_act: QAction  # Find text in document (Ctrl+F) - v1.8.0
+        self.find_next_act: QAction  # Find next match (F3) - v1.8.0
+        self.find_previous_act: QAction  # Find previous match (Shift+F3) - v1.8.0
         self.preferences_act: QAction  # Open settings dialog
 
         # View menu actions (7 actions)
@@ -582,6 +585,30 @@ class ActionManager:
             shortcut="Ctrl+Shift+V",
         )
 
+        # === FIND ACTIONS (v1.8.0) ===
+        # Quick find bar for text search
+
+        self.find_act = self._create_action(
+            "&Find...",
+            "Find text in document",
+            lambda: self.window.find_bar.show_and_focus(),
+            shortcut=QKeySequence.StandardKey.Find,
+        )
+
+        self.find_next_act = self._create_action(
+            "Find &Next",
+            "Find next occurrence",
+            self.window._handle_find_next,
+            shortcut=QKeySequence.StandardKey.FindNext,
+        )
+
+        self.find_previous_act = self._create_action(
+            "Find &Previous",
+            "Find previous occurrence",
+            self.window._handle_find_previous,
+            shortcut=QKeySequence.StandardKey.FindPrevious,
+        )
+
         self.preferences_act = self._create_action(
             "&Preferences...",
             "Configure application preferences",
@@ -875,6 +902,14 @@ class ActionManager:
 
         # Special paste with format conversion
         edit_menu.addAction(self.convert_paste_act)  # Convert & Paste (Ctrl+Shift+V)
+
+        # Separator
+        edit_menu.addSeparator()
+
+        # Find & Search group (v1.8.0)
+        edit_menu.addAction(self.find_act)  # Find (Ctrl+F)
+        edit_menu.addAction(self.find_next_act)  # Find Next (F3)
+        edit_menu.addAction(self.find_previous_act)  # Find Previous (Shift+F3)
 
         # Separator
         edit_menu.addSeparator()

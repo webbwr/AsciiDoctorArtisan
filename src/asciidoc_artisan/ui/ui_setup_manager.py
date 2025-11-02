@@ -32,6 +32,7 @@ from asciidoc_artisan.core import (
     MIN_WINDOW_HEIGHT,
     MIN_WINDOW_WIDTH,
 )
+from asciidoc_artisan.ui.find_bar_widget import FindBarWidget
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 
 if TYPE_CHECKING:
@@ -103,6 +104,10 @@ class UISetupManager:
 
         # Add splitter to main layout
         main_layout.addWidget(self.editor.splitter, 1)  # Stretch factor 1
+
+        # Setup find bar (hidden by default, shown with Ctrl+F)
+        self.editor.find_bar = FindBarWidget(self.editor)
+        main_layout.addWidget(self.editor.find_bar)
 
         # Set main container as central widget
         self.editor.setCentralWidget(main_container)

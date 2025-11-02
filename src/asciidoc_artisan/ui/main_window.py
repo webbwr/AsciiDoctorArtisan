@@ -123,6 +123,7 @@ from asciidoc_artisan.core import (
 from asciidoc_artisan.core.large_file_handler import (  # Handles files >10MB
     LargeFileHandler,
 )
+from asciidoc_artisan.core.search_engine import SearchEngine  # Text search (v1.8.0)
 
 # === UI MANAGER IMPORTS ===
 # These "manager" classes handle different parts of the UI
@@ -343,6 +344,10 @@ class AsciiDocEditor(QMainWindow):
             self.chat_bar, self.chat_panel, self._settings, parent=self
         )
 
+        # === Find & Search System (v1.8.0) ===
+        # SearchEngine must be initialized AFTER UISetupManager creates find_bar
+        self._setup_find_system()
+
         # === Finalization ===
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
         self.theme_manager.apply_theme()
@@ -375,6 +380,30 @@ class AsciiDocEditor(QMainWindow):
         timer.setSingleShot(True)
         timer.timeout.connect(self.update_preview)
         return timer
+
+    def _setup_find_system(self) -> None:
+        """Initialize Find & Replace system (v1.8.0).
+
+        Sets up SearchEngine and connects FindBarWidget signals for:
+        - Live search as you type
+        - Find next/previous navigation
+        - Match counting and highlighting
+        """
+        # Initialize search engine with current editor text
+        self.search_engine = SearchEngine(self.editor.toPlainText())
+
+        # Connect find bar signals to search handlers
+        self.find_bar.search_requested.connect(self._handle_search_requested)
+        self.find_bar.find_next_requested.connect(self._handle_find_next)
+        self.find_bar.find_previous_requested.connect(self._handle_find_previous)
+        self.find_bar.closed.connect(self._handle_find_closed)
+
+        # Update search engine text when editor content changes
+        self.editor.textChanged.connect(
+            lambda: self.search_engine.set_text(self.editor.toPlainText())
+        )
+
+        logger.info("Find & Replace system initialized")
 
     def _setup_synchronized_scrolling(self) -> None:
         """Set up synchronized scrolling (delegates to ScrollManager)."""
@@ -646,6 +675,172 @@ class AsciiDocEditor(QMainWindow):
     def _handle_pandoc_error_result(self, error: str, context: str) -> None:
         """Handle Pandoc conversion error (delegates to PandocResultHandler)."""
         self.pandoc_result_handler.handle_pandoc_error_result(error, context)
+
+    # ========================================================================
+    # Find & Search Handlers (v1.8.0)
+    # ========================================================================
+
+    @Slot(str, bool)
+    def _handle_search_requested(self, search_text: str, case_sensitive: bool) -> None:
+        """Handle search text changes from find bar (live search).
+
+        Args:
+            search_text: Text to search for
+            case_sensitive: Whether search is case-sensitive
+        """
+        if not search_text:
+            # Clear highlighting if search is empty
+            self._clear_search_highlighting()
+            self.find_bar.update_match_count(0, 0)
+            return
+
+        try:
+            # Find all matches
+            matches = self.search_engine.find_all(search_text, case_sensitive=case_sensitive)
+
+            # Update match count in find bar
+            if matches:
+                # Find which match is closest to current cursor position
+                cursor = self.editor.textCursor()
+                current_pos = cursor.position()
+
+                # Find first match at or after cursor position
+                current_match_index = 0
+                for i, match in enumerate(matches):
+                    if match.start >= current_pos:
+                        current_match_index = i
+                        break
+                else:
+                    # If no match after cursor, use last match (wrapping)
+                    current_match_index = len(matches) - 1
+
+                self.find_bar.update_match_count(current_match_index + 1, len(matches))
+
+                # Highlight all matches
+                self._highlight_search_matches(matches)
+
+                # Select current match
+                if matches:
+                    self._select_match(matches[current_match_index])
+            else:
+                self.find_bar.update_match_count(0, 0)
+                self.find_bar.set_not_found_style()
+                self._clear_search_highlighting()
+
+        except Exception as e:
+            logger.error(f"Search error: {e}")
+            self.find_bar.update_match_count(0, 0)
+
+    @Slot()
+    def _handle_find_next(self) -> None:
+        """Navigate to next search match."""
+        search_text = self.find_bar.get_search_text()
+        if not search_text:
+            return
+
+        try:
+            cursor = self.editor.textCursor()
+            current_pos = cursor.position()
+
+            # Find next match after current position
+            match = self.search_engine.find_next(
+                search_text,
+                start_offset=current_pos,
+                case_sensitive=self.find_bar.is_case_sensitive(),
+                wrap_around=True
+            )
+
+            if match:
+                self._select_match(match)
+                # Update counter
+                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
+                match_index = matches.index(match) if match in matches else 0
+                self.find_bar.update_match_count(match_index + 1, len(matches))
+
+        except Exception as e:
+            logger.error(f"Find next error: {e}")
+
+    @Slot()
+    def _handle_find_previous(self) -> None:
+        """Navigate to previous search match."""
+        search_text = self.find_bar.get_search_text()
+        if not search_text:
+            return
+
+        try:
+            cursor = self.editor.textCursor()
+            current_pos = cursor.selectionStart()  # Start of current selection
+
+            # Find previous match before current position
+            match = self.search_engine.find_previous(
+                search_text,
+                start_offset=current_pos,
+                case_sensitive=self.find_bar.is_case_sensitive(),
+                wrap_around=True
+            )
+
+            if match:
+                self._select_match(match)
+                # Update counter
+                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
+                match_index = matches.index(match) if match in matches else 0
+                self.find_bar.update_match_count(match_index + 1, len(matches))
+
+        except Exception as e:
+            logger.error(f"Find previous error: {e}")
+
+    @Slot()
+    def _handle_find_closed(self) -> None:
+        """Handle find bar being closed."""
+        self._clear_search_highlighting()
+        self.editor.setFocus()  # Return focus to editor
+        logger.debug("Find bar closed, focus returned to editor")
+
+    def _select_match(self, match) -> None:
+        """Select a search match in the editor.
+
+        Args:
+            match: SearchMatch object with start/end positions
+        """
+        from PySide6.QtGui import QTextCursor
+
+        cursor = self.editor.textCursor()
+        cursor.setPosition(match.start)
+        cursor.setPosition(match.end, QTextCursor.MoveMode.KeepAnchor)
+        self.editor.setTextCursor(cursor)
+        self.editor.ensureCursorVisible()
+
+    def _highlight_search_matches(self, matches) -> None:
+        """Highlight all search matches in the editor.
+
+        Args:
+            matches: List of SearchMatch objects
+        """
+        from PySide6.QtGui import QTextEdit
+
+        # Clear existing highlights
+        self._clear_search_highlighting()
+
+        # Create extra selections for each match
+        extra_selections = []
+        for match in matches:
+            selection = QTextEdit.ExtraSelection()
+            cursor = self.editor.textCursor()
+            cursor.setPosition(match.start)
+            cursor.setPosition(match.end, QTextEdit.ExtraSelection.Cursor.KeepAnchor)
+
+            # Yellow highlight for matches
+            from PySide6.QtGui import QColor
+            selection.format.setBackground(QColor(255, 255, 0, 80))  # Light yellow
+            selection.cursor = cursor
+            extra_selections.append(selection)
+
+        self.editor.setExtraSelections(extra_selections)
+
+    def _clear_search_highlighting(self) -> None:
+        """Clear all search highlighting from the editor."""
+        self.editor.setExtraSelections([])
+        self.find_bar.clear_not_found_style()
 
     def _update_ui_state(self) -> None:
         """Update UI element states (delegates to UIStateManager)."""
