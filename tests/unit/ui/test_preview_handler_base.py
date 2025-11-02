@@ -180,6 +180,27 @@ def test_handle_preview_complete_wraps_with_css(handler):
     assert handler.completed_html == test_html
 
 
+@pytest.mark.parametrize("dark_mode,expected_text_color,expected_bg_color,test_id", [
+    (False, "#333", "#fff", "light_mode"),
+    (True, "#e0e0e0", "#1a1a1a", "dark_mode"),
+])
+def test_css_generation(handler, mock_window, dark_mode, expected_text_color, expected_bg_color, test_id):
+    """Test CSS generation for different themes.
+
+    Parametrized test covering:
+    - Light mode CSS colors
+    - Dark mode CSS colors
+    """
+    mock_window._settings.dark_mode = dark_mode
+    if dark_mode:
+        handler._css_cache = None  # Clear cache for dark mode test
+
+    css = handler.get_preview_css()
+
+    assert f"color: {expected_text_color}" in css
+    assert f"background-color: {expected_bg_color}" in css
+
+
 def test_handle_preview_error_displays_error(handler, preview):
     """Test error handling displays error message."""
     error_msg = "Test error message"
@@ -200,27 +221,6 @@ def test_handle_preview_error_dark_mode(handler, mock_window, preview):
 
     # Should use dark mode colors
     assert "#3a2a1a" in html or "#ffcc99" in html
-
-
-def test_css_generation_light_mode(handler, mock_window):
-    """Test CSS generation for light mode."""
-    mock_window._settings.dark_mode = False
-
-    css = handler.get_preview_css()
-
-    assert "color: #333" in css  # Light text color
-    assert "background-color: #fff" in css  # Light background
-
-
-def test_css_generation_dark_mode(handler, mock_window):
-    """Test CSS generation for dark mode."""
-    mock_window._settings.dark_mode = True
-    handler._css_cache = None  # Clear cache
-
-    css = handler.get_preview_css()
-
-    assert "color: #e0e0e0" in css  # Dark text color
-    assert "background-color: #1a1a1a" in css  # Dark background
 
 
 def test_css_caching(handler):
