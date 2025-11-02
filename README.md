@@ -383,11 +383,17 @@ Need more help?
 
 ## Version
 
-**Current Version**: 1.7.0 (Phase 1 Optimization Complete!)
+**Current Version**: 1.7.1 (Phase 2 Optimization Complete!)
+
+**What's New in v1.7.1:**
+- Uses 15-25% less memory (string interning)
+- 67+ common strings optimized
+- Faster string comparisons
+- All previous improvements maintained
 
 **What's New in v1.7.0:**
 - Preview is 40-50% faster
-- Uses 30% less memory
+- Uses 30% less memory overall
 - Theme switch is instant
 - All type hints added (100%)
 - Over 621 tests now

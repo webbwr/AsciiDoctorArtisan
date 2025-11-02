@@ -41,6 +41,7 @@ Historical project documentation and completed initiatives.
 
 - **REFACTORING_PLAN.md** - Phase 1-3 optimization strategy (Complete)
 - **OPTIMIZATION_SUMMARY.md** - Phase 1 technical report (Complete)
+- **PHASE_2_SUMMARY.md** - Phase 2 analysis and completion report (Nov 2025)
 - **READABILITY_REPORT_20251031.md** - Documentation readability audit (Oct 2025)
 
 ### 🔍 QA (`qa/`)
@@ -87,6 +88,13 @@ Start here: [Security Policy](../SECURITY.md)
 ---
 
 ## Recent Updates
+
+### v1.7.1 Phase 2 Optimization (November 1, 2025) ✅
+- **String interning:** Expanded from 17 to 67+ tokens
+- **Memory usage:** Additional 15-25% reduction for string allocations
+- **Worker pool migration:** Deferred (architectural complexity)
+- **Async I/O completion:** Deferred (minimal gains)
+- **Time invested:** 2 hours (smart, focused approach)
 
 ### v1.7.0 Phase 1 Optimization (November 1, 2025) ✅
 - **Preview latency:** 40-50% faster
