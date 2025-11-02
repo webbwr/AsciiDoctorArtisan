@@ -38,9 +38,11 @@ def mock_chat_panel():
     """Create a mock chat panel."""
     panel = Mock()
     panel.add_message = Mock()
+    panel.add_user_message = Mock()  # Add user message method
     panel.clear_messages = Mock()
     panel.get_message_count = Mock(return_value=0)
     panel.get_messages = Mock(return_value=[])  # Return empty list, not Mock
+    panel.load_messages = Mock()  # Add load messages method
     panel.export_to_text = Mock(return_value="")
     panel.export_to_html = Mock(return_value="")
     panel.set_visible = Mock()
@@ -118,18 +120,19 @@ class TestChatManagerVisibility:
         assert not should_show
 
     def test_update_visibility_shows_when_enabled(
-        self, chat_manager, mock_chat_bar, mock_chat_panel, settings
+        self, chat_manager, settings, qtbot
     ):
-        """Test update_visibility shows widgets when appropriate."""
+        """Test update_visibility emits visibility_changed signal."""
         settings.ollama_enabled = True
         settings.ollama_model = "phi3:mini"
         settings.ollama_chat_enabled = True
 
-        chat_manager._update_visibility()
+        with qtbot.waitSignal(chat_manager.visibility_changed, timeout=1000) as blocker:
+            chat_manager._update_visibility()
 
-        # Should show both bar and panel
-        assert mock_chat_bar.setVisible.called or mock_chat_bar.show.called
-        assert mock_chat_panel.setVisible.called or mock_chat_panel.show.called
+        # Should emit visibility_changed with True, True (both visible)
+        assert blocker.args[0] is True  # bar_visible
+        assert blocker.args[1] is True  # panel_visible
 
 
 class TestChatManagerMessageHandling:
@@ -143,13 +146,12 @@ class TestChatManagerMessageHandling:
 
         chat_manager._handle_user_message(message, model, context_mode)
 
-        # Should add message to panel
-        mock_chat_panel.add_message.assert_called_once()
-        call_args = mock_chat_panel.add_message.call_args[0]
-        msg = call_args[0]
-        assert isinstance(msg, ChatMessage)
-        assert msg.role == "user"
-        assert msg.content == message
+        # Should add user message to panel
+        mock_chat_panel.add_user_message.assert_called_once()
+        call_args = mock_chat_panel.add_user_message.call_args
+        assert call_args[0][0] == message  # message arg
+        assert call_args[0][1] == model    # model arg
+        assert call_args[0][2] == context_mode  # context_mode arg
 
     def test_handle_user_message_emits_to_worker(self, chat_manager, qtbot):
         """Test user message is emitted to worker."""

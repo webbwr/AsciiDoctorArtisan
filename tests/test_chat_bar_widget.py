@@ -245,20 +245,24 @@ class TestChatBarWidgetButtons:
         with qtbot.waitSignal(chat_bar.cancel_requested, timeout=1000):
             qtbot.mouseClick(chat_bar._cancel_button, Qt.LeftButton)
 
-    def test_cancel_button_visibility_control(self, chat_bar):
+    def test_cancel_button_visibility_control(self, chat_bar, qtbot):
         """Test cancel button can be shown/hidden."""
         chat_bar.set_processing(True)
+        qtbot.wait(10)  # Allow Qt event loop to process visibility change
         assert chat_bar._cancel_button.isVisible()
 
         chat_bar.set_processing(False)
+        qtbot.wait(10)  # Allow Qt event loop to process visibility change
         assert not chat_bar._cancel_button.isVisible()
 
 
 class TestChatBarWidgetEnabledState:
     """Test enabled/disabled state."""
 
-    def test_set_enabled_enables_controls(self, chat_bar):
+    def test_set_enabled_enables_controls(self, chat_bar, qtbot):
         """Test set_enabled enables all controls."""
+        # Add text to input field so send button can be enabled
+        qtbot.keyClicks(chat_bar._input_field, "Test message")
         chat_bar.set_enabled_state(True)
 
         assert chat_bar._input_field.isEnabled()
@@ -274,10 +278,10 @@ class TestChatBarWidgetEnabledState:
         assert not chat_bar._send_button.isEnabled()
 
     def test_processing_state_disables_input(self, chat_bar):
-        """Test processing state disables input but enables cancel."""
+        """Test processing state hides send button and shows cancel."""
         chat_bar.set_processing(True)
 
-        assert not chat_bar._send_button.isEnabled()
+        assert not chat_bar._send_button.isVisible()  # Send button is hidden, not just disabled
         assert chat_bar._cancel_button.isVisible()
 
 

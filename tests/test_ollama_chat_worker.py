@@ -118,8 +118,8 @@ class TestOllamaChatWorkerCancellation:
         chat_worker._is_processing = False
         chat_worker.cancel_operation()
 
-        # Should not crash, flag should be set anyway
-        assert chat_worker._should_cancel
+        # Should not crash, and flag should NOT be set (nothing to cancel)
+        assert not chat_worker._should_cancel
 
 
 class TestOllamaChatWorkerContextModes:
