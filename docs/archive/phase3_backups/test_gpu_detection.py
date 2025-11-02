@@ -1,29 +1,7 @@
 """
 Tests for core.gpu_detection module.
 
-Comprehensive test suite for GPU detection, caching, and NPU detection.
-
-This file consolidates tests from:
-- test_gpu_detection.py (original, 71 tests)
-- test_gpu_cache.py (merged, 13 unique tests added)
-
-Tests cover:
-- GPUInfo dataclass creation and validation
-- GPU cache entry creation, validation, and serialization
-- GPU detection cache save/load operations with TTL
-- Cache clearing and error handling
-- DRI device detection (/dev/dri/*)
-- Vendor-specific GPU detection (NVIDIA, AMD, Intel)
-- OpenGL renderer detection
-- WSLg environment detection
-- Intel NPU (Neural Processing Unit) detection
-- Compute capability detection (CUDA, OpenCL, Vulkan, OpenVINO)
-- Main GPU detection logic
-- GPU information logging
-- High-level get_gpu_info() API with caching
-- CLI interface
-
-Consolidated: November 2, 2025 (Phase 3 Task 3.1)
+Tests GPU detection, caching, and NPU detection functionality.
 """
 
 import json
@@ -49,40 +27,6 @@ from asciidoc_artisan.core.gpu_detection import (
     get_gpu_info,
 )
 
-
-# ============================================================================
-# FIXTURES
-# ============================================================================
-
-@pytest.fixture
-def mock_cache_file(tmp_path, monkeypatch):
-    """Use temporary cache file for testing."""
-    cache_file = tmp_path / "gpu_cache.json"
-    monkeypatch.setattr(GPUDetectionCache, "CACHE_FILE", cache_file)
-    return cache_file
-
-
-@pytest.fixture
-def sample_gpu_info():
-    """Create sample GPUInfo for testing."""
-    return GPUInfo(
-        has_gpu=True,
-        gpu_type="nvidia",
-        gpu_name="NVIDIA GeForce RTX 4060 Laptop GPU",
-        driver_version="581.57",
-        render_device="/dev/dri/renderD128",
-        can_use_webengine=True,
-        reason="Hardware acceleration available",
-        has_npu=False,
-        npu_type=None,
-        npu_name=None,
-        compute_capabilities=["cuda", "opencl", "vulkan"]
-    )
-
-
-# ============================================================================
-# GPU INFO TESTS
-# ============================================================================
 
 class TestGPUInfo:
     """Test suite for GPUInfo dataclass."""
@@ -217,26 +161,6 @@ class TestGPUCacheEntry:
         assert entry.is_valid(ttl_days=7) is True
         # Invalid with 3 day TTL
         assert entry.is_valid(ttl_days=3) is False
-
-    @pytest.mark.parametrize("timestamp,ttl_days,expected_valid,test_id", [
-        (datetime.now().isoformat(), 7, True, "fresh"),
-        ((datetime.now() - timedelta(days=10)).isoformat(), 7, False, "expired"),
-        ("invalid-timestamp", 7, False, "invalid_timestamp"),
-    ])
-    def test_cache_entry_validation(self, timestamp, ttl_days, expected_valid, test_id):
-        """Test cache entry validation with various timestamp scenarios.
-
-        Parametrized test covering:
-        - Fresh entries (valid)
-        - Expired entries (invalid)
-        - Invalid timestamp format (invalid)
-        """
-        entry = GPUCacheEntry(
-            timestamp=timestamp,
-            gpu_info={},
-            version="1.4.1"
-        )
-        assert entry.is_valid(ttl_days=ttl_days) == expected_valid
 
 
 class TestGPUDetectionCache:
@@ -387,83 +311,6 @@ class TestGPUDetectionCache:
         with patch.object(GPUDetectionCache, "CACHE_FILE", cache_file):
             result = GPUDetectionCache.save(gpu_info, "1.5.0")
             assert result is False
-
-    def test_cache_format(self, mock_cache_file, sample_gpu_info):
-        """Test cache file has correct JSON format."""
-        GPUDetectionCache.save(sample_gpu_info, "1.4.1")
-
-        data = json.loads(mock_cache_file.read_text())
-
-        assert "timestamp" in data
-        assert "gpu_info" in data
-        assert "version" in data
-        assert data["version"] == "1.4.1"
-        assert data["gpu_info"]["gpu_type"] == "nvidia"
-
-    def test_cache_with_npu(self, mock_cache_file):
-        """Test caching GPU info with NPU."""
-        gpu_info_with_npu = GPUInfo(
-            has_gpu=True,
-            gpu_type="intel",
-            gpu_name="Intel Iris Xe Graphics",
-            can_use_webengine=True,
-            has_npu=True,
-            npu_type="intel_npu",
-            npu_name="Intel NPU",
-            compute_capabilities=["opencl", "openvino"]
-        )
-
-        # Save and load
-        GPUDetectionCache.save(gpu_info_with_npu, "1.4.1")
-        loaded = GPUDetectionCache.load()
-
-        assert loaded is not None
-        assert loaded.has_npu is True
-        assert loaded.npu_type == "intel_npu"
-        assert loaded.npu_name == "Intel NPU"
-        assert "openvino" in loaded.compute_capabilities
-
-    def test_cache_without_gpu(self, mock_cache_file):
-        """Test caching when no GPU detected."""
-        no_gpu_info = GPUInfo(
-            has_gpu=False,
-            can_use_webengine=False,
-            reason="No GPU detected",
-            compute_capabilities=[]
-        )
-
-        # Save and load
-        GPUDetectionCache.save(no_gpu_info, "1.4.1")
-        loaded = GPUDetectionCache.load()
-
-        assert loaded is not None
-        assert loaded.has_gpu is False
-        assert loaded.reason == "No GPU detected"
-        assert len(loaded.compute_capabilities) == 0
-
-    def test_cache_ttl_boundary(self, mock_cache_file, sample_gpu_info):
-        """Test cache TTL boundary conditions."""
-        # Save cache
-        GPUDetectionCache.save(sample_gpu_info, "1.4.1")
-
-        # Manually modify timestamp to be exactly at TTL boundary
-        data = json.loads(mock_cache_file.read_text())
-        boundary_time = datetime.now() - timedelta(days=7, seconds=-1)
-        data["timestamp"] = boundary_time.isoformat()
-        mock_cache_file.write_text(json.dumps(data))
-
-        # Should still be valid (less than 7 days)
-        loaded = GPUDetectionCache.load()
-        assert loaded is not None
-
-        # Modify to be just over TTL
-        over_time = datetime.now() - timedelta(days=7, seconds=1)
-        data["timestamp"] = over_time.isoformat()
-        mock_cache_file.write_text(json.dumps(data))
-
-        # Should be expired
-        loaded = GPUDetectionCache.load()
-        assert loaded is None
 
 
 class TestCacheClear:
