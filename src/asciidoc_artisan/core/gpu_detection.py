@@ -62,10 +62,13 @@ class GPUCacheEntry:
     def is_valid(self, ttl_days: int = 7) -> bool:
         """Check if cache entry is still valid."""
         try:
+            # Parse timestamp and calculate age.
             cache_time = datetime.fromisoformat(self.timestamp)
             age = datetime.now() - cache_time
+            # Cache is valid if younger than TTL.
             return age < timedelta(days=ttl_days)
         except (ValueError, TypeError):
+            # Invalid timestamp format - treat as expired.
             return False
 
 
@@ -83,9 +86,11 @@ class GPUDetectionCache:
                 logger.debug("GPU cache file not found")
                 return None
 
+            # Read and parse cache file JSON.
             data = json.loads(cls.CACHE_FILE.read_text())
             entry = GPUCacheEntry(**data)
 
+            # Check if cache is still fresh (within TTL).
             if not entry.is_valid(cls.CACHE_TTL_DAYS):
                 logger.info("GPU cache expired")
                 return None
@@ -94,6 +99,7 @@ class GPUDetectionCache:
             return entry.to_gpu_info()
 
         except Exception as e:
+            # Corrupted cache file - will re-detect GPU.
             logger.warning(f"Failed to load GPU cache: {e}")
             return None
 
@@ -134,14 +140,15 @@ def check_dri_devices() -> tuple[bool, Optional[str]]:
     dri_path = Path("/dev/dri")
 
     if not dri_path.exists():
+        # No DRI directory - GPU passthrough not configured.
         return False, None
 
-    # Look for render devices
+    # Look for render devices (preferred for GPU acceleration).
     render_devices = list(dri_path.glob("renderD*"))
     if render_devices:
         return True, str(render_devices[0])
 
-    # Look for card devices
+    # Look for card devices (legacy fallback).
     card_devices = list(dri_path.glob("card*"))
     if card_devices:
         return True, str(card_devices[0])
@@ -161,16 +168,18 @@ def check_nvidia_gpu() -> tuple[bool, Optional[str], Optional[str]]:
             ["nvidia-smi", "--query-gpu=name,driver_version", "--format=csv,noheader"],
             capture_output=True,
             text=True,
-            timeout=5,
+            timeout=5,  # Prevent hanging if nvidia-smi is slow.
         )
 
         if result.returncode == 0 and result.stdout.strip():
+            # Parse CSV output (GPU name, driver version).
             parts = result.stdout.strip().split(",")
             gpu_name = parts[0].strip() if len(parts) > 0 else None
             driver_version = parts[1].strip() if len(parts) > 1 else None
             return True, gpu_name, driver_version
 
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # nvidia-smi not installed or failed.
         pass
 
     return False, None, None
@@ -192,15 +201,17 @@ def check_amd_gpu() -> tuple[bool, Optional[str]]:
         )
 
         if result.returncode == 0 and result.stdout.strip():
-            # Parse output for GPU name
+            # Parse output for GPU name (varies by ROCm version).
             for line in result.stdout.split("\n"):
                 if "Card series" in line or "Card model" in line:
                     gpu_name = line.split(":")[-1].strip()
                     return True, gpu_name
 
+            # ROCm found GPU but format not recognized.
             return True, "AMD GPU (unknown model)"
 
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # rocm-smi not installed or timed out.
         pass
 
     return False, None
@@ -244,15 +255,18 @@ def check_opengl_renderer() -> tuple[bool, Optional[str]]:
                 if "OpenGL renderer" in line:
                     renderer = line.split(":")[-1].strip()
 
-                    # Check if software rendering
+                    # Check if software rendering (CPU fallback).
                     if "llvmpipe" in renderer.lower():
+                        # LLVM pipe is Mesa's software renderer.
                         return False, renderer
                     elif "software" in renderer.lower():
                         return False, renderer
                     else:
+                        # Hardware renderer detected.
                         return True, renderer
 
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # glxinfo not installed or failed.
         pass
 
     return False, None
@@ -265,13 +279,14 @@ def check_wslg_environment() -> bool:
     Returns:
         True if WSLg detected
     """
-    # Check for WSL-specific environment variables
+    # Check for WSL-specific environment variables (Windows Subsystem for Linux).
     wsl_distro = os.environ.get("WSL_DISTRO_NAME")
     wsl_interop = os.environ.get("WSL_INTEROP")
 
-    # Check for Wayland display (WSLg uses Wayland)
+    # Check for Wayland display (WSLg uses Wayland for graphics).
     wayland_display = os.environ.get("WAYLAND_DISPLAY")
 
+    # Return true if any WSL indicator is present.
     return bool(wsl_distro or wsl_interop or wayland_display)
 
 
@@ -314,7 +329,7 @@ def detect_compute_capabilities() -> list[str]:
     """
     capabilities = []
 
-    # Check CUDA
+    # Check CUDA (NVIDIA GPU compute).
     try:
         result = subprocess.run(
             ["nvidia-smi"], capture_output=True, text=True, timeout=5
@@ -322,17 +337,19 @@ def detect_compute_capabilities() -> list[str]:
         if result.returncode == 0:
             capabilities.append("cuda")
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # CUDA not available.
         pass
 
-    # Check OpenCL
+    # Check OpenCL (cross-platform GPU compute).
     try:
         result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0 and "Platform Name" in result.stdout:
             capabilities.append("opencl")
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # OpenCL not available.
         pass
 
-    # Check Vulkan
+    # Check Vulkan (modern graphics and compute API).
     try:
         result = subprocess.run(
             ["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=5
@@ -340,13 +357,14 @@ def detect_compute_capabilities() -> list[str]:
         if result.returncode == 0:
             capabilities.append("vulkan")
     except (FileNotFoundError, subprocess.TimeoutExpired):
+        # Vulkan not available.
         pass
 
-    # Check OpenVINO (for NPU)
+    # Check OpenVINO (Intel NPU framework).
     if Path("/opt/intel/openvino").exists() or os.environ.get("OPENVINO_DIR"):
         capabilities.append("openvino")
 
-    # Check ROCm (AMD)
+    # Check ROCm (AMD GPU compute framework).
     if Path("/opt/rocm").exists():
         capabilities.append("rocm")
 
@@ -362,20 +380,22 @@ def detect_gpu() -> GPUInfo:
     """
     logger.info("Detecting GPU capabilities...")
 
-    # Check for DRI devices
+    # Check for DRI devices (required for GPU access in Linux).
     has_dri, render_device = check_dri_devices()
 
     if not has_dri:
+        # No GPU passthrough - cannot use hardware acceleration.
         return GPUInfo(
             has_gpu=False,
             can_use_webengine=False,
             reason="/dev/dri not found - GPU passthrough not configured",
         )
 
-    # Check OpenGL renderer
+    # Check OpenGL renderer (hardware vs software).
     is_hardware, renderer_name = check_opengl_renderer()
 
     if not is_hardware:
+        # Software rendering detected - GPU not usable.
         return GPUInfo(
             has_gpu=False,
             render_device=render_device,
@@ -383,12 +403,12 @@ def detect_gpu() -> GPUInfo:
             reason=f"Software rendering detected: {renderer_name}",
         )
 
-    # Detect GPU type
+    # Detect GPU type (NVIDIA, AMD, or Intel).
     has_nvidia, nvidia_name, nvidia_driver = check_nvidia_gpu()
     has_amd, amd_name = check_amd_gpu()
     has_intel, intel_name = check_intel_gpu()
 
-    # Determine GPU type and name
+    # Determine which GPU vendor is present (prioritize NVIDIA).
     if has_nvidia:
         gpu_type = "nvidia"
         gpu_name = nvidia_name
@@ -402,20 +422,21 @@ def detect_gpu() -> GPUInfo:
         gpu_name = intel_name
         driver_version = None
     else:
+        # GPU present but vendor unknown.
         gpu_type = "unknown"
         gpu_name = renderer_name
         driver_version = None
 
-    # GPU acceleration works in WSLg with proper NVIDIA drivers
-    # WSLg environment: GPU acceleration is automatically available
+    # GPU acceleration works in WSLg with proper drivers.
+    # WSLg environment: GPU acceleration is automatically available.
     can_use = True
     reason = f"Hardware acceleration available: {gpu_name}"
 
-    # Detect NPU
+    # Detect NPU (neural processing unit).
     has_npu, npu_name = check_intel_npu()
     npu_type = "intel_npu" if has_npu else None
 
-    # Detect compute capabilities
+    # Detect compute capabilities (CUDA, OpenCL, Vulkan, etc.).
     compute_capabilities = detect_compute_capabilities()
 
     return GPUInfo(
@@ -480,23 +501,24 @@ def get_gpu_info(force_redetect: bool = False) -> GPUInfo:
     """
     global _cached_gpu_info
 
-    # Try memory cache first
+    # Try memory cache first (fastest).
     if _cached_gpu_info is not None and not force_redetect:
         return _cached_gpu_info
 
-    # Try disk cache if not forcing redetection
+    # Try disk cache if not forcing redetection (avoids slow detection).
     if not force_redetect:
         cached_info = GPUDetectionCache.load()
         if cached_info is not None:
+            # Populate memory cache from disk.
             _cached_gpu_info = cached_info
             log_gpu_info(_cached_gpu_info)
             return _cached_gpu_info
 
-    # Perform full detection
+    # Perform full detection (slow - runs external commands).
     _cached_gpu_info = detect_gpu()
     log_gpu_info(_cached_gpu_info)
 
-    # Save to disk cache
+    # Save to disk cache for future runs (reduces startup time).
     from asciidoc_artisan.core import APP_VERSION
 
     GPUDetectionCache.save(_cached_gpu_info, APP_VERSION)

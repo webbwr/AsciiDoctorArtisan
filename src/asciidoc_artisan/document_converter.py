@@ -70,55 +70,68 @@ class PandocIntegration:
         Returns:
             Tuple of (is_available, status_message)
         """
+        # Look for pandoc binary in system PATH.
         self.pandoc_path = shutil.which("pandoc")
         if not self.pandoc_path:
             return False, "Pandoc binary not found. Please install pandoc."
 
         try:
+            # Query version to verify pandoc works.
             result = subprocess.run(
                 ["pandoc", "--version"],
                 capture_output=True,
                 text=True,
+                # Prevent hang on slow systems.
                 timeout=5,
                 check=False,
             )
             if result.returncode == 0:
+                # Extract version from first line.
                 self.pandoc_version = result.stdout.split("\n")[0]
                 logger.info(f"Found {self.pandoc_version}")
             else:
+                # Binary exists but does not run properly.
                 return False, "Pandoc found but version check failed."
         except Exception as e:
             logger.error(f"Error checking pandoc version: {e}")
             return False, f"Error checking pandoc: {e}"
 
         try:
+            # Check if Python wrapper is installed.
             import pypandoc  # noqa: F401
 
             self.pypandoc_available = True
+            # Query what formats pandoc supports.
             self._get_supported_formats()
             return True, f"{self.pandoc_version} and pypandoc properly installed."
         except ImportError:
+            # Binary exists but Python library missing.
             return False, "pypandoc not installed. Run: pip install pypandoc"
 
     def _get_supported_formats(self) -> None:
         """Query pandoc for supported input/output formats."""
+        # Query both input and output formats.
         for direction, flag in [
             ("input", "--list-input-formats"),
             ("output", "--list-output-formats"),
         ]:
             try:
+                # Run pandoc to get format list.
                 result = subprocess.run(
                     ["pandoc", flag],
                     capture_output=True,
                     text=True,
+                    # Quick timeout since this is just listing formats.
                     timeout=5,
                     check=False,
                 )
                 if result.returncode == 0:
+                    # Parse format list from stdout.
                     self.supported_formats[direction] = result.stdout.strip().split(
                         "\n"
                     )
             except Exception as e:
+                # Not fatal if we cannot list formats.
                 logger.error(f"Error getting {direction} formats: {e}")
 
     @staticmethod
@@ -208,6 +221,7 @@ Or download from https://pandoc.org/installing.html""",
         try:
             import pypandoc
 
+            # Detect format from file extension if not specified.
             if not input_format:
                 input_format = self.EXTENSION_MAP.get(
                     input_file.suffix.lower(), "markdown"
@@ -217,22 +231,26 @@ Or download from https://pandoc.org/installing.html""",
                 f"Converting {input_file.name}: {input_format} → {output_format}"
             )
 
+            # DOCX files must be read as binary.
             content = (
                 input_file.read_bytes()
                 if input_file.suffix.lower() == ".docx"
                 else input_file.read_text(encoding="utf-8")
             )
 
+            # Convert using pypandoc wrapper.
             result = pypandoc.convert_text(
                 source=content,
                 to=output_format,
                 format=input_format,
+                # Preserve line wrapping from source.
                 extra_args=["--wrap=preserve"],
             )
 
             return True, result, ""
 
         except Exception as e:
+            # Return error instead of crashing.
             error_msg = f"Conversion error: {e}"
             logger.error(error_msg)
             return False, "", error_msg
@@ -314,6 +332,7 @@ class PDFExtractor:
             Tuple of (success, extracted_text, error_message)
         """
         try:
+            # PyMuPDF is much faster than pdfplumber.
             import fitz  # PyMuPDF
         except ImportError:
             return (
@@ -325,31 +344,31 @@ class PDFExtractor:
         try:
             extracted_text = []
 
-            # Open PDF with PyMuPDF (much faster than pdfplumber)
+            # Open PDF file for reading.
             doc = fitz.open(pdf_path)
             total_pages = len(doc)
             logger.info(f"Extracting text from {total_pages} pages in {pdf_path}")
 
+            # Process each page in document.
             for page_num in range(total_pages):
                 page = doc[page_num]
 
-                # Extract text from page (GPU-accelerated where available)
+                # Get text from page using GPU if available.
                 text = page.get_text()
 
                 if text:
-                    # Add page marker for multi-page documents
+                    # Add separator between pages for clarity.
                     if total_pages > 1:
                         extracted_text.append(
                             f"\n// Page {page_num + 1} of {total_pages}\n"
                         )
                     extracted_text.append(text)
 
-                    # Extract tables if present
-                    # PyMuPDF doesn't have built-in table extraction like pdfplumber
-                    # but it's much faster for text extraction
-                    # Table detection would require additional libraries like tabula or camelot
-                    # For now, we rely on the raw text extraction which includes table data
+                    # Note: PyMuPDF does not extract tables separately.
+                    # Table data is included in raw text extraction.
+                    # For structured table parsing use tabula or camelot.
 
+            # Clean up file handle.
             doc.close()
 
             if not extracted_text:
@@ -388,14 +407,16 @@ class PDFExtractor:
         if not cell:
             return ""
 
-        # Replace line breaks with spaces
+        # Replace newlines with spaces for single line cells.
         cell = cell.replace("\n", " ").replace("\r", " ")
 
-        # Collapse multiple spaces using native Python
+        # Collapse multiple spaces into one using native Python.
+        # This is called in tight loops so must be fast.
         cleaned = []
         last_was_space = False
         for char in cell:
             if char == " ":
+                # Only add first space in sequence.
                 if not last_was_space:
                     cleaned.append(char)
                 last_was_space = True
@@ -403,9 +424,10 @@ class PDFExtractor:
                 cleaned.append(char)
                 last_was_space = False
 
+        # Join back into string and remove leading/trailing spaces.
         cell = "".join(cleaned).strip()
 
-        # Limit cell length
+        # Truncate very long cells to keep table readable.
         if len(cell) > max_length:
             cell = cell[: max_length - 3] + "..."
 
@@ -434,24 +456,25 @@ class PDFExtractor:
         if not table:
             return ""
 
-        # Filter out completely empty rows
+        # Remove rows that are completely empty.
         filtered_table = []
         for row in table:
-            if row and any(cell for cell in row):  # Row has at least one non-empty cell
+            # Keep row if it has at least one non-empty cell.
+            if row and any(cell for cell in row):
                 filtered_table.append(row)
 
         if not filtered_table:
             return ""
 
-        # Determine the maximum number of columns
+        # Find widest row to determine column count.
         max_cols = max(len(row) for row in filtered_table)
 
-        # Normalize all rows to have the same number of columns
+        # Make all rows have same column count.
         normalized_table = []
         for row in filtered_table:
-            # Convert cells to strings, handle None
+            # Convert None to empty string and strip whitespace.
             cells = [str(cell).strip() if cell is not None else "" for cell in row]
-            # Pad with empty strings if needed
+            # Pad short rows with empty cells.
             while len(cells) < max_cols:
                 cells.append("")
             normalized_table.append(cells)
@@ -459,53 +482,60 @@ class PDFExtractor:
         if not normalized_table:
             return ""
 
-        # Detect if first row looks like a header
-        # (heuristic: first row has shorter text or is all caps/bold indicators)
+        # Detect if first row is a header row.
+        # Heuristic: header rows are usually shorter.
         first_row = normalized_table[0]
-        has_header = True  # Default to treating first row as header
+        # Assume header by default.
+        has_header = True
 
-        # Check if first row has significantly different characteristics
+        # Compare first row with second row if available.
         if len(normalized_table) > 1:
             second_row = normalized_table[1]
-            # If first row has much shorter cells on average, likely a header
+            # Calculate average cell length in first row.
             avg_first = sum(len(cell) for cell in first_row) / len(first_row)
+            # Calculate average for second row but result is unused.
             sum(len(cell) for cell in second_row) / len(second_row)
-            # If first row is empty or very short, don't treat as header
+            # Very short first row is probably not a header.
             if avg_first < 2:
                 has_header = False
 
-        # Build AsciiDoc table
+        # Build AsciiDoc table markup.
         lines = []
 
-        # Add table options based on column count
+        # Add column width specification for better formatting.
         if max_cols > 1:
-            # Calculate column widths for better rendering
+            # Small tables get explicit column specs.
             if max_cols <= 3:
                 lines.append('[cols="1,1,1", options="header"]')
             elif max_cols <= 5:
+                # Generate equal width spec for each column.
                 col_spec = ",".join(["1"] * max_cols)
                 lines.append(f'[cols="{col_spec}", options="header"]')
             else:
+                # Many columns so let AsciiDoc auto-size.
                 lines.append('[options="header"]')
         else:
+            # Single column table.
             lines.append('[options="header"]')
 
+        # Start table content.
         lines.append("|===")
 
-        # Add rows (optimized with JIT when available)
+        # Add each row with cleaned cell content.
         for row_num, row in enumerate(normalized_table):
-            # Clean up cells using optimized function
-            # This is 10-50x faster with Numba JIT compilation
+            # Clean whitespace and truncate long cells.
+            # This function is performance critical.
             cells = [PDFExtractor._clean_cell(cell) for cell in row]
 
-            # Add row with proper formatting
+            # Format row with pipe delimiters.
             line = "| " + " | ".join(cells)
             lines.append(line)
 
-            # Add blank line after header for better readability
+            # Add visual gap after header row.
             if row_num == 0 and has_header and len(normalized_table) > 1:
-                lines.append("")  # Visual separator after header
+                lines.append("")
 
+        # End table content.
         lines.append("|===\n")
 
         return "\n".join(lines)

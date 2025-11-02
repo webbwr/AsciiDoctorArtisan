@@ -73,6 +73,7 @@ class GitHubCLIWorker(BaseWorker):
         """
         logger.info(f"Dispatching GitHub operation: {operation}")
 
+        # Route to appropriate method based on operation type.
         if operation == "create_pull_request":
             self.create_pull_request(
                 kwargs.get("title", ""),
@@ -94,6 +95,7 @@ class GitHubCLIWorker(BaseWorker):
         elif operation == "get_repo_info":
             self.get_repo_info(kwargs.get("working_dir", ""))
         else:
+            # Unknown operation - emit error result immediately.
             error_msg = f"Unknown GitHub operation: {operation}"
             logger.error(error_msg)
             result = GitHubResult(
@@ -130,7 +132,7 @@ class GitHubCLIWorker(BaseWorker):
             - 60-second timeout for all network operations
             - Validates working directory exists before execution
         """
-        # Check for cancellation
+        # Check cancellation flag before starting network operation.
         if self._check_cancellation():
             logger.info("GitHub CLI operation cancelled before execution")
             self.github_result_ready.emit(
@@ -145,13 +147,13 @@ class GitHubCLIWorker(BaseWorker):
             self.reset_cancellation()
             return
 
-        # Determine operation for logging (use provided operation or fallback to args[0])
+        # Use provided operation name, or default to first command arg.
         if operation is None:
             operation = args[0] if args else "unknown"
         user_message = "GitHub CLI command failed."
 
         try:
-            # Validate working directory if provided
+            # Validate directory exists before running subprocess.
             if working_dir and not self._validate_working_directory(working_dir):
                 user_message = f"Error: Working directory not found: {working_dir}"
                 self.github_result_ready.emit(
@@ -165,13 +167,14 @@ class GitHubCLIWorker(BaseWorker):
                 )
                 return
 
-            # Build full command
+            # Prepend 'gh' to user's args to build full command.
             command = ["gh"] + args
             logger.info(f"Executing GitHub CLI: {' '.join(command)}")
             if working_dir:
                 logger.info(f"Working directory: {working_dir}")
 
-            # SECURITY: Never use shell=True - always use list arguments to prevent command injection
+            # SECURITY: shell=False prevents command injection attacks.
+            # timeout=60 prevents hung network requests from blocking forever.
             process = subprocess.run(
                 command,
                 cwd=working_dir,
@@ -180,8 +183,8 @@ class GitHubCLIWorker(BaseWorker):
                 check=False,
                 shell=False,  # Critical: prevents command injection
                 encoding="utf-8",
-                errors="replace",
-                timeout=60,  # Security: All GitHub operations timeout at 60s
+                errors="replace",  # Replace invalid UTF-8 with placeholder.
+                timeout=60,  # 60s is enough for most GitHub API calls.
             )
 
             exit_code = process.returncode
@@ -191,13 +194,14 @@ class GitHubCLIWorker(BaseWorker):
             if exit_code == 0:
                 logger.info(f"GitHub CLI command successful: {' '.join(command)}")
 
-                # Try to parse JSON output if present
+                # Parse JSON if available, otherwise wrap plain text.
                 data = None
                 if stdout:
                     try:
+                        # GitHub CLI returns JSON when --json flag is used.
                         data = json.loads(stdout)
                     except json.JSONDecodeError:
-                        # Not JSON, treat as plain text
+                        # Not JSON (e.g. plain text output from gh auth status).
                         logger.debug("GitHub CLI output is not JSON")
                         data = {"output": stdout}
 
@@ -209,6 +213,7 @@ class GitHubCLIWorker(BaseWorker):
                     operation=operation,
                 )
             else:
+                # Parse error message to give user-friendly feedback.
                 user_message = self._parse_gh_error(stderr, args)
                 logger.error(
                     f"GitHub CLI command failed (code {exit_code}): {user_message}"

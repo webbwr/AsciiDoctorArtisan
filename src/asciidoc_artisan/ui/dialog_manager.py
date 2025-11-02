@@ -59,14 +59,18 @@ class DialogManager:
 
         if PANDOC_AVAILABLE and pypandoc:
             try:
+                # Query pandoc version from system.
                 version = pypandoc.get_pandoc_version()
                 status += f"Pandoc version: {version}\n"
+                # Show where binary is installed.
                 path = pypandoc.get_pandoc_path()
                 status += f"Pandoc path: {path}\n"
             except Exception as e:
+                # Pypandoc exists but cannot talk to pandoc.
                 status += f"Error getting pandoc info: {e}\n"
 
         if not PANDOC_AVAILABLE:
+            # Show install instructions if missing.
             status += "\nTo enable document conversion:\n"
             status += "1. Install pandoc from https://pandoc.org\n"
             status += "2. Run: pip install pypandoc"
@@ -111,7 +115,7 @@ class DialogManager:
         """Show Ollama service and installation status."""
         status = "Ollama Status:\n\n"
 
-        # Check if Ollama is enabled in settings
+        # Exit early if user disabled AI in settings.
         if not self.editor._settings.ollama_enabled:
             status += "⚠️ Ollama AI: Disabled in settings\n\n"
             status += "Current conversion method: Pandoc (standard)\n\n"
@@ -123,40 +127,46 @@ class DialogManager:
             self.editor.status_manager.show_message("info", "Ollama Status", status)
             return
 
-        # Ollama is enabled, check service status
+        # AI is enabled so check if service is running.
         status += "✅ Ollama AI: Enabled\n"
         if self.editor._settings.ollama_model:
             status += f"Selected model: {self.editor._settings.ollama_model}\n\n"
         else:
+            # Enabled but no model chosen yet.
             status += "⚠️ No model selected\n\n"
 
         try:
+            # Try to import Python client library.
             import ollama
 
-            # Try to connect to Ollama service
+            # Check if service is running.
             try:
-                # Test connection by listing models
+                # List models to test connection.
                 models = ollama.list()
                 status += "✅ Ollama service: Running\n"
                 status += "API endpoint: http://127.0.0.1:11434\n"
                 status += f"Models installed: {len(models.get('models', []))}\n"
 
-                # Check for GPU
+                # Detect GPU for faster inference.
                 try:
                     result = subprocess.run(
                         ["nvidia-smi"],
                         capture_output=True,
                         text=True,
+                        # Quick timeout to avoid hanging.
                         timeout=2,
                     )
                     if result.returncode == 0:
                         status += "GPU: ✅ NVIDIA GPU detected\n"
                     else:
+                        # nvidia-smi failed so no GPU.
                         status += "GPU: ⚠️ Not detected (CPU mode)\n"
                 except (FileNotFoundError, subprocess.TimeoutExpired):
+                    # nvidia-smi not found or too slow.
                     status += "GPU: ⚠️ Not detected (CPU mode)\n"
 
             except Exception as e:
+                # Library exists but service not running.
                 status += "❌ Ollama service: Not running\n"
                 status += f"Error: {str(e)}\n\n"
                 status += "To start Ollama:\n"
@@ -164,6 +174,7 @@ class DialogManager:
                 status += "  Windows: Start Ollama application\n"
 
         except ImportError:
+            # Python library not installed.
             status += "❌ Ollama Python library not installed\n\n"
             status += "To install:\n"
             status += "  pip install ollama>=0.4.0\n\n"
@@ -176,22 +187,25 @@ class DialogManager:
         """Show Ollama AI settings dialog with model selection."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
+        # Show dialog and wait for user response.
         dialog = OllamaSettingsDialog(self.editor._settings, self.editor)
         if dialog.exec():
+            # User clicked OK so get updated settings.
             self.editor._settings = dialog.get_settings()
+            # Save to disk immediately.
             self.editor._settings_manager.save_settings(
                 self.editor._settings, self.editor, self.editor._current_file_path
             )
 
-            # Update status bar with model name
+            # Refresh status bar to show new model.
             self.editor._update_ai_status_bar()
 
-            # Update PandocWorker with new Ollama configuration
+            # Tell worker thread about new config.
             self.editor.pandoc_worker.set_ollama_config(
                 self.editor._settings.ollama_enabled, self.editor._settings.ollama_model
             )
 
-            # Update ChatManager with new settings (bidirectional sync)
+            # Keep chat manager in sync with new settings.
             self.editor.chat_manager.update_settings(self.editor._settings)
 
             logger.info(
@@ -244,14 +258,14 @@ class DialogManager:
 
         settings = self.editor._settings
 
-        # Apply editor font
+        # Set font for editor widget.
         editor_font = QFont(settings.editor_font_family, settings.editor_font_size)
         self.editor.editor.setFont(editor_font)
         logger.debug(
             f"Applied editor font: {settings.editor_font_family} {settings.editor_font_size}pt"
         )
 
-        # Apply preview font (CSS for QTextBrowser or QWebEngineView)
+        # Set font for preview via CSS injection.
         preview_css = f"""
         body {{
             font-family: '{settings.preview_font_family}', sans-serif;
@@ -259,15 +273,16 @@ class DialogManager:
         }}
         """
         if hasattr(self.editor, "preview_handler") and self.editor.preview_handler:
+            # Inject CSS into preview widget.
             self.editor.preview_handler.set_custom_css(preview_css)
             logger.debug(
                 f"Applied preview font: {settings.preview_font_family} {settings.preview_font_size}pt"
             )
 
-        # Apply chat font
+        # Set font for chat panel if AI is enabled.
         if hasattr(self.editor, "chat_manager") and self.editor.chat_manager:
             chat_font = QFont(settings.chat_font_family, settings.chat_font_size)
-            # Apply to chat panel widget
+            # Check if chat panel exists before setting font.
             if (
                 hasattr(self.editor.chat_manager, "chat_panel")
                 and self.editor.chat_manager.chat_panel
@@ -310,13 +325,15 @@ class DialogManager:
         """
         import os
 
-        # Skip prompts in test environment to prevent blocking
+        # Auto-continue in tests to prevent blocking.
         if os.environ.get("PYTEST_CURRENT_TEST"):
             return True
 
+        # Nothing to save so just continue.
         if not self.editor._unsaved_changes:
             return True
 
+        # Ask user what to do with unsaved changes.
         reply = QMessageBox.question(
             self.editor,
             "Unsaved Changes",
@@ -327,10 +344,13 @@ class DialogManager:
         )
 
         if reply == QMessageBox.StandardButton.Save:
+            # User wants to save first.
             return self.editor.save_file()  # type: ignore[no-any-return]  # save_file returns bool but QMessageBox comparison typed as Any
         elif reply == QMessageBox.StandardButton.Discard:
+            # User wants to continue without saving.
             return True
         else:
+            # User cancelled the action.
             return False
 
     def show_preferences_dialog(self) -> None:

@@ -63,6 +63,7 @@ class RenderTask(CancelableRunnable):
         self, text: str, asciidoc_api: Any, task_id: Optional[str] = None
     ) -> None:
         """Initialize render task."""
+        # Generate unique ID using timestamp if not provided.
         if task_id is None:
             import time
 
@@ -71,20 +72,23 @@ class RenderTask(CancelableRunnable):
         # Create render function
         def render_func() -> str:
             """Render AsciiDoc to HTML."""
+            # Exit early if task was cancelled.
             if self.is_canceled():
                 return ""
 
             try:
+                # Use string buffers to avoid file I/O overhead.
                 infile = io.StringIO(text)
                 outfile = io.StringIO()
 
-                # Check cancellation before rendering
+                # Check again before slow rendering starts.
                 if self.is_canceled():
                     return ""
 
                 # Perform rendering
                 asciidoc_api.execute(infile, outfile, backend="html5")
 
+                # Final check before returning result.
                 if self.is_canceled():
                     return ""
 
@@ -96,16 +100,20 @@ class RenderTask(CancelableRunnable):
 
         super().__init__(render_func, task_id)
         self.signals = TaskSignals()
-        self.priority = TaskPriority.HIGH  # User-facing, high priority
+        # High priority because user sees this in preview pane.
+        self.priority = TaskPriority.HIGH
 
     def run(self) -> None:
         """Override run to emit signals."""
         try:
+            # Tell main thread task is starting.
             self.signals.started.emit()
-            super().run()  # Execute the actual rendering
-            # Note: finished signal will be emitted by caller checking result
+            # Execute the actual rendering
+            super().run()
+            # Note: finished signal emitted by caller after checking result.
         except Exception as exc:
             logger.exception(f"RenderTask failed: {exc}")
+            # Send error to main thread for display.
             self.signals.error.emit(str(exc))
 
 
@@ -130,6 +138,7 @@ class ConversionTask(CancelableRunnable):
         task_id: Optional[str] = None,
     ) -> None:
         """Initialize conversion task."""
+        # Generate unique ID using timestamp if not provided.
         if task_id is None:
             import time
 
@@ -138,17 +147,19 @@ class ConversionTask(CancelableRunnable):
         # Create conversion function
         def convert_func() -> tuple[bool, Any, str]:
             """Perform conversion."""
+            # Exit early if task was cancelled.
             if self.is_canceled():
                 return (False, "", "Conversion cancelled")
 
             try:
-                # Import pypandoc here to avoid import at module level
+                # Lazy import to speed up app startup.
                 import pypandoc
 
+                # Check again after slow import completes.
                 if self.is_canceled():
                     return (False, "", "Conversion cancelled")
 
-                # Perform conversion
+                # Use file or text method based on source type.
                 if is_file:
                     result = pypandoc.convert_file(
                         source, to_format, format=from_format
@@ -158,6 +169,7 @@ class ConversionTask(CancelableRunnable):
                         source, to_format, format=from_format
                     )
 
+                # Final check before returning result.
                 if self.is_canceled():
                     return (False, "", "Conversion cancelled")
 
@@ -165,10 +177,12 @@ class ConversionTask(CancelableRunnable):
 
             except Exception as exc:
                 logger.error(f"Conversion failed: {exc}")
+                # Return error instead of raising to avoid thread crash.
                 return (False, "", str(exc))
 
         super().__init__(convert_func, task_id)
         self.signals = TaskSignals()
+        # Normal priority - not as urgent as preview rendering.
         self.priority = TaskPriority.NORMAL
 
     def run(self) -> None:
@@ -195,6 +209,7 @@ class GitTask(CancelableRunnable):
         self, command: List[str], cwd: Path, task_id: Optional[str] = None
     ) -> None:
         """Initialize git task."""
+        # Generate unique ID using timestamp if not provided.
         if task_id is None:
             import time
 
@@ -203,6 +218,7 @@ class GitTask(CancelableRunnable):
         # Create git function
         def git_func() -> GitResult:
             """Execute git command."""
+            # Exit early if task was cancelled.
             if self.is_canceled():
                 return GitResult(
                     success=False,
@@ -213,16 +229,19 @@ class GitTask(CancelableRunnable):
                 )
 
             try:
-                # Execute git command
+                # Execute git command with security safeguards.
                 result = subprocess.run(
                     command,
                     cwd=str(cwd),
                     capture_output=True,
                     text=True,
+                    # Prevent hang on slow operations.
                     timeout=30,
-                    shell=False,  # Security: never use shell=True
+                    # Security: prevent shell injection attacks.
+                    shell=False,
                 )
 
+                # Check again after slow subprocess completes.
                 if self.is_canceled():
                     return GitResult(
                         success=False,
@@ -232,6 +251,7 @@ class GitTask(CancelableRunnable):
                         user_message="Git operation cancelled",
                     )
 
+                # Build result from subprocess output.
                 return GitResult(
                     success=result.returncode == 0,
                     stdout=result.stdout,
@@ -245,6 +265,7 @@ class GitTask(CancelableRunnable):
                 )
 
             except subprocess.TimeoutExpired:
+                # Handle slow network or large repos.
                 logger.error("Git command timed out")
                 return GitResult(
                     success=False,
@@ -254,6 +275,7 @@ class GitTask(CancelableRunnable):
                     user_message="Git command timed out",
                 )
             except Exception as exc:
+                # Catch all other errors to avoid thread crash.
                 logger.error(f"Git command failed: {exc}")
                 return GitResult(
                     success=False,
@@ -265,6 +287,7 @@ class GitTask(CancelableRunnable):
 
         super().__init__(git_func, task_id)
         self.signals = TaskSignals()
+        # Normal priority - not as urgent as preview rendering.
         self.priority = TaskPriority.NORMAL
 
     def run(self) -> None:

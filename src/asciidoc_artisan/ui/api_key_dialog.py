@@ -158,7 +158,8 @@ class APIKeySetupDialog(QDialog):
         Args:
             text: Current text in the input field
         """
-        # Enable test button if key looks valid
+        # Enable test button if key looks valid (format check only).
+        # Anthropic keys start with "sk-ant-" and are longer than 20 chars.
         is_valid = text.startswith("sk-ant-") and len(text) > 20
         self.test_button.setEnabled(is_valid)
 
@@ -170,7 +171,7 @@ class APIKeySetupDialog(QDialog):
             QMessageBox.warning(self, "No API Key", "Please enter an API key to test.")
             return
 
-        # Basic validation
+        # Basic validation (format check only - no network call).
         if not api_key.startswith("sk-ant-"):
             QMessageBox.warning(
                 self,
@@ -180,7 +181,8 @@ class APIKeySetupDialog(QDialog):
             )
             return
 
-        # For now, just validate format (actual API testing would require network call)
+        # Format valid - actual API testing would require network call.
+        # We skip that here to avoid blocking the UI.
         QMessageBox.information(
             self,
             "Key Format Valid",
@@ -194,7 +196,7 @@ class APIKeySetupDialog(QDialog):
         api_key = self.anthropic_key_input.text().strip()
 
         if api_key:
-            # Validate format
+            # Validate format before storing.
             if not api_key.startswith("sk-ant-"):
                 QMessageBox.warning(
                     self,
@@ -204,7 +206,7 @@ class APIKeySetupDialog(QDialog):
                 )
                 return
 
-            # Store securely
+            # Check keyring availability before trying to store.
             if not SecureCredentials.is_available():
                 QMessageBox.critical(
                     self,
@@ -215,6 +217,7 @@ class APIKeySetupDialog(QDialog):
                 )
                 return
 
+            # Store key in OS keyring (not plain text file).
             if self.credentials.store_anthropic_key(api_key):
                 logger.info("Anthropic API key stored successfully")
                 QMessageBox.information(
@@ -225,6 +228,7 @@ class APIKeySetupDialog(QDialog):
                 )
                 self.accept()
             else:
+                # Storage failed - check system logs for reason.
                 QMessageBox.critical(
                     self,
                     "Storage Failed",
@@ -232,7 +236,7 @@ class APIKeySetupDialog(QDialog):
                     "Please check system logs for details.",
                 )
         else:
-            # No key entered, just close
+            # No key entered, just close dialog.
             self.accept()
 
     def _clear_stored_key(self) -> None:
@@ -251,12 +255,13 @@ class APIKeySetupDialog(QDialog):
 
         import os
 
-        # Skip prompts in test environment to prevent blocking
+        # Skip prompts in test environment to prevent blocking tests.
         if os.environ.get("PYTEST_CURRENT_TEST"):
-            # In tests, automatically proceed with deletion
+            # In tests, automatically proceed with deletion.
             self.credentials.delete_anthropic_key()
             return
 
+        # Confirm deletion with user.
         reply = QMessageBox.question(
             self,
             "Confirm Deletion",
@@ -267,13 +272,16 @@ class APIKeySetupDialog(QDialog):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
+            # Delete key from OS keyring.
             if self.credentials.delete_anthropic_key():
                 QMessageBox.information(
                     self, "Key Deleted", "API key has been removed from keyring."
                 )
+                # Update status label to reflect removal.
                 self._update_status_label()
                 logger.info("Anthropic API key deleted by user")
             else:
+                # Deletion failed - check system logs for reason.
                 QMessageBox.warning(
                     self, "Deletion Failed", "Failed to delete API key from keyring."
                 )

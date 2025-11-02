@@ -56,6 +56,8 @@ class HardwareDetector:
     def detect_nvidia_gpu() -> Optional[GPUInfo]:
         """Detect NVIDIA GPU using nvidia-smi."""
         try:
+            # Query nvidia-smi for GPU name and total memory in MB.
+            # CSV format prevents parsing issues with spaces in names.
             result = subprocess.run(
                 [
                     "nvidia-smi",
@@ -64,27 +66,29 @@ class HardwareDetector:
                 ],
                 capture_output=True,
                 text=True,
-                timeout=5,
+                timeout=5,  # Prevent hanging if nvidia-smi is unresponsive.
             )
 
             if result.returncode == 0 and result.stdout.strip():
                 lines = result.stdout.strip().split("\n")
                 if lines:
-                    # Parse first GPU
+                    # Parse first GPU only (multi-GPU systems have multiple lines).
                     parts = lines[0].split(",")
                     if len(parts) >= 2:
                         model = parts[0].strip()
+                        # Convert to int to handle both "8192" and "8192.0" formats.
                         memory_mb = int(float(parts[1].strip()))
                         logger.info(f"Detected NVIDIA GPU: {model} ({memory_mb}MB)")
                         return GPUInfo(
                             vendor="NVIDIA", model=model, memory_mb=memory_mb
                         )
         except (
-            FileNotFoundError,
-            PermissionError,
-            subprocess.TimeoutExpired,
-            ValueError,
+            FileNotFoundError,  # nvidia-smi not installed.
+            PermissionError,  # No access to nvidia-smi binary.
+            subprocess.TimeoutExpired,  # Command took too long.
+            ValueError,  # Memory value not a valid number.
         ) as e:
+            # Debug level only - GPU absence is normal on many systems.
             logger.debug(f"NVIDIA GPU detection failed: {e}")
 
         return None
@@ -92,7 +96,7 @@ class HardwareDetector:
     @staticmethod
     def detect_amd_gpu() -> Optional[GPUInfo]:
         """Detect AMD GPU using rocm-smi or lspci."""
-        # Try rocm-smi first
+        # Try rocm-smi first (ROCm-specific tool for AMD GPUs).
         try:
             result = subprocess.run(
                 ["rocm-smi", "--showproductname"],
@@ -102,25 +106,30 @@ class HardwareDetector:
             )
 
             if result.returncode == 0 and result.stdout.strip():
+                # Extract first line (GPU product name).
                 model = result.stdout.strip().split("\n")[0]
                 logger.info(f"Detected AMD GPU: {model}")
                 return GPUInfo(vendor="AMD", model=model)
         except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
+            # rocm-smi not available - try fallback method.
             pass
 
-        # Try lspci as fallback
+        # Try lspci as fallback (works on all Linux systems).
         try:
             result = subprocess.run(
                 ["lspci"], capture_output=True, text=True, timeout=5
             )
 
             if result.returncode == 0:
+                # Scan PCI devices for AMD graphics cards.
                 for line in result.stdout.split("\n"):
                     if "AMD" in line and ("VGA" in line or "Display" in line):
+                        # Extract device description after last colon.
                         model = line.split(":")[-1].strip()
                         logger.info(f"Detected AMD GPU (via lspci): {model}")
                         return GPUInfo(vendor="AMD", model=model)
         except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
+            # lspci not available or failed.
             pass
 
         return None
@@ -134,12 +143,15 @@ class HardwareDetector:
             )
 
             if result.returncode == 0:
+                # Scan PCI devices for Intel integrated graphics.
                 for line in result.stdout.split("\n"):
                     if "Intel" in line and ("VGA" in line or "Display" in line):
+                        # Extract device description after last colon.
                         model = line.split(":")[-1].strip()
                         logger.info(f"Detected Intel GPU: {model}")
                         return GPUInfo(vendor="Intel", model=model)
         except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
+            # lspci not available or failed.
             pass
 
         return None
@@ -149,7 +161,7 @@ class HardwareDetector:
         """Detect NPU (Neural Processing Unit)."""
         system = platform.system()
 
-        # Intel NPU detection (Core Ultra CPUs)
+        # Intel NPU detection (Core Ultra CPUs with AI Boost).
         if system == "Windows" or system == "Linux":
             try:
                 result = subprocess.run(
@@ -157,18 +169,19 @@ class HardwareDetector:
                 )
 
                 if result.returncode == 0:
+                    # Search CPU info for NPU indicators.
                     cpu_info = result.stdout.lower()
 
-                    # Intel Core Ultra has NPU
+                    # Intel Core Ultra has built-in NPU (Meteor Lake architecture).
                     if "core ultra" in cpu_info or "meteor lake" in cpu_info:
                         logger.info("Detected Intel NPU (Core Ultra)")
                         return NPUInfo(
                             vendor="Intel",
                             model="Intel AI Boost",
-                            tops=10,  # Core Ultra NPUs typically 10-16 TOPS
+                            tops=10,  # Core Ultra NPUs typically 10-16 TOPS.
                         )
 
-                    # AMD Ryzen AI
+                    # AMD Ryzen AI has built-in NPU (7040/8040 series).
                     if (
                         "ryzen ai" in cpu_info
                         or "7040" in cpu_info
@@ -178,12 +191,13 @@ class HardwareDetector:
                         return NPUInfo(
                             vendor="AMD",
                             model="Ryzen AI",
-                            tops=16,  # Ryzen AI NPUs typically 16-50 TOPS
+                            tops=16,  # Ryzen AI NPUs typically 16-50 TOPS.
                         )
             except (FileNotFoundError, subprocess.TimeoutExpired):
+                # lscpu not available on this system.
                 pass
 
-        # Apple Neural Engine
+        # Apple Neural Engine (M-series chips on macOS).
         if system == "Darwin":  # macOS
             try:
                 result = subprocess.run(
@@ -198,9 +212,10 @@ class HardwareDetector:
                     return NPUInfo(
                         vendor="Apple",
                         model="Apple Neural Engine",
-                        tops=15,  # Apple M-series NPUs
+                        tops=15,  # Apple M-series NPUs.
                     )
             except (FileNotFoundError, subprocess.TimeoutExpired):
+                # sysctl not available or failed.
                 pass
 
         return None
@@ -214,7 +229,11 @@ class HardwareDetector:
         """
         import psutil
 
+        # Get physical cores (excludes hyperthreading).
+        # Fall back to logical cores if physical count unavailable.
         cpu_cores = psutil.cpu_count(logical=False) or psutil.cpu_count() or 1
+
+        # Get total RAM in gigabytes.
         ram_bytes = psutil.virtual_memory().total
         ram_gb = int(ram_bytes / (1024**3))
 
@@ -231,7 +250,7 @@ class HardwareDetector:
 
         gpus = []
 
-        # Try each GPU vendor
+        # Try each GPU vendor (may find multiple GPUs).
         nvidia_gpu = cls.detect_nvidia_gpu()
         if nvidia_gpu:
             gpus.append(nvidia_gpu)
@@ -244,12 +263,13 @@ class HardwareDetector:
         if intel_gpu:
             gpus.append(intel_gpu)
 
-        # Detect NPU
+        # Detect NPU (neural processing unit).
         npu = cls.detect_npu()
 
-        # Get CPU info
+        # Get CPU info (cores and RAM).
         cpu_cores, ram_gb = cls.get_cpu_info()
 
+        # Assemble complete hardware profile.
         caps = HardwareCapabilities(
             has_gpu=len(gpus) > 0,
             has_npu=npu is not None,
