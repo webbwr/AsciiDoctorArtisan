@@ -127,6 +127,30 @@ The program MUST let you check all requirements and update dependencies.
 
 **Test**: After update. Must re-validate automatically.
 
+**Test** (v1.7.4): Validator dialog must honor dark theme setting.
+
+### Rule: Tools Menu Organization (v1.7.4)
+
+The Tools menu MUST be organized in logical groups.
+
+**Menu Structure** (v1.7.4):
+1. **System & Validation**: Validate Installation
+2. **Appearance**: Toggle Theme (Dark/Light), Font Settings
+3. **External Tools**: Pandoc Status, Supported Formats, AI Status submenu
+4. **Application Settings**: Application Settings
+
+**Features**:
+- Theme toggle accessible from Tools menu (in addition to View menu)
+- Clear separators between logical sections
+- Related items grouped together
+- Checkable theme toggle shows current state
+
+**Test**: Open Tools menu. Must see organized sections with separators.
+
+**Test**: Click Toggle Theme. Theme must switch between dark and light.
+
+**Test**: Toggle Theme must show checkmark when dark mode is on.
+
 ---
 
 ## Edit Rules
@@ -532,6 +556,10 @@ The program MUST have dark mode.
 **Test**: Press Ctrl+D. Colors must change to dark.
 
 **Test**: Restart. Dark mode must stay on.
+
+**Test** (v1.7.4): Open Tools → Toggle Theme. Theme must switch.
+
+**Test** (v1.7.4): Check mark must show when dark mode is on.
 
 ### Rule: Change Text Size
 
