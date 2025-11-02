@@ -1,7 +1,7 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.7.1 ✅ COMPLETE - 100% Test Coverage (82/82 tests), Ollama AI Chat with 4 context modes
+**Version**: 1.7.3 ✅ COMPLETE - AI Model Validation with Real-time Status Updates
 **Last Updated**: November 2, 2025
 
 ## What This Is
@@ -289,13 +289,31 @@ The program MUST support four chat modes.
 
 ### Rule: Model Selector
 
-The program MUST let user switch AI models in chat bar.
+The program MUST let user switch AI models in chat bar with real-time validation.
+
+**Features** (v1.7.3):
+- Model dropdown shows all installed Ollama models
+- Real-time validation when selecting model (checks if model exists)
+- Status bar feedback during validation ("Validating model...", "✓ Switched to...", "✗ Model not available")
+- Invalid model selections revert to current model
+- Empty model selections show error message
 
 **Test**: Click model dropdown. Must show all installed Ollama models.
 
-**Test**: Select different model. Next message must use new model.
+**Test**: Select different model. Status bar must show "Validating model: [name]..."
+
+**Test**: Select valid model. Status bar must show "✓ Switched to model: [name]". Next message must use new model.
+
+**Test**: Select invalid model. Status bar must show "✗ Model '[name]' not available (keeping [current])". Dropdown must revert to current model.
 
 **Test**: No Ollama installed. Dropdown must be empty.
+
+**Implementation**: v1.7.3 (November 2, 2025)
+- Model validation via `ollama list` command (2-second timeout)
+- 10 comprehensive tests (100% passing)
+- Automatic revert on invalid selection
+- Real-time status bar updates during validation
+- Graceful handling of Ollama not installed, timeout, or command errors
 
 ### Rule: Chat History Saved
 

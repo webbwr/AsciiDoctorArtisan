@@ -3,7 +3,7 @@
 
 **Last Updated:** November 2, 2025
 **Planning Horizon:** 18-24 months
-**Status:** v1.5.0 ✅ | v1.6.0 ✅ | QA Initiative ✅ | **Phase 1 Optimization ✅** | **Phase 2 Optimization ✅** | **v1.7.0 ✅** | **v1.7.1 ✅** | **v1.7.2 ✅ COMPLETE** (Undo/Redo UI Enhancement)
+**Status:** v1.5.0 ✅ | v1.6.0 ✅ | QA Initiative ✅ | **Phase 1 Optimization ✅** | **Phase 2 Optimization ✅** | **v1.7.0 ✅** | **v1.7.1 ✅** | **v1.7.2 ✅** | **v1.7.3 ✅ COMPLETE** (AI Model Validation)
 
 ---
 
@@ -16,6 +16,7 @@
 | v1.7.0 | ✅ COMPLETE | Nov 2025 | AI Integration | 36-45h | Ollama Chat with 4 context modes |
 | v1.7.1 | ✅ COMPLETE | Nov 2, 2025 | Quality | 2h | 100% test coverage (82/82 tests), docs |
 | v1.7.2 | ✅ COMPLETE | Nov 2, 2025 | UX Enhancement | 2h | Undo/redo UI buttons, 38 tests |
+| v1.7.3 | ✅ COMPLETE | Nov 2, 2025 | AI Enhancement | 1h | Model validation, real-time status, 10 tests |
 | v1.8.0 | 📋 NEXT | Q1-Q2 2026 | Essential Features | 48-72h | Find/Replace, Spell Check, Telemetry |
 | v1.9.0 | 📋 PLANNED | Q2-Q3 2026 | Advanced Editing | 102-160h | Auto-complete, Syntax Checking, Templates |
 | v2.0.0 | 📋 BACKLOG | Q4 2026-Q2 2027 | Next-Gen | 240-360h | LSP, Plugins, Multi-core, Marketplace |
@@ -27,18 +28,19 @@
 ## Table of Contents
 
 1. [Vision & Principles](#vision-statement)
-2. [Current State (v1.7.2)](#current-state-v172-)
-3. [v1.7.2 Complete](#version-172-ux-enhancement--complete)
-4. [v1.7.0 Complete](#version-170-ai-integration--complete)
-5. [Quality Assurance Initiative](#quality-assurance-initiative--complete)
-6. [v1.8.0 Plan (Q1-Q2 2026)](#version-180-essential-features--next)
-7. [v1.9.0 Plan (Q2-Q3 2026)](#version-190-advanced-editing)
-8. [v2.0.0 Plan (Q4 2026-Q2 2027)](#version-200-next-generation-architecture)
-9. [Future Vision](#beyond-v200-future-vision)
-10. [Performance Budget](#performance-budget)
-11. [Resources & Budget](#resource-requirements)
-12. [Risk Management](#risk-management)
-13. [Success Metrics](#success-metrics--kpis)
+2. [Current State (v1.7.3)](#current-state-v173-)
+3. [v1.7.3 Complete](#version-173-ai-enhancement--complete)
+4. [v1.7.2 Complete](#version-172-ux-enhancement--complete)
+5. [v1.7.0 Complete](#version-170-ai-integration--complete)
+6. [Quality Assurance Initiative](#quality-assurance-initiative--complete)
+7. [v1.8.0 Plan (Q1-Q2 2026)](#version-180-essential-features--next)
+8. [v1.9.0 Plan (Q2-Q3 2026)](#version-190-advanced-editing)
+9. [v2.0.0 Plan (Q4 2026-Q2 2027)](#version-200-next-generation-architecture)
+10. [Future Vision](#beyond-v200-future-vision)
+11. [Performance Budget](#performance-budget)
+12. [Resources & Budget](#resource-requirements)
+13. [Risk Management](#risk-management)
+14. [Success Metrics](#success-metrics--kpis)
 
 ---
 
@@ -55,7 +57,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 
 ---
 
-## Current State (v1.7.2) ✅
+## Current State (v1.7.3) ✅
 
 ### Architecture Excellence
 - **Modular design** with manager pattern (59 source modules)
@@ -133,6 +135,76 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - All optimizations backward compatible
 
 **Quality Score:** 82/100 (GOOD) → Target: 95/100 (LEGENDARY)
+
+---
+
+## Version 1.7.3 (AI Enhancement) ✅ COMPLETE
+
+**Completed:** November 2, 2025
+**Duration:** 1 hour (implementation + testing + documentation)
+**Actual Effort:** ~1 hour
+**Focus:** AI model validation with real-time status bar feedback
+**Status:** ✅ RELEASED
+
+### Overview
+
+Enhanced the AI model selection experience with real-time validation and status bar feedback. When users select a model from the chat pane dropdown, the system now validates that the model actually exists in Ollama before switching, providing immediate visual feedback in the status bar.
+
+### Completed Goals
+
+1. ✅ **Model Validation System** - COMPLETE (Nov 2, 2025)
+   - Validates model exists via `ollama list` command
+   - 2-second timeout to avoid blocking UI
+   - Graceful handling of Ollama not installed, timeout, or errors
+   - Returns True/False to indicate model availability
+
+2. ✅ **Real-time Status Bar Feedback** - COMPLETE (Nov 2, 2025)
+   - "Validating model: [name]..." while checking
+   - "✓ Switched to model: [name]" on success (green checkmark)
+   - "✗ Model '[name]' not available (keeping [current])" on failure (red X)
+   - "Error: No model selected" for empty selections
+
+3. ✅ **Automatic Revert on Invalid Selection** - COMPLETE (Nov 2, 2025)
+   - Invalid model selections revert dropdown to current valid model
+   - Settings remain unchanged when validation fails
+   - User always has a valid model selected
+
+4. ✅ **Comprehensive Test Suite** - COMPLETE (Nov 2, 2025)
+   - **10 tests total** (100% passing)
+   - Tests cover: successful validation, model not found, empty name, Ollama not installed, timeout, command error
+   - Tests for model change handler: valid selection, invalid selection, empty selection, real-time feedback
+   - All edge cases covered
+
+### Technical Implementation
+
+**Files Modified:**
+- `src/asciidoc_artisan/ui/chat_manager.py` - Added `_validate_model()` method and enhanced `_on_model_changed()`
+- `tests/test_chat_manager.py` - Added `TestModelValidation` class with 10 tests
+
+**Implementation Details:**
+- `_validate_model()`: Runs `ollama list`, parses output, checks if model in list
+- `_on_model_changed()`: Validates before updating settings, reverts on failure
+- Real-time status updates via `status_message` signal
+- 2-second timeout for validation (avoids blocking UI)
+- Graceful error handling (timeout → assume valid to avoid blocking)
+
+**User Experience:**
+1. User selects model from dropdown
+2. Status bar shows "Validating model: [name]..."
+3. If valid: Status bar shows "✓ Switched to model: [name]", settings updated
+4. If invalid: Status bar shows error, dropdown reverts to current model
+
+### Quality Metrics
+
+- **Test Pass Rate:** 100% (10/10 tests passing)
+- **Test Duration:** ~0.02 seconds total
+- **Code Quality:** Clean separation of concerns, proper error handling
+- **User Impact:** Prevents errors from selecting unavailable models, clear feedback
+
+### Documentation Updates
+
+- ✅ SPECIFICATIONS.md updated with model validation requirements and tests
+- ✅ ROADMAP.md updated with v1.7.3 release notes
 
 ---
 

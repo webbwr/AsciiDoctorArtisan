@@ -272,6 +272,63 @@ class ChatManager(QObject):
         self._settings.ollama_chat_history = history_dicts
         self.settings_changed.emit()
 
+    def _validate_model(self, model: str) -> bool:
+        """
+        Validate that a model exists in Ollama.
+
+        Runs `ollama list` to check if the model is installed.
+        Uses a 2-second timeout to avoid blocking the UI.
+
+        Args:
+            model: Model name to validate (e.g., "phi3:mini")
+
+        Returns:
+            True if model is installed, False otherwise
+        """
+        if not model:
+            return False
+
+        try:
+            # Check if model exists via ollama list
+            result = subprocess.run(
+                ["ollama", "list"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                check=False,
+            )
+
+            if result.returncode == 0:
+                # Parse output and check if model is in list
+                lines = result.stdout.strip().split("\n")
+                if len(lines) > 1:  # Skip header
+                    for line in lines[1:]:
+                        parts = line.split()
+                        if parts and parts[0] == model:
+                            logger.debug(f"Model validated: {model}")
+                            return True
+
+                # Model not found in list
+                logger.debug(f"Model not found in ollama list: {model}")
+                return False
+            else:
+                logger.warning(f"ollama list failed: {result.stderr.strip()}")
+                return False
+
+        except FileNotFoundError:
+            logger.warning("Ollama not found in PATH")
+            return False
+
+        except subprocess.TimeoutExpired:
+            logger.warning("Model validation timed out")
+            # If validation times out, assume model is valid to avoid blocking
+            return True
+
+        except Exception as e:
+            logger.warning(f"Error validating model: {e}")
+            # On error, assume model is valid to avoid blocking
+            return True
+
     def _should_show_chat(self) -> bool:
         """
         Determine if chat should be visible based on settings.
@@ -410,15 +467,38 @@ class ChatManager(QObject):
 
     def _on_model_changed(self, model: str) -> None:
         """
-        Handle model selector change.
+        Handle model selector change with validation.
+
+        Validates that the selected model exists in Ollama before switching.
+        Updates status bar with real-time feedback.
 
         Args:
             model: New model name
         """
-        self._settings.ollama_model = model
-        self.settings_changed.emit()
-        self.status_message.emit(f"Switched to model: {model}")
-        logger.info(f"Model changed to: {model}")
+        if not model:
+            logger.warning("Empty model name provided")
+            self.status_message.emit("Error: No model selected")
+            return
+
+        # Validate model exists in Ollama
+        logger.info(f"Validating model selection: {model}")
+        self.status_message.emit(f"Validating model: {model}...")
+
+        if self._validate_model(model):
+            # Model is valid - update settings
+            self._settings.ollama_model = model
+            self.settings_changed.emit()
+            self.status_message.emit(f"✓ Switched to model: {model}")
+            logger.info(f"Model changed to: {model}")
+        else:
+            # Model is invalid - keep current model and show error
+            current_model = self._settings.ollama_model or "none"
+            logger.warning(f"Model validation failed: {model} not found")
+            self.status_message.emit(f"✗ Model '{model}' not available (keeping {current_model})")
+
+            # Revert selector to current valid model
+            if current_model and current_model != "none":
+                self._chat_bar.set_model(current_model)
 
     def _on_context_mode_changed(self, mode: str) -> None:
         """

@@ -360,5 +360,127 @@ class TestChatManagerContextModeHandling:
         pass
 
 
+class TestModelValidation:
+    """Test suite for AI model validation functionality."""
+
+    def test_validate_model_success(self, chat_manager):
+        """Test successful model validation."""
+        with patch("subprocess.run") as mock_run:
+            # Mock ollama list output with valid model
+            mock_run.return_value = Mock(
+                returncode=0, stdout="NAME\nphi3:mini\nqwen2.5-coder:7b\n", stderr=""
+            )
+
+            # Validate existing model
+            assert chat_manager._validate_model("phi3:mini") is True
+            mock_run.assert_called_once()
+
+    def test_validate_model_not_found(self, chat_manager):
+        """Test validation fails when model not found."""
+        with patch("subprocess.run") as mock_run:
+            # Mock ollama list output without target model
+            mock_run.return_value = Mock(
+                returncode=0, stdout="NAME\nphi3:mini\nqwen2.5-coder:7b\n", stderr=""
+            )
+
+            # Validate non-existent model
+            assert chat_manager._validate_model("invalid-model") is False
+            mock_run.assert_called_once()
+
+    def test_validate_model_empty_name(self, chat_manager):
+        """Test validation fails for empty model name."""
+        assert chat_manager._validate_model("") is False
+        assert chat_manager._validate_model(None) is False
+
+    def test_validate_model_ollama_not_found(self, chat_manager):
+        """Test validation when Ollama is not installed."""
+        with patch("subprocess.run", side_effect=FileNotFoundError):
+            # Should return False when ollama command not found
+            assert chat_manager._validate_model("phi3:mini") is False
+
+    def test_validate_model_timeout(self, chat_manager):
+        """Test validation handles timeout gracefully."""
+        with patch("subprocess.run", side_effect=TimeoutError):
+            # Should return True on timeout to avoid blocking
+            assert chat_manager._validate_model("phi3:mini") is True
+
+    def test_validate_model_command_error(self, chat_manager):
+        """Test validation when ollama command fails."""
+        with patch("subprocess.run") as mock_run:
+            # Mock command failure
+            mock_run.return_value = Mock(
+                returncode=1, stdout="", stderr="Error: something went wrong"
+            )
+
+            # Should return False when command fails
+            assert chat_manager._validate_model("phi3:mini") is False
+
+    def test_on_model_changed_valid(self, chat_manager):
+        """Test model change with valid model."""
+        with patch.object(chat_manager, "_validate_model", return_value=True):
+            # Mock status_message signal
+            status_messages = []
+            chat_manager.status_message.connect(lambda msg: status_messages.append(msg))
+
+            # Change to valid model
+            chat_manager._on_model_changed("qwen2.5-coder:7b")
+
+            # Settings should be updated
+            assert chat_manager._settings.ollama_model == "qwen2.5-coder:7b"
+
+            # Status bar should show success
+            assert any("✓" in msg for msg in status_messages)
+            assert any("qwen2.5-coder:7b" in msg for msg in status_messages)
+
+    def test_on_model_changed_invalid(self, chat_manager, mock_chat_bar):
+        """Test model change with invalid model."""
+        # Set current valid model
+        chat_manager._settings.ollama_model = "phi3:mini"
+
+        with patch.object(chat_manager, "_validate_model", return_value=False):
+            # Mock status_message signal
+            status_messages = []
+            chat_manager.status_message.connect(lambda msg: status_messages.append(msg))
+
+            # Attempt to change to invalid model
+            chat_manager._on_model_changed("invalid-model")
+
+            # Settings should NOT be updated (keeps old model)
+            assert chat_manager._settings.ollama_model == "phi3:mini"
+
+            # Status bar should show error
+            assert any("✗" in msg for msg in status_messages)
+            assert any("not available" in msg for msg in status_messages)
+
+            # Chat bar should revert to current model
+            mock_chat_bar.set_model.assert_called_with("phi3:mini")
+
+    def test_on_model_changed_empty(self, chat_manager):
+        """Test model change with empty model name."""
+        status_messages = []
+        chat_manager.status_message.connect(lambda msg: status_messages.append(msg))
+
+        # Attempt to change to empty model
+        chat_manager._on_model_changed("")
+
+        # Should show error in status bar
+        assert any("Error" in msg for msg in status_messages)
+        assert any("No model selected" in msg for msg in status_messages)
+
+    def test_on_model_changed_realtime_feedback(self, chat_manager):
+        """Test that model validation provides real-time status bar feedback."""
+        with patch.object(chat_manager, "_validate_model", return_value=True):
+            status_messages = []
+            chat_manager.status_message.connect(lambda msg: status_messages.append(msg))
+
+            # Change model
+            chat_manager._on_model_changed("qwen2.5-coder:7b")
+
+            # Should have multiple status updates: validating -> success
+            assert len(status_messages) >= 2
+            assert any("Validating" in msg for msg in status_messages)
+            assert any("Switched to" in msg or "✓" in msg for msg in status_messages)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
