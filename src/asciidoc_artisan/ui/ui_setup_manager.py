@@ -147,6 +147,26 @@ class UISetupManager:
         self.editor.editor.textChanged.connect(self.editor._start_preview_timer)
         editor_layout.addWidget(self.editor.editor)
 
+        # Connect undo/redo buttons to editor (now that editor exists)
+        self.editor.editor_undo_btn.clicked.connect(self.editor.editor.undo)
+        self.editor.editor_redo_btn.clicked.connect(self.editor.editor.redo)
+
+        # Update button states when undo/redo availability changes
+        self.editor.editor.document().undoAvailable.connect(
+            self.editor.editor_undo_btn.setEnabled
+        )
+        self.editor.editor.document().redoAvailable.connect(
+            self.editor.editor_redo_btn.setEnabled
+        )
+
+        # Set initial button states
+        self.editor.editor_undo_btn.setEnabled(
+            self.editor.editor.document().isUndoAvailable()
+        )
+        self.editor.editor_redo_btn.setEnabled(
+            self.editor.editor.document().isRedoAvailable()
+        )
+
         return editor_container
 
     def _create_preview_pane(self) -> QWidget:
@@ -253,6 +273,68 @@ class UISetupManager:
             self.editor.preview_label = label
         elif pane_name == "chat":
             self.editor.chat_label = label
+
+        # Add undo/redo buttons for editor pane only
+        if pane_name == "editor":
+            # Undo button
+            undo_btn = QPushButton("↶")
+            undo_btn.setFixedSize(24, 24)
+            undo_btn.setToolTip("Undo (Ctrl+Z)")
+            undo_btn.setStyleSheet(
+                f"""
+                QPushButton {{
+                    background-color: transparent;
+                    border: 1px solid {color};
+                    border-radius: 3px;
+                    padding: 2px;
+                    color: {color};
+                    font-size: 16px;
+                }}
+                QPushButton:hover {{
+                    background-color: {highlight_color};
+                    border-color: {color};
+                }}
+                QPushButton:pressed {{
+                    background-color: {highlight_color.replace('0.2', '0.3')};
+                }}
+                QPushButton:disabled {{
+                    color: {color.replace(')', ', 0.3)')};
+                    border-color: {color.replace(')', ', 0.3)')};
+                }}
+            """
+            )
+            toolbar_layout.addWidget(undo_btn)
+            self.editor.editor_undo_btn = undo_btn
+
+            # Redo button
+            redo_btn = QPushButton("↷")
+            redo_btn.setFixedSize(24, 24)
+            redo_btn.setToolTip("Redo (Ctrl+Shift+Z)")
+            redo_btn.setStyleSheet(
+                f"""
+                QPushButton {{
+                    background-color: transparent;
+                    border: 1px solid {color};
+                    border-radius: 3px;
+                    padding: 2px;
+                    color: {color};
+                    font-size: 16px;
+                }}
+                QPushButton:hover {{
+                    background-color: {highlight_color};
+                    border-color: {color};
+                }}
+                QPushButton:pressed {{
+                    background-color: {highlight_color.replace('0.2', '0.3')};
+                }}
+                QPushButton:disabled {{
+                    color: {color.replace(')', ', 0.3)')};
+                    border-color: {color.replace(')', ', 0.3)')};
+                }}
+            """
+            )
+            toolbar_layout.addWidget(redo_btn)
+            self.editor.editor_redo_btn = redo_btn
 
         # Create maximize button
         max_btn = QPushButton("⬜")
