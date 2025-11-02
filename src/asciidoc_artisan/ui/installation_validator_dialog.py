@@ -168,6 +168,13 @@ class ValidationWorker(QThread):
             else:
                 return ("✗", "unknown", "Unknown package")
 
+            # If version still unknown, try alternative methods
+            if version == "unknown":
+                version = self._get_version_from_metadata(package_name)
+
+            if version == "unknown":
+                version = self._get_version_from_pip(package_name)
+
             # Check version
             if version == "unknown":
                 return ("⚠", version, "Installed (version unknown)")
@@ -295,6 +302,71 @@ class ValidationWorker(QThread):
             )
         except Exception as e:
             self.update_complete.emit(False, f"Update failed:\n\n{str(e)}")
+
+    def _get_version_from_metadata(self, package_name: str) -> str:
+        """
+        Get package version using importlib.metadata (Python 3.8+).
+
+        Args:
+            package_name: Package name (e.g., "PySide6")
+
+        Returns:
+            Version string or "unknown"
+        """
+        try:
+            # Try importlib.metadata first (standard in Python 3.8+)
+            from importlib import metadata
+
+            version = metadata.version(package_name)
+            logger.info(f"Found version {version} for {package_name} via metadata")
+            return version
+        except ImportError:
+            # importlib.metadata not available (shouldn't happen in Python 3.8+)
+            logger.debug("importlib.metadata not available")
+            return "unknown"
+        except metadata.PackageNotFoundError:
+            # Package not found in metadata
+            logger.debug(f"Package {package_name} not found in metadata")
+            return "unknown"
+        except Exception as e:
+            logger.warning(f"Error getting version for {package_name} from metadata: {e}")
+            return "unknown"
+
+    def _get_version_from_pip(self, package_name: str) -> str:
+        """
+        Get package version from pip if __version__ is not available.
+
+        Args:
+            package_name: Package name (e.g., "PySide6")
+
+        Returns:
+            Version string or "unknown"
+        """
+        try:
+            # Use pip show to get version
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "show", package_name],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                check=False,
+            )
+
+            if result.returncode == 0:
+                # Parse output for Version: line
+                for line in result.stdout.split("\n"):
+                    if line.startswith("Version:"):
+                        version = line.split(":", 1)[1].strip()
+                        logger.info(f"Found version {version} for {package_name} via pip")
+                        return version
+
+            return "unknown"
+        except subprocess.TimeoutExpired:
+            logger.warning(f"Timeout getting version for {package_name} from pip")
+            return "unknown"
+        except Exception as e:
+            logger.warning(f"Error getting version for {package_name} from pip: {e}")
+            return "unknown"
 
     def _version_compare(self, version1: str, version2: str) -> int:
         """
