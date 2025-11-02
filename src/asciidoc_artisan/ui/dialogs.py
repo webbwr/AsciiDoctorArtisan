@@ -318,8 +318,9 @@ class OllamaSettingsDialog(QDialog):
         )
         self.chat_enabled_checkbox.setToolTip(
             "Show chat bar and panel for interactive conversations with AI\n"
-            "Requires Ollama AI to be enabled above"
+            "Requires Anthropic API key for AI conversations"
         )
+        self.chat_enabled_checkbox.stateChanged.connect(self._on_chat_enabled_changed)
         chat_layout.addWidget(self.chat_enabled_checkbox)
 
         # Max History Setting
@@ -389,11 +390,20 @@ class OllamaSettingsDialog(QDialog):
         )
         chat_layout.addWidget(self.send_document_checkbox)
 
+        # API Key Management Button
+        api_key_button = QPushButton("Configure Anthropic API Key...")
+        api_key_button.setToolTip(
+            "Set or change your Anthropic API key for AI conversations\n"
+            "Keys are stored securely in your system keyring"
+        )
+        api_key_button.clicked.connect(self._configure_api_key)
+        chat_layout.addWidget(api_key_button)
+
         # Chat Information Label
         chat_info_label = QLabel(
             "• Chat provides 4 interaction modes for different needs\n"
             "• All conversations are stored locally\n"
-            "• Chat history is saved in application settings"
+            "• Requires Anthropic API key for AI-powered responses"
         )
         chat_info_label.setWordWrap(True)
         chat_info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
@@ -505,6 +515,60 @@ class OllamaSettingsDialog(QDialog):
 
         # Update parent window's status bar immediately
         self._update_parent_status_bar()
+
+    def _on_chat_enabled_changed(self, state: int) -> None:
+        """Handle AI chat enable/disable checkbox state change.
+
+        When enabling AI chat, prompts for Anthropic API key if not already configured.
+        Validates the key before allowing chat to be enabled.
+
+        Args:
+            state: Qt checkbox state (Qt.Checked or Qt.Unchecked)
+        """
+        from PySide6.QtCore import Qt
+
+        from asciidoc_artisan.core import SecureCredentials
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        if state == Qt.CheckState.Checked.value:
+            # User wants to enable AI chat - check for API key
+            credentials = SecureCredentials()
+
+            if not credentials.has_anthropic_key():
+                # No API key configured - prompt user
+                api_dialog = APIKeySetupDialog(self)
+                result = api_dialog.exec()
+
+                if result == QDialog.DialogCode.Accepted:
+                    # User entered and saved API key
+                    # Verify key was actually stored
+                    if not credentials.has_anthropic_key():
+                        # Key wasn't stored - disable chat
+                        QMessageBox.warning(
+                            self,
+                            "API Key Required",
+                            "Anthropic API key is required for AI conversations.\n\n"
+                            "Chat interface has been disabled."
+                        )
+                        self.chat_enabled_checkbox.blockSignals(True)
+                        self.chat_enabled_checkbox.setChecked(False)
+                        self.chat_enabled_checkbox.blockSignals(False)
+                else:
+                    # User cancelled - disable chat
+                    self.chat_enabled_checkbox.blockSignals(True)
+                    self.chat_enabled_checkbox.setChecked(False)
+                    self.chat_enabled_checkbox.blockSignals(False)
+
+    def _configure_api_key(self) -> None:
+        """Open API key configuration dialog.
+
+        Allows user to set or change their Anthropic API key for AI conversations.
+        Key is stored securely in the system keyring.
+        """
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        api_dialog = APIKeySetupDialog(self)
+        api_dialog.exec()
 
     def _on_model_changed(self) -> None:
         """Handle model selection change."""
