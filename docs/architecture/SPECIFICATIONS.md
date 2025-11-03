@@ -3,6 +3,7 @@
 **Reading Level**: Grade 5.0
 **Version**: 1.9.0 ✅ COMPLETE - Improved Git Integration
 **Last Updated**: November 3, 2025
+**Package Version**: 1.5.0 (pyproject.toml)
 
 ## What This Is
 
@@ -1029,7 +1030,11 @@ The program MUST have tests for most code.
 
 **Test**: Run coverage check. Must be 100%.
 
-**Note**: v1.5.0 achieved 60%+ with 621+ tests. QA Initiative (October 2025) achieved 100% coverage.
+**Goal**: 100% test coverage (CRITICAL priority)
+
+**Current**: 60%+ with 1,500+ tests across 80+ test files
+
+**Note**: QA Initiative (October 2025) set 100% as the target. Ongoing work to reach 100% coverage across all modules.
 
 ---
 
@@ -1041,7 +1046,7 @@ The program MUST have tests for all parts.
 
 **Test**: Run `make test`. All must pass.
 
-**Test**: Check coverage. Must be 100% (achieved in QA Initiative, October 2025).
+**Test**: Check coverage. Must be 100% (Goal: CRITICAL priority, Current: 60%+).
 
 ### Rule: Full Tests
 
@@ -1065,245 +1070,34 @@ The program MUST be tested on all types.
 
 ## Version History
 
-### Version 1.7.0 (Current) ✅ COMPLETE
+See ROADMAP.md for complete version history and release details.
 
-**Status**: Complete
-**Date**: November 2, 2025
-**Duration**: 3 days (intensive development)
-**Actual Effort**: ~36-45 hours (development + testing + documentation)
+**Current Version:** v1.9.0 (November 3, 2025)
 
-**What's Done**:
-
-- ✅ **QA Initiative Complete** (all 5 phases, 142 hours, 82→97/100 quality score)
-- ✅ **Code quality fixes** (removed unused code)
-- ✅ **Linting improvements** (all ruff and black checks pass)
-- ✅ **Type hints complete** (100% coverage, mypy --strict: 0 errors)
-- ✅ **Test coverage 100%** (621+ tests, all passing)
-- ✅ **Type coverage 100%** (mypy --strict: 0 errors across 64 files)
-- ✅ **Security automation** (weekly scans, Dependabot, CodeClimate)
-- ✅ **Mutation testing** (mutmut configured, Makefile targets)
-- ✅ **Ollama AI Chat** (4 context modes, history persistence, 50 tests)
-
-**Chat Feature Details**:
-
-- **4 Context Modes**: Document Q&A, Syntax Help, General Chat, Editing Suggestions
-- **History Persistence**: Saves last 100 messages to settings
-- **UI Components**: ChatBarWidget (input), ChatPanelWidget (display), ChatManager (coordinator)
-- **Worker Thread**: OllamaChatWorker runs in background (non-blocking)
-- **Document Context**: Includes 2KB of editor content in Document/Editing modes
-- **Model Selection**: Dropdown to switch between installed Ollama models
-- **Cancel Support**: Stop button to cancel long AI responses
-- **Test Coverage**: 50 tests (91% passing), 3,500+ lines of documentation
-
-**Git Info**:
-- Commit: `8bf647b`
-- Tag: `v1.7.0`
-- Files: 30 changed (+3,993, -116)
-
-**What's Next (v1.8.0)**:
-
-- 🚧 **Find & Replace System** (pending)
-- 🚧 **Spell checker integration** (pending)
-- 🚧 **Telemetry system** (opt-in - pending)
-- 🚧 **Worker pool migration** (in progress)
-
-**Bug Fixes and Why They Matter**:
-
-**1. GPU Detection Clean-Up** (gpu_detection.py)
-- **What was wrong**: Variable `is_wslg` was created but never used
-- **Why this matters**: Unused code wastes memory and confuses readers
-- **Impact**: Code is now cleaner and easier to understand
-
-**2. Memory Test Fixes** (memory_profiler.py)
-- **What was wrong**: Test variables `large_list` and `medium_list` triggered warnings
-- **Why this matters**: Clean tests catch real bugs better
-- **What we did**: Added underscore prefix (`_large_list`) to show "intentional"
-- **Impact**: Tests run without false warnings
-
-**3. Import Clean-Up** (4 files fixed)
-- **What was wrong**: Files imported tools they never used
-- **Files affected**: file_handler.py, main_window.py, and 2 others
-- **Why this matters**: Extra imports slow down startup time
-- **Impact**: Faster app startup and clearer code
-
-**4. Import Format Fixes** (10 files)
-- **What was wrong**: Imports were not sorted correctly
-- **Why this matters**: Messy imports are hard to read
-- **Tools used**: Ruff and Black auto-formatters
-- **Impact**: Consistent style across all code
-
-**Code Quality - What Changed**:
-
-Before these fixes:
-- Linters found 16 problems
-- Code had unused variables and imports
-- Import order was inconsistent
-
-After these fixes:
-- ✅ **Ruff**: All checks pass (0 errors)
-- ✅ **Black**: All files formatted correctly
-- ✅ **No unused code**: Every line has a purpose
-- ✅ **Faster startup**: Less code to load
-
-**What does "linting" mean?**
-
-Linting checks code for problems. Like spell check for code.
-
-It finds:
-- Code that is written but never used
-- Code that could be simpler
-- Code that might cause bugs
-
-**Why do we care about code quality?**
-
-Clean code means:
-1. Bugs are easier to find
-2. New features are easier to add
-3. Other coders can help faster
-4. The app runs a bit faster
-
-### Version 1.6.0
-
-**Status**: Complete
-**Date**: October 29, 2025
-
-**What's New**:
-
-- ✅ **Block detection optimization** (10-14% faster)
-- ✅ **Predictive rendering** (smarter preview updates)
-- ✅ **Async I/O** (faster file operations with aiofiles)
-- ✅ **Worker pool migration** (better thread management)
-- ✅ **Type hints completion** (100% coverage, mypy --strict: 0 errors)
-- ✅ **Memory optimization analysis** (148.9% growth baseline documented)
-
-**Performance**:
-- Block detection: 10-14% faster
-- File I/O: Async with aiofiles
-- Preview: Predictive rendering reduces unnecessary updates
-
-**CI/CD**:
-- GitHub Actions workflows removed (November 2025)
-- Dependabot for dependency updates
-
-### Version 1.5.0
-
-**Status**: Complete
-**Date**: October 28, 2025
-
-**What's New**:
-
-- ✅ **Fast startup** (1.05 seconds - beats v1.6.0 target!)
-- ✅ **Main window refactoring** (577 lines, down from 1,719 - 66% smaller)
-- ✅ **Worker pool system** (better task management)
-- ✅ **Operation cancellation** (stop long tasks with button)
-- ✅ **Lazy imports** (load tools only when needed)
-- ✅ **Test coverage** (60%+ coverage, 481+ tests, +88 new tests)
-- ✅ **Code quality** (less copied code in preview handlers)
-- ✅ **Metrics collection** (track how fast things run)
-- ✅ **Memory profiling** (find where memory goes)
-
-**Performance**:
-- Startup: 1.05s (3-5x faster than v1.4.0)
-- Main window: 66% less code (easier to fix)
-- Tests: 60%+ coverage (up from 34%)
-- Preview: Still 10-50x faster with GPU (from v1.4.0)
-
-### Version 1.4.0
-
-**Status**: Production Ready
-**Date**: October 27, 2025
-
-**What's New**:
-
-- ✅ **Full GPU/NPU hardware acceleration** (10-50x faster rendering)
-- ✅ Auto-detect NVIDIA, AMD, Intel GPUs
-- ✅ NPU detection and OpenVINO configuration
-- ✅ Compute capabilities detection (CUDA, OpenCL, Vulkan, ROCm)
-- ✅ QWebEngineView with GPU-accelerated preview
-- ✅ Chromium hardware acceleration (rasterization, zero-copy, VAAPI)
-- ✅ Smooth 60fps+ rendering with 70-90% less CPU usage
-- ✅ **Document version display** in status bar
-- ✅ Flexible version detection (AsciiDoc attributes, text labels, titles)
-- ✅ Real-time version updates (on open, save, edit)
-- ✅ Status bar reorganization (version first)
-- ❌ Grammar system removed (simplified codebase)
-- -2,067 lines of code (cleaner, faster)
-- All tests passing
-
-**Performance**:
-- Preview: 10-50x faster with GPU
-- CPU usage: 70-90% reduction
-- Scrolling: Smooth 60fps+
-- Hardware video decode: VAAPI enabled
-
-### Version 1.3.0
-
-**Status**: Deprecated
-**Date**: October 27, 2025 (morning)
-
-**What It Had**:
-
-- Grammar checking with AI (removed in v1.4)
-- LanguageTool integration (removed in v1.4)
-- Ollama grammar worker (removed in v1.4)
-- +4,362 lines (removed in v1.4 for simplicity)
-
-**Why Removed**:
-- Caused performance issues
-- Added complexity without clear benefit
-- User requested removal
-
-### Version 1.2.0
-
-**Status**: Production Ready
-**Date**: October 26, 2025
-
-**What's New**:
-
-- ✅ Ollama AI conversions (fully working)
-- ✅ AI Status menu with model selection
-- ✅ Real-time status bar (shows active AI model)
-- ✅ Automatic Pandoc fallback
-- Removed cloud AI (Anthropic SDK)
-- Privacy focused (no data leaves computer)
-- All 400+ tests passing
-- Clean codebase (removed 796 lines of cloud AI code)
-
-### Version 1.1.0
-
-**Status**: Works
-**Date**: October 2025
-
-**What's New**:
-
-- GPU speed (2-5x faster preview - basic)
-- Fast PDF reading (3-5x faster)
-- Optimized Python code
-- 400+ tests pass
-- Works on all computers
-
-### Version 1.0.0
-
-**Status**: First release
-**Date**: 2024
-
-**What It Had**:
-
-- Basic editing
-- Basic preview
-- First tests
+**Recent Releases:**
+- v1.9.0 - Git UX improvements (status dialog, quick commit)
+- v1.8.0 - Essential features (Find/Replace, Spell Check, Telemetry)
+- v1.7.0 - AI integration (Ollama Chat with 4 modes)
+- v1.6.0 - Type safety & async I/O
+- v1.5.0 - Performance & refactoring (1.05s startup)
 
 ---
 
-## What We Might Add
+## Future Features
 
 Things for later:
 
-### Edit
+### Edit - ✅ PARTIALLY IMPLEMENTED
 
-- Find and replace
-- Auto-complete
-- Color text
+**Current Features**:
+- ✅ Find and replace (v1.8.0 - regex, collapsible UI, Ctrl+F/Ctrl+H)
+- ✅ Spell checking (v1.8.0 - pyspellchecker, F7 toggle, red underlines)
+- ✅ Undo/redo buttons (v1.7.2 - toolbar buttons with auto-enable/disable)
+
+**Future Features**:
+- Auto-complete (AsciiDoc syntax, attributes, cross-refs)
+- Color text (syntax highlighting themes)
+- Code folding
 
 ### Preview
 
@@ -1311,19 +1105,26 @@ Things for later:
 - Print preview
 - Change colors
 
-### Git - ✅ IMPLEMENTED (v1.0+)
+### Git - ✅ FULLY IMPLEMENTED (v1.9.0)
 
 **Current Features**:
 - ✅ Commit changes
 - ✅ Push to remote
 - ✅ Pull from remote
 - ✅ View status
+- ✅ **Enhanced status display** (v1.9.0 - real-time updates, color-coded)
+- ✅ **Git Status Dialog** (v1.9.0 - file-level details, Ctrl+Shift+G)
+- ✅ **Quick Commit Widget** (v1.9.0 - inline commits, Ctrl+G)
+- ✅ **Real-time branch monitoring** (v1.9.0 - <2s refresh)
+- ✅ **File change counts** (v1.9.0 - modified, staged, untracked)
+- ✅ **Line count details** (v1.9.0 - +/- for modified/staged files)
 
 **Future Features**:
 - See old versions (git log viewer)
 - Compare versions (diff viewer)
 - Branch management (create, switch, delete)
 - Merge conflict resolution UI
+- Commit history visualization
 
 ### Teams
 
@@ -1374,12 +1175,13 @@ Writers, coders, students, teachers, teams.
 GPU-accelerated preview, file changes, Git, works everywhere, safe, fast startup, clean code, 100% test coverage, memory profiling.
 
 **Status**:
-Version 1.5.0 - Complete | v1.6.0 - Complete | v1.7.0 ✅ COMPLETE (Ollama AI Chat)
+v1.5.0 ✅ | v1.6.0 ✅ | v1.7.0 ✅ | v1.7.1 ✅ | v1.7.2 ✅ | v1.7.3 ✅ | v1.8.0 ✅ | v1.9.0 ✅ COMPLETE (Improved Git Integration)
 
 **Quality**:
-- Test coverage: 100% (621+ tests)
-- Type coverage: 100% (mypy --strict: 0 errors)
+- Test coverage: 60%+ current (Goal: 100%, 1,500+ tests across 80+ test files)
+- Type coverage: 100% (mypy --strict: 0 errors, 64 files)
 - Quality score: 97/100 (GRANDMASTER)
+- Test pass rate: 97%+ (v1.9.0: 30/31 core tests, 24/24 quick commit tests)
 
 **Reading Level**:
 Grade 5.0 - Easy to read!
@@ -1392,4 +1194,4 @@ Runtime validation with Pydantic (v1.7.0+ - planned)
 
 ---
 
-**Doc Info**: Main rules | Grade 5.0 | v1.7.0 ✅ COMPLETE | November 2, 2025
+**Doc Info**: Main rules | Grade 5.0 | v1.9.0 ✅ COMPLETE | November 3, 2025
