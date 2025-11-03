@@ -119,13 +119,13 @@ class GitHandler(BaseVCSHandler):
 
         # Update UI
         if hasattr(self.window, "status_bar"):
-            self.window.status_bar.showMessage(f"Git repository set: {dir_path}")
+            self.window.status_bar.showMessage(f"Git repository: {dir_path}")
 
         # Update UI state
         if hasattr(self.window, "_update_ui_state"):
             self.window._update_ui_state()
 
-        logger.info(f"Git repository set: {dir_path}")
+        logger.info(f"Git repository: {dir_path}")
 
     def commit_changes(self) -> None:
         """Trigger Git commit operation."""

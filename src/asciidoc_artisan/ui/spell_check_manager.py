@@ -21,7 +21,7 @@ from PySide6.QtGui import (
     QTextCharFormat,
     QTextCursor,
 )
-from PySide6.QtWidgets import QMenu
+from PySide6.QtWidgets import QMenu, QTextEdit
 
 from asciidoc_artisan.core import SpellChecker, SpellError
 
@@ -254,9 +254,11 @@ class SpellCheckManager:
     def _perform_spell_check(self) -> None:
         """Perform spell check on current document."""
         if not self.enabled:
+            logger.debug("Spell check disabled, skipping")
             return
 
         text = self.editor.toPlainText()
+        logger.debug(f"Performing spell check on {len(text)} characters")
 
         # Check spelling
         self.errors = self.spell_checker.check_text(text)
@@ -264,18 +266,21 @@ class SpellCheckManager:
         # Update highlights
         self._update_highlights()
 
-        logger.debug(f"Spell check complete: {len(self.errors)} errors found")
+        logger.info(f"Spell check complete: {len(self.errors)} errors found")
+        if self.errors:
+            for error in self.errors[:5]:  # Log first 5 errors
+                logger.debug(f"  Error: '{error.word}' at position {error.start}-{error.end}")
 
     def _update_highlights(self) -> None:
         """Update red squiggly underlines for all spelling errors."""
-        # Clear existing highlights
-        self._clear_highlights()
-
         if not self.errors:
+            # No errors - clear spell check highlights but preserve others
+            logger.debug("No spell check errors, clearing highlights")
+            self._clear_highlights()
             return
 
         # Create extra selections for each error
-        selections = []
+        spell_check_selections = []
         for error in self.errors:
             # Create selection
             cursor = QTextCursor(self.editor.document())
@@ -290,17 +295,39 @@ class SpellCheckManager:
             )
 
             # Add to selections
-            selection = self.editor.ExtraSelection()
+            selection = QTextEdit.ExtraSelection()
             selection.cursor = cursor
             selection.format = fmt
-            selections.append(selection)
+            spell_check_selections.append(selection)
 
-        # Apply all selections at once
-        self.editor.setExtraSelections(selections)
+        # Store spell check selections for later combination
+        self.editor.spell_check_selections = spell_check_selections
+        logger.debug(f"Created {len(spell_check_selections)} spell check selections")
+
+        # Combine with existing selections and apply
+        self._apply_combined_selections()
 
     def _clear_highlights(self) -> None:
         """Clear all spelling error highlights."""
-        self.editor.setExtraSelections([])
+        # Clear spell check selections
+        self.editor.spell_check_selections = []
+
+        # Combine with other selections and apply
+        self._apply_combined_selections()
+
+    def _apply_combined_selections(self) -> None:
+        """Combine spell check selections with other selections and apply to editor."""
+        # Make a copy of spell check selections to avoid modifying original
+        combined = list(getattr(self.editor, 'spell_check_selections', []))
+
+        # Add search/find selections if they exist
+        search_sels = getattr(self.editor, 'search_selections', [])
+        combined.extend(search_sels)
+
+        # Apply combined selections
+        self.editor.setExtraSelections(combined)
+
+        logger.debug(f"Applied combined selections: {len(combined)} total ({len(getattr(self.editor, 'spell_check_selections', []))} spell check + {len(search_sels)} search)")
 
     def _find_error_at_position(self, position: int) -> Optional[SpellError]:
         """

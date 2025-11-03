@@ -417,3 +417,43 @@ class TestStatusManager:
         assert "sync" in manager.git_status_label.text()
         assert "↑2" in manager.git_status_label.text()  # Ahead
         assert "↓3" in manager.git_status_label.text()  # Behind
+
+    def test_restore_git_status_color(self, main_window):
+        """Test Git status color restoration after theme change (v1.9.0+)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+        from asciidoc_artisan.core import GitStatus
+
+        manager = StatusManager(main_window)
+        manager.initialize_widgets()
+
+        # Set initial git status (dirty/yellow)
+        status = GitStatus(
+            branch="dev",
+            is_dirty=True,
+            has_conflicts=False,
+            modified_count=3,
+            staged_count=1,
+            untracked_count=0,
+            ahead_count=0,
+            behind_count=0,
+        )
+        manager.update_git_status(status)
+
+        # Verify initial color
+        assert "#fbbf24" in manager.git_status_label.styleSheet()  # Yellow
+        assert "dev" in manager.git_status_label.text()
+        assert "●3" in manager.git_status_label.text()
+
+        # Clear the stylesheet (simulating theme change)
+        manager.git_status_label.setStyleSheet("")
+
+        # Verify color is cleared
+        assert "" == manager.git_status_label.styleSheet()
+
+        # Restore git status color
+        manager.restore_git_status_color()
+
+        # Verify color is restored
+        assert "#fbbf24" in manager.git_status_label.styleSheet()  # Yellow restored
+        assert "dev" in manager.git_status_label.text()
+        assert "●3" in manager.git_status_label.text()

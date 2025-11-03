@@ -1312,11 +1312,8 @@ class AsciiDocEditor(QMainWindow):
         """
         from PySide6.QtGui import QTextEdit
 
-        # Clear existing highlights
-        self._clear_search_highlighting()
-
         # Create extra selections for each match
-        extra_selections = []
+        search_selections = []
         for match in matches:
             selection = QTextEdit.ExtraSelection()
             cursor = self.editor.textCursor()
@@ -1327,14 +1324,35 @@ class AsciiDocEditor(QMainWindow):
             from PySide6.QtGui import QColor
             selection.format.setBackground(QColor(255, 255, 0, 80))  # Light yellow
             selection.cursor = cursor
-            extra_selections.append(selection)
+            search_selections.append(selection)
 
-        self.editor.setExtraSelections(extra_selections)
+        # Store search selections for combination with spell check
+        self.editor.search_selections = search_selections
+
+        # Combine with spell check selections and apply
+        self._apply_combined_selections()
 
     def _clear_search_highlighting(self) -> None:
         """Clear all search highlighting from the editor."""
-        self.editor.setExtraSelections([])
+        # Clear search selections
+        self.editor.search_selections = []
+
+        # Combine with spell check selections and apply
+        self._apply_combined_selections()
+
         self.find_bar.clear_not_found_style()
+
+    def _apply_combined_selections(self) -> None:
+        """Combine search and spell check selections and apply to editor."""
+        # Make a copy of search selections to avoid modifying original
+        combined = list(getattr(self.editor, 'search_selections', []))
+
+        # Add spell check selections if they exist
+        spell_sels = getattr(self.editor, 'spell_check_selections', [])
+        combined.extend(spell_sels)
+
+        # Apply combined selections
+        self.editor.setExtraSelections(combined)
 
     def _update_ui_state(self) -> None:
         """Update UI element states (delegates to UIStateManager)."""

@@ -153,6 +153,11 @@ class UISetupManager:
 
         # Create text editor
         self.editor.editor = LineNumberPlainTextEdit(self.editor)
+
+        # Initialize extra selection lists for combining highlights
+        self.editor.editor.spell_check_selections = []
+        self.editor.editor.search_selections = []
+
         font = QFont(EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE)
         self.editor.editor.setFont(font)
         self.editor.editor.textChanged.connect(self.editor._start_preview_timer)
