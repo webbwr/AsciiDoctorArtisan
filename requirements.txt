@@ -23,6 +23,8 @@ pymupdf>=1.23.0
 
 # Secure credential storage (OS keyring integration)
 keyring>=24.0.0
+# Keyring backend for WSL2/Linux systems without native keyring
+keyrings.alt>=5.0.0
 
 # System resource monitoring (CPU, memory tracking)
 psutil>=5.9.0
