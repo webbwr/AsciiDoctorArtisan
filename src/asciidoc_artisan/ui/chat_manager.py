@@ -1,10 +1,11 @@
 """
-Chat manager for coordinating Ollama AI chat components.
+Chat manager for coordinating AI chat components (Ollama/Claude).
 
 This module provides ChatManager, which orchestrates all chat-related UI
-components and coordinates between them, the worker thread, and settings.
+components and coordinates between them, the worker threads, and settings.
 
 The manager handles:
+- AI backend selection (Ollama local or Claude remote)
 - Chat bar and panel visibility based on settings
 - Message flow between user, worker, and display
 - Chat history persistence via Settings
@@ -14,9 +15,18 @@ The manager handles:
 Integration Points:
     - ChatBarWidget: User input controls
     - ChatPanelWidget: Conversation display
-    - OllamaChatWorker: Background AI processing
+    - OllamaChatWorker: Background AI processing (local)
+    - ClaudeWorker: Background AI processing (remote, v1.10.0+)
     - Settings: Chat preferences and history persistence
     - StatusManager: Status bar messages
+
+Architecture (v1.10.0+):
+    User can select between two AI backends:
+    - Ollama: Local AI models (free, offline)
+    - Claude: Cloud AI via Anthropic API (requires API key, online)
+
+    Only one backend is active at a time. Backend is selected via
+    Settings.ai_backend ("ollama" or "claude").
 
 Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 """
@@ -37,8 +47,14 @@ class ChatManager(QObject):
     """
     Orchestrates all chat-related components and interactions.
 
-    Coordinates between ChatBarWidget, ChatPanelWidget, OllamaChatWorker,
+    Coordinates between ChatBarWidget, ChatPanelWidget, AI workers (Ollama/Claude),
     and Settings to provide a cohesive chat experience.
+
+    Supports dual AI backends (v1.10.0+):
+    - Ollama: Local AI models (free, offline, no API key)
+    - Claude: Anthropic Cloud AI (requires API key, online)
+
+    Backend is selected via Settings.ai_backend and only one is active at a time.
 
     Signals:
         visibility_changed: Emitted with (bar_visible, panel_visible) when visibility changes
@@ -52,12 +68,14 @@ class ChatManager(QObject):
         _settings: Settings instance
         _document_content_provider: Callable that returns current document text
         _debounce_timer: QTimer for document content debouncing
+        _current_backend: Current AI backend ("ollama" or "claude")
 
     Example:
         ```python
         manager = ChatManager(chat_bar, chat_panel, settings)
         manager.set_document_content_provider(lambda: editor.toPlainText())
-        manager.message_sent_to_worker.connect(worker.send_message)
+        manager.message_sent_to_worker.connect(ollama_worker.send_message)
+        manager.message_sent_to_worker.connect(claude_worker.send_message)
         manager.initialize()
         ```
     """
@@ -93,6 +111,7 @@ class ChatManager(QObject):
         self._document_content_provider = None
         self._is_processing = False
         self._chat_history: List[ChatMessage] = []  # Internal history cache for testing
+        self._current_backend: str = settings.ai_backend  # "ollama" or "claude"
 
         # Document content debouncing (500ms delay)
         self._debounce_timer = QTimer()
@@ -100,6 +119,7 @@ class ChatManager(QObject):
         self._debounce_timer.setInterval(500)
 
         self._connect_signals()
+        logger.debug(f"ChatManager initialized with backend: {self._current_backend}")
 
     def _connect_signals(self) -> None:
         """Connect signals between chat components."""
@@ -115,16 +135,41 @@ class ChatManager(QObject):
         Initialize chat UI based on current settings.
 
         Loads chat history, sets visibility, and configures UI state.
+        Detects active AI backend and loads appropriate models.
+        Auto-switches to Claude if Ollama disabled but Claude available.
         Must be called after UI setup is complete.
         """
-        # Load available models (placeholder - actual model detection in v1.7.1)
+        # Update current backend from settings (may have changed)
+        self._current_backend = self._settings.ai_backend
+        logger.info(f"Initializing chat with backend: {self._current_backend}")
+
+        # Check for auto-switch to Claude scenario
+        from ..core import SecureCredentials
+        creds = SecureCredentials()
+        if not self._settings.ollama_enabled and creds.has_anthropic_key():
+            logger.info("Ollama disabled but Claude available - auto-switching to Claude")
+            self._current_backend = "claude"
+            self._settings.ai_backend = "claude"
+            if not self._settings.claude_model:
+                self._settings.claude_model = "claude-3-5-sonnet-20241022"
+
+        # Load available models based on active backend
         self._load_available_models()
 
         # Set current model and context mode from settings
-        if self._settings.ollama_model:
-            self._chat_bar.set_model(self._settings.ollama_model)
+        if self._current_backend == "ollama":
+            if self._settings.ollama_model:
+                self._chat_bar.set_model(self._settings.ollama_model)
+        elif self._current_backend == "claude":
+            if self._settings.claude_model:
+                self._chat_bar.set_model(self._settings.claude_model)
 
-        self._chat_bar.set_context_mode(self._settings.ollama_chat_context_mode)
+        # Use new backend-agnostic setting (with fallback to deprecated)
+        context_mode = (
+            self._settings.chat_context_mode
+            or self._settings.ollama_chat_context_mode
+        )
+        self._chat_bar.set_context_mode(context_mode)
 
         # Load chat history from settings
         self._load_chat_history()
@@ -132,7 +177,7 @@ class ChatManager(QObject):
         # Update visibility based on settings
         self._update_visibility()
 
-        logger.info("Chat manager initialized")
+        logger.info(f"Chat manager initialized (backend: {self._current_backend})")
 
     def _auto_download_default_model(self) -> None:
         """
@@ -161,11 +206,23 @@ class ChatManager(QObject):
 
     def _load_available_models(self) -> None:
         """
-        Load available Ollama models into chat bar selector.
+        Load available models into chat bar selector based on active backend.
 
-        Attempts to detect installed models via `ollama list` command.
-        Falls back to hardcoded defaults if Ollama is not available.
+        For Ollama: Detects installed models via `ollama list` command
+        For Claude: Uses hardcoded model list from ClaudeClient
+
+        Falls back to defaults if backend is not available.
         """
+        if self._current_backend == "ollama":
+            self._load_ollama_models()
+        elif self._current_backend == "claude":
+            self._load_claude_models()
+        else:
+            logger.error(f"Unknown backend: {self._current_backend}")
+            self.status_message.emit(f"Error: Unknown AI backend '{self._current_backend}'")
+
+    def _load_ollama_models(self) -> None:
+        """Load available Ollama models."""
         models: List[str] = []
         ollama_available = False
 
@@ -225,18 +282,57 @@ class ChatManager(QObject):
                 "codellama",
             ]
             if not ollama_available:
-                logger.info("Using default model list (Ollama not detected)")
+                logger.info("Using default Ollama model list (Ollama not detected)")
 
         # Add current model if not in list
         if self._settings.ollama_model and self._settings.ollama_model not in models:
             models.insert(0, self._settings.ollama_model)
 
         self._chat_bar.set_models(models)
-        logger.debug(f"Loaded {len(models)} models into chat bar")
+        logger.debug(f"Loaded {len(models)} Ollama models into chat bar")
+
+    def _load_claude_models(self) -> None:
+        """Load available Claude models."""
+        try:
+            # Import ClaudeClient to get available models
+            from ..claude import ClaudeClient
+
+            models = ClaudeClient.AVAILABLE_MODELS.copy()
+            logger.info(f"Claude models available: {len(models)}")
+
+            # Check if API key is configured
+            from ..core import SecureCredentials
+
+            creds = SecureCredentials()
+            if creds.has_anthropic_key():
+                self.status_message.emit(f"Claude: {len(models)} model(s) available")
+            else:
+                self.status_message.emit(
+                    "Claude: API key required (Tools → API Key Setup)"
+                )
+
+        except Exception as e:
+            logger.error(f"Error loading Claude models: {e}")
+            # Fallback to hardcoded defaults
+            models = [
+                "claude-3-5-sonnet-20241022",
+                "claude-3-5-haiku-20241022",
+                "claude-3-opus-20240229",
+            ]
+
+        # Add current model if not in list
+        if self._settings.claude_model and self._settings.claude_model not in models:
+            models.insert(0, self._settings.claude_model)
+
+        self._chat_bar.set_models(models)
+        logger.debug(f"Loaded {len(models)} Claude models into chat bar")
 
     def _load_chat_history(self) -> None:
         """Load chat history from settings and display in panel."""
-        history_dicts = self._settings.ollama_chat_history or []
+        # Use new backend-agnostic setting (with fallback to deprecated)
+        history_dicts = (
+            self._settings.chat_history or self._settings.ollama_chat_history or []
+        )
 
         if not history_dicts:
             logger.debug("No chat history to load")
@@ -257,11 +353,13 @@ class ChatManager(QObject):
         logger.info(f"Loaded {len(messages)} messages from history")
 
     def _save_chat_history(self) -> None:
-        """Save current chat history to settings."""
+        """Save current chat history to settings (backend-agnostic)."""
         messages = self._chat_panel.get_messages()
 
-        # Apply max history limit
-        max_history = self._settings.ollama_chat_max_history
+        # Apply max history limit (use new setting with fallback)
+        max_history = (
+            self._settings.chat_max_history or self._settings.ollama_chat_max_history
+        )
         if len(messages) > max_history:
             messages = messages[-max_history:]
             logger.info(f"Trimmed history to {max_history} messages")
@@ -269,89 +367,147 @@ class ChatManager(QObject):
         # Convert ChatMessage objects to dicts for JSON serialization
         history_dicts = [msg.model_dump() for msg in messages]
 
-        # Update settings
+        # Update both new and deprecated settings for backward compatibility
+        self._settings.chat_history = history_dicts
         self._settings.ollama_chat_history = history_dicts
         self.settings_changed.emit()
 
     def _validate_model(self, model: str) -> bool:
         """
-        Validate that a model exists in Ollama.
+        Validate that a model exists for the active backend.
 
-        Runs `ollama list` to check if the model is installed.
-        Uses a 2-second timeout to avoid blocking the UI.
+        For Ollama: Runs `ollama list` to check if model is installed
+        For Claude: Checks against AVAILABLE_MODELS list
 
         Args:
-            model: Model name to validate (e.g., "gnokit/improve-grammer")
+            model: Model name to validate
 
         Returns:
-            True if model is installed, False otherwise
+            True if model is available, False otherwise
         """
         if not model:
             return False
 
-        try:
-            # Check if model exists via ollama list
-            result = subprocess.run(
-                ["ollama", "list"],
-                capture_output=True,
-                text=True,
-                timeout=2,
-                check=False,
-            )
-
-            if result.returncode == 0:
-                # Parse output and check if model is in list
-                lines = result.stdout.strip().split("\n")
-                if len(lines) > 1:  # Skip header
-                    for line in lines[1:]:
-                        parts = line.split()
-                        if parts and parts[0] == model:
-                            logger.debug(f"Model validated: {model}")
-                            return True
-
-                # Model not found in list
-                logger.debug(f"Model not found in ollama list: {model}")
-                return False
-            else:
-                logger.warning(f"ollama list failed: {result.stderr.strip()}")
+        if self._current_backend == "claude":
+            # Validate Claude model against available models
+            try:
+                from ..claude import ClaudeClient
+                is_valid = model in ClaudeClient.AVAILABLE_MODELS
+                logger.debug(f"Claude model validation: {model} -> {is_valid}")
+                return is_valid
+            except Exception as e:
+                logger.error(f"Error validating Claude model: {e}")
                 return False
 
-        except FileNotFoundError:
-            logger.warning("Ollama not found in PATH")
+        elif self._current_backend == "ollama":
+            # Validate Ollama model via subprocess
+            try:
+                # Check if model exists via ollama list
+                result = subprocess.run(
+                    ["ollama", "list"],
+                    capture_output=True,
+                    text=True,
+                    timeout=2,
+                    check=False,
+                )
+
+                if result.returncode == 0:
+                    # Parse output and check if model is in list
+                    lines = result.stdout.strip().split("\n")
+                    if len(lines) > 1:  # Skip header
+                        for line in lines[1:]:
+                            parts = line.split()
+                            if parts and parts[0] == model:
+                                logger.debug(f"Ollama model validated: {model}")
+                                return True
+
+                    # Model not found in list
+                    logger.debug(f"Model not found in ollama list: {model}")
+                    return False
+                else:
+                    logger.warning(f"ollama list failed: {result.stderr.strip()}")
+                    return False
+
+            except FileNotFoundError:
+                logger.warning("Ollama not found in PATH")
+                return False
+
+            except subprocess.TimeoutExpired:
+                logger.warning("Model validation timed out")
+                # If validation times out, assume model is valid to avoid blocking
+                return True
+
+            except Exception as e:
+                logger.warning(f"Error validating Ollama model: {e}")
+                # On error, assume model is valid to avoid blocking
+                return True
+
+        else:
+            logger.error(f"Unknown backend: {self._current_backend}")
             return False
-
-        except subprocess.TimeoutExpired:
-            logger.warning("Model validation timed out")
-            # If validation times out, assume model is valid to avoid blocking
-            return True
-
-        except Exception as e:
-            logger.warning(f"Error validating model: {e}")
-            # On error, assume model is valid to avoid blocking
-            return True
 
     def _should_show_chat(self) -> bool:
         """
-        Determine if chat should be visible based on settings.
+        Determine if chat should be visible based on settings and active backend.
+
+        Chat is shown when:
+        1. Chat is enabled (ai_chat_enabled=True)
+        2. Either backend is available:
+           - Ollama: ollama_enabled=True AND model selected
+           - Claude: ollama_enabled=False AND valid API key exists
+        3. Auto-switches to Claude if Ollama disabled but Claude available
 
         Returns:
             True if chat should be shown, False otherwise
         """
-        return bool(
-            self._settings.ollama_enabled
-            and self._settings.ollama_model
-            and self._settings.ollama_chat_enabled
+        # Use new backend-agnostic setting (with fallback)
+        chat_enabled = (
+            self._settings.ai_chat_enabled or self._settings.ollama_chat_enabled
         )
 
+        if not chat_enabled:
+            return False
+
+        # Check if Claude API key is configured
+        from ..core import SecureCredentials
+        creds = SecureCredentials()
+        has_claude_key = creds.has_anthropic_key()
+
+        # Auto-switch to Claude if Ollama is disabled but Claude is available
+        if not self._settings.ollama_enabled and has_claude_key:
+            if self._current_backend != "claude":
+                logger.info("Auto-switching to Claude backend (Ollama disabled, Claude available)")
+                self._current_backend = "claude"
+                self._settings.ai_backend = "claude"
+                # Load Claude models if not already set
+                if not self._settings.claude_model:
+                    self._settings.claude_model = "claude-3-5-sonnet-20241022"
+            return bool(self._settings.claude_model)
+
+        # Check backend availability
+        if self._current_backend == "ollama":
+            return bool(self._settings.ollama_enabled and self._settings.ollama_model)
+        elif self._current_backend == "claude":
+            return bool(has_claude_key and self._settings.claude_model)
+        else:
+            return False
+
     def _update_visibility(self) -> None:
-        """Update chat UI visibility based on settings."""
-        # Chat pane visible when: ollama_enabled=True AND ollama_model is set AND ollama_chat_enabled=True
+        """Update chat UI visibility based on settings and active backend."""
         chat_visible = self._should_show_chat()
 
+        backend_status = f"backend={self._current_backend}"
+        if self._current_backend == "ollama":
+            backend_status += f", ollama_enabled={self._settings.ollama_enabled}, ollama_model={self._settings.ollama_model}"
+        elif self._current_backend == "claude":
+            from ..core import SecureCredentials
+
+            creds = SecureCredentials()
+            backend_status += f", has_api_key={creds.has_anthropic_key()}, claude_model={self._settings.claude_model}"
+
         logger.info(
-            f"Chat visibility update: ollama_enabled={self._settings.ollama_enabled}, "
-            f"ollama_model={self._settings.ollama_model}, "
-            f"ollama_chat_enabled={self._settings.ollama_chat_enabled}, "
+            f"Chat visibility update: {backend_status}, "
+            f"ai_chat_enabled={self._settings.ai_chat_enabled}, "
             f"chat_visible={chat_visible}"
         )
 
@@ -430,17 +586,18 @@ class ChatManager(QObject):
 
         # Get document content if needed
         document_content = None
-        if (
-            context_mode in ("document", "editing")
-            and self._settings.ollama_chat_send_document
-        ):
+        # Use new backend-agnostic setting (with fallback)
+        send_document = (
+            self._settings.chat_send_document or self._settings.ollama_chat_send_document
+        )
+        if context_mode in ("document", "editing") and send_document:
             if self._document_content_provider:
                 document_content = self._document_content_provider()
                 logger.debug(
                     f"Including document content ({len(document_content or '')} chars)"
                 )
 
-        # Emit signal to send to worker
+        # Emit signal to send to worker (worker routes to appropriate backend)
         self.message_sent_to_worker.emit(
             message, model, context_mode, history, document_content
         )
@@ -448,13 +605,18 @@ class ChatManager(QObject):
         # Update UI state
         self._is_processing = True
         self._chat_bar.set_processing(True)
-        self.status_message.emit(f"AI is thinking ({model})...")
+        backend_name = self._current_backend.capitalize()
+        self.status_message.emit(f"{backend_name} is thinking ({model})...")
 
-        logger.info(f"Sent message to worker: {message[:50]}... (mode: {context_mode})")
+        logger.info(
+            f"Sent message to {backend_name} worker: {message[:50]}... (mode: {context_mode})"
+        )
 
     def _on_clear_requested(self) -> None:
         """Handle clear history button click."""
         self._chat_panel.clear_messages()
+        # Clear both new and deprecated settings
+        self._settings.chat_history = []
         self._settings.ollama_chat_history = []
         self.settings_changed.emit()
         self.status_message.emit("Chat history cleared")
@@ -470,7 +632,7 @@ class ChatManager(QObject):
         """
         Handle model selector change with validation.
 
-        Validates that the selected model exists in Ollama before switching.
+        Validates that the selected model exists for the active backend.
         Updates status bar with real-time feedback.
 
         Args:
@@ -481,19 +643,30 @@ class ChatManager(QObject):
             self.status_message.emit("Error: No model selected")
             return
 
-        # Validate model exists in Ollama
+        # Validate model exists for active backend
         logger.info(f"Validating model selection: {model}")
         self.status_message.emit(f"Validating model: {model}...")
 
         if self._validate_model(model):
-            # Model is valid - update settings
-            self._settings.ollama_model = model
+            # Model is valid - update settings for active backend
+            if self._current_backend == "ollama":
+                self._settings.ollama_model = model
+            elif self._current_backend == "claude":
+                self._settings.claude_model = model
+
             self.settings_changed.emit()
-            self.status_message.emit(f"✓ Switched to model: {model}")
-            logger.info(f"Model changed to: {model}")
+            backend_name = self._current_backend.capitalize()
+            self.status_message.emit(f"✓ Switched to {backend_name} model: {model}")
+            logger.info(f"Model changed to: {model} (backend: {self._current_backend})")
         else:
             # Model is invalid - keep current model and show error
-            current_model = self._settings.ollama_model or "none"
+            if self._current_backend == "ollama":
+                current_model = self._settings.ollama_model or "none"
+            elif self._current_backend == "claude":
+                current_model = self._settings.claude_model or "none"
+            else:
+                current_model = "none"
+
             logger.warning(f"Model validation failed: {model} not found")
             self.status_message.emit(
                 f"✗ Model '{model}' not available (keeping {current_model})"
@@ -510,6 +683,8 @@ class ChatManager(QObject):
         Args:
             mode: New context mode
         """
+        # Save to both new and deprecated settings
+        self._settings.chat_context_mode = mode
         self._settings.ollama_chat_context_mode = mode
         self.settings_changed.emit()
         logger.info(f"Context mode changed to: {mode}")
@@ -591,27 +766,31 @@ class ChatManager(QObject):
 
     def update_settings(self, settings: Settings) -> None:
         """
-        Update chat UI when settings change.
+        Update chat UI when settings change (backend-agnostic).
 
         Args:
             settings: New settings instance
         """
         self._settings = settings
+        self._current_backend = settings.ai_backend
 
-        # Reload available models (in case new ones were installed)
+        # Reload available models (in case new ones were installed or backend changed)
         self._load_available_models()
 
-        # Update model selector
-        if settings.ollama_model:
+        # Update model selector based on active backend
+        if self._current_backend == "ollama" and settings.ollama_model:
             self._chat_bar.set_model(settings.ollama_model)
+        elif self._current_backend == "claude" and settings.claude_model:
+            self._chat_bar.set_model(settings.claude_model)
 
-        # Update context mode
-        self._chat_bar.set_context_mode(settings.ollama_chat_context_mode)
+        # Update context mode (use new setting with fallback)
+        context_mode = settings.chat_context_mode or settings.ollama_chat_context_mode
+        self._chat_bar.set_context_mode(context_mode)
 
         # Update visibility
         self._update_visibility()
 
-        logger.info("Chat settings updated")
+        logger.info(f"Chat settings updated (backend: {self._current_backend})")
 
     def toggle_panel_visibility(self) -> None:
         """Toggle chat pane visibility (for toolbar button)."""
@@ -622,6 +801,8 @@ class ChatManager(QObject):
         current = parent.chat_container.isVisible()
         new_visible = not current
 
+        # Update both new and deprecated settings
+        self._settings.ai_chat_enabled = new_visible
         self._settings.ollama_chat_enabled = new_visible
         self._update_visibility()
         self.settings_changed.emit()
@@ -658,16 +839,20 @@ class ChatManager(QObject):
         return self._is_processing
 
     def clear_history(self) -> None:
-        """Clear chat history from panel and settings."""
+        """Clear chat history from panel and settings (backend-agnostic)."""
         self._chat_panel.clear_messages()
         self._chat_history.clear()
+        # Clear both new and deprecated settings
+        self._settings.chat_history = []
         self._settings.ollama_chat_history = []
         self.settings_changed.emit()
         logger.info("Chat history cleared via clear_history()")
 
     def _trim_history(self) -> None:
-        """Trim chat history to max limit."""
-        max_history = self._settings.ollama_chat_max_history
+        """Trim chat history to max limit (backend-agnostic)."""
+        max_history = (
+            self._settings.chat_max_history or self._settings.ollama_chat_max_history
+        )
         if len(self._chat_history) > max_history:
             self._chat_history = self._chat_history[-max_history:]
             logger.info(f"Trimmed internal history to {max_history} messages")

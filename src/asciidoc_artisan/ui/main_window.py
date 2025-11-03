@@ -599,10 +599,10 @@ class AsciiDocEditor(QMainWindow):
             Qt.ConnectionType.QueuedConnection,  # Force main thread execution
         )
 
-        # === Chat System Signal Connections (v1.7.0) ===
-        # Connect ChatManager to OllamaChatWorker
+        # === Chat System Signal Connections (v1.7.0, v1.10.0) ===
+        # Connect ChatManager to both workers via router
         self.chat_manager.message_sent_to_worker.connect(
-            self.ollama_chat_worker.send_message
+            self._route_chat_message_to_worker
         )
         self.chat_manager.status_message.connect(self.status_manager.show_status)
         self.chat_manager.settings_changed.connect(
@@ -621,8 +621,17 @@ class AsciiDocEditor(QMainWindow):
             self.chat_manager.handle_operation_cancelled
         )
 
+        # Connect ClaudeWorker responses back to ChatManager (via adapters)
+        self.claude_worker.response_ready.connect(
+            self._adapt_claude_response_to_chat_message
+        )
+        self.claude_worker.error_occurred.connect(
+            self.chat_manager.handle_error
+        )
+
         # Connect chat bar cancel button to worker cancellation
         self.chat_bar.cancel_requested.connect(self.ollama_chat_worker.cancel_operation)
+        # Note: ClaudeWorker doesn't support cancellation yet
 
         # Initialize chat manager (loads history, sets visibility)
         self.chat_manager.set_document_content_provider(
@@ -910,6 +919,128 @@ class AsciiDocEditor(QMainWindow):
 
         if isinstance(result, GitHubResult):
             self.github_handler.handle_github_result(result)
+
+    @Slot(str, str, str, list, object)
+    def _route_chat_message_to_worker(
+        self,
+        message: str,
+        model: str,
+        context_mode: str,
+        history: list,
+        document_content: object,
+    ) -> None:
+        """
+        Route chat message to appropriate AI worker based on active backend.
+
+        Args:
+            message: User message text
+            model: Selected model name
+            context_mode: Context mode (document, syntax, general, editing)
+            history: Chat history (list of ChatMessage objects)
+            document_content: Current document content (optional)
+        """
+        backend = self._settings.ai_backend
+        logger.info(f"Routing message to {backend} backend (model: {model})")
+
+        if backend == "ollama":
+            # Route to Ollama worker
+            self.ollama_chat_worker.send_message(
+                message, model, context_mode, history, document_content
+            )
+        elif backend == "claude":
+            # Route to Claude worker with context-appropriate system prompt
+            system_prompt = self._build_claude_system_prompt(context_mode, model)
+
+            # Convert ChatMessage history to ClaudeMessage format
+            from asciidoc_artisan.claude import ClaudeMessage
+            claude_history = []
+            for msg in history:
+                if hasattr(msg, "role") and hasattr(msg, "content"):
+                    claude_history.append(
+                        ClaudeMessage(role=msg.role, content=msg.content)
+                    )
+
+            # Build full message with document context if needed
+            full_message = message
+            if context_mode in ("document", "editing") and document_content:
+                full_message = f"Document content:\n```\n{document_content}\n```\n\nUser question: {message}"
+
+            # Send to Claude worker
+            self.claude_worker.send_message(
+                message=full_message,
+                system=system_prompt,
+                conversation_history=claude_history,
+            )
+        else:
+            logger.error(f"Unknown AI backend: {backend}")
+            self.status_manager.show_status(f"Error: Unknown AI backend '{backend}'")
+
+    def _build_claude_system_prompt(self, context_mode: str, model: str) -> str:
+        """
+        Build system prompt for Claude based on context mode.
+
+        Args:
+            context_mode: Context mode (document, syntax, general, editing)
+            model: Selected Claude model
+
+        Returns:
+            System prompt string
+        """
+        if context_mode == "document":
+            return (
+                "You are an expert assistant helping with AsciiDoc document questions. "
+                "Analyze the provided document content and answer questions about it. "
+                "Be concise and accurate."
+            )
+        elif context_mode == "syntax":
+            return (
+                "You are an AsciiDoc syntax expert. Help users with AsciiDoc formatting, "
+                "markup, and best practices. Provide clear examples when helpful."
+            )
+        elif context_mode == "editing":
+            return (
+                "You are a document editing assistant for AsciiDoc content. Provide "
+                "suggestions to improve the document's clarity, structure, and quality. "
+                "Focus on content, not just formatting."
+            )
+        else:  # general
+            return (
+                "You are a helpful AI assistant. Answer questions clearly and concisely."
+            )
+
+    @Slot(object)
+    def _adapt_claude_response_to_chat_message(self, claude_result: object) -> None:
+        """
+        Adapt ClaudeResult to ChatMessage and pass to ChatManager.
+
+        Args:
+            claude_result: ClaudeResult object from ClaudeWorker
+        """
+        from asciidoc_artisan.core.models import ChatMessage
+        import time
+
+        # Check if result is successful
+        if not claude_result.success:
+            # Handle error
+            error_msg = claude_result.error or "Unknown error"
+            self.chat_manager.handle_error(error_msg)
+            return
+
+        # Convert ClaudeResult to ChatMessage
+        chat_message = ChatMessage(
+            role="assistant",
+            content=claude_result.content,
+            timestamp=int(time.time()),
+            model=claude_result.model,
+            context_mode=self._settings.chat_context_mode,
+        )
+
+        # Pass to ChatManager
+        self.chat_manager.handle_response_ready(chat_message)
+        logger.info(
+            f"Claude response adapted and forwarded to ChatManager "
+            f"({claude_result.tokens_used} tokens used)"
+        )
 
     @Slot(str, str)
     def _handle_pandoc_result(self, result: str, context: str) -> None:

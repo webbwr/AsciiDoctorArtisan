@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any, Dict
 
 from PySide6.QtCore import Qt, QThread
 
+from asciidoc_artisan.claude import ClaudeWorker
 from asciidoc_artisan.workers import (
     GitHubCLIWorker,
     GitWorker,
@@ -79,6 +80,8 @@ class WorkerManager:
         self.preview_worker: PreviewWorker | None = None
         self.ollama_chat_thread: QThread | None = None
         self.ollama_chat_worker: OllamaChatWorker | None = None
+        self.claude_thread: QThread | None = None
+        self.claude_worker: ClaudeWorker | None = None
 
         # Worker pool (v1.5.0)
         self.use_worker_pool = use_worker_pool
@@ -183,7 +186,18 @@ class WorkerManager:
         self.ollama_chat_thread.finished.connect(self.ollama_chat_worker.deleteLater)
         self.ollama_chat_thread.start()
 
-        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview, Chat)")
+        # Claude Worker (v1.10.0)
+        self.claude_thread = QThread(self.editor)
+        self.claude_worker = ClaudeWorker()
+        self.claude_worker.moveToThread(self.claude_thread)
+
+        # Claude worker signals will be connected via main_window
+        # (Adapter pattern converts ClaudeResult to ChatMessage)
+
+        self.claude_thread.finished.connect(self.claude_worker.deleteLater)
+        self.claude_thread.start()
+
+        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview, Ollama, Claude)")
 
         # Store references on main window for backward compatibility
         self.editor.git_thread = self.git_thread
@@ -196,6 +210,8 @@ class WorkerManager:
         self.editor.preview_worker = self.preview_worker
         self.editor.ollama_chat_thread = self.ollama_chat_thread
         self.editor.ollama_chat_worker = self.ollama_chat_worker
+        self.editor.claude_thread = self.claude_thread
+        self.editor.claude_worker = self.claude_worker
 
     def get_pool_statistics(self) -> Dict[str, Any]:
         """
