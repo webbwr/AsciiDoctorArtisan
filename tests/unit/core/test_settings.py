@@ -20,7 +20,7 @@ class TestSettings:
         assert settings.last_file is None
         assert settings.git_repo_path is None
         assert settings.dark_mode is True
-        assert settings.maximized is False
+        assert settings.maximized is True  # Default changed to True (start maximized)
         assert settings.window_geometry is None
         assert settings.splitter_sizes is None
         assert settings.font_size == 12
