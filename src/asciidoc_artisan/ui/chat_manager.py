@@ -148,21 +148,18 @@ class ChatManager(QObject):
         creds = SecureCredentials()
         if not self._settings.ollama_enabled and creds.has_anthropic_key():
             logger.info("Ollama disabled but Claude available - auto-switching to Claude")
-            self._current_backend = "claude"
-            self._settings.ai_backend = "claude"
-            if not self._settings.claude_model:
-                self._settings.claude_model = "claude-3-5-sonnet-20241022"
+            self._switch_backend("claude")
+        else:
+            # Load models and set current model for the active backend
+            self._load_available_models()
 
-        # Load available models based on active backend
-        self._load_available_models()
-
-        # Set current model and context mode from settings
-        if self._current_backend == "ollama":
-            if self._settings.ollama_model:
-                self._chat_bar.set_model(self._settings.ollama_model)
-        elif self._current_backend == "claude":
-            if self._settings.claude_model:
-                self._chat_bar.set_model(self._settings.claude_model)
+            # Set current model from settings
+            if self._current_backend == "ollama":
+                if self._settings.ollama_model:
+                    self._chat_bar.set_model(self._settings.ollama_model)
+            elif self._current_backend == "claude":
+                if self._settings.claude_model:
+                    self._chat_bar.set_model(self._settings.claude_model)
 
         # Use new backend-agnostic setting (with fallback to deprecated)
         context_mode = (
@@ -203,6 +200,46 @@ class ChatManager(QObject):
         except Exception as e:
             logger.error(f"Failed to auto-download model: {e}")
             self.status_message.emit(f"Auto-download failed: {e}")
+
+    def _switch_backend(self, new_backend: str) -> None:
+        """
+        Switch to a different AI backend and update UI accordingly.
+
+        This method handles the complete backend switch process:
+        1. Updates current backend tracking
+        2. Updates settings
+        3. Sets default model if needed
+        4. Reloads models for new backend
+        5. Updates chat bar dropdown
+
+        Args:
+            new_backend: Backend to switch to ("ollama" or "claude")
+        """
+        logger.info(f"Switching backend from {self._current_backend} to {new_backend}")
+
+        # Update backend tracking
+        self._current_backend = new_backend
+        self._settings.ai_backend = new_backend
+
+        # Set default model if not configured
+        if new_backend == "claude" and not self._settings.claude_model:
+            self._settings.claude_model = "claude-3-5-sonnet-20241022"
+        elif new_backend == "ollama" and not self._settings.ollama_model:
+            self._settings.ollama_model = "gnokit/improve-grammer"
+
+        # Reload models for new backend
+        self._load_available_models()
+
+        # Update selected model in chat bar
+        if new_backend == "ollama" and self._settings.ollama_model:
+            self._chat_bar.set_model(self._settings.ollama_model)
+            logger.info(f"Switched to Ollama model: {self._settings.ollama_model}")
+        elif new_backend == "claude" and self._settings.claude_model:
+            self._chat_bar.set_model(self._settings.claude_model)
+            logger.info(f"Switched to Claude model: {self._settings.claude_model}")
+
+        # Emit settings changed signal
+        self.settings_changed.emit()
 
     def _load_available_models(self) -> None:
         """
@@ -477,11 +514,7 @@ class ChatManager(QObject):
         if not self._settings.ollama_enabled and has_claude_key:
             if self._current_backend != "claude":
                 logger.info("Auto-switching to Claude backend (Ollama disabled, Claude available)")
-                self._current_backend = "claude"
-                self._settings.ai_backend = "claude"
-                # Load Claude models if not already set
-                if not self._settings.claude_model:
-                    self._settings.claude_model = "claude-3-5-sonnet-20241022"
+                self._switch_backend("claude")
             return bool(self._settings.claude_model)
 
         # Check backend availability
