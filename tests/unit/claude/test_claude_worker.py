@@ -51,7 +51,7 @@ class TestClaudeWorker:
 
         models = worker.get_available_models()
         assert isinstance(models, list)
-        assert "claude-3-5-sonnet-20241022" in models
+        assert "claude-3-5-sonnet-20240620" in models
 
     def test_set_model(self):
         """Test set_model updates client model."""
@@ -147,7 +147,7 @@ class TestClaudeWorker:
 
         mock_response = Mock()
         mock_response.content = [Mock(text="Hello! I'm Claude.")]
-        mock_response.model = "claude-3-5-sonnet-20241022"
+        mock_response.model = "claude-3-5-sonnet-20240620"
         mock_response.stop_reason = "end_turn"
         mock_response.usage = Mock(input_tokens=10, output_tokens=15)
 
@@ -166,7 +166,7 @@ class TestClaudeWorker:
         assert isinstance(result, ClaudeResult)
         assert result.success is True
         assert result.content == "Hello! I'm Claude."
-        assert result.model == "claude-3-5-sonnet-20241022"
+        assert result.model == "claude-3-5-sonnet-20240620"
         assert result.tokens_used == 25
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
@@ -182,7 +182,7 @@ class TestClaudeWorker:
 
         mock_response = Mock()
         mock_response.content = [Mock(text="Connection OK")]
-        mock_response.model = "claude-3-5-sonnet-20241022"
+        mock_response.model = "claude-3-5-sonnet-20240620"
         mock_response.stop_reason = "end_turn"
         mock_response.usage = Mock(input_tokens=5, output_tokens=3)
 
@@ -266,7 +266,7 @@ class TestClaudeWorker:
 
         mock_response = Mock()
         mock_response.content = [Mock(text="Response")]
-        mock_response.model = "claude-3-5-sonnet-20241022"
+        mock_response.model = "claude-3-5-sonnet-20240620"
         mock_response.stop_reason = "end_turn"
         mock_response.usage = Mock(input_tokens=20, output_tokens=10)
 

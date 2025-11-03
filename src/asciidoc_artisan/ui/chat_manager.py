@@ -129,6 +129,7 @@ class ChatManager(QObject):
         self._chat_bar.cancel_requested.connect(self._on_cancel_requested)
         self._chat_bar.model_changed.connect(self._on_model_changed)
         self._chat_bar.context_mode_changed.connect(self._on_context_mode_changed)
+        self._chat_bar.scan_models_requested.connect(self._on_scan_models_requested)
 
     def initialize(self) -> None:
         """
@@ -173,6 +174,9 @@ class ChatManager(QObject):
 
         # Update visibility based on settings
         self._update_visibility()
+
+        # Set Scan Models button visibility (only for Claude backend)
+        self._chat_bar.set_scan_models_visible(self._current_backend == "claude")
 
         logger.info(f"Chat manager initialized (backend: {self._current_backend})")
 
@@ -223,7 +227,7 @@ class ChatManager(QObject):
 
         # Set default model if not configured
         if new_backend == "claude" and not self._settings.claude_model:
-            self._settings.claude_model = "claude-3-5-sonnet-20241022"
+            self._settings.claude_model = "claude-sonnet-4-20250514"
         elif new_backend == "ollama" and not self._settings.ollama_model:
             self._settings.ollama_model = "gnokit/improve-grammer"
 
@@ -237,6 +241,16 @@ class ChatManager(QObject):
         elif new_backend == "claude" and self._settings.claude_model:
             self._chat_bar.set_model(self._settings.claude_model)
             logger.info(f"Switched to Claude model: {self._settings.claude_model}")
+
+        # Update AI backend checkmarks in Help menu (real-time)
+        parent = self.parent()
+        if parent and hasattr(parent, "_update_ai_backend_checkmarks"):
+            parent._update_ai_backend_checkmarks()
+            logger.debug(f"Updated AI backend checkmarks for {new_backend}")
+
+        # Update Scan Models button visibility (only for Claude backend)
+        self._chat_bar.set_scan_models_visible(new_backend == "claude")
+        logger.debug(f"Scan Models button visible: {new_backend == 'claude'}")
 
         # Emit settings changed signal
         self.settings_changed.emit()
@@ -354,7 +368,7 @@ class ChatManager(QObject):
             models = [
                 "claude-3-5-sonnet-20241022",
                 "claude-3-5-haiku-20241022",
-                "claude-3-opus-20240229",
+                "claude-sonnet-4-20250514",
             ]
 
         # Add current model if not in list
@@ -722,6 +736,45 @@ class ChatManager(QObject):
         self.settings_changed.emit()
         logger.info(f"Context mode changed to: {mode}")
 
+    def _on_scan_models_requested(self) -> None:
+        """
+        Handle scan models button click.
+
+        Fetches available models from Anthropic API and displays in chat.
+        Only works for Claude backend.
+        """
+        if self._current_backend != "claude":
+            logger.warning("Scan models only available for Claude backend")
+            self.status_message.emit("⚠️ Model scanning only available for Claude")
+            return
+
+        logger.info("Scanning Anthropic API for available models")
+        self.status_message.emit("Scanning Anthropic API for models...")
+
+        try:
+            from asciidoc_artisan.claude import ClaudeClient
+
+            client = ClaudeClient()
+            result = client.fetch_available_models_from_api()
+
+            if result.success:
+                # Display models in chat panel as system message
+                self._chat_panel.add_message("system", f"🔍 **Available Models**\n\n{result.content}")
+                self.status_message.emit(f"✓ Model scan complete")
+                logger.info("Model scan successful")
+            else:
+                # Display error in chat
+                error_msg = f"❌ **Model Scan Failed**\n\n{result.error}"
+                self._chat_panel.add_message("system", error_msg)
+                self.status_message.emit(f"✗ Model scan failed")
+                logger.error(f"Model scan failed: {result.error}")
+
+        except Exception as e:
+            logger.exception(f"Error scanning models: {e}")
+            error_msg = f"❌ **Error Scanning Models**\n\n{str(e)}"
+            self._chat_panel.add_message("system", error_msg)
+            self.status_message.emit("✗ Error scanning models")
+
     def handle_response_ready(self, message: ChatMessage) -> None:
         """
         Handle AI response from worker.
@@ -767,8 +820,9 @@ class ChatManager(QObject):
         self._chat_bar.set_processing(False)
 
         # Add error message to chat panel
-        from ..core.models import ChatMessage
         import time
+
+        from ..core.models import ChatMessage
 
         error_chat_message = ChatMessage(
             role="assistant",

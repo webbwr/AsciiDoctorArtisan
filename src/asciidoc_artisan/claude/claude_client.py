@@ -88,14 +88,14 @@ class ClaudeClient:
         ...     print(result.content)
     """
 
-    # Default Claude model (Sonnet 3.5 - balanced performance/cost)
-    DEFAULT_MODEL = "claude-3-5-sonnet-20241022"
+    # Default Claude model
+    # Using Claude Sonnet 4 (current generation, 2025)
+    DEFAULT_MODEL = "claude-sonnet-4-20250514"
 
-    # Available models
+    # Available models (Claude 4 family - current generation)
     AVAILABLE_MODELS = [
-        "claude-3-5-sonnet-20241022",  # Sonnet 3.5 (recommended)
-        "claude-3-5-haiku-20241022",  # Haiku 3.5 (fast/cheap)
-        "claude-3-opus-20240229",  # Opus 3 (most capable)
+        "claude-sonnet-4-20250514",  # Sonnet 4 (balanced, recommended)
+        "claude-haiku-4-5",  # Haiku 4.5 (fast/cheap)
     ]
 
     def __init__(
@@ -295,7 +295,7 @@ class ClaudeClient:
 
     def get_available_models(self) -> List[str]:
         """
-        Get list of available Claude models.
+        Get list of available Claude models (hardcoded list).
 
         Returns:
             List of model identifiers
@@ -304,6 +304,85 @@ class ClaudeClient:
             >>> client = ClaudeClient()
             >>> models = client.get_available_models()
             >>> print(models)
-            ['claude-3-5-sonnet-20241022', ...]
+            ['claude-sonnet-4-20250514', ...]
         """
         return self.AVAILABLE_MODELS.copy()
+
+    def fetch_available_models_from_api(self) -> ClaudeResult:
+        """
+        Fetch list of available models from Anthropic API.
+
+        Makes a request to the /v1/models endpoint to get the actual list
+        of models available to this API key.
+
+        Returns:
+            ClaudeResult with models list in content field (JSON formatted)
+            or error if request fails
+
+        Example:
+            >>> client = ClaudeClient()
+            >>> result = client.fetch_available_models_from_api()
+            >>> if result.success:
+            ...     print(result.content)
+        """
+        client = self._get_client()
+        if client is None:
+            return ClaudeResult(
+                success=False,
+                error="API key not configured. Set it in Tools → API Key Setup.",
+            )
+
+        try:
+            import json
+
+            # Make request to models endpoint
+            logger.debug("Fetching available models from Anthropic API")
+
+            # Use the underlying HTTP client to make the request
+            response = client._client.get("/v1/models")
+
+            # Format the response nicely
+            models_data = response.json()
+
+            # Extract model IDs
+            if "data" in models_data:
+                model_ids = [model.get("id", "unknown") for model in models_data["data"]]
+                formatted_output = f"Available Models ({len(model_ids)}):\n\n"
+                for model_id in model_ids:
+                    formatted_output += f"• {model_id}\n"
+
+                logger.info(f"Fetched {len(model_ids)} models from API")
+                return ClaudeResult(
+                    success=True,
+                    content=formatted_output,
+                    model="models-api",
+                )
+            else:
+                # Fallback format
+                formatted_json = json.dumps(models_data, indent=2)
+                return ClaudeResult(
+                    success=True,
+                    content=f"Models API Response:\n\n{formatted_json}",
+                    model="models-api",
+                )
+
+        except APIConnectionError as e:
+            logger.error(f"API connection error fetching models: {e}")
+            return ClaudeResult(
+                success=False,
+                error=f"Connection error: {str(e)}. Check your internet connection.",
+            )
+
+        except APIError as e:
+            logger.error(f"API error fetching models: {e}")
+            return ClaudeResult(
+                success=False,
+                error=f"API error: {str(e)}",
+            )
+
+        except Exception as e:
+            logger.exception(f"Unexpected error fetching models: {e}")
+            return ClaudeResult(
+                success=False,
+                error=f"Unexpected error: {str(e)}",
+            )

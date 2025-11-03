@@ -112,14 +112,12 @@ class SpellCheckManager:
             logger.info("Spell check disabled")
 
     def _update_menu_text(self) -> None:
-        """Update the toggle menu item text to show current state (ON/OFF)."""
+        """Update the toggle menu item text to show current state with checkmark."""
         if hasattr(self.main_window, 'action_manager') and hasattr(
             self.main_window.action_manager, 'toggle_spell_check_act'
         ):
-            state = "ON" if self.enabled else "OFF"
-            self.main_window.action_manager.toggle_spell_check_act.setText(
-                f"&Spell Check ({state})"
-            )
+            text = "✓ &Spell Check" if self.enabled else "&Spell Check"
+            self.main_window.action_manager.toggle_spell_check_act.setText(text)
 
     def set_language(self, language: str) -> None:
         """

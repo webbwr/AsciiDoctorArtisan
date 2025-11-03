@@ -95,7 +95,7 @@ class Settings:
     ai_backend: str = "ollama"  # "ollama" or "claude"
     ollama_enabled: bool = True  # Enable Ollama by default for chat
     ollama_model: Optional[str] = "gnokit/improve-grammer"  # Default model for chat
-    claude_model: Optional[str] = "claude-3-5-sonnet-20241022"  # Default Claude model
+    claude_model: Optional[str] = "claude-sonnet-4-20250514"  # Default Claude model (Claude Sonnet 4)
 
     # Chat settings (v1.7.0, v1.10.0+ backend-agnostic)
     ai_chat_enabled: bool = True  # Enable chat by default
@@ -174,3 +174,222 @@ class Settings:
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
         return cls(**filtered_data)
+
+    def validate(self) -> "Settings":
+        """
+        Validate all settings fields and apply corrections.
+
+        Checks all fields for valid types and value ranges, applying defaults
+        for invalid values. Logs all validation issues for debugging.
+
+        Returns:
+            Self (for chaining)
+
+        Validation rules:
+            - last_directory: Must be valid string path, defaults to home
+            - last_file: Optional string path, set to None if invalid
+            - git_repo_path: Optional string path, set to None if invalid
+            - dark_mode: Must be bool, defaults to True
+            - maximized: Must be bool, defaults to True
+            - window_geometry: Optional dict with x,y,width,height keys
+            - splitter_sizes: Optional list of integers, must have 2-3 elements
+            - font_size: Integer 8-72, defaults to 12
+            - auto_save_enabled: Must be bool, defaults to True
+            - auto_save_interval: Integer 30-3600, defaults to 300
+            - ai_backend: Must be "ollama" or "claude", defaults to "ollama"
+            - ollama_model: Optional string
+            - claude_model: Optional string
+            - ai_chat_enabled: Must be bool, defaults to True
+            - chat_max_history: Integer 10-1000, defaults to 100
+            - chat_context_mode: Must be document/syntax/general/editing
+            - chat_send_document: Must be bool, defaults to True
+            - editor_font_family: Non-empty string, defaults to "Courier New"
+            - editor_font_size: Integer 8-72, defaults to 12
+            - preview_font_family: Non-empty string, defaults to "Arial"
+            - preview_font_size: Integer 8-72, defaults to 12
+            - chat_font_family: Non-empty string, defaults to "Arial"
+            - chat_font_size: Integer 8-72, defaults to 11
+            - spell_check_enabled: Must be bool, defaults to True
+            - spell_check_language: Non-empty string, defaults to "en"
+            - spell_check_custom_words: Must be list of strings
+            - telemetry_enabled: Must be bool, defaults to False
+            - telemetry_session_id: Optional string (UUID format)
+            - telemetry_opt_in_shown: Must be bool, defaults to False
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        issues = []
+
+        # Validate last_directory (string, must exist)
+        if not isinstance(self.last_directory, str) or not self.last_directory:
+            issues.append(f"Invalid last_directory: {self.last_directory}")
+            self.last_directory = str(Path.home())
+        elif not Path(self.last_directory).is_dir():
+            issues.append(f"last_directory does not exist: {self.last_directory}")
+            self.last_directory = str(Path.home())
+
+        # Validate last_file (optional string)
+        if self.last_file is not None and (not isinstance(self.last_file, str) or not self.last_file):
+            issues.append(f"Invalid last_file: {self.last_file}")
+            self.last_file = None
+
+        # Validate git_repo_path (optional string)
+        if self.git_repo_path is not None and (not isinstance(self.git_repo_path, str) or not self.git_repo_path):
+            issues.append(f"Invalid git_repo_path: {self.git_repo_path}")
+            self.git_repo_path = None
+
+        # Validate dark_mode (bool)
+        if not isinstance(self.dark_mode, bool):
+            issues.append(f"Invalid dark_mode: {self.dark_mode}")
+            self.dark_mode = True
+
+        # Validate maximized (bool)
+        if not isinstance(self.maximized, bool):
+            issues.append(f"Invalid maximized: {self.maximized}")
+            self.maximized = True
+
+        # Validate window_geometry (optional dict)
+        if self.window_geometry is not None:
+            if not isinstance(self.window_geometry, dict):
+                issues.append(f"Invalid window_geometry type: {type(self.window_geometry)}")
+                self.window_geometry = None
+            elif not all(key in self.window_geometry for key in ["x", "y", "width", "height"]):
+                issues.append(f"Missing window_geometry keys: {self.window_geometry.keys()}")
+                self.window_geometry = None
+
+        # Validate splitter_sizes (optional list of 2-3 ints)
+        if self.splitter_sizes is not None:
+            if not isinstance(self.splitter_sizes, list):
+                issues.append(f"Invalid splitter_sizes type: {type(self.splitter_sizes)}")
+                self.splitter_sizes = None
+            elif not (2 <= len(self.splitter_sizes) <= 3):
+                issues.append(f"Invalid splitter_sizes length: {len(self.splitter_sizes)}")
+                self.splitter_sizes = None
+            elif not all(isinstance(s, int) and s >= 0 for s in self.splitter_sizes):
+                issues.append(f"Invalid splitter_sizes values: {self.splitter_sizes}")
+                self.splitter_sizes = None
+
+        # Validate font_size (int 8-72)
+        if not isinstance(self.font_size, int) or not (8 <= self.font_size <= 72):
+            issues.append(f"Invalid font_size: {self.font_size}")
+            self.font_size = 12
+
+        # Validate auto_save_enabled (bool)
+        if not isinstance(self.auto_save_enabled, bool):
+            issues.append(f"Invalid auto_save_enabled: {self.auto_save_enabled}")
+            self.auto_save_enabled = True
+
+        # Validate auto_save_interval (int 30-3600)
+        if not isinstance(self.auto_save_interval, int) or not (30 <= self.auto_save_interval <= 3600):
+            issues.append(f"Invalid auto_save_interval: {self.auto_save_interval}")
+            self.auto_save_interval = 300
+
+        # Validate ai_backend (string: "ollama" or "claude")
+        if not isinstance(self.ai_backend, str) or self.ai_backend not in ["ollama", "claude"]:
+            issues.append(f"Invalid ai_backend: {self.ai_backend}")
+            self.ai_backend = "ollama"
+
+        # Validate ollama_enabled (bool)
+        if not isinstance(self.ollama_enabled, bool):
+            issues.append(f"Invalid ollama_enabled: {self.ollama_enabled}")
+            self.ollama_enabled = True
+
+        # Validate ollama_model (optional string)
+        if self.ollama_model is not None and (not isinstance(self.ollama_model, str) or not self.ollama_model):
+            issues.append(f"Invalid ollama_model: {self.ollama_model}")
+            self.ollama_model = None
+
+        # Validate claude_model (optional string)
+        if self.claude_model is not None and (not isinstance(self.claude_model, str) or not self.claude_model):
+            issues.append(f"Invalid claude_model: {self.claude_model}")
+            self.claude_model = None
+
+        # Validate ai_chat_enabled (bool)
+        if not isinstance(self.ai_chat_enabled, bool):
+            issues.append(f"Invalid ai_chat_enabled: {self.ai_chat_enabled}")
+            self.ai_chat_enabled = True
+
+        # Validate chat_history (list of dicts)
+        if not isinstance(self.chat_history, list):
+            issues.append(f"Invalid chat_history type: {type(self.chat_history)}")
+            self.chat_history = []
+
+        # Validate chat_max_history (int 10-1000)
+        if not isinstance(self.chat_max_history, int) or not (10 <= self.chat_max_history <= 1000):
+            issues.append(f"Invalid chat_max_history: {self.chat_max_history}")
+            self.chat_max_history = 100
+
+        # Validate chat_context_mode (string)
+        valid_modes = ["document", "syntax", "general", "editing"]
+        if not isinstance(self.chat_context_mode, str) or self.chat_context_mode not in valid_modes:
+            issues.append(f"Invalid chat_context_mode: {self.chat_context_mode}")
+            self.chat_context_mode = "document"
+
+        # Validate chat_send_document (bool)
+        if not isinstance(self.chat_send_document, bool):
+            issues.append(f"Invalid chat_send_document: {self.chat_send_document}")
+            self.chat_send_document = True
+
+        # Validate font settings
+        if not isinstance(self.editor_font_family, str) or not self.editor_font_family:
+            issues.append(f"Invalid editor_font_family: {self.editor_font_family}")
+            self.editor_font_family = "Courier New"
+
+        if not isinstance(self.editor_font_size, int) or not (8 <= self.editor_font_size <= 72):
+            issues.append(f"Invalid editor_font_size: {self.editor_font_size}")
+            self.editor_font_size = 12
+
+        if not isinstance(self.preview_font_family, str) or not self.preview_font_family:
+            issues.append(f"Invalid preview_font_family: {self.preview_font_family}")
+            self.preview_font_family = "Arial"
+
+        if not isinstance(self.preview_font_size, int) or not (8 <= self.preview_font_size <= 72):
+            issues.append(f"Invalid preview_font_size: {self.preview_font_size}")
+            self.preview_font_size = 12
+
+        if not isinstance(self.chat_font_family, str) or not self.chat_font_family:
+            issues.append(f"Invalid chat_font_family: {self.chat_font_family}")
+            self.chat_font_family = "Arial"
+
+        if not isinstance(self.chat_font_size, int) or not (8 <= self.chat_font_size <= 72):
+            issues.append(f"Invalid chat_font_size: {self.chat_font_size}")
+            self.chat_font_size = 11
+
+        # Validate spell check settings
+        if not isinstance(self.spell_check_enabled, bool):
+            issues.append(f"Invalid spell_check_enabled: {self.spell_check_enabled}")
+            self.spell_check_enabled = True
+
+        if not isinstance(self.spell_check_language, str) or not self.spell_check_language:
+            issues.append(f"Invalid spell_check_language: {self.spell_check_language}")
+            self.spell_check_language = "en"
+
+        if not isinstance(self.spell_check_custom_words, list):
+            issues.append(f"Invalid spell_check_custom_words type: {type(self.spell_check_custom_words)}")
+            self.spell_check_custom_words = []
+        elif not all(isinstance(w, str) for w in self.spell_check_custom_words):
+            issues.append("spell_check_custom_words contains non-string values")
+            self.spell_check_custom_words = [w for w in self.spell_check_custom_words if isinstance(w, str)]
+
+        # Validate telemetry settings
+        if not isinstance(self.telemetry_enabled, bool):
+            issues.append(f"Invalid telemetry_enabled: {self.telemetry_enabled}")
+            self.telemetry_enabled = False
+
+        if self.telemetry_session_id is not None and (not isinstance(self.telemetry_session_id, str) or not self.telemetry_session_id):
+            issues.append(f"Invalid telemetry_session_id: {self.telemetry_session_id}")
+            self.telemetry_session_id = None
+
+        if not isinstance(self.telemetry_opt_in_shown, bool):
+            issues.append(f"Invalid telemetry_opt_in_shown: {self.telemetry_opt_in_shown}")
+            self.telemetry_opt_in_shown = False
+
+        # Log all issues
+        if issues:
+            logger.warning(f"Settings validation found {len(issues)} issues:")
+            for issue in issues:
+                logger.warning(f"  - {issue}")
+        else:
+            logger.info("Settings validation: all fields valid")
+
+        return self

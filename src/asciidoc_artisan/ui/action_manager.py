@@ -252,7 +252,9 @@ class ActionManager:
         self.toggle_theme_act: QAction  # Toggle dark/light theme
         self.pandoc_status_act: QAction  # Show Pandoc installation status
         self.pandoc_formats_act: QAction  # Show supported formats
-        self.ollama_status_act: QAction  # Show Ollama AI status
+        self.ollama_status_act: QAction  # Show Ollama AI status (shows ✓ when active)
+        self.anthropic_status_act: QAction  # Show Anthropic AI status (shows ✓ when active)
+        self.telemetry_status_act: QAction  # Show Telemetry status and configuration
         self.ollama_settings_act: QAction  # Configure Ollama AI settings
         self.anthropic_settings_act: QAction  # Configure Anthropic API key
         self.app_settings_act: QAction  # Edit application settings
@@ -792,6 +794,18 @@ class ActionManager:
             self.window._show_ollama_status,
         )
 
+        self.anthropic_status_act = self._create_action(
+            "&Anthropic Status",
+            "Check Anthropic API key and service status",
+            self.window._show_anthropic_status,
+        )
+
+        self.telemetry_status_act = self._create_action(
+            "&Telemetry Status",
+            "Check telemetry configuration and data collection status",
+            self.window._show_telemetry_status,
+        )
+
         self.ollama_settings_act = self._create_action(
             "&Ollama Settings...",
             "Configure Ollama AI integration and select model",
@@ -1032,8 +1046,8 @@ class ActionManager:
 
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
         tools_menu.addAction(self.font_settings_act)  # Customize fonts
-        tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7)
-        tools_menu.addAction(self.toggle_telemetry_act)  # Toggle telemetry collection
+        tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7, shows ✓ when enabled)
+        tools_menu.addAction(self.toggle_telemetry_act)  # Toggle telemetry collection (shows ✓ when enabled)
         tools_menu.addAction(self.toggle_theme_act)  # Toggle dark/light theme
 
         # === HELP MENU ===
@@ -1042,10 +1056,12 @@ class ActionManager:
 
         help_menu.addSeparator()
 
-        # System Status Information
-        help_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
-        help_menu.addAction(self.ollama_status_act)  # Check Ollama AI status
+        # System Status Information (alphabetically sorted)
+        help_menu.addAction(self.anthropic_status_act)  # Check Anthropic AI status (shows ✓ when active)
+        help_menu.addAction(self.ollama_status_act)  # Check Ollama AI status (shows ✓ when active)
         help_menu.addAction(self.pandoc_formats_act)  # Show Pandoc supported formats
+        help_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
+        help_menu.addAction(self.telemetry_status_act)  # Check Telemetry status
 
         # All menus created! Log success message
         logger.debug("Menus created successfully")

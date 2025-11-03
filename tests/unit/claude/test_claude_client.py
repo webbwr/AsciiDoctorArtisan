@@ -92,7 +92,7 @@ class TestClaudeClient:
         # Mock Anthropic client response
         mock_response = Mock()
         mock_response.content = [Mock(text="Hello! I'm Claude.")]
-        mock_response.model = "claude-3-5-sonnet-20241022"
+        mock_response.model = "claude-3-5-sonnet-20240620"
         mock_response.stop_reason = "end_turn"
         mock_response.usage = Mock(input_tokens=10, output_tokens=15)
 
@@ -107,7 +107,7 @@ class TestClaudeClient:
         # Verify
         assert result.success is True
         assert result.content == "Hello! I'm Claude."
-        assert result.model == "claude-3-5-sonnet-20241022"
+        assert result.model == "claude-3-5-sonnet-20240620"
         assert result.tokens_used == 25  # 10 + 15
         assert result.stop_reason == "end_turn"
 
@@ -122,7 +122,7 @@ class TestClaudeClient:
 
         mock_response = Mock()
         mock_response.content = [Mock(text="Response")]
-        mock_response.model = "claude-3-5-sonnet-20241022"
+        mock_response.model = "claude-3-5-sonnet-20240620"
         mock_response.stop_reason = "end_turn"
         mock_response.usage = Mock(input_tokens=10, output_tokens=5)
 
@@ -155,7 +155,7 @@ class TestClaudeClient:
 
         mock_response = Mock()
         mock_response.content = [Mock(text="Response")]
-        mock_response.model = "claude-3-5-sonnet-20241022"
+        mock_response.model = "claude-3-5-sonnet-20240620"
         mock_response.stop_reason = "end_turn"
         mock_response.usage = Mock(input_tokens=20, output_tokens=10)
 
@@ -190,7 +190,7 @@ class TestClaudeClient:
 
         assert isinstance(models, list)
         assert len(models) > 0
-        assert "claude-3-5-sonnet-20241022" in models
+        assert "claude-3-5-sonnet-20240620" in models
         assert "claude-3-5-haiku-20241022" in models
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
@@ -204,7 +204,7 @@ class TestClaudeClient:
 
         mock_response = Mock()
         mock_response.content = [Mock(text="Connection OK")]
-        mock_response.model = "claude-3-5-sonnet-20241022"
+        mock_response.model = "claude-3-5-sonnet-20240620"
         mock_response.stop_reason = "end_turn"
         mock_response.usage = Mock(input_tokens=5, output_tokens=3)
 
@@ -230,14 +230,14 @@ class TestClaudeResult:
         result = ClaudeResult(
             success=True,
             content="Test response",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-sonnet-20240620",
             tokens_used=100,
             stop_reason="end_turn",
         )
 
         assert result.success is True
         assert result.content == "Test response"
-        assert result.model == "claude-3-5-sonnet-20241022"
+        assert result.model == "claude-3-5-sonnet-20240620"
         assert result.tokens_used == 100
         assert result.stop_reason == "end_turn"
         assert result.error == ""

@@ -19,7 +19,7 @@ import subprocess
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog, QMessageBox
+from PySide6.QtWidgets import QMessageBox
 
 if TYPE_CHECKING:
 
@@ -191,6 +191,326 @@ class DialogManager:
             status += "  Visit: https://ollama.com/download\n"
 
         self.editor.status_manager.show_message("info", "Ollama Status", status)
+
+    def show_anthropic_status(self) -> None:
+        """Show Anthropic API key and service status."""
+        from asciidoc_artisan.core import SecureCredentials
+        import anthropic
+
+        status = "Anthropic Status:\n\n"
+
+        # Show SDK version
+        try:
+            sdk_version = anthropic.__version__
+            status += f"SDK Version: {sdk_version}\n\n"
+        except AttributeError:
+            status += "SDK Version: Unknown\n\n"
+
+        # Check if API key is configured
+        creds = SecureCredentials()
+        has_key = creds.has_anthropic_key()
+
+        if not has_key:
+            status += "⚠️ Anthropic API: No API key configured\n\n"
+            status += "To configure Anthropic API key:\n"
+            status += "1. Go to Tools → API Key Setup\n"
+            status += "2. Enter your Anthropic API key\n"
+            status += "3. Click Save\n\n"
+            status += "To get an API key:\n"
+            status += "  Visit: https://console.anthropic.com/settings/keys\n"
+            self.editor.status_manager.show_message("info", "Anthropic Status", status)
+            return
+
+        # API key is configured
+        status += "✅ Anthropic API: Key configured\n"
+        if self.editor._settings.claude_model:
+            status += f"Selected model: {self.editor._settings.claude_model}\n\n"
+        else:
+            status += "⚠️ No model selected\n\n"
+
+        # Check if Claude backend is active
+        if self.editor._settings.ai_backend == "claude":
+            status += "✅ Active backend: Claude (remote)\n"
+        else:
+            status += "⚠️ Active backend: Ollama (local)\n"
+            status += "\nTo switch to Claude:\n"
+            status += "1. Disable Ollama in Tools → AI Status → Settings\n"
+            status += "2. Chat will automatically use Claude\n"
+
+        # Test connection
+        status += "\nTesting connection...\n"
+        try:
+            from asciidoc_artisan.claude import ClaudeClient
+
+            client = ClaudeClient()
+            result = client.test_connection()
+
+            if result.success:
+                status += "✅ Connection test: Success\n"
+                status += f"Model: {result.model}\n"
+                status += f"Tokens used: {result.tokens_used}\n"
+            else:
+                status += "❌ Connection test: Failed\n"
+                status += f"Error: {result.error}\n"
+        except Exception as e:
+            status += "❌ Connection test: Failed\n"
+            status += f"Error: {str(e)}\n"
+
+        self.editor.status_manager.show_message("info", "Anthropic Status", status)
+
+    def show_telemetry_status(self) -> None:
+        """Show telemetry configuration and data collection status."""
+        from PySide6.QtWidgets import QMessageBox, QPushButton, QFileDialog
+        from pathlib import Path
+        import subprocess
+        import platform
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        status = "Telemetry Status:\n\n"
+
+        # Get telemetry file path from collector
+        telemetry_file = None
+        telemetry_dir = None
+        if hasattr(self.editor, 'telemetry_collector'):
+            telemetry_file = self.editor.telemetry_collector.telemetry_file
+            telemetry_dir = telemetry_file.parent
+
+        # Check if telemetry is enabled
+        if self.editor._settings.telemetry_enabled:
+            status += "✅ Telemetry: Enabled\n"
+
+            # Show session ID
+            if self.editor._settings.telemetry_session_id:
+                session_id = self.editor._settings.telemetry_session_id
+                status += f"Session ID: {session_id}\n\n"
+            else:
+                status += "⚠️ No session ID generated yet\n\n"
+
+            # Show storage location
+            if telemetry_file:
+                status += "Storage Location:\n"
+                status += f"  File: {telemetry_file}\n"
+                status += f"  Directory: {telemetry_dir}\n\n"
+
+            # Data collection info
+            status += "Data Collected:\n"
+            status += "• Application version and startup/shutdown times\n"
+            status += "• Feature usage (e.g., export formats, AI chat)\n"
+            status += "• Performance metrics (document size, render time)\n"
+            status += "• Error events and stack traces\n\n"
+
+            status += "Privacy:\n"
+            status += "• No document content is collected\n"
+            status += "• No personal information is collected\n"
+            status += "• Data is stored locally only\n"
+            status += "• No data is sent to external servers\n\n"
+
+            status += "To disable telemetry:\n"
+            status += "Go to Tools → Telemetry (toggle off)\n"
+        else:
+            status += "⚠️ Telemetry: Disabled\n\n"
+
+            # Show storage location even when disabled
+            if telemetry_file:
+                status += "Storage Location:\n"
+                status += f"  File: {telemetry_file}\n"
+                status += f"  Directory: {telemetry_dir}\n\n"
+
+            status += "Telemetry helps improve the application by collecting:\n"
+            status += "• Anonymous usage statistics\n"
+            status += "• Performance metrics\n"
+            status += "• Error reports\n\n"
+
+            status += "Privacy guarantees:\n"
+            status += "• No document content is collected\n"
+            status += "• No personal information is collected\n"
+            status += "• Data is stored locally only\n"
+            status += "• No data is sent to external servers\n\n"
+
+            status += "To enable telemetry:\n"
+            status += "Go to Tools → Telemetry (toggle on)\n"
+
+        # Create custom dialog with "Open Directory" and "Change Directory" buttons
+        msg_box = QMessageBox(self.editor)
+        msg_box.setWindowTitle("Telemetry Status")
+        msg_box.setIcon(QMessageBox.Icon.Information)
+        msg_box.setText(status)
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+        # Add "Open File" button if telemetry file exists
+        if telemetry_file and telemetry_file.exists():
+            open_file_button = msg_box.addButton("Open File", QMessageBox.ButtonRole.ActionRole)
+
+            def open_file():
+                """Open telemetry file in default application."""
+                logger.info(f"Opening telemetry file: {telemetry_file}")
+                try:
+                    system = platform.system()
+                    if system == "Windows":
+                        # Use default text editor on Windows
+                        result = subprocess.run(
+                            ["notepad", str(telemetry_file)],
+                            check=True,
+                            capture_output=True,
+                            text=True
+                        )
+                        logger.info(f"Notepad command succeeded: {result}")
+                    elif system == "Darwin":  # macOS
+                        # Opens with default application
+                        result = subprocess.run(
+                            ["open", str(telemetry_file)],
+                            check=True,
+                            capture_output=True,
+                            text=True
+                        )
+                        logger.info(f"Open command succeeded: {result}")
+                    else:  # Linux/Unix
+                        # Check if running in WSL
+                        is_wsl = False
+                        try:
+                            with open("/proc/version", "r") as f:
+                                is_wsl = "microsoft" in f.read().lower()
+                        except:
+                            pass
+
+                        if is_wsl:
+                            # WSL: Use Windows notepad.exe with wslpath conversion
+                            try:
+                                # Convert Linux path to Windows path
+                                win_path_result = subprocess.run(
+                                    ["wslpath", "-w", str(telemetry_file)],
+                                    capture_output=True,
+                                    text=True,
+                                    check=True
+                                )
+                                win_path = win_path_result.stdout.strip()
+
+                                # Open with Windows notepad
+                                result = subprocess.run(
+                                    ["/mnt/c/Windows/System32/notepad.exe", win_path],
+                                    check=False,  # Don't check return code
+                                    capture_output=True,
+                                    text=True
+                                )
+                                logger.info(f"WSL notepad.exe command succeeded")
+                            except Exception as wsl_error:
+                                logger.warning(f"WSL notepad failed: {wsl_error}, falling back to less")
+                                # Fall back to less (simple viewer)
+                                subprocess.run(["x-terminal-emulator", "-e", "less", str(telemetry_file)])
+                        else:
+                            # Try xdg-open first, fall back to less
+                            try:
+                                result = subprocess.run(
+                                    ["xdg-open", str(telemetry_file)],
+                                    check=True,
+                                    capture_output=True,
+                                    text=True
+                                )
+                                logger.info(f"xdg-open command succeeded: {result}")
+                            except FileNotFoundError:
+                                # xdg-open not available, use less as fallback
+                                logger.info("xdg-open not found, using less as viewer")
+                                subprocess.run(["x-terminal-emulator", "-e", "less", str(telemetry_file)])
+
+                    # File opened successfully - no status message needed
+                    logger.info(f"Successfully opened telemetry file: {telemetry_file.name}")
+                except subprocess.CalledProcessError as e:
+                    error_msg = f"Failed to open file: {e}\nStderr: {e.stderr}"
+                    logger.error(error_msg)
+                    QMessageBox.warning(
+                        self.editor,
+                        "Open File Failed",
+                        f"Could not open telemetry file:\n{telemetry_file}\n\nError: {e.stderr or str(e)}"
+                    )
+                except Exception as e:
+                    error_msg = f"Unexpected error opening file: {type(e).__name__}: {e}"
+                    logger.error(error_msg, exc_info=True)
+                    QMessageBox.warning(
+                        self.editor,
+                        "Open File Failed",
+                        f"Unexpected error:\n{str(e)}"
+                    )
+
+            open_file_button.clicked.connect(open_file)
+
+        # Add "Change Directory" button
+        change_dir_button = msg_box.addButton("Change Directory", QMessageBox.ButtonRole.ActionRole)
+
+        def change_directory():
+            """Allow user to select a new telemetry directory."""
+            logger.info("User requested to change telemetry directory")
+
+            # Show directory selection dialog
+            new_dir = QFileDialog.getExistingDirectory(
+                self.editor,
+                "Select Telemetry Directory",
+                str(telemetry_dir) if telemetry_dir else str(Path.home()),
+                QFileDialog.Option.ShowDirsOnly
+            )
+
+            if not new_dir:
+                logger.info("User cancelled directory selection")
+                return
+
+            new_dir_path = Path(new_dir)
+            logger.info(f"User selected new directory: {new_dir_path}")
+
+            # Confirm change
+            reply = QMessageBox.question(
+                self.editor,
+                "Confirm Directory Change",
+                f"Change telemetry directory to:\n{new_dir_path}\n\n"
+                "This will move all telemetry data to the new location.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+
+            if reply != QMessageBox.StandardButton.Yes:
+                logger.info("User cancelled directory change confirmation")
+                return
+
+            try:
+                # Create new directory if it doesn't exist
+                new_dir_path.mkdir(parents=True, exist_ok=True)
+
+                # Move existing telemetry file if it exists
+                if telemetry_file and telemetry_file.exists():
+                    new_file_path = new_dir_path / "telemetry.json"
+                    import shutil
+                    shutil.copy2(telemetry_file, new_file_path)
+                    logger.info(f"Copied telemetry file to: {new_file_path}")
+
+                # Update telemetry collector
+                self.editor.telemetry_collector.data_dir = new_dir_path
+                self.editor.telemetry_collector.telemetry_file = new_dir_path / "telemetry.json"
+
+                logger.info("Telemetry directory changed successfully")
+
+                QMessageBox.information(
+                    self.editor,
+                    "Directory Changed",
+                    f"Telemetry directory changed to:\n{new_dir_path}\n\n"
+                    "Previous data has been copied to the new location."
+                )
+
+                # Close the dialog and reopen to show updated info
+                msg_box.done(QMessageBox.StandardButton.Ok)
+                self.show_telemetry_status()
+
+            except Exception as e:
+                error_msg = f"Failed to change directory: {type(e).__name__}: {e}"
+                logger.error(error_msg, exc_info=True)
+                QMessageBox.critical(
+                    self.editor,
+                    "Change Directory Failed",
+                    f"Could not change telemetry directory:\n{str(e)}"
+                )
+
+        change_dir_button.clicked.connect(change_directory)
+
+        msg_box.exec()
 
     def show_ollama_settings(self) -> None:
         """Show Ollama AI settings dialog with model selection."""

@@ -379,6 +379,9 @@ class AsciiDocEditor(QMainWindow):
         self._setup_workers_and_threads()
         self._update_ui_state()
 
+        # Update AI backend checkmarks based on initial settings
+        self._update_ai_backend_checkmarks()
+
     def _initialize_asciidoc(self) -> Optional[AsciiDoc3API]:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
             try:
@@ -567,14 +570,12 @@ class AsciiDocEditor(QMainWindow):
         self._settings_manager.save_settings(self._settings, self)
 
     def _update_telemetry_menu_text(self) -> None:
-        """Update the toggle telemetry menu item text to show current state (ON/OFF)."""
+        """Update the toggle telemetry menu item text to show current state with checkmark."""
         if hasattr(self, 'action_manager') and hasattr(
             self.action_manager, 'toggle_telemetry_act'
         ):
-            state = "ON" if self._settings.telemetry_enabled else "OFF"
-            self.action_manager.toggle_telemetry_act.setText(
-                f"&Telemetry ({state})"
-            )
+            text = "✓ &Telemetry" if self._settings.telemetry_enabled else "&Telemetry"
+            self.action_manager.toggle_telemetry_act.setText(text)
 
     def _setup_synchronized_scrolling(self) -> None:
         """Set up synchronized scrolling (delegates to ScrollManager)."""
@@ -1016,8 +1017,9 @@ class AsciiDocEditor(QMainWindow):
         Args:
             claude_result: ClaudeResult object from ClaudeWorker
         """
-        from asciidoc_artisan.core.models import ChatMessage
         import time
+
+        from asciidoc_artisan.core.models import ChatMessage
 
         # Check if result is successful
         if not claude_result.success:
@@ -1342,6 +1344,20 @@ class AsciiDocEditor(QMainWindow):
         """Update AI model name in status bar (delegates to UIStateManager)."""
         self.ui_state_manager.update_ai_status_bar()
 
+    def _update_ai_backend_checkmarks(self) -> None:
+        """Update checkmarks on AI backend menu items based on active backend."""
+        is_ollama = self._settings.ai_backend == "ollama"
+        is_claude = self._settings.ai_backend == "claude"
+
+        # Update menu text with checkmark for active backend
+        ollama_text = "✓ &Ollama Status" if is_ollama else "&Ollama Status"
+        claude_text = "✓ &Anthropic Status" if is_claude else "&Anthropic Status"
+
+        self.action_manager.ollama_status_act.setText(ollama_text)
+        self.action_manager.anthropic_status_act.setText(claude_text)
+
+        logger.debug(f"Updated AI backend checkmarks: ollama={is_ollama}, claude={is_claude}")
+
     def _check_pandoc_availability(self, context: str) -> bool:
         """Check if Pandoc is available (delegates to UIStateManager)."""
         return self.ui_state_manager.check_pandoc_availability(context)
@@ -1365,6 +1381,14 @@ class AsciiDocEditor(QMainWindow):
     def _show_ollama_status(self) -> None:
         """Show Ollama service and installation status (delegates to DialogManager)."""
         self.dialog_manager.show_ollama_status()
+
+    def _show_anthropic_status(self) -> None:
+        """Show Anthropic API key and service status (delegates to DialogManager)."""
+        self.dialog_manager.show_anthropic_status()
+
+    def _show_telemetry_status(self) -> None:
+        """Show telemetry configuration and status (delegates to DialogManager)."""
+        self.dialog_manager.show_telemetry_status()
 
     def _show_ollama_settings(self) -> None:
         """Show Ollama AI settings dialog (delegates to DialogManager)."""
@@ -1415,6 +1439,9 @@ class AsciiDocEditor(QMainWindow):
 
         # Update AI status bar
         self._update_ai_status_bar()
+
+        # Update AI backend checkmarks in Help menu
+        self._update_ai_backend_checkmarks()
 
         # Update PandocWorker with new Ollama configuration
         if hasattr(self, "pandoc_worker"):

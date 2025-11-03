@@ -171,11 +171,8 @@ class SettingsManager:
 
             settings = Settings.from_dict(data)
 
-            # Validate last_directory exists
-            if settings.last_directory and Path(settings.last_directory).is_dir():
-                pass  # Valid directory
-            else:
-                settings.last_directory = str(Path.home())
+            # Validate all settings fields (logs issues and applies corrections)
+            settings.validate()
 
             logger.info("Settings loaded successfully")
             return settings
@@ -248,6 +245,9 @@ class SettingsManager:
         if hasattr(window, "editor") and window.editor:
             font = window.editor.font()
             settings.font_size = font.pointSize()
+
+        # Validate settings before saving
+        settings.validate()
 
         # Schedule deferred save (non-blocking)
         settings_dict = settings.to_dict()
@@ -330,6 +330,9 @@ class SettingsManager:
         if hasattr(window, "editor") and window.editor:
             font = window.editor.font()
             settings.font_size = font.pointSize()
+
+        # Validate settings before saving
+        settings.validate()
 
         # Immediate save (blocking)
         settings_dict = settings.to_dict()

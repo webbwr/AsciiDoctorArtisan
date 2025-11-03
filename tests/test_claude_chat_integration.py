@@ -23,7 +23,7 @@ class TestClaudeChatFlow:
         # Setup settings with Claude backend
         settings = Settings()
         settings.ai_backend = "claude"
-        settings.claude_model = "claude-3-5-sonnet-20241022"
+        settings.claude_model = "claude-3-5-sonnet-20240620"
 
         # This test validates the routing decision logic
         assert settings.ai_backend == "claude"
@@ -43,7 +43,7 @@ class TestClaudeChatFlow:
 
         for mode, expected_keyword in context_modes.items():
             # The actual method would be called like:
-            # prompt = window._build_claude_system_prompt(mode, "claude-3-5-sonnet-20241022")
+            # prompt = window._build_claude_system_prompt(mode, "claude-3-5-sonnet-20240620")
             # We're just validating the logic exists for each mode
             assert mode in ["document", "syntax", "editing", "general"]
 
@@ -53,7 +53,7 @@ class TestClaudeChatFlow:
         claude_result = ClaudeResult(
             success=True,
             content="Hello! I'm Claude, an AI assistant created by Anthropic.",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-sonnet-20240620",
             tokens_used=42,
             stop_reason="end_turn",
         )
@@ -110,14 +110,14 @@ class TestClaudeChatFlow:
                 role="user",
                 content="What is AsciiDoc?",
                 timestamp=int(time.time()),
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-5-sonnet-20240620",
                 context_mode="syntax",
             ),
             ChatMessage(
                 role="assistant",
                 content="AsciiDoc is a text document format...",
                 timestamp=int(time.time()),
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-5-sonnet-20240620",
                 context_mode="syntax",
             ),
         ]

@@ -54,6 +54,7 @@ class ChatBarWidget(QWidget):
         _context_selector: QComboBox for context mode selection
         _send_button: QPushButton to send message
         _clear_button: QPushButton to clear chat history
+        _scan_models_button: QPushButton to scan for available models from API
         _cancel_button: QPushButton to cancel generation (visible during processing)
 
     Example:
@@ -74,6 +75,7 @@ class ChatBarWidget(QWidget):
     cancel_requested = Signal()
     model_changed = Signal(str)
     context_mode_changed = Signal(str)
+    scan_models_requested = Signal()  # Scan for available models from API
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """
@@ -125,6 +127,12 @@ class ChatBarWidget(QWidget):
         self._clear_button.setToolTip("Clear chat history")
         self._clear_button.setMaximumWidth(60)
         top_row.addWidget(self._clear_button)
+
+        # Scan Models button (only visible for Claude backend)
+        self._scan_models_button = QPushButton("Scan Models")
+        self._scan_models_button.setToolTip("Scan Anthropic API for available models")
+        self._scan_models_button.setMaximumWidth(90)
+        top_row.addWidget(self._scan_models_button)
 
         # Cancel button (hidden by default, shown during processing)
         self._cancel_button = QPushButton("Cancel")
@@ -188,6 +196,7 @@ class ChatBarWidget(QWidget):
         self._input_field.textChanged.connect(self._on_text_changed)
         self._send_button.clicked.connect(self._on_send)
         self._clear_button.clicked.connect(self._on_clear)
+        self._scan_models_button.clicked.connect(self._on_scan_models)
         self._cancel_button.clicked.connect(self._on_cancel)
         self._model_selector.currentTextChanged.connect(self._on_model_changed)
         self._context_selector.currentIndexChanged.connect(self._on_context_changed)
@@ -223,6 +232,11 @@ class ChatBarWidget(QWidget):
         """Handle cancel button click."""
         logger.info("Cancel generation requested")
         self.cancel_requested.emit()
+
+    def _on_scan_models(self) -> None:
+        """Handle scan models button click."""
+        logger.info("Scan models requested")
+        self.scan_models_requested.emit()
 
     def _on_model_changed(self, model: str) -> None:
         """Handle model selector change."""
@@ -342,6 +356,15 @@ class ChatBarWidget(QWidget):
             Context mode string (document/syntax/general/editing)
         """
         return self._get_context_mode_value()
+
+    def set_scan_models_visible(self, visible: bool) -> None:
+        """
+        Set visibility of the Scan Models button.
+
+        Args:
+            visible: True to show button, False to hide it
+        """
+        self._scan_models_button.setVisible(visible)
 
     def set_enabled_state(self, enabled: bool) -> None:
         """
