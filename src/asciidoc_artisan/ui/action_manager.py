@@ -826,7 +826,7 @@ class ActionManager:
         self.toggle_chat_pane_act = self._create_action(
             "&Chat Pane",
             "Show or hide AI chat pane",
-            self.window.chat_manager.toggle_panel_visibility,
+            lambda: self.window.chat_manager.toggle_panel_visibility(),
             checkable=True,
             checked=self._settings.ai_chat_enabled or self._settings.ollama_chat_enabled,
         )
