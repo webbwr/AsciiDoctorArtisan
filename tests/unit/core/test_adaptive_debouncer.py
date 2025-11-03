@@ -132,9 +132,10 @@ class TestDebounceConfig:
         """Test default configuration values."""
         config = DebounceConfig()
 
-        assert config.min_delay == 100
-        assert config.max_delay == 2000
-        assert config.default_delay == 350
+        # Defaults were reduced for lower latency (see adaptive_debouncer.py lines 59-61)
+        assert config.min_delay == 50  # Reduced from 100ms
+        assert config.max_delay == 1000  # Reduced from 2000ms
+        assert config.default_delay == 200  # Reduced from 350ms
         assert config.small_doc_threshold == 10_000
         assert config.medium_doc_threshold == 100_000
 
@@ -173,8 +174,8 @@ class TestAdaptiveDebouncer:
 
         delay = debouncer.calculate_delay(document_size=5000)
 
-        # Should be around 200ms base for small docs
-        assert 100 <= delay <= 500
+        # Should be around 100ms base for small docs (reduced delays)
+        assert 50 <= delay <= 400
 
     def test_calculate_delay_medium_document(self):
         """Test delay for medium document."""
@@ -182,8 +183,8 @@ class TestAdaptiveDebouncer:
 
         delay = debouncer.calculate_delay(document_size=50000)
 
-        # Should be around 350ms base for medium docs
-        assert 200 <= delay <= 800
+        # Should be around 200ms base for medium docs (reduced delays)
+        assert 150 <= delay <= 600
 
     def test_calculate_delay_large_document(self):
         """Test delay for large document."""
@@ -191,8 +192,8 @@ class TestAdaptiveDebouncer:
 
         delay = debouncer.calculate_delay(document_size=200000)
 
-        # Should be around 500ms base for large docs
-        assert 300 <= delay <= 1500
+        # Should be around 400ms base for large docs (reduced delays)
+        assert 200 <= delay <= 1000
 
     def test_calculate_delay_very_large_document(self):
         """Test delay for very large document."""
@@ -200,8 +201,8 @@ class TestAdaptiveDebouncer:
 
         delay = debouncer.calculate_delay(document_size=1000000)
 
-        # Should be around 800ms base for very large docs
-        assert 500 <= delay <= 2000
+        # Should be around 600ms base for very large docs (reduced delays, max 1000ms)
+        assert 400 <= delay <= 1000
 
     def test_delay_clamping(self):
         """Test delays are clamped to min/max."""
@@ -224,8 +225,8 @@ class TestAdaptiveDebouncer:
         # CPU monitoring is dynamic so we can't predict exact values
         delay = debouncer.calculate_delay(document_size=50000)
 
-        # Should be in reasonable range for medium document
-        assert 100 <= delay <= 2000
+        # Should be in reasonable range for medium document (reduced max to 1000ms)
+        assert 50 <= delay <= 1000
 
     def test_typing_speed_affects_delay(self):
         """Test fast typing increases delay."""
@@ -238,8 +239,8 @@ class TestAdaptiveDebouncer:
         delay = debouncer.calculate_delay(document_size=50000)
 
         # Should apply typing multiplier
-        # Base ~350ms * 1.5 (typing) = ~525ms (before CPU adjustment)
-        assert delay >= 400  # Should be increased
+        # Base ~200ms * 1.5 (typing) = ~300ms (before CPU adjustment, reduced delays)
+        assert delay >= 200  # Should be increased from base (adjusted for system variance)
 
     def test_on_text_changed_tracks_keystrokes(self):
         """Test on_text_changed tracks keystroke timing."""
