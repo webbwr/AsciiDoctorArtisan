@@ -1,8 +1,8 @@
 # Program Rules
 
 **Reading Level**: Grade 5.0
-**Version**: 1.7.4 🚧 IN PROGRESS - Installation Validator & Dependency Updater
-**Last Updated**: November 2, 2025
+**Version**: 1.9.0 ✅ COMPLETE - Improved Git Integration
+**Last Updated**: November 3, 2025
 
 ## What This Is
 
@@ -296,6 +296,115 @@ The program MUST show Git status.
 **Test**: In Git folder, status bar shows folder name.
 
 **Test**: Not in Git folder, shows "Not in Git".
+
+### Rule: Enhanced Git Status Display (v1.9.0)
+
+The program MUST show real-time Git status in the status bar.
+
+**Features** (v1.9.0):
+- Status bar shows: branch name, modified count, staged count, untracked count
+- Color-coded indicators (green=clean, yellow=changes, red=conflicts)
+- Hover tooltip with detailed status
+- Click to open detailed status dialog
+- Real-time updates when files change (<2 seconds)
+- GitStatus data model with Pydantic validation
+
+**Test**: In Git folder, status bar must show "main | 3M 1S 2U" (3 modified, 1 staged, 2 untracked).
+
+**Test**: Clean repository. Status bar must show "main | Clean" in green.
+
+**Test**: Repository with conflicts. Status bar must show in red with "!" indicator.
+
+**Test**: Hover over status. Tooltip must show detailed file counts.
+
+**Test**: Click on status. Must open Git Status Dialog.
+
+**Test**: Not in Git folder. Status must show "Not in Git".
+
+### Rule: Git Status Dialog (v1.9.0)
+
+The program MUST show detailed file-level Git status in a dialog.
+
+**Features** (v1.9.0):
+- Three tabs: Modified, Staged, Untracked files
+- File path display for each file
+- Line counts (added/deleted) for modified and staged files
+- Refresh button to update status
+- Close button to dismiss dialog
+- Branch label shows current branch
+- Read-only tables (no accidental edits)
+- Keyboard shortcut: `Ctrl+Shift+G`
+
+**Test**: Open Git Status Dialog with `Ctrl+Shift+G`. Must show three tabs.
+
+**Test**: Modified tab must list all modified files with "+5 -3" line count format.
+
+**Test**: Staged tab must list all staged files with line counts.
+
+**Test**: Untracked tab must list all untracked files (no line counts).
+
+**Test**: Branch label must show "Branch: main" at top.
+
+**Test**: Click Refresh button. Must update file lists.
+
+**Test**: Click in table. Must not allow editing (read-only).
+
+**Test**: Click Close button. Dialog must close.
+
+### Rule: Quick Commit Widget (v1.9.0)
+
+The program MUST provide inline commit message input with keyboard shortcuts.
+
+**Features** (v1.9.0):
+- Inline commit message input (single-line text field)
+- OK button (commits) and Cancel button (closes widget)
+- Keyboard shortcuts: Enter=commit, Escape=cancel
+- Auto-stages all files (`git add .`)
+- Hidden by default, shown with `Ctrl+G`
+- Non-modal (doesn't block editor interaction)
+- Auto-focus on message input when shown
+- Clear message after successful commit
+
+**Test**: Press `Ctrl+G`. Quick commit widget must appear at bottom.
+
+**Test**: Type commit message. Message input must have focus.
+
+**Test**: Press Enter. Must stage all files and commit with message.
+
+**Test**: Status bar must show "Committed: [message]" after successful commit.
+
+**Test**: Press Escape while typing. Widget must hide without committing.
+
+**Test**: Click OK button. Must commit with message and hide widget.
+
+**Test**: Click Cancel button. Widget must hide without committing.
+
+**Test**: Leave message empty. Press Enter. Must show error "Commit cancelled: empty message".
+
+**Test**: After successful commit. Message input must be cleared.
+
+**Test**: Widget must not block typing in main editor (non-modal).
+
+### Rule: Git Worker Thread Safety (v1.9.0)
+
+The program MUST run Git operations in a background thread.
+
+**Features** (v1.9.0):
+- `get_repository_status()` runs in GitWorker QThread
+- `get_detailed_repository_status()` runs in GitWorker QThread
+- Status updates via `status_ready` signal (thread-safe)
+- Detailed status via `detailed_status_ready` signal (thread-safe)
+- No UI blocking during Git operations
+
+**Test**: Run Git status check. Main window must remain responsive.
+
+**Test**: Status updates must arrive via Qt signals (not direct UI updates).
+
+**Test**: Multiple status requests must not crash (reentrancy guard).
+
+**Test**: Worker thread must emit GitStatus object with correct data.
+
+**Test**: Detailed status must emit dict with branch, modified, staged, untracked keys.
 
 ---
 

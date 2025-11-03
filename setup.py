@@ -9,8 +9,8 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-if sys.version_info < (3, 14):
-    sys.exit("Error: Requires Python 3.14+")
+if sys.version_info < (3, 11):
+    sys.exit("Error: Requires Python 3.11+")
 
 BASE_DIR = Path(__file__).parent
 
@@ -87,7 +87,7 @@ setup(
             "asciidoc-artisan-gui=src.main:main",
         ],
     },
-    python_requires=">=3.14",
+    python_requires=">=3.11",
     install_requires=requirements,
     extras_require=extras_require,
     classifiers=[
@@ -100,7 +100,8 @@ setup(
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Documentation",
         "Topic :: Office/Business",
         "Topic :: Text Editors",

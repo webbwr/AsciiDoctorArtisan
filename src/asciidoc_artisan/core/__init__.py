@@ -105,6 +105,7 @@ from .file_operations import (
 from .models import (
     GitHubResult,  # Data from GitHub CLI operations (PR/Issue management)
     GitResult,  # Data from Git operations (commit, push, pull)
+    GitStatus,  # Git repository status data (v1.9.0+)
 )
 
 # Settings (used by main window immediately at startup)
@@ -378,6 +379,7 @@ __all__ = [
     # === CORE CLASSES - DATA MODELS ===
     # Data structures for Git and GitHub operations
     "GitResult",  # Result from Git commands (success/failure, output, error)
+    "GitStatus",  # Git repository status (branch, changes, conflicts, v1.9.0+)
     "GitHubResult",  # Result from GitHub CLI operations (PR/Issue management)
     # === CORE CLASSES - SECURITY ===
     # Secure credential storage using OS keyring

@@ -230,11 +230,13 @@ class ActionManager:
         self.maximize_editor_act: QAction  # Maximize editor pane
         self.maximize_preview_act: QAction  # Maximize preview pane
 
-        # Git menu actions (4 actions)
+        # Git menu actions (6 actions, +status and quick commit in v1.9.0)
         self.set_repo_act: QAction  # Set Git repository path
+        self.git_status_act: QAction  # Show Git status (v1.9.0)
         self.git_commit_act: QAction  # Commit changes to Git
         self.git_pull_act: QAction  # Pull changes from remote
         self.git_push_act: QAction  # Push changes to remote
+        self.quick_commit_act: QAction  # Quick commit (v1.9.0)
 
         # GitHub submenu actions (5 actions) - v1.6.0
         self.github_create_pr_act: QAction  # Create pull request
@@ -684,6 +686,14 @@ class ActionManager:
             self.window._select_git_repository,
         )
 
+        # Git Status - show detailed repository status (v1.9.0+)
+        self.git_status_act = self._create_action(
+            "&Status",
+            "Show detailed Git repository status",
+            self.window._show_git_status,
+            shortcut="Ctrl+Shift+S",
+        )
+
         self.git_commit_act = self._create_action(
             "&Commit...",
             "Commit changes",
@@ -703,6 +713,13 @@ class ActionManager:
             "Push to remote",
             self.window._trigger_git_push,
             shortcut="Ctrl+Shift+U",
+        )
+
+        self.quick_commit_act = self._create_action(
+            "&Quick Commit...",
+            "Quick commit with inline message (Ctrl+G)",
+            self.window._show_quick_commit,
+            shortcut="Ctrl+G",
         )
 
         # === GITHUB SUBMENU ACTIONS (5 actions) - v1.6.0 ===
@@ -965,12 +982,14 @@ class ActionManager:
 
         # Repository setup
         git_menu.addAction(self.set_repo_act)  # Set Git repository path
+        git_menu.addAction(self.git_status_act)  # Show Git status (Ctrl+Shift+S, v1.9.0+)
 
         # Separator
         git_menu.addSeparator()
 
         # Git operations
         git_menu.addAction(self.git_commit_act)  # Commit changes (Ctrl+Shift+C)
+        git_menu.addAction(self.quick_commit_act)  # Quick commit (Ctrl+G, v1.9.0+)
         git_menu.addAction(self.git_pull_act)  # Pull from remote (Ctrl+Shift+P)
         git_menu.addAction(self.git_push_act)  # Push to remote (Ctrl+Shift+U)
 

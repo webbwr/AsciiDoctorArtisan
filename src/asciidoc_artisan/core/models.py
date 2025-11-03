@@ -3,6 +3,7 @@ Core data models for AsciiDoc Artisan.
 
 This module contains simple data structures used throughout the application:
 - GitResult: Result of Git operations
+- GitStatus: Git repository status information (v1.9.0+)
 - GitHubResult: Result of GitHub CLI operations
 - ChatMessage: Single message in Ollama AI chat conversation
 - Additional models as needed
@@ -70,6 +71,83 @@ class GitResult(BaseModel):
         if not v or not v.strip():
             raise ValueError("user_message cannot be empty")
         return v.strip()
+
+    model_config = {
+        "frozen": False,  # Allow mutation for compatibility
+        "validate_assignment": True,  # Validate on field assignment
+        "str_strip_whitespace": True,  # Strip whitespace from strings
+    }
+
+
+class GitStatus(BaseModel):
+    """
+    Git repository status information.
+
+    Used by GitWorker to provide real-time repository status updates
+    for display in the status bar.
+
+    Attributes:
+        branch: Current branch name
+        modified_count: Number of modified files (working tree)
+        staged_count: Number of staged files (index)
+        untracked_count: Number of untracked files
+        has_conflicts: Whether merge conflicts exist
+        ahead_count: Number of commits ahead of remote
+        behind_count: Number of commits behind remote
+        is_dirty: Whether working tree has uncommitted changes
+
+    Validation:
+        - branch cannot be empty
+        - All count fields must be non-negative
+
+    Example:
+        ```python
+        # Clean repository
+        status = GitStatus(
+            branch="main",
+            modified_count=0,
+            staged_count=0,
+            untracked_count=0,
+            has_conflicts=False,
+            ahead_count=0,
+            behind_count=0,
+            is_dirty=False
+        )
+
+        # Dirty repository with changes
+        status = GitStatus(
+            branch="feature/git-improvements",
+            modified_count=3,
+            staged_count=1,
+            untracked_count=2,
+            has_conflicts=False,
+            ahead_count=2,
+            behind_count=0,
+            is_dirty=True
+        )
+        ```
+    """
+
+    branch: str = Field(default="", description="Current branch name")
+    modified_count: int = Field(default=0, description="Number of modified files")
+    staged_count: int = Field(default=0, description="Number of staged files")
+    untracked_count: int = Field(default=0, description="Number of untracked files")
+    has_conflicts: bool = Field(default=False, description="Whether conflicts exist")
+    ahead_count: int = Field(default=0, description="Commits ahead of remote")
+    behind_count: int = Field(default=0, description="Commits behind remote")
+    is_dirty: bool = Field(
+        default=False, description="Whether working tree has uncommitted changes"
+    )
+
+    @field_validator(
+        "modified_count", "staged_count", "untracked_count", "ahead_count", "behind_count"
+    )
+    @classmethod
+    def validate_count(cls, v: int) -> int:
+        """Ensure count is non-negative."""
+        if v < 0:
+            raise ValueError("count must be non-negative")
+        return v
 
     model_config = {
         "frozen": False,  # Allow mutation for compatibility

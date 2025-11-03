@@ -102,7 +102,19 @@ class WorkerManager:
         self.git_worker = GitWorker()
         self.git_worker.moveToThread(self.git_thread)
         self.editor.request_git_command.connect(self.git_worker.run_git_command)
+        self.editor.request_git_status.connect(
+            self.git_worker.get_repository_status
+        )  # v1.9.0+
+        self.editor.request_detailed_git_status.connect(
+            self.git_worker.get_detailed_repository_status
+        )  # v1.9.0+
         self.git_worker.command_complete.connect(self.editor._handle_git_result)
+        self.git_worker.status_ready.connect(
+            self.editor._handle_git_status
+        )  # v1.9.0+
+        self.git_worker.detailed_status_ready.connect(
+            self.editor._handle_detailed_git_status
+        )  # v1.9.0+
         self.git_thread.finished.connect(self.git_worker.deleteLater)
         self.git_thread.start()
 

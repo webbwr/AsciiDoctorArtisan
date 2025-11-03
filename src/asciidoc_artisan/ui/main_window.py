@@ -78,7 +78,7 @@ import logging  # For recording program events (debug, info, warning, error)
 import platform  # For detecting OS (Windows, Linux, Mac)
 import tempfile  # For creating temporary files (deleted automatically)
 from pathlib import Path  # Modern way to handle file paths (better than strings)
-from typing import Any, Optional  # Type hints to catch bugs early
+from typing import Any, Dict, Optional  # Type hints to catch bugs early
 
 # === QT CORE IMPORTS ===
 # Qt's core functionality (not GUI widgets)
@@ -216,6 +216,8 @@ logger = logging.getLogger(__name__)
 
 class AsciiDocEditor(QMainWindow):
     request_git_command = Signal(list, str)
+    request_git_status = Signal(str)  # repository_path (v1.9.0+)
+    request_detailed_git_status = Signal(str)  # repository_path (v1.9.0+)
     request_github_command = Signal(str, dict)  # operation_type, kwargs
     request_pandoc_conversion = Signal(object, str, str, str, object, bool)
     request_preview_render = Signal(str)
@@ -363,6 +365,10 @@ class AsciiDocEditor(QMainWindow):
         # SearchEngine must be initialized AFTER UISetupManager creates find_bar
         self._setup_find_system()
 
+        # === Quick Commit System (v1.9.0) ===
+        # QuickCommitWidget must be initialized AFTER UISetupManager creates quick_commit_widget
+        self._setup_quick_commit()
+
         # === Telemetry System (v1.8.0) ===
         # Privacy-first telemetry (opt-in only, local storage)
         self._setup_telemetry()
@@ -427,6 +433,20 @@ class AsciiDocEditor(QMainWindow):
         )
 
         logger.info("Find & Replace system initialized")
+
+    def _setup_quick_commit(self) -> None:
+        """Initialize Quick Commit system (v1.9.0).
+
+        Sets up QuickCommitWidget signals for inline Git commits.
+        Enables keyboard-driven workflow (Ctrl+G to show, Enter to commit, Esc to cancel).
+        """
+        # Connect quick commit widget signals
+        self.quick_commit_widget.commit_requested.connect(self._handle_quick_commit)
+        self.quick_commit_widget.cancelled.connect(
+            lambda: logger.debug("Quick commit cancelled")
+        )
+
+        logger.info("Quick Commit system initialized")
 
     def _setup_telemetry(self) -> None:
         """Initialize Telemetry System (v1.8.0).
@@ -775,6 +795,61 @@ class AsciiDocEditor(QMainWindow):
         """Trigger Git push (delegates to GitHandler)."""
         self.git_handler.push_changes()
 
+    def _show_git_status(self) -> None:
+        """Show Git status dialog with detailed file-level information (v1.9.0+)."""
+        if not self._ensure_git_ready():
+            return
+
+        # Create dialog if not exists
+        if not hasattr(self, "_git_status_dialog"):
+            from .git_status_dialog import GitStatusDialog
+
+            self._git_status_dialog = GitStatusDialog(self)
+
+            # Connect dialog signals
+            self._git_status_dialog.refresh_requested.connect(self._refresh_git_status_dialog)
+            # Note: Stage/Unstage buttons not implemented yet - future enhancement
+
+        # Request detailed status from worker
+        repo_path = self.git_handler.get_repository_path()
+        if repo_path and hasattr(self, "request_detailed_git_status"):
+            self.request_detailed_git_status.emit(repo_path)
+
+        # Show dialog
+        self._git_status_dialog.show()
+        self._git_status_dialog.raise_()
+        self._git_status_dialog.activateWindow()
+
+    def _refresh_git_status_dialog(self) -> None:
+        """Refresh Git status dialog data (v1.9.0+)."""
+        repo_path = self.git_handler.get_repository_path()
+        if repo_path and hasattr(self, "request_detailed_git_status"):
+            self.request_detailed_git_status.emit(repo_path)
+
+    def _show_quick_commit(self) -> None:
+        """Show quick commit widget for inline Git commits (v1.9.0+)."""
+        if not self._ensure_git_ready():
+            return
+
+        # Show widget and focus input
+        self.quick_commit_widget.show_and_focus()
+        logger.debug("Quick commit widget shown")
+
+    @Slot(str)
+    def _handle_quick_commit(self, message: str) -> None:
+        """Handle quick commit request (v1.9.0+).
+
+        Args:
+            message: Commit message from QuickCommitWidget
+        """
+        if not self._ensure_git_ready():
+            return
+
+        logger.info(f"Quick commit requested: '{message[:50]}...'")
+
+        # Delegate to GitHandler
+        self.git_handler.quick_commit(message)
+
     def _trigger_github_create_pr(self) -> None:
         """Create GitHub pull request (delegates to GitHubHandler)."""
         if hasattr(self, "github_handler"):
@@ -808,6 +883,25 @@ class AsciiDocEditor(QMainWindow):
     def _handle_git_result(self, result: GitResult) -> None:
         """Handle Git result (delegates to GitHandler)."""
         self.git_handler.handle_git_result(result)
+
+    @Slot(object)
+    def _handle_git_status(self, status: Any) -> None:
+        """Handle Git status update (delegates to StatusManager, v1.9.0+)."""
+        from asciidoc_artisan.core import GitStatus
+
+        if isinstance(status, GitStatus):
+            self.status_manager.update_git_status(status)
+
+    @Slot(dict)
+    def _handle_detailed_git_status(self, status_data: Dict[str, Any]) -> None:
+        """Handle detailed Git status update (populates dialog, v1.9.0+)."""
+        if hasattr(self, "_git_status_dialog") and self._git_status_dialog.isVisible():
+            branch = status_data.get("branch", "unknown")
+            modified = status_data.get("modified", [])
+            staged = status_data.get("staged", [])
+            untracked = status_data.get("untracked", [])
+
+            self._git_status_dialog.populate_status(branch, modified, staged, untracked)
 
     @Slot(object)
     def _handle_github_result(self, result: Any) -> None:

@@ -441,13 +441,21 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
     def _get_current_branch(self) -> str:
         """
-        Get current Git branch name.
+        Get current Git branch name from GitHandler.
 
         Returns:
             Branch name or empty string if unavailable
+
+        Example:
+            >>> handler._get_current_branch()
+            'main'
+
+            >>> handler._get_current_branch()  # No git_handler
+            ''
         """
-        # TODO: Integrate with GitWorker to get actual branch
-        # For now, return empty string (dialog will use editable combobox)
+        # Use GitHandler to get actual current branch (v1.9.0+)
+        if hasattr(self.window, "git_handler") and self.window.git_handler:
+            return self.window.git_handler.get_current_branch()
         return ""
 
     def is_busy(self) -> bool:

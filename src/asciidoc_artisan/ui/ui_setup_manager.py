@@ -109,6 +109,12 @@ class UISetupManager:
         self.editor.find_bar = FindBarWidget(self.editor)
         main_layout.addWidget(self.editor.find_bar)
 
+        # Setup quick commit widget (hidden by default, shown with Ctrl+G, v1.9.0+)
+        from .quick_commit_widget import QuickCommitWidget
+
+        self.editor.quick_commit_widget = QuickCommitWidget(self.editor)
+        main_layout.addWidget(self.editor.quick_commit_widget)
+
         # Set main container as central widget
         self.editor.setCentralWidget(main_container)
 
@@ -340,6 +346,38 @@ class UISetupManager:
             )
             toolbar_layout.addWidget(redo_btn)
             self.editor.editor_redo_btn = redo_btn
+
+            # Quick commit button (v1.9.0+)
+            commit_btn = QPushButton("✓")
+            commit_btn.setFixedSize(24, 24)
+            commit_btn.setToolTip("Quick Commit (Ctrl+G)")
+            commit_btn.setStyleSheet(
+                f"""
+                QPushButton {{
+                    background-color: transparent;
+                    border: 1px solid {color};
+                    border-radius: 3px;
+                    padding: 2px;
+                    color: {color};
+                    font-size: 16px;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    background-color: {highlight_color};
+                    border-color: {color};
+                }}
+                QPushButton:pressed {{
+                    background-color: {highlight_color.replace('0.2', '0.3')};
+                }}
+                QPushButton:disabled {{
+                    color: {color.replace(')', ', 0.3)')};
+                    border-color: {color.replace(')', ', 0.3)')};
+                }}
+            """
+            )
+            commit_btn.clicked.connect(self.editor._show_quick_commit)
+            toolbar_layout.addWidget(commit_btn)
+            self.editor.quick_commit_btn = commit_btn
 
         # Create maximize button
         max_btn = QPushButton("⬜")

@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
 
-from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME
+from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME, GitStatus
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +48,7 @@ class StatusManager:
         self.word_count_label: Optional[QLabel] = None
         self.grade_level_label: Optional[QLabel] = None
         self.ai_status_label: Optional[QLabel] = None
+        self.git_status_label: Optional[QLabel] = None  # v1.9.0+
         self.cancel_button: Optional[QPushButton] = None
 
         # Track current operation for cancellation
@@ -64,6 +65,16 @@ class StatusManager:
 
         # Add cancel button to left side of status bar
         self.editor.status_bar.addWidget(self.cancel_button)
+
+        # Create Git status label (left side, permanent, v1.9.0+)
+        self.git_status_label = QLabel("Git: --")
+        self.git_status_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.git_status_label.setMinimumWidth(200)
+        self.git_status_label.setToolTip("Git repository status (branch, changes, ahead/behind)")
+        self.git_status_label.setStyleSheet("font-weight: bold; padding-left: 5px;")
+
+        # Add Git status label to left side of status bar (after cancel button)
+        self.editor.status_bar.addWidget(self.git_status_label)
 
         # Create permanent status bar widgets (right side)
         self.word_count_label = QLabel("Words: 0")
@@ -388,3 +399,72 @@ class StatusManager:
         self.editor.status_bar.showMessage(
             f"Cancelled {self._current_operation} operation", 3000
         )
+
+    def update_git_status(self, status: GitStatus) -> None:
+        """
+        Update Git status display with color coding.
+
+        Displays current branch name and file change counts with visual indicators:
+        - Green: Clean working tree (no changes)
+        - Yellow: Uncommitted changes (dirty)
+        - Red: Merge conflicts exist
+
+        Args:
+            status: GitStatus object with repository information
+
+        Example:
+            >>> status = GitStatus(branch="main", modified_count=0, staged_count=0, ...)
+            >>> manager.update_git_status(status)
+            # Shows: "Git: main" in green
+
+            >>> status = GitStatus(branch="dev", modified_count=3, staged_count=1, ...)
+            >>> manager.update_git_status(status)
+            # Shows: "Git: dev ●3 +1" in yellow
+
+            >>> status = GitStatus(branch="feature", has_conflicts=True, ...)
+            >>> manager.update_git_status(status)
+            # Shows: "Git: feature ⚠" in red
+        """
+        if not self.git_status_label:
+            logger.warning("Git status label not initialized")
+            return
+
+        # Determine color based on repository state
+        if status.has_conflicts:
+            color = "#ef4444"  # Red (conflicts)
+        elif status.is_dirty:
+            color = "#fbbf24"  # Yellow (changes)
+        else:
+            color = "#4ade80"  # Green (clean)
+
+        # Build status text with counts
+        text = f"Git: {status.branch}"
+
+        # Add change indicators
+        if status.modified_count > 0:
+            text += f" ●{status.modified_count}"  # Modified files (working tree)
+
+        if status.staged_count > 0:
+            text += f" +{status.staged_count}"  # Staged files (index)
+
+        if status.untracked_count > 0:
+            text += f" ?{status.untracked_count}"  # Untracked files
+
+        # Add ahead/behind indicators (commits)
+        if status.ahead_count > 0:
+            text += f" ↑{status.ahead_count}"  # Commits ahead of remote
+
+        if status.behind_count > 0:
+            text += f" ↓{status.behind_count}"  # Commits behind remote
+
+        # Add conflict indicator
+        if status.has_conflicts:
+            text += " ⚠"  # Conflict warning
+
+        # Update label with colored text
+        self.git_status_label.setText(text)
+        self.git_status_label.setStyleSheet(
+            f"color: {color}; font-weight: bold; padding-left: 5px;"
+        )
+
+        logger.debug(f"Git status updated: {text} (color: {color})")

@@ -11,10 +11,11 @@ Extracted from main_window.py to improve maintainability and testability.
 """
 
 import logging
+import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import QFileDialog, QInputDialog
 
 from asciidoc_artisan.core import GitResult
@@ -48,6 +49,12 @@ class GitHandler(BaseVCSHandler):
         # Git-specific state
         self.pending_commit_message: Optional[str] = None
 
+        # Git status refresh timer (v1.9.0+)
+        self.status_timer: QTimer = QTimer()
+        self.status_timer.timeout.connect(self._refresh_git_status)
+        self.status_timer.setInterval(5000)  # 5 seconds
+        self.status_refresh_enabled: bool = False
+
     def initialize(self) -> None:
         """
         Initialize Git handler from settings.
@@ -68,6 +75,8 @@ class GitHandler(BaseVCSHandler):
             if (Path(repo_path) / ".git").is_dir():
                 logger.info(f"Git repository loaded from settings: {repo_path}")
                 # Note: UI state will be updated later in initialization sequence
+                # Start status refresh for valid repository (v1.9.0+)
+                self.start_status_refresh()
             else:
                 logger.warning(f"Saved Git repository no longer valid: {repo_path}")
                 # Clear invalid path from settings
@@ -211,6 +220,49 @@ class GitHandler(BaseVCSHandler):
 
         logger.info("Git push started")
 
+    def quick_commit(self, message: str) -> None:
+        """
+        Quick commit with inline message (v1.9.0+).
+
+        Stages all files and commits with the provided message in one operation.
+        Used by QuickCommitWidget for keyboard-driven commits.
+
+        Args:
+            message: Commit message
+        """
+        if not self._ensure_ready():
+            return
+
+        if not message or not message.strip():
+            logger.warning("Quick commit cancelled: empty message")
+            if hasattr(self.window, "status_manager"):
+                self.window.status_manager.show_status(
+                    "Commit cancelled: empty message", 2000
+                )
+            return
+
+        # Start commit operation
+        self.is_processing = True
+        self.last_operation = "commit"
+        self.pending_commit_message = message.strip()
+
+        # Update UI
+        self._update_ui_state()
+        if hasattr(self.window, "status_manager"):
+            self.window.status_manager.show_status("Committing changes...", 0)
+
+        # Emit signal to worker (via main window)
+        settings = self.settings_manager.load_settings()
+        repo_path = settings.git_repo_path if hasattr(settings, "git_repo_path") else ""
+
+        if hasattr(self.window, "request_git_command"):
+            self.window.request_git_command.emit(["git", "add", "."], repo_path)
+
+        # Emit our signal
+        self.git_operation_started.emit("quick_commit")
+
+        logger.info(f"Quick commit started: '{message[:50]}...'")
+
     def handle_git_result(self, result: GitResult) -> None:
         """
         Handle Git operation result from worker.
@@ -295,3 +347,131 @@ class GitHandler(BaseVCSHandler):
     def is_busy(self) -> bool:
         """Check if Git operation is in progress."""
         return self.is_processing
+
+    def get_current_branch(self) -> str:
+        """
+        Get current Git branch name synchronously.
+
+        This is a fast local operation (<50ms) that runs synchronously
+        to provide immediate results for UI operations like GitHub PR creation.
+
+        Returns:
+            Branch name (e.g., "main", "feature/new") or empty string if unavailable
+
+        Security:
+            - Uses subprocess with shell=False to prevent command injection
+            - 2 second timeout to prevent UI blocking
+            - Graceful error handling (returns empty string on failure)
+
+        Example:
+            >>> handler.get_current_branch()
+            'main'
+
+            >>> handler.get_current_branch()  # Detached HEAD
+            'HEAD (detached)'
+
+            >>> handler.get_current_branch()  # No repo
+            ''
+        """
+        if not self.is_repository_set():
+            return ""
+
+        repo_path = self.get_repository_path()
+        if not repo_path:
+            return ""
+
+        try:
+            # Run git branch --show-current (fast local operation)
+            # Security: shell=False prevents command injection
+            result = subprocess.run(
+                ["git", "branch", "--show-current"],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                timeout=2,  # 2 second timeout (local operation)
+                shell=False,  # Critical: prevents command injection
+                encoding="utf-8",
+                errors="replace",
+            )
+
+            if result.returncode == 0:
+                branch = result.stdout.strip()
+
+                # Handle detached HEAD (empty output from --show-current)
+                if not branch:
+                    # Try to get commit hash for detached HEAD
+                    result2 = subprocess.run(
+                        ["git", "rev-parse", "--short", "HEAD"],
+                        cwd=repo_path,
+                        capture_output=True,
+                        text=True,
+                        timeout=2,
+                        shell=False,
+                        encoding="utf-8",
+                        errors="replace",
+                    )
+                    if result2.returncode == 0:
+                        commit_hash = result2.stdout.strip()
+                        return f"HEAD (detached at {commit_hash})"
+                    else:
+                        return "HEAD (detached)"
+
+                return branch
+
+            logger.warning(f"Git branch command failed (code {result.returncode})")
+
+        except subprocess.TimeoutExpired:
+            logger.warning("Git branch command timed out after 2s")
+        except FileNotFoundError:
+            logger.warning("Git command not found")
+        except Exception as e:
+            logger.exception(f"Unexpected error getting current branch: {e}")
+
+        return ""
+
+    def start_status_refresh(self) -> None:
+        """
+        Start periodic Git status refresh (v1.9.0+).
+
+        Starts a timer that queries Git status every 5 seconds to update
+        the status bar display in real-time.
+
+        Note: Only starts if repository is set and not already running.
+        """
+        if not self.status_refresh_enabled and self.is_repository_set():
+            self.status_refresh_enabled = True
+            self.status_timer.start()
+            self._refresh_git_status()  # Initial immediate fetch
+            logger.info("Git status refresh started (5 second interval)")
+
+    def stop_status_refresh(self) -> None:
+        """
+        Stop periodic Git status refresh (v1.9.0+).
+
+        Stops the status refresh timer. Called when repository is unset
+        or when the application is shutting down.
+        """
+        if self.status_refresh_enabled:
+            self.status_refresh_enabled = False
+            self.status_timer.stop()
+            logger.info("Git status refresh stopped")
+
+    def _refresh_git_status(self) -> None:
+        """
+        Request Git status update (non-blocking, v1.9.0+).
+
+        Emits request_git_status signal to trigger GitWorker to fetch
+        current repository status. Worker will emit status_ready signal
+        with GitStatus object which will update the status bar.
+
+        Skips refresh if:
+        - Repository not set
+        - Git operation in progress (avoid conflicts)
+        """
+        if not self.is_repository_set() or self.is_processing:
+            return
+
+        repo_path = self.get_repository_path()
+        if repo_path and hasattr(self.window, "request_git_status"):
+            self.window.request_git_status.emit(repo_path)
+            logger.debug("Git status refresh requested")
