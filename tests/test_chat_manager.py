@@ -106,7 +106,8 @@ class TestChatManagerVisibility:
         assert should_show
 
     def test_should_hide_when_disabled(self, chat_manager, settings):
-        """Test chat should hide when disabled."""
+        """Test chat should hide when disabled (both settings for v1.10.0 compatibility)."""
+        settings.ai_chat_enabled = False
         settings.ollama_chat_enabled = False
 
         should_show = chat_manager._should_show_chat()
