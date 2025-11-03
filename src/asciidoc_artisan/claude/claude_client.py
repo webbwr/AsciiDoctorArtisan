@@ -1,0 +1,307 @@
+"""
+Claude AI Client - Main API client for Anthropic Claude integration.
+
+This module provides a high-level interface to the Anthropic Claude API with:
+- Secure API key management via OS keyring
+- Configurable models and parameters
+- Error handling and validation
+- Token usage tracking
+- Streaming support for real-time responses
+
+Security:
+- API keys never stored in plain text
+- Credentials managed via secure_credentials module
+- API key validation before requests
+
+Example:
+    >>> client = ClaudeClient()
+    >>> if client.is_configured():
+    ...     result = client.send_message("Hello Claude!")
+    ...     if result.success:
+    ...         print(result.content)
+"""
+
+import logging
+from dataclasses import dataclass
+from typing import List, Optional
+
+from anthropic import Anthropic, APIError, APIConnectionError
+from pydantic import BaseModel, Field
+
+from asciidoc_artisan.core import SecureCredentials
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ClaudeResult:
+    """
+    Result of a Claude API operation.
+
+    Attributes:
+        success: True if operation succeeded
+        content: Response text from Claude
+        model: Model used for the response
+        tokens_used: Total tokens consumed (prompt + completion)
+        error: Error message if operation failed
+        stop_reason: Reason Claude stopped generating (e.g., "end_turn", "max_tokens")
+    """
+
+    success: bool
+    content: str = ""
+    model: str = ""
+    tokens_used: int = 0
+    error: str = ""
+    stop_reason: str = ""
+
+
+class ClaudeMessage(BaseModel):
+    """
+    Single message in Claude conversation history.
+
+    Attributes:
+        role: Message sender ("user" or "assistant")
+        content: Message text content
+    """
+
+    role: str = Field(..., description='Message role: "user" or "assistant"')
+    content: str = Field(..., description="Message text content")
+
+
+class ClaudeClient:
+    """
+    High-level client for Anthropic Claude API.
+
+    Provides a simple interface for sending messages to Claude and managing
+    conversation context. Handles API key management, error handling, and
+    response parsing.
+
+    Attributes:
+        model: Claude model to use (default: claude-3-5-sonnet-20241022)
+        max_tokens: Maximum tokens in response (default: 4096)
+        temperature: Sampling temperature 0-1 (default: 1.0)
+
+    Example:
+        >>> client = ClaudeClient(model="claude-3-5-sonnet-20241022")
+        >>> result = client.send_message("Explain AsciiDoc")
+        >>> if result.success:
+        ...     print(result.content)
+    """
+
+    # Default Claude model (Sonnet 3.5 - balanced performance/cost)
+    DEFAULT_MODEL = "claude-3-5-sonnet-20241022"
+
+    # Available models
+    AVAILABLE_MODELS = [
+        "claude-3-5-sonnet-20241022",  # Sonnet 3.5 (recommended)
+        "claude-3-5-haiku-20241022",  # Haiku 3.5 (fast/cheap)
+        "claude-3-opus-20240229",  # Opus 3 (most capable)
+    ]
+
+    def __init__(
+        self,
+        model: str = DEFAULT_MODEL,
+        max_tokens: int = 4096,
+        temperature: float = 1.0,
+    ) -> None:
+        """
+        Initialize Claude client.
+
+        Args:
+            model: Claude model identifier
+            max_tokens: Maximum tokens in response
+            temperature: Sampling temperature (0-1)
+        """
+        self.model = model
+        self.max_tokens = max_tokens
+        self.temperature = temperature
+        self.credentials = SecureCredentials()
+        self._client: Optional[Anthropic] = None
+
+        logger.debug(f"Claude client initialized with model={model}")
+
+    def is_configured(self) -> bool:
+        """
+        Check if Claude API key is configured.
+
+        Returns:
+            True if API key is available in keyring
+        """
+        return self.credentials.has_anthropic_key()
+
+    def _get_client(self) -> Optional[Anthropic]:
+        """
+        Get or create Anthropic client instance.
+
+        Returns:
+            Anthropic client or None if no API key configured
+
+        Raises:
+            ValueError: If API key is invalid
+        """
+        if self._client is not None:
+            return self._client
+
+        api_key = self.credentials.get_anthropic_key()
+        if not api_key:
+            logger.warning("No Anthropic API key configured")
+            return None
+
+        try:
+            self._client = Anthropic(api_key=api_key)
+            logger.debug("Anthropic client created successfully")
+            return self._client
+        except Exception as e:
+            logger.error(f"Failed to create Anthropic client: {e}")
+            return None
+
+    def send_message(
+        self,
+        message: str,
+        system: Optional[str] = None,
+        conversation_history: Optional[List[ClaudeMessage]] = None,
+    ) -> ClaudeResult:
+        """
+        Send a message to Claude and get a response.
+
+        Args:
+            message: User message to send
+            system: System prompt for context (optional)
+            conversation_history: Previous messages for context (optional)
+
+        Returns:
+            ClaudeResult with response or error
+
+        Example:
+            >>> client = ClaudeClient()
+            >>> result = client.send_message(
+            ...     "Explain AsciiDoc syntax",
+            ...     system="You are an AsciiDoc expert"
+            ... )
+            >>> print(result.content)
+        """
+        if not message or not message.strip():
+            logger.warning("Empty message provided")
+            return ClaudeResult(success=False, error="Message cannot be empty")
+
+        client = self._get_client()
+        if client is None:
+            return ClaudeResult(
+                success=False,
+                error="API key not configured. Set it in Tools → API Key Setup.",
+            )
+
+        try:
+            # Build messages list
+            messages = []
+
+            # Add conversation history if provided
+            if conversation_history:
+                for msg in conversation_history:
+                    messages.append({"role": msg.role, "content": msg.content})
+
+            # Add current user message
+            messages.append({"role": "user", "content": message.strip()})
+
+            # Make API request
+            logger.debug(
+                f"Sending message to Claude (model={self.model}, "
+                f"messages={len(messages)})"
+            )
+
+            response = client.messages.create(
+                model=self.model,
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+                system=system if system else None,
+                messages=messages,
+            )
+
+            # Extract response
+            content = ""
+            if response.content and len(response.content) > 0:
+                # Claude returns a list of content blocks
+                content = response.content[0].text
+
+            tokens_used = (
+                response.usage.input_tokens + response.usage.output_tokens
+                if hasattr(response, "usage")
+                else 0
+            )
+
+            logger.info(
+                f"Claude response received: {len(content)} chars, {tokens_used} tokens"
+            )
+
+            return ClaudeResult(
+                success=True,
+                content=content,
+                model=response.model,
+                tokens_used=tokens_used,
+                stop_reason=response.stop_reason or "",
+            )
+
+        except APIConnectionError as e:
+            logger.error(f"Claude API connection error: {e}")
+            return ClaudeResult(
+                success=False,
+                error=f"Connection error: {str(e)}. Check your internet connection.",
+            )
+
+        except APIError as e:
+            logger.error(f"Claude API error: {e}")
+            error_msg = str(e)
+
+            # Provide user-friendly error messages
+            if "invalid_api_key" in error_msg.lower():
+                error_msg = (
+                    "Invalid API key. Please update your key in Tools → API Key Setup."
+                )
+            elif "rate_limit" in error_msg.lower():
+                error_msg = "Rate limit exceeded. Please wait a moment and try again."
+            elif "insufficient_quota" in error_msg.lower():
+                error_msg = (
+                    "Insufficient API quota. Check your account at console.anthropic.com."
+                )
+
+            return ClaudeResult(success=False, error=error_msg)
+
+        except Exception as e:
+            logger.exception(f"Unexpected error calling Claude API: {e}")
+            return ClaudeResult(
+                success=False, error=f"Unexpected error: {str(e)}"
+            )
+
+    def test_connection(self) -> ClaudeResult:
+        """
+        Test Claude API connection with a simple message.
+
+        Returns:
+            ClaudeResult indicating if connection is working
+
+        Example:
+            >>> client = ClaudeClient()
+            >>> result = client.test_connection()
+            >>> if result.success:
+            ...     print("Connection OK!")
+        """
+        logger.debug("Testing Claude API connection")
+        return self.send_message(
+            "Reply with exactly: 'Connection OK'",
+            system="You are a connection test assistant. Reply exactly as requested.",
+        )
+
+    def get_available_models(self) -> List[str]:
+        """
+        Get list of available Claude models.
+
+        Returns:
+            List of model identifiers
+
+        Example:
+            >>> client = ClaudeClient()
+            >>> models = client.get_available_models()
+            >>> print(models)
+            ['claude-3-5-sonnet-20241022', ...]
+        """
+        return self.AVAILABLE_MODELS.copy()

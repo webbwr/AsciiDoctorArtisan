@@ -557,6 +557,81 @@ ChatPanelWidget.add_message() [Display]
 
 **Integration:** `main_window.py:342,395-422`, `ui_setup_manager.py:101-112`, `worker_manager.py:161-170`
 
+### Claude AI Integration (v1.10.0+)
+
+**Code:** `claude/claude_client.py`, `claude/claude_worker.py`
+
+Cloud-based AI integration with Anthropic Claude API:
+
+**ClaudeClient** - Synchronous API client for Claude operations:
+- API key management via secure OS keyring (`SecureCredentials`)
+- Multiple Claude models: Sonnet 3.5 (default), Haiku 3.5, Opus 3
+- Configurable parameters: model, max_tokens (default: 4096), temperature (default: 1.0)
+- Message operations: send_message, test_connection, conversation history support
+- Error handling: connection errors, rate limits, invalid API keys with user-friendly messages
+- Token usage tracking for cost monitoring
+
+**ClaudeWorker** - Asynchronous QThread worker for non-blocking UI:
+- Background thread execution pattern (same as GitWorker, PandocWorker)
+- Signal/slot communication: `response_ready`, `connection_tested`, `error_occurred`
+- Reentrancy guard: prevents concurrent operations with busy check
+- Operation types: send_message, test_connection
+- Conversation history: supports multi-turn conversations with context
+
+**Architecture:**
+```
+User → ClaudeWorker.send_message(message, system, history)
+    ↓
+ClaudeWorker._operation = "send_message" [Sets state]
+    ↓
+ClaudeWorker.start() [Starts background thread]
+    ↓
+ClaudeWorker.run() → _execute_send_message()
+    ↓
+ClaudeClient.send_message() → Anthropic API call
+    ↓
+ClaudeWorker.response_ready Signal(ClaudeResult)
+    ↓
+Main Thread handles response
+```
+
+**Data Models:**
+- `ClaudeResult`: success, content, model, tokens_used, error, stop_reason
+- `ClaudeMessage`: role ("user"/"assistant"), content (Pydantic model for validation)
+
+**Available Models:**
+- `claude-3-5-sonnet-20241022` (default) - Balanced performance/cost
+- `claude-3-5-haiku-20241022` - Fast and economical
+- `claude-3-opus-20240229` - Most capable
+
+**Settings:**
+- API key: Stored securely in OS keyring (never in plain text)
+- Configuration check: `client.is_configured()` or `worker.is_configured()`
+- API key setup: Via existing API Key Setup dialog (Tools → API Key Setup)
+
+**Usage Example:**
+```python
+# Synchronous (blocking)
+client = ClaudeClient(model="claude-3-5-sonnet-20241022")
+result = client.send_message("Explain AsciiDoc syntax")
+if result.success:
+    print(result.content)
+
+# Asynchronous (non-blocking UI)
+worker = ClaudeWorker()
+worker.response_ready.connect(handle_response)
+worker.send_message("Explain AsciiDoc", system="You are an AsciiDoc expert")
+```
+
+**Test Coverage:** 33 tests (100% pass rate)
+- `tests/unit/claude/test_claude_client.py`: 14 tests for ClaudeClient
+- `tests/unit/claude/test_claude_worker.py`: 19 tests for ClaudeWorker
+
+**Integration Points:**
+- `__init__.py`: Exports ClaudeClient, ClaudeResult, ClaudeMessage, ClaudeWorker
+- `core/secure_credentials.py`: API key storage with `has_anthropic_key()`, `get_anthropic_key()`
+- `ui/api_key_dialog.py`: UI for API key management (existing infrastructure)
+
 ### Document Version Display (v1.4.0)
 
 **Location:** `ui/status_manager.py:extract_document_version()`
@@ -658,6 +733,11 @@ StatusManager.show_message("PR #42 created!")
 | `src/asciidoc_artisan/workers/git_worker.py` | Git subprocess operations |
 | `src/asciidoc_artisan/workers/github_cli_worker.py` | GitHub CLI subprocess operations (v1.6.0) |
 | `src/asciidoc_artisan/workers/ollama_chat_worker.py` | Ollama AI chat worker thread (v1.7.0) |
+| `src/asciidoc_artisan/claude/claude_client.py` | Claude AI API client (synchronous, v1.10.0) |
+| `src/asciidoc_artisan/claude/claude_worker.py` | Claude AI worker thread (asynchronous, v1.10.0) |
+| `src/asciidoc_artisan/claude/__init__.py` | Claude module exports (ClaudeClient, ClaudeResult, ClaudeMessage, ClaudeWorker) |
+| `tests/unit/claude/test_claude_client.py` | Claude client unit tests (14 tests) |
+| `tests/unit/claude/test_claude_worker.py` | Claude worker unit tests (19 tests) |
 | `src/asciidoc_artisan/workers/pandoc_worker.py` | Document format conversion (Ollama + Pandoc) |
 | `src/asciidoc_artisan/workers/preview_worker.py` | AsciiDoc → HTML rendering |
 | `src/asciidoc_artisan/ui/chat_bar_widget.py` | Chat input controls (v1.7.0) |
