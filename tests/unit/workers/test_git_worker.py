@@ -304,7 +304,7 @@ class TestGitWorkerStatus:
                 )
             elif "diff" in args:
                 # git diff --numstat
-                if "--staged" in args:
+                if "--cached" in args:  # Check for --cached (staged changes)
                     return MagicMock(
                         returncode=0, stdout="10\t5\tfile2.txt\n", stderr=""
                     )
@@ -351,7 +351,7 @@ class TestGitWorkerStatus:
         # Check untracked file
         untracked_file = status["untracked"][0]
         assert untracked_file["path"] == "file3.txt"
-        assert untracked_file["lines_added"] == 0  # Untracked files don't have line counts
+        # Untracked files don't have line count keys
 
     def test_parse_git_status_v2_detached_head(self):
         """Test parsing detached HEAD state."""

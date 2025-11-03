@@ -86,52 +86,54 @@ class TestGitStatusDialogPopulation:
     def test_populate_modified_files(self, dialog):
         """Test populating modified files list."""
         modified_files = [
-            {"path": "file1.txt", "lines_added": 10, "lines_deleted": 5},
-            {"path": "file2.txt", "lines_added": 3, "lines_deleted": 1},
+            {"path": "file1.txt", "status": "M", "lines_added": "10", "lines_deleted": "5"},
+            {"path": "file2.txt", "status": "M", "lines_added": "3", "lines_deleted": "1"},
         ]
 
         dialog.populate_status("main", modified_files, [], [])
 
         assert dialog.modified_table.rowCount() == 2
-        # First file
-        assert dialog.modified_table.item(0, 0).text() == "file1.txt"
-        assert dialog.modified_table.item(0, 1).text() == "+10"
-        assert dialog.modified_table.item(0, 2).text() == "-5"
+        # First file - columns are: Status, File, Lines
+        assert dialog.modified_table.item(0, 0).text() == "Modified"
+        assert dialog.modified_table.item(0, 1).text() == "file1.txt"
+        assert dialog.modified_table.item(0, 2).text() == "+10 -5"
 
     def test_populate_staged_files(self, dialog):
         """Test populating staged files list."""
         staged_files = [
-            {"path": "staged1.txt", "lines_added": 20, "lines_deleted": 8},
+            {"path": "staged1.txt", "status": "A", "lines_added": "20", "lines_deleted": "8"},
         ]
 
         dialog.populate_status("feature", [], staged_files, [])
 
         assert dialog.branch_label.text() == "Branch: feature"
         assert dialog.staged_table.rowCount() == 1
-        assert dialog.staged_table.item(0, 0).text() == "staged1.txt"
-        assert dialog.staged_table.item(0, 1).text() == "+20"
-        assert dialog.staged_table.item(0, 2).text() == "-8"
+        assert dialog.staged_table.item(0, 0).text() == "Added"
+        assert dialog.staged_table.item(0, 1).text() == "staged1.txt"
+        assert dialog.staged_table.item(0, 2).text() == "+20 -8"
 
     def test_populate_untracked_files(self, dialog):
         """Test populating untracked files list."""
         untracked_files = [
-            {"path": "new1.txt"},
-            {"path": "new2.txt"},
-            {"path": "new3.txt"},
+            {"path": "new1.txt", "status": "?"},
+            {"path": "new2.txt", "status": "?"},
+            {"path": "new3.txt", "status": "?"},
         ]
 
         dialog.populate_status("main", [], [], untracked_files)
 
         assert dialog.untracked_table.rowCount() == 3
-        assert dialog.untracked_table.item(0, 0).text() == "new1.txt"
-        assert dialog.untracked_table.item(1, 0).text() == "new2.txt"
-        assert dialog.untracked_table.item(2, 0).text() == "new3.txt"
+        assert dialog.untracked_table.item(0, 0).text() == "Untracked"
+        assert dialog.untracked_table.item(0, 1).text() == "new1.txt"
+        assert dialog.untracked_table.item(0, 2).text() == "--"
+        assert dialog.untracked_table.item(1, 1).text() == "new2.txt"
+        assert dialog.untracked_table.item(2, 1).text() == "new3.txt"
 
     def test_populate_all_categories(self, dialog):
         """Test populating all file categories at once."""
-        modified = [{"path": "mod.txt", "lines_added": 5, "lines_deleted": 2}]
-        staged = [{"path": "stage.txt", "lines_added": 10, "lines_deleted": 0}]
-        untracked = [{"path": "new.txt"}]
+        modified = [{"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
+        staged = [{"path": "stage.txt", "status": "A", "lines_added": "10", "lines_deleted": "0"}]
+        untracked = [{"path": "new.txt", "status": "?"}]
 
         dialog.populate_status("develop", modified, staged, untracked)
 
@@ -144,17 +146,17 @@ class TestGitStatusDialogPopulation:
         """Test that repopulating clears old data."""
         # First population
         modified1 = [
-            {"path": "file1.txt", "lines_added": 5, "lines_deleted": 2},
-            {"path": "file2.txt", "lines_added": 3, "lines_deleted": 1},
+            {"path": "file1.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"},
+            {"path": "file2.txt", "status": "M", "lines_added": "3", "lines_deleted": "1"},
         ]
         dialog.populate_status("main", modified1, [], [])
         assert dialog.modified_table.rowCount() == 2
 
         # Second population (fewer files)
-        modified2 = [{"path": "file3.txt", "lines_added": 1, "lines_deleted": 0}]
+        modified2 = [{"path": "file3.txt", "status": "M", "lines_added": "1", "lines_deleted": "0"}]
         dialog.populate_status("main", modified2, [], [])
         assert dialog.modified_table.rowCount() == 1
-        assert dialog.modified_table.item(0, 0).text() == "file3.txt"
+        assert dialog.modified_table.item(0, 1).text() == "file3.txt"  # Column 1 is File
 
 
 class TestGitStatusDialogSignals:
@@ -195,23 +197,25 @@ class TestGitStatusDialogTableFormat:
     """Test table formatting and structure."""
 
     def test_modified_table_has_three_columns(self, dialog):
-        """Test modified table has File, Added, Deleted columns."""
+        """Test modified table has Status, File, Lines columns."""
         assert dialog.modified_table.columnCount() == 3
-        assert dialog.modified_table.horizontalHeaderItem(0).text() == "File"
-        assert dialog.modified_table.horizontalHeaderItem(1).text() == "Added"
-        assert dialog.modified_table.horizontalHeaderItem(2).text() == "Deleted"
+        assert dialog.modified_table.horizontalHeaderItem(0).text() == "Status"
+        assert dialog.modified_table.horizontalHeaderItem(1).text() == "File"
+        assert dialog.modified_table.horizontalHeaderItem(2).text() == "Lines"
 
     def test_staged_table_has_three_columns(self, dialog):
-        """Test staged table has File, Added, Deleted columns."""
+        """Test staged table has Status, File, Lines columns."""
         assert dialog.staged_table.columnCount() == 3
-        assert dialog.staged_table.horizontalHeaderItem(0).text() == "File"
-        assert dialog.staged_table.horizontalHeaderItem(1).text() == "Added"
-        assert dialog.staged_table.horizontalHeaderItem(2).text() == "Deleted"
+        assert dialog.staged_table.horizontalHeaderItem(0).text() == "Status"
+        assert dialog.staged_table.horizontalHeaderItem(1).text() == "File"
+        assert dialog.staged_table.horizontalHeaderItem(2).text() == "Lines"
 
-    def test_untracked_table_has_one_column(self, dialog):
-        """Test untracked table has only File column."""
-        assert dialog.untracked_table.columnCount() == 1
-        assert dialog.untracked_table.horizontalHeaderItem(0).text() == "File"
+    def test_untracked_table_has_three_columns(self, dialog):
+        """Test untracked table has Status, File, Lines columns (same structure)."""
+        assert dialog.untracked_table.columnCount() == 3
+        assert dialog.untracked_table.horizontalHeaderItem(0).text() == "Status"
+        assert dialog.untracked_table.horizontalHeaderItem(1).text() == "File"
+        assert dialog.untracked_table.horizontalHeaderItem(2).text() == "Lines"
 
     def test_tables_have_no_edit_triggers(self, dialog):
         """Test tables are read-only (no edit triggers)."""
