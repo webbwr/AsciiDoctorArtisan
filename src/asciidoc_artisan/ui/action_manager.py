@@ -60,14 +60,17 @@ MENU STRUCTURE:
 File    Edit    View    Git        Tools           Help
 ├─New   ├─Undo  ├─Zoom  ├─Set Repo ├─AI Settings   ├─About
 ├─Open  ├─Redo  ├─Dark  ├─Commit   │ ├─Ollama
-├─Save  ├─Cut   ├─Sync  ├─Pull     ├─Pandoc Status
-├─Save As Copy  ├─Max   ├─Push     └─Pandoc Formats
-└─Exit  └─Paste └─Max   └─GitHub
-                 Editor   Preview    ├─Create PR
-                                     ├─List PRs
-                                     ├─Create Issue
-                                     ├─List Issues
-                                     └─Repo Info
+├─Save  ├─Cut   ├─Sync  ├─Pull     ├─App Settings
+├─Save As Copy  ├─Max   ├─Push     ├─Chat Pane
+└─Exit  └─Paste └─Max   └─GitHub   ├─Font Settings
+                 Editor   Preview    ├─Spell Check
+                                     ├─Telemetry
+                                     └─Toggle Theme
+                          ├─Create PR
+                          ├─List PRs
+                          ├─Create Issue
+                          ├─List Issues
+                          └─Repo Info
 
 KEYBOARD SHORTCUTS:
 - Ctrl+N (Cmd+N on Mac) = New file
@@ -245,10 +248,11 @@ class ActionManager:
         self.github_list_issues_act: QAction  # List issues
         self.github_repo_info_act: QAction  # View repository info
 
-        # Tools menu actions (7 actions)
+        # Tools menu actions (8 actions)
         self.validate_install_act: (
             QAction  # Validate installation and update dependencies
         )
+        self.toggle_chat_pane_act: QAction  # Toggle chat pane visibility
         self.toggle_theme_act: QAction  # Toggle dark/light theme
         self.pandoc_status_act: QAction  # Show Pandoc installation status
         self.pandoc_formats_act: QAction  # Show supported formats
@@ -818,6 +822,15 @@ class ActionManager:
             self.window._show_anthropic_settings,
         )
 
+        # Chat Pane Toggle - show/hide chat pane
+        self.toggle_chat_pane_act = self._create_action(
+            "&Chat Pane",
+            "Show or hide AI chat pane",
+            self.window.chat_manager.toggle_panel_visibility,
+            checkable=True,
+            checked=self._settings.ai_chat_enabled or self._settings.ollama_chat_enabled,
+        )
+
         # Font Settings - customize fonts for editor, preview, and chat
         self.font_settings_act = self._create_action(
             "&Font Settings...",
@@ -1045,6 +1058,7 @@ class ActionManager:
         ai_settings_menu.addAction(self.anthropic_settings_act)  # Configure Anthropic API key
 
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
+        tools_menu.addAction(self.toggle_chat_pane_act)  # Toggle chat pane visibility (shows ✓ when visible)
         tools_menu.addAction(self.font_settings_act)  # Customize fonts
         tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7, shows ✓ when enabled)
         tools_menu.addAction(self.toggle_telemetry_act)  # Toggle telemetry collection (shows ✓ when enabled)
