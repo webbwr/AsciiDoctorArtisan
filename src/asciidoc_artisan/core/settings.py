@@ -51,15 +51,17 @@ class Settings:
 
     AI Settings:
     - ai_conversion_enabled: Deprecated (cloud AI removed in v1.2.0)
+    - ai_backend: Selected AI backend ("ollama" or "claude", default: "ollama")
     - ollama_enabled: Enable Ollama AI integration (v1.1+)
     - ollama_model: Selected Ollama AI model name (v1.1+)
+    - claude_model: Selected Claude AI model name (v1.10.0+)
 
     Chat Settings (v1.7.0):
-    - ollama_chat_enabled: Enable AI chat interface
-    - ollama_chat_history: List of saved chat messages
-    - ollama_chat_max_history: Maximum messages to store (default: 100)
-    - ollama_chat_context_mode: Default interaction mode (document/syntax/general/editing)
-    - ollama_chat_send_document: Include document content in context
+    - ai_chat_enabled: Enable AI chat interface (works with both backends)
+    - chat_history: List of saved chat messages (backend-agnostic)
+    - chat_max_history: Maximum messages to store (default: 100)
+    - chat_context_mode: Default interaction mode (document/syntax/general/editing)
+    - chat_send_document: Include document content in context
 
     Spell Check Settings (v1.8.0):
     - spell_check_enabled: Enable spell checking (default: True)
@@ -88,15 +90,26 @@ class Settings:
     auto_save_enabled: bool = True
     auto_save_interval: int = 300
     ai_conversion_enabled: bool = False
+
+    # AI Backend settings (v1.10.0+)
+    ai_backend: str = "ollama"  # "ollama" or "claude"
     ollama_enabled: bool = True  # Enable Ollama by default for chat
     ollama_model: Optional[str] = "gnokit/improve-grammer"  # Default model for chat
+    claude_model: Optional[str] = "claude-3-5-sonnet-20241022"  # Default Claude model
 
-    # Chat settings (v1.7.0)
-    ollama_chat_enabled: bool = True  # Enable chat by default
-    ollama_chat_history: List[Dict[str, Any]] = field(default_factory=list)
-    ollama_chat_max_history: int = 100
-    ollama_chat_context_mode: str = "document"
-    ollama_chat_send_document: bool = True
+    # Chat settings (v1.7.0, v1.10.0+ backend-agnostic)
+    ai_chat_enabled: bool = True  # Enable chat by default
+    chat_history: List[Dict[str, Any]] = field(default_factory=list)
+    chat_max_history: int = 100
+    chat_context_mode: str = "document"
+    chat_send_document: bool = True
+
+    # Backward compatibility aliases (deprecated, kept for migration)
+    ollama_chat_enabled: bool = True  # Deprecated: use ai_chat_enabled
+    ollama_chat_history: List[Dict[str, Any]] = field(default_factory=list)  # Deprecated: use chat_history
+    ollama_chat_max_history: int = 100  # Deprecated: use chat_max_history
+    ollama_chat_context_mode: str = "document"  # Deprecated: use chat_context_mode
+    ollama_chat_send_document: bool = True  # Deprecated: use chat_send_document
 
     # Font settings (v1.7.0)
     editor_font_family: str = "Courier New"
@@ -133,12 +146,31 @@ class Settings:
         Filters out unknown keys to maintain forward/backward compatibility
         when deserializing settings from older or newer versions.
 
+        Performs migration from deprecated ollama_chat_* settings to new
+        backend-agnostic chat_* settings (v1.10.0+).
+
         Args:
             data: Dictionary from JSON deserialization
 
         Returns:
             Settings instance with valid fields populated
         """
+        # Migrate deprecated ollama_chat_* settings to new chat_* settings (v1.10.0)
+        if "ollama_chat_enabled" in data and "ai_chat_enabled" not in data:
+            data["ai_chat_enabled"] = data["ollama_chat_enabled"]
+
+        if "ollama_chat_history" in data and "chat_history" not in data:
+            data["chat_history"] = data["ollama_chat_history"]
+
+        if "ollama_chat_max_history" in data and "chat_max_history" not in data:
+            data["chat_max_history"] = data["ollama_chat_max_history"]
+
+        if "ollama_chat_context_mode" in data and "chat_context_mode" not in data:
+            data["chat_context_mode"] = data["ollama_chat_context_mode"]
+
+        if "ollama_chat_send_document" in data and "chat_send_document" not in data:
+            data["chat_send_document"] = data["ollama_chat_send_document"]
+
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
         return cls(**filtered_data)
