@@ -259,10 +259,12 @@ class ClaudeClient:
                 )
             elif "rate_limit" in error_msg.lower():
                 error_msg = "Rate limit exceeded. Please wait a moment and try again."
-            elif "insufficient_quota" in error_msg.lower():
+            elif "insufficient_quota" in error_msg.lower() or "credit balance is too low" in error_msg.lower():
                 error_msg = (
-                    "Insufficient API quota. Check your account at console.anthropic.com."
+                    "Insufficient API credits. Please add credits at console.anthropic.com/settings/billing"
                 )
+            elif "overloaded" in error_msg.lower():
+                error_msg = "Claude API is temporarily overloaded. Please try again in a moment."
 
             return ClaudeResult(success=False, error=error_msg)
 

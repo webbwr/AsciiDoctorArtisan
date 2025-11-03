@@ -756,12 +756,31 @@ class ChatManager(QObject):
         """
         Handle error from worker.
 
+        Displays error in both status bar and chat panel so user can see
+        what went wrong in their conversation history.
+
         Args:
             error_message: Error description
         """
         # Update UI state
         self._is_processing = False
         self._chat_bar.set_processing(False)
+
+        # Add error message to chat panel
+        from ..core.models import ChatMessage
+        import time
+
+        error_chat_message = ChatMessage(
+            role="assistant",
+            content=f"❌ **Error:** {error_message}",
+            timestamp=int(time.time()),
+            model=f"{self._current_backend} (error)",
+            context_mode=self._settings.chat_context_mode or "general",
+        )
+        self._chat_panel.add_message(error_chat_message)
+
+        # Save history with error message
+        self._save_chat_history()
 
         # Show error in status bar
         self.status_message.emit(f"AI error: {error_message}")
