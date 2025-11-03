@@ -801,20 +801,47 @@ class ChatManager(QObject):
         """
         Update chat UI when settings change (backend-agnostic).
 
+        Checks if backend should switch based on new Ollama enabled state.
+        If Ollama was disabled and Claude is available, auto-switches to Claude.
+        If Ollama was enabled, switches back to Ollama.
+
         Args:
             settings: New settings instance
         """
         self._settings = settings
-        self._current_backend = settings.ai_backend
 
-        # Reload available models (in case new ones were installed or backend changed)
-        self._load_available_models()
+        # Check if backend should switch based on Ollama enabled state
+        from ..core import SecureCredentials
+        creds = SecureCredentials()
+        has_claude_key = creds.has_anthropic_key()
 
-        # Update model selector based on active backend
-        if self._current_backend == "ollama" and settings.ollama_model:
-            self._chat_bar.set_model(settings.ollama_model)
-        elif self._current_backend == "claude" and settings.claude_model:
-            self._chat_bar.set_model(settings.claude_model)
+        # Determine target backend based on Ollama state and Claude availability
+        if not settings.ollama_enabled and has_claude_key:
+            # Ollama disabled + Claude available → switch to Claude
+            target_backend = "claude"
+        elif settings.ollama_enabled:
+            # Ollama enabled → switch to Ollama
+            target_backend = "ollama"
+        else:
+            # Use current backend setting
+            target_backend = settings.ai_backend
+
+        # Perform backend switch if needed
+        if target_backend != self._current_backend:
+            logger.info(
+                f"Backend switch triggered by settings change: {self._current_backend} → {target_backend}"
+            )
+            self._switch_backend(target_backend)
+        else:
+            # No backend switch needed, just reload models and update UI
+            self._current_backend = settings.ai_backend
+            self._load_available_models()
+
+            # Update model selector based on active backend
+            if self._current_backend == "ollama" and settings.ollama_model:
+                self._chat_bar.set_model(settings.ollama_model)
+            elif self._current_backend == "claude" and settings.claude_model:
+                self._chat_bar.set_model(settings.claude_model)
 
         # Update context mode (use new setting with fallback)
         context_mode = settings.chat_context_mode or settings.ollama_chat_context_mode
