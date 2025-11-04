@@ -54,16 +54,17 @@ class TestChatIntegration:
 
     def test_chat_visibility_control(self, main_window):
         """Test that chat container visibility can be controlled."""
-        # Chat should be hidden by default (AI not enabled)
-        assert main_window.chat_container.isHidden()
-
-        # Show chat
-        main_window.chat_container.show()
+        # Chat is visible by default (v1.9.0+ always shows chat container)
+        # Note: In production, visibility is controlled via Tools menu toggle
         assert main_window.chat_container.isVisible()
 
         # Hide chat
         main_window.chat_container.hide()
         assert main_window.chat_container.isHidden()
+
+        # Show chat again
+        main_window.chat_container.show()
+        assert main_window.chat_container.isVisible()
 
     def test_chat_in_splitter(self, main_window):
         """Test that chat pane is in the main splitter."""
@@ -77,12 +78,17 @@ class TestChatIntegration:
     def test_signal_connections(self, main_window, qtbot):
         """Test that signals are properly connected."""
         # Test ChatManager -> OllamaChatWorker connection
+        # Signal signature: message, model, mode, history, doc_content
         with qtbot.waitSignal(
             main_window.chat_manager.message_sent_to_worker, timeout=100
         ) as blocker:
-            # This should emit message_sent_to_worker
+            # This should emit message_sent_to_worker with correct signature
             main_window.chat_manager.message_sent_to_worker.emit(
-                "Test message", "general", False
+                "Test message",  # message
+                "test-model",    # model
+                "general",       # mode
+                [],             # history
+                None            # doc_content
             )
 
         # Signal was emitted
@@ -102,9 +108,9 @@ class TestChatIntegration:
 
     def test_chat_manager_initialization(self, main_window):
         """Test that chat manager is properly initialized."""
-        # Should have references to widgets
-        assert main_window.chat_manager.chat_bar == main_window.chat_bar
-        assert main_window.chat_manager.chat_panel == main_window.chat_panel
+        # Should have references to widgets (private attributes)
+        assert main_window.chat_manager._chat_bar == main_window.chat_bar
+        assert main_window.chat_manager._chat_panel == main_window.chat_panel
 
         # Should have settings
         assert main_window.chat_manager._settings is not None
@@ -119,13 +125,14 @@ class TestChatIntegration:
         test_content = "= Test Document\n\nThis is a test."
         main_window.editor.setPlainText(test_content)
 
-        # ChatManager should be able to get document content
-        provider = main_window.chat_manager._get_document_content
-        assert provider is not None
+        # ChatManager should be able to get document context
+        # Method renamed from _get_document_content to _get_document_context
+        context = main_window.chat_manager._get_document_context()
+        assert context is not None
 
-        # Should return the editor content
-        content = provider()
-        assert content == test_content
+        # Should return the editor content (first 2KB for context)
+        # Content may be truncated if larger than 2KB
+        assert test_content in context or context in test_content
 
     def test_status_message_connection(self, main_window, qtbot):
         """Test that chat manager status messages are connected."""
@@ -181,14 +188,24 @@ class TestChatWorkerIntegration:
 
     def test_worker_response_connection(self, main_window, qtbot):
         """Test that worker responses connect to chat manager."""
+        import time
+        from asciidoc_artisan.core.models import ChatMessage
+
         # Worker should emit signals that ChatManager receives
+        # Signal signature changed: now expects ChatMessage object only
         with qtbot.waitSignal(
             main_window.ollama_chat_worker.chat_response_ready, timeout=100
         ) as blocker:
-            # Emit test response
-            main_window.ollama_chat_worker.chat_response_ready.emit(
-                "Test response", "test_id"
+            # Create test ChatMessage with all required fields
+            test_message = ChatMessage(
+                role="assistant",
+                content="Test response",
+                timestamp=time.time(),
+                model="test-model",
+                context_mode="general"
             )
+            # Emit test response with correct signature
+            main_window.ollama_chat_worker.chat_response_ready.emit(test_message)
 
         assert blocker.signal_triggered
 
