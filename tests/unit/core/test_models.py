@@ -7,7 +7,7 @@ Tests all data model classes and their behavior (Pydantic v2).
 import pytest
 from pydantic import ValidationError
 
-from asciidoc_artisan.core.models import GitHubResult, GitResult
+from asciidoc_artisan.core.models import ChatMessage, GitHubResult, GitResult, GitStatus
 
 
 class TestGitResult:
@@ -357,3 +357,197 @@ class TestGitHubResult:
         assert result_dict["success"] is True
         assert result_dict["data"] == {"key": "value"}
         assert result_dict["operation"] == "repo_view"
+
+
+class TestGitStatus:
+    """Test suite for GitStatus Pydantic model."""
+
+    def test_git_status_creation(self):
+        """Test creating GitStatus with valid data."""
+        status = GitStatus(
+            branch="main",
+            ahead_count=2,
+            behind_count=0,
+            modified_count=5,
+            staged_count=3,
+            untracked_count=1,
+            has_conflicts=False,
+            is_dirty=True,
+        )
+
+        assert status.branch == "main"
+        assert status.ahead_count == 2
+        assert status.behind_count == 0
+        assert status.modified_count == 5
+        assert status.staged_count == 3
+        assert status.untracked_count == 1
+        assert status.has_conflicts is False
+        assert status.is_dirty is True
+
+    def test_git_status_validation_negative_count(self):
+        """Test that negative count is rejected."""
+        with pytest.raises(ValidationError) as exc_info:
+            GitStatus(
+                branch="main",
+                ahead_count=-1,  # Should fail
+                behind_count=0,
+                modified_count=0,
+                staged_count=0,
+                untracked_count=0,
+            )
+
+        errors = exc_info.value.errors()
+        assert any("count must be non-negative" in str(e) for e in errors)
+
+
+class TestChatMessage:
+    """Test suite for ChatMessage Pydantic model."""
+
+    def test_chat_message_creation(self):
+        """Test creating ChatMessage with valid data."""
+        import time
+        msg = ChatMessage(
+            role="user",
+            content="Hello, how are you?",
+            timestamp=time.time(),
+            model="llama2",
+            context_mode="general",
+        )
+
+        assert msg.role == "user"
+        assert msg.content == "Hello, how are you?"
+        assert msg.timestamp > 0
+        assert msg.model == "llama2"
+        assert msg.context_mode == "general"
+
+    def test_chat_message_validation_invalid_role(self):
+        """Test that invalid role is rejected."""
+        import time
+        with pytest.raises(ValidationError) as exc_info:
+            ChatMessage(
+                role="invalid",  # Should fail
+                content="Hello",
+                timestamp=time.time(),
+                model="llama2",
+                context_mode="general",
+            )
+
+        errors = exc_info.value.errors()
+        assert any("role must be one of" in str(e) for e in errors)
+
+    def test_chat_message_validation_empty_content(self):
+        """Test that empty content is rejected."""
+        import time
+        with pytest.raises(ValidationError) as exc_info:
+            ChatMessage(
+                role="user",
+                content="",  # Should fail
+                timestamp=time.time(),
+                model="llama2",
+                context_mode="general",
+            )
+
+        errors = exc_info.value.errors()
+        assert any("content cannot be empty" in str(e) for e in errors)
+
+    def test_chat_message_validation_whitespace_only_content(self):
+        """Test that whitespace-only content is rejected."""
+        import time
+        with pytest.raises(ValidationError) as exc_info:
+            ChatMessage(
+                role="user",
+                content="   ",  # Should fail
+                timestamp=time.time(),
+                model="llama2",
+                context_mode="general",
+            )
+
+        errors = exc_info.value.errors()
+        assert any("content cannot be empty" in str(e) for e in errors)
+
+    def test_chat_message_validation_negative_timestamp(self):
+        """Test that negative timestamp is rejected."""
+        with pytest.raises(ValidationError) as exc_info:
+            ChatMessage(
+                role="user",
+                content="Hello",
+                timestamp=-1.0,  # Should fail
+                model="llama2",
+                context_mode="general",
+            )
+
+        errors = exc_info.value.errors()
+        assert any("timestamp must be non-negative" in str(e) for e in errors)
+
+    def test_chat_message_validation_invalid_context_mode(self):
+        """Test that invalid context mode is rejected."""
+        import time
+        with pytest.raises(ValidationError) as exc_info:
+            ChatMessage(
+                role="user",
+                content="Hello",
+                timestamp=time.time(),
+                model="llama2",
+                context_mode="invalid",  # Should fail
+            )
+
+        errors = exc_info.value.errors()
+        assert any("context_mode must be one of" in str(e) for e in errors)
+
+    def test_chat_message_valid_roles(self):
+        """Test all valid role values."""
+        import time
+        for role in ["user", "assistant"]:
+            msg = ChatMessage(
+                role=role,
+                content="Test message",
+                timestamp=time.time(),
+                model="llama2",
+                context_mode="general",
+            )
+            assert msg.role == role
+
+    def test_chat_message_valid_context_modes(self):
+        """Test all valid context mode values."""
+        import time
+        for mode in ["document", "syntax", "general", "editing"]:
+            msg = ChatMessage(
+                role="user",
+                content="Test message",
+                timestamp=time.time(),
+                model="llama2",
+                context_mode=mode,
+            )
+            assert msg.context_mode == mode
+
+    def test_chat_message_content_stripped(self):
+        """Test that content is stripped of whitespace."""
+        import time
+        msg = ChatMessage(
+            role="user",
+            content="  Hello world  ",
+            timestamp=time.time(),
+            model="llama2",
+            context_mode="general",
+        )
+        assert msg.content == "Hello world"
+
+    def test_chat_message_as_dict(self):
+        """Test converting ChatMessage to dictionary."""
+        import time
+        timestamp = time.time()
+        msg = ChatMessage(
+            role="user",
+            content="Test",
+            timestamp=timestamp,
+            model="llama2",
+            context_mode="general",
+        )
+        msg_dict = msg.model_dump()
+
+        assert isinstance(msg_dict, dict)
+        assert msg_dict["role"] == "user"
+        assert msg_dict["content"] == "Test"
+        assert msg_dict["timestamp"] == timestamp
+        assert msg_dict["model"] == "llama2"
+        assert msg_dict["context_mode"] == "general"
