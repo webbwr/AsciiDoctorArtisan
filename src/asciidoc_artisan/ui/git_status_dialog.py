@@ -13,7 +13,7 @@ Implements v1.9.0 Git Status Command feature.
 """
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
@@ -26,7 +26,6 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QTabWidget,
     QVBoxLayout,
-    QWidget,
 )
 
 logger = logging.getLogger(__name__)

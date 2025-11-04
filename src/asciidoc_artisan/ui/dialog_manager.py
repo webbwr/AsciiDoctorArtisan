@@ -194,8 +194,9 @@ class DialogManager:
 
     def show_anthropic_status(self) -> None:
         """Show Anthropic API key and service status."""
-        from asciidoc_artisan.core import SecureCredentials
         import anthropic
+
+        from asciidoc_artisan.core import SecureCredentials
 
         status = "Anthropic Status:\n\n"
 
@@ -260,11 +261,12 @@ class DialogManager:
 
     def show_telemetry_status(self) -> None:
         """Show telemetry configuration and data collection status."""
-        from PySide6.QtWidgets import QMessageBox, QPushButton, QFileDialog
-        from pathlib import Path
-        import subprocess
-        import platform
         import logging
+        import platform
+        import subprocess
+        from pathlib import Path
+
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
 
         logger = logging.getLogger(__name__)
 
@@ -394,7 +396,7 @@ class DialogManager:
                                     capture_output=True,
                                     text=True
                                 )
-                                logger.info(f"WSL notepad.exe command succeeded")
+                                logger.info("WSL notepad.exe command succeeded")
                             except Exception as wsl_error:
                                 logger.warning(f"WSL notepad failed: {wsl_error}, falling back to less")
                                 # Fall back to less (simple viewer)

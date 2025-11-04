@@ -760,13 +760,13 @@ class ChatManager(QObject):
             if result.success:
                 # Display models in chat panel as system message
                 self._chat_panel.add_message("system", f"🔍 **Available Models**\n\n{result.content}")
-                self.status_message.emit(f"✓ Model scan complete")
+                self.status_message.emit("✓ Model scan complete")
                 logger.info("Model scan successful")
             else:
                 # Display error in chat
                 error_msg = f"❌ **Model Scan Failed**\n\n{result.error}"
                 self._chat_panel.add_message("system", error_msg)
-                self.status_message.emit(f"✗ Model scan failed")
+                self.status_message.emit("✗ Model scan failed")
                 logger.error(f"Model scan failed: {result.error}")
 
         except Exception as e:

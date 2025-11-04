@@ -40,8 +40,6 @@ from typing import Any, Optional  # For type hints (helps catch bugs)
 
 from PySide6.QtCore import Qt  # Qt constants and enums
 
-logger = logging.getLogger(__name__)
-
 # Import Qt widgets we need for building the UI
 from PySide6.QtWidgets import (
     QCheckBox,  # Checkbox widget (on/off toggle)
@@ -61,6 +59,8 @@ from PySide6.QtWidgets import (
 
 # Import our Settings data class
 from asciidoc_artisan.core import Settings
+
+logger = logging.getLogger(__name__)
 
 # === HELPER FUNCTIONS ===
 # These functions are reused by multiple dialogs to avoid code duplication

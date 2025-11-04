@@ -352,6 +352,15 @@ class ChatPanelWidget(QWidget):
         """
         return self._messages.copy()
 
+    def get_message_history(self) -> List[dict]:
+        """
+        Get message history as dictionaries (for settings/JSON serialization).
+
+        Returns:
+            List of message dictionaries
+        """
+        return [msg.model_dump() for msg in self._messages]
+
     def set_auto_scroll(self, enabled: bool) -> None:
         """
         Enable or disable auto-scrolling to bottom.

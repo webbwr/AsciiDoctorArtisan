@@ -178,7 +178,7 @@ class APIKeySetupDialog(QDialog):
 
         # Basic validation (format check only - no network call).
         if not api_key.startswith("sk-ant-"):
-            logger.warning(f"Invalid API key format: does not start with 'sk-ant-'")
+            logger.warning("Invalid API key format: does not start with 'sk-ant-'")
             QMessageBox.warning(
                 self,
                 "Invalid Format",

@@ -18,7 +18,7 @@ from typing import List, Optional
 
 from PySide6.QtCore import QThread, Signal, Slot
 
-from .claude_client import ClaudeClient, ClaudeMessage, ClaudeResult
+from .claude_client import ClaudeClient, ClaudeMessage
 
 logger = logging.getLogger(__name__)
 

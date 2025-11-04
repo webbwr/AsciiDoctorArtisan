@@ -25,7 +25,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Optional
 
-from anthropic import Anthropic, APIError, APIConnectionError
+from anthropic import Anthropic, APIConnectionError, APIError
 from pydantic import BaseModel, Field
 
 from asciidoc_artisan.core import SecureCredentials
