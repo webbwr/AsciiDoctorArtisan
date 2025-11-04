@@ -359,11 +359,9 @@ class TestStatusManager:
 
         manager.update_git_status(status)
 
-        # Should show yellow color and change counts
+        # Should show yellow color and total change count (brief format)
         assert "dev" in manager.git_status_label.text()
-        assert "●3" in manager.git_status_label.text()  # Modified
-        assert "+1" in manager.git_status_label.text()  # Staged
-        assert "?2" in manager.git_status_label.text()  # Untracked
+        assert "●6" in manager.git_status_label.text()  # Total changes (3+1+2=6)
         assert "#fbbf24" in manager.git_status_label.styleSheet()  # Yellow
 
     def test_update_git_status_conflicts(self, main_window):
@@ -393,7 +391,7 @@ class TestStatusManager:
         assert "#ef4444" in manager.git_status_label.styleSheet()  # Red
 
     def test_update_git_status_ahead_behind(self, main_window):
-        """Test Git status display with ahead/behind indicators."""
+        """Test Git status display with ahead/behind (brief format shows clean)."""
         from asciidoc_artisan.ui.status_manager import StatusManager
         from asciidoc_artisan.core import GitStatus
 
@@ -413,10 +411,10 @@ class TestStatusManager:
 
         manager.update_git_status(status)
 
-        # Should show ahead/behind indicators
+        # Brief format: No local changes = clean status (ahead/behind not shown)
         assert "sync" in manager.git_status_label.text()
-        assert "↑2" in manager.git_status_label.text()  # Ahead
-        assert "↓3" in manager.git_status_label.text()  # Behind
+        assert "✓" in manager.git_status_label.text()  # Clean indicator
+        assert "#4ade80" in manager.git_status_label.styleSheet()  # Green
 
     def test_restore_git_status_color(self, main_window):
         """Test Git status color restoration after theme change (v1.9.0+)."""
@@ -439,10 +437,10 @@ class TestStatusManager:
         )
         manager.update_git_status(status)
 
-        # Verify initial color
+        # Verify initial color (brief format shows total changes: 3+1+0=4)
         assert "#fbbf24" in manager.git_status_label.styleSheet()  # Yellow
         assert "dev" in manager.git_status_label.text()
-        assert "●3" in manager.git_status_label.text()
+        assert "●4" in manager.git_status_label.text()  # Total changes
 
         # Clear the stylesheet (simulating theme change)
         manager.git_status_label.setStyleSheet("")
@@ -456,4 +454,4 @@ class TestStatusManager:
         # Verify color is restored
         assert "#fbbf24" in manager.git_status_label.styleSheet()  # Yellow restored
         assert "dev" in manager.git_status_label.text()
-        assert "●3" in manager.git_status_label.text()
+        assert "●4" in manager.git_status_label.text()  # Total changes
