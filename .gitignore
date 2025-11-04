@@ -58,6 +58,8 @@ coverage_reports/
 *.tmp
 *.tar.gz
 test_*.adoc
+test_results*.txt
+test_results*.log
 
 # Accidental pip install artifacts
 =*
