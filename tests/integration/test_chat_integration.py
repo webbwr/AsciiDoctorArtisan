@@ -14,11 +14,18 @@ from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 
 @pytest.fixture
-def main_window(qtbot, tmp_path):
-    """Create main window for testing."""
-    window = AsciiDocEditor()
-    qtbot.addWidget(window)
-    return window
+def main_window(qtbot, test_settings):
+    """Create main window for testing with safe settings."""
+    from unittest.mock import patch
+
+    # Mock settings loading to use test_settings
+    with patch(
+        "asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings",
+        return_value=test_settings,
+    ):
+        window = AsciiDocEditor()
+        qtbot.addWidget(window)
+        return window
 
 
 class TestChatIntegration:

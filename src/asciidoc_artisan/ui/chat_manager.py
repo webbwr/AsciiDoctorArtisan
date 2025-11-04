@@ -427,9 +427,11 @@ class ChatManager(QObject):
         """Save current chat history to settings (backend-agnostic)."""
         messages = self._chat_panel.get_messages()
 
-        # Apply max history limit (use new setting with fallback)
-        max_history = (
-            self._settings.chat_max_history or self._settings.ollama_chat_max_history
+        # Apply max history limit (use most restrictive limit for backward compatibility)
+        # Use min() to respect both new and deprecated settings
+        max_history = min(
+            self._settings.chat_max_history,
+            self._settings.ollama_chat_max_history
         )
         if len(messages) > max_history:
             messages = messages[-max_history:]

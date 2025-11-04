@@ -223,3 +223,35 @@ def coverage_report_dir(tmp_path) -> Path:
     report_dir = tmp_path / "coverage"
     report_dir.mkdir()
     return report_dir
+
+
+@pytest.fixture
+def test_settings(tmp_path):
+    """
+    Provide test-safe settings that prevent UI dialogs.
+
+    Automatically disables:
+    - Telemetry opt-in dialog (sets telemetry_opt_in_shown=True)
+    - Ollama integration (prevents network calls)
+    - Git features (prevents subprocess calls)
+    """
+    from asciidoc_artisan.core import Settings
+
+    settings = Settings()
+    # Prevent telemetry dialog from showing
+    settings.telemetry_opt_in_shown = True
+    settings.telemetry_enabled = False
+    settings.telemetry_session_id = None
+
+    # Disable features that make external calls
+    settings.ollama_enabled = False
+    settings.ollama_model = None
+    settings.ai_conversion_enabled = False
+    settings.ai_chat_enabled = False
+
+    # Safe defaults for testing
+    settings.last_directory = str(tmp_path)
+    settings.last_file = None
+    settings.git_repo_path = None
+
+    return settings

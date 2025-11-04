@@ -32,10 +32,10 @@ def qasync_app(qapp):
 
 
 @pytest.fixture
-def editor_with_async(qtbot, qasync_app):
+def editor_with_async(qtbot, qasync_app, test_settings):
     """Create AsciiDocEditor with async file manager."""
-    # Use real Settings object with safe defaults
-    test_settings = Settings()
+    # test_settings fixture already has safe defaults including telemetry_opt_in_shown=True
+    # Just ensure async-specific settings are disabled
     test_settings.ollama_model = None
     test_settings.ollama_enabled = False
     test_settings.git_repo_path = None
@@ -90,7 +90,7 @@ Test content here.
 class TestAsyncQtIntegration:
     """Test async operations integrated with Qt application."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_qt_async_file_manager_with_signals(
         self, qtbot: QtBot, qasync_app, tmp_path: Path
     ):
@@ -109,7 +109,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_file_watcher_integration_with_qt_app(
         self, qtbot: QtBot, qasync_app, temp_adoc_file: Path
     ):
@@ -141,7 +141,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_concurrent_file_operations_stress(
         self, qasync_app, tmp_path: Path
     ):
@@ -176,7 +176,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_memory_leak_detection_long_running_watcher(
         self, qasync_app, tmp_path: Path
     ):
@@ -218,7 +218,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_async_read_write_with_editor_integration(
         self, qtbot: QtBot, editor_with_async, tmp_path: Path
     ):
@@ -237,7 +237,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_concurrent_read_write_operations(
         self, qasync_app, tmp_path: Path
     ):
@@ -268,7 +268,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_json_operations_with_qt_signals(
         self, qtbot: QtBot, qasync_app, tmp_path: Path
     ):
@@ -291,7 +291,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_file_watcher_debouncing_in_qt_loop(
         self, qtbot: QtBot, qasync_app, tmp_path: Path
     ):
@@ -324,7 +324,7 @@ class TestAsyncQtIntegration:
 
         await watcher.stop()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_async_copy_file_with_progress_tracking(
         self, qasync_app, tmp_path: Path
     ):
@@ -346,7 +346,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_multiple_watchers_cleanup(
         self, qasync_app, tmp_path: Path
     ):
@@ -374,7 +374,7 @@ class TestAsyncQtIntegration:
         # Verify all stopped
         assert not any(m.is_watching() for m in managers)
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_async_error_handling_with_signals(
         self, qtbot: QtBot, qasync_app, tmp_path: Path
     ):
@@ -392,7 +392,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_batch_operations_with_qt_event_loop(
         self, qasync_app, tmp_path: Path
     ):
@@ -422,7 +422,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_watcher_file_creation_deletion_cycle(
         self, qtbot: QtBot, qasync_app, tmp_path: Path
     ):
@@ -463,7 +463,7 @@ class TestAsyncQtIntegration:
 
         await watcher.stop()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_encoding_handling_across_operations(
         self, qasync_app, tmp_path: Path
     ):
@@ -484,7 +484,7 @@ class TestAsyncQtIntegration:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_qt_integration_under_load(
         self, qasync_app, tmp_path: Path
     ):
@@ -518,7 +518,7 @@ class TestAsyncQtIntegration:
 class TestAsyncEditorWorkflows:
     """Test async operations in real editor workflows."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_load_save_workflow_async(
         self, qtbot: QtBot, editor_with_async, tmp_path: Path
     ):
@@ -546,7 +546,7 @@ class TestAsyncEditorWorkflows:
 
         await manager.cleanup()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_autosave_workflow_with_watcher(
         self, qtbot: QtBot, qasync_app, tmp_path: Path
     ):
