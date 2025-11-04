@@ -9,10 +9,11 @@
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [Test Fixes 2025-11-04](test_fixes_2025-11-04.md) | **Main Guide** - All test fixes (Tasks 1-3) | ✅ Complete |
+| [Test Fixes 2025-11-04](test_fixes_2025-11-04.md) | **Main Guide** - All test fixes (Tasks 1-4) | ✅ Complete |
 | [Test Suite Results](test_suite_results_2025-11-04.md) | Overall test health analysis | ✅ Complete |
 | [Test Hang Analysis](test_hang_analysis_2025-11-04.md) | Detailed hanging test investigation | ✅ Complete |
-| [Status Report](../../STATUS_REPORT_2025-11-04.md) | Final consolidated status | ✅ Complete |
+| [Status Report](STATUS_REPORT_2025-11-04.md) | Final consolidated status | ✅ Complete |
+| [Test Development History](test_development_history.md) | Historical record (Oct-Nov 2025) | 📚 Reference |
 
 ---
 
@@ -98,7 +99,7 @@ asyncio_default_fixture_loop_scope = function
 
 ### 4. Final Status Report
 
-**File:** [../../STATUS_REPORT_2025-11-04.md](../../STATUS_REPORT_2025-11-04.md)
+**File:** [STATUS_REPORT_2025-11-04.md](STATUS_REPORT_2025-11-04.md)
 
 **Contents:**
 - Executive summary
@@ -109,6 +110,21 @@ asyncio_default_fixture_loop_scope = function
 - Final metrics
 
 **Use This For:** Quick reference and executive overview
+
+---
+
+### 5. Test Development History
+
+**File:** [test_development_history.md](test_development_history.md)
+
+**Contents:**
+- Historical record of test development (Oct-Nov 2025)
+- Phase-by-phase summary (Phases 1-8)
+- Test suite growth and milestones
+- All testing patterns established
+- Complete lessons learned archive
+
+**Use This For:** Understanding test suite evolution and historical context
 
 ---
 
