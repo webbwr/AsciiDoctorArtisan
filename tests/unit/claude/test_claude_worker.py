@@ -136,32 +136,24 @@ class TestClaudeWorker:
             worker.test_connection()
             assert worker._operation == "test_connection"
 
-    @patch("asciidoc_artisan.claude.claude_client.Anthropic")
-    @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_send_message_emits_response_ready(
-        self, mock_credentials, mock_anthropic, qtbot
-    ):
+    def test_send_message_emits_response_ready(self, qtbot):
         """Test successful message send emits response_ready."""
-        # Setup mocks
-        mock_creds = Mock()
-        mock_creds.get_anthropic_key.return_value = "sk-ant-test-key"
-        mock_credentials.return_value = mock_creds
-
-        mock_response = Mock()
-        mock_response.content = [Mock(text="Hello! I'm Claude.")]
-        mock_response.model = "claude-3-5-sonnet-20240620"
-        mock_response.stop_reason = "end_turn"
-        mock_response.usage = Mock(input_tokens=10, output_tokens=15)
-
-        mock_client = Mock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
-
-        # Execute
+        # Create worker
         worker = ClaudeWorker()
 
-        with qtbot.waitSignal(worker.response_ready, timeout=5000) as blocker:
-            worker.send_message("Hello Claude!")
+        # Mock the ClaudeClient.send_message method directly
+        mock_result = ClaudeResult(
+            success=True,
+            content="Hello! I'm Claude.",
+            model="claude-3-5-sonnet-20240620",
+            tokens_used=25,
+            error=None,
+            stop_reason="end_turn",
+        )
+
+        with patch.object(worker.client, "send_message", return_value=mock_result):
+            with qtbot.waitSignal(worker.response_ready, timeout=5000) as blocker:
+                worker.send_message("Hello Claude!")
 
         # Verify
         result = blocker.args[0]
@@ -171,32 +163,24 @@ class TestClaudeWorker:
         assert result.model == "claude-3-5-sonnet-20240620"
         assert result.tokens_used == 25
 
-    @patch("asciidoc_artisan.claude.claude_client.Anthropic")
-    @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_test_connection_emits_connection_tested(
-        self, mock_credentials, mock_anthropic, qtbot
-    ):
+    def test_test_connection_emits_connection_tested(self, qtbot):
         """Test successful connection test emits connection_tested."""
-        # Setup mocks
-        mock_creds = Mock()
-        mock_creds.get_anthropic_key.return_value = "sk-ant-test-key"
-        mock_credentials.return_value = mock_creds
-
-        mock_response = Mock()
-        mock_response.content = [Mock(text="Connection OK")]
-        mock_response.model = "claude-3-5-sonnet-20240620"
-        mock_response.stop_reason = "end_turn"
-        mock_response.usage = Mock(input_tokens=5, output_tokens=3)
-
-        mock_client = Mock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
-
-        # Execute
+        # Create worker
         worker = ClaudeWorker()
 
-        with qtbot.waitSignal(worker.connection_tested, timeout=5000) as blocker:
-            worker.test_connection()
+        # Mock the ClaudeClient.test_connection method directly
+        mock_result = ClaudeResult(
+            success=True,
+            content="Connection OK",
+            model="claude-3-5-sonnet-20240620",
+            tokens_used=8,
+            error=None,
+            stop_reason="end_turn",
+        )
+
+        with patch.object(worker.client, "test_connection", return_value=mock_result):
+            with qtbot.waitSignal(worker.connection_tested, timeout=5000) as blocker:
+                worker.test_connection()
 
         # Verify
         result = blocker.args[0]
@@ -255,26 +239,20 @@ class TestClaudeWorker:
 
             assert "worker error" in blocker.args[0].lower()
 
-    @patch("asciidoc_artisan.claude.claude_client.Anthropic")
-    @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_send_message_with_conversation_history(
-        self, mock_credentials, mock_anthropic, qtbot
-    ):
+    def test_send_message_with_conversation_history(self, qtbot):
         """Test send_message with conversation history."""
-        # Setup mocks
-        mock_creds = Mock()
-        mock_creds.get_anthropic_key.return_value = "sk-ant-test-key"
-        mock_credentials.return_value = mock_creds
+        # Create worker
+        worker = ClaudeWorker()
 
-        mock_response = Mock()
-        mock_response.content = [Mock(text="Response")]
-        mock_response.model = "claude-3-5-sonnet-20240620"
-        mock_response.stop_reason = "end_turn"
-        mock_response.usage = Mock(input_tokens=20, output_tokens=10)
-
-        mock_client = Mock()
-        mock_client.messages.create.return_value = mock_response
-        mock_anthropic.return_value = mock_client
+        # Mock the ClaudeClient.send_message method directly
+        mock_result = ClaudeResult(
+            success=True,
+            content="Response",
+            model="claude-3-5-sonnet-20240620",
+            tokens_used=30,
+            error=None,
+            stop_reason="end_turn",
+        )
 
         # Execute
         history = [
@@ -282,19 +260,16 @@ class TestClaudeWorker:
             ClaudeMessage(role="assistant", content="First response"),
         ]
 
-        worker = ClaudeWorker()
-
-        with qtbot.waitSignal(worker.response_ready, timeout=5000) as blocker:
-            worker.send_message("Second message", conversation_history=history)
+        with patch.object(worker.client, "send_message", return_value=mock_result) as mock_send:
+            with qtbot.waitSignal(worker.response_ready, timeout=5000) as blocker:
+                worker.send_message("Second message", conversation_history=history)
 
         # Verify
         result = blocker.args[0]
         assert result.success is True
 
-        # Verify history was passed to API
-        call_kwargs = mock_client.messages.create.call_args[1]
-        messages = call_kwargs["messages"]
-        assert len(messages) == 3  # 2 from history + 1 current
-        assert messages[0]["content"] == "First message"
-        assert messages[1]["content"] == "First response"
-        assert messages[2]["content"] == "Second message"
+        # Verify history was passed to client
+        mock_send.assert_called_once()
+        call_kwargs = mock_send.call_args[1]
+        assert call_kwargs["conversation_history"] == history
+        assert call_kwargs["message"] == "Second message"
