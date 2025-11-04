@@ -80,51 +80,57 @@ def test_worker_pool_cleanup():
         f"Thread leak detected: {initial_threads} -> {final_threads}"
 
 
+@pytest.mark.asyncio
 @pytest.mark.memory
-@pytest.mark.skip(reason="FileHandler now uses async I/O - requires AsyncFileManager mock")
-def test_file_handler_no_handle_leak(qtbot):
-    """Test file handler doesn't leak file handles.
-
-    SKIPPED: FileHandler migrated to async I/O in v1.7.0.
-    Method _load_file_content() renamed to _load_file_async().
-    Test requires AsyncFileManager mock and asyncio event loop.
-    TODO: Update test for async API in P0 phase.
-    """
+async def test_file_handler_no_handle_leak_async(qtbot):
+    """Test async file handler doesn't leak file handles."""
     from asciidoc_artisan.ui.file_handler import FileHandler
     from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
+    from unittest.mock import AsyncMock
     import tempfile
     from pathlib import Path
+    import psutil
+    import os
+
+    process = psutil.Process(os.getpid())
+    initial_handles = len(process.open_files())
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Create many test files
+        # Create test files
         test_files = []
-        for i in range(50):
+        for i in range(10):  # Reduced from 50 for faster tests
             test_file = Path(tmpdir) / f"test_{i}.adoc"
-            test_file.write_text(f"Content {i}")
+            test_file.write_text(f"= Document {i}\n\nContent {i}")
             test_files.append(test_file)
 
         # Create handler
         editor = QPlainTextEdit()
-        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
-        qtbot.addWidget(mock_window)  # Manage lifecycle
-        # Add Mock attributes that tests expect
+        mock_window = QMainWindow()
+        qtbot.addWidget(mock_window)
         mock_window.status_bar = Mock()
         mock_settings = Mock()
         mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
         mock_status = Mock()
+        mock_status.update_window_title = Mock()
+        mock_status.update_document_metrics = Mock()
 
         handler = FileHandler(editor, mock_window, mock_settings, mock_status)
 
-        # NOTE: _load_file_async() requires asyncio event loop
-        # Open and close many files
+        # Open files asynchronously
         for test_file in test_files:
-            pass  # TODO: Implement async file loading test
-            # File should be closed after loading
+            # Mock async read to return content
+            handler.async_manager.read_file = AsyncMock(return_value=test_file.read_text())
+            await handler._load_file_async(test_file)
 
         # Cleanup
         editor.deleteLater()
 
-        # No assertion needed - if file handles leak, OS will complain
+    # Check that file handles haven't leaked significantly
+    final_handles = len(process.open_files())
+    handle_diff = final_handles - initial_handles
+
+    # Allow small variation (±5 handles is acceptable)
+    assert abs(handle_diff) < 5, f"File handle leak detected: {initial_handles} → {final_handles} (diff: {handle_diff})"
 
 
 @pytest.mark.memory

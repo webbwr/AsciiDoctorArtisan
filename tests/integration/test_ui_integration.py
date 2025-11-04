@@ -85,20 +85,30 @@ class TestAsciiDocEditorUI:
         # Should mark as unsaved
         assert editor._unsaved_changes is True
 
-    @pytest.mark.skip(reason="Requires async refactoring - FileHandler now uses async I/O (v1.7.0)")
-    @patch("asciidoc_artisan.ui.main_window.atomic_save_text", return_value=True)
-    def test_save_file_creates_file(self, mock_save, editor, qtbot):
-        """Test save file operation."""
+    @pytest.mark.asyncio
+    @pytest.mark.integration
+    async def test_save_file_creates_file_async(self, editor, qtbot):
+        """Test async save file operation."""
+        from unittest.mock import AsyncMock
+
         with tempfile.TemporaryDirectory() as tmpdir:
             test_file = Path(tmpdir) / "test.adoc"
-            editor._current_file_path = test_file
-            editor.editor.setPlainText("= Test")
+            test_content = "= Test Document"
 
-            # Trigger save
-            result = editor.save_file(save_as=False)
+            # Set up file handler state
+            editor.file_handler.current_file_path = test_file
+            editor.editor.setPlainText(test_content)
 
-            assert result is True
-            assert mock_save.called
+            # Mock async write to return success
+            editor.file_handler.async_manager.write_file = AsyncMock(return_value=True)
+
+            # Call async save directly
+            await editor.file_handler._save_file_async(test_file, test_content)
+
+            # Verify save was called
+            editor.file_handler.async_manager.write_file.assert_called_once()
+            assert editor.file_handler.current_file_path == test_file
+            assert editor.file_handler.unsaved_changes is False
 
     def test_dark_mode_toggle(self, editor, qtbot):
         """Test dark mode toggle functionality."""

@@ -145,17 +145,17 @@ def test_many_metrics_operations():
     # Ring buffer should limit memory (1000 entries per operation)
 
 
-@pytest.mark.skip(reason="Requires async refactoring - FileHandler now uses async I/O (v1.7.0)")
+@pytest.mark.asyncio
 @pytest.mark.stress
 @pytest.mark.slow
-def test_large_file_open_save(qtbot):
-    """Test opening and saving very large files."""
+async def test_large_file_open_save_async(qtbot):
+    """Test opening and saving very large files with async I/O."""
     from asciidoc_artisan.ui.file_handler import FileHandler
-    from unittest.mock import Mock
+    from unittest.mock import Mock, AsyncMock
     from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Create very large file (5MB)
+        # Create large file (5MB)
         large_content = "= Large Document\n\n" + ("Test content. " * 500_000)
         assert len(large_content) > 5_000_000, "File should be > 5MB"
 
@@ -164,23 +164,32 @@ def test_large_file_open_save(qtbot):
 
         # Create handler
         editor = QPlainTextEdit()
-        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
-        qtbot.addWidget(mock_window)  # Manage lifecycle
-        # Add Mock attributes that tests expect
+        mock_window = QMainWindow()
+        qtbot.addWidget(mock_window)
         mock_window.status_bar = Mock()
         mock_settings = Mock()
         mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
         mock_status = Mock()
+        mock_status.update_window_title = Mock()
+        mock_status.update_document_metrics = Mock()
 
         handler = FileHandler(editor, mock_window, mock_settings, mock_status)
 
-        # Open large file
+        # Mock async read to return large content
+        handler.async_manager.read_file = AsyncMock(return_value=large_content)
+        handler.async_manager.watch_file = Mock()
+
+        # Open large file asynchronously
         start = time.perf_counter()
-        handler._load_file_content(test_file)
+        await handler._load_file_async(test_file)
         open_time = time.perf_counter() - start
 
-        # Should handle large files (may be slow but shouldn't crash)
-        assert open_time < 10.0, f"Large file open took {open_time:.1f}s"
+        # Async I/O should be fast (mocked)
+        assert open_time < 2.0, f"Async file open took {open_time:.1f}s (should be < 2s with mocking)"
+
+        # Verify content loaded
+        assert editor.toPlainText() == large_content
+        assert handler.current_file_path == test_file
 
         # Save large file
         start = time.perf_counter()
