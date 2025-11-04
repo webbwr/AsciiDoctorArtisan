@@ -415,3 +415,275 @@ class TestGitWorkerStatus:
         assert status is not None
         assert status.branch == ""
         assert status.is_dirty is False
+
+
+@pytest.mark.unit
+class TestGitWorkerCancellation:
+    """Test Git Worker cancellation functionality."""
+
+    def test_git_command_cancelled_before_execution(self):
+        """Test Git command respects cancellation before execution."""
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Cancel before execution
+        worker.cancel()
+
+        # Execute with cancellation flag set
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "status"], str(tmpdir))
+
+        # Verify cancelled result
+        assert result is not None
+        assert result.success is False
+        assert "cancelled" in result.stderr.lower()
+        assert result.exit_code == -1
+
+    def test_get_repository_status_cancelled(self):
+        """Test get_repository_status respects cancellation."""
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Cancel before execution
+        worker.cancel()
+
+        # Execute - should not emit status when cancelled
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_repository_status(str(tmpdir))
+
+        # Status should be None (not emitted) or have default values
+        assert status is None or status.branch == ""
+
+
+@pytest.mark.unit
+class TestGitWorkerOperationTimeout:
+    """Test Git Worker timeout configuration for different operation types."""
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_network_operation_timeout_pull(self, mock_run):
+        """Test pull command uses 60 second timeout (network operation)."""
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="Already up to date.", stderr=""
+        )
+
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Execute pull command
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "pull"], str(tmpdir))
+
+        # Verify subprocess.run was called with timeout=60
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["timeout"] == 60
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_network_operation_timeout_push(self, mock_run):
+        """Test push command uses 60 second timeout (network operation)."""
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="Everything up-to-date", stderr=""
+        )
+
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Execute push command
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "push", "origin", "main"], str(tmpdir))
+
+        # Verify subprocess.run was called with timeout=60
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["timeout"] == 60
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_network_operation_timeout_fetch(self, mock_run):
+        """Test fetch command uses 60 second timeout (network operation)."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Execute fetch command
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "fetch"], str(tmpdir))
+
+        # Verify subprocess.run was called with timeout=60
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["timeout"] == 60
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_local_operation_timeout_commit(self, mock_run):
+        """Test commit command uses 30 second timeout (local operation)."""
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="[main abc1234] Test commit",
+            stderr="",
+        )
+
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Execute commit command
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "commit", "-m", "Test"], str(tmpdir))
+
+        # Verify subprocess.run was called with timeout=30
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["timeout"] == 30
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_local_operation_timeout_status(self, mock_run):
+        """Test status command uses 30 second timeout (local operation)."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Execute status command
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "status"], str(tmpdir))
+
+        # Verify subprocess.run was called with timeout=30
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["timeout"] == 30
+
+
+@pytest.mark.unit
+class TestGitWorkerStatusParsingEdgeCases:
+    """Test Git Worker status parsing for edge cases and complex scenarios."""
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_parse_git_status_no_branch_info(self, mock_run):
+        """Test status parsing when branch info is missing."""
+        # Porcelain v2 format without branch info (shouldn't happen but handle gracefully)
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="1 .M N... 100644 100644 100644 abc123 def456 file.txt\n",
+            stderr="",
+        )
+
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_repository_status(str(tmpdir))
+
+        # Should handle missing branch gracefully
+        assert status is not None
+        assert status.branch == "unknown"  # Default when branch info missing
+        assert status.is_dirty is True  # Still detect modified files
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_parse_git_status_untracked_files_only(self, mock_run):
+        """Test status parsing with only untracked files."""
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=(
+                "# branch.oid abcd1234\n"
+                "# branch.head main\n"
+                "? untracked1.txt\n"
+                "? untracked2.txt\n"
+            ),
+            stderr="",
+        )
+
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_repository_status(str(tmpdir))
+
+        # Verify
+        assert status is not None
+        assert status.branch == "main"
+        assert status.untracked_count == 2
+        assert status.is_dirty is True
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_parse_git_status_staged_files_only(self, mock_run):
+        """Test status parsing with only staged files."""
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=(
+                "# branch.oid abcd1234\n"
+                "# branch.head main\n"
+                "1 M. N... 100644 100644 100644 abc123 def456 staged.txt\n"
+            ),
+            stderr="",
+        )
+
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_repository_status(str(tmpdir))
+
+        # Verify
+        assert status is not None
+        assert status.branch == "main"
+        assert status.staged_count == 1
+        assert status.modified_count == 0  # Only counting unstaged
+        assert status.is_dirty is True
