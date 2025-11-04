@@ -255,6 +255,10 @@ class ThemeManager:
             ):
                 self.editor.chat_manager._chat_panel.set_dark_mode(False)
 
+        # Restore git status label color after theme change
+        if hasattr(self.editor, "status_manager"):
+            self.editor.status_manager.restore_git_status_color()
+
     def _apply_dark_theme(self) -> None:
         """Apply dark theme color palette to the application."""
         palette = QPalette()

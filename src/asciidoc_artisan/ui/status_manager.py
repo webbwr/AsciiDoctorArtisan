@@ -47,11 +47,16 @@ class StatusManager:
         self.version_label: Optional[QLabel] = None
         self.word_count_label: Optional[QLabel] = None
         self.grade_level_label: Optional[QLabel] = None
+        self.git_status_label: Optional[QLabel] = None
         self.ai_status_label: Optional[QLabel] = None
         self.cancel_button: Optional[QPushButton] = None
 
         # Track current operation for cancellation
         self._current_operation: Optional[str] = None  # 'git', 'pandoc', or 'preview'
+
+        # Git status color tracking for theme changes
+        self._current_git_color: Optional[str] = None
+        self._current_git_text: Optional[str] = None
 
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets after status bar is created."""
@@ -69,6 +74,7 @@ class StatusManager:
         self.word_count_label = QLabel("Words: 0")
         self.version_label = QLabel("")
         self.grade_level_label = QLabel("Grade: --")
+        self.git_status_label = QLabel("")
         self.ai_status_label = QLabel("")
 
         # Style all labels consistently with matched fonts and alignment
@@ -84,15 +90,20 @@ class StatusManager:
         self.grade_level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.grade_level_label.setMinimumWidth(90)
 
+        # Git status: brief branch indicator
+        self.git_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.git_status_label.setMinimumWidth(80)
+
         # AI status: wider for model names
         self.ai_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.ai_status_label.setMinimumWidth(150)
 
         # Add widgets to status bar (right side, permanent)
-        # Order: Version | Word Count | Grade Level | AI Status
+        # Order: Version | Word Count | Grade Level | Git | AI Status
         self.editor.status_bar.addPermanentWidget(self.version_label)
         self.editor.status_bar.addPermanentWidget(self.word_count_label)
         self.editor.status_bar.addPermanentWidget(self.grade_level_label)
+        self.editor.status_bar.addPermanentWidget(self.git_status_label)
         self.editor.status_bar.addPermanentWidget(self.ai_status_label)
 
     def update_window_title(self) -> None:
@@ -391,25 +402,58 @@ class StatusManager:
 
     def update_git_status(self, status: GitStatus) -> None:
         """
-        Update Git status display with color coding.
+        Update Git status display with brief format and color coding.
 
-        NOTE: Git status label removed from status bar as of v1.9.0+.
-        This method is kept for API compatibility but does nothing.
+        Brief format:
+        - Clean: "main ✓" (green)
+        - Dirty: "main ●2" (yellow, showing total changes)
+        - Conflicts: "main ⚠" (red)
 
         Args:
             status: GitStatus object with repository information
         """
-        # Git status label removed from UI - method kept for compatibility
-        logger.debug(
-            f"Git status update called but label not displayed: {status.branch}"
-        )
+        if not self.git_status_label:
+            return
+
+        # Build brief status text
+        branch = status.branch
+        total_changes = status.modified_count + status.staged_count + status.untracked_count
+
+        if status.has_conflicts:
+            # Red for conflicts
+            text = f"{branch} ⚠"
+            color = "#ef4444"
+        elif total_changes > 0:
+            # Yellow for changes (show count)
+            text = f"{branch} ●{total_changes}"
+            color = "#fbbf24"
+        else:
+            # Green for clean
+            text = f"{branch} ✓"
+            color = "#4ade80"
+
+        # Store current state for theme restoration
+        self._current_git_color = color
+        self._current_git_text = text
+
+        # Apply color and text
+        self.git_status_label.setStyleSheet(f"color: {color};")
+        self.git_status_label.setText(text)
+
+        logger.debug(f"Git status updated: {text} ({color})")
 
     def restore_git_status_color(self) -> None:
         """
-        Restore git status label color after theme changes (v1.9.0+).
+        Restore git status label color after theme changes.
 
-        NOTE: Git status label removed from status bar as of v1.9.0+.
-        This method is kept for API compatibility but does nothing.
+        Theme changes can override inline stylesheets with global palette.
+        This method re-applies the git status color from stored state.
         """
-        # Git status label removed from UI - method kept for compatibility
-        pass
+        if not self.git_status_label or not self._current_git_color or not self._current_git_text:
+            return
+
+        # Re-apply stored color and text
+        self.git_status_label.setStyleSheet(f"color: {self._current_git_color};")
+        self.git_status_label.setText(self._current_git_text)
+
+        logger.debug(f"Git status color restored: {self._current_git_text} ({self._current_git_color})")
