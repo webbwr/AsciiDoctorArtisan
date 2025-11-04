@@ -354,3 +354,48 @@ class TestSearchEngine:
         new_text, count = engine.replace_all("anything", "something")
         assert count == 0
         assert new_text == ""
+
+    def test_find_next_invalid_regex_raises(self):
+        """Test that find_next raises ValueError for invalid regex."""
+        engine = SearchEngine("test text")
+
+        with pytest.raises(re.error):
+            engine.find_next("[invalid(", use_regex=True)
+
+    def test_find_previous_invalid_regex_raises(self):
+        """Test that find_previous raises ValueError for invalid regex."""
+        engine = SearchEngine("test text")
+
+        with pytest.raises(re.error):
+            engine.find_previous("[invalid(", start_offset=5, use_regex=True)
+
+    def test_replace_all_invalid_regex_raises(self):
+        """Test that replace_all raises ValueError for invalid regex."""
+        engine = SearchEngine("test text")
+
+        with pytest.raises(re.error):
+            engine.replace_all("[invalid(", "replacement", use_regex=True)
+
+    def test_line_column_at_end_of_text(self):
+        """Test line and column calculation at end of text."""
+        text = "line 1\nline 2\nline 3"
+        engine = SearchEngine(text)
+
+        # Offset at end of text
+        line, col = engine._offset_to_line_col(len(text))
+        assert line == 3  # len(lines)
+        assert col == 0
+
+    def test_find_next_empty_search_raises(self):
+        """Test that find_next raises ValueError for empty search text."""
+        engine = SearchEngine("test text")
+
+        with pytest.raises(ValueError, match="Search text cannot be empty"):
+            engine.find_next("")
+
+    def test_find_previous_empty_search_raises(self):
+        """Test that find_previous raises ValueError for empty search text."""
+        engine = SearchEngine("test text")
+
+        with pytest.raises(ValueError, match="Search text cannot be empty"):
+            engine.find_previous("", start_offset=5)
