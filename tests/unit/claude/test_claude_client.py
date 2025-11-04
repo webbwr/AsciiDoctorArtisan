@@ -190,8 +190,9 @@ class TestClaudeClient:
 
         assert isinstance(models, list)
         assert len(models) > 0
-        assert "claude-3-5-sonnet-20240620" in models
-        assert "claude-3-5-haiku-20241022" in models
+        # Check for current model IDs (as of Nov 2025)
+        assert "claude-sonnet-4-20250514" in models or "claude-3-5-sonnet-20240620" in models
+        assert "claude-haiku-4-5" in models or "claude-3-5-haiku-20241022" in models
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
     @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
