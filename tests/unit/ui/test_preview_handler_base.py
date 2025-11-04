@@ -149,23 +149,28 @@ def test_text_changed_triggers_debounced_update(handler, editor, qtbot):
     assert handler.preview_timer.interval() <= PREVIEW_FAST_INTERVAL_MS + 100
 
 
-def test_text_changed_adapts_to_document_size(handler, editor):
+@pytest.mark.timeout(5)
+def test_text_changed_adapts_to_document_size(handler, editor, qtbot):
     """Test debounce interval adapts to document size."""
     # Small document
     editor.setPlainText("x" * 1000)
+    qtbot.wait(50)  # Allow Qt events to process
     small_interval = handler.preview_timer.interval()
 
     # Large document
     editor.setPlainText("x" * 150000)
+    qtbot.wait(50)  # Allow Qt events to process
     large_interval = handler.preview_timer.interval()
 
     # Large documents should have longer intervals
     assert large_interval >= small_interval
 
 
-def test_update_preview_emits_signal(handler, editor, mock_window):
+@pytest.mark.timeout(5)
+def test_update_preview_emits_signal(handler, editor, mock_window, qtbot):
     """Test update_preview emits signal to worker."""
     editor.setPlainText("Test content")
+    qtbot.wait(50)  # Allow Qt events to process
     handler.update_preview()
 
     # Should emit request to parent window

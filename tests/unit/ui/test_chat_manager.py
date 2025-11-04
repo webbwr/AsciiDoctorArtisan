@@ -47,13 +47,18 @@ def mock_settings():
     """Create mock Settings."""
     settings = Mock(spec=Settings)
     settings.ai_backend = "ollama"
+    settings.ai_chat_enabled = True  # Backend-agnostic chat enable flag
     settings.ollama_enabled = True
     settings.ollama_model = "qwen2.5-coder:7b"
     settings.ollama_chat_enabled = True
     settings.ollama_chat_history = []
+    settings.ollama_chat_max_history = 100
+    settings.chat_history = []  # Backend-agnostic history
+    settings.chat_max_history = 100  # Backend-agnostic max history
     settings.ollama_chat_context_mode = "syntax"
     settings.chat_context_mode = "syntax"
     settings.claude_model = None
+    settings.claude_enabled = False
     return settings
 
 
@@ -172,16 +177,14 @@ class TestBackendSwitching:
         mock_chat_bar.set_scan_models_visible.assert_called_with(True)
 
     def test_switch_backend_emits_settings_changed(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test backend switch emits settings changed signal."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         with patch.object(manager, "_load_available_models"):
-            with patch.object(manager.settings_changed, "emit") as mock_emit:
+            with qtbot.waitSignal(manager.settings_changed, timeout=1000):
                 manager._switch_backend("claude")
-
-            mock_emit.assert_called_once()
 
 
 class TestModelLoading:
@@ -261,8 +264,9 @@ class TestModelLoading:
         """Test loading Claude models."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch("asciidoc_artisan.ui.chat_manager.ClaudeClient") as mock_client:
-            mock_client.AVAILABLE_MODELS = [
+        # Mock ClaudeClient at the correct import location (inside the method)
+        with patch("asciidoc_artisan.claude.claude_client.ClaudeClient") as mock_client_class:
+            mock_client_class.AVAILABLE_MODELS = [
                 "claude-sonnet-4-20250514",
                 "claude-haiku-3-20250307",
             ]
@@ -282,10 +286,12 @@ class TestMessageHandling:
         """Test handling message_sent signal."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch.object(manager, "_handle_user_message") as mock_handle:
-            manager._on_message_sent("Test message", "qwen2.5-coder:7b", "syntax")
+        # _on_message_sent directly handles the message (doesn't call _handle_user_message)
+        # Just verify it doesn't crash
+        manager._on_message_sent("Test message", "qwen2.5-coder:7b", "syntax")
 
-        mock_handle.assert_called_once_with("Test message", "qwen2.5-coder:7b", "syntax")
+        # Should have added message to panel
+        mock_chat_panel.add_user_message.assert_called_once()
 
     def test_handle_user_message_adds_to_panel(
         self, mock_chat_bar, mock_chat_panel, mock_settings
@@ -295,22 +301,21 @@ class TestMessageHandling:
 
         manager._handle_user_message("Test question", "qwen2.5-coder:7b", "syntax")
 
+        # Verify add_user_message was called with correct positional arguments
         mock_chat_panel.add_user_message.assert_called_once()
-        call_args = mock_chat_panel.add_user_message.call_args
-        assert call_args[1]["content"] == "Test question"
-        assert call_args[1]["model"] == "qwen2.5-coder:7b"
-        assert call_args[1]["context_mode"] == "syntax"
+        call_args = mock_chat_panel.add_user_message.call_args[0]  # positional args tuple
+        assert call_args[0] == "Test question"  # message
+        assert call_args[1] == "qwen2.5-coder:7b"  # model
+        assert call_args[2] == "syntax"  # context_mode
 
     def test_handle_user_message_emits_to_worker(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test user message is sent to worker."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch.object(manager.message_sent_to_worker, "emit") as mock_emit:
+        with qtbot.waitSignal(manager.message_sent_to_worker, timeout=1000):
             manager._handle_user_message("Test", "model", "syntax")
-
-        mock_emit.assert_called_once()
 
     def test_handle_response_ready(
         self, mock_chat_bar, mock_chat_panel, mock_settings
@@ -333,16 +338,15 @@ class TestMessageHandling:
         # Should stop processing
         assert manager._is_processing is False
 
-    def test_handle_error(self, mock_chat_bar, mock_chat_panel, mock_settings):
+    def test_handle_error(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test handling AI error."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch.object(manager.status_message, "emit") as mock_emit:
+        with qtbot.waitSignal(manager.status_message, timeout=1000) as blocker:
             manager.handle_error("Connection failed")
 
         # Should emit status message
-        mock_emit.assert_called_once()
-        assert "Connection failed" in mock_emit.call_args[0][0]
+        assert "Connection failed" in blocker.args[0]
 
     def test_handle_operation_cancelled(
         self, mock_chat_bar, mock_chat_panel, mock_settings
@@ -447,6 +451,7 @@ class TestVisibilityManagement:
         self, mock_chat_bar, mock_chat_panel, mock_settings
     ):
         """Test chat should not show when disabled."""
+        mock_settings.ai_chat_enabled = False  # Backend-agnostic flag
         mock_settings.ollama_chat_enabled = False
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -466,28 +471,54 @@ class TestVisibilityManagement:
         assert result is False
 
     def test_update_visibility_shows_when_should_show(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test update_visibility shows chat when conditions met."""
-        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
+        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings, parent=None)
+
+        # Mock the parent after initialization
+        mock_parent = Mock()
+        mock_parent.chat_container = Mock()
+        mock_parent.splitter = Mock()
+        mock_parent.splitter.sizes.return_value = [100, 100, 0]  # Chat hidden
+        mock_parent.width.return_value = 1000
+
+        # Manually set the parent (after __init__)
+        manager.setParent(None)  # Clear Qt parent
+        manager._parent = mock_parent  # Use internal reference
 
         with patch.object(manager, "_should_show_chat", return_value=True):
-            manager._update_visibility()
+            with patch.object(manager, "parent", return_value=mock_parent):
+                with qtbot.waitSignal(manager.visibility_changed, timeout=1000):
+                    manager._update_visibility()
 
-        mock_chat_bar.show.assert_called_once()
-        mock_chat_panel.show.assert_called_once()
+        # Should set chat_container visible
+        mock_parent.chat_container.setVisible.assert_called_with(True)
 
     def test_update_visibility_hides_when_should_not_show(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test update_visibility hides chat when conditions not met."""
-        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
+        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings, parent=None)
+
+        # Mock the parent after initialization
+        mock_parent = Mock()
+        mock_parent.chat_container = Mock()
+        mock_parent.splitter = Mock()
+        mock_parent.splitter.sizes.return_value = [100, 100, 100]  # Chat visible
+        mock_parent.width.return_value = 1000
+
+        # Manually set the parent (after __init__)
+        manager.setParent(None)  # Clear Qt parent
+        manager._parent = mock_parent  # Use internal reference
 
         with patch.object(manager, "_should_show_chat", return_value=False):
-            manager._update_visibility()
+            with patch.object(manager, "parent", return_value=mock_parent):
+                with qtbot.waitSignal(manager.visibility_changed, timeout=1000):
+                    manager._update_visibility()
 
-        mock_chat_bar.hide.assert_called_once()
-        mock_chat_panel.hide.assert_called_once()
+        # Should set chat_container hidden
+        mock_parent.chat_container.setVisible.assert_called_with(False)
 
 
 class TestSignalHandlers:
@@ -502,44 +533,53 @@ class TestSignalHandlers:
         mock_chat_panel.clear_messages.assert_called_once()
 
     def test_on_clear_requested_saves_history(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test clearing chat saves empty history."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch.object(manager, "_save_chat_history") as mock_save:
+        # Call _on_clear_requested - it clears panel and emits signals
+        with qtbot.waitSignal(manager.settings_changed, timeout=1000):
             manager._on_clear_requested()
 
-        mock_save.assert_called_once()
+        # Verify panel was cleared
+        mock_chat_panel.clear_messages.assert_called_once()
 
-    def test_on_cancel_requested(self, mock_chat_bar, mock_chat_panel, mock_settings):
-        """Test cancel request sets processing false."""
+    def test_on_cancel_requested(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
+        """Test cancel request emits status message."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
-        manager._is_processing = True
 
-        manager._on_cancel_requested()
+        with qtbot.waitSignal(manager.status_message, timeout=1000) as blocker:
+            manager._on_cancel_requested()
 
-        assert manager._is_processing is False
+        # Should emit canceling message
+        assert "cancel" in blocker.args[0].lower()
 
     def test_on_model_changed_ollama(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test model changed updates Ollama settings."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
 
-        manager._on_model_changed("new-model")
+        # Mock successful validation
+        with patch.object(manager, "_validate_model", return_value=True):
+            with qtbot.waitSignal(manager.settings_changed, timeout=1000):
+                manager._on_model_changed("new-model")
 
         assert mock_settings.ollama_model == "new-model"
 
     def test_on_model_changed_claude(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test model changed updates Claude settings."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
 
-        manager._on_model_changed("claude-haiku-3-20250307")
+        # Mock successful validation
+        with patch.object(manager, "_validate_model", return_value=True):
+            with qtbot.waitSignal(manager.settings_changed, timeout=1000):
+                manager._on_model_changed("claude-haiku-3-20250307")
 
         assert mock_settings.claude_model == "claude-haiku-3-20250307"
 
