@@ -69,10 +69,11 @@ class TestValidationWorker:
         """Test checking package that's not installed."""
         worker = ValidationWorker()
 
-        # Use a package that definitely doesn't exist
+        # Use a package from the hardcoded list that might not be installed
+        # Mock the import to simulate it not being installed
         with patch("builtins.__import__", side_effect=ImportError):
             status, version, message = worker._check_python_package(
-                "nonexistent_package_xyz", "1.0.0"
+                "ollama", "1.0.0"  # Use known package name so import is attempted
             )
             assert status == "✗"
             assert version == "not installed"

@@ -104,7 +104,7 @@ class TestDocumentBlock:
         )
 
         block_id = block.compute_id()
-        assert len(block_id) == 16
+        assert len(block_id) == 12  # BLOCK_HASH_LENGTH is 12 (reduced from 16)
         assert block_id.isalnum()
 
     def test_block_id_consistency(self):
@@ -215,7 +215,7 @@ Final content"""
 
         for block in blocks:
             assert block.id != ""
-            assert len(block.id) == 16
+            assert len(block.id) == 12  # BLOCK_HASH_LENGTH is 12 (reduced from 16)
 
 
 class MockAsciiDocAPI:
