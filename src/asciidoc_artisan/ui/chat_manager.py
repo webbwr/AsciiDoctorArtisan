@@ -193,12 +193,14 @@ class ChatManager(QObject):
         )
 
         try:
-            # Run ollama pull in subprocess (non-blocking for UI)
+            # Use Popen (not run) because download takes minutes and we don't want to freeze the UI
+            # SECURITY: List form prevents command injection attacks
+            # (Never use shell=True with user input - that allows hackers to run malicious commands!)
             subprocess.Popen(
-                ["ollama", "pull", default_model],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
+                ["ollama", "pull", default_model],  # Safe: list form, no shell
+                stdout=subprocess.PIPE,  # Capture output for logging
+                stderr=subprocess.PIPE,  # Capture errors
+                text=True,  # Get strings, not bytes
             )
             logger.info(f"Started download of {default_model}")
         except Exception as e:
@@ -209,32 +211,46 @@ class ChatManager(QObject):
         """
         Switch to a different AI backend and update UI accordingly.
 
+        WHY THIS EXISTS:
+        Users can switch between two AI backends:
+        - Ollama: Local AI running on your computer (free, private, no API key)
+        - Claude: Cloud AI from Anthropic (requires API key, more powerful)
+
+        When they switch, we need to update the entire UI to show the right
+        options for the new backend. This method handles all 6 steps needed.
+
         This method handles the complete backend switch process:
         1. Updates current backend tracking
-        2. Updates settings
-        3. Sets default model if needed
-        4. Reloads models for new backend
-        5. Updates chat bar dropdown
+        2. Updates settings (saves preference)
+        3. Sets default model if needed (prevents empty dropdown)
+        4. Reloads models for new backend (Ollama = local, Claude = API list)
+        5. Updates chat bar dropdown (shows selected model)
+        6. Updates UI elements (menu checkmarks, scan button visibility)
 
         Args:
             new_backend: Backend to switch to ("ollama" or "claude")
         """
         logger.info(f"Switching backend from {self._current_backend} to {new_backend}")
 
-        # Update backend tracking
+        # Step 1: Update which backend is currently active
+        # (We track this in two places: instance variable + saved settings)
         self._current_backend = new_backend
         self._settings.ai_backend = new_backend
 
-        # Set default model if not configured
+        # Step 2: Set default model if user hasn't chosen one yet
+        # (This prevents showing an empty dropdown on first switch)
         if new_backend == "claude" and not self._settings.claude_model:
+            # Use Sonnet 4 as default (best balance of speed/quality/cost)
             self._settings.claude_model = "claude-sonnet-4-20250514"
         elif new_backend == "ollama" and not self._settings.ollama_model:
+            # Use improve-grammer as default (good for document editing)
             self._settings.ollama_model = "gnokit/improve-grammer"
 
-        # Reload models for new backend
+        # Step 3: Load available models for the new backend
+        # (Ollama = scan local system, Claude = load from API client)
         self._load_available_models()
 
-        # Update selected model in chat bar
+        # Step 4: Update the selected model shown in chat bar dropdown
         if new_backend == "ollama" and self._settings.ollama_model:
             self._chat_bar.set_model(self._settings.ollama_model)
             logger.info(f"Switched to Ollama model: {self._settings.ollama_model}")
@@ -242,17 +258,19 @@ class ChatManager(QObject):
             self._chat_bar.set_model(self._settings.claude_model)
             logger.info(f"Switched to Claude model: {self._settings.claude_model}")
 
-        # Update AI backend checkmarks in Help menu (real-time)
+        # Step 5: Update AI backend checkmarks in Help menu (real-time visual feedback)
         parent = self.parent()
         if parent and hasattr(parent, "_update_ai_backend_checkmarks"):
             parent._update_ai_backend_checkmarks()
             logger.debug(f"Updated AI backend checkmarks for {new_backend}")
 
-        # Update Scan Models button visibility (only for Claude backend)
+        # Step 6: Update Scan Models button visibility
+        # (Only Claude needs this button - Ollama scans automatically)
         self._chat_bar.set_scan_models_visible(new_backend == "claude")
         logger.debug(f"Scan Models button visible: {new_backend == 'claude'}")
 
-        # Emit settings changed signal
+        # Notify other parts of app that settings changed
+        # (Triggers save to disk + updates any listening widgets)
         self.settings_changed.emit()
 
     def _load_available_models(self) -> None:
@@ -278,13 +296,15 @@ class ChatManager(QObject):
         ollama_available = False
 
         try:
-            # Try to detect installed models
+            # Try to detect installed models using subprocess
+            # Use run (not Popen) because we need to wait for the result (3 sec max)
+            # SECURITY: List form prevents command injection attacks (no shell=True!)
             result = subprocess.run(
-                ["ollama", "list"],
-                capture_output=True,
-                text=True,
-                timeout=3,
-                check=False,
+                ["ollama", "list"],  # Safe: list form, no shell
+                capture_output=True,  # Captures both stdout and stderr
+                text=True,  # Get strings, not bytes
+                timeout=3,  # Prevent hang if Ollama is frozen
+                check=False,  # Don't raise exception on non-zero exit (we check manually)
             )
 
             if result.returncode == 0:
@@ -618,10 +638,22 @@ class ChatManager(QObject):
             model: Selected Ollama model
             context_mode: Selected context mode
         """
+        # REENTRANCY GUARD: Prevent multiple AI requests at the same time
+        #
+        # WHY THIS MATTERS:
+        # 1. AI takes 2-30 seconds to respond
+        # 2. User might click Send multiple times while waiting (impatience!)
+        # 3. Multiple requests would queue up and waste resources
+        # 4. Results would arrive out of order, confusing the UI
+        # 5. Could overwhelm the AI service or local Ollama
+        #
+        # SOLUTION:
+        # Block new requests until current one finishes.
+        # Show helpful message so user knows we're still working.
         if self._is_processing:
             logger.warning("Already processing a message, ignoring new message")
             self.status_message.emit("AI is still processing previous message...")
-            return
+            return  # Exit early - don't start new request
 
         # Add user message to panel
         self._chat_panel.add_user_message(message, model, context_mode)
