@@ -83,7 +83,11 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - ✅ Improved Git integration (status dialog, quick commit, real-time status)
 
 ### Recent Achievements (Nov 2025)
-- ✅ **v1.9.0**: Git workflow improvements (status dialog, quick commit)
+- ✅ **v1.9.0**: Git workflow improvements (status dialog, quick commit, UI enhancements)
+  - Git Status Dialog with file-level details (Ctrl+Shift+G)
+  - Quick Commit Widget with inline commits (Ctrl+G)
+  - Brief git status in status bar (color-coded: ✓ ● ⚠)
+  - Chat pane toggle in Tools menu (keyboard-driven workflow)
 - ✅ **v1.8.0**: Essential features (Find/Replace, Spell Check, Telemetry)
 - ✅ **v1.7.0**: Ollama AI Chat with 4 context modes
 - ✅ **100% Type Coverage**: mypy --strict: 0 errors across 64 files
@@ -112,7 +116,10 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - Enhanced Git status display (real-time, color-coded)
 - Git Status Dialog (file-level details, 3 tabs, Ctrl+Shift+G)
 - Quick Commit Widget (inline commits, Ctrl+G, auto-stage)
+- Brief git status in status bar (branch + indicator: ✓ clean, ●N changes, ⚠ conflicts)
+- Chat pane toggle in Tools menu (alphabetically sorted, keyboard-accessible)
 - GitStatus data model with Pydantic validation
+- Real-time status updates (5-second refresh interval)
 
 **v1.8.0 - Essential Features**
 - Find & Replace (regex, collapsible UI, match counter)
