@@ -335,3 +335,286 @@ class TestQtAsyncFileManager:
         # Verify second file is now watched
         assert manager.is_watching(), "Manager should be watching a file"
         assert manager.get_watched_file() == file2
+
+    @pytest.mark.asyncio
+    async def test_read_file_error_handling(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test read_file exception handling."""
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("Test content")
+
+        # Mock async_read_text to raise exception
+        async def mock_read_error(*args, **kwargs):
+            raise PermissionError("Read permission denied")
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_read_text", mock_read_error)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            content = await manager.read_file(test_file)
+
+        assert content is None
+        assert blocker.args[0] == "read"
+        assert blocker.args[1] == test_file
+        assert "permission" in blocker.args[2].lower()
+
+    @pytest.mark.asyncio
+    async def test_write_file_error_handling(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test write_file exception handling."""
+        test_file = tmp_path / "test.txt"
+
+        # Mock async_atomic_save_text to raise exception
+        async def mock_write_error(*args, **kwargs):
+            raise PermissionError("Write permission denied")
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_atomic_save_text", mock_write_error)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            success = await manager.write_file(test_file, "content")
+
+        assert success is False
+        assert blocker.args[0] == "write"
+        assert blocker.args[1] == test_file
+        assert "permission" in blocker.args[2].lower()
+
+    @pytest.mark.asyncio
+    async def test_read_json_error_handling(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test read_json exception handling."""
+        json_file = tmp_path / "test.json"
+        json_file.write_text('{"key": "value"}')
+
+        # Mock async_read_json to raise exception
+        async def mock_json_read_error(*args, **kwargs):
+            raise ValueError("Invalid JSON")
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_read_json", mock_json_read_error)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            result = await manager.read_json(json_file)
+
+        assert result is None
+        assert blocker.args[0] == "read_json"
+        assert blocker.args[1] == json_file
+        assert "Invalid JSON" in blocker.args[2]
+
+    @pytest.mark.asyncio
+    async def test_write_json_error_handling(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test write_json exception handling."""
+        json_file = tmp_path / "test.json"
+        data = {"key": "value"}
+
+        # Mock async_atomic_save_json to raise exception
+        async def mock_json_write_error(*args, **kwargs):
+            raise OSError("Disk full")
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_atomic_save_json", mock_json_write_error)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            success = await manager.write_json(json_file, data)
+
+        assert success is False
+        assert blocker.args[0] == "write_json"
+        assert blocker.args[1] == json_file
+        assert "Disk full" in blocker.args[2]
+
+    @pytest.mark.asyncio
+    async def test_copy_file_error_handling(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test copy_file exception handling."""
+        src = tmp_path / "src.txt"
+        dst = tmp_path / "dst.txt"
+        src.write_text("Source content")
+
+        # Mock async_copy_file to raise exception
+        async def mock_copy_error(*args, **kwargs):
+            raise IOError("Copy failed")
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_copy_file", mock_copy_error)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            success = await manager.copy_file(src, dst)
+
+        assert success is False
+        assert blocker.args[0] == "copy"
+        assert blocker.args[1] == dst
+        assert "Copy failed" in blocker.args[2]
+
+    @pytest.mark.asyncio
+    async def test_watcher_callbacks(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path
+    ):
+        """Test file watcher callbacks (_on_file_deleted, _on_file_created, _on_watcher_error)."""
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("Test")
+
+        # Track signals
+        signals_received = []
+
+        def on_changed(path: Path):
+            signals_received.append(("changed", path))
+
+        manager.file_changed_externally.connect(on_changed)
+
+        # Test _on_file_deleted callback
+        manager._on_file_deleted(test_file)
+        assert ("changed", test_file) in signals_received
+
+        # Test _on_file_created callback
+        signals_received.clear()
+        manager._on_file_created(test_file)
+        assert ("changed", test_file) in signals_received
+
+        # Test _on_watcher_error callback
+        manager._watched_file = test_file
+        operation_failed_received = []
+
+        def on_operation_failed(operation: str, path: Path, error: str):
+            operation_failed_received.append((operation, path, error))
+
+        manager.operation_failed.connect(on_operation_failed)
+
+        manager._on_watcher_error("Watcher test error")
+        assert len(operation_failed_received) == 1
+        assert operation_failed_received[0][0] == "watch"
+        assert operation_failed_received[0][1] == test_file
+        assert "test error" in operation_failed_received[0][2]
+
+    @pytest.mark.asyncio
+    async def test_cleanup_with_running_operations(
+        self, manager: QtAsyncFileManager, tmp_path: Path
+    ):
+        """Test cleanup waits for running operations."""
+        test_file = tmp_path / "test.txt"
+
+        # Start multiple operations
+        tasks = [
+            asyncio.create_task(manager.write_file(tmp_path / f"file{i}.txt", f"Content {i}"))
+            for i in range(3)
+        ]
+
+        # Brief delay to ensure operations start
+        await asyncio.sleep(0.01)
+
+        # Cleanup should wait for operations
+        cleanup_task = asyncio.create_task(manager.cleanup())
+
+        # Wait for all
+        await asyncio.gather(*tasks, cleanup_task)
+
+        # All files should be written
+        for i in range(3):
+            assert (tmp_path / f"file{i}.txt").exists()
+            assert (tmp_path / f"file{i}.txt").read_text() == f"Content {i}"
+
+    @pytest.mark.asyncio
+    async def test_write_file_returns_false(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test write_file when atomic save returns False."""
+        test_file = tmp_path / "test.txt"
+
+        # Mock async_atomic_save_text to return False (not raise exception)
+        async def mock_save_returns_false(*args, **kwargs):
+            return False
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_atomic_save_text", mock_save_returns_false)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            success = await manager.write_file(test_file, "content")
+
+        assert success is False
+        assert blocker.args[0] == "write"
+        assert blocker.args[1] == test_file
+        assert "Atomic save returned False" in blocker.args[2]
+
+    @pytest.mark.asyncio
+    async def test_read_json_returns_none(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test read_json when read returns None."""
+        json_file = tmp_path / "test.json"
+        json_file.write_text('{"key": "value"}')
+
+        # Mock async_read_json to return None (not raise exception)
+        async def mock_read_returns_none(*args, **kwargs):
+            return None
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_read_json", mock_read_returns_none)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            result = await manager.read_json(json_file)
+
+        assert result is None
+        assert blocker.args[0] == "read_json"
+        assert blocker.args[1] == json_file
+        assert "JSON read returned None" in blocker.args[2]
+
+    @pytest.mark.asyncio
+    async def test_write_json_returns_false(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test write_json when atomic save returns False."""
+        json_file = tmp_path / "test.json"
+        data = {"key": "value"}
+
+        # Mock async_atomic_save_json to return False (not raise exception)
+        async def mock_json_save_returns_false(*args, **kwargs):
+            return False
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_atomic_save_json", mock_json_save_returns_false)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            success = await manager.write_json(json_file, data)
+
+        assert success is False
+        assert blocker.args[0] == "write_json"
+        assert blocker.args[1] == json_file
+        assert "Atomic JSON save returned False" in blocker.args[2]
+
+    @pytest.mark.asyncio
+    async def test_copy_file_returns_false(
+        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test copy_file when copy returns False."""
+        src = tmp_path / "src.txt"
+        dst = tmp_path / "dst.txt"
+        src.write_text("Source content")
+
+        # Mock async_copy_file to return False (not raise exception)
+        async def mock_copy_returns_false(*args, **kwargs):
+            return False
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+        monkeypatch.setattr(qt_module, "async_copy_file", mock_copy_returns_false)
+
+        # Should emit operation_failed signal
+        with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
+            success = await manager.copy_file(src, dst)
+
+        assert success is False
+        assert blocker.args[0] == "copy"
+        assert blocker.args[1] == dst
+        assert "Copy returned False" in blocker.args[2]
