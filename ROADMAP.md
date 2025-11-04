@@ -86,22 +86,92 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - ✅ Improved Git integration (status dialog, quick commit, real-time status)
 
 ### Recent Achievements (Nov 2025)
-- ✅ **v1.9.0**: Git workflow improvements (Nov 3-4, 2025)
+- ✅ **v1.9.0**: Git workflow improvements + Test Suite Overhaul (Nov 3-4, 2025)
   - Git Status Dialog with file-level details (Ctrl+Shift+G)
   - Quick Commit Widget with inline commits (Ctrl+G)
   - Brief git status in status bar (color-coded: ✓ ● ⚠)
   - Chat pane toggle in Tools menu (keyboard-driven workflow)
-  - **Test Suite Recovery**: 115 tests fixed in 4 hours (Nov 4, 2025)
+
+  - **Test Suite Recovery Phase 1**: 115 tests fixed in 4 hours (Nov 4, 2025)
     - Task 1: 29 hanging tests (Qt timer issues) ✅
     - Task 2: 43 chat_manager tests (Qt Signal mocking) ✅
     - Task 3: 69 async tests (pytest-asyncio configuration) ✅
     - Task 4: 121 GPU detection tests (already passing) ✅
-  - Test crisis resolution: pytest-mock + pytest-asyncio dependencies fixed
+    - Test crisis resolution: pytest-mock + pytest-asyncio dependencies fixed
+
+  - **Test Suite Recovery Phase 2**: 4 failures fixed + Python crash eliminated (Nov 4, 2025)
+    - Fixed test_splitter_has_two_widgets (3 widgets after v1.7.0 chat panel) ✅
+    - Fixed test_history_max_limit_enforced (backend-agnostic settings) ✅
+    - Fixed test_memory_profiler_no_leak (updated to actual API) ✅
+    - Fixed chat integration Python fatal crash (Claude API mocking) ✅
+    - Added `live_api` pytest marker for selective test running
+    - **Documentation**: 1,000+ lines added (test procedures, async requirements, thread isolation)
+      - TEST_REMEDIATION_LOG.md (314 lines) - Live API testing guide
+      - OPTION_B_COMPLETION_SUMMARY.md (429 lines) - Complete work breakdown
+      - CHAT_INTEGRATION_TEST_FIX.md (263 lines) - Crash analysis
+      - ASYNC_TEST_REFACTORING_REQUIREMENTS.md (6-8 hour implementation plan)
+      - WORKER_THREAD_ISOLATION_FIX.md (2-3 hour implementation plan)
+    - **Test Health**: 97.2% → 98%+ pass rate, zero Python crashes
+    - **Remaining Work**: 4 async refactors + 1 thread isolation fix (documented, not blocking)
 - ✅ **v1.8.0**: Essential features (Find/Replace, Spell Check, Telemetry)
 - ✅ **v1.7.0**: Ollama AI Chat with 4 context modes
 - ✅ **100% Type Coverage**: mypy --strict: 0 errors across 64 files
 - ✅ **Quality Score**: 97/100 (GRANDMASTER)
 - ✅ **Test Suite Health**: 100% core module pass rate, all critical test issues resolved
+
+### Test Suite Analysis (Nov 4, 2025)
+
+**Comprehensive test suite audit completed** - identified critical API integration issues and created roadmap for test improvements.
+
+**Key Findings:**
+- 🔴 **CRITICAL**: Claude API integration tests cause Python fatal crashes (Issue #1)
+  - Root cause: Unmocked real API calls in tests (httpcore/anthropic client)
+  - Affected: `test_chat_integration.py`, `test_claude_worker.py`
+  - Impact: Test suite abortion, cannot complete full run
+  - **Action**: Mock all external API calls, add `@pytest.mark.live_api` decorator
+
+- ⚠️ **Test Failures** (4 identified):
+  1. `test_memory_profiler_no_leak` - Memory profiler timing issues
+  2. `test_splitter_has_two_widgets` - Now 3 widgets (chat panel added)
+  3. `test_history_max_limit_enforced` - History limit logic changed
+  4. `test_profiler_overhead` - Performance threshold needs adjustment
+
+- 📊 **Test Coverage**: 60%+ current → **Target: 100%** (Phase 2 priority)
+- 📋 **Test Suite Size**: 2,273+ tests collected (excluding problematic API tests)
+- ⏱️ **Test Duration**: Est. 20-30min for full suite with 3min timeout/test
+
+**Remediation Plan** (see TEST_REMEDIATION_LOG.md):
+1. **Immediate** (This Week):
+   - Fix Claude API test mocking
+   - Update splitter widget test (2→3 widgets)
+   - Add pytest markers (`unit`, `integration`, `live_api`, `performance`)
+   - Document manual live API test procedures
+
+2. **Short Term** (This Sprint):
+   - Mock all Ollama API calls
+   - Add test isolation fixtures
+   - Implement category-specific timeouts (unit: 5s, integration: 30s)
+   - Fix/remove skipped tests
+   - Add flaky test retry logic (pytest-rerunfailures)
+
+3. **Long Term** (Next Quarter):
+   - Test result trend tracking (JSON reports)
+   - VCR.py for HTTP recording/replay
+   - Performance regression detection
+   - Nightly stress test runs
+   - CI/CD test metrics dashboard
+
+**Test Infrastructure Improvements**:
+- ✅ pytest-timeout installed (3min/test, thread-based)
+- 📋 pytest markers for test categorization (planned)
+- 📋 pytest-mock for easier API mocking (needed)
+- 📋 pytest-rerunfailures for flaky tests (planned)
+- 📋 VCR.py for HTTP interactions (planned)
+
+**Documentation Created**:
+- `TEST_REMEDIATION_LOG.md` - Comprehensive test audit and action items
+- Test isolation patterns documented
+- API mocking best practices outlined
 
 ---
 

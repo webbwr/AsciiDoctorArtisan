@@ -482,16 +482,21 @@ def test_memory_profiler_no_leak():
 
     profiler = MemoryProfiler()
 
-    # Start profiling
-    with profiler.profile("test_operation"):
-        time.sleep(0.01)
+    # Start profiling and take snapshots
+    profiler.start()
+    time.sleep(0.01)
+    profiler.take_snapshot("test_operation_1")
+    time.sleep(0.01)
+    profiler.take_snapshot("test_operation_2")
+    profiler.stop()
 
-    # Get report (should not leak data)
-    report = profiler.get_report()
+    # Check snapshots were taken
+    snapshot_count = profiler.get_snapshot_count()
+    assert snapshot_count == 2
 
-    # Reset profiler
-    profiler.reset()
+    # Clear snapshots (reset profiler)
+    profiler.clear_snapshots()
 
     # Check memory is released
-    report_after_reset = profiler.get_report()
-    assert len(report_after_reset) == 0
+    snapshot_count_after_clear = profiler.get_snapshot_count()
+    assert snapshot_count_after_clear == 0
