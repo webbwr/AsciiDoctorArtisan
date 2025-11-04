@@ -671,6 +671,6 @@
 
 ---
 
-**Last Updated:** November 3, 2025
+**Last Updated:** November 4, 2025
 **Next Review:** Q2 2026 (v2.0.0 planning)
 **Maintainer:** AsciiDoc Artisan Development Team

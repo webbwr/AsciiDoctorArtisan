@@ -350,6 +350,6 @@ Transform AsciiDoc Artisan from an excellent editor into **the definitive AsciiD
 
 ---
 
-**Last Updated:** November 3, 2025
+**Last Updated:** November 4, 2025
 **Next Review:** Q2 2026 (v2.0.0 planning)
 **Questions:** See CLAUDE.md or GitHub Discussions
