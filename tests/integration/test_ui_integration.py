@@ -279,8 +279,8 @@ class TestSplitterBehavior:
         assert editor.splitter is not None
 
     def test_splitter_has_two_widgets(self, editor):
-        """Test splitter contains editor and preview."""
-        assert editor.splitter.count() == 2
+        """Test splitter contains editor, preview, and chat panel."""
+        assert editor.splitter.count() == 3  # Editor + Preview + Chat (v1.7.0)
 
     def test_pane_maximize_editor(self, editor, qtbot):
         """Test editor pane maximization."""

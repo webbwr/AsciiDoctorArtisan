@@ -243,7 +243,8 @@ class TestChatManagerHistoryManagement:
 
     def test_history_max_limit_enforced(self, chat_manager, settings):
         """Test history is limited to max size."""
-        settings.ollama_chat_max_history = 5
+        # Set the new backend-agnostic setting (takes precedence over ollama-specific)
+        settings.chat_max_history = 5
 
         # Add 10 messages
         for i in range(10):
@@ -258,8 +259,8 @@ class TestChatManagerHistoryManagement:
 
         chat_manager._trim_history()
 
-        # Should be limited to 5
-        assert len(chat_manager._chat_history) <= 5
+        # Should be limited to 5 (exact, not <=)
+        assert len(chat_manager._chat_history) == 5
 
 
 class TestChatManagerDocumentContext:
