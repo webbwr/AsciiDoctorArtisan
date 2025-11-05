@@ -168,3 +168,126 @@ class TestDocumentMetrics:
         # Will be treated as one sentence and calculate normally
         grade = calculate_grade_level(text)
         assert grade > 0  # Should have some grade level
+
+    # Additional version extraction edge cases
+    def test_extract_version_case_insensitive(self):
+        """Test version extraction is case insensitive."""
+        text = ":REVNUMBER: 4.5.6\n= Document\n"
+        version = extract_document_version(text)
+        assert version == "4.5.6"
+
+    def test_extract_version_with_extra_whitespace(self):
+        """Test version extraction handles extra whitespace."""
+        text = ":version:    1.0.0   \n= Document\n"
+        version = extract_document_version(text)
+        assert version == "1.0.0"
+
+    def test_extract_version_first_match_wins(self):
+        """Test that first matching version attribute wins."""
+        text = ":revnumber: 1.0.0\n:version: 2.0.0\n= Document\n"
+        version = extract_document_version(text)
+        assert version == "1.0.0"
+
+    def test_extract_version_in_middle_of_document(self):
+        """Test version extraction from middle of document."""
+        text = "= Title\n\nSome content\n\n:version: 1.5.0\n\nMore content"
+        version = extract_document_version(text)
+        assert version == "1.5.0"
+
+    def test_extract_version_with_rc_suffix(self):
+        """Test version extraction with release candidate suffix."""
+        text = ":rev: 2.0.0-RC1\n"
+        version = extract_document_version(text)
+        assert version == "2.0.0-RC1"
+
+    def test_extract_version_with_alpha_suffix(self):
+        """Test version extraction with alpha suffix."""
+        text = ":version: 3.0.0-alpha.1\n"
+        version = extract_document_version(text)
+        assert version == "3.0.0-alpha.1"
+
+    def test_extract_version_complex_format(self):
+        """Test version extraction with complex version format."""
+        text = ":revnumber: v1.2.3-beta.4+build.567\n"
+        version = extract_document_version(text)
+        assert version == "v1.2.3-beta.4+build.567"
+
+    def test_extract_version_single_digit(self):
+        """Test version extraction with single digit version."""
+        text = ":version: 1\n"
+        version = extract_document_version(text)
+        assert version == "1"
+
+    # Additional word counting edge cases
+    def test_count_words_multiple_spaces(self):
+        """Test word counting with multiple spaces between words."""
+        text = "This  has   multiple    spaces"
+        count = count_words(text)
+        assert count == 4
+
+    def test_count_words_with_tabs(self):
+        """Test word counting with tabs as whitespace."""
+        text = "Words\tseparated\tby\ttabs"
+        count = count_words(text)
+        assert count == 4
+
+    def test_count_words_with_newlines(self):
+        """Test word counting across multiple lines."""
+        text = "First line\nSecond line\nThird line"
+        count = count_words(text)
+        assert count == 6
+
+    def test_count_words_with_punctuation(self):
+        """Test word counting with punctuation."""
+        text = "Hello, world! How are you?"
+        count = count_words(text)
+        assert count == 5
+
+    def test_count_words_with_numbers(self):
+        """Test word counting includes numbers."""
+        text = "Version 1.0 has 5 new features."
+        count = count_words(text)
+        assert count == 6
+
+    # Additional grade level edge cases
+    def test_calculate_grade_level_all_uppercase(self):
+        """Test grade level calculation with all uppercase text."""
+        text = "THE CAT SAT. THE DOG RAN."
+        grade = calculate_grade_level(text)
+        assert grade >= 0
+
+    def test_calculate_grade_level_with_numbers(self):
+        """Test grade level calculation with numbers in text."""
+        text = "There are 5 cats and 3 dogs. They ran for 2 hours."
+        grade = calculate_grade_level(text)
+        assert grade >= 0
+
+    def test_calculate_grade_level_single_word(self):
+        """Test grade level calculation with single word."""
+        text = "Word."
+        grade = calculate_grade_level(text)
+        assert grade >= 0
+
+    def test_calculate_grade_level_very_long_sentence(self):
+        """Test grade level calculation with very long sentence."""
+        text = "This is a very long sentence with many words and clauses and phrases and it goes on and on and on."
+        grade = calculate_grade_level(text)
+        assert grade > 5  # Long sentences increase grade level
+
+    def test_calculate_grade_level_multiple_short_sentences(self):
+        """Test grade level calculation with many short sentences."""
+        text = "I run. You walk. We talk. They listen. She jumps. He sits."
+        grade = calculate_grade_level(text)
+        assert 0 <= grade <= 5  # Short sentences lower grade level
+
+    def test_calculate_grade_level_with_exclamations(self):
+        """Test grade level calculation counts exclamation marks as sentence endings."""
+        text = "This is great! I love it! So amazing!"
+        grade = calculate_grade_level(text)
+        assert grade >= 0
+
+    def test_calculate_grade_level_with_questions(self):
+        """Test grade level calculation counts question marks as sentence endings."""
+        text = "What is this? How does it work? Why is it important?"
+        grade = calculate_grade_level(text)
+        assert grade >= 0
