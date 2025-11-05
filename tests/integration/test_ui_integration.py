@@ -99,9 +99,7 @@ class TestAsciiDocEditorUI:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
-    @pytest.mark.skip(
-        reason="Causes test hang due to worker thread isolation issue - needs proper Qt thread cleanup (Nov 2025)"
-    )
+    @pytest.mark.forked
     async def test_save_file_creates_file_async(self, editor, qtbot):
         """Test async save file operation."""
         from unittest.mock import AsyncMock

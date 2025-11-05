@@ -199,13 +199,12 @@ class TestChatWorkerIntegration:
 
         assert blocker.signal_triggered
 
-    @pytest.mark.skip(reason="Causes Python fatal crash when run with other tests - needs better worker thread isolation (Nov 2025)")
+    @pytest.mark.forked
     def test_worker_response_connection(self, main_window, qtbot):
         """Test that worker responses connect to chat manager.
 
-        NOTE: This test passes when run alone but crashes Python when run with
-        other tests due to Qt worker thread cleanup issues. Needs proper
-        thread teardown and isolation before re-enabling.
+        NOTE: Runs in isolated subprocess via pytest-forked to prevent Qt worker
+        thread interference with other tests (v1.9.2+).
         """
         import time
         from asciidoc_artisan.core.models import ChatMessage
