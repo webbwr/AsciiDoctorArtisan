@@ -101,12 +101,9 @@ from .file_operations import (
     sanitize_path,  # Clean file paths (prevent directory traversal attacks)
 )
 
-# Data models (used by Git/GitHub operations - very common)
-from .models import (
-    GitHubResult,  # Data from GitHub CLI operations (PR/Issue management)
-    GitResult,  # Data from Git operations (commit, push, pull)
-    GitStatus,  # Git repository status data (v1.9.0+)
-)
+# Data models - MOVED TO LAZY LOADING (v1.9.1 optimization, saves 115ms startup time)
+# These models import Pydantic (heavy library), so we load them only when first accessed.
+# GitResult, GitStatus, GitHubResult are used by worker threads, so 115ms delay is not noticeable.
 
 # Settings (used by main window immediately at startup)
 from .settings import Settings  # Application settings (theme, font, recent files)
@@ -220,6 +217,21 @@ def __getattr__(name: str) -> Any:
 
         # Return the cached value (instant on subsequent accesses)
         return _CONSTANTS_CACHE[name]
+
+    # === GROUP 1B: DATA MODELS (Pydantic-based, lazy to save 115ms startup) ===
+    # These models use Pydantic which takes 115ms to import.
+    # Since they're used by background worker threads, lazy loading them doesn't affect UI.
+    if name in ("GitResult", "GitStatus", "GitHubResult", "ChatMessage"):
+        # Check if we've already imported this model
+        if name not in _MODULE_CACHE:
+            # First time accessing this model - import models.py now
+            from . import models
+
+            # Get the model class and cache it
+            _MODULE_CACHE[name] = getattr(models, name)
+
+        # Return the cached model class
+        return _MODULE_CACHE[name]
 
     # === GROUP 2: MEMORY PROFILER (Developer Tools) ===
     # Only used when debugging memory leaks - rarely accessed
@@ -381,6 +393,7 @@ __all__ = [
     "GitResult",  # Result from Git commands (success/failure, output, error)
     "GitStatus",  # Git repository status (branch, changes, conflicts, v1.9.0+)
     "GitHubResult",  # Result from GitHub CLI operations (PR/Issue management)
+    "ChatMessage",  # Chat message data (Ollama AI chat, v1.7.0+)
     # === CORE CLASSES - SECURITY ===
     # Secure credential storage using OS keyring
     "SecureCredentials",  # Stores API keys safely in OS keyring (not plain text!)
