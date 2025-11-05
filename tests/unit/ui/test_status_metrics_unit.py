@@ -7,6 +7,8 @@ Tests the new v1.2.0 features:
 - Grade level calculation
 """
 
+import pytest
+
 # Extract the metric calculation methods for testing
 # We'll test them as standalone functions
 
