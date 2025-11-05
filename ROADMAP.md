@@ -74,6 +74,33 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - combining e
 - **Tech debt:** LOW (<30% duplication)
 - **Documentation:** Comprehensive (4,500+ lines added in Nov 2025)
 
+**Test Coverage Status & Future Work:**
+
+Current coverage (96.4%) is **production-ready**. Further test coverage improvements are deferred to post-v2.0.0:
+
+- **Phase 4A: Remaining Workers** (deferred to v2.1+)
+  - pandoc_worker.py, git_worker.py, incremental_renderer.py
+  - ~60 tests, 1-2 days, medium complexity
+
+- **Phase 4B: Remaining Core** (deferred to v2.1+)
+  - async_file_handler.py, resource_manager.py, lazy_utils.py
+  - ~30 tests, 1 day, low complexity
+
+- **Phase 4C: Optional Polish** (deferred to v2.1+)
+  - 14 files with 90-99% coverage (edge cases only)
+  - ~180 statements, 4-6 hours
+
+- **Phase 4D: document_converter.py** (deferred to v2.1+)
+  - +202 statements, ~25 tests, 1 day
+
+- **Phase 4E: UI Layer** (deferred to v2.1+)
+  - 0% → 100% for ~7,846 statements
+  - +690 tests, 3-4 weeks, HIGH complexity
+
+**Total Deferred:** ~795 tests, 4-6 weeks effort, +3.6% coverage (96.4% → 100%)
+
+**Rationale:** v2.0.0 feature development has higher user value than incremental coverage improvements. Current 96.4% coverage with 100% pass rate is production-ready quality. See [docs/ROADMAP_RATIONALIZATION.md](./docs/ROADMAP_RATIONALIZATION.md) for detailed analysis.
+
 ### Feature Completeness
 - ✅ Async I/O implementation
 - ✅ Incremental rendering with caching
