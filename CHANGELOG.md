@@ -23,11 +23,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Migration is transparent to users - no action required
   - 6 new tests for migration logic (all passing)
 
+### Fixed
+- **Worker Thread Cleanup** - Fixed test hangs from missing thread shutdown
+  - Added `ollama_chat_thread` shutdown in `worker_manager.shutdown()`
+  - Added `claude_thread` shutdown in `worker_manager.shutdown()`
+  - Fixed `main_window.closeEvent()` to call shutdown in test mode
+  - Added Claude API mocking in UI integration tests
+  - All 33 UI integration tests now pass (1 skipped, documented)
+  - Test suite completes in 2.69s (was hanging indefinitely)
+
 ### Technical
 - Lint fixes: All type errors resolved (17 → 0)
 - Code formatting: 100% compliance (ruff, black, isort, mypy)
 - Settings: Added `_migrate_claude_model()` method with comprehensive tests
 - Tests: +6 migration tests in `tests/unit/core/test_settings.py`
+- Worker cleanup: Prevents resource leaks during test teardown
+- Performance: Package import time 0.10-0.15s (10x faster than 1.05s target)
 
 ## [1.8.0] - 2025-11-02 (IN PROGRESS)
 
