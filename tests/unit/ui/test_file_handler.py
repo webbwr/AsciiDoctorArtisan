@@ -518,7 +518,7 @@ class TestLargeFileHandling:
     async def test_load_large_file_async(self, handler, tmp_path, mock_editor):
         """Test loading a large file (1MB+)."""
         test_file = tmp_path / "large.adoc"
-        large_content = "= Large Document\n\n" + ("Line of text\n" * 50000)  # ~1MB
+        large_content = "= Large Document\n\n" + ("Line of text\n" * 100000)  # ~1.3MB
         test_file.write_text(large_content)
 
         handler.async_manager.read_file = AsyncMock(return_value=large_content)
