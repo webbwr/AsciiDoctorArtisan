@@ -429,10 +429,9 @@ class GitHubHandler(BaseVCSHandler, QObject):
             )
             return False
 
-        # Check if gh CLI is authenticated (advisory check)
-        # Note: Worker will provide detailed error if authentication fails
-        # TODO: Add optional gh auth status check here if desired
-
+        # Authentication check is performed by GitHubCLIWorker
+        # This allows operations to proceed immediately without blocking on `gh auth status`
+        # If authentication fails, worker will return a clear error message to the user
         return True
 
     def _get_busy_message(self) -> str:
