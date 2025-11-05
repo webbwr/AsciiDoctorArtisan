@@ -16,7 +16,7 @@ def mock_main_window(qapp):
     window._settings.ollama_model = None
     window._settings.telemetry_enabled = False
     window._settings.telemetry_session_id = None
-    window._settings.claude_model = "claude-3-5-sonnet-20241022"
+    window._settings.claude_model = "claude-sonnet-4-20250514"
     window._settings.ai_backend = "ollama"
 
     # UI components

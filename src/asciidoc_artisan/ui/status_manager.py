@@ -417,7 +417,9 @@ class StatusManager:
 
         # Build brief status text
         branch = status.branch
-        total_changes = status.modified_count + status.staged_count + status.untracked_count
+        total_changes = (
+            status.modified_count + status.staged_count + status.untracked_count
+        )
 
         if status.has_conflicts:
             # Red for conflicts
@@ -449,11 +451,17 @@ class StatusManager:
         Theme changes can override inline stylesheets with global palette.
         This method re-applies the git status color from stored state.
         """
-        if not self.git_status_label or not self._current_git_color or not self._current_git_text:
+        if (
+            not self.git_status_label
+            or not self._current_git_color
+            or not self._current_git_text
+        ):
             return
 
         # Re-apply stored color and text
         self.git_status_label.setStyleSheet(f"color: {self._current_git_color};")
         self.git_status_label.setText(self._current_git_text)
 
-        logger.debug(f"Git status color restored: {self._current_git_text} ({self._current_git_color})")
+        logger.debug(
+            f"Git status color restored: {self._current_git_text} ({self._current_git_color})"
+        )

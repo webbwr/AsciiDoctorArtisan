@@ -28,10 +28,10 @@ class TestClaudeWorker:
     def test_claude_worker_custom_params(self):
         """Test ClaudeWorker with custom parameters."""
         worker = ClaudeWorker(
-            model="claude-3-5-haiku-20241022", max_tokens=2048, temperature=0.7
+            model="claude-haiku-4-5", max_tokens=2048, temperature=0.7
         )
 
-        assert worker.client.model == "claude-3-5-haiku-20241022"
+        assert worker.client.model == "claude-haiku-4-5"
         assert worker.client.max_tokens == 2048
         assert worker.client.temperature == 0.7
 
@@ -59,8 +59,8 @@ class TestClaudeWorker:
         """Test set_model updates client model."""
         worker = ClaudeWorker()
 
-        worker.set_model("claude-3-5-haiku-20241022")
-        assert worker.client.model == "claude-3-5-haiku-20241022"
+        worker.set_model("claude-haiku-4-5")
+        assert worker.client.model == "claude-haiku-4-5"
 
     def test_set_max_tokens(self):
         """Test set_max_tokens updates client max_tokens."""
@@ -145,7 +145,7 @@ class TestClaudeWorker:
         mock_result = ClaudeResult(
             success=True,
             content="Hello! I'm Claude.",
-            model="claude-3-5-sonnet-20240620",
+            model="claude-sonnet-4-20250514",
             tokens_used=25,
             error=None,
             stop_reason="end_turn",
@@ -160,7 +160,7 @@ class TestClaudeWorker:
         assert isinstance(result, ClaudeResult)
         assert result.success is True
         assert result.content == "Hello! I'm Claude."
-        assert result.model == "claude-3-5-sonnet-20240620"
+        assert result.model == "claude-sonnet-4-20250514"
         assert result.tokens_used == 25
 
     def test_test_connection_emits_connection_tested(self, qtbot):
@@ -172,7 +172,7 @@ class TestClaudeWorker:
         mock_result = ClaudeResult(
             success=True,
             content="Connection OK",
-            model="claude-3-5-sonnet-20240620",
+            model="claude-sonnet-4-20250514",
             tokens_used=8,
             error=None,
             stop_reason="end_turn",
@@ -248,7 +248,7 @@ class TestClaudeWorker:
         mock_result = ClaudeResult(
             success=True,
             content="Response",
-            model="claude-3-5-sonnet-20240620",
+            model="claude-sonnet-4-20250514",
             tokens_used=30,
             error=None,
             stop_reason="end_turn",

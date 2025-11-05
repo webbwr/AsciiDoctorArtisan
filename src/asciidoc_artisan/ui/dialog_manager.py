@@ -275,7 +275,7 @@ class DialogManager:
         # Get telemetry file path from collector
         telemetry_file = None
         telemetry_dir = None
-        if hasattr(self.editor, 'telemetry_collector'):
+        if hasattr(self.editor, "telemetry_collector"):
             telemetry_file = self.editor.telemetry_collector.telemetry_file
             telemetry_dir = telemetry_file.parent
 
@@ -343,7 +343,9 @@ class DialogManager:
 
         # Add "Open File" button if telemetry file exists
         if telemetry_file and telemetry_file.exists():
-            open_file_button = msg_box.addButton("Open File", QMessageBox.ButtonRole.ActionRole)
+            open_file_button = msg_box.addButton(
+                "Open File", QMessageBox.ButtonRole.ActionRole
+            )
 
             def open_file():
                 """Open telemetry file in default application."""
@@ -356,7 +358,7 @@ class DialogManager:
                             ["notepad", str(telemetry_file)],
                             check=True,
                             capture_output=True,
-                            text=True
+                            text=True,
                         )
                         logger.info(f"Notepad command succeeded: {result}")
                     elif system == "Darwin":  # macOS
@@ -365,7 +367,7 @@ class DialogManager:
                             ["open", str(telemetry_file)],
                             check=True,
                             capture_output=True,
-                            text=True
+                            text=True,
                         )
                         logger.info(f"Open command succeeded: {result}")
                     else:  # Linux/Unix
@@ -385,7 +387,7 @@ class DialogManager:
                                     ["wslpath", "-w", str(telemetry_file)],
                                     capture_output=True,
                                     text=True,
-                                    check=True
+                                    check=True,
                                 )
                                 win_path = win_path_result.stdout.strip()
 
@@ -394,13 +396,22 @@ class DialogManager:
                                     ["/mnt/c/Windows/System32/notepad.exe", win_path],
                                     check=False,  # Don't check return code
                                     capture_output=True,
-                                    text=True
+                                    text=True,
                                 )
                                 logger.info("WSL notepad.exe command succeeded")
                             except Exception as wsl_error:
-                                logger.warning(f"WSL notepad failed: {wsl_error}, falling back to less")
+                                logger.warning(
+                                    f"WSL notepad failed: {wsl_error}, falling back to less"
+                                )
                                 # Fall back to less (simple viewer)
-                                subprocess.run(["x-terminal-emulator", "-e", "less", str(telemetry_file)])
+                                subprocess.run(
+                                    [
+                                        "x-terminal-emulator",
+                                        "-e",
+                                        "less",
+                                        str(telemetry_file),
+                                    ]
+                                )
                         else:
                             # Try xdg-open first, fall back to less
                             try:
@@ -408,37 +419,48 @@ class DialogManager:
                                     ["xdg-open", str(telemetry_file)],
                                     check=True,
                                     capture_output=True,
-                                    text=True
+                                    text=True,
                                 )
                                 logger.info(f"xdg-open command succeeded: {result}")
                             except FileNotFoundError:
                                 # xdg-open not available, use less as fallback
                                 logger.info("xdg-open not found, using less as viewer")
-                                subprocess.run(["x-terminal-emulator", "-e", "less", str(telemetry_file)])
+                                subprocess.run(
+                                    [
+                                        "x-terminal-emulator",
+                                        "-e",
+                                        "less",
+                                        str(telemetry_file),
+                                    ]
+                                )
 
                     # File opened successfully - no status message needed
-                    logger.info(f"Successfully opened telemetry file: {telemetry_file.name}")
+                    logger.info(
+                        f"Successfully opened telemetry file: {telemetry_file.name}"
+                    )
                 except subprocess.CalledProcessError as e:
                     error_msg = f"Failed to open file: {e}\nStderr: {e.stderr}"
                     logger.error(error_msg)
                     QMessageBox.warning(
                         self.editor,
                         "Open File Failed",
-                        f"Could not open telemetry file:\n{telemetry_file}\n\nError: {e.stderr or str(e)}"
+                        f"Could not open telemetry file:\n{telemetry_file}\n\nError: {e.stderr or str(e)}",
                     )
                 except Exception as e:
-                    error_msg = f"Unexpected error opening file: {type(e).__name__}: {e}"
+                    error_msg = (
+                        f"Unexpected error opening file: {type(e).__name__}: {e}"
+                    )
                     logger.error(error_msg, exc_info=True)
                     QMessageBox.warning(
-                        self.editor,
-                        "Open File Failed",
-                        f"Unexpected error:\n{str(e)}"
+                        self.editor, "Open File Failed", f"Unexpected error:\n{str(e)}"
                     )
 
             open_file_button.clicked.connect(open_file)
 
         # Add "Change Directory" button
-        change_dir_button = msg_box.addButton("Change Directory", QMessageBox.ButtonRole.ActionRole)
+        change_dir_button = msg_box.addButton(
+            "Change Directory", QMessageBox.ButtonRole.ActionRole
+        )
 
         def change_directory():
             """Allow user to select a new telemetry directory."""
@@ -449,7 +471,7 @@ class DialogManager:
                 self.editor,
                 "Select Telemetry Directory",
                 str(telemetry_dir) if telemetry_dir else str(Path.home()),
-                QFileDialog.Option.ShowDirsOnly
+                QFileDialog.Option.ShowDirsOnly,
             )
 
             if not new_dir:
@@ -466,7 +488,7 @@ class DialogManager:
                 f"Change telemetry directory to:\n{new_dir_path}\n\n"
                 "This will move all telemetry data to the new location.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.No,
             )
 
             if reply != QMessageBox.StandardButton.Yes:
@@ -481,12 +503,15 @@ class DialogManager:
                 if telemetry_file and telemetry_file.exists():
                     new_file_path = new_dir_path / "telemetry.json"
                     import shutil
+
                     shutil.copy2(telemetry_file, new_file_path)
                     logger.info(f"Copied telemetry file to: {new_file_path}")
 
                 # Update telemetry collector
                 self.editor.telemetry_collector.data_dir = new_dir_path
-                self.editor.telemetry_collector.telemetry_file = new_dir_path / "telemetry.json"
+                self.editor.telemetry_collector.telemetry_file = (
+                    new_dir_path / "telemetry.json"
+                )
 
                 logger.info("Telemetry directory changed successfully")
 
@@ -494,7 +519,7 @@ class DialogManager:
                     self.editor,
                     "Directory Changed",
                     f"Telemetry directory changed to:\n{new_dir_path}\n\n"
-                    "Previous data has been copied to the new location."
+                    "Previous data has been copied to the new location.",
                 )
 
                 # Close the dialog and reopen to show updated info
@@ -507,7 +532,7 @@ class DialogManager:
                 QMessageBox.critical(
                     self.editor,
                     "Change Directory Failed",
-                    f"Could not change telemetry directory:\n{str(e)}"
+                    f"Could not change telemetry directory:\n{str(e)}",
                 )
 
         change_dir_button.clicked.connect(change_directory)

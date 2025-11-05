@@ -558,12 +558,12 @@ class AsciiDocEditor(QMainWindow):
             self.telemetry_collector = TelemetryCollector(
                 enabled=True, session_id=self._settings.telemetry_session_id
             )
-            self.status_manager.show_message("Telemetry enabled")
+            self.status_manager.show_message("info", "Telemetry", "Telemetry enabled")
             logger.info("Telemetry enabled by user")
         else:
             # Disable telemetry
             self.telemetry_collector = TelemetryCollector(enabled=False)
-            self.status_manager.show_message("Telemetry disabled")
+            self.status_manager.show_message("info", "Telemetry", "Telemetry disabled")
             logger.info("Telemetry disabled by user")
 
         # Save settings
@@ -571,8 +571,8 @@ class AsciiDocEditor(QMainWindow):
 
     def _update_telemetry_menu_text(self) -> None:
         """Update the toggle telemetry menu item text to show current state with checkmark."""
-        if hasattr(self, 'action_manager') and hasattr(
-            self.action_manager, 'toggle_telemetry_act'
+        if hasattr(self, "action_manager") and hasattr(
+            self.action_manager, "toggle_telemetry_act"
         ):
             text = "✓ &Telemetry" if self._settings.telemetry_enabled else "&Telemetry"
             self.action_manager.toggle_telemetry_act.setText(text)
@@ -626,9 +626,7 @@ class AsciiDocEditor(QMainWindow):
         self.claude_worker.response_ready.connect(
             self._adapt_claude_response_to_chat_message
         )
-        self.claude_worker.error_occurred.connect(
-            self.chat_manager.handle_error
-        )
+        self.claude_worker.error_occurred.connect(self.chat_manager.handle_error)
 
         # Connect chat bar cancel button to worker cancellation
         self.chat_bar.cancel_requested.connect(self.ollama_chat_worker.cancel_operation)
@@ -817,7 +815,9 @@ class AsciiDocEditor(QMainWindow):
             self._git_status_dialog = GitStatusDialog(self)
 
             # Connect dialog signals
-            self._git_status_dialog.refresh_requested.connect(self._refresh_git_status_dialog)
+            self._git_status_dialog.refresh_requested.connect(
+                self._refresh_git_status_dialog
+            )
             # Note: Stage/Unstage buttons not implemented yet - future enhancement
 
         # Request detailed status from worker
@@ -954,6 +954,7 @@ class AsciiDocEditor(QMainWindow):
 
             # Convert ChatMessage history to ClaudeMessage format
             from asciidoc_artisan.claude import ClaudeMessage
+
             claude_history = []
             for msg in history:
                 if hasattr(msg, "role") and hasattr(msg, "content"):
@@ -1005,9 +1006,7 @@ class AsciiDocEditor(QMainWindow):
                 "Focus on content, not just formatting."
             )
         else:  # general
-            return (
-                "You are a helpful AI assistant. Answer questions clearly and concisely."
-            )
+            return "You are a helpful AI assistant. Answer questions clearly and concisely."
 
     @Slot(object)
     def _adapt_claude_response_to_chat_message(self, claude_result: object) -> None:
@@ -1074,7 +1073,9 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             # Find all matches
-            matches = self.search_engine.find_all(search_text, case_sensitive=case_sensitive)
+            matches = self.search_engine.find_all(
+                search_text, case_sensitive=case_sensitive
+            )
 
             # Update match count in find bar
             if matches:
@@ -1125,13 +1126,15 @@ class AsciiDocEditor(QMainWindow):
                 search_text,
                 start_offset=current_pos,
                 case_sensitive=self.find_bar.is_case_sensitive(),
-                wrap_around=True
+                wrap_around=True,
             )
 
             if match:
                 self._select_match(match)
                 # Update counter
-                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
+                matches = self.search_engine.find_all(
+                    search_text, case_sensitive=self.find_bar.is_case_sensitive()
+                )
                 match_index = matches.index(match) if match in matches else 0
                 self.find_bar.update_match_count(match_index + 1, len(matches))
 
@@ -1154,13 +1157,15 @@ class AsciiDocEditor(QMainWindow):
                 search_text,
                 start_offset=current_pos,
                 case_sensitive=self.find_bar.is_case_sensitive(),
-                wrap_around=True
+                wrap_around=True,
             )
 
             if match:
                 self._select_match(match)
                 # Update counter
-                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
+                matches = self.search_engine.find_all(
+                    search_text, case_sensitive=self.find_bar.is_case_sensitive()
+                )
                 match_index = matches.index(match) if match in matches else 0
                 self.find_bar.update_match_count(match_index + 1, len(matches))
 
@@ -1278,9 +1283,7 @@ class AsciiDocEditor(QMainWindow):
                 # Clear highlights and update status
                 self._clear_search_highlighting()
                 self.find_bar.update_match_count(0, 0)
-                self.status_manager.show_status(
-                    f"Replaced {count} occurrence(s)", 3000
-                )
+                self.status_manager.show_status(f"Replaced {count} occurrence(s)", 3000)
 
                 logger.info(
                     f"Replaced all: {count} occurrences of '{search_text}' with '{replace_text}'"
@@ -1322,6 +1325,7 @@ class AsciiDocEditor(QMainWindow):
 
             # Yellow highlight for matches
             from PySide6.QtGui import QColor
+
             selection.format.setBackground(QColor(255, 255, 0, 80))  # Light yellow
             selection.cursor = cursor
             search_selections.append(selection)
@@ -1345,10 +1349,10 @@ class AsciiDocEditor(QMainWindow):
     def _apply_combined_selections(self) -> None:
         """Combine search and spell check selections and apply to editor."""
         # Make a copy of search selections to avoid modifying original
-        combined = list(getattr(self.editor, 'search_selections', []))
+        combined = list(getattr(self.editor, "search_selections", []))
 
         # Add spell check selections if they exist
-        spell_sels = getattr(self.editor, 'spell_check_selections', [])
+        spell_sels = getattr(self.editor, "spell_check_selections", [])
         combined.extend(spell_sels)
 
         # Apply combined selections
@@ -1374,7 +1378,9 @@ class AsciiDocEditor(QMainWindow):
         self.action_manager.ollama_status_act.setText(ollama_text)
         self.action_manager.anthropic_status_act.setText(claude_text)
 
-        logger.debug(f"Updated AI backend checkmarks: ollama={is_ollama}, claude={is_claude}")
+        logger.debug(
+            f"Updated AI backend checkmarks: ollama={is_ollama}, claude={is_claude}"
+        )
 
     def _check_pandoc_availability(self, context: str) -> bool:
         """Check if Pandoc is available (delegates to UIStateManager)."""

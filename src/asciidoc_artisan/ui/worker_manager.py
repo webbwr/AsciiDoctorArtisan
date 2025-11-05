@@ -112,9 +112,7 @@ class WorkerManager:
             self.git_worker.get_detailed_repository_status
         )  # v1.9.0+
         self.git_worker.command_complete.connect(self.editor._handle_git_result)
-        self.git_worker.status_ready.connect(
-            self.editor._handle_git_status
-        )  # v1.9.0+
+        self.git_worker.status_ready.connect(self.editor._handle_git_status)  # v1.9.0+
         self.git_worker.detailed_status_ready.connect(
             self.editor._handle_detailed_git_status
         )  # v1.9.0+
@@ -197,7 +195,9 @@ class WorkerManager:
         self.claude_thread.finished.connect(self.claude_worker.deleteLater)
         self.claude_thread.start()
 
-        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview, Ollama, Claude)")
+        logger.info(
+            "All worker threads started (Git, GitHub, Pandoc, Preview, Ollama, Claude)"
+        )
 
         # Store references on main window for backward compatibility
         self.editor.git_thread = self.git_thread

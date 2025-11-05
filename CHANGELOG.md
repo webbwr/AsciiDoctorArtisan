@@ -5,6 +5,30 @@ All notable changes to AsciiDoc Artisan will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Claude AI Model Migration** - Migrated from Claude 3.5 to Claude 4 models
+  - Default model: `claude-sonnet-4-20250514` (was `claude-3-5-sonnet-20241022`)
+  - Fast model: `claude-haiku-4-5` (was `claude-3-5-haiku-20241022`)
+  - Updated all code, tests, and documentation (10 files)
+  - All 821+ tests passing with new model references
+
+### Added
+- **Settings Migration** - Auto-migration for deprecated Claude 3.5 model names
+  - Automatic migration on first launch with old settings
+  - Migrates `claude-3-5-sonnet-20241022` → `claude-sonnet-4-20250514`
+  - Migrates `claude-3-5-sonnet-20240620` → `claude-sonnet-4-20250514`
+  - Migrates `claude-3-5-haiku-20241022` → `claude-haiku-4-5`
+  - Migration is transparent to users - no action required
+  - 6 new tests for migration logic (all passing)
+
+### Technical
+- Lint fixes: All type errors resolved (17 → 0)
+- Code formatting: 100% compliance (ruff, black, isort, mypy)
+- Settings: Added `_migrate_claude_model()` method with comprehensive tests
+- Tests: +6 migration tests in `tests/unit/core/test_settings.py`
+
 ## [1.8.0] - 2025-11-02 (IN PROGRESS)
 
 ### Added

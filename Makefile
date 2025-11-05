@@ -2,7 +2,14 @@
 # Unified build system for Python app and AsciiDoc templates
 
 # Python application variables
-PYTHON = python3
+VENV = venv
+PYTHON = $(VENV)/bin/python3
+PIP = $(VENV)/bin/pip
+PYTEST = $(VENV)/bin/pytest
+BLACK = $(VENV)/bin/black
+ISORT = $(VENV)/bin/isort
+RUFF = $(VENV)/bin/ruff
+MYPY = $(VENV)/bin/mypy
 SRC_DIR = src
 TESTS_DIR = tests
 
@@ -40,26 +47,26 @@ help:
 
 # Python Application Targets
 install:
-	pip install -r requirements-production.txt
+	$(PIP) install -r requirements-production.txt
 
 install-dev:
-	pip install -r requirements.txt
-	pip install -e ".[dev]"
+	$(PIP) install -r requirements.txt
+	$(PIP) install -e ".[dev]"
 	pre-commit install
 
 test:
-	pytest $(TESTS_DIR)/ -v --cov=$(SRC_DIR) --cov-report=term-missing --cov-report=html
+	$(PYTEST) $(TESTS_DIR)/ -v --cov=$(SRC_DIR) --cov-report=term-missing --cov-report=html
 
 lint:
-	ruff check $(SRC_DIR)
-	black --check $(SRC_DIR)
-	isort --check-only $(SRC_DIR)
-	mypy $(SRC_DIR) || true
+	$(RUFF) check $(SRC_DIR)
+	$(BLACK) --check $(SRC_DIR)
+	$(ISORT) --check-only $(SRC_DIR)
+	$(MYPY) $(SRC_DIR) || true
 
 format:
-	black $(SRC_DIR)
-	isort $(SRC_DIR)
-	ruff check --fix $(SRC_DIR)
+	$(BLACK) $(SRC_DIR)
+	$(ISORT) $(SRC_DIR)
+	$(RUFF) check --fix $(SRC_DIR)
 
 clean:
 	rm -rf build/

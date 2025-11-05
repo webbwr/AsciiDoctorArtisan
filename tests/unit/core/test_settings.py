@@ -146,6 +146,42 @@ class TestSettingsMigration:
         settings = Settings.from_dict(data)
         assert settings.ai_chat_enabled is True
 
+    def test_migrate_claude_35_sonnet_20241022_to_claude_4(self):
+        """Test migration of claude-3-5-sonnet-20241022 to Claude 4."""
+        data = {"claude_model": "claude-3-5-sonnet-20241022"}
+        settings = Settings.from_dict(data)
+        assert settings.claude_model == "claude-sonnet-4-20250514"
+
+    def test_migrate_claude_35_sonnet_20240620_to_claude_4(self):
+        """Test migration of claude-3-5-sonnet-20240620 to Claude 4."""
+        data = {"claude_model": "claude-3-5-sonnet-20240620"}
+        settings = Settings.from_dict(data)
+        assert settings.claude_model == "claude-sonnet-4-20250514"
+
+    def test_migrate_claude_35_haiku_to_claude_4(self):
+        """Test migration of claude-3-5-haiku-20241022 to Claude 4."""
+        data = {"claude_model": "claude-3-5-haiku-20241022"}
+        settings = Settings.from_dict(data)
+        assert settings.claude_model == "claude-haiku-4-5"
+
+    def test_claude_model_no_migration_for_new_models(self):
+        """Test that new Claude 4 model names are not migrated."""
+        data = {"claude_model": "claude-sonnet-4-20250514"}
+        settings = Settings.from_dict(data)
+        assert settings.claude_model == "claude-sonnet-4-20250514"
+
+    def test_claude_model_migration_handles_none(self):
+        """Test that None claude_model is handled gracefully."""
+        data = {"claude_model": None}
+        settings = Settings.from_dict(data)
+        assert settings.claude_model is None
+
+    def test_claude_model_migration_handles_unknown_model(self):
+        """Test that unknown model names pass through unchanged."""
+        data = {"claude_model": "custom-model-name"}
+        settings = Settings.from_dict(data)
+        assert settings.claude_model == "custom-model-name"
+
 
 @pytest.mark.unit
 class TestSettingsValidation:

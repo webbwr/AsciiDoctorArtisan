@@ -565,7 +565,7 @@ Cloud-based AI integration with Anthropic Claude API:
 
 **ClaudeClient** - Synchronous API client for Claude operations:
 - API key management via secure OS keyring (`SecureCredentials`)
-- Multiple Claude models: Sonnet 3.5 (default), Haiku 3.5, Opus 3
+- Multiple Claude models: Sonnet 4 (default), Haiku 4.5, Opus 4
 - Configurable parameters: model, max_tokens (default: 4096), temperature (default: 1.0)
 - Message operations: send_message, test_connection, conversation history support
 - Error handling: connection errors, rate limits, invalid API keys with user-friendly messages
@@ -600,9 +600,9 @@ Main Thread handles response
 - `ClaudeMessage`: role ("user"/"assistant"), content (Pydantic model for validation)
 
 **Available Models:**
-- `claude-3-5-sonnet-20241022` (default) - Balanced performance/cost
-- `claude-3-5-haiku-20241022` - Fast and economical
-- `claude-3-opus-20240229` - Most capable
+- `claude-sonnet-4-20250514` (default) - Balanced performance/cost
+- `claude-haiku-4-5` - Fast and economical
+- `claude-opus-4-20250514` - Most capable
 
 **Settings:**
 - API key: Stored securely in OS keyring (never in plain text)
@@ -612,7 +612,7 @@ Main Thread handles response
 **Usage Example:**
 ```python
 # Synchronous (blocking)
-client = ClaudeClient(model="claude-3-5-sonnet-20241022")
+client = ClaudeClient(model="claude-sonnet-4-20250514")
 result = client.send_message("Explain AsciiDoc syntax")
 if result.success:
     print(result.content)

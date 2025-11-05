@@ -95,7 +95,9 @@ class Settings:
     ai_backend: str = "ollama"  # "ollama" or "claude"
     ollama_enabled: bool = True  # Enable Ollama by default for chat
     ollama_model: Optional[str] = "gnokit/improve-grammer"  # Default model for chat
-    claude_model: Optional[str] = "claude-sonnet-4-20250514"  # Default Claude model (Claude Sonnet 4)
+    claude_model: Optional[str] = (
+        "claude-sonnet-4-20250514"  # Default Claude model (Claude Sonnet 4)
+    )
 
     # Chat settings (v1.7.0, v1.10.0+ backend-agnostic)
     ai_chat_enabled: bool = True  # Enable chat by default
@@ -106,7 +108,9 @@ class Settings:
 
     # Backward compatibility aliases (deprecated, kept for migration)
     ollama_chat_enabled: bool = True  # Deprecated: use ai_chat_enabled
-    ollama_chat_history: List[Dict[str, Any]] = field(default_factory=list)  # Deprecated: use chat_history
+    ollama_chat_history: List[Dict[str, Any]] = field(
+        default_factory=list
+    )  # Deprecated: use chat_history
     ollama_chat_max_history: int = 100  # Deprecated: use chat_max_history
     ollama_chat_context_mode: str = "document"  # Deprecated: use chat_context_mode
     ollama_chat_send_document: bool = True  # Deprecated: use chat_send_document
@@ -126,7 +130,9 @@ class Settings:
 
     # Telemetry settings (v1.8.0)
     telemetry_enabled: bool = False  # Opt-in only (GDPR compliant)
-    telemetry_session_id: Optional[str] = None  # Anonymous UUID, generated on first enable
+    telemetry_session_id: Optional[str] = (
+        None  # Anonymous UUID, generated on first enable
+    )
     telemetry_opt_in_shown: bool = False  # Whether opt-in dialog has been shown
 
     def to_dict(self) -> Dict[str, Any]:
@@ -138,6 +144,44 @@ class Settings:
         """
         return asdict(self)
 
+    @staticmethod
+    def _migrate_claude_model(model: Optional[str]) -> Optional[str]:
+        """
+        Migrate deprecated Claude 3.5 model names to Claude 4 equivalents.
+
+        This ensures backward compatibility when users upgrade from versions
+        that used Claude 3.5 models (pre-v1.9.1).
+
+        Args:
+            model: Model identifier (may be old or new format)
+
+        Returns:
+            Migrated model identifier, or None if input was None
+
+        Example:
+            >>> Settings._migrate_claude_model("claude-3-5-sonnet-20241022")
+            'claude-sonnet-4-20250514'
+            >>> Settings._migrate_claude_model("claude-sonnet-4-20250514")
+            'claude-sonnet-4-20250514'
+        """
+        if not model:
+            return model
+
+        # Migration map: Claude 3.5 → Claude 4
+        migrations = {
+            "claude-3-5-sonnet-20241022": "claude-sonnet-4-20250514",
+            "claude-3-5-sonnet-20240620": "claude-sonnet-4-20250514",
+            "claude-3-5-haiku-20241022": "claude-haiku-4-5",
+        }
+
+        if model in migrations:
+            new_model = migrations[model]
+            # Log migration for debugging (using print since we're in a dataclass)
+            print(f"Settings: Migrated Claude model {model} → {new_model}")
+            return new_model
+
+        return model
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Settings":
         """
@@ -146,8 +190,9 @@ class Settings:
         Filters out unknown keys to maintain forward/backward compatibility
         when deserializing settings from older or newer versions.
 
-        Performs migration from deprecated ollama_chat_* settings to new
-        backend-agnostic chat_* settings (v1.10.0+).
+        Performs migrations:
+        - ollama_chat_* settings → chat_* settings (v1.10.0+)
+        - Claude 3.5 model names → Claude 4 model names (v1.9.1+)
 
         Args:
             data: Dictionary from JSON deserialization
@@ -170,6 +215,10 @@ class Settings:
 
         if "ollama_chat_send_document" in data and "chat_send_document" not in data:
             data["chat_send_document"] = data["ollama_chat_send_document"]
+
+        # Migrate deprecated Claude 3.5 model names to Claude 4 (v1.9.1+)
+        if "claude_model" in data:
+            data["claude_model"] = cls._migrate_claude_model(data["claude_model"])
 
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
@@ -217,6 +266,7 @@ class Settings:
             - telemetry_opt_in_shown: Must be bool, defaults to False
         """
         import logging
+
         logger = logging.getLogger(__name__)
         issues = []
 
@@ -229,12 +279,16 @@ class Settings:
             self.last_directory = str(Path.home())
 
         # Validate last_file (optional string)
-        if self.last_file is not None and (not isinstance(self.last_file, str) or not self.last_file):
+        if self.last_file is not None and (
+            not isinstance(self.last_file, str) or not self.last_file
+        ):
             issues.append(f"Invalid last_file: {self.last_file}")
             self.last_file = None
 
         # Validate git_repo_path (optional string)
-        if self.git_repo_path is not None and (not isinstance(self.git_repo_path, str) or not self.git_repo_path):
+        if self.git_repo_path is not None and (
+            not isinstance(self.git_repo_path, str) or not self.git_repo_path
+        ):
             issues.append(f"Invalid git_repo_path: {self.git_repo_path}")
             self.git_repo_path = None
 
@@ -251,19 +305,29 @@ class Settings:
         # Validate window_geometry (optional dict)
         if self.window_geometry is not None:
             if not isinstance(self.window_geometry, dict):
-                issues.append(f"Invalid window_geometry type: {type(self.window_geometry)}")
+                issues.append(
+                    f"Invalid window_geometry type: {type(self.window_geometry)}"
+                )
                 self.window_geometry = None
-            elif not all(key in self.window_geometry for key in ["x", "y", "width", "height"]):
-                issues.append(f"Missing window_geometry keys: {self.window_geometry.keys()}")
+            elif not all(
+                key in self.window_geometry for key in ["x", "y", "width", "height"]
+            ):
+                issues.append(
+                    f"Missing window_geometry keys: {self.window_geometry.keys()}"
+                )
                 self.window_geometry = None
 
         # Validate splitter_sizes (optional list of 2-3 ints)
         if self.splitter_sizes is not None:
             if not isinstance(self.splitter_sizes, list):
-                issues.append(f"Invalid splitter_sizes type: {type(self.splitter_sizes)}")
+                issues.append(
+                    f"Invalid splitter_sizes type: {type(self.splitter_sizes)}"
+                )
                 self.splitter_sizes = None
             elif not (2 <= len(self.splitter_sizes) <= 3):
-                issues.append(f"Invalid splitter_sizes length: {len(self.splitter_sizes)}")
+                issues.append(
+                    f"Invalid splitter_sizes length: {len(self.splitter_sizes)}"
+                )
                 self.splitter_sizes = None
             elif not all(isinstance(s, int) and s >= 0 for s in self.splitter_sizes):
                 issues.append(f"Invalid splitter_sizes values: {self.splitter_sizes}")
@@ -280,12 +344,17 @@ class Settings:
             self.auto_save_enabled = True
 
         # Validate auto_save_interval (int 30-3600)
-        if not isinstance(self.auto_save_interval, int) or not (30 <= self.auto_save_interval <= 3600):
+        if not isinstance(self.auto_save_interval, int) or not (
+            30 <= self.auto_save_interval <= 3600
+        ):
             issues.append(f"Invalid auto_save_interval: {self.auto_save_interval}")
             self.auto_save_interval = 300
 
         # Validate ai_backend (string: "ollama" or "claude")
-        if not isinstance(self.ai_backend, str) or self.ai_backend not in ["ollama", "claude"]:
+        if not isinstance(self.ai_backend, str) or self.ai_backend not in [
+            "ollama",
+            "claude",
+        ]:
             issues.append(f"Invalid ai_backend: {self.ai_backend}")
             self.ai_backend = "ollama"
 
@@ -295,12 +364,16 @@ class Settings:
             self.ollama_enabled = True
 
         # Validate ollama_model (optional string)
-        if self.ollama_model is not None and (not isinstance(self.ollama_model, str) or not self.ollama_model):
+        if self.ollama_model is not None and (
+            not isinstance(self.ollama_model, str) or not self.ollama_model
+        ):
             issues.append(f"Invalid ollama_model: {self.ollama_model}")
             self.ollama_model = None
 
         # Validate claude_model (optional string)
-        if self.claude_model is not None and (not isinstance(self.claude_model, str) or not self.claude_model):
+        if self.claude_model is not None and (
+            not isinstance(self.claude_model, str) or not self.claude_model
+        ):
             issues.append(f"Invalid claude_model: {self.claude_model}")
             self.claude_model = None
 
@@ -315,13 +388,18 @@ class Settings:
             self.chat_history = []
 
         # Validate chat_max_history (int 10-1000)
-        if not isinstance(self.chat_max_history, int) or not (10 <= self.chat_max_history <= 1000):
+        if not isinstance(self.chat_max_history, int) or not (
+            10 <= self.chat_max_history <= 1000
+        ):
             issues.append(f"Invalid chat_max_history: {self.chat_max_history}")
             self.chat_max_history = 100
 
         # Validate chat_context_mode (string)
         valid_modes = ["document", "syntax", "general", "editing"]
-        if not isinstance(self.chat_context_mode, str) or self.chat_context_mode not in valid_modes:
+        if (
+            not isinstance(self.chat_context_mode, str)
+            or self.chat_context_mode not in valid_modes
+        ):
             issues.append(f"Invalid chat_context_mode: {self.chat_context_mode}")
             self.chat_context_mode = "document"
 
@@ -335,15 +413,22 @@ class Settings:
             issues.append(f"Invalid editor_font_family: {self.editor_font_family}")
             self.editor_font_family = "Courier New"
 
-        if not isinstance(self.editor_font_size, int) or not (8 <= self.editor_font_size <= 72):
+        if not isinstance(self.editor_font_size, int) or not (
+            8 <= self.editor_font_size <= 72
+        ):
             issues.append(f"Invalid editor_font_size: {self.editor_font_size}")
             self.editor_font_size = 12
 
-        if not isinstance(self.preview_font_family, str) or not self.preview_font_family:
+        if (
+            not isinstance(self.preview_font_family, str)
+            or not self.preview_font_family
+        ):
             issues.append(f"Invalid preview_font_family: {self.preview_font_family}")
             self.preview_font_family = "Arial"
 
-        if not isinstance(self.preview_font_size, int) or not (8 <= self.preview_font_size <= 72):
+        if not isinstance(self.preview_font_size, int) or not (
+            8 <= self.preview_font_size <= 72
+        ):
             issues.append(f"Invalid preview_font_size: {self.preview_font_size}")
             self.preview_font_size = 12
 
@@ -351,7 +436,9 @@ class Settings:
             issues.append(f"Invalid chat_font_family: {self.chat_font_family}")
             self.chat_font_family = "Arial"
 
-        if not isinstance(self.chat_font_size, int) or not (8 <= self.chat_font_size <= 72):
+        if not isinstance(self.chat_font_size, int) or not (
+            8 <= self.chat_font_size <= 72
+        ):
             issues.append(f"Invalid chat_font_size: {self.chat_font_size}")
             self.chat_font_size = 11
 
@@ -360,28 +447,40 @@ class Settings:
             issues.append(f"Invalid spell_check_enabled: {self.spell_check_enabled}")
             self.spell_check_enabled = True
 
-        if not isinstance(self.spell_check_language, str) or not self.spell_check_language:
+        if (
+            not isinstance(self.spell_check_language, str)
+            or not self.spell_check_language
+        ):
             issues.append(f"Invalid spell_check_language: {self.spell_check_language}")
             self.spell_check_language = "en"
 
         if not isinstance(self.spell_check_custom_words, list):
-            issues.append(f"Invalid spell_check_custom_words type: {type(self.spell_check_custom_words)}")
+            issues.append(
+                f"Invalid spell_check_custom_words type: {type(self.spell_check_custom_words)}"
+            )
             self.spell_check_custom_words = []
         elif not all(isinstance(w, str) for w in self.spell_check_custom_words):
             issues.append("spell_check_custom_words contains non-string values")
-            self.spell_check_custom_words = [w for w in self.spell_check_custom_words if isinstance(w, str)]
+            self.spell_check_custom_words = [
+                w for w in self.spell_check_custom_words if isinstance(w, str)
+            ]
 
         # Validate telemetry settings
         if not isinstance(self.telemetry_enabled, bool):
             issues.append(f"Invalid telemetry_enabled: {self.telemetry_enabled}")
             self.telemetry_enabled = False
 
-        if self.telemetry_session_id is not None and (not isinstance(self.telemetry_session_id, str) or not self.telemetry_session_id):
+        if self.telemetry_session_id is not None and (
+            not isinstance(self.telemetry_session_id, str)
+            or not self.telemetry_session_id
+        ):
             issues.append(f"Invalid telemetry_session_id: {self.telemetry_session_id}")
             self.telemetry_session_id = None
 
         if not isinstance(self.telemetry_opt_in_shown, bool):
-            issues.append(f"Invalid telemetry_opt_in_shown: {self.telemetry_opt_in_shown}")
+            issues.append(
+                f"Invalid telemetry_opt_in_shown: {self.telemetry_opt_in_shown}"
+            )
             self.telemetry_opt_in_shown = False
 
         # Log all issues

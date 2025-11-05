@@ -23,7 +23,7 @@ class TestRunMethodExecution:
         mock_result = ClaudeResult(
             success=True,
             content="Response",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-4-20250514",
             tokens_used=10,
             error=None,
             stop_reason="end_turn",
@@ -51,7 +51,7 @@ class TestRunMethodExecution:
         mock_result = ClaudeResult(
             success=True,
             content="OK",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-4-20250514",
             tokens_used=5,
             error=None,
             stop_reason="end_turn",
@@ -94,7 +94,7 @@ class TestExecuteSendMessage:
         mock_result = ClaudeResult(
             success=True,
             content="Response with system",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-4-20250514",
             tokens_used=15,
             error=None,
             stop_reason="end_turn",
@@ -124,7 +124,7 @@ class TestExecuteSendMessage:
         mock_result = ClaudeResult(
             success=True,
             content="Response with history",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-4-20250514",
             tokens_used=20,
             error=None,
             stop_reason="end_turn",
@@ -191,7 +191,7 @@ class TestExecuteTestConnection:
         mock_result = ClaudeResult(
             success=True,
             content="Connection successful",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-4-20250514",
             tokens_used=8,
             error=None,
             stop_reason="end_turn",

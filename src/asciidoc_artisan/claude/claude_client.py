@@ -77,12 +77,12 @@ class ClaudeClient:
     response parsing.
 
     Attributes:
-        model: Claude model to use (default: claude-3-5-sonnet-20241022)
+        model: Claude model to use (default: claude-sonnet-4-20250514)
         max_tokens: Maximum tokens in response (default: 4096)
         temperature: Sampling temperature 0-1 (default: 1.0)
 
     Example:
-        >>> client = ClaudeClient(model="claude-3-5-sonnet-20241022")
+        >>> client = ClaudeClient(model="claude-sonnet-4-20250514")
         >>> result = client.send_message("Explain AsciiDoc")
         >>> if result.success:
         ...     print(result.content)
@@ -209,19 +209,25 @@ class ClaudeClient:
                 f"messages={len(messages)})"
             )
 
-            response = client.messages.create(
-                model=self.model,
-                max_tokens=self.max_tokens,
-                temperature=self.temperature,
-                system=system if system else None,
-                messages=messages,
-            )
+            # Build kwargs, only add system if provided
+            kwargs = {
+                "model": self.model,
+                "max_tokens": self.max_tokens,
+                "temperature": self.temperature,
+                "messages": messages,  # type: ignore[arg-type]
+            }
+            if system:
+                kwargs["system"] = system
+
+            response = client.messages.create(**kwargs)  # type: ignore[call-overload]
 
             # Extract response
             content = ""
             if response.content and len(response.content) > 0:
                 # Claude returns a list of content blocks
-                content = response.content[0].text
+                first_block = response.content[0]
+                if hasattr(first_block, "text"):
+                    content = first_block.text  # type: ignore[attr-defined]
 
             tokens_used = (
                 response.usage.input_tokens + response.usage.output_tokens
@@ -259,10 +265,11 @@ class ClaudeClient:
                 )
             elif "rate_limit" in error_msg.lower():
                 error_msg = "Rate limit exceeded. Please wait a moment and try again."
-            elif "insufficient_quota" in error_msg.lower() or "credit balance is too low" in error_msg.lower():
-                error_msg = (
-                    "Insufficient API credits. Please add credits at console.anthropic.com/settings/billing"
-                )
+            elif (
+                "insufficient_quota" in error_msg.lower()
+                or "credit balance is too low" in error_msg.lower()
+            ):
+                error_msg = "Insufficient API credits. Please add credits at console.anthropic.com/settings/billing"
             elif "overloaded" in error_msg.lower():
                 error_msg = "Claude API is temporarily overloaded. Please try again in a moment."
 
@@ -270,9 +277,7 @@ class ClaudeClient:
 
         except Exception as e:
             logger.exception(f"Unexpected error calling Claude API: {e}")
-            return ClaudeResult(
-                success=False, error=f"Unexpected error: {str(e)}"
-            )
+            return ClaudeResult(success=False, error=f"Unexpected error: {str(e)}")
 
     def test_connection(self) -> ClaudeResult:
         """
@@ -346,7 +351,9 @@ class ClaudeClient:
 
             # Extract model IDs
             if "data" in models_data:
-                model_ids = [model.get("id", "unknown") for model in models_data["data"]]
+                model_ids = [
+                    model.get("id", "unknown") for model in models_data["data"]
+                ]
                 formatted_output = f"Available Models ({len(model_ids)}):\n\n"
                 for model_id in model_ids:
                     formatted_output += f"• {model_id}\n"

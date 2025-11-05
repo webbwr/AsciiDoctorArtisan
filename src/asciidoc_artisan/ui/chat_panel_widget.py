@@ -239,11 +239,13 @@ class ChatPanelWidget(QWidget):
         # Dictionary.get() returns emoji version if mode is known,
         # otherwise returns raw mode name as fallback (for future modes)
         mode_display = {
-            "document": "📄 Doc",      # Document Q&A mode
-            "syntax": "📝 Syntax",      # AsciiDoc syntax help
-            "general": "💬 Chat",       # General conversation
-            "editing": "✏️ Edit",       # Editing suggestions
-        }.get(message.context_mode, message.context_mode)  # Fallback: use raw name if unknown
+            "document": "📄 Doc",  # Document Q&A mode
+            "syntax": "📝 Syntax",  # AsciiDoc syntax help
+            "general": "💬 Chat",  # General conversation
+            "editing": "✏️ Edit",  # Editing suggestions
+        }.get(
+            message.context_mode, message.context_mode
+        )  # Fallback: use raw name if unknown
 
         colors = self._get_colors()
 
@@ -304,12 +306,12 @@ class ChatPanelWidget(QWidget):
             HTML-safe text ready for display
         """
         return (
-            text.replace("&", "&amp;")    # Must be first! (& -> &amp;)
-            .replace("<", "&lt;")         # < -> &lt; (prevents tags)
-            .replace(">", "&gt;")         # > -> &gt;
-            .replace('"', "&quot;")       # " -> &quot; (prevents attribute injection)
-            .replace("'", "&#39;")        # ' -> &#39;
-            .replace("\n", "<br>")        # Convert newlines to line breaks
+            text.replace("&", "&amp;")  # Must be first! (& -> &amp;)
+            .replace("<", "&lt;")  # < -> &lt; (prevents tags)
+            .replace(">", "&gt;")  # > -> &gt;
+            .replace('"', "&quot;")  # " -> &quot; (prevents attribute injection)
+            .replace("'", "&#39;")  # ' -> &#39;
+            .replace("\n", "<br>")  # Convert newlines to line breaks
         )
 
     def _scroll_to_bottom(self) -> None:

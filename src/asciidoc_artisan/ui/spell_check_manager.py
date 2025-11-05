@@ -99,7 +99,7 @@ class SpellCheckManager:
             # Perform immediate spell check
             self._perform_spell_check()
             self.main_window.status_manager.show_message(
-                "Spell check enabled"
+                "info", "Spell Check", "Spell check enabled"
             )
             logger.info("Spell check enabled")
         else:
@@ -107,14 +107,14 @@ class SpellCheckManager:
             self._clear_highlights()
             self.errors = []
             self.main_window.status_manager.show_message(
-                "Spell check disabled"
+                "info", "Spell Check", "Spell check disabled"
             )
             logger.info("Spell check disabled")
 
     def _update_menu_text(self) -> None:
         """Update the toggle menu item text to show current state with checkmark."""
-        if hasattr(self.main_window, 'action_manager') and hasattr(
-            self.main_window.action_manager, 'toggle_spell_check_act'
+        if hasattr(self.main_window, "action_manager") and hasattr(
+            self.main_window.action_manager, "toggle_spell_check_act"
         ):
             text = "✓ &Spell Check" if self.enabled else "&Spell Check"
             self.main_window.action_manager.toggle_spell_check_act.setText(text)
@@ -269,7 +269,9 @@ class SpellCheckManager:
         logger.info(f"Spell check complete: {len(self.errors)} errors found")
         if self.errors:
             for error in self.errors[:5]:  # Log first 5 errors
-                logger.debug(f"  Error: '{error.word}' at position {error.start}-{error.end}")
+                logger.debug(
+                    f"  Error: '{error.word}' at position {error.start}-{error.end}"
+                )
 
     def _update_highlights(self) -> None:
         """Update red squiggly underlines for all spelling errors."""
@@ -290,9 +292,7 @@ class SpellCheckManager:
             # Create red squiggly underline format
             fmt = QTextCharFormat()
             fmt.setUnderlineColor(QColor(Qt.GlobalColor.red))
-            fmt.setUnderlineStyle(
-                QTextCharFormat.UnderlineStyle.SpellCheckUnderline
-            )
+            fmt.setUnderlineStyle(QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
 
             # Add to selections
             selection = QTextEdit.ExtraSelection()
@@ -318,16 +318,18 @@ class SpellCheckManager:
     def _apply_combined_selections(self) -> None:
         """Combine spell check selections with other selections and apply to editor."""
         # Make a copy of spell check selections to avoid modifying original
-        combined = list(getattr(self.editor, 'spell_check_selections', []))
+        combined = list(getattr(self.editor, "spell_check_selections", []))
 
         # Add search/find selections if they exist
-        search_sels = getattr(self.editor, 'search_selections', [])
+        search_sels = getattr(self.editor, "search_selections", [])
         combined.extend(search_sels)
 
         # Apply combined selections
         self.editor.setExtraSelections(combined)
 
-        logger.debug(f"Applied combined selections: {len(combined)} total ({len(getattr(self.editor, 'spell_check_selections', []))} spell check + {len(search_sels)} search)")
+        logger.debug(
+            f"Applied combined selections: {len(combined)} total ({len(getattr(self.editor, 'spell_check_selections', []))} spell check + {len(search_sels)} search)"
+        )
 
     def _find_error_at_position(self, position: int) -> Optional[SpellError]:
         """

@@ -146,9 +146,12 @@ class ChatManager(QObject):
 
         # Check for auto-switch to Claude scenario
         from ..core import SecureCredentials
+
         creds = SecureCredentials()
         if not self._settings.ollama_enabled and creds.has_anthropic_key():
-            logger.info("Ollama disabled but Claude available - auto-switching to Claude")
+            logger.info(
+                "Ollama disabled but Claude available - auto-switching to Claude"
+            )
             self._switch_backend("claude")
         else:
             # Load models and set current model for the active backend
@@ -164,8 +167,7 @@ class ChatManager(QObject):
 
         # Use new backend-agnostic setting (with fallback to deprecated)
         context_mode = (
-            self._settings.chat_context_mode
-            or self._settings.ollama_chat_context_mode
+            self._settings.chat_context_mode or self._settings.ollama_chat_context_mode
         )
         self._chat_bar.set_context_mode(context_mode)
 
@@ -288,7 +290,9 @@ class ChatManager(QObject):
             self._load_claude_models()
         else:
             logger.error(f"Unknown backend: {self._current_backend}")
-            self.status_message.emit(f"Error: Unknown AI backend '{self._current_backend}'")
+            self.status_message.emit(
+                f"Error: Unknown AI backend '{self._current_backend}'"
+            )
 
     def _load_ollama_models(self) -> None:
         """Load available Ollama models."""
@@ -386,9 +390,8 @@ class ChatManager(QObject):
             logger.error(f"Error loading Claude models: {e}")
             # Fallback to hardcoded defaults
             models = [
-                "claude-3-5-sonnet-20241022",
-                "claude-3-5-haiku-20241022",
                 "claude-sonnet-4-20250514",
+                "claude-haiku-4-5",
             ]
 
         # Add current model if not in list
@@ -430,8 +433,7 @@ class ChatManager(QObject):
         # Apply max history limit (use most restrictive limit for backward compatibility)
         # Use min() to respect both new and deprecated settings
         max_history = min(
-            self._settings.chat_max_history,
-            self._settings.ollama_chat_max_history
+            self._settings.chat_max_history, self._settings.ollama_chat_max_history
         )
         if len(messages) > max_history:
             messages = messages[-max_history:]
@@ -465,6 +467,7 @@ class ChatManager(QObject):
             # Validate Claude model against available models
             try:
                 from ..claude import ClaudeClient
+
                 is_valid = model in ClaudeClient.AVAILABLE_MODELS
                 logger.debug(f"Claude model validation: {model} -> {is_valid}")
                 return is_valid
@@ -543,13 +546,16 @@ class ChatManager(QObject):
 
         # Check if Claude API key is configured
         from ..core import SecureCredentials
+
         creds = SecureCredentials()
         has_claude_key = creds.has_anthropic_key()
 
         # Auto-switch to Claude if Ollama is disabled but Claude is available
         if not self._settings.ollama_enabled and has_claude_key:
             if self._current_backend != "claude":
-                logger.info("Auto-switching to Claude backend (Ollama disabled, Claude available)")
+                logger.info(
+                    "Auto-switching to Claude backend (Ollama disabled, Claude available)"
+                )
                 self._switch_backend("claude")
             return bool(self._settings.claude_model)
 
@@ -669,7 +675,8 @@ class ChatManager(QObject):
         document_content = None
         # Use new backend-agnostic setting (with fallback)
         send_document = (
-            self._settings.chat_send_document or self._settings.ollama_chat_send_document
+            self._settings.chat_send_document
+            or self._settings.ollama_chat_send_document
         )
         if context_mode in ("document", "editing") and send_document:
             if self._document_content_provider:
@@ -793,7 +800,9 @@ class ChatManager(QObject):
 
             if result.success:
                 # Display models in chat panel as system message
-                self._chat_panel.add_message("system", f"🔍 **Available Models**\n\n{result.content}")
+                self._chat_panel.add_message(
+                    "system", f"🔍 **Available Models**\n\n{result.content}"
+                )
                 self.status_message.emit("✓ Model scan complete")
                 logger.info("Model scan successful")
             else:
@@ -919,6 +928,7 @@ class ChatManager(QObject):
 
         # Check if backend should switch based on Ollama enabled state
         from ..core import SecureCredentials
+
         creds = SecureCredentials()
         has_claude_key = creds.has_anthropic_key()
 

@@ -27,12 +27,12 @@ Example:
 import logging
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Set
+from typing import TYPE_CHECKING, List, Set
 
 # Lazy import: Only load pyspellchecker when SpellChecker is instantiated
 # This saves ~30-50ms at startup since most users don't enable spell check immediately
 if TYPE_CHECKING:
-    from spellchecker import SpellChecker as PySpellChecker
+    pass
 
 logger = logging.getLogger(__name__)
 

@@ -144,7 +144,9 @@ class TelemetryCollector:
             f"session_id={self.session_id[:8]}...)"
         )
 
-    def track_event(self, event_type: str, data: Optional[Dict[str, Any]] = None) -> None:
+    def track_event(
+        self, event_type: str, data: Optional[Dict[str, Any]] = None
+    ) -> None:
         """
         Track a telemetry event.
 
@@ -179,7 +181,10 @@ class TelemetryCollector:
         logger.debug(f"Tracked event: {event_type} - {sanitized_data}")
 
     def track_error(
-        self, error_type: str, error_message: str, context: Optional[Dict[str, Any]] = None
+        self,
+        error_type: str,
+        error_message: str,
+        context: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Track an error event.
@@ -203,7 +208,9 @@ class TelemetryCollector:
 
         self.track_event(EVENT_ERROR, data)
 
-    def track_performance(self, metric_name: str, value: float, unit: str = "seconds") -> None:
+    def track_performance(
+        self, metric_name: str, value: float, unit: str = "seconds"
+    ) -> None:
         """
         Track a performance metric.
 
@@ -307,14 +314,18 @@ class TelemetryCollector:
         recent_events = []
         for event in events:
             try:
-                event_time = datetime.fromisoformat(event["timestamp"].replace("Z", "+00:00"))
+                event_time = datetime.fromisoformat(
+                    event["timestamp"].replace("Z", "+00:00")
+                )
                 if event_time.timestamp() > cutoff_time:
                     recent_events.append(event)
             except (KeyError, ValueError):
                 # Skip malformed events
                 continue
 
-        logger.info(f"Rotated events: {len(events)} → {len(recent_events)} (30-day retention)")
+        logger.info(
+            f"Rotated events: {len(events)} → {len(recent_events)} (30-day retention)"
+        )
         return recent_events
 
     def _sanitize_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -333,7 +344,7 @@ class TelemetryCollector:
         Returns:
             Sanitized data dictionary
         """
-        sanitized = {}
+        sanitized: Dict[str, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
                 sanitized[key] = self._sanitize_message(value)

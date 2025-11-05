@@ -140,7 +140,11 @@ class GitStatus(BaseModel):
     )
 
     @field_validator(
-        "modified_count", "staged_count", "untracked_count", "ahead_count", "behind_count"
+        "modified_count",
+        "staged_count",
+        "untracked_count",
+        "ahead_count",
+        "behind_count",
     )
     @classmethod
     def validate_count(cls, v: int) -> int:

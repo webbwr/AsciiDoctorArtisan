@@ -149,7 +149,7 @@ Display in Chat Panel ✅
 
 **Log Evidence:**
 ```
-2025-11-03 06:35:30,658 - Routing message to claude backend (model: claude-3-5-haiku-20241022)
+2025-11-03 06:35:30,658 - Routing message to claude backend (model: claude-haiku-4-5)
 2025-11-03 06:35:30,660 - Sent message to Claude worker: what mode;l are you...
 2025-11-03 06:35:30,847 - HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
 2025-11-03 06:35:30,849 - Claude API error: Error code: 400 - {...'credit balance is too low'...}

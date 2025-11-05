@@ -19,7 +19,7 @@ Security:
 
 import logging
 import subprocess
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from PySide6.QtCore import Signal, Slot
 
@@ -611,8 +611,8 @@ class GitWorker(BaseWorker):
         return branch, modified_files, staged_files, untracked_files
 
     def _add_line_counts(
-        self, working_dir: str, files: List[Dict[str, str]], staged: bool
-    ) -> List[Dict[str, str]]:
+        self, working_dir: str, files: List[Dict[str, Any]], staged: bool
+    ) -> List[Dict[str, Any]]:
         """
         Add line change counts to file list using git diff --numstat.
 

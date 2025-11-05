@@ -257,7 +257,9 @@ class ActionManager:
         self.pandoc_status_act: QAction  # Show Pandoc installation status
         self.pandoc_formats_act: QAction  # Show supported formats
         self.ollama_status_act: QAction  # Show Ollama AI status (shows ✓ when active)
-        self.anthropic_status_act: QAction  # Show Anthropic AI status (shows ✓ when active)
+        self.anthropic_status_act: (
+            QAction  # Show Anthropic AI status (shows ✓ when active)
+        )
         self.telemetry_status_act: QAction  # Show Telemetry status and configuration
         self.ollama_settings_act: QAction  # Configure Ollama AI settings
         self.anthropic_settings_act: QAction  # Configure Anthropic API key
@@ -828,7 +830,8 @@ class ActionManager:
             "Show or hide AI chat pane",
             lambda: self.window.chat_manager.toggle_panel_visibility(),
             checkable=True,
-            checked=self._settings.ai_chat_enabled or self._settings.ollama_chat_enabled,
+            checked=self._settings.ai_chat_enabled
+            or self._settings.ollama_chat_enabled,
         )
 
         # Font Settings - customize fonts for editor, preview, and chat
@@ -1009,7 +1012,9 @@ class ActionManager:
 
         # Repository setup
         git_menu.addAction(self.set_repo_act)  # Set Git repository path
-        git_menu.addAction(self.git_status_act)  # Show Git status (Ctrl+Shift+S, v1.9.0+)
+        git_menu.addAction(
+            self.git_status_act
+        )  # Show Git status (Ctrl+Shift+S, v1.9.0+)
 
         # Separator
         git_menu.addSeparator()
@@ -1055,13 +1060,21 @@ class ActionManager:
         # AI Settings submenu (Ollama + Anthropic integration)
         ai_settings_menu = tools_menu.addMenu("&AI Settings")
         ai_settings_menu.addAction(self.ollama_settings_act)  # Configure Ollama
-        ai_settings_menu.addAction(self.anthropic_settings_act)  # Configure Anthropic API key
+        ai_settings_menu.addAction(
+            self.anthropic_settings_act
+        )  # Configure Anthropic API key
 
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
-        tools_menu.addAction(self.toggle_chat_pane_act)  # Toggle chat pane visibility (shows ✓ when visible)
+        tools_menu.addAction(
+            self.toggle_chat_pane_act
+        )  # Toggle chat pane visibility (shows ✓ when visible)
         tools_menu.addAction(self.font_settings_act)  # Customize fonts
-        tools_menu.addAction(self.toggle_spell_check_act)  # Toggle spell checking (F7, shows ✓ when enabled)
-        tools_menu.addAction(self.toggle_telemetry_act)  # Toggle telemetry collection (shows ✓ when enabled)
+        tools_menu.addAction(
+            self.toggle_spell_check_act
+        )  # Toggle spell checking (F7, shows ✓ when enabled)
+        tools_menu.addAction(
+            self.toggle_telemetry_act
+        )  # Toggle telemetry collection (shows ✓ when enabled)
         tools_menu.addAction(self.toggle_theme_act)  # Toggle dark/light theme
 
         # === HELP MENU ===
@@ -1071,8 +1084,12 @@ class ActionManager:
         help_menu.addSeparator()
 
         # System Status Information (alphabetically sorted)
-        help_menu.addAction(self.anthropic_status_act)  # Check Anthropic AI status (shows ✓ when active)
-        help_menu.addAction(self.ollama_status_act)  # Check Ollama AI status (shows ✓ when active)
+        help_menu.addAction(
+            self.anthropic_status_act
+        )  # Check Anthropic AI status (shows ✓ when active)
+        help_menu.addAction(
+            self.ollama_status_act
+        )  # Check Ollama AI status (shows ✓ when active)
         help_menu.addAction(self.pandoc_formats_act)  # Show Pandoc supported formats
         help_menu.addAction(self.pandoc_status_act)  # Check Pandoc status
         help_menu.addAction(self.telemetry_status_act)  # Check Telemetry status

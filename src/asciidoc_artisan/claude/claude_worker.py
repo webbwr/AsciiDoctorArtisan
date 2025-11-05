@@ -37,7 +37,7 @@ class ClaudeWorker(QThread):
         error_occurred: Emitted when an error occurs (str)
 
     Example:
-        >>> worker = ClaudeWorker(model="claude-3-5-sonnet-20241022")
+        >>> worker = ClaudeWorker(model="claude-sonnet-4-20250514")
         >>> worker.response_ready.connect(lambda result: print(result.content))
         >>> worker.send_message("Explain AsciiDoc syntax")
     """
@@ -208,10 +208,10 @@ class ClaudeWorker(QThread):
         Set the Claude model to use.
 
         Args:
-            model: Model identifier (e.g., "claude-3-5-sonnet-20241022")
+            model: Model identifier (e.g., "claude-sonnet-4-20250514")
 
         Example:
-            >>> worker.set_model("claude-3-5-haiku-20241022")
+            >>> worker.set_model("claude-haiku-4-5")
         """
         self.client.model = model
         logger.debug(f"Claude model changed to: {model}")
