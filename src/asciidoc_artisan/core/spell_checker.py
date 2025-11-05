@@ -297,6 +297,9 @@ class SpellChecker:
             >>> checker = SpellChecker()
             >>> checker.set_language('es')
         """
+        # Lazy import: Load pyspellchecker only when needed
+        from spellchecker import SpellChecker as PySpellChecker
+
         self._spell = PySpellChecker(language=language)
         self._language = language
         logger.info(f"Language changed to: {language}")
