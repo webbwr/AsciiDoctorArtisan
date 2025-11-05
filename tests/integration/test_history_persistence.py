@@ -40,6 +40,7 @@ def chat_components(qtbot, settings):
     return manager, bar, panel, settings
 
 
+@pytest.mark.integration
 class TestHistoryPersistence:
     """Test history persists across manager recreations."""
 
@@ -258,6 +259,7 @@ class TestHistoryPersistence:
         assert settings.ollama_chat_history[0]["model"] == "llama2"
 
 
+@pytest.mark.integration
 class TestClearHistory:
     """Test clearing history."""
 

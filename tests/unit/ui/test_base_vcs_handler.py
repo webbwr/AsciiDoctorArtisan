@@ -43,6 +43,7 @@ def mock_dependencies():
     return parent_window, settings_manager, status_manager
 
 
+@pytest.mark.unit
 class TestBaseVCSHandlerInitialization:
     """Test BaseVCSHandler initialization."""
 
@@ -73,6 +74,7 @@ class TestBaseVCSHandlerInitialization:
             handler._get_busy_message()
 
 
+@pytest.mark.unit
 class TestReadinessChecks:
     """Test readiness check functionality."""
 
@@ -130,6 +132,7 @@ class TestReadinessChecks:
         assert call_args[2] == "Custom busy message"
 
 
+@pytest.mark.unit
 class TestUIStateUpdates:
     """Test UI state update functionality."""
 
@@ -153,6 +156,7 @@ class TestUIStateUpdates:
         handler._update_ui_state()
 
 
+@pytest.mark.unit
 class TestOperationLifecycle:
     """Test operation lifecycle management."""
 
@@ -206,6 +210,7 @@ class TestOperationLifecycle:
         assert handler.is_processing is False
 
 
+@pytest.mark.unit
 class TestProcessingState:
     """Test processing state management."""
 
@@ -240,6 +245,7 @@ class TestProcessingState:
         assert handler.last_operation == "operation2"
 
 
+@pytest.mark.unit
 class TestTemplateMethodPattern:
     """Test template method pattern implementation."""
 
@@ -272,6 +278,7 @@ class TestTemplateMethodPattern:
         assert handler._get_busy_message() == "Handler is busy"
 
 
+@pytest.mark.unit
 class TestMultipleOperationSequences:
     """Test handling multiple operations in sequence."""
 
@@ -337,6 +344,7 @@ class TestMultipleOperationSequences:
         assert handler.last_operation == "op3"
 
 
+@pytest.mark.unit
 class TestLastOperationTracking:
     """Test last_operation tracking."""
 
@@ -401,6 +409,7 @@ class TestLastOperationTracking:
         assert handler.last_operation == "operation_with-special.chars:123"
 
 
+@pytest.mark.unit
 class TestReadinessCheckEdgeCases:
     """Test edge cases for readiness checks."""
 
@@ -465,6 +474,7 @@ class TestReadinessCheckEdgeCases:
         assert handler._ensure_ready() is False
 
 
+@pytest.mark.unit
 class TestUIStateUpdateEdgeCases:
     """Test edge cases for UI state updates."""
 
@@ -513,6 +523,7 @@ class TestUIStateUpdateEdgeCases:
         assert parent._update_ui_state.call_count == 2
 
 
+@pytest.mark.unit
 class TestOperationLifecycleEdgeCases:
     """Test edge cases for operation lifecycle."""
 
@@ -564,6 +575,7 @@ class TestOperationLifecycleEdgeCases:
         assert handler.is_processing is False
 
 
+@pytest.mark.unit
 class TestConcreteImplementationEdgeCases:
     """Test edge cases for concrete implementation."""
 
@@ -601,6 +613,7 @@ class TestConcreteImplementationEdgeCases:
         assert handler.busy_message == "Handler is busy"
 
 
+@pytest.mark.unit
 class TestProcessingStateAdvanced:
     """Test advanced processing state scenarios."""
 
@@ -639,6 +652,7 @@ class TestProcessingStateAdvanced:
         assert handler2.is_processing is True
 
 
+@pytest.mark.unit
 class TestAttributeStorage:
     """Test attribute storage and access."""
 
@@ -680,6 +694,7 @@ class TestAttributeStorage:
         assert hasattr(handler, 'last_operation')
 
 
+@pytest.mark.unit
 class TestBusyMessageFormatting:
     """Test busy message formatting."""
 

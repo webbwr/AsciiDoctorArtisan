@@ -26,6 +26,7 @@ def chat_bar(qtbot):
     return widget
 
 
+@pytest.mark.unit
 class TestChatBarWidgetInitialization:
     """Test widget initialization."""
 
@@ -70,6 +71,7 @@ class TestChatBarWidgetInitialization:
         assert not chat_bar.isVisible() or chat_bar._model_selector.count() == 0
 
 
+@pytest.mark.unit
 class TestChatBarWidgetSignals:
     """Test widget signals."""
 
@@ -94,6 +96,7 @@ class TestChatBarWidgetSignals:
         assert hasattr(chat_bar, "context_mode_changed")
 
 
+@pytest.mark.unit
 class TestChatBarWidgetModelManagement:
     """Test model management functionality."""
 
@@ -134,6 +137,7 @@ class TestChatBarWidgetModelManagement:
         assert blocker.args[0] == "llama2"
 
 
+@pytest.mark.unit
 class TestChatBarWidgetContextModes:
     """Test context mode functionality."""
 
@@ -167,6 +171,7 @@ class TestChatBarWidgetContextModes:
                 break
 
 
+@pytest.mark.unit
 class TestChatBarWidgetMessageInput:
     """Test message input functionality."""
 
@@ -232,6 +237,7 @@ class TestChatBarWidgetMessageInput:
             qtbot.mouseClick(chat_bar._send_button, Qt.LeftButton)
 
 
+@pytest.mark.unit
 class TestChatBarWidgetButtons:
     """Test button functionality."""
 
@@ -260,6 +266,7 @@ class TestChatBarWidgetButtons:
         assert not chat_bar._cancel_button.isVisible()
 
 
+@pytest.mark.unit
 class TestChatBarWidgetEnabledState:
     """Test enabled/disabled state."""
 

@@ -43,6 +43,7 @@ def main_window(qapp):
     return window
 
 
+@pytest.mark.unit
 class TestSpellCheckManagerInitialization:
     """Test SpellCheckManager initialization."""
 
@@ -76,6 +77,7 @@ class TestSpellCheckManagerInitialization:
         assert "testword2" in custom_words
 
 
+@pytest.mark.unit
 class TestSpellCheckToggle:
     """Test spell check toggle functionality."""
 
@@ -125,6 +127,7 @@ class TestSpellCheckToggle:
         assert manager.errors == []
 
 
+@pytest.mark.unit
 class TestLanguageSupport:
     """Test language switching."""
 
@@ -154,6 +157,7 @@ class TestLanguageSupport:
             mock_check.assert_called_once()
 
 
+@pytest.mark.unit
 class TestCustomDictionary:
     """Test custom dictionary management."""
 
@@ -186,6 +190,7 @@ class TestCustomDictionary:
             mock_check.assert_called_once()
 
 
+@pytest.mark.unit
 class TestIgnoredWords:
     """Test word ignoring functionality."""
 
@@ -218,6 +223,7 @@ class TestIgnoredWords:
             mock_check.assert_called_once()
 
 
+@pytest.mark.unit
 class TestSpellChecking:
     """Test spell checking functionality."""
 
@@ -280,6 +286,7 @@ class TestSpellChecking:
         assert not manager.check_timer.isActive()
 
 
+@pytest.mark.unit
 class TestHighlights:
     """Test spelling error highlights."""
 
@@ -364,6 +371,7 @@ class TestHighlights:
         assert error is None
 
 
+@pytest.mark.unit
 class TestContextMenu:
     """Test context menu functionality."""
 
@@ -412,6 +420,7 @@ class TestContextMenu:
             mock_default.assert_called_once_with(event)
 
 
+@pytest.mark.unit
 class TestWordReplacement:
     """Test word replacement functionality."""
 
@@ -438,6 +447,7 @@ class TestWordReplacement:
         assert "Hello world" in text or text.startswith("Hello")
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases for spell checking."""
 
@@ -535,6 +545,7 @@ class TestEdgeCases:
         assert isinstance(manager.errors, list)
 
 
+@pytest.mark.unit
 class TestMultipleLanguageSwitching:
     """Test multiple language switching scenarios."""
 
@@ -602,6 +613,7 @@ class TestMultipleLanguageSwitching:
             assert True
 
 
+@pytest.mark.unit
 class TestCustomDictionaryEdgeCases:
     """Test custom dictionary edge cases."""
 
@@ -668,6 +680,7 @@ class TestCustomDictionaryEdgeCases:
         assert len([w for w in custom_words if w.startswith("word")]) == 50
 
 
+@pytest.mark.unit
 class TestHighlightRenderingEdgeCases:
     """Test highlight rendering edge cases."""
 
@@ -750,6 +763,7 @@ class TestHighlightRenderingEdgeCases:
         assert isinstance(manager.editor.extraSelections(), list)
 
 
+@pytest.mark.unit
 class TestContextMenuEdgeCases:
     """Test context menu edge cases."""
 
@@ -816,6 +830,7 @@ class TestContextMenuEdgeCases:
             manager.show_context_menu(event)
 
 
+@pytest.mark.unit
 class TestTimerDebounceEdgeCases:
     """Test timer and debounce edge cases."""
 
@@ -869,6 +884,7 @@ class TestTimerDebounceEdgeCases:
         assert not manager.check_timer.isActive()
 
 
+@pytest.mark.unit
 class TestErrorRecovery:
     """Test error recovery scenarios."""
 
@@ -930,6 +946,7 @@ class TestErrorRecovery:
         assert error is None
 
 
+@pytest.mark.unit
 class TestPerformanceScenarios:
     """Test performance scenarios."""
 
@@ -1014,6 +1031,7 @@ class TestPerformanceScenarios:
         assert manager.spell_checker is not None
 
 
+@pytest.mark.unit
 class TestStatePersistence:
     """Test state persistence across operations."""
 
@@ -1072,6 +1090,7 @@ class TestStatePersistence:
         assert "test" in manager.spell_checker.get_custom_words()
 
 
+@pytest.mark.unit
 class TestConcurrentOperations:
     """Test concurrent operations."""
 

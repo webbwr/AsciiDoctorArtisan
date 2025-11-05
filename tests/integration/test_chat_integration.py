@@ -38,6 +38,7 @@ def main_window(qtbot, test_settings):
         return window
 
 
+@pytest.mark.integration
 class TestChatIntegration:
     """Test chat system integration with main window."""
 
@@ -160,6 +161,7 @@ class TestChatIntegration:
         assert main_window.chat_container.maximumWidth() <= 600
 
 
+@pytest.mark.integration
 class TestChatLayout:
     """Test chat UI layout structure."""
 
@@ -183,6 +185,7 @@ class TestChatLayout:
         assert main_window.chat_bar in widgets
 
 
+@pytest.mark.integration
 class TestChatWorkerIntegration:
     """Test Ollama chat worker integration."""
 

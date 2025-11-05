@@ -19,6 +19,7 @@ from unittest.mock import Mock, patch
 from asciidoc_artisan.ui.chat_bar_widget import ChatBarWidget
 
 
+@pytest.mark.unit
 class TestChatBarWidgetInitialization:
     """Test ChatBarWidget initialization."""
 
@@ -104,6 +105,7 @@ class TestChatBarWidgetInitialization:
         assert not cancel_button.isVisible()  # Hidden initially
 
 
+@pytest.mark.unit
 class TestSignals:
     """Test ChatBarWidget signals."""
 
@@ -144,6 +146,7 @@ class TestSignals:
         assert hasattr(widget, 'scan_models_requested')
 
 
+@pytest.mark.unit
 class TestInputFieldHandling:
     """Test input field handling."""
 
@@ -186,6 +189,7 @@ class TestInputFieldHandling:
         assert widget._input_field.text() == ""
 
 
+@pytest.mark.unit
 class TestSendMessage:
     """Test sending messages."""
 
@@ -265,6 +269,7 @@ class TestSendMessage:
         assert signal_args[2] == "syntax"
 
 
+@pytest.mark.unit
 class TestModelSelector:
     """Test model selector operations."""
 
@@ -341,6 +346,7 @@ class TestModelSelector:
         assert signal_args[0] == "model2"
 
 
+@pytest.mark.unit
 class TestContextModeSelector:
     """Test context mode selector operations."""
 
@@ -411,6 +417,7 @@ class TestContextModeSelector:
         assert signal_args[0] == "syntax"
 
 
+@pytest.mark.unit
 class TestProcessingState:
     """Test processing state management."""
 
@@ -513,6 +520,7 @@ class TestProcessingState:
         assert "Ask AI" in widget._input_field.placeholderText()
 
 
+@pytest.mark.unit
 class TestButtons:
     """Test button operations."""
 
@@ -568,6 +576,7 @@ class TestButtons:
         assert not widget._scan_models_button.isVisible()
 
 
+@pytest.mark.unit
 class TestEnabledState:
     """Test enabled state management."""
 

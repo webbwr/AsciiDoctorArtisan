@@ -17,6 +17,7 @@ from asciidoc_artisan.workers import GitWorker
 from asciidoc_artisan.core import GitResult
 
 
+@pytest.mark.integration
 class TestWorkerManagerCancellation:
     """Test cancellation methods in WorkerManager."""
 
@@ -52,6 +53,7 @@ class TestWorkerManagerCancellation:
         worker_mgr.git_worker.cancel.assert_called_once()
 
 
+@pytest.mark.integration
 class TestGitWorkerCancellation:
     """Test cancellation support in GitWorker."""
 

@@ -43,6 +43,7 @@ def dialog(qapp, qtbot):
         dlg.close()
 
 
+@pytest.mark.unit
 class TestValidationWorker:
     """Test ValidationWorker class."""
 
@@ -147,6 +148,7 @@ class TestValidationWorker:
         assert result == 0
 
 
+@pytest.mark.unit
 class TestInstallationValidatorDialog:
     """Test InstallationValidatorDialog class."""
 
@@ -310,6 +312,7 @@ class TestInstallationValidatorDialog:
         assert dialog.results_text.toPlainText() == initial_text
 
 
+@pytest.mark.unit
 class TestValidationWorkerRun:
     """Test ValidationWorker run method with actual validation."""
 
@@ -376,6 +379,7 @@ class TestValidationWorkerRun:
 
 
 # Integration test
+@pytest.mark.unit
 class TestInstallationValidatorIntegration:
     """Integration tests for the complete validator flow."""
 

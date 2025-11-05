@@ -86,6 +86,7 @@ def calculate_grade_level(text: str) -> float:
     return round(max(0.0, grade), 2)
 
 
+@pytest.mark.unit
 class TestDocumentMetrics:
     """Test document metrics calculation."""
 

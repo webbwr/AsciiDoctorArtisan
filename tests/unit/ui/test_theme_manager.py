@@ -14,6 +14,7 @@ def main_window(qapp):
     return window
 
 
+@pytest.mark.unit
 class TestThemeManager:
     """Test suite for ThemeManager."""
 

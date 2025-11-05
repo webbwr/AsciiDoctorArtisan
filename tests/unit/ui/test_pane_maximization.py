@@ -35,6 +35,7 @@ def mock_editor_state():
     return state
 
 
+@pytest.mark.unit
 class TestPaneMaximization:
     """Test pane maximize/restore functionality."""
 
@@ -143,6 +144,7 @@ class TestPaneMaximization:
         mock_editor_state.splitter.setSizes.assert_called_with(original_sizes)
 
 
+@pytest.mark.unit
 class TestPaneMaximizationEdgeCases:
     """Test edge cases for pane maximization."""
 
@@ -211,6 +213,7 @@ class TestPaneMaximizationEdgeCases:
         assert any("⬜" in str(call) for call in calls)
 
 
+@pytest.mark.unit
 class TestPaneMaximizationStateManagement:
     """Test state management during pane operations."""
 
@@ -257,6 +260,7 @@ class TestPaneMaximizationStateManagement:
         assert any("Preview maximized" in str(call) for call in calls)
 
 
+@pytest.mark.unit
 class TestPaneMaximizationIntegration:
     """Integration tests for pane maximization workflow."""
 
@@ -307,6 +311,7 @@ class TestPaneMaximizationIntegration:
 
 
 # Additional acceptance criteria tests
+@pytest.mark.unit
 class TestFR044AcceptanceCriteria:
     """Test FR-044 acceptance criteria."""
 
@@ -364,6 +369,7 @@ class TestFR044AcceptanceCriteria:
         assert states == ["editor", "preview", None]
 
 
+@pytest.mark.unit
 class TestAsymmetricSplitScenarios:
     """Test pane maximization with asymmetric splits."""
 
@@ -406,6 +412,7 @@ class TestAsymmetricSplitScenarios:
         assert mock_editor_state.saved_splitter_sizes == original_sizes
 
 
+@pytest.mark.unit
 class TestExtremeWidthScenarios:
     """Test pane maximization with extreme width values."""
 
@@ -446,6 +453,7 @@ class TestExtremeWidthScenarios:
         mock_editor_state.splitter.setSizes.assert_called_with([0, 999])
 
 
+@pytest.mark.unit
 class TestButtonInteractionEdgeCases:
     """Test button interaction edge cases."""
 
@@ -492,6 +500,7 @@ class TestButtonInteractionEdgeCases:
         assert any("⬜" in call for call in preview_calls)
 
 
+@pytest.mark.unit
 class TestSavedSizesEdgeCases:
     """Test edge cases for saved splitter sizes."""
 
@@ -536,6 +545,7 @@ class TestSavedSizesEdgeCases:
         assert mock_editor_state.saved_splitter_sizes == [500, 500]
 
 
+@pytest.mark.unit
 class TestPaneIdentifierEdgeCases:
     """Test edge cases for pane identifier handling."""
 
@@ -569,6 +579,7 @@ class TestPaneIdentifierEdgeCases:
             assert True
 
 
+@pytest.mark.unit
 class TestRapidStateChanges:
     """Test rapid state changes and transitions."""
 
@@ -624,6 +635,7 @@ class TestRapidStateChanges:
         assert mock_editor_state.maximized_pane is None
 
 
+@pytest.mark.unit
 class TestUIUpdateEdgeCases:
     """Test UI update edge cases."""
 
@@ -665,6 +677,7 @@ class TestUIUpdateEdgeCases:
         assert second_call_count > first_call_count
 
 
+@pytest.mark.unit
 class TestSplitterSizeCalculations:
     """Test splitter size calculation edge cases."""
 
@@ -699,6 +712,7 @@ class TestSplitterSizeCalculations:
         mock_editor_state.splitter.setSizes.assert_called_with([0, 1500])
 
 
+@pytest.mark.unit
 class TestMaximizationPersistence:
     """Test maximization state persistence."""
 
@@ -749,6 +763,7 @@ class TestMaximizationPersistence:
         assert first_state == second_state == None
 
 
+@pytest.mark.unit
 class TestConcurrentOperations:
     """Test concurrent or overlapping operations."""
 

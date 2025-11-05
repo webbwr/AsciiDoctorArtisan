@@ -57,6 +57,7 @@ This is a large document for performance testing.
 )
 
 
+@pytest.mark.integration
 class TestResourceMonitor:
     """Test ResourceMonitor functionality and performance."""
 
@@ -147,6 +148,7 @@ class TestResourceMonitor:
         assert len(info["system"]) > 0
 
 
+@pytest.mark.integration
 class TestPerformanceBenchmarks:
     """Performance benchmarking tests."""
 
@@ -196,6 +198,7 @@ class TestPerformanceBenchmarks:
         ), f"Comprehensive metrics too slow: {elapsed:.3f}s for 50 calls"
 
 
+@pytest.mark.integration
 class TestDebounceIntervalAccuracy:
     """Test adaptive debounce interval calculation accuracy."""
 
@@ -250,6 +253,7 @@ class TestDebounceIntervalAccuracy:
         assert interval1 == interval2 == interval3
 
 
+@pytest.mark.integration
 class TestMemoryMonitoring:
     """Test memory usage monitoring capabilities."""
 
@@ -282,6 +286,7 @@ class TestMemoryMonitoring:
             assert 0.0 <= cpu_percent <= 100.0 * psutil.cpu_count()
 
 
+@pytest.mark.integration
 class TestDocumentSizeClassification:
     """Test document size classification logic."""
 
@@ -319,6 +324,7 @@ class TestDocumentSizeClassification:
 
 
 # Performance regression tests
+@pytest.mark.integration
 class TestPerformanceRegression:
     """Test for performance regressions."""
 

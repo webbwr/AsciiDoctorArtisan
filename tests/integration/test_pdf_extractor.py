@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, Mock, patch
 from asciidoc_artisan.document_converter import PDFExtractor
 
 
+@pytest.mark.integration
 class TestPDFExtractor:
     """Test PDFExtractor functionality."""
 
