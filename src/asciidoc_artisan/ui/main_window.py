@@ -1498,6 +1498,10 @@ class AsciiDocEditor(QMainWindow):
 
         # Skip save prompts in test environment to prevent blocking
         if os.environ.get("PYTEST_CURRENT_TEST"):
+            # Still need to shutdown workers in tests to prevent hanging
+            logger.info("Test mode: Shutting down worker threads...")
+            if hasattr(self, "worker_manager") and self.worker_manager:
+                self.worker_manager.shutdown()
             event.accept()
             return
 

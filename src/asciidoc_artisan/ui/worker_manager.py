@@ -323,4 +323,12 @@ class WorkerManager:
             self.preview_thread.quit()
             self.preview_thread.wait(2000)
 
+        if self.ollama_chat_thread and self.ollama_chat_thread.isRunning():
+            self.ollama_chat_thread.quit()
+            self.ollama_chat_thread.wait(2000)
+
+        if self.claude_thread and self.claude_thread.isRunning():
+            self.claude_thread.quit()
+            self.claude_thread.wait(2000)
+
         logger.info("All workers shutdown complete")
