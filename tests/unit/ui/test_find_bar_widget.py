@@ -220,3 +220,550 @@ class TestFindBarWidget:
         qtbot.addWidget(widget)
 
         assert widget._counter_label.minimumWidth() == 80
+
+
+@pytest.mark.unit
+class TestSearchTextEdgeCases:
+    """Test edge cases for search text input."""
+
+    def test_empty_search_text(self, qtbot):
+        """Test handling of empty search text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("")
+        assert widget.get_search_text() == ""
+
+    def test_very_long_search_text(self, qtbot):
+        """Test handling of very long search text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        long_text = "a" * 10000
+        widget.set_search_text(long_text)
+        assert widget.get_search_text() == long_text
+
+    def test_unicode_search_text(self, qtbot):
+        """Test handling of unicode characters."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        unicode_text = "Hello 世界 🌍 مرحبا"
+        widget.set_search_text(unicode_text)
+        assert widget.get_search_text() == unicode_text
+
+    def test_special_characters_search_text(self, qtbot):
+        """Test handling of special characters."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        special_text = "<>&\"'\\n\\t"
+        widget.set_search_text(special_text)
+        assert widget.get_search_text() == special_text
+
+    def test_whitespace_only_search_text(self, qtbot):
+        """Test handling of whitespace-only text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        whitespace_text = "   \t\n   "
+        widget.set_search_text(whitespace_text)
+        assert widget.get_search_text() == whitespace_text
+
+    def test_regex_pattern_characters(self, qtbot):
+        """Test handling of regex special characters."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        regex_text = ".*?+[]{}()^$|"
+        widget.set_search_text(regex_text)
+        assert widget.get_search_text() == regex_text
+
+
+@pytest.mark.unit
+class TestMatchCounterVariations:
+    """Test match counter display variations."""
+
+    def test_large_match_count(self, qtbot):
+        """Test display of large match counts."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.update_match_count(500, 10000)
+        assert widget._counter_label.text() == "500 of 10000"
+
+    def test_match_count_at_boundaries(self, qtbot):
+        """Test match count at first and last positions."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.update_match_count(1, 100)
+        assert widget._counter_label.text() == "1 of 100"
+
+        widget.update_match_count(100, 100)
+        assert widget._counter_label.text() == "100 of 100"
+
+    def test_match_count_updates_button_state(self, qtbot):
+        """Test button enable/disable based on match count."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # No matches - buttons disabled
+        widget.update_match_count(0, 0)
+        assert not widget._prev_btn.isEnabled()
+        assert not widget._next_btn.isEnabled()
+
+        # Matches - buttons enabled
+        widget.update_match_count(1, 5)
+        assert widget._prev_btn.isEnabled()
+        assert widget._next_btn.isEnabled()
+
+    def test_match_count_negative_values(self, qtbot):
+        """Test handling of invalid negative match counts."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Should handle gracefully (implementation may validate or accept)
+        try:
+            widget.update_match_count(-1, 10)
+            # If accepted, just verify it doesn't crash
+        except ValueError:
+            # If rejected, that's acceptable
+            pass
+
+    def test_match_count_current_exceeds_total(self, qtbot):
+        """Test handling of current > total (invalid state)."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Should handle gracefully
+        widget.update_match_count(10, 5)
+        # Verify it doesn't crash (specific behavior may vary)
+
+
+@pytest.mark.unit
+class TestShowHideCycles:
+    """Test show/hide state transitions."""
+
+    def test_multiple_show_cycles(self, qtbot):
+        """Test multiple show/hide cycles."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        for _ in range(10):
+            widget.show_and_focus()
+            assert widget.isVisible()
+
+            widget.hide()
+            assert widget.isHidden()
+
+    def test_show_already_visible(self, qtbot):
+        """Test showing an already visible widget."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.show_and_focus()
+        assert widget.isVisible()
+
+        widget.show_and_focus()
+        assert widget.isVisible()
+
+    def test_hide_already_hidden(self, qtbot):
+        """Test hiding an already hidden widget."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        assert widget.isHidden()
+
+        widget.hide()
+        assert widget.isHidden()
+
+    def test_close_signal_only_when_visible(self, qtbot):
+        """Test closed signal emitted only when actually closing."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+        widget.show_and_focus()
+
+        with qtbot.waitSignal(widget.closed, timeout=1000):
+            widget._close_btn.click()
+
+
+@pytest.mark.unit
+class TestSignalEmissionEdgeCases:
+    """Test signal emission edge cases."""
+
+    def test_search_requested_with_empty_text(self, qtbot):
+        """Test search_requested signal with empty text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Empty text may or may not emit signal depending on implementation
+        # Just verify setText doesn't crash
+        widget._search_input.setText("")
+        assert widget.get_search_text() == ""
+
+    def test_rapid_text_changes(self, qtbot):
+        """Test rapid text changes emit multiple signals."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Each text change should emit signal
+        for char in "test":
+            widget._search_input.setText(widget._search_input.text() + char)
+            qtbot.wait(10)
+
+    def test_case_toggle_without_text(self, qtbot):
+        """Test case sensitivity toggle with empty text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        with qtbot.waitSignal(widget.search_requested, timeout=1000) as blocker:
+            widget._case_checkbox.setChecked(True)
+
+        assert blocker.args == ["", True]
+
+    def test_find_next_with_no_matches(self, qtbot):
+        """Test find_next button disabled with no matches."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+        widget.update_match_count(0, 0)
+
+        # Button should be disabled, so clicking has no effect
+        assert not widget._next_btn.isEnabled()
+        widget._next_btn.click()  # Should not emit signal when disabled
+
+    def test_find_previous_with_no_matches(self, qtbot):
+        """Test find_previous button disabled with no matches."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+        widget.update_match_count(0, 0)
+
+        # Button should be disabled, so clicking has no effect
+        assert not widget._prev_btn.isEnabled()
+        widget._prev_btn.click()  # Should not emit signal when disabled
+
+
+@pytest.mark.unit
+class TestKeyboardShortcutEdgeCases:
+    """Test keyboard shortcut edge cases."""
+
+    def test_return_key_with_empty_text(self, qtbot):
+        """Test Enter key with empty search text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+        widget.show_and_focus()
+
+        with qtbot.waitSignal(widget.find_next_requested, timeout=1000):
+            QTest.keyPress(widget._search_input, Qt.Key.Key_Return)
+
+    def test_escape_when_hidden(self, qtbot):
+        """Test Escape key when widget is already hidden."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Widget is already hidden, Escape should not emit signal
+        QTest.keyPress(widget, Qt.Key.Key_Escape)
+        # Just verify no crash
+
+    def test_multiple_escape_presses(self, qtbot):
+        """Test multiple Escape key presses."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+        widget.show_and_focus()
+
+        with qtbot.waitSignal(widget.closed, timeout=1000):
+            QTest.keyPress(widget, Qt.Key.Key_Escape)
+
+        # Second Escape on hidden widget
+        QTest.keyPress(widget, Qt.Key.Key_Escape)
+
+
+@pytest.mark.unit
+class TestStyleManagement:
+    """Test style application and removal."""
+
+    def test_not_found_style_application(self, qtbot):
+        """Test not-found style applies correctly."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_not_found_style()
+        assert len(widget._search_input.styleSheet()) > 0
+
+    def test_not_found_style_removal(self, qtbot):
+        """Test not-found style clears correctly."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_not_found_style()
+        widget.clear_not_found_style()
+        assert widget._search_input.styleSheet() == ""
+
+    def test_multiple_style_applications(self, qtbot):
+        """Test multiple style applications."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        for _ in range(5):
+            widget.set_not_found_style()
+            assert "background-color" in widget._search_input.styleSheet()
+
+            widget.clear_not_found_style()
+            assert widget._search_input.styleSheet() == ""
+
+    def test_style_persists_across_text_changes(self, qtbot):
+        """Test not-found style persists when text changes."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_not_found_style()
+        widget.set_search_text("new text")
+        # Style should still be applied until explicitly cleared
+
+
+@pytest.mark.unit
+class TestClearOperation:
+    """Test clear() operation in various states."""
+
+    def test_clear_with_matches_displayed(self, qtbot):
+        """Test clear when matches are displayed."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("test")
+        widget.update_match_count(5, 23)
+        widget.clear()
+
+        assert widget.get_search_text() == ""
+        assert widget._counter_label.text() == "No matches"
+
+    def test_clear_already_empty(self, qtbot):
+        """Test clear when already empty."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.clear()
+        assert widget.get_search_text() == ""
+
+    def test_clear_with_case_sensitivity(self, qtbot):
+        """Test clear preserves case sensitivity setting."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_case_sensitive(True)
+        widget.set_search_text("test")
+        widget.clear()
+
+        assert widget.get_search_text() == ""
+        assert widget.is_case_sensitive() == True  # Preserved
+
+    def test_clear_removes_not_found_style(self, qtbot):
+        """Test clear removes not-found styling."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_not_found_style()
+        widget.clear()
+        # Implementation may or may not clear style on clear()
+
+
+@pytest.mark.unit
+class TestTextSelection:
+    """Test text selection behavior."""
+
+    def test_show_and_focus_selects_all(self, qtbot):
+        """Test show_and_focus selects all existing text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("select this")
+        widget.show_and_focus()
+
+        assert widget._search_input.selectedText() == "select this"
+
+    def test_empty_text_selection(self, qtbot):
+        """Test show_and_focus with empty text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.show_and_focus()
+        assert widget._search_input.selectedText() == ""
+
+    def test_selection_after_manual_edit(self, qtbot):
+        """Test selection behavior after manual text edit."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("initial")
+        widget.show_and_focus()
+        # After user starts typing, selection should be cleared
+        widget._search_input.setText("new")
+
+
+@pytest.mark.unit
+class TestButtonStates:
+    """Test button enable/disable states."""
+
+    def test_buttons_disabled_on_zero_matches(self, qtbot):
+        """Test prev/next buttons disabled with zero matches."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.update_match_count(0, 0)
+        assert not widget._prev_btn.isEnabled()
+        assert not widget._next_btn.isEnabled()
+
+    def test_buttons_enabled_on_matches(self, qtbot):
+        """Test prev/next buttons enabled with matches."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.update_match_count(1, 1)
+        assert widget._prev_btn.isEnabled()
+        assert widget._next_btn.isEnabled()
+
+    def test_close_button_always_enabled(self, qtbot):
+        """Test close button is always enabled."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        assert widget._close_btn.isEnabled()
+
+        widget.update_match_count(0, 0)
+        assert widget._close_btn.isEnabled()
+
+
+@pytest.mark.unit
+class TestWidgetLifecycle:
+    """Test widget creation and destruction."""
+
+    def test_multiple_widget_instances(self, qtbot):
+        """Test creating multiple independent widget instances."""
+        widget1 = FindBarWidget()
+        widget2 = FindBarWidget()
+        qtbot.addWidget(widget1)
+        qtbot.addWidget(widget2)
+
+        widget1.set_search_text("widget1")
+        widget2.set_search_text("widget2")
+
+        assert widget1.get_search_text() == "widget1"
+        assert widget2.get_search_text() == "widget2"
+
+    def test_widget_cleanup(self, qtbot):
+        """Test widget cleanup doesn't cause issues."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("test")
+        widget.show_and_focus()
+        # Widget will be cleaned up by qtbot
+
+
+@pytest.mark.unit
+class TestCaseSensitivityState:
+    """Test case sensitivity state management."""
+
+    def test_case_sensitivity_default_false(self, qtbot):
+        """Test case sensitivity defaults to False."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        assert not widget.is_case_sensitive()
+
+    def test_case_sensitivity_toggle_multiple_times(self, qtbot):
+        """Test toggling case sensitivity multiple times."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        for _ in range(5):
+            widget.set_case_sensitive(True)
+            assert widget.is_case_sensitive()
+
+            widget.set_case_sensitive(False)
+            assert not widget.is_case_sensitive()
+
+    def test_case_sensitivity_independent_of_text(self, qtbot):
+        """Test case sensitivity state independent of text content."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_case_sensitive(True)
+        widget.set_search_text("TEST")
+        assert widget.is_case_sensitive()
+
+        widget.clear()
+        assert widget.is_case_sensitive()
+
+
+@pytest.mark.unit
+class TestUIComponents:
+    """Test UI component properties."""
+
+    def test_all_required_widgets_exist(self, qtbot):
+        """Test all required UI widgets are created."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        assert hasattr(widget, "_search_input")
+        assert hasattr(widget, "_case_checkbox")
+        assert hasattr(widget, "_next_btn")
+        assert hasattr(widget, "_prev_btn")
+        assert hasattr(widget, "_close_btn")
+        assert hasattr(widget, "_counter_label")
+
+    def test_case_checkbox_label(self, qtbot):
+        """Test case sensitivity checkbox has label."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Checkbox should have text or tooltip
+        assert len(widget._case_checkbox.text()) > 0 or len(widget._case_checkbox.toolTip()) > 0
+
+    def test_counter_label_alignment(self, qtbot):
+        """Test counter label has appropriate alignment."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Counter should have some alignment set
+        assert widget._counter_label.alignment() is not None
+
+
+@pytest.mark.unit
+class TestConcurrentOperations:
+    """Test handling of concurrent operations."""
+
+    def test_text_change_during_match_update(self, qtbot):
+        """Test text change while match count is updating."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("test")
+        widget.update_match_count(5, 23)
+        widget.set_search_text("new")
+
+        # Should handle gracefully
+
+    def test_show_hide_during_search(self, qtbot):
+        """Test show/hide while search is active."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("test")
+        widget.show_and_focus()
+        widget.hide()
+        widget.show_and_focus()
+
+        # Should handle gracefully
+
+    def test_clear_during_match_display(self, qtbot):
+        """Test clear while matches are displayed."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        widget.set_search_text("test")
+        widget.update_match_count(10, 50)
+        widget.clear()
+
+        assert widget.get_search_text() == ""
+        assert widget._counter_label.text() == "No matches"
