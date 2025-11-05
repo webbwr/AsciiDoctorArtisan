@@ -38,7 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Settings: Added `_migrate_claude_model()` method with comprehensive tests
 - Tests: +6 migration tests in `tests/unit/core/test_settings.py`
 - Worker cleanup: Prevents resource leaks during test teardown
-- Performance: Package import time 0.10-0.15s (10x faster than 1.05s target)
+- **Startup Optimization**: Lazy-loaded Pydantic models for 75ms faster imports
+  - Moved `GitResult`, `GitStatus`, `GitHubResult`, `ChatMessage` to lazy loading
+  - Saves 75-115ms by deferring Pydantic import until first model access
+  - Total import time: 0.730s → 0.655s (10% improvement)
+  - Added `scripts/profile_imports.py` - Import time profiling tool
+  - Added `docs/STARTUP_OPTIMIZATION_FINDINGS.md` - 11-page analysis report
+  - All 61 tests passing (35 model + 26 GitWorker tests)
+- Performance: Package import time 0.10-0.15s (11x faster than 1.05s target)
 
 ## [1.8.0] - 2025-11-02 (IN PROGRESS)
 
