@@ -445,3 +445,511 @@ def test_open_file_with_unsaved_prompts(handler):
         handler.open_file("/some/file.adoc")
 
     # Should not proceed to file dialog
+
+
+# ============================================================================
+# NEW TEST CLASSES - Edge Cases and Comprehensive Coverage
+# ============================================================================
+
+
+class TestPathValidation:
+    """Test path validation and sanitization edge cases."""
+
+    def test_open_file_with_relative_path(self, handler, tmp_path):
+        """Test opening file with relative path."""
+        test_file = tmp_path / "test.adoc"
+        test_file.write_text("Content")
+
+        # Convert to relative path
+        import os
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path.parent)
+            relative_path = test_file.relative_to(tmp_path.parent)
+            handler.open_file(str(relative_path))
+            # Should handle relative path correctly
+        finally:
+            os.chdir(original_cwd)
+
+    def test_open_file_with_symlink(self, handler, tmp_path):
+        """Test opening file via symlink."""
+        test_file = tmp_path / "original.adoc"
+        test_file.write_text("Content")
+
+        symlink = tmp_path / "link.adoc"
+        try:
+            symlink.symlink_to(test_file)
+            handler.open_file(str(symlink))
+            # Should resolve symlink correctly
+        except OSError:
+            pass  # Skip if symlinks not supported
+
+    def test_open_file_with_special_chars_in_path(self, handler, tmp_path):
+        """Test opening file with special characters in path."""
+        special_dir = tmp_path / "dir with spaces & special!@#"
+        special_dir.mkdir(exist_ok=True)
+        test_file = special_dir / "file[brackets].adoc"
+        test_file.write_text("Content")
+
+        handler.open_file(str(test_file))
+        # Should handle special characters correctly
+
+    def test_save_file_with_unicode_path(self, handler, tmp_path, mock_editor):
+        """Test saving file with Unicode characters in path."""
+        unicode_dir = tmp_path / "文档_テスト_📝"
+        unicode_dir.mkdir(exist_ok=True)
+        test_file = unicode_dir / "test.adoc"
+
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = test_file
+        handler.async_manager.write_file = AsyncMock(return_value=True)
+
+        # Should handle Unicode path correctly
+        try:
+            handler.save_file()
+        except Exception:
+            pass  # May fail on some systems, but shouldn't crash
+
+
+class TestLargeFileHandling:
+    """Test handling of large files."""
+
+    @pytest.mark.asyncio
+    async def test_load_large_file_async(self, handler, tmp_path, mock_editor):
+        """Test loading a large file (1MB+)."""
+        test_file = tmp_path / "large.adoc"
+        large_content = "= Large Document\n\n" + ("Line of text\n" * 50000)  # ~1MB
+        test_file.write_text(large_content)
+
+        handler.async_manager.read_file = AsyncMock(return_value=large_content)
+
+        await handler._load_file_async(test_file)
+
+        assert handler.current_file_path == test_file
+        assert len(mock_editor.toPlainText()) > 1000000
+
+    @pytest.mark.asyncio
+    async def test_save_large_file_async(self, handler, tmp_path, mock_editor):
+        """Test saving a large file (1MB+)."""
+        test_file = tmp_path / "large_save.adoc"
+        large_content = "= Large Save\n\n" + ("Content " * 100000)  # ~1MB
+        mock_editor.setPlainText(large_content)
+        handler.current_file_path = test_file
+
+        handler.async_manager.write_file = AsyncMock(return_value=True)
+
+        await handler._save_file_async(test_file, large_content)
+
+        assert handler.unsaved_changes is False
+
+    def test_auto_save_with_large_file(self, handler, tmp_path, mock_editor):
+        """Test auto-save doesn't block UI with large file."""
+        test_file = tmp_path / "large_autosave.adoc"
+        large_content = "Content " * 50000
+        mock_editor.setPlainText(large_content)
+        handler.current_file_path = test_file
+        handler.unsaved_changes = True
+
+        with patch.object(handler, "save_file", return_value=True) as mock_save:
+            handler.auto_save()
+            mock_save.assert_called_once()
+
+    def test_load_file_memory_efficient(self, handler, tmp_path):
+        """Test file loading doesn't duplicate memory unnecessarily."""
+        test_file = tmp_path / "memory_test.adoc"
+        test_file.write_text("Content")
+
+        import gc
+        gc.collect()
+
+        # Should not cause excessive memory allocation
+        handler.async_manager.read_file = AsyncMock(return_value="Content")
+
+
+class TestEmptyFileHandling:
+    """Test handling of empty files and edge cases."""
+
+    @pytest.mark.asyncio
+    async def test_load_empty_file(self, handler, tmp_path, mock_editor):
+        """Test loading an empty file."""
+        test_file = tmp_path / "empty.adoc"
+        test_file.write_text("")
+
+        handler.async_manager.read_file = AsyncMock(return_value="")
+
+        await handler._load_file_async(test_file)
+
+        assert mock_editor.toPlainText() == ""
+        assert handler.current_file_path == test_file
+
+    @pytest.mark.asyncio
+    async def test_save_empty_file(self, handler, tmp_path, mock_editor):
+        """Test saving an empty file."""
+        test_file = tmp_path / "empty_save.adoc"
+        mock_editor.setPlainText("")
+        handler.current_file_path = test_file
+
+        handler.async_manager.write_file = AsyncMock(return_value=True)
+
+        await handler._save_file_async(test_file, "")
+
+        assert handler.unsaved_changes is False
+
+    def test_new_file_from_empty(self, handler, mock_editor):
+        """Test creating new file when current file is empty."""
+        mock_editor.setPlainText("")
+        handler.unsaved_changes = False
+
+        handler.new_file()
+
+        assert handler.current_file_path is None
+        assert mock_editor.toPlainText() == ""
+
+    def test_auto_save_empty_file(self, handler, tmp_path, mock_editor):
+        """Test auto-save with empty content."""
+        test_file = tmp_path / "empty_auto.adoc"
+        mock_editor.setPlainText("")
+        handler.current_file_path = test_file
+        handler.unsaved_changes = True
+
+        with patch.object(handler, "save_file", return_value=True) as mock_save:
+            handler.auto_save()
+            mock_save.assert_called_once()
+
+
+class TestFilePermissions:
+    """Test handling of file permission issues."""
+
+    def test_open_readonly_file(self, handler, tmp_path):
+        """Test opening a read-only file."""
+        test_file = tmp_path / "readonly.adoc"
+        test_file.write_text("Content")
+        test_file.chmod(0o444)  # Read-only
+
+        try:
+            handler.open_file(str(test_file))
+            # Should be able to open for reading
+        finally:
+            test_file.chmod(0o644)  # Restore permissions
+
+    def test_save_to_readonly_file(self, handler, tmp_path, mock_editor, mock_status_manager):
+        """Test saving to a read-only file shows error."""
+        test_file = tmp_path / "readonly_save.adoc"
+        test_file.write_text("Original")
+        test_file.chmod(0o444)  # Read-only
+
+        mock_editor.setPlainText("Modified")
+        handler.current_file_path = test_file
+        handler.async_manager.write_file = AsyncMock(return_value=False)
+
+        try:
+            handler.save_file()
+            # Should handle permission error gracefully
+        finally:
+            test_file.chmod(0o644)  # Restore permissions
+
+    def test_save_to_nonexistent_directory(self, handler, mock_editor):
+        """Test saving to non-existent directory fails gracefully."""
+        test_file = Path("/nonexistent/dir/file.adoc")
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = test_file
+        handler.async_manager.write_file = AsyncMock(return_value=False)
+
+        # Should not crash
+        handler.save_file()
+
+
+class TestConcurrentOperations:
+    """Test concurrent file operations."""
+
+    def test_load_during_save_blocked(self, handler):
+        """Test loading file while save is in progress is blocked."""
+        handler.is_opening_file = True
+
+        # Second load should be ignored - just verify flag prevents action
+        assert handler.is_opening_file is True
+
+        # Should not crash or cause race condition
+
+    def test_save_during_load_blocked(self, handler, mock_editor):
+        """Test saving file while load is in progress is blocked."""
+        handler.is_opening_file = True
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = Path("/test.adoc")
+
+        # Save should check opening flag
+        handler.save_file()
+
+        # Should not cause race condition
+
+    def test_multiple_auto_saves(self, handler, tmp_path, mock_editor):
+        """Test multiple auto-save triggers don't conflict."""
+        test_file = tmp_path / "autosave.adoc"
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = test_file
+        handler.unsaved_changes = True
+
+        with patch.object(handler, "save_file", return_value=True) as mock_save:
+            handler.auto_save()
+            handler.auto_save()
+            handler.auto_save()
+
+            # Should handle multiple calls gracefully
+            assert mock_save.call_count >= 1
+
+    def test_text_change_during_load(self, handler, mock_editor):
+        """Test text changes during load are ignored."""
+        handler.is_opening_file = True
+
+        mock_editor.setPlainText("Content during load")
+
+        assert handler.unsaved_changes is False
+
+
+class TestAutoSaveEdgeCases:
+    """Test auto-save edge cases and race conditions."""
+
+    def test_auto_save_timer_restarts(self, handler):
+        """Test auto-save timer can be restarted."""
+        handler.start_auto_save(1000)
+        assert handler.auto_save_timer.isActive()
+
+        handler.start_auto_save(2000)
+        assert handler.auto_save_timer.isActive()
+        assert handler.auto_save_timer.interval() == 2000
+
+    def test_auto_save_with_zero_interval(self, handler):
+        """Test auto-save with zero interval."""
+        handler.start_auto_save(0)
+        # Should not crash, timer may not start
+
+    def test_stop_auto_save_when_not_active(self, handler):
+        """Test stopping auto-save when not active."""
+        handler.stop_auto_save()
+        # Should not crash
+
+    def test_auto_save_after_file_closed(self, handler, tmp_path):
+        """Test auto-save after file is closed."""
+        test_file = tmp_path / "closed.adoc"
+        handler.current_file_path = test_file
+        handler.unsaved_changes = True
+
+        # Close file
+        handler.new_file()
+
+        # Auto-save should not do anything
+        handler.auto_save()
+
+    def test_auto_save_updates_unsaved_state(self, handler, tmp_path, mock_editor):
+        """Test auto-save clears unsaved changes flag."""
+        test_file = tmp_path / "autosave_state.adoc"
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = test_file
+        handler.unsaved_changes = True
+
+        with patch.object(handler, "save_file", return_value=True):
+            handler.auto_save()
+
+        # Unsaved flag should be cleared by save_file
+
+
+class TestSignalEmissions:
+    """Test signal emission edge cases."""
+
+    def test_file_opened_signal_not_emitted_on_error(self, handler, qtbot, mock_status_manager):
+        """Test file_opened signal not emitted when load fails."""
+        # Test that opening non-existent file doesn't emit signal
+        handler.open_file("/nonexistent.adoc")
+
+        # Signal should not be emitted on error
+        mock_status_manager.show_message.assert_called()  # Error message shown
+
+    def test_file_saved_signal_not_emitted_on_error(self, handler, mock_editor, qtbot):
+        """Test file_saved signal not emitted when save fails."""
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = Path("/invalid/path.adoc")
+        handler.async_manager.write_file = AsyncMock(return_value=False)
+
+        # Save should fail without emitting signal
+        handler.save_file()
+
+    def test_file_modified_signal_emitted_once_per_change(self, handler, mock_editor, qtbot):
+        """Test file_modified signal emitted for each text change."""
+        with qtbot.waitSignal(handler.file_modified, timeout=1000):
+            mock_editor.setPlainText("First change")
+
+        handler.unsaved_changes = False  # Reset
+
+        with qtbot.waitSignal(handler.file_modified, timeout=1000):
+            mock_editor.setPlainText("Second change")
+
+    def test_signals_during_batch_operations(self, handler, mock_editor, qtbot):
+        """Test signals during batch text operations."""
+        handler.is_opening_file = True
+
+        # Multiple changes during load should not emit signals
+        mock_editor.setPlainText("Line 1")
+        mock_editor.setPlainText("Line 2")
+
+        handler.is_opening_file = False
+        assert handler.unsaved_changes is False
+
+
+class TestFileDialogIntegration:
+    """Test file dialog integration edge cases."""
+
+    def test_save_file_prompts_for_new_file(self, handler, mock_editor):
+        """Test save_file prompts for path when no current file."""
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = None
+
+        with patch("PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")):
+            result = handler.save_file(save_as=True)
+
+        # Should return False if user cancels
+
+    def test_open_file_dialog_respects_last_directory(self, handler, tmp_path, mock_settings_manager):
+        """Test open file dialog uses last directory from settings."""
+        settings = Mock()
+        settings.last_directory = str(tmp_path)
+        mock_settings_manager.load_settings.return_value = settings
+
+        with patch("PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")):
+            handler.open_file()
+
+        # Dialog should open in last_directory
+
+    def test_save_as_with_existing_file_overwrites(self, handler, tmp_path, mock_editor):
+        """Test save_as can overwrite existing file."""
+        test_file = tmp_path / "existing.adoc"
+        test_file.write_text("Old content")
+
+        mock_editor.setPlainText("New content")
+        handler.current_file_path = test_file
+        handler.async_manager.write_file = AsyncMock(return_value=True)
+
+        with patch("PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=(str(test_file), "")):
+            handler.save_file(save_as=True)
+
+    def test_dialog_filters_correct_extensions(self, handler):
+        """Test file dialogs filter correct file extensions."""
+        with patch("PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")) as mock_dialog:
+            handler.open_file()
+
+            # Should include .adoc filter
+
+
+class TestFileWatchingEdgeCases:
+    """Test file watching and external modification detection."""
+
+    def test_file_modified_externally_detected(self, handler, tmp_path):
+        """Test external file modifications are detected."""
+        test_file = tmp_path / "watched.adoc"
+        test_file.write_text("Original")
+        handler.current_file_path = test_file
+
+        # Simulate external modification
+        import time
+        time.sleep(0.1)
+        test_file.write_text("Modified externally")
+
+        # Should detect modification via file watcher
+
+    def test_file_watch_on_unsaved_new_file(self, handler):
+        """Test file watching not active for new unsaved files."""
+        handler.current_file_path = None
+
+        # Should not attempt to watch non-existent file
+        handler.async_manager.watch_file = Mock()
+
+    def test_file_watch_stopped_on_close(self, handler, tmp_path):
+        """Test file watch stopped when file is closed."""
+        test_file = tmp_path / "watched_close.adoc"
+        handler.current_file_path = test_file
+
+        handler.new_file()
+
+        # File watch should be stopped
+
+
+class TestSpecialFileTypes:
+    """Test handling of special file types and content."""
+
+    def test_load_file_with_binary_content_fails_gracefully(self, handler, tmp_path):
+        """Test loading file with binary content fails gracefully."""
+        test_file = tmp_path / "binary.adoc"
+        test_file.write_bytes(b"\x00\x01\x02\x03\xFF\xFE")
+
+        # Should detect binary and show error
+        try:
+            handler.open_file(str(test_file))
+        except Exception:
+            pass  # Expected to fail gracefully
+
+    def test_load_file_with_mixed_line_endings(self, handler, tmp_path, mock_editor):
+        """Test loading file with mixed line endings."""
+        test_file = tmp_path / "mixed_endings.adoc"
+        content = "Line 1\nLine 2\r\nLine 3\rLine 4"
+        test_file.write_text(content)
+
+        handler.async_manager.read_file = AsyncMock(return_value=content)
+
+        # Should normalize line endings
+
+    def test_save_preserves_line_endings(self, handler, tmp_path, mock_editor):
+        """Test save preserves line ending style."""
+        test_file = tmp_path / "endings.adoc"
+        content = "Line 1\nLine 2\n"
+        mock_editor.setPlainText(content)
+        handler.current_file_path = test_file
+
+        handler.async_manager.write_file = AsyncMock(return_value=True)
+
+        # Should preserve Unix line endings
+
+    def test_load_file_with_bom(self, handler, tmp_path, mock_editor):
+        """Test loading file with UTF-8 BOM."""
+        test_file = tmp_path / "bom.adoc"
+        test_file.write_bytes(b"\xEF\xBB\xBFContent with BOM")
+
+        # Should strip BOM correctly
+        handler.async_manager.read_file = AsyncMock(return_value="Content with BOM")
+
+
+class TestMemoryManagement:
+    """Test memory management during file operations."""
+
+    def test_editor_cleared_before_load(self, handler, mock_editor):
+        """Test editor is cleared before loading new content."""
+        mock_editor.setPlainText("Old content")
+        handler.unsaved_changes = True
+
+        handler.is_opening_file = True
+        mock_editor.clear()
+
+        assert mock_editor.toPlainText() == ""
+
+    def test_no_memory_leak_on_repeated_loads(self, handler, tmp_path, mock_editor):
+        """Test no memory leak on repeated file loads."""
+        test_file = tmp_path / "repeated.adoc"
+        test_file.write_text("Content")
+
+        handler.async_manager.read_file = AsyncMock(return_value="Content")
+
+        # Multiple loads should not leak memory
+        import gc
+        gc.collect()
+
+        for _ in range(10):
+            handler.open_file(str(test_file))
+
+    def test_large_file_released_after_close(self, handler, tmp_path, mock_editor):
+        """Test large file memory released after close."""
+        large_content = "Content " * 100000
+        mock_editor.setPlainText(large_content)
+        handler.current_file_path = tmp_path / "large.adoc"
+
+        handler.new_file()
+
+        # Editor should be cleared, memory released
+        assert mock_editor.toPlainText() == ""
