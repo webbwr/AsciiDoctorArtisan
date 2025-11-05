@@ -159,8 +159,8 @@ KEY LEARNING POINTS FOR BEGINNERS:
 
 # === PACKAGE VERSION ===
 # Semantic versioning: MAJOR.MINOR.PATCH
-# 1.9.0 = Version 1, Release 9, Patch 0
-__version__ = "1.9.0"
+# 1.9.1 = Version 1, Release 9, Patch 1
+__version__ = "1.9.1"
 
 
 # === LAZY IMPORT MAGIC METHOD ===
