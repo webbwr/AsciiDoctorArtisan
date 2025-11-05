@@ -1,128 +1,184 @@
-# Documentation Archive
+# Archived Documentation
 
-This folder has old project documents. These documents are done. They tell the history of the project.
+This directory contains historical documentation that has been superseded by current documents or is no longer relevant to active development.
 
-## What Is Here
+## Purpose
 
-### Performance Work (October-November 2025)
+This archive preserves:
+- Completed project phases and summaries
+- Superseded plans and roadmaps
+- Historical test and QA reports
+- Old optimization and refactoring documentation
 
-**REFACTORING_PLAN.md** - Phase 1-3 optimization plan
-- Made in: October 2025
-- What it covered: Three phases of making code better
-- Result: Complete
+## Archive Organization
 
-**OPTIMIZATION_SUMMARY.md** - Phase 1 results
-- Made in: October 2025
-- What it covered: First set of speed improvements
-- Result: 40-50% faster preview
+### Test Coverage & QA (v1.9.0)
+**Date:** November 2025
 
-**PHASE_2_SUMMARY.md** - Phase 2 results
-- Made in: November 1, 2025
-- What it covered: String interning for less memory use
-- Result: 15-25% less memory used
+Coverage expansion and test suite recovery documentation:
+- `TEST_COVERAGE_ACHIEVEMENT.md` - Phase 1-3 completion report
+- `TEST_COVERAGE_PLAN.md` - Original coverage expansion plan
+- `TEST_COVERAGE_PROGRESS.md` - Coverage progress tracking
+- `PHASE_2_ROADMAP_v1.9.0.md` - Original 5-phase coverage roadmap
+- `TEST_ANALYSIS_2025-11-04.md` - Test suite analysis
+- `TEST_FIXES_2025-11-04.md` - Test fix documentation
+- `TEST_FIXES_SUMMARY.md` - Test fixes summary
+- `TEST_OPTIMIZATION_NOTES.md` - Optimization notes
+- `TEST_RESULTS_SUMMARY.md` - Results summary
+- `FINAL_TEST_REPORT.md` - Final test report
+- `FINAL_TEST_STATUS.md` - Final test status
+- `COVERAGE_SUMMARY.md` - Coverage data summary
+- `COVERAGE_ANALYSIS_SUMMARY.md` - Coverage analysis
 
-### Quality Work (October-November 2025)
+**Superseded by:**
+- `/ROADMAP.md` - Current roadmap with test coverage status
+- `/docs/ROADMAP_RATIONALIZATION.md` - Comprehensive rationalization of all coverage work
+- `/docs/developer/TEST_COVERAGE_SUMMARY.md` - Current coverage summary
 
-**READABILITY_REPORT_20251031.md** - Documentation check
-- Made in: October 31, 2025
-- What it covered: All docs checked for reading level
-- Result: All docs at Grade 5.0 or below
+### Test Refactoring (v1.7.x)
+**Date:** October-November 2025
 
-**PROJECT_STATUS_v1.7.0.md** - Project status report
-- Made in: November 2, 2025
-- What it covered: Complete v1.7.0 and v1.7.1 status
-- Result: 583 lines covering tests, git history, setup, roadmap
+Multi-phase test suite refactoring and recovery:
+- `TEST_REFACTORING_MASTER_ROADMAP.md` - Master refactoring plan
+- `TEST_REFACTORING_PHASE1_PLAN.md` - Phase 1 plan
+- `TEST_REFACTORING_PHASE2_PLAN.md` - Phase 2 plan
+- `TEST_REFACTORING_PHASE2_COMPLETION.md` - Phase 2 completion
+- `TEST_REFACTORING_PHASE3_PLAN.md` - Phase 3 plan
+- `TEST_REFACTORING_PHASE4_PLAN.md` - Phase 4 plan
+- `TEST_REFACTORING_SESSION_SUMMARY.md` - Session summary
+- `TEST_FAILURE_ANALYSIS_v1.7.1.md` - Failure analysis for v1.7.1
 
-**TEST_FAILURE_ANALYSIS_v1.7.1.md** - Test fix report
-- Made in: November 2, 2025
-- What it covered: How we fixed 24 test failures
-- Result: 100% test pass rate (82/82 tests)
+**Superseded by:** Current test suite (98%+ pass rate)
 
-**DOCUMENTATION_OPTIMIZATION_PLAN.md** - Documentation optimization plan
-- Made in: November 2, 2025
-- What it covered: Plan for streamlining and organizing all docs
-- Result: 5 fixes implemented, 2 files archived, paths corrected
+### Chat Integration (v1.7.0)
+**Date:** November 2025
 
-### Test Refactoring Plans (November 2025)
+Ollama AI chat integration development and testing:
+- `CHAT_COMPLETION_REPORT.md` - Chat feature completion report
+- `CHAT_INTEGRATION_SUMMARY.md` - Integration summary
+- `CHAT_TESTING_SUMMARY.md` - Testing summary
+- `CLAUDE_CHAT_VALIDATION.md` - Validation documentation
+- `CONTEXT_MODES_TEST_REPORT.md` - Context modes testing
 
-**TEST_REFACTORING_MASTER_ROADMAP.md** - Complete refactoring roadmap
-- Made in: November 2, 2025
-- What it covered: 4-phase plan to optimize 1,294 tests
-- Impact: 170-250 test reduction, 30-40% maintenance savings
+**Superseded by:**
+- `/docs/user/OLLAMA_CHAT_GUIDE.md` - Current user guide
+- Feature is production-ready in v1.7.0+
 
-**TEST_REFACTORING_PHASE1_PLAN.md** - Quick wins (ZERO risk)
-- Time: 2-3 hours
-- Tasks: Remove 21 duplicate fixtures, delete 1 duplicate file
-- Reduction: ~30-40 tests
+### Phase Completion Summaries (v1.5.0-v1.7.0)
+**Date:** October 2025
 
-**TEST_REFACTORING_PHASE2_PLAN.md** - Parametrization (LOW risk)
-- Time: 4-6 hours
-- Tasks: Convert 8 test groups to use @pytest.mark.parametrize
-- Reduction: ~20-30 tests
+Historical phase completion documentation:
+- `PHASE_1_COMPLETION_SUMMARY.md` - Worker coverage Phase 1
+- `PHASE_2_COMPLETION_SUMMARY.md` - Worker coverage Phase 2
+- `PHASE_2_SUMMARY.md` - Phase 2 summary
+- `PHASE3_ASSESSMENT.md` - Phase 3 assessment
+- `PHASE3_TASK_3.1_EXECUTION_PLAN.md` - Phase 3 task execution
+- `OPTION_B_COMPLETION_SUMMARY.md` - Phase 2 recovery work
 
-**TEST_REFACTORING_PHASE3_PLAN.md** - Consolidation (MEDIUM risk)
-- Time: 8-12 hours
-- Tasks: Merge 4 test groups (GPU, Async, Preview, Chat)
-- Reduction: ~110-160 tests, -7 files
+**Superseded by:** Integrated into current ROADMAP.md
 
-**TEST_REFACTORING_PHASE4_PLAN.md** - Optimization (LOW-MEDIUM risk)
-- Time: 4-6 hours
-- Tasks: Strengthen weak tests, optimize slow tests
-- Reduction: ~10-20 tests, 10-20% faster execution
+### Version-Specific Documentation
+**Date:** September-November 2025
 
-### Chat Feature Work (November 2025)
+Historical version planning and implementation:
+- `V1.8.0_IMPLEMENTATION_PLAN.md` - v1.8.0 planning
+- `V1.8.0_REORGANIZATION_SUMMARY.md` - v1.8.0 reorganization
+- `PROJECT_STATUS_v1.7.0.md` - v1.7.0 status snapshot
+- `RELEASE_NOTES_v1.7.1.md` - v1.7.1 release notes
+- `INSTALLATION_VALIDATOR_v1.7.4.md` - v1.7.4 validator docs
 
-**CHAT_COMPLETION_REPORT.md** - Session report
-- Made in: November 1, 2025
-- What it covered: Ollama Chat feature completion
-- Result: Archived (historical session notes)
+**Superseded by:**
+- `/CHANGELOG.md` - Current release notes
+- `/ROADMAP.md` - Current roadmap
 
-**CHAT_INTEGRATION_SUMMARY.md** - Session report
-- Made in: November 1, 2025
-- What it covered: Chat integration details
-- Result: Archived (historical session notes)
+### Optimization & Refactoring (v1.4.0-v1.7.0)
+**Date:** September-October 2025
 
-**CHAT_TESTING_SUMMARY.md** - Session report
-- Made in: November 1, 2025
-- What it covered: Chat testing approach
-- Result: Archived (historical session notes)
+Historical optimization and refactoring documentation:
+- `OPTIMIZATION_SUMMARY.md` - Performance optimization summary
+- `PYTHON_OO_OPTIMIZATION.md` - Python -OO optimization
+- `REFACTORING_PLAN.md` - Refactoring plan
+- `DOCUMENTATION_OPTIMIZATION_PLAN.md` - Documentation optimization
+- `streamlining_summary.md` - Streamlining summary
 
-**CONTEXT_MODES_TEST_REPORT.md** - Session report
-- Made in: November 1, 2025
-- What it covered: 4 context modes testing
-- Result: Archived (historical session notes)
+**Superseded by:**
+- Current codebase (optimizations implemented)
+- `/docs/developer/PERFORMANCE_PROFILING.md` - Current profiling guide
 
-## Why Archive
+### Consolidation & Audit (v1.7.0+)
+**Date:** October-November 2025
 
-We move documents here when:
-- The work is done
-- The document tells history, not current state
-- We want a clean project root
-- The information is useful but not needed every day
+Historical consolidation and audit documentation:
+- `CONSOLIDATION_AUDIT_v1.7.3.md` - v1.7.3 consolidation audit
+- `CONSOLIDATION_SUMMARY.md` - Consolidation summary
+- `CRITICAL_FINDINGS.md` - Critical findings from audits
+- `READABILITY_REPORT_20251031.md` - Readability audit report
 
-## Finding Information
+**Superseded by:** Current documentation (all issues resolved)
 
-**For current project status:**
-- See main README.md
-- See ROADMAP.md
-- See PROJECT_STATUS_v1.7.0.md (in this archive)
+### Development Tools (Temporary)
+**Date:** November 2025
 
-**For performance history:**
-- See REFACTORING_PLAN.md
-- See OPTIMIZATION_SUMMARY.md
-- See PHASE_2_SUMMARY.md
+Temporary development checklists and tools:
+- `COMMIT_CHECKLIST.md` - Temporary commit checklist
 
-**For test history:**
-- See TEST_FAILURE_ANALYSIS_v1.7.1.md
-
-**For quality history:**
-- See READABILITY_REPORT_20251031.md
-- See docs/qa/ directory for QA work
-
-## Reading Level
-
-All documents: Grade 5.0 or below
+**Superseded by:** Standard git workflow
 
 ---
 
-*Last updated: November 2, 2025*
+## Current Documentation
+
+For up-to-date information, see:
+
+### Primary Documentation
+- `/ROADMAP.md` - Project roadmap and planning
+- `/SPECIFICATIONS.md` - Functional requirements (84 implemented, 23 planned)
+- `/CLAUDE.md` - Claude Code development guide
+- `/README.md` - Project overview and installation
+- `/CHANGELOG.md` - Version history
+
+### Rationalization & Planning
+- `/docs/ROADMAP_RATIONALIZATION.md` - Comprehensive analysis of all historical roadmaps
+
+### User Guides
+- `/docs/user/how-to-use.md` - User guide
+- `/docs/user/OLLAMA_CHAT_GUIDE.md` - AI chat guide
+- `/docs/user/GITHUB_CLI_INTEGRATION.md` - GitHub integration guide
+- `/docs/user/PERFORMANCE_GUIDE.md` - Performance optimization guide
+
+### Developer Documentation
+- `/docs/developer/how-to-contribute.md` - Contribution guidelines
+- `/docs/developer/TEST_COVERAGE_SUMMARY.md` - Current test coverage
+- `/docs/developer/PERFORMANCE_PROFILING.md` - Profiling guide
+- `/docs/developer/CONFIGURATION.md` - Configuration reference
+
+### Architecture
+- `/docs/architecture/IMPLEMENTATION_REFERENCE.md` - Implementation details
+- `/docs/architecture/ARCHITECTURAL_ANALYSIS_2025.md` - Architecture analysis
+
+### v2.0.0 Planning (Active)
+- `/docs/v2.0.0_MASTER_PLAN.md` - v2.0.0 master plan
+- `/docs/v2.0.0_AUTOCOMPLETE_PLAN.md` - Auto-complete feature
+- `/docs/v2.0.0_SYNTAX_CHECKING_PLAN.md` - Syntax checking feature
+- `/docs/v2.0.0_TEMPLATES_PLAN.md` - Document templates feature
+
+---
+
+## Archive Statistics
+
+**Total Archived Files:** 48
+**Archive Date:** November 5, 2025
+**Reason:** Documentation consolidation - obsolete/superseded documents moved to archive
+
+**Consolidation Details:**
+- Merged `docs/archived/` directory (14 files)
+- Archived `docs/` level test coverage docs (4 files)
+- Removed obsolete root-level files (8 files deleted)
+- Removed duplicate SPECIFICATIONS.md from docs/architecture/
+
+**Current Status:** All valuable information preserved in current documentation or rationalized in ROADMAP_RATIONALIZATION.md
+
+---
+
+**Last Updated:** November 5, 2025
+**Maintained by:** Documentation Consolidation Initiative
