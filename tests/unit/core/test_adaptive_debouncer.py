@@ -168,41 +168,37 @@ class TestAdaptiveDebouncer:
         assert debouncer.config.min_delay == 50
         assert debouncer.config.max_delay == 3000
 
-    def test_calculate_delay_small_document(self):
-        """Test delay for small document."""
+    @pytest.mark.parametrize(
+        "document_size,min_delay,max_delay,description",
+        [
+            # Small document (~5KB)
+            (5_000, 50, 400, "small_doc"),
+            # Medium document (~50KB)
+            (50_000, 150, 600, "medium_doc"),
+            # Large document (~200KB)
+            (200_000, 200, 1000, "large_doc"),
+            # Very large document (~1MB)
+            (1_000_000, 400, 1000, "very_large_doc"),
+        ],
+        ids=[
+            "small_5kb",
+            "medium_50kb",
+            "large_200kb",
+            "very_large_1mb",
+        ],
+    )
+    def test_calculate_delay_by_document_size(
+        self, document_size, min_delay, max_delay, description
+    ):
+        """Test adaptive delay calculation scales with document size."""
         debouncer = AdaptiveDebouncer()
 
-        delay = debouncer.calculate_delay(document_size=5000)
+        delay = debouncer.calculate_delay(document_size=document_size)
 
-        # Should be around 100ms base for small docs (reduced delays)
-        assert 50 <= delay <= 400
-
-    def test_calculate_delay_medium_document(self):
-        """Test delay for medium document."""
-        debouncer = AdaptiveDebouncer()
-
-        delay = debouncer.calculate_delay(document_size=50000)
-
-        # Should be around 200ms base for medium docs (reduced delays)
-        assert 150 <= delay <= 600
-
-    def test_calculate_delay_large_document(self):
-        """Test delay for large document."""
-        debouncer = AdaptiveDebouncer()
-
-        delay = debouncer.calculate_delay(document_size=200000)
-
-        # Should be around 400ms base for large docs (reduced delays)
-        assert 200 <= delay <= 1000
-
-    def test_calculate_delay_very_large_document(self):
-        """Test delay for very large document."""
-        debouncer = AdaptiveDebouncer()
-
-        delay = debouncer.calculate_delay(document_size=1000000)
-
-        # Should be around 600ms base for very large docs (reduced delays, max 1000ms)
-        assert 400 <= delay <= 1000
+        # Verify delay is within expected range for document size
+        assert (
+            min_delay <= delay <= max_delay
+        ), f"Delay {delay}ms out of range [{min_delay}, {max_delay}] for {description}"
 
     def test_delay_clamping(self):
         """Test delays are clamped to min/max."""

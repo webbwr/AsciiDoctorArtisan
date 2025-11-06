@@ -226,34 +226,35 @@ class TestThemeManager:
         # Should not crash
         manager.apply_theme()
 
-    def test_dark_mode_css_contains_dark_colors(self):
-        """Test dark mode CSS has dark background colors."""
-        from asciidoc_artisan.ui.theme_manager import DARK_MODE_CSS
+    @pytest.mark.parametrize(
+        "css_constant,expected_bg,expected_text,expected_code_bg,min_length",
+        [
+            # Dark mode CSS
+            ("DARK_MODE_CSS", "background:#1e1e1e", "color:#dcdcdc", "background:#2a2a2a", 100),
+            # Light mode CSS
+            ("LIGHT_MODE_CSS", "background:#ffffff", "color:#333333", "background:#f8f8f8", 100),
+        ],
+        ids=[
+            "dark_mode",
+            "light_mode",
+        ],
+    )
+    def test_theme_css_content(
+        self, css_constant, expected_bg, expected_text, expected_code_bg, min_length
+    ):
+        """Test theme CSS contains expected colors and is properly formatted."""
+        from asciidoc_artisan.ui import theme_manager
 
-        assert "background:#1e1e1e" in DARK_MODE_CSS  # Dark body background
-        assert "color:#dcdcdc" in DARK_MODE_CSS  # Light text
-        assert "background:#2a2a2a" in DARK_MODE_CSS  # Dark code background
+        css = getattr(theme_manager, css_constant)
 
-    def test_light_mode_css_contains_light_colors(self):
-        """Test light mode CSS has light background colors."""
-        from asciidoc_artisan.ui.theme_manager import LIGHT_MODE_CSS
+        # Verify it's a string with substantial content
+        assert isinstance(css, str)
+        assert len(css) > min_length, f"{css_constant} should have at least {min_length} characters"
 
-        assert "background:#ffffff" in LIGHT_MODE_CSS  # White body background
-        assert "color:#333333" in LIGHT_MODE_CSS  # Dark text
-        assert "background:#f8f8f8" in LIGHT_MODE_CSS  # Light code background
-
-    # Additional CSS verification tests
-    def test_dark_mode_css_is_string(self):
-        """Test dark mode CSS is a string."""
-        from asciidoc_artisan.ui.theme_manager import DARK_MODE_CSS
-        assert isinstance(DARK_MODE_CSS, str)
-        assert len(DARK_MODE_CSS) > 100  # Should have substantial content
-
-    def test_light_mode_css_is_string(self):
-        """Test light mode CSS is a string."""
-        from asciidoc_artisan.ui.theme_manager import LIGHT_MODE_CSS
-        assert isinstance(LIGHT_MODE_CSS, str)
-        assert len(LIGHT_MODE_CSS) > 100  # Should have substantial content
+        # Verify expected colors are present
+        assert expected_bg in css, f"Expected {expected_bg} in {css_constant}"
+        assert expected_text in css, f"Expected {expected_text} in {css_constant}"
+        assert expected_code_bg in css, f"Expected {expected_code_bg} in {css_constant}"
 
     def test_dark_mode_css_contains_all_required_styles(self):
         """Test dark mode CSS contains all required style sections."""
