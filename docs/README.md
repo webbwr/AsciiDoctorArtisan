@@ -42,13 +42,14 @@ Technical documentation for contributors and developers.
 | Document | Description |
 |----------|-------------|
 | [Contributing Guide](developer/contributing.md) | How to contribute code, tests, and documentation |
-| [Architecture](developer/architecture.md) | System architecture and design patterns |
+| [Architecture](developer/architecture.md) | System architecture, design patterns, and lazy import guide |
 | [Configuration](developer/configuration.md) | Development environment setup and configuration |
-| [Testing History](developer/testing-history.md) | Test suite evolution and testing practices |
-| [Test Coverage](developer/test-coverage.md) | Current test coverage metrics and goals |
+| [Test Coverage](developer/test-coverage.md) | Current test coverage metrics (96.4%, 3,638 tests) |
 | [Performance Profiling](developer/performance-profiling.md) | Profiling tools and performance benchmarks |
 | [Security Guide](developer/security-guide.md) | Security best practices and audit procedures |
 | [Security Implementation](developer/security-implementation.md) | Security feature implementation details |
+
+**Note:** Test suite evolution history is documented in [ROADMAP.md](../ROADMAP.md)
 
 ---
 
@@ -75,7 +76,7 @@ Implementation reports and session summaries for completed work.
 
 | Document | Description |
 |----------|-------------|
-| [Code Quality Improvements (Nov 6)](completed/2025-11-06-code-quality-improvements.md) | Issues #13-16: Lazy imports, worker standardization, duplication reduction, test parametrization |
+| [November 6 Complete Summary](completed/2025-11-06-master-summary.md) | 3 sessions: lazy imports, comprehensive cleanup, critical bugfix (5 hours, production-ready) |
 | [Issue #15: Duplication Reduction](completed/issue-15-duplication-reduction.md) | Preview handler refactoring using Template Method pattern (70% → <20% duplication) |
 | [Issue #16: Test Parametrization](completed/issue-16-test-parametrization-analysis.md) | Analysis of test parametrization opportunities (47% reduction potential) |
 

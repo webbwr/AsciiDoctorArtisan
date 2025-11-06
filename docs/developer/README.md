@@ -5,13 +5,14 @@ Technical documentation for contributors and developers.
 ## Available Guides
 
 - **[Contributing Guide](contributing.md)** - How to contribute code and documentation
-- **[Architecture](architecture.md)** - System architecture and design patterns
+- **[Architecture](architecture.md)** - System architecture, design patterns, and lazy import guide
 - **[Configuration](configuration.md)** - Development environment setup
-- **[Testing History](testing-history.md)** - Test suite evolution
-- **[Test Coverage](test-coverage.md)** - Current test coverage metrics
+- **[Test Coverage](test-coverage.md)** - Current test coverage metrics (96.4%, 3,638 tests)
 - **[Performance Profiling](performance-profiling.md)** - Profiling tools and benchmarks
-- **[Security Guide](security-guide.md)** - Security best practices
+- **[Security Guide](security-guide.md)** - Security best practices and audit logging
 - **[Security Implementation](security-implementation.md)** - Security implementation details
+
+**Note:** Test suite evolution history is documented in [ROADMAP.md](../../ROADMAP.md)
 
 ## Quick Start
 
