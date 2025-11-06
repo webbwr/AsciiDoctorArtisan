@@ -345,29 +345,47 @@ class TestCSSStyling:
             assert "<h1>Important Content</h1>" in styled_html
             assert "<p>Paragraph</p>" in styled_html
 
-    def test_handles_empty_html_in_css_wrapping(self, mock_editor, mock_preview, mock_parent_window):
-        """Test CSS wrapping with empty HTML."""
+    @pytest.mark.parametrize(
+        "html,should_succeed,expected_in_result,description",
+        [
+            # Empty HTML
+            ("", True, None, "empty_html"),
+            # HTML with existing style tags
+            ("<style>body { color: red; }</style><h1>Test</h1>", True, None, "existing_styles"),
+            # Malformed HTML (browser handles it)
+            ("<h1>Unclosed tag<p>Missing close</div>", True, None, "malformed"),
+            # Special characters
+            ("<h1>&lt;Script&gt; &amp; \"Quotes\" 'Apostrophes' ©®™</h1>", True, "&lt;Script&gt;", "special_chars"),
+            # Unicode characters
+            ("<h1>日本語 文档 📝 ñáéíóú</h1>", True, "日本語", "unicode"),
+        ],
+        ids=[
+            "empty_html",
+            "existing_styles",
+            "malformed_html",
+            "special_characters",
+            "unicode_characters",
+        ],
+    )
+    def test_html_edge_cases(
+        self, mock_editor, mock_preview, mock_parent_window, html, should_succeed, expected_in_result, description
+    ):
+        """Test CSS wrapping and HTML handling with various edge cases."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
 
-        html = ""
+        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
 
         with patch.object(mock_preview, 'setHtml') as mock_set_html:
             handler.handle_preview_complete(html)
-            # Should still wrap empty content
-            mock_set_html.assert_called_once()
 
-    def test_handles_html_with_existing_style_tags(self, mock_editor, mock_preview, mock_parent_window):
-        """Test CSS wrapping when HTML already has style tags."""
-        from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
+            if should_succeed:
+                # Should call setHtml for all valid inputs
+                mock_set_html.assert_called_once()
 
-        html = "<style>body { color: red; }</style><h1>Test</h1>"
-
-        with patch.object(mock_preview, 'setHtml') as mock_set_html:
-            handler.handle_preview_complete(html)
-            # Should wrap/merge styles properly
-            mock_set_html.assert_called_once()
+                # Check for expected content if specified
+                if expected_in_result:
+                    styled_html = mock_set_html.call_args[0][0]
+                    assert expected_in_result in styled_html or expected_in_result.replace("&lt;", "<").replace("&gt;", ">") in styled_html
 
 
 @pytest.mark.unit
@@ -496,59 +514,50 @@ class TestSignalEmissionsEdgeCases:
 class TestScrollExtremeValues:
     """Test suite for extreme scroll values."""
 
-    def test_handles_negative_scroll_value(self, mock_editor, mock_preview, mock_parent_window):
-        """Test sync with negative scroll value."""
+    @pytest.mark.parametrize(
+        "scroll_value,expected_value,description",
+        [
+            # Zero value - should scroll to top
+            (0, 0, "zero_scroll_to_top"),
+            # Negative value - percentage preserved
+            (-10, -10, "negative_value_preserved"),
+            # Value exceeding maximum
+            (5000, None, "exceeds_maximum"),
+            # Very large value
+            (999999999, None, "very_large_value"),
+        ],
+        ids=[
+            "zero_scroll",
+            "negative_value",
+            "exceeds_max",
+            "very_large",
+        ],
+    )
+    def test_scroll_edge_cases(
+        self, mock_editor, mock_preview, mock_parent_window, scroll_value, expected_value, description
+    ):
+        """Test scroll sync with edge case values (negative, zero, overflow, very large)."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
+
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
         handler.sync_scrolling_enabled = True
 
-        # Negative value results in negative percentage
-        handler.sync_editor_to_preview(-10)
+        handler.sync_editor_to_preview(scroll_value)
 
         preview_scrollbar = mock_preview.verticalScrollBar()
-        # Should calculate percentage: -10/1000 = -0.01, then -0.01 * 1000 = -10
-        # Code doesn't clamp to 0, passes through negative value
-        preview_scrollbar.setValue.assert_called_once()
-        call_value = preview_scrollbar.setValue.call_args[0][0]
-        # Negative input → negative output (percentage preserved)
-        assert call_value == -10
 
-    def test_handles_scroll_value_exceeding_maximum(self, mock_editor, mock_preview, mock_parent_window):
-        """Test sync with scroll value > maximum."""
-        from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
-        handler.sync_scrolling_enabled = True
-
-        # Value exceeding max (max is 1000)
-        handler.sync_editor_to_preview(5000)
-
-        preview_scrollbar = mock_preview.verticalScrollBar()
-        # Should handle overflow (percentage > 1.0)
-        preview_scrollbar.setValue.assert_called_once()
-
-    def test_handles_very_large_scroll_values(self, mock_editor, mock_preview, mock_parent_window):
-        """Test sync with very large scroll values."""
-        from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
-        handler.sync_scrolling_enabled = True
-
-        # Very large value
-        handler.sync_editor_to_preview(999999999)
-
-        preview_scrollbar = mock_preview.verticalScrollBar()
+        # All edge cases should call setValue at least once
         preview_scrollbar.setValue.assert_called_once()
 
-    def test_handles_zero_scroll_value(self, mock_editor, mock_preview, mock_parent_window):
-        """Test sync with scroll value = 0."""
-        from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
-        handler.sync_scrolling_enabled = True
-
-        handler.sync_editor_to_preview(0)
-
-        preview_scrollbar = mock_preview.verticalScrollBar()
-        # Should scroll to top (0%)
-        preview_scrollbar.setValue.assert_called_with(0)
+        # For specific expected values, verify the call
+        if expected_value is not None:
+            if scroll_value == 0:
+                # Zero should explicitly set to 0
+                preview_scrollbar.setValue.assert_called_with(expected_value)
+            else:
+                # Negative values preserve the percentage calculation
+                call_value = preview_scrollbar.setValue.call_args[0][0]
+                assert call_value == expected_value
 
 
 @pytest.mark.unit
@@ -635,44 +644,6 @@ class TestErrorHandling:
             except (TypeError, AttributeError):
                 # Expected if code doesn't handle None
                 pass
-
-    def test_handles_malformed_html(self, mock_editor, mock_preview, mock_parent_window):
-        """Test handling malformed HTML."""
-        from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
-
-        malformed_html = "<h1>Unclosed tag<p>Missing close</div>"
-
-        with patch.object(mock_preview, 'setHtml') as mock_set_html:
-            handler.handle_preview_complete(malformed_html)
-            # Should not crash, setHtml called
-            mock_set_html.assert_called_once()
-
-    def test_handles_special_characters_in_html(self, mock_editor, mock_preview, mock_parent_window):
-        """Test handling HTML with special characters."""
-        from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
-
-        special_html = "<h1>&lt;Script&gt; &amp; \"Quotes\" 'Apostrophes' ©®™</h1>"
-
-        with patch.object(mock_preview, 'setHtml') as mock_set_html:
-            handler.handle_preview_complete(special_html)
-            styled_html = mock_set_html.call_args[0][0]
-            # Special chars should be preserved
-            assert "&lt;Script&gt;" in styled_html or "<Script>" in styled_html
-
-    def test_handles_unicode_characters_in_html(self, mock_editor, mock_preview, mock_parent_window):
-        """Test handling HTML with Unicode characters."""
-        from asciidoc_artisan.ui.preview_handler import PreviewHandler
-        handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
-
-        unicode_html = "<h1>日本語 文档 📝 ñáéíóú</h1>"
-
-        with patch.object(mock_preview, 'setHtml') as mock_set_html:
-            handler.handle_preview_complete(unicode_html)
-            styled_html = mock_set_html.call_args[0][0]
-            # Unicode should be preserved
-            assert "日本語" in styled_html or "文档" in styled_html
 
 
 @pytest.mark.unit
