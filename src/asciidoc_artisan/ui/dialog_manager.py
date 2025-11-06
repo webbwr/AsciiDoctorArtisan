@@ -27,14 +27,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# Check for Pandoc availability
-try:
-    import pypandoc
-
-    PANDOC_AVAILABLE = True
-except ImportError:
-    pypandoc = None
-    PANDOC_AVAILABLE = False
+# Lazy import check for Pandoc (deferred until first use for faster startup)
+from asciidoc_artisan.core.constants import is_pandoc_available
 
 
 class DialogManager:
@@ -63,10 +57,20 @@ class DialogManager:
     def show_pandoc_status(self) -> None:
         """Show detailed pandoc installation status."""
         status = "Pandoc Status:\n\n"
-        status += f"PANDOC_AVAILABLE: {PANDOC_AVAILABLE}\n"
+        pandoc_available = is_pandoc_available()
+        status += f"PANDOC_AVAILABLE: {pandoc_available}\n"
+
+        # Lazy import pypandoc only if needed
+        pypandoc = None
+        if pandoc_available:
+            try:
+                import pypandoc
+            except ImportError:
+                pass
+
         status += f"pypandoc module: {'Imported' if pypandoc else 'Not found'}\n"
 
-        if PANDOC_AVAILABLE and pypandoc:
+        if pandoc_available and pypandoc:
             try:
                 # Query pandoc version from system.
                 version = pypandoc.get_pandoc_version()
@@ -78,7 +82,7 @@ class DialogManager:
                 # Pypandoc exists but cannot talk to pandoc.
                 status += f"Error getting pandoc info: {e}\n"
 
-        if not PANDOC_AVAILABLE:
+        if not pandoc_available:
             # Show install instructions if missing.
             status += "\nTo enable document conversion:\n"
             status += "1. Install pandoc from https://pandoc.org\n"
@@ -88,7 +92,7 @@ class DialogManager:
 
     def show_supported_formats(self) -> None:
         """Show supported input and output formats."""
-        if PANDOC_AVAILABLE and pypandoc:
+        if is_pandoc_available():
             message = "Supported Conversion Formats:\n\n"
             message += "COMMON INPUT FORMATS:\n"
             message += "  • markdown (.md, .markdown)\n"

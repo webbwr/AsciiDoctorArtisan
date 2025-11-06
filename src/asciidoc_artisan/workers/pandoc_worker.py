@@ -31,14 +31,8 @@ from typing import Optional, Union
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-# Check for Pandoc availability
-try:
-    import pypandoc
-
-    PANDOC_AVAILABLE = True
-except ImportError:
-    pypandoc = None
-    PANDOC_AVAILABLE = False
+# Lazy import check for Pandoc (deferred until first use for faster startup)
+from asciidoc_artisan.core.constants import is_pandoc_available
 
 # AI client removed - using Ollama for local AI features instead
 
@@ -436,7 +430,15 @@ class PandocWorker(QObject):
             return
 
         # Pandoc conversion path (fallback or primary if AI not requested)
-        if not PANDOC_AVAILABLE or not pypandoc:
+        # Lazy import pypandoc only when actually needed for conversion
+        pypandoc = None
+        if is_pandoc_available():
+            try:
+                import pypandoc
+            except ImportError:
+                pass
+
+        if not is_pandoc_available() or not pypandoc:
             err = "Pandoc/pypandoc not available for conversion."
             logger.error(err)
             self.conversion_error.emit(err, context)

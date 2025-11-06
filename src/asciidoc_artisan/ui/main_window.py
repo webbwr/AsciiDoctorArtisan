@@ -196,14 +196,8 @@ except ImportError:
     AsciiDoc3API = None
     ASCIIDOC3_AVAILABLE = False
 
-# Check for Pandoc availability
-try:
-    import pypandoc
-
-    PANDOC_AVAILABLE = True
-except ImportError:
-    pypandoc = None
-    PANDOC_AVAILABLE = False
+# Lazy import check for Pandoc (deferred until first use for faster startup)
+from asciidoc_artisan.core.constants import is_pandoc_available
 
 logger = logging.getLogger(__name__)
 

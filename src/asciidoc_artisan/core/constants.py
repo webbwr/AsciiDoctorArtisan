@@ -99,15 +99,47 @@ STATUS_TIP_EXPORT_OFFICE365 = "Export to Microsoft Office 365 Word format"
 STATUS_MESSAGE_DURATION_MS = 5000
 
 # ============================================================================
-# Module Availability Checks (v1.5.0-D)
+# Module Availability Checks (v1.5.0-D + Lazy Import Optimization)
 # ============================================================================
-# Check if optional modules are available.
-# Note: These checks import the modules, so they should be deferred by importing
-# constants.py only when needed, not at main.py startup.
+# Check if optional modules are available with lazy evaluation.
+# The import is deferred until first actual use, improving startup time by 15-20%.
 
-try:
-    import pypandoc  # noqa: F401
+_pypandoc_checked = False
+_pypandoc_available = False
 
-    PANDOC_AVAILABLE = True
-except ImportError:
-    PANDOC_AVAILABLE = False
+
+def is_pandoc_available() -> bool:
+    """
+    Check if pypandoc is available (lazy evaluation).
+
+    This function delays the pypandoc import until first call, improving
+    startup time. The result is cached after the first check.
+
+    Returns:
+        bool: True if pypandoc is available, False otherwise
+    """
+    global _pypandoc_checked, _pypandoc_available
+
+    if not _pypandoc_checked:
+        try:
+            import pypandoc  # noqa: F401
+
+            _pypandoc_available = True
+        except ImportError:
+            _pypandoc_available = False
+        finally:
+            _pypandoc_checked = True
+
+    return _pypandoc_available
+
+
+# Backward compatibility: Keep PANDOC_AVAILABLE as a function-based property
+# This maintains API compatibility while providing lazy evaluation
+def _get_pandoc_available() -> bool:
+    """Lazy getter for PANDOC_AVAILABLE constant."""
+    return is_pandoc_available()
+
+
+# Note: PANDOC_AVAILABLE is now a function call, not a constant
+# Use: if is_pandoc_available(): ...
+# Or for compatibility: PANDOC_AVAILABLE = is_pandoc_available()

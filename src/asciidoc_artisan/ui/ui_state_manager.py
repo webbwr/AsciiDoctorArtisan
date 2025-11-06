@@ -19,14 +19,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# Check for Pandoc availability
-try:
-    import pypandoc
-
-    PANDOC_AVAILABLE = True
-except ImportError:
-    pypandoc = None
-    PANDOC_AVAILABLE = False
+# Lazy import check for Pandoc (deferred until first use for faster startup)
+from asciidoc_artisan.core.constants import is_pandoc_available
 
 
 class UIStateManager:
@@ -62,14 +56,14 @@ class UIStateManager:
         export_enabled = not is_processing_pandoc
         self.editor.action_manager.save_as_adoc_act.setEnabled(export_enabled)
         self.editor.action_manager.save_as_md_act.setEnabled(
-            export_enabled and PANDOC_AVAILABLE
+            export_enabled and is_pandoc_available()
         )
         self.editor.action_manager.save_as_docx_act.setEnabled(
-            export_enabled and PANDOC_AVAILABLE
+            export_enabled and is_pandoc_available()
         )
         self.editor.action_manager.save_as_html_act.setEnabled(export_enabled)
         self.editor.action_manager.save_as_pdf_act.setEnabled(
-            export_enabled and PANDOC_AVAILABLE
+            export_enabled and is_pandoc_available()
         )
 
         # Git actions - disabled during Git processing or if no repo
@@ -83,7 +77,7 @@ class UIStateManager:
 
         # Convert and paste - requires Pandoc and not processing
         self.editor.action_manager.convert_paste_act.setEnabled(
-            PANDOC_AVAILABLE and not is_processing_pandoc
+            is_pandoc_available() and not is_processing_pandoc
         )
 
         # Update AI status bar
@@ -108,7 +102,7 @@ class UIStateManager:
         Returns:
             True if Pandoc is available, False otherwise (shows error dialog)
         """
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             self.editor.status_manager.show_message(
                 "critical",
                 "Pandoc Not Available",
