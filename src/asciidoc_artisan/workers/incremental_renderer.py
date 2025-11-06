@@ -446,7 +446,7 @@ class IncrementalPreviewRenderer:
 
     def __init__(self, asciidoc_api: Any) -> None:
         """
-        Initialize incremental renderer.
+        Initialize incremental renderer with thread-safe state management.
 
         Args:
             asciidoc_api: AsciiDoc3API instance for rendering
@@ -454,6 +454,7 @@ class IncrementalPreviewRenderer:
         self.asciidoc_api = asciidoc_api
         self.cache = BlockCache(max_size=MAX_CACHE_SIZE)
         self.previous_blocks: List[DocumentBlock] = []
+        self._blocks_lock = threading.Lock()
         self._enabled = True
 
     def is_enabled(self) -> bool:
@@ -470,7 +471,8 @@ class IncrementalPreviewRenderer:
         self._enabled = enabled
         if not enabled:
             self.cache.clear()
-            self.previous_blocks = []
+            with self._blocks_lock:
+                self.previous_blocks = []
         logger.info(f"Incremental rendering {'enabled' if enabled else 'disabled'}")
 
     def render(self, source_text: str) -> str:
@@ -515,8 +517,9 @@ class IncrementalPreviewRenderer:
                 block.rendered_html = self._render_block(block)
                 self.cache.put(block.id, block.rendered_html)
 
-        # Update previous blocks
-        self.previous_blocks = current_blocks
+        # Update previous blocks (thread-safe)
+        with self._blocks_lock:
+            self.previous_blocks = current_blocks
 
         # Assemble final HTML
         html_parts = [
