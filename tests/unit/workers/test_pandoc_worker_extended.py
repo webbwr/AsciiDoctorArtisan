@@ -17,7 +17,8 @@ from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch, call
 import pytest
 
-from asciidoc_artisan.workers.pandoc_worker import PandocWorker, PANDOC_AVAILABLE
+from asciidoc_artisan.workers.pandoc_worker import PandocWorker
+from asciidoc_artisan.core.constants import is_pandoc_available
 
 
 # ==============================================================================
@@ -183,7 +184,7 @@ class TestPandocWorkerFormatConversionEdgeCases:
 
     def test_empty_document_conversion(self, worker, qtbot):
         """Test conversion of empty document."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         with qtbot.waitSignal(worker.conversion_complete, timeout=5000) as blocker:
@@ -202,7 +203,7 @@ class TestPandocWorkerFormatConversionEdgeCases:
 
     def test_very_large_document_conversion(self, worker, qtbot):
         """Test conversion of very large document (>10MB of text)."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         # Create a large document (simulate)
@@ -223,7 +224,7 @@ class TestPandocWorkerFormatConversionEdgeCases:
 
     def test_document_with_non_utf8_encoding(self, worker, qtbot):
         """Test conversion of document with non-UTF8 bytes."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         # Create bytes with Latin-1 encoding
@@ -245,7 +246,7 @@ class TestPandocWorkerFormatConversionEdgeCases:
 
     def test_conversion_with_binary_input(self, worker, qtbot):
         """Test conversion with binary bytes input."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         content_bytes = b"# Test Heading\n\nTest content"
@@ -265,7 +266,7 @@ class TestPandocWorkerFormatConversionEdgeCases:
 
     def test_conversion_with_path_input(self, worker, qtbot, tmp_path):
         """Test conversion with Path object as input."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         # Create temp file
@@ -287,7 +288,7 @@ class TestPandocWorkerFormatConversionEdgeCases:
 
     def test_unsupported_input_format(self, worker, qtbot):
         """Test conversion with unsupported input format."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         # Pandoc will fail on invalid format
@@ -307,7 +308,7 @@ class TestPandocWorkerFormatConversionEdgeCases:
 
     def test_unsupported_output_format(self, worker, qtbot):
         """Test conversion with unsupported output format."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:
@@ -340,7 +341,7 @@ class TestPandocWorkerErrorHandling:
 
     def test_pandoc_subprocess_crash(self, worker, qtbot):
         """Test handling of Pandoc subprocess crash."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
@@ -363,7 +364,7 @@ class TestPandocWorkerErrorHandling:
 
     def test_output_file_write_permission_denied(self, worker, qtbot, tmp_path):
         """Test handling of output file write permission denied."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         # Create a read-only directory
@@ -393,7 +394,7 @@ class TestPandocWorkerErrorHandling:
 
     def test_disk_full_during_conversion(self, worker, qtbot):
         """Test handling of disk full error during conversion."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
@@ -416,7 +417,7 @@ class TestPandocWorkerErrorHandling:
 
     def test_conversion_timeout_large_document(self, worker, qtbot):
         """Test conversion timeout for extremely large documents."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
@@ -439,7 +440,7 @@ class TestPandocWorkerErrorHandling:
 
     def test_invalid_pandoc_arguments(self, worker, qtbot):
         """Test handling of invalid Pandoc arguments."""
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
         with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
@@ -461,9 +462,9 @@ class TestPandocWorkerErrorHandling:
             assert "unknown" in error_msg.lower() or "option" in error_msg.lower()
 
     def test_pandoc_not_available_error_path(self, qtbot):
-        """Test error path when PANDOC_AVAILABLE is False."""
+        """Test error path when is_pandoc_available() returns False."""
         # Create worker when Pandoc is not available
-        with patch("asciidoc_artisan.workers.pandoc_worker.PANDOC_AVAILABLE", False):
+        with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=False):
             worker = PandocWorker()
 
             with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:
