@@ -62,7 +62,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All 61 tests passing (35 model + 26 GitWorker tests)
 - Performance: Package import time 0.10-0.15s (11x faster than 1.05s target)
 
-## [1.8.0] - 2025-11-02 (IN PROGRESS)
+## [1.9.0] - 2025-11-03
+
+### Added
+- **Enhanced Git Status Display** - Real-time Git status in status bar
+  - Shows branch name, modified/staged/untracked file counts
+  - Color-coded indicators (✓ clean, ● changes, ⚠ conflicts)
+  - Click to open detailed status dialog
+  - Updates in real-time (<2s refresh)
+  - GitStatus data model with Pydantic validation
+
+- **Git Status Dialog** - Detailed file-level Git status view
+  - Three tabs: Modified, Staged, Untracked files
+  - File path display with line counts (added/deleted)
+  - Refresh button for manual updates
+  - Keyboard shortcut: `Ctrl+Shift+G`
+  - Read-only tables (prevents accidental edits)
+
+- **Quick Commit Widget** - Fast inline commit workflow
+  - Non-modal commit message input in status bar
+  - Auto-stages all files (`git add .`)
+  - Keyboard shortcuts: `Enter` to commit, `Esc` to cancel
+  - Hidden by default, shown with `Ctrl+G`
+  - Auto-focus on message input
+  - Clears message after successful commit
+
+### Changed
+- Git workflow now keyboard-centric for power users
+- Status bar provides real-time Git feedback
+
+### Technical
+- **Tests:** 53 Git-related tests (97% core test pass rate)
+  - Git Worker Status: 8 tests (7/8 passing, 87%)
+  - Git Status Dialog: 21 tests
+  - Quick Commit Widget: 24 tests (100% passing)
+- **Files Modified:** 18 files, 1,870+ lines added
+- **Implementation:** 2 days, 18 hours actual effort
+
+## [1.8.0] - 2025-11-02
 
 ### Added
 - **Find & Replace System** - Fast text search and replacement

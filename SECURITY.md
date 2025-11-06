@@ -6,8 +6,10 @@ We fix security bugs in these versions:
 
 | Version | Supported |
 | ------- | --------- |
-| 1.0.x   | ✓ Yes     |
-| < 1.0   | ✗ No      |
+| 1.9.x   | ✓ Yes     |
+| 1.8.x   | ✓ Yes     |
+| 1.7.x   | ✓ Yes     |
+| < 1.7   | ✗ No      |
 
 ## Report a Bug
 
@@ -69,6 +71,15 @@ The program uses these tools. All are open source and safe.
 - pypandoc converts file formats
 - PySide6 creates the windows
 
+## Recent Security Fixes
+
+**v1.7.4 (October 2025):**
+- Fixed path traversal bug (Issue #8)
+- All file paths now checked for safety
+- No more directory escape attacks
+
+See CHANGELOG.md for all security fixes.
+
 ## Security Updates
 
 We announce security fixes in three ways. We update the version numbers. We update the CHANGELOG file. We add release notes with a security tag.
@@ -76,4 +87,4 @@ We announce security fixes in three ways. We update the version numbers. We upda
 ---
 
 **Reading Level**: Grade 5.0
-**Last Updated**: October 2025
+**Last Updated**: November 2025

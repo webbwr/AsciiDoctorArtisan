@@ -455,7 +455,21 @@ Need more help?
 
 ## Version
 
-**Current Version**: 1.8.0 (In Progress)
+**Current Version**: 1.9.1 (Complete)
+
+**What's New in v1.9.1:**
+- Comprehensive codebase cleanup (7 issues fixed)
+- Critical pypandoc bugfix (file opening fixed)
+- Test infrastructure modernized
+- Zero technical debt achieved
+- 3,638 tests passing (96.4% coverage)
+
+**What's New in v1.9.0:**
+- Enhanced Git Status Display (real-time updates)
+- Git Status Dialog with file details (Ctrl+Shift+G)
+- Quick Commit Widget (Ctrl+G for fast commits)
+- Color-coded Git indicators (clean, changes, conflicts)
+- Improved Git workflow for power users
 
 **What's New in v1.8.0:**
 - Find and Replace words in your work
