@@ -133,75 +133,84 @@ class TestCancelOperation:
 class TestBuildSystemPrompt:
     """Test _build_system_prompt method for all context modes."""
 
-    def test_document_mode_with_content(self):
-        """Test document mode includes document content."""
+    @pytest.mark.parametrize(
+        "context_mode,document_content,expected_strings,not_expected_strings",
+        [
+            # Document mode with content
+            (
+                "document",
+                "= My Document\n\nParagraph content here.",
+                ["AsciiDoc document editing", "CURRENT DOCUMENT CONTENT", "My Document", "Paragraph content"],
+                [],
+            ),
+            # Document mode without content
+            (
+                "document",
+                None,
+                ["AsciiDoc document editing", "empty or no content"],
+                ["CURRENT DOCUMENT CONTENT"],
+            ),
+            # Syntax mode
+            (
+                "syntax",
+                None,
+                ["expert in AsciiDoc syntax"],
+                [],
+            ),
+            # Editing mode with content
+            (
+                "editing",
+                "= Draft\n\nNeeds improvement.",
+                ["AI editor", "CURRENT DOCUMENT CONTENT", "Draft", "Needs improvement"],
+                [],
+            ),
+            # Editing mode without content
+            (
+                "editing",
+                None,
+                ["AI editor", "empty or no content"],
+                ["CURRENT DOCUMENT CONTENT"],
+            ),
+            # General mode
+            (
+                "general",
+                None,
+                ["helpful AI assistant", "clearly and concisely"],
+                [],
+            ),
+        ],
+        ids=[
+            "document_with_content",
+            "document_without_content",
+            "syntax",
+            "editing_with_content",
+            "editing_without_content",
+            "general",
+        ],
+    )
+    def test_context_modes(
+        self, context_mode, document_content, expected_strings, not_expected_strings
+    ):
+        """Test system prompts for all context modes with/without content."""
         worker = OllamaChatWorker()
-        worker._context_mode = "document"
-        worker._document_content = "= My Document\n\nParagraph content here."
+        worker._context_mode = context_mode
+        worker._document_content = document_content
 
         prompt = worker._build_system_prompt()
 
-        assert "AsciiDoc document editing" in prompt
-        assert "CURRENT DOCUMENT CONTENT" in prompt
-        assert "My Document" in prompt
-        assert "Paragraph content" in prompt
+        # Check all expected strings are present
+        for expected in expected_strings:
+            assert expected in prompt, f"Expected '{expected}' in prompt for mode '{context_mode}'"
 
-    def test_document_mode_without_content(self):
-        """Test document mode without content."""
-        worker = OllamaChatWorker()
-        worker._context_mode = "document"
-        worker._document_content = None
+        # Check strings that should NOT be present
+        for not_expected in not_expected_strings:
+            assert (
+                not_expected not in prompt
+            ), f"Unexpected '{not_expected}' in prompt for mode '{context_mode}'"
 
-        prompt = worker._build_system_prompt()
-
-        assert "AsciiDoc document editing" in prompt
-        assert "empty or no content" in prompt
-        assert "CURRENT DOCUMENT CONTENT" not in prompt
-
-    def test_syntax_mode(self):
-        """Test syntax mode prompt."""
-        worker = OllamaChatWorker()
-        worker._context_mode = "syntax"
-
-        prompt = worker._build_system_prompt()
-
-        assert "expert in AsciiDoc syntax" in prompt
-        assert "formatting" in prompt or "markup" in prompt
-
-    def test_editing_mode_with_content(self):
-        """Test editing mode includes document content."""
-        worker = OllamaChatWorker()
-        worker._context_mode = "editing"
-        worker._document_content = "= Draft\n\nNeeds improvement."
-
-        prompt = worker._build_system_prompt()
-
-        assert "AI editor" in prompt
-        assert "CURRENT DOCUMENT CONTENT" in prompt
-        assert "Draft" in prompt
-        assert "Needs improvement" in prompt
-
-    def test_editing_mode_without_content(self):
-        """Test editing mode without content."""
-        worker = OllamaChatWorker()
-        worker._context_mode = "editing"
-        worker._document_content = None
-
-        prompt = worker._build_system_prompt()
-
-        assert "AI editor" in prompt
-        assert "empty or no content" in prompt
-        assert "CURRENT DOCUMENT CONTENT" not in prompt
-
-    def test_general_mode(self):
-        """Test general mode prompt."""
-        worker = OllamaChatWorker()
-        worker._context_mode = "general"
-
-        prompt = worker._build_system_prompt()
-
-        assert "helpful AI assistant" in prompt
-        assert "clearly and concisely" in prompt
+        # Additional check for syntax mode (formatting OR markup)
+        if context_mode == "syntax":
+            assert "formatting" in prompt or "markup" in prompt
 
     def test_document_truncation_at_2000_chars(self):
         """Test document content is truncated to 2000 characters."""

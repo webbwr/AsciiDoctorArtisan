@@ -140,35 +140,42 @@ class TestGitWorker:
 class TestGitResult:
     """Test GitResult named tuple."""
 
-    def test_git_result_creation(self):
-        """Test GitResult can be created with all fields."""
+    @pytest.mark.parametrize(
+        "success,stdout,stderr,exit_code,user_message",
+        [
+            # Successful operation
+            (True, "output", "", 0, "Success"),
+            # Failed operation
+            (False, "", "error output", 1, "Failed"),
+            # Successful with both stdout and stderr
+            (True, "output", "warning", 0, "Success with warnings"),
+            # Failed with exit code 128 (git-specific error)
+            (False, "", "fatal: not a git repository", 128, "Not a repository"),
+        ],
+        ids=[
+            "success",
+            "failure",
+            "success_with_warnings",
+            "fatal_error",
+        ],
+    )
+    def test_git_result_variations(
+        self, success, stdout, stderr, exit_code, user_message
+    ):
+        """Test GitResult with various success/failure combinations."""
         result = GitResult(
-            success=True,
-            stdout="output",
-            stderr="",
-            exit_code=0,
-            user_message="Success",
+            success=success,
+            stdout=stdout,
+            stderr=stderr,
+            exit_code=exit_code,
+            user_message=user_message,
         )
 
-        assert result.success is True
-        assert result.stdout == "output"
-        assert result.stderr == ""
-        assert result.exit_code == 0
-        assert result.user_message == "Success"
-
-    def test_git_result_failure(self):
-        """Test GitResult for failed operation."""
-        result = GitResult(
-            success=False,
-            stdout="",
-            stderr="error output",
-            exit_code=1,
-            user_message="Failed",
-        )
-
-        assert result.success is False
-        assert result.exit_code == 1
-        assert result.user_message == "Failed"
+        assert result.success is success
+        assert result.stdout == stdout
+        assert result.stderr == stderr
+        assert result.exit_code == exit_code
+        assert result.user_message == user_message
 
 
 @pytest.mark.unit
