@@ -34,6 +34,7 @@ import hashlib
 import logging
 import re
 import sys
+import threading
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -201,27 +202,29 @@ class DocumentBlock:
 
 class BlockCache:
     """
-    LRU cache for rendered blocks.
+    LRU cache for rendered blocks with thread safety.
 
     Stores rendered HTML for document blocks with automatic eviction
-    when cache size exceeds MAX_CACHE_SIZE.
+    when cache size exceeds MAX_CACHE_SIZE. Uses threading.Lock to
+    prevent race conditions during concurrent access from worker threads.
     """
 
     def __init__(self, max_size: int = MAX_CACHE_SIZE):
         """
-        Initialize block cache.
+        Initialize block cache with thread-safe locking.
 
         Args:
             max_size: Maximum number of blocks to cache
         """
         self.max_size = max_size
         self._cache: OrderedDict[str, str] = OrderedDict()
+        self._lock = threading.Lock()
         self._hits = 0
         self._misses = 0
 
     def get(self, block_id: str) -> Optional[str]:
         """
-        Get rendered HTML from cache.
+        Get rendered HTML from cache (thread-safe).
 
         Args:
             block_id: Block ID to retrieve
@@ -229,59 +232,63 @@ class BlockCache:
         Returns:
             Rendered HTML if cached, None otherwise
         """
-        if block_id in self._cache:
-            # Move to end (most recently used)
-            self._cache.move_to_end(block_id)
-            self._hits += 1
-            return self._cache[block_id]
+        with self._lock:
+            if block_id in self._cache:
+                # Move to end (most recently used)
+                self._cache.move_to_end(block_id)
+                self._hits += 1
+                return self._cache[block_id]
 
-        self._misses += 1
-        return None
+            self._misses += 1
+            return None
 
     def put(self, block_id: str, html: str) -> None:
         """
-        Store rendered HTML in cache.
+        Store rendered HTML in cache with LRU eviction (thread-safe).
 
         Args:
             block_id: Block ID
             html: Rendered HTML
         """
-        # Remove if already exists (will re-add at end)
-        if block_id in self._cache:
-            del self._cache[block_id]
+        with self._lock:
+            # Remove if already exists (will re-add at end)
+            if block_id in self._cache:
+                del self._cache[block_id]
 
-        # Add to end (most recently used)
-        self._cache[block_id] = html
+            # Add to end (most recently used)
+            self._cache[block_id] = html
 
-        # Evict oldest if over size limit
-        while len(self._cache) > self.max_size:
-            self._cache.popitem(last=False)
+            # Evict oldest if over size limit
+            while len(self._cache) > self.max_size:
+                self._cache.popitem(last=False)
 
     def clear(self) -> None:
-        """Clear all cached blocks and trigger garbage collection."""
-        self._cache.clear()
-        self._hits = 0
-        self._misses = 0
-        # Trigger garbage collection to free memory immediately
-        gc.collect()
-        logger.debug("Cache cleared and garbage collected")
+        """Clear all cached blocks and trigger garbage collection (thread-safe)."""
+        with self._lock:
+            self._cache.clear()
+            self._hits = 0
+            self._misses = 0
+            # Trigger garbage collection to free memory immediately
+            gc.collect()
+            logger.debug("Cache cleared and garbage collected")
 
     def get_stats(self) -> Dict[str, Union[int, float]]:
         """
-        Get cache statistics.
+        Get cache statistics (thread-safe).
 
         Returns:
             Dictionary with size, hits, misses, hit_rate
         """
-        total = self._hits + self._misses
-        hit_rate = (self._hits / total * 100) if total > 0 else 0.0
+        with self._lock:
+            total = self._hits + self._misses
+            hit_rate = (self._hits / total * 100) if total > 0 else 0.0
 
-        return {
-            "size": len(self._cache),
-            "hits": self._hits,
-            "misses": self._misses,
-            "hit_rate": round(hit_rate, 2),
-        }
+            return {
+                "size": len(self._cache),
+                "hits": self._hits,
+                "misses": self._misses,
+                "hit_rate": round(hit_rate, 2),
+            }
 
 
 def count_leading_equals(line: str) -> int:
