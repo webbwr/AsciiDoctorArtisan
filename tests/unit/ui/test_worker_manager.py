@@ -713,22 +713,26 @@ class TestThreadLifecycleEdgeCases:
     """Test thread lifecycle edge cases."""
 
     def test_shutdown_with_thread_timeout(self, mock_editor):
-        """Test shutdown when thread wait times out."""
+        """Test shutdown when thread wait times out - now uses force termination."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
         manager.git_thread = Mock()
         manager.git_thread.isRunning.return_value = True
         manager.git_thread.quit = Mock()
         manager.git_thread.wait = Mock(return_value=False)  # Timeout
+        manager.git_thread.terminate = Mock()
 
         manager.shutdown()
 
-        # Should still call quit and wait
+        # Should call quit, wait, then terminate and wait again
         manager.git_thread.quit.assert_called_once()
-        manager.git_thread.wait.assert_called_once_with(2000)
+        assert manager.git_thread.wait.call_count == 2
+        manager.git_thread.wait.assert_any_call(2000)  # First graceful wait
+        manager.git_thread.wait.assert_any_call(1000)  # Second wait after terminate
+        manager.git_thread.terminate.assert_called_once()
 
     def test_shutdown_with_multiple_timeouts(self, mock_editor):
-        """Test shutdown handles multiple thread timeouts."""
+        """Test shutdown handles multiple thread timeouts - with force termination."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
         threads = ['git_thread', 'github_thread', 'pandoc_thread', 'preview_thread']
@@ -737,15 +741,17 @@ class TestThreadLifecycleEdgeCases:
             thread.isRunning.return_value = True
             thread.quit = Mock()
             thread.wait = Mock(return_value=False)  # All timeout
+            thread.terminate = Mock()
             setattr(manager, thread_name, thread)
 
         manager.shutdown()
 
-        # All should be attempted
+        # All should be attempted with terminate fallback
         for thread_name in threads:
             thread = getattr(manager, thread_name)
             thread.quit.assert_called_once()
-            thread.wait.assert_called_once()
+            assert thread.wait.call_count == 2  # Graceful + post-terminate
+            thread.terminate.assert_called_once()
 
     def test_thread_finished_signal_cleanup(self, mock_editor):
         """Test threads connect finished signal for cleanup."""

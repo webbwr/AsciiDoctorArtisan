@@ -306,29 +306,47 @@ class WorkerManager:
                 logger.info(f"Cancelled {cancelled} pool tasks")
             self.wait_for_pool_done(5000)
 
-        # Stop dedicated threads
+        # Stop dedicated threads with force-termination fallback
         if self.git_thread and self.git_thread.isRunning():
             self.git_thread.quit()
-            self.git_thread.wait(2000)
+            if not self.git_thread.wait(2000):
+                logger.warning("Git thread did not exit cleanly, force terminating")
+                self.git_thread.terminate()
+                self.git_thread.wait(1000)
 
         if self.github_thread and self.github_thread.isRunning():
             self.github_thread.quit()
-            self.github_thread.wait(2000)
+            if not self.github_thread.wait(2000):
+                logger.warning("GitHub thread did not exit cleanly, force terminating")
+                self.github_thread.terminate()
+                self.github_thread.wait(1000)
 
         if self.pandoc_thread and self.pandoc_thread.isRunning():
             self.pandoc_thread.quit()
-            self.pandoc_thread.wait(2000)
+            if not self.pandoc_thread.wait(2000):
+                logger.warning("Pandoc thread did not exit cleanly, force terminating")
+                self.pandoc_thread.terminate()
+                self.pandoc_thread.wait(1000)
 
         if self.preview_thread and self.preview_thread.isRunning():
             self.preview_thread.quit()
-            self.preview_thread.wait(2000)
+            if not self.preview_thread.wait(2000):
+                logger.warning("Preview thread did not exit cleanly, force terminating")
+                self.preview_thread.terminate()
+                self.preview_thread.wait(1000)
 
         if self.ollama_chat_thread and self.ollama_chat_thread.isRunning():
             self.ollama_chat_thread.quit()
-            self.ollama_chat_thread.wait(2000)
+            if not self.ollama_chat_thread.wait(2000):
+                logger.warning("Ollama chat thread did not exit cleanly, force terminating")
+                self.ollama_chat_thread.terminate()
+                self.ollama_chat_thread.wait(1000)
 
         if self.claude_thread and self.claude_thread.isRunning():
             self.claude_thread.quit()
-            self.claude_thread.wait(2000)
+            if not self.claude_thread.wait(2000):
+                logger.warning("Claude thread did not exit cleanly, force terminating")
+                self.claude_thread.terminate()
+                self.claude_thread.wait(1000)
 
         logger.info("All workers shutdown complete")
