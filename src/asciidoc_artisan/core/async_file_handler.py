@@ -83,14 +83,23 @@ class AsyncFileHandler(QObject):
     write_error = Signal(str, str)  # path, error
     progress = Signal(str, int, int)  # operation, current, total
 
-    def __init__(self) -> None:
-        """Initialize async file handler."""
+    def __init__(self, max_workers: int = 4) -> None:
+        """
+        Initialize async file handler with persistent thread pool.
+
+        Args:
+            max_workers: Maximum number of worker threads (default: 4)
+        """
         super().__init__()
         self._thread = QThread()
         self.moveToThread(self._thread)
         self._thread.start()
 
-        logger.info("Async file handler initialized")
+        # Persistent thread pool for efficient async I/O
+        from concurrent.futures import ThreadPoolExecutor
+        self._executor = ThreadPoolExecutor(max_workers=max_workers)
+
+        logger.info(f"Async file handler initialized with {max_workers} worker threads")
 
     def read_file_async(self, file_path: str) -> None:
         """
@@ -103,11 +112,7 @@ class AsyncFileHandler(QObject):
             read_complete: On success
             read_error: On failure
         """
-        # Run in thread pool
-        from concurrent.futures import ThreadPoolExecutor
-
-        executor = ThreadPoolExecutor(max_workers=1)
-
+        # Run in thread pool using persistent executor
         def read_task() -> None:
             try:
                 path = Path(file_path)
@@ -131,7 +136,7 @@ class AsyncFileHandler(QObject):
                 logger.error(f"Read failed for {file_path}: {exc}")
                 self.read_error.emit(file_path, str(exc))
 
-        executor.submit(read_task)
+        self._executor.submit(read_task)
 
     def write_file_async(self, file_path: str, content: str) -> None:
         """
@@ -145,10 +150,6 @@ class AsyncFileHandler(QObject):
             write_complete: On success
             write_error: On failure
         """
-        from concurrent.futures import ThreadPoolExecutor
-
-        executor = ThreadPoolExecutor(max_workers=1)
-
         def write_task() -> None:
             try:
                 path = Path(file_path)
@@ -172,7 +173,7 @@ class AsyncFileHandler(QObject):
                 logger.error(f"Write failed for {file_path}: {exc}")
                 self.write_error.emit(file_path, str(exc))
 
-        executor.submit(write_task)
+        self._executor.submit(write_task)
 
     def read_file_streaming(self, file_path: str, chunk_size: int = 8192) -> None:
         """
@@ -187,10 +188,6 @@ class AsyncFileHandler(QObject):
             read_complete: When done
             read_error: On failure
         """
-        from concurrent.futures import ThreadPoolExecutor
-
-        executor = ThreadPoolExecutor(max_workers=1)
-
         def stream_task() -> None:
             try:
                 path = Path(file_path)
@@ -235,7 +232,7 @@ class AsyncFileHandler(QObject):
                 logger.error(f"Streaming read failed: {exc}")
                 self.read_error.emit(file_path, str(exc))
 
-        executor.submit(stream_task)
+        self._executor.submit(stream_task)
 
     def write_file_streaming(
         self, file_path: str, content: str, chunk_size: int = 8192
@@ -253,10 +250,6 @@ class AsyncFileHandler(QObject):
             write_complete: When done
             write_error: On failure
         """
-        from concurrent.futures import ThreadPoolExecutor
-
-        executor = ThreadPoolExecutor(max_workers=1)
-
         def stream_task() -> None:
             try:
                 path = Path(file_path)
@@ -291,14 +284,23 @@ class AsyncFileHandler(QObject):
                 logger.error(f"Streaming write failed: {exc}")
                 self.write_error.emit(file_path, str(exc))
 
-        executor.submit(stream_task)
+        self._executor.submit(stream_task)
 
     def cleanup(self) -> None:
-        """Clean up resources."""
+        """Clean up resources and shutdown thread pool."""
+        logger.info("Cleaning up async file handler resources")
+
+        # Shutdown thread pool (wait for completion)
+        if hasattr(self, '_executor'):
+            self._executor.shutdown(wait=True)
+            logger.debug("Thread pool shutdown complete")
+
+        # Quit worker thread
         if self._thread.isRunning():
             self._thread.quit()
             self._thread.wait()
-        logger.debug("Async file handler cleaned up")
+
+        logger.info("Async file handler cleanup complete")
 
 
 class FileStreamReader:
