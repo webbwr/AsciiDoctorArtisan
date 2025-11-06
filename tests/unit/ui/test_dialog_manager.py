@@ -127,8 +127,8 @@ class TestSupportedFormatsDialog:
         assert hasattr(manager, "show_supported_formats")
         assert callable(manager.show_supported_formats)
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", False)
-    def test_show_supported_formats_unavailable(self, mock_main_window):
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=False)
+    def test_show_supported_formats_unavailable(self, mock_is_available, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         manager = DialogManager(mock_main_window)
