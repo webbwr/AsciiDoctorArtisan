@@ -251,12 +251,24 @@ PANDOC_AVAILABLE = True if pypandoc else False
 # main.py - NO heavy imports at module level
 # Heavy modules imported where actually used
 
-# constants.py - Pandoc check moved here
-try:
-    import pypandoc
-    PANDOC_AVAILABLE = True
-except ImportError:
-    PANDOC_AVAILABLE = False
+# constants.py - Lazy function with global state caching
+_pypandoc_checked = False
+_pypandoc_available = False
+
+def is_pandoc_available() -> bool:
+    """Check if pypandoc is available (lazy evaluation with caching)."""
+    global _pypandoc_checked, _pypandoc_available
+
+    if not _pypandoc_checked:
+        try:
+            import pypandoc
+            _pypandoc_available = True
+        except ImportError:
+            _pypandoc_available = False
+        finally:
+            _pypandoc_checked = True
+
+    return _pypandoc_available
 ```
 
 ### Modified Files
@@ -267,8 +279,9 @@ except ImportError:
 - Modules load on first use
 
 **`src/asciidoc_artisan/core/constants.py` (+12 lines):**
-- Added PANDOC_AVAILABLE check
-- Import happens when constants.py first used
+- Added `is_pandoc_available()` function with lazy evaluation
+- Global state caching for single evaluation
+- Import happens when function first called
 
 ### Module Loading Strategy
 
