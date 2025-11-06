@@ -79,22 +79,34 @@ class TestDialogManagerBasics:
 class TestPandocStatusDialog:
     """Test suite for Pandoc status dialog."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.dialog_manager.pypandoc")
-    def test_show_pandoc_status_available(self, mock_pypandoc, mock_main_window):
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
+    def test_show_pandoc_status_available(self, mock_is_available, mock_main_window):
+        import sys
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
+        # Mock pypandoc module in sys.modules
+        mock_pypandoc = Mock()
         mock_pypandoc.get_pandoc_version = Mock(return_value="2.19.2")
         mock_pypandoc.get_pandoc_path = Mock(return_value="/usr/bin/pandoc")
 
-        manager = DialogManager(mock_main_window)
-        manager.show_pandoc_status()
+        original_pypandoc = sys.modules.get("pypandoc")
+        sys.modules["pypandoc"] = mock_pypandoc
 
-        # Should show status message
-        assert mock_main_window.status_manager.show_message.called
+        try:
+            manager = DialogManager(mock_main_window)
+            manager.show_pandoc_status()
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", False)
-    def test_show_pandoc_status_unavailable(self, mock_main_window):
+            # Should show status message
+            assert mock_main_window.status_manager.show_message.called
+        finally:
+            # Restore original pypandoc module
+            if original_pypandoc is not None:
+                sys.modules["pypandoc"] = original_pypandoc
+            else:
+                sys.modules.pop("pypandoc", None)
+
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=False)
+    def test_show_pandoc_status_unavailable(self, mock_is_available, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         manager = DialogManager(mock_main_window)

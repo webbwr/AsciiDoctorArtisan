@@ -197,7 +197,7 @@ except ImportError:
     ASCIIDOC3_AVAILABLE = False
 
 # Lazy import check for Pandoc (deferred until first use for faster startup)
-from asciidoc_artisan.core.constants import is_pandoc_available
+# Note: is_pandoc_available() is called dynamically, not imported directly
 
 logger = logging.getLogger(__name__)
 
