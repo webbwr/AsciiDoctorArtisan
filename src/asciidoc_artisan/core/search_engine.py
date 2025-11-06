@@ -22,6 +22,7 @@ Example:
     0
 """
 
+import bisect
 import logging
 import re
 from dataclasses import dataclass
@@ -82,6 +83,7 @@ class SearchEngine:
         """
         self._text = text
         self._lines: Optional[List[str]] = None  # Lazy-loaded line cache
+        self._line_offsets: Optional[List[int]] = None  # Lazy-loaded offset index
 
     @property
     def text(self) -> str:
@@ -97,6 +99,7 @@ class SearchEngine:
         """
         self._text = text
         self._lines = None  # Invalidate line cache
+        self._line_offsets = None  # Invalidate offset index
 
     def _get_lines(self) -> List[str]:
         """
@@ -108,6 +111,31 @@ class SearchEngine:
         if self._lines is None:
             self._lines = self._text.splitlines(keepends=True)
         return self._lines
+
+    def _build_line_offsets(self) -> List[int]:
+        """
+        Build line offset index for fast O(log n) line lookup.
+
+        Returns:
+            List of cumulative character offsets for each line start.
+            Index i contains the offset where line i starts.
+
+        Example:
+            For text "abc\\ndef\\n":
+            Returns [0, 4] (line 0 at offset 0, line 1 at offset 4)
+        """
+        if self._line_offsets is None:
+            lines = self._get_lines()
+            offsets = [0]  # First line always starts at offset 0
+            current_offset = 0
+
+            for line in lines:
+                current_offset += len(line)
+                offsets.append(current_offset)
+
+            self._line_offsets = offsets
+
+        return self._line_offsets
 
     def _create_pattern(
         self,
@@ -148,7 +176,9 @@ class SearchEngine:
 
     def _offset_to_line_col(self, offset: int) -> tuple[int, int]:
         """
-        Convert character offset to line and column numbers.
+        Convert character offset to line and column numbers using binary search.
+
+        Performance: O(log n) instead of O(n) through binary search on offset index.
 
         Args:
             offset: Character offset in text (0-indexed)
@@ -158,19 +188,23 @@ class SearchEngine:
             - line_number is 1-indexed
             - column_number is 0-indexed within the line
         """
+        offsets = self._build_line_offsets()
         lines = self._get_lines()
-        current_offset = 0
 
-        for line_num, line in enumerate(lines, start=1):
-            line_len = len(line)
-            if current_offset + line_len > offset:
-                # Match is in this line
-                column = offset - current_offset
-                return (line_num, column)
-            current_offset += line_len
+        # Binary search to find line number (O(log n))
+        # bisect_right returns the index where offset would be inserted
+        # Subtract 1 to get the line that contains this offset
+        line_num = bisect.bisect_right(offsets, offset) - 1
 
-        # Offset is at end of text
-        return (len(lines), 0)
+        # Edge case: offset at end of text (beyond all lines)
+        if line_num >= len(lines):
+            return (len(lines), 0)
+
+        # Calculate column within the line
+        column = offset - offsets[line_num]
+
+        # Return 1-indexed line number
+        return (line_num + 1, column)
 
     def find_all(
         self,
