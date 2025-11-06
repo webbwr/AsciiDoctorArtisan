@@ -316,6 +316,9 @@ class PandocWorker(QObject):
         Returns:
             Result text (converted content or status message)
         """
+        # Lazy import pypandoc (only when actually performing conversion)
+        import pypandoc
+
         if output_file and to_format in ["pdf", "docx"]:
             # Binary output to file
             if isinstance(source, Path):
