@@ -812,7 +812,8 @@ class TestWorkerStateManagement:
 
         # Should not start (returns early due to reentrancy guard)
         assert chat_worker._is_processing is True
-        assert not chat_worker.isRunning()
+        # Note: OllamaChatWorker is QObject (not QThread), so no isRunning() method
+        # The reentrancy guard (_is_processing=True) prevents the second call from starting
 
     def test_user_message_cleared_after_processing(self, chat_worker):
         """Test user message is cleared in finally block."""
