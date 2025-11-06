@@ -2,12 +2,31 @@
 Unit tests for PandocWorker class.
 """
 
+import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
 from asciidoc_artisan.workers import PandocWorker
+
+
+@pytest.fixture
+def mock_pypandoc():
+    """Fixture that mocks pypandoc in sys.modules."""
+    mock_module = Mock()
+    mock_module.convert_text = Mock(return_value="# Converted")
+    mock_module.convert_file = Mock(return_value="# Converted from file")
+
+    original = sys.modules.get("pypandoc")
+    sys.modules["pypandoc"] = mock_module
+
+    yield mock_module
+
+    if original is not None:
+        sys.modules["pypandoc"] = original
+    else:
+        sys.modules.pop("pypandoc", None)
 
 
 @pytest.mark.unit
@@ -19,7 +38,6 @@ class TestPandocWorker:
         worker = PandocWorker()
         assert worker is not None
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_successful_text_conversion(self, mock_pypandoc):
         """Test successful text-to-text conversion."""
         mock_pypandoc.convert_text.return_value = "# Converted AsciiDoc"
@@ -50,7 +68,6 @@ class TestPandocWorker:
         assert "Converted" in result
         assert context == "test conversion"
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_conversion_error_handling(self, mock_pypandoc):
         """Test conversion error is properly handled."""
         mock_pypandoc.convert_text.side_effect = Exception("Conversion failed")
@@ -96,7 +113,6 @@ class TestPandocWorker:
 
         assert enhanced.startswith("= My Document")  # Should keep original
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_bytes_to_string_conversion(self, mock_pypandoc):
         """Test conversion handles bytes return value."""
         mock_pypandoc.convert_text.return_value = b"Converted bytes"
@@ -123,7 +139,6 @@ class TestPandocWorker:
         assert isinstance(result, str)
         assert "Converted bytes" in result
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_file_output_conversion(self, mock_pypandoc):
         """Test conversion with file output."""
         mock_pypandoc.convert_text.return_value = None  # File output returns None
@@ -309,7 +324,6 @@ class TestPandocArgsBuilding:
 class TestProgressSignals:
     """Test progress update signals."""
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_progress_signal_emitted(self, mock_pypandoc):
         """Test progress signals are emitted during conversion."""
         mock_pypandoc.convert_text.return_value = "Result"
@@ -341,7 +355,6 @@ class TestProgressSignals:
 class TestFormatConversions:
     """Test various format conversion scenarios."""
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_markdown_to_asciidoc(self, mock_pypandoc):
         """Test Markdown to AsciiDoc conversion."""
         mock_pypandoc.convert_text.return_value = "= Converted"
@@ -366,7 +379,6 @@ class TestFormatConversions:
 
         assert result is not None
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_asciidoc_to_html(self, mock_pypandoc):
         """Test AsciiDoc to HTML conversion."""
         mock_pypandoc.convert_text.return_value = "<h1>Header</h1>"
@@ -392,7 +404,6 @@ class TestFormatConversions:
         assert result is not None
         assert "<h1>" in result or "Header" in result
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_html_to_markdown(self, mock_pypandoc):
         """Test HTML to Markdown conversion."""
         mock_pypandoc.convert_text.return_value = "# Header"
@@ -422,7 +433,6 @@ class TestFormatConversions:
 class TestErrorHandling:
     """Test error handling in various scenarios."""
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_invalid_format_error(self, mock_pypandoc):
         """Test error handling for invalid formats."""
         mock_pypandoc.convert_text.side_effect = RuntimeError("Invalid format")
@@ -448,7 +458,6 @@ class TestErrorHandling:
         assert error is not None
         assert "Invalid format" in error or "error" in error.lower()
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_timeout_error(self, mock_pypandoc):
         """Test error handling for conversion timeout."""
         mock_pypandoc.convert_text.side_effect = TimeoutError("Conversion timed out")
@@ -473,7 +482,6 @@ class TestErrorHandling:
 
         assert error is not None
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_unicode_error_handling(self, mock_pypandoc):
         """Test error handling for unicode issues."""
         mock_pypandoc.convert_text.side_effect = UnicodeDecodeError(
@@ -501,29 +509,38 @@ class TestErrorHandling:
         assert error is not None
 
     @patch("asciidoc_artisan.workers.pandoc_worker.is_pandoc_available", return_value=False)
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc", None)
-    def test_pandoc_not_available_error(self):
+    def test_pandoc_not_available_error(self, mock_is_available):
         """Test error when Pandoc is not available."""
-        worker = PandocWorker()
-        error = None
+        # Ensure pypandoc is NOT in sys.modules (simulate it not being installed)
+        original = sys.modules.get("pypandoc")
+        if "pypandoc" in sys.modules:
+            del sys.modules["pypandoc"]
 
-        def capture_error(err, ctx):
-            nonlocal error
-            error = err
+        try:
+            worker = PandocWorker()
+            error = None
 
-        worker.conversion_error.connect(capture_error)
+            def capture_error(err, ctx):
+                nonlocal error
+                error = err
 
-        worker.run_pandoc_conversion(
-            source="Test",
-            to_format="asciidoc",
-            from_format="markdown",
-            context="no pandoc test",
-            output_file=None,
-            use_ai_conversion=False,
-        )
+            worker.conversion_error.connect(capture_error)
 
-        assert error is not None
-        assert "Pandoc" in error or "pypandoc" in error
+            worker.run_pandoc_conversion(
+                source="Test",
+                to_format="asciidoc",
+                from_format="markdown",
+                context="no pandoc test",
+                output_file=None,
+                use_ai_conversion=False,
+            )
+
+            assert error is not None
+            assert "Pandoc" in error or "pypandoc" in error
+        finally:
+            # Restore pypandoc if it was there
+            if original is not None:
+                sys.modules["pypandoc"] = original
 
 
 @pytest.mark.unit
@@ -752,7 +769,6 @@ class TestConversionPromptCreation:
 class TestAIConversionWithFallback:
     """Test AI conversion with automatic fallback to Pandoc."""
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     @patch.object(PandocWorker, "_try_ollama_conversion")
     def test_ai_conversion_success_text_output(self, mock_ollama, mock_pypandoc):
         """Test successful AI conversion for text output."""
@@ -785,7 +801,6 @@ class TestAIConversionWithFallback:
         # Pandoc should not be called
         mock_pypandoc.convert_text.assert_not_called()
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     @patch.object(PandocWorker, "_try_ollama_conversion")
     def test_ai_conversion_fallback_to_pandoc(self, mock_ollama, mock_pypandoc):
         """Test AI conversion falls back to Pandoc on failure."""
@@ -818,7 +833,6 @@ class TestAIConversionWithFallback:
         # Pandoc should have been called
         mock_pypandoc.convert_text.assert_called_once()
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     @patch.object(PandocWorker, "_try_ollama_conversion")
     def test_ai_conversion_for_pdf_uses_pandoc(self, mock_ollama, mock_pypandoc):
         """Test AI conversion for PDF format uses Pandoc for binary output."""
@@ -855,7 +869,6 @@ class TestAIConversionWithFallback:
 class TestPathSourceConversion:
     """Test conversion with Path source objects."""
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_path_source_text_output(self, mock_pypandoc, tmp_path):
         """Test conversion from Path source to text output."""
         # Create a temp file
@@ -884,7 +897,6 @@ class TestPathSourceConversion:
 
         assert result is not None
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_bytes_source_conversion(self, mock_pypandoc, tmp_path):
         """Test conversion from bytes source."""
         mock_pypandoc.convert_file.return_value = "= Converted from bytes"
@@ -911,7 +923,6 @@ class TestPathSourceConversion:
 
         assert result is not None
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
     def test_path_source_to_binary_output(self, mock_pypandoc, tmp_path):
         """Test conversion from Path source to binary file output."""
         test_file = tmp_path / "test.adoc"
