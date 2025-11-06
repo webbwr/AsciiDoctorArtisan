@@ -331,69 +331,97 @@ class TestInstallationValidator:
 class TestPandocStatusEdgeCases:
     """Test edge cases for Pandoc status dialog."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.dialog_manager.pypandoc")
-    def test_show_pandoc_status_with_old_version(self, mock_pypandoc, mock_main_window):
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
+    def test_show_pandoc_status_with_old_version(self, mock_is_available, mock_main_window):
+        import sys
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
+        # Mock pypandoc module in sys.modules
+        mock_pypandoc = Mock()
         mock_pypandoc.get_pandoc_version = Mock(return_value="1.0.0")
         mock_pypandoc.get_pandoc_path = Mock(return_value="/usr/bin/pandoc")
 
-        manager = DialogManager(mock_main_window)
-        manager.show_pandoc_status()
+        original_pypandoc = sys.modules.get("pypandoc")
+        sys.modules["pypandoc"] = mock_pypandoc
 
-        assert mock_main_window.status_manager.show_message.called
+        try:
+            manager = DialogManager(mock_main_window)
+            manager.show_pandoc_status()
+            assert mock_main_window.status_manager.show_message.called
+        finally:
+            if original_pypandoc is not None:
+                sys.modules["pypandoc"] = original_pypandoc
+            else:
+                sys.modules.pop("pypandoc", None)
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.dialog_manager.pypandoc")
-    def test_show_pandoc_status_with_no_path(self, mock_pypandoc, mock_main_window):
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
+    def test_show_pandoc_status_with_no_path(self, mock_is_available, mock_main_window):
+        import sys
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
+        # Mock pypandoc module in sys.modules
+        mock_pypandoc = Mock()
         mock_pypandoc.get_pandoc_version = Mock(return_value="2.19.2")
         mock_pypandoc.get_pandoc_path = Mock(return_value="")
 
-        manager = DialogManager(mock_main_window)
-        manager.show_pandoc_status()
+        original_pypandoc = sys.modules.get("pypandoc")
+        sys.modules["pypandoc"] = mock_pypandoc
 
-        assert mock_main_window.status_manager.show_message.called
+        try:
+            manager = DialogManager(mock_main_window)
+            manager.show_pandoc_status()
+            assert mock_main_window.status_manager.show_message.called
+        finally:
+            if original_pypandoc is not None:
+                sys.modules["pypandoc"] = original_pypandoc
+            else:
+                sys.modules.pop("pypandoc", None)
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.dialog_manager.pypandoc")
-    def test_show_pandoc_status_with_exception(self, mock_pypandoc, mock_main_window):
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
+    def test_show_pandoc_status_with_exception(self, mock_is_available, mock_main_window):
+        import sys
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
+        # Mock pypandoc module in sys.modules
+        mock_pypandoc = Mock()
         mock_pypandoc.get_pandoc_version = Mock(side_effect=Exception("Error"))
 
-        manager = DialogManager(mock_main_window)
-        # Should not raise exception
-        manager.show_pandoc_status()
+        original_pypandoc = sys.modules.get("pypandoc")
+        sys.modules["pypandoc"] = mock_pypandoc
+
+        try:
+            manager = DialogManager(mock_main_window)
+            # Should not raise exception
+            manager.show_pandoc_status()
+        finally:
+            if original_pypandoc is not None:
+                sys.modules["pypandoc"] = original_pypandoc
+            else:
+                sys.modules.pop("pypandoc", None)
 
 
 @pytest.mark.unit
 class TestSupportedFormatsEdgeCases:
     """Test edge cases for supported formats dialog."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.dialog_manager.pypandoc")
-    def test_show_supported_formats_available(self, mock_pypandoc, mock_main_window):
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
+    def test_show_supported_formats_available(self, mock_is_available, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
-        mock_pypandoc.get_pandoc_formats = Mock(
-            return_value=(["markdown", "html"], ["pdf", "docx"])
-        )
-
+        # Note: show_supported_formats() doesn't actually call get_pandoc_formats,
+        # it just displays a static list when Pandoc is available
         manager = DialogManager(mock_main_window)
         manager.show_supported_formats()
 
         assert mock_main_window.status_manager.show_message.called
 
-    @patch("asciidoc_artisan.ui.dialog_manager.PANDOC_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.dialog_manager.pypandoc")
-    def test_show_supported_formats_with_exception(self, mock_pypandoc, mock_main_window):
+    @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
+    def test_show_supported_formats_with_exception(self, mock_is_available, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
-        mock_pypandoc.get_pandoc_formats = Mock(side_effect=Exception("Error"))
-
+        # Note: show_supported_formats() doesn't use pypandoc.get_pandoc_formats,
+        # so we can't test exception handling from that. This test just verifies
+        # that the method can be called when Pandoc is available.
         manager = DialogManager(mock_main_window)
         # Should not raise exception
         manager.show_supported_formats()
