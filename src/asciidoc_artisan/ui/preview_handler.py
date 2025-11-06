@@ -17,7 +17,7 @@ Extracted from monolithic main_window.py to improve maintainability.
 
 import logging
 import time
-from typing import Any
+from typing import Any, Optional
 
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 
@@ -57,90 +57,41 @@ class PreviewHandler(PreviewHandlerBase):
 
         logger.info("PreviewHandler initialized with QTextBrowser (software rendering)")
 
-    def handle_preview_complete(self, html: str) -> None:
+    def _set_preview_html(self, html: str) -> None:
         """
-        Handle completed preview rendering (QTextBrowser).
+        Set HTML in QTextBrowser widget.
 
         Args:
-            html: Rendered HTML content
+            html: Styled HTML content to display
         """
-        # Calculate render time
-        if self._last_render_start is not None:
-            render_time = time.time() - self._last_render_start
+        # QTextBrowser uses simple setHtml (no base URL needed)
+        self.preview.setHtml(html)
 
-            # Update adaptive debouncer with render time
-            if self._adaptive_debouncer:
-                self._adaptive_debouncer.on_render_complete(render_time)
-
-            logger.debug(f"Render completed in {render_time:.3f}s")
-
-        # Add CSS styling
-        styled_html = self._wrap_with_css(html)
-
-        # Update preview (QTextBrowser uses simple setHtml)
-        self.preview.setHtml(styled_html)
-
-        # Emit signal
-        self.preview_updated.emit(html)
-
-        logger.debug("Preview updated successfully")
-
-    def sync_editor_to_preview(self, editor_value: int) -> None:
+    def _scroll_preview_to_percentage(self, percentage: float) -> None:
         """
-        Sync preview scroll position to editor (QTextBrowser).
-
-        Uses direct scrollbar control for QTextBrowser widget.
+        Scroll QTextBrowser to percentage via scrollbar.
 
         Args:
-            editor_value: Editor scroll bar value (0-max)
+            percentage: Scroll position as percentage (0.0 to 1.0)
         """
-        if not self.sync_scrolling_enabled or self.is_syncing_scroll:
-            return
+        # Scroll preview via direct scrollbar manipulation
+        preview_scrollbar = self.preview.verticalScrollBar()
+        preview_max = preview_scrollbar.maximum()
+        preview_value = int(preview_max * percentage)
+        preview_scrollbar.setValue(preview_value)
 
-        self.is_syncing_scroll = True
-        try:
-            # Calculate scroll percentage
-            editor_scrollbar = self.editor.verticalScrollBar()
-            editor_max = editor_scrollbar.maximum()
-
-            if editor_max > 0:
-                scroll_percentage = editor_value / editor_max
-
-                # Scroll preview via scrollbar (QTextBrowser-specific)
-                preview_scrollbar = self.preview.verticalScrollBar()
-                preview_max = preview_scrollbar.maximum()
-                preview_value = int(preview_max * scroll_percentage)
-                preview_scrollbar.setValue(preview_value)
-
-        finally:
-            self.is_syncing_scroll = False
-
-    def sync_preview_to_editor(self, preview_value: int) -> None:
+    def _get_preview_scroll_percentage(self) -> Optional[float]:
         """
-        Sync editor scroll position to preview (QTextBrowser).
+        Get scroll percentage from QTextBrowser scrollbar.
 
-        Uses direct scrollbar control for bi-directional scrolling.
-
-        Args:
-            preview_value: Preview scroll value
+        Returns:
+            Scroll percentage (0.0 to 1.0), or None if not available
         """
-        if not self.sync_scrolling_enabled or self.is_syncing_scroll:
-            return
+        preview_scrollbar = self.preview.verticalScrollBar()
+        preview_max = preview_scrollbar.maximum()
 
-        self.is_syncing_scroll = True
-        try:
-            # Calculate scroll percentage
-            preview_scrollbar = self.preview.verticalScrollBar()
-            preview_max = preview_scrollbar.maximum()
+        if preview_max > 0:
+            preview_value = preview_scrollbar.value()
+            return preview_value / preview_max
 
-            if preview_max > 0:
-                scroll_percentage = preview_value / preview_max
-
-                # Scroll editor via scrollbar
-                editor_scrollbar = self.editor.verticalScrollBar()
-                editor_max = editor_scrollbar.maximum()
-                editor_value = int(editor_max * scroll_percentage)
-                editor_scrollbar.setValue(editor_value)
-
-        finally:
-            self.is_syncing_scroll = False
+        return None

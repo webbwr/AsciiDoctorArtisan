@@ -301,15 +301,47 @@ class PreviewHandlerBase(QObject):
 
         logger.debug(f"Preview update requested ({len(source_text)} chars)")
 
-    @abstractmethod
     def handle_preview_complete(self, html: str) -> None:
         """
-        Handle completed preview rendering from worker.
+        Handle completed preview rendering from worker (template method).
 
-        Must be implemented by subclass to update the specific widget type.
+        This is a concrete implementation that coordinates common logic
+        and delegates widget-specific operations to abstract methods.
 
         Args:
             html: Rendered HTML content
+        """
+        # Calculate render time (COMMON)
+        if self._last_render_start is not None:
+            render_time = time.time() - self._last_render_start
+
+            # Update adaptive debouncer (COMMON)
+            if self._adaptive_debouncer:
+                self._adaptive_debouncer.on_render_complete(render_time)
+
+            logger.debug(f"Render completed in {render_time:.3f}s")
+
+        # Add CSS styling (COMMON)
+        styled_html = self._wrap_with_css(html)
+
+        # Update widget (WIDGET-SPECIFIC - delegate to subclass)
+        self._set_preview_html(styled_html)
+
+        # Emit signal (COMMON)
+        self.preview_updated.emit(html)
+
+        # Log success (COMMON)
+        logger.debug(f"Preview updated successfully ({self.__class__.__name__})")
+
+    @abstractmethod
+    def _set_preview_html(self, html: str) -> None:
+        """
+        Set HTML in preview widget (widget-specific implementation).
+
+        Subclasses must implement this to update their specific widget type.
+
+        Args:
+            html: Styled HTML content to display
         """
         pass
 
@@ -481,27 +513,84 @@ class PreviewHandlerBase(QObject):
         self.sync_scrolling_enabled = enabled
         logger.info(f"Sync scrolling {'enabled' if enabled else 'disabled'}")
 
-    @abstractmethod
     def sync_editor_to_preview(self, editor_value: int) -> None:
         """
-        Sync preview scroll position to editor.
+        Sync preview scroll position to editor (template method).
 
-        Must be implemented by subclass for specific widget type.
+        Implements common scrolling logic with widget-specific delegation.
 
         Args:
             editor_value: Editor scroll bar value (0-max)
         """
-        pass
+        # Guard checks (COMMON)
+        if not self.sync_scrolling_enabled or self.is_syncing_scroll:
+            return
+
+        self.is_syncing_scroll = True
+        try:
+            # Calculate scroll percentage (COMMON)
+            editor_scrollbar = self.editor.verticalScrollBar()
+            editor_max = editor_scrollbar.maximum()
+
+            if editor_max > 0:
+                scroll_percentage = editor_value / editor_max
+
+                # Apply scroll (WIDGET-SPECIFIC - delegate to subclass)
+                self._scroll_preview_to_percentage(scroll_percentage)
+
+        finally:
+            self.is_syncing_scroll = False
 
     @abstractmethod
-    def sync_preview_to_editor(self, preview_value: int) -> None:
+    def _scroll_preview_to_percentage(self, percentage: float) -> None:
         """
-        Sync editor scroll position to preview.
+        Scroll preview widget to percentage (widget-specific implementation).
 
-        Must be implemented by subclass for specific widget type.
+        Subclasses must implement this to scroll their specific widget type.
 
         Args:
-            preview_value: Preview scroll value
+            percentage: Scroll position as percentage (0.0 to 1.0)
+        """
+        pass
+
+    def sync_preview_to_editor(self, preview_value: int) -> None:
+        """
+        Sync editor scroll position to preview (template method).
+
+        Implements common logic with widget-specific scroll retrieval.
+
+        Args:
+            preview_value: Preview scroll value (widget-specific units, may be unused)
+        """
+        # Guard checks (COMMON)
+        if not self.sync_scrolling_enabled or self.is_syncing_scroll:
+            return
+
+        self.is_syncing_scroll = True
+        try:
+            # Get scroll percentage from widget (WIDGET-SPECIFIC)
+            scroll_percentage = self._get_preview_scroll_percentage()
+
+            if scroll_percentage is not None:
+                # Scroll editor (COMMON)
+                editor_scrollbar = self.editor.verticalScrollBar()
+                editor_max = editor_scrollbar.maximum()
+                editor_value = int(editor_max * scroll_percentage)
+                editor_scrollbar.setValue(editor_value)
+
+        finally:
+            self.is_syncing_scroll = False
+
+    @abstractmethod
+    def _get_preview_scroll_percentage(self) -> Optional[float]:
+        """
+        Get current scroll percentage from preview widget.
+
+        Subclasses must implement this to retrieve scroll position from
+        their specific widget type.
+
+        Returns:
+            Scroll percentage (0.0 to 1.0), or None if not available
         """
         pass
 

@@ -82,91 +82,52 @@ class WebEngineHandler(PreviewHandlerBase):
 
         logger.info("PreviewHandler initialized with QWebEngineView (GPU-accelerated)")
 
-    def handle_preview_complete(self, html: str) -> None:
+    def _set_preview_html(self, html: str) -> None:
         """
-        Handle completed preview rendering (QWebEngineView).
+        Set HTML in QWebEngineView widget.
 
         Args:
-            html: Rendered HTML content
+            html: Styled HTML content to display
         """
-        # Calculate render time
-        if self._last_render_start is not None:
-            render_time = time.time() - self._last_render_start
+        # QWebEngineView requires base URL for local resource access
+        self.preview.setHtml(html, QUrl("file://"))
 
-            # Update adaptive debouncer with render time
-            if self._adaptive_debouncer:
-                self._adaptive_debouncer.on_render_complete(render_time)
-
-            logger.debug(f"Render completed in {render_time:.3f}s")
-
-        # Add CSS styling
-        styled_html = self._wrap_with_css(html)
-
-        # Update preview (QWebEngineView uses setHtml with base URL)
-        self.preview.setHtml(styled_html, QUrl("file://"))
-
-        # Emit signal
-        self.preview_updated.emit(html)
-
-        logger.debug("Preview updated successfully (GPU-accelerated)")
-
-    def sync_editor_to_preview(self, editor_value: int) -> None:
+    def _scroll_preview_to_percentage(self, percentage: float) -> None:
         """
-        Sync preview scroll position to editor (QWebEngineView).
-
-        Uses JavaScript for smooth, hardware-accelerated scrolling.
+        Scroll QWebEngineView to percentage via JavaScript.
 
         Args:
-            editor_value: Editor scroll bar value (0-max)
+            percentage: Scroll position as percentage (0.0 to 1.0)
         """
-        if not self.sync_scrolling_enabled or self.is_syncing_scroll:
-            return
-
-        self.is_syncing_scroll = True
-        try:
-            # Calculate scroll percentage
-            editor_scrollbar = self.editor.verticalScrollBar()
-            editor_max = editor_scrollbar.maximum()
-
-            if editor_max > 0:
-                scroll_percentage = editor_value / editor_max
-
-                # Scroll preview via JavaScript (QWebEngineView-specific)
-                js_code = f"""
-                    var body = document.body;
-                    var html = document.documentElement;
-                    var height = Math.max(
-                        body.scrollHeight, body.offsetHeight,
-                        html.clientHeight, html.scrollHeight, html.offsetHeight
-                    );
-                    var maxScroll = height - window.innerHeight;
-                    window.scrollTo(0, maxScroll * {scroll_percentage});
-                """
-                self.preview.page().runJavaScript(js_code)
-
-        finally:
-            self.is_syncing_scroll = False
-
-    def sync_preview_to_editor(self, preview_value: int) -> None:
+        # Scroll preview via JavaScript (hardware-accelerated)
+        js_code = f"""
+            var body = document.body;
+            var html = document.documentElement;
+            var height = Math.max(
+                body.scrollHeight, body.offsetHeight,
+                html.clientHeight, html.scrollHeight, html.offsetHeight
+            );
+            var maxScroll = height - window.innerHeight;
+            window.scrollTo(0, maxScroll * {percentage});
         """
-        Sync editor scroll position to preview (QWebEngineView).
+        self.preview.page().runJavaScript(js_code)
 
-        Requires JavaScript callback from preview to get scroll position.
-        Currently not fully implemented - primarily syncs editor -> preview.
-
-        Args:
-            preview_value: Preview scroll value
+    def _get_preview_scroll_percentage(self) -> Optional[float]:
         """
-        if not self.sync_scrolling_enabled or self.is_syncing_scroll:
-            return
+        Get scroll percentage from QWebEngineView (requires JavaScript callback).
 
-        self.is_syncing_scroll = True
-        try:
-            # Would require JavaScript callback to get scroll position
-            # For now, we primarily sync editor -> preview
-            pass
-        finally:
-            self.is_syncing_scroll = False
+        Note: Currently not fully implemented. Would require async JavaScript
+        callback to get scroll position from web view.
+
+        Returns:
+            None (not implemented - primarily sync editor -> preview)
+        """
+        # TODO: Implement JavaScript callback to get scroll position
+        # self.preview.page().runJavaScript(
+        #     "window.scrollY / (document.body.scrollHeight - window.innerHeight)",
+        #     lambda result: self._on_scroll_position_received(result)
+        # )
+        return None
 
 
 def create_preview_widget(parent: Optional[QWidget] = None) -> QWidget:
