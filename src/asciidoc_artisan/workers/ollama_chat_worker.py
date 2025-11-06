@@ -1,7 +1,7 @@
 """
 Ollama AI Chat worker for background chat processing.
 
-This module provides OllamaChatWorker, a QThread-based worker that handles
+This module provides OllamaChatWorker, a QObject-based worker that handles
 asynchronous communication with the Ollama API for chat interactions.
 
 The worker supports:
@@ -23,19 +23,23 @@ import subprocess
 import time
 from typing import Dict, List, Optional
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QObject, Signal, Slot
 
 from ..core.models import ChatMessage
 
 logger = logging.getLogger(__name__)
 
 
-class OllamaChatWorker(QThread):
+class OllamaChatWorker(QObject):
     """
     Background worker for Ollama AI chat operations.
 
     Runs Ollama API calls in a separate thread to prevent UI blocking.
     Supports streaming responses, cancellation, and four interaction modes.
+
+    Threading: This worker inherits from QObject and is moved to a background
+    thread using QObject.moveToThread(). Methods decorated with @Slot are
+    automatically invoked on the worker's thread when called from the main thread.
 
     Signals:
         chat_response_ready: Emitted with ChatMessage when AI response completes
@@ -85,6 +89,7 @@ class OllamaChatWorker(QThread):
         self._document_content: Optional[str] = None
         self._user_message: Optional[str] = None
 
+    @Slot(str, str, str, object, object)
     def send_message(
         self,
         message: str,
@@ -105,6 +110,9 @@ class OllamaChatWorker(QThread):
 
         Raises:
             RuntimeError: If worker is already processing a message
+
+        Note: This method is a Qt slot. When called from the main thread,
+        Qt automatically queues execution on the worker's thread.
         """
         if self._is_processing:
             logger.warning("Chat worker is busy, ignoring new message")
@@ -117,8 +125,8 @@ class OllamaChatWorker(QThread):
         self._document_content = document_content
         self._should_cancel = False
 
-        # Start processing on background thread
-        self.start()
+        # Process chat on worker thread (Qt handles threading via moveToThread)
+        self._process_chat()
 
     def cancel_operation(self) -> None:
         """
@@ -131,12 +139,14 @@ class OllamaChatWorker(QThread):
             logger.info("Cancelling chat operation")
             self._should_cancel = True
 
-    def run(self) -> None:
+    def _process_chat(self) -> None:
         """
-        Main worker thread entry point.
+        Process the queued chat message on the worker thread.
 
         Processes the queued chat message, calls Ollama API, and emits
         results via signals. Handles streaming, errors, and cancellation.
+
+        This method runs on the worker's thread (not the main UI thread).
         """
         if not self._user_message or not self._current_model:
             logger.error("Missing user message or model")
