@@ -500,7 +500,7 @@ class TestErrorHandling:
 
         assert error is not None
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.PANDOC_AVAILABLE", False)
+    @patch("asciidoc_artisan.workers.pandoc_worker.is_pandoc_available", return_value=False)
     @patch("asciidoc_artisan.workers.pandoc_worker.pypandoc", None)
     def test_pandoc_not_available_error(self):
         """Test error when Pandoc is not available."""

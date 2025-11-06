@@ -673,7 +673,7 @@ class TestClipboardMIMEDataPriority:
 
         with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch("asciidoc_artisan.core.constants.PANDOC_AVAILABLE", True):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should use HTML, not text
                 assert main_window._is_processing_pandoc is True
@@ -689,7 +689,7 @@ class TestClipboardMIMEDataPriority:
 
         with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch("asciidoc_artisan.core.constants.PANDOC_AVAILABLE", True):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 assert main_window._is_processing_pandoc is True
 
@@ -719,7 +719,7 @@ class TestClipboardMIMEDataPriority:
 
         with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch("asciidoc_artisan.core.constants.PANDOC_AVAILABLE", False):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=False):
                 manager.convert_and_paste_from_clipboard()
                 # Should show Pandoc unavailable message
                 manager.status_manager.show_message.assert_called()
@@ -736,7 +736,7 @@ class TestClipboardMIMEDataPriority:
 
         with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch("asciidoc_artisan.core.constants.PANDOC_AVAILABLE", True):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should emit conversion request with "html" format
                 main_window.request_pandoc_conversion.emit.assert_called()
@@ -755,7 +755,7 @@ class TestClipboardMIMEDataPriority:
 
         with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch("asciidoc_artisan.core.constants.PANDOC_AVAILABLE", True):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should emit conversion request with "markdown" format (default for text)
                 main_window.request_pandoc_conversion.emit.assert_called()
