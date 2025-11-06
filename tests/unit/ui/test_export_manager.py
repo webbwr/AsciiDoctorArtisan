@@ -258,7 +258,7 @@ class TestClipboardOperations:
 
         with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch("asciidoc_artisan.core.constants.PANDOC_AVAILABLE", True):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should set processing flag and emit conversion request
                 assert main_window._is_processing_pandoc is True

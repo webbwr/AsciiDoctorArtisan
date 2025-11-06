@@ -434,10 +434,10 @@ class ExportManager(QObject):
 
         Supports HTML and plain text clipboard content.
         """
-        # Check Pandoc availability
-        from asciidoc_artisan.core.constants import PANDOC_AVAILABLE
+        # Check Pandoc availability (lazy import for fast startup)
+        from asciidoc_artisan.core.constants import is_pandoc_available
 
-        if not PANDOC_AVAILABLE:
+        if not is_pandoc_available():
             self.status_manager.show_message(
                 "warning",
                 "Pandoc Not Available",
