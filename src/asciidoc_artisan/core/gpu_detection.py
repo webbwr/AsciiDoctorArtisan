@@ -168,7 +168,7 @@ def check_nvidia_gpu() -> tuple[bool, Optional[str], Optional[str]]:
             ["nvidia-smi", "--query-gpu=name,driver_version", "--format=csv,noheader"],
             capture_output=True,
             text=True,
-            timeout=5,  # Prevent hanging if nvidia-smi is slow.
+            timeout=1,  # Prevent hanging if nvidia-smi is slow.
         )
 
         if result.returncode == 0 and result.stdout.strip():
@@ -197,7 +197,7 @@ def check_amd_gpu() -> tuple[bool, Optional[str]]:
             ["rocm-smi", "--showproductname"],
             capture_output=True,
             text=True,
-            timeout=5,
+            timeout=1,
         )
 
         if result.returncode == 0 and result.stdout.strip():
@@ -225,7 +225,7 @@ def check_intel_gpu() -> tuple[bool, Optional[str]]:
         Tuple of (has_intel, gpu_name)
     """
     try:
-        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
 
         if result.returncode == 0 and result.stdout.strip():
             # Look for Intel device
@@ -248,7 +248,7 @@ def check_opengl_renderer() -> tuple[bool, Optional[str]]:
         Tuple of (is_hardware, renderer_name)
     """
     try:
-        result = subprocess.run(["glxinfo"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["glxinfo"], capture_output=True, text=True, timeout=1)
 
         if result.returncode == 0:
             for line in result.stdout.split("\n"):
@@ -299,7 +299,7 @@ def check_intel_npu() -> tuple[bool, Optional[str]]:
     """
     # Check for Intel NPU via OpenVINO
     try:
-        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
 
         if result.returncode == 0 and result.stdout.strip():
             # Look for Intel NPU device
@@ -332,7 +332,7 @@ def detect_compute_capabilities() -> list[str]:
     # Check CUDA (NVIDIA GPU compute).
     try:
         result = subprocess.run(
-            ["nvidia-smi"], capture_output=True, text=True, timeout=5
+            ["nvidia-smi"], capture_output=True, text=True, timeout=1
         )
         if result.returncode == 0:
             capabilities.append("cuda")
@@ -342,7 +342,7 @@ def detect_compute_capabilities() -> list[str]:
 
     # Check OpenCL (cross-platform GPU compute).
     try:
-        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
         if result.returncode == 0 and "Platform Name" in result.stdout:
             capabilities.append("opencl")
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -352,7 +352,7 @@ def detect_compute_capabilities() -> list[str]:
     # Check Vulkan (modern graphics and compute API).
     try:
         result = subprocess.run(
-            ["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=5
+            ["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=1
         )
         if result.returncode == 0:
             capabilities.append("vulkan")

@@ -109,7 +109,7 @@ class SystemMonitor:
 
         # Get fresh metrics
         try:
-            cpu_percent = psutil.cpu_percent(interval=0.1)
+            cpu_percent = psutil.cpu_percent(interval=0)  # Non-blocking (uses cache)
             memory_percent = psutil.virtual_memory().percent
 
             metrics = SystemMetrics(
