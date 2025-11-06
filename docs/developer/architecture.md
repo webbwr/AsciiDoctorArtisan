@@ -312,6 +312,168 @@ time python src/main.py --version
 - Existing tests continue to work
 - No new tests needed (transparent change)
 
+### Critical Patterns for Lazy Imports
+
+**IMPORTANT:** Each function that uses a lazily-imported module MUST import it within its own scope.
+
+**❌ INCORRECT - Helper method can't see parent's import:**
+```python
+def parent_function():
+    import pypandoc  # Only visible in parent scope
+    return helper_function()
+
+def helper_function():
+    # ❌ NameError: pypandoc not defined!
+    pypandoc.convert_text(...)
+```
+
+**✅ CORRECT - Each function imports what it needs:**
+```python
+def parent_function():
+    import pypandoc  # Parent has its own import
+    return helper_function()
+
+def helper_function():
+    import pypandoc  # Helper has its own import ✓
+    pypandoc.convert_text(...)
+```
+
+**Why This Matters:**
+- Python function scopes are isolated
+- Imports inside a function are only visible within that function
+- Helper methods called by a function don't inherit the caller's imports
+- This caused a critical production bug (November 6, 2025 - Issue #13 follow-up)
+
+**Real-World Example (pandoc_worker.py):**
+```python
+def run_pandoc_conversion(self, source, to_format, from_format, ...):
+    """Main conversion method."""
+    import pypandoc  # ✓ Import for this function
+
+    # ... validation logic ...
+
+    # Call helper method
+    return self._execute_pandoc_conversion(source, to_format, ...)
+
+def _execute_pandoc_conversion(self, source, to_format, ...):
+    """Helper method that actually does conversion."""
+    import pypandoc  # ✓ MUST have its own import!
+
+    # Use pypandoc here
+    converted = pypandoc.convert_text(...)
+    return converted
+```
+
+### Testing Lazy Imports
+
+**IMPORTANT:** Module-level patching doesn't work with lazy imports. Use pytest fixtures with sys.modules injection.
+
+**❌ INCORRECT - Module-level patch fails:**
+```python
+@patch("asciidoc_artisan.workers.pandoc_worker.pypandoc")
+def test_conversion(mock_pypandoc):
+    # ❌ AttributeError: module does not have attribute 'pypandoc'
+    # (pypandoc isn't at module level, it's inside functions)
+```
+
+**✅ CORRECT - Fixture with sys.modules injection:**
+```python
+import sys
+from unittest.mock import Mock
+import pytest
+
+@pytest.fixture
+def mock_pypandoc():
+    """Fixture that mocks pypandoc in sys.modules."""
+    mock_module = Mock()
+    mock_module.convert_text = Mock(return_value="# Converted")
+    mock_module.convert_file = Mock(return_value="# Converted from file")
+
+    # Inject mock into sys.modules
+    original = sys.modules.get("pypandoc")
+    sys.modules["pypandoc"] = mock_module
+
+    yield mock_module  # Test can use this
+
+    # Cleanup - restore original state
+    if original is not None:
+        sys.modules["pypandoc"] = original
+    else:
+        sys.modules.pop("pypandoc", None)
+
+def test_conversion(mock_pypandoc):
+    """Test uses fixture parameter."""
+    worker = PandocWorker()
+    worker.run_pandoc_conversion(...)
+
+    # Fixture mock is used inside worker
+    assert mock_pypandoc.convert_text.called
+```
+
+**How It Works:**
+1. Fixture injects mock into `sys.modules` before test runs
+2. When worker code does `import pypandoc`, it gets the mock
+3. Test can access the mock via fixture parameter
+4. Cleanup ensures no side effects between tests
+
+**Special Case - Testing "Module Not Available":**
+```python
+@patch("asciidoc_artisan.workers.pandoc_worker.is_pandoc_available", return_value=False)
+def test_pandoc_not_available(mock_is_available):
+    """Test when pypandoc is NOT installed."""
+    # Manually remove pypandoc from sys.modules
+    original = sys.modules.get("pypandoc")
+    if "pypandoc" in sys.modules:
+        del sys.modules["pypandoc"]
+
+    try:
+        worker = PandocWorker()
+        # Test error handling when pypandoc missing
+        worker.run_pandoc_conversion(...)
+        assert error_occurred
+    finally:
+        # Always restore original state
+        if original is not None:
+            sys.modules["pypandoc"] = original
+```
+
+### Lessons Learned (Critical Bug - November 6, 2025)
+
+**Issue #13 Follow-up:** Incomplete lazy import refactoring caused critical production bug.
+
+**Bug:** App crashed (segfault, exit code 139) when opening files
+- Error: `NameError: name 'pypandoc' is not defined` at `pandoc_worker.py:371`
+- Cause: Helper method `_execute_pandoc_conversion()` used pypandoc without importing it
+- Impact: 100% of users couldn't open or convert files
+
+**Root Cause:**
+- Issue #13 added lazy import to parent method `run_pandoc_conversion()`
+- Forgot to add lazy import to helper method `_execute_pandoc_conversion()`
+- Helper methods need explicit imports (don't inherit from parent)
+
+**Fix:** Added 1 line `import pypandoc` in helper method
+
+**Why Tests Didn't Catch It:**
+- Tests used module-level patching: `@patch("module.pypandoc")`
+- This worked when pypandoc was at module level
+- But with lazy imports, pypandoc only exists inside functions
+- Tests needed fixture-based mocking (sys.modules injection)
+
+**Prevention:**
+1. ✅ Search for ALL usages when refactoring, including helper methods
+2. ✅ Use grep to find all references: `grep -rn "pypandoc\." src/`
+3. ✅ Update test infrastructure to match code patterns
+4. ✅ Test production builds, not just unit tests
+5. ✅ Each function imports what it uses (no assumptions about parent scope)
+
+**Test Results After Fix:**
+- Production: ✅ File opening/conversion works correctly
+- Unit tests: ✅ 51/51 passing (100%)
+- Manual testing: ✅ Verified app launches and converts files successfully
+
+**Documentation:**
+- `docs/completed/2025-11-06-critical-pypandoc-bugfix.md` - Full incident report
+
 ---
 
 ## Performance Summary (v1.5.0)
