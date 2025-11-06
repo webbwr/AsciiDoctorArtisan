@@ -1,8 +1,10 @@
 # Implementation Reference - v1.5.0 Features
 
 **Created:** October 28, 2025
-**Status:** v1.5.0 COMPLETE
-**Purpose:** Technical reference for v1.5.0 implementation details
+**Last Updated:** November 6, 2025 (Lazy import patterns added)
+**Applies To:** AsciiDoc Artisan v1.5.0+ (current: v1.9.1)
+**Status:** v1.5.0 COMPLETE, actively maintained
+**Purpose:** Technical reference for v1.5.0+ implementation details
 
 ---
 

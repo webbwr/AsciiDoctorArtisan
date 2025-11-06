@@ -1,7 +1,7 @@
 # AsciiDoc Artisan Functional Specifications
 
-**Version:** 1.9.0 (v2.0.0 planned)
-**Last Updated:** November 6, 2025 (Post-Cleanup & Bugfix)
+**Version:** 1.9.1
+**Last Updated:** November 6, 2025
 **Status:** Production-Ready
 **Test Status:** ✅ EXCELLENT (100% pass rate, 3,638 tests across 91 files, 96.4% coverage)
 **Code Quality:** ✅ Excellent (Zero security issues, zero unused imports, consistent patterns)

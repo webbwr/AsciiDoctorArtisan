@@ -15,8 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **GitHub CLI (gh) 2.45.0+**: GitHub integration for PR/Issue management (v1.6.0)
 - **Python 3.14+**: Minimum version required
 
-**Version:** 1.9.0 ✅ COMPLETE (Improved Git Integration)
-**Package Version:** 1.9.0 (see `pyproject.toml`)
+**Version:** 1.9.1 ✅ COMPLETE (Cleanup & Bugfix)
+**Package Version:** 1.9.1 (see `pyproject.toml`)
 
 **Architecture:**
 - Single-window Qt application with editor/preview split pane
@@ -941,8 +941,8 @@ The v1.3.0 grammar checking system has been **removed** in v1.4.0:
 
 ---
 
-*This file is for Claude Code (claude.ai/code). Last updated: November 4, 2025*
-*Development version: v1.9.0 ✅ COMPLETE (Git Integration) | Package version: 1.9.0 (pyproject.toml)*
-*Latest achievement: 100% test pass rate (82/82 tests) - All 17 test failures fixed*
+*This file is for Claude Code (claude.ai/code). Last updated: November 6, 2025*
+*Development version: v1.9.1 ✅ COMPLETE (Cleanup & Critical Bugfix) | Package version: 1.9.1 (pyproject.toml)*
+*Latest achievement: Zero technical debt, 3,638/3,638 tests passing, critical segfault fixed*
 - always apply this core principle to everything you do: "Conceptual simplicity, structural complexity achieves a greater state of humanity."
 - automatically spawn tasks in background as much as possible to increase agentic capabilities with no user prompting

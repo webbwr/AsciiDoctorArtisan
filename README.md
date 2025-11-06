@@ -1,5 +1,7 @@
 # AsciiDoc Artisan
 
+**Version 1.9.1** | November 2025
+
 A simple program. It helps you write papers. It is very fast.
 
 ## What It Does
