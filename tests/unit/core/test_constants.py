@@ -118,8 +118,12 @@ class TestConstants:
                 import asciidoc_artisan.core.constants as c
                 importlib.reload(c)
 
-                # PANDOC_AVAILABLE should be False
-                assert c.PANDOC_AVAILABLE is False
+                # Reset the lazy check cache
+                c._pypandoc_checked = False
+                c._pypandoc_available = False
+
+                # is_pandoc_available() should return False when pypandoc is not available
+                assert c.is_pandoc_available() is False
 
         finally:
             # Restore

@@ -601,16 +601,21 @@ class ChatManager(QObject):
                     from PySide6.QtCore import QTimer
 
                     def show_chat() -> None:
-                        window_width = parent.width()
-                        editor_width = int(window_width * 0.4)
-                        preview_width = int(window_width * 0.4)
-                        chat_width = int(window_width * 0.2)
-                        parent.splitter.setSizes(
-                            [editor_width, preview_width, chat_width]
-                        )
-                        logger.info(
-                            f"Chat pane shown (proportional): {editor_width}, {preview_width}, {chat_width}"
-                        )
+                        try:
+                            # Check if parent still exists (may be deleted in tests)
+                            window_width = parent.width()
+                            editor_width = int(window_width * 0.4)
+                            preview_width = int(window_width * 0.4)
+                            chat_width = int(window_width * 0.2)
+                            parent.splitter.setSizes(
+                                [editor_width, preview_width, chat_width]
+                            )
+                            logger.info(
+                                f"Chat pane shown (proportional): {editor_width}, {preview_width}, {chat_width}"
+                            )
+                        except RuntimeError:
+                            # Parent widget was deleted (common in tests)
+                            logger.debug("Parent widget deleted before show_chat callback")
 
                     QTimer.singleShot(150, show_chat)
                 elif not chat_visible and sizes[2] > 0:
