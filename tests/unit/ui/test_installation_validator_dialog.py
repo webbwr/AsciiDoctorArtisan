@@ -143,9 +143,9 @@ class TestValidationWorker:
     def test_version_compare_invalid(self):
         """Test version comparison with invalid versions."""
         worker = ValidationWorker()
-        # Should not crash, returns 0 for equal
+        # Should not crash; invalid version parsed as [] → [0,0,0] < [1,0,0] → -1
         result = worker._version_compare("invalid", "1.0.0")
-        assert result == 0
+        assert result == -1
 
 
 @pytest.mark.unit
