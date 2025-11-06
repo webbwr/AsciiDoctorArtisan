@@ -91,9 +91,8 @@ class AsyncFileHandler(QObject):
             max_workers: Maximum number of worker threads (default: 4)
         """
         super().__init__()
-        self._thread = QThread()
-        self.moveToThread(self._thread)
-        self._thread.start()
+        # ThreadPoolExecutor handles threading - no need for QThread
+        # Signals can be emitted from worker threads safely
 
         # Persistent thread pool for efficient async I/O
         from concurrent.futures import ThreadPoolExecutor
@@ -294,11 +293,6 @@ class AsyncFileHandler(QObject):
         if hasattr(self, '_executor'):
             self._executor.shutdown(wait=True)
             logger.debug("Thread pool shutdown complete")
-
-        # Quit worker thread
-        if self._thread.isRunning():
-            self._thread.quit()
-            self._thread.wait()
 
         logger.info("Async file handler cleanup complete")
 

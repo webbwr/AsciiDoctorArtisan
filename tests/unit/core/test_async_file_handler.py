@@ -462,7 +462,6 @@ class TestAsyncPerformance:
 # Tests for error paths and edge cases
 
 
-@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
 def test_read_file_async_exception(qtbot, tmp_path):
     """Test read_file_async handles exceptions (lines 130-132)."""
     handler = AsyncFileHandler()
@@ -486,7 +485,6 @@ def test_read_file_async_exception(qtbot, tmp_path):
     assert nonexistent in error_received[0][0]
 
 
-@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
 def test_write_file_async_exception(qtbot, tmp_path):
     """Test write_file_async handles exceptions (lines 171-173)."""
     handler = AsyncFileHandler()
@@ -510,7 +508,6 @@ def test_write_file_async_exception(qtbot, tmp_path):
     assert "invalid" in error_received[0][0].lower()
 
 
-@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
 def test_read_file_streaming_not_found(qtbot, tmp_path):
     """Test read_file_streaming handles missing file (lines 198-199)."""
     handler = AsyncFileHandler()
@@ -534,7 +531,6 @@ def test_read_file_streaming_not_found(qtbot, tmp_path):
     assert "not found" in error_received[0][1].lower()
 
 
-@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
 def test_read_file_streaming_exception(qtbot, tmp_path):
     """Test read_file_streaming handles exceptions (lines 234-236)."""
     from unittest.mock import patch
@@ -562,7 +558,6 @@ def test_read_file_streaming_exception(qtbot, tmp_path):
     assert len(error_received) == 1
 
 
-@pytest.mark.skip(reason="Qt threading issue causes segfault - TODO: Fix in future")
 def test_write_file_streaming_exception(qtbot, tmp_path):
     """Test write_file_streaming handles exceptions (lines 290-292)."""
     handler = AsyncFileHandler()
