@@ -39,6 +39,13 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+# Fast hashing with xxHash (10x faster than MD5, hot path optimization)
+try:
+    import xxhash
+    HAS_XXHASH = True
+except ImportError:
+    HAS_XXHASH = False
+
 logger = logging.getLogger(__name__)
 
 # Cache settings - Optimized for memory efficiency
@@ -195,8 +202,20 @@ class DocumentBlock:
     level: int = 0
 
     def compute_id(self) -> str:
-        """Compute hash ID from content."""
-        content_hash = hashlib.md5(self.content.encode("utf-8")).hexdigest()
+        """
+        Compute hash ID from content using xxHash (10x faster than MD5).
+
+        Hot path optimization: Called 100s-1000s times per document render.
+        xxHash is non-cryptographic but 10x faster than MD5 for this use case.
+        Falls back to MD5 if xxhash not available.
+        """
+        if HAS_XXHASH:
+            # xxHash: 10x faster than MD5, sufficient for block IDs
+            content_hash = xxhash.xxh64(self.content).hexdigest()
+        else:
+            # Fallback to MD5 (slower but always available)
+            content_hash = hashlib.md5(self.content.encode("utf-8")).hexdigest()
+
         return content_hash[:BLOCK_HASH_LENGTH]
 
 

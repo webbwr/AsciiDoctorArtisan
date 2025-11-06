@@ -101,6 +101,9 @@ from .file_operations import (
     sanitize_path,  # Clean file paths (prevent directory traversal attacks)
 )
 
+# Fast JSON utilities (v1.9.1 - 3-5x faster with orjson, used for settings at startup)
+from . import json_utils
+
 # Data models - MOVED TO LAZY LOADING (v1.9.1 optimization, saves 115ms startup time)
 # These models import Pydantic (heavy library), so we load them only when first accessed.
 # GitResult, GitStatus, GitHubResult are used by worker threads, so 115ms delay is not noticeable.
@@ -420,6 +423,9 @@ __all__ = [
     "sanitize_path",  # Clean file paths (prevent directory traversal attacks)
     "atomic_save_text",  # Save text files atomically (no corruption if crash)
     "atomic_save_json",  # Save JSON files atomically (no corruption if crash)
+    # === FAST JSON UTILITIES (v1.9.1 Performance Optimization) ===
+    # High-performance JSON serialization (3-5x faster with orjson)
+    "json_utils",  # Fast JSON module (loads, dumps, load, dump with orjson backend)
     # === ASYNC FILE OPERATIONS (v1.7.0 Task 4) ===
     # Non-blocking file I/O with Qt integration and file watching
     "AsyncFileWatcher",  # Monitor files for external changes (polling-based)

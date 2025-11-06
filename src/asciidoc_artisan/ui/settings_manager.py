@@ -13,7 +13,6 @@ Extracted from main_window.py as part of Phase 1 refactoring to reduce
 the god class anti-pattern and improve modularity.
 """
 
-import json
 import logging
 import os
 import platform
@@ -29,6 +28,7 @@ from asciidoc_artisan.core import (
     SETTINGS_FILENAME,
     Settings,
     atomic_save_json,
+    json_utils,
 )
 
 logger = logging.getLogger(__name__)
@@ -166,8 +166,9 @@ class SettingsManager:
             return self.create_default_settings()
 
         try:
+            # Load with fast JSON utils (3-5x faster with orjson)
             with open(self._settings_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+                data = json_utils.load(f)
 
             settings = Settings.from_dict(data)
 

@@ -16,10 +16,11 @@ Security Guarantees:
 - NFR-009: Path sanitization prevents directory traversal attacks
 """
 
-import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
+
+from . import json_utils
 
 logger = logging.getLogger(__name__)
 
@@ -177,9 +178,9 @@ def atomic_save_json(
     temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
 
     try:
-        # Step 1: Write JSON to temporary file
+        # Step 1: Write JSON to temporary file (3-5x faster with orjson via json_utils)
         with open(temp_path, "w", encoding=encoding) as f:
-            json.dump(data, f, indent=indent)
+            json_utils.dump(data, f, indent=indent)
 
         # Step 2: Atomic rename
         temp_path.replace(file_path)
