@@ -72,7 +72,7 @@ class TestSyntaxCheckingEnable:
         editor.setPlainText("= Heading\n\n== Missing Content")
 
         manager.enabled = True
-        manager._check_syntax()
+        manager._validate_document()
 
         # Now disable
         manager.enabled = False
@@ -89,7 +89,7 @@ class TestErrorDetection:
         # Create document with known error (missing blank line after heading)
         editor.setPlainText("= Heading\nContent without blank line")
 
-        manager._check_syntax()
+        manager._validate_document()
 
         # Should detect some errors (depends on checker implementation)
         assert isinstance(manager.errors, list)
@@ -126,7 +126,7 @@ class TestErrorUnderlines:
         )
 
         manager.errors = [error]
-        manager._update_underlines()
+        manager._show_underlines()
 
         # Check that extra selections are added
         selections = editor.extraSelections()
@@ -154,7 +154,7 @@ class TestErrorUnderlines:
         ]
 
         manager.errors = errors
-        manager._update_underlines()
+        manager._show_underlines()
 
         # Extra selections should reflect different severities
         selections = editor.extraSelections()
@@ -166,7 +166,7 @@ class TestErrorNavigation:
 
     def test_jump_to_next_error(self, manager, editor):
         """Test jumping to next error."""
-        editor.setPlainText("Line 1\nLine 2\nLine 3")
+        editor.setPlainText("Line 1\nLine 2\nLine 3\nLine 4")
 
         manager.errors = [
             SyntaxErrorModel(
@@ -187,11 +187,16 @@ class TestErrorNavigation:
             ),
         ]
 
-        # Jump to first error
+        # Start cursor at end of document (after all errors)
+        cursor = editor.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        editor.setTextCursor(cursor)
+
+        # Jump to first error (wraps around)
         manager.jump_to_next_error()
 
         cursor = editor.textCursor()
-        assert cursor.blockNumber() == 0  # Should be on first line
+        assert cursor.blockNumber() == 0  # Should wrap to first line
 
         # Jump to second error
         manager.jump_to_next_error()
@@ -368,7 +373,7 @@ class TestEdgeCases:
     def test_empty_document(self, manager, editor):
         """Test syntax checking with empty document."""
         editor.setPlainText("")
-        manager._check_syntax()
+        manager._validate_document()
 
         # Should not crash, errors list should be defined
         assert isinstance(manager.errors, list)
@@ -378,7 +383,7 @@ class TestEdgeCases:
         long_text = "\n".join([f"= Heading {i}" for i in range(100)])
         editor.setPlainText(long_text)
 
-        manager._check_syntax()
+        manager._validate_document()
 
         # Should handle without issues
         assert isinstance(manager.errors, list)
@@ -387,7 +392,7 @@ class TestEdgeCases:
         """Test when no errors are found."""
         editor.setPlainText("= Valid Heading\n\nSome content.")
 
-        manager._check_syntax()
+        manager._validate_document()
 
         # Errors list should be empty or have no critical issues
         assert isinstance(manager.errors, list)
