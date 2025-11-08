@@ -1557,6 +1557,169 @@ class AsciiDocEditor(QMainWindow):
         """Show font settings dialog (delegates to DialogManager)."""
         self.dialog_manager.show_font_settings()
 
+    def show_autocomplete_settings(self) -> None:
+        """
+        Show auto-complete settings dialog (v2.0.0).
+
+        Allows user to configure:
+        - Enable/disable auto-complete
+        - Debounce delay (100-1000ms)
+        - Minimum characters to trigger (1-5)
+        """
+        from PySide6.QtWidgets import (
+            QCheckBox,
+            QDialog,
+            QDialogButtonBox,
+            QFormLayout,
+            QLabel,
+            QSpinBox,
+            QVBoxLayout,
+        )
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Auto-Complete Settings")
+        layout = QVBoxLayout(dialog)
+
+        # Form layout for settings
+        form = QFormLayout()
+
+        # Enable/disable checkbox
+        enabled_cb = QCheckBox()
+        enabled_cb.setChecked(self.autocomplete_manager.enabled)
+        form.addRow("&Enabled:", enabled_cb)
+
+        # Delay spinbox (100-1000ms)
+        delay_spin = QSpinBox()
+        delay_spin.setRange(100, 1000)
+        delay_spin.setValue(self.autocomplete_manager.auto_delay)
+        delay_spin.setSuffix(" ms")
+        form.addRow("&Delay:", delay_spin)
+
+        # Min characters spinbox (1-5)
+        min_chars_spin = QSpinBox()
+        min_chars_spin.setRange(1, 5)
+        min_chars_spin.setValue(self.autocomplete_manager.min_chars)
+        form.addRow("&Min Characters:", min_chars_spin)
+
+        layout.addLayout(form)
+
+        # Help text
+        help_label = QLabel(
+            "Delay: Time to wait after typing before showing suggestions\n"
+            "Min Characters: Minimum characters needed to trigger auto-complete"
+        )
+        help_label.setStyleSheet("color: gray; font-size: 10px;")
+        layout.addWidget(help_label)
+
+        # Buttons
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+
+        if dialog.exec():
+            # Apply settings
+            self.autocomplete_manager.enabled = enabled_cb.isChecked()
+            self.autocomplete_manager.auto_delay = delay_spin.value()
+            self.autocomplete_manager.min_chars = min_chars_spin.value()
+
+            # Save to settings
+            self._settings.autocomplete_enabled = enabled_cb.isChecked()
+            self._settings.autocomplete_delay = delay_spin.value()
+            self._settings.autocomplete_min_chars = min_chars_spin.value()
+            self._settings.save()
+
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.info(
+                f"Auto-complete settings updated: enabled={enabled_cb.isChecked()}, "
+                f"delay={delay_spin.value()}ms, min_chars={min_chars_spin.value()}"
+            )
+
+    def show_syntax_check_settings(self) -> None:
+        """
+        Show syntax checking settings dialog (v2.0.0).
+
+        Allows user to configure:
+        - Enable/disable syntax checking
+        - Check delay (100-2000ms)
+        - Show/hide error underlines
+        """
+        from PySide6.QtWidgets import (
+            QCheckBox,
+            QDialog,
+            QDialogButtonBox,
+            QFormLayout,
+            QLabel,
+            QSpinBox,
+            QVBoxLayout,
+        )
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Syntax Checking Settings")
+        layout = QVBoxLayout(dialog)
+
+        # Form layout for settings
+        form = QFormLayout()
+
+        # Enable/disable checkbox
+        enabled_cb = QCheckBox()
+        enabled_cb.setChecked(self.syntax_checker_manager.enabled)
+        form.addRow("&Enabled:", enabled_cb)
+
+        # Delay spinbox (100-2000ms)
+        delay_spin = QSpinBox()
+        delay_spin.setRange(100, 2000)
+        delay_spin.setValue(self.syntax_checker_manager.check_delay)
+        delay_spin.setSuffix(" ms")
+        form.addRow("&Check Delay:", delay_spin)
+
+        # Show underlines checkbox
+        underlines_cb = QCheckBox()
+        underlines_cb.setChecked(self.syntax_checker_manager.show_underlines)
+        form.addRow("&Show Underlines:", underlines_cb)
+
+        layout.addLayout(form)
+
+        # Help text
+        help_label = QLabel(
+            "Check Delay: Time to wait after typing before checking syntax\n"
+            "Show Underlines: Display red squiggly lines under errors"
+        )
+        help_label.setStyleSheet("color: gray; font-size: 10px;")
+        layout.addWidget(help_label)
+
+        # Buttons
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+
+        if dialog.exec():
+            # Apply settings
+            self.syntax_checker_manager.enabled = enabled_cb.isChecked()
+            self.syntax_checker_manager.check_delay = delay_spin.value()
+            self.syntax_checker_manager.show_underlines = underlines_cb.isChecked()
+
+            # Save to settings
+            self._settings.syntax_check_realtime_enabled = enabled_cb.isChecked()
+            self._settings.syntax_check_delay = delay_spin.value()
+            self._settings.syntax_check_show_underlines = underlines_cb.isChecked()
+            self._settings.save()
+
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.info(
+                f"Syntax checking settings updated: enabled={enabled_cb.isChecked()}, "
+                f"delay={delay_spin.value()}ms, underlines={underlines_cb.isChecked()}"
+            )
+
     def _show_message(self, level: str, title: str, text: str) -> None:
         """Show message box (delegates to DialogManager)."""
         self.dialog_manager.show_message(level, title, text)
