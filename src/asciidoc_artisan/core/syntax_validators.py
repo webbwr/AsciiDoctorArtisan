@@ -25,7 +25,7 @@ Example:
 """
 
 import re
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from asciidoc_artisan.core.models import (
     ErrorSeverity,
@@ -34,6 +34,9 @@ from asciidoc_artisan.core.models import (
     TextEdit,
 )
 from asciidoc_artisan.core.syntax_checker import ValidationContext
+
+if TYPE_CHECKING:
+    from asciidoc_artisan.core.syntax_checker import ValidationRule
 
 
 class UnclosedBlockRule:
@@ -600,11 +603,8 @@ class MissingAuthorVersionRule:
         return errors
 
 
-from asciidoc_artisan.core.syntax_checker import ValidationRule
-
-
 # Registry of all validation rules
-BUILT_IN_RULES: list[ValidationRule] = [
+BUILT_IN_RULES: list["ValidationRule"] = [
     UnclosedBlockRule(),
     InvalidAttributeRule(),
     MalformedXRefRule(),

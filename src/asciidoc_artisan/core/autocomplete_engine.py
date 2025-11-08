@@ -250,7 +250,7 @@ class AutoCompleteEngine:
 
             has_rapidfuzz = True
         except ImportError:
-            rapidfuzz_module = None  # type: ignore[assignment]
+            rapidfuzz_module = None
 
         for item in items:
             text = item.filter_text.lower() if item.filter_text else item.text.lower()
@@ -386,7 +386,7 @@ def fuzzy_match_score(query: str, text: str) -> float:
     try:
         from rapidfuzz import fuzz
 
-        return fuzz.ratio(query.lower(), text.lower())
+        return float(fuzz.ratio(query.lower(), text.lower()))
     except ImportError:
         # Fallback: simple substring matching
         query_lower = query.lower()
