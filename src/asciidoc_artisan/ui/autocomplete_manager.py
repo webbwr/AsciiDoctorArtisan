@@ -101,7 +101,8 @@ class AutoCompleteManager(QObject):
 
         # Settings
         self.enabled = True
-        self.auto_delay = 300  # ms
+        self._auto_delay = 300  # ms (private, use property)
+        self.timer.setInterval(self._auto_delay)  # Initialize timer interval
         self.min_chars = 2  # Minimum characters to trigger auto-complete
 
         # Connect editor signals
@@ -110,6 +111,27 @@ class AutoCompleteManager(QObject):
         # Connect widget signals
         self.widget.item_selected.connect(self._insert_completion)
         self.widget.cancelled.connect(self._on_cancelled)
+
+    @property
+    def auto_delay(self) -> int:
+        """
+        Get auto-complete debounce delay in milliseconds.
+
+        Returns:
+            Delay in milliseconds (minimum 100ms)
+        """
+        return self._auto_delay
+
+    @auto_delay.setter
+    def auto_delay(self, value: int) -> None:
+        """
+        Set auto-complete debounce delay.
+
+        Args:
+            value: Delay in milliseconds (enforces minimum 100ms)
+        """
+        self._auto_delay = max(100, value)  # Enforce minimum 100ms
+        self.timer.setInterval(self._auto_delay)
 
     def _on_text_changed(self) -> None:
         """

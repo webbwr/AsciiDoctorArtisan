@@ -127,6 +127,26 @@ class SyntaxCheckerManager(QObject):
         # Connect editor signals
         self.editor.textChanged.connect(self._on_text_changed)
 
+    @property
+    def current_error_index(self) -> int:
+        """
+        Get current error index for navigation.
+
+        Returns:
+            Index of current error (0-based)
+        """
+        return self._current_error_index
+
+    @current_error_index.setter
+    def current_error_index(self, value: int) -> None:
+        """
+        Set current error index for navigation.
+
+        Args:
+            value: Error index to set
+        """
+        self._current_error_index = value
+
     def _on_text_changed(self) -> None:
         """
         Handle text change in editor.
