@@ -240,15 +240,17 @@ class AutoCompleteEngine:
         Returns:
             Sorted list (highest score first)
         """
-        # Import here to avoid circular dependency
-        try:
-            from rapidfuzz import fuzz
-        except ImportError:
-            # Fallback: simple substring matching if rapidfuzz not available
-            fuzz = None
-
         query = context.word_before_cursor.lower()
         scored_items: List[CompletionItem] = []
+
+        # Try to import rapidfuzz for fuzzy matching
+        has_rapidfuzz = False
+        try:
+            from rapidfuzz import fuzz as rapidfuzz_module
+
+            has_rapidfuzz = True
+        except ImportError:
+            rapidfuzz_module = None  # type: ignore[assignment]
 
         for item in items:
             text = item.filter_text.lower() if item.filter_text else item.text.lower()
@@ -263,8 +265,8 @@ class AutoCompleteEngine:
                 position_bonus = (1 - pos / len(text)) * 10 if text else 0
                 item.score = 80.0 + position_bonus
             # Fuzzy match (if available)
-            elif fuzz is not None and query:
-                fuzzy_score = fuzz.ratio(query, text)
+            elif has_rapidfuzz and rapidfuzz_module and query:
+                fuzzy_score = rapidfuzz_module.ratio(query, text)
                 item.score = fuzzy_score * 0.6
             # Substring match (fallback)
             elif query in text:

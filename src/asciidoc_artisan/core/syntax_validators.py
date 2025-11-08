@@ -600,8 +600,11 @@ class MissingAuthorVersionRule:
         return errors
 
 
+from asciidoc_artisan.core.syntax_checker import ValidationRule
+
+
 # Registry of all validation rules
-BUILT_IN_RULES = [
+BUILT_IN_RULES: list[ValidationRule] = [
     UnclosedBlockRule(),
     InvalidAttributeRule(),
     MalformedXRefRule(),

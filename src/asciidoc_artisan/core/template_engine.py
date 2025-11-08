@@ -61,7 +61,7 @@ import os
 import re
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from asciidoc_artisan.core.models import Template, TemplateVariable
 
@@ -204,7 +204,7 @@ class TemplateEngine:
         # Pattern: {{varname}} or {{varname:default}}
         pattern = r'\{\{([^}:]+)(?::([^}]+))?\}\}'
 
-        def replace(match: re.Match) -> str:
+        def replace(match: re.Match[str]) -> str:
             var_name = match.group(1).strip()
             default = match.group(2).strip() if match.group(2) else ""
 
@@ -257,7 +257,7 @@ class TemplateEngine:
         # Process {{#if var}}...{{/if}}
         if_pattern = r'\{\{#if\s+(\w+)\}\}(.*?)\{\{/if\}\}'
 
-        def replace_if(match: re.Match) -> str:
+        def replace_if(match: re.Match[str]) -> str:
             var_name = match.group(1)
             content = match.group(2)
             var_value = variables.get(var_name, False)
@@ -270,7 +270,7 @@ class TemplateEngine:
         # Process {{#unless var}}...{{/unless}}
         unless_pattern = r'\{\{#unless\s+(\w+)\}\}(.*?)\{\{/unless\}\}'
 
-        def replace_unless(match: re.Match) -> str:
+        def replace_unless(match: re.Match[str]) -> str:
             var_name = match.group(1)
             content = match.group(2)
             var_value = variables.get(var_name, False)
@@ -304,7 +304,7 @@ class TemplateEngine:
         """
         pattern = r'\{\{include:([^}]+)\}\}'
 
-        def replace(match: re.Match) -> str:
+        def replace(match: re.Match[str]) -> str:
             file_path = match.group(1).strip()
 
             try:
@@ -421,17 +421,22 @@ class TemplateEngine:
 
         # Parse YAML
         try:
-            metadata = yaml.safe_load(yaml_text)
+            metadata_raw = yaml.safe_load(yaml_text)
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML: {e}")
 
-        if not isinstance(metadata, dict):
+        if not isinstance(metadata_raw, dict):
             raise ValueError("YAML front matter must be a dictionary")
+
+        metadata: Dict[str, Any] = metadata_raw
 
         # Extract required fields
         name = metadata.get("name")
         category = metadata.get("category")
         description = metadata.get("description")
+
+        if not isinstance(name, str) or not isinstance(category, str) or not isinstance(description, str):
+            raise ValueError("Template must have name, category, and description as strings")
 
         if not all([name, category, description]):
             raise ValueError("Template must have name, category, and description")

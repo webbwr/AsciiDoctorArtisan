@@ -41,7 +41,7 @@ Example:
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from asciidoc_artisan.core.models import Template
 from asciidoc_artisan.core.template_engine import TemplateEngine
@@ -111,7 +111,9 @@ class TemplateManager:
         try:
             from PySide6.QtCore import QStandardPaths
 
-            config_dir = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
+            config_dir = QStandardPaths.writableLocation(
+                QStandardPaths.StandardLocation.AppDataLocation
+            )
         except ImportError:
             # Fallback if Qt not available
             config_dir = str(Path.home() / ".config" / "AsciiDocArtisan")
@@ -510,7 +512,7 @@ class TemplateManager:
             raise ImportError("PyYAML is required for template serialization")
 
         # Build YAML front matter
-        metadata = {
+        metadata: Dict[str, Any] = {
             "name": template.name,
             "category": template.category,
             "description": template.description,
