@@ -200,8 +200,9 @@ class ActionManager:
         # These are declared (but not created yet - that happens in create_actions())
         # Declaring them here helps type checkers and IDEs
 
-        # File menu actions (10 actions)
+        # File menu actions (11 actions - includes template action v2.0.0)
         self.new_act: QAction  # New file (Ctrl+N)
+        self.new_from_template_act: QAction  # New from template (v2.0.0)
         self.open_act: QAction  # Open file (Ctrl+O)
         self.save_act: QAction  # Save file (Ctrl+S)
         self.save_as_act: QAction  # Save As dialog (Ctrl+Shift+S)
@@ -481,7 +482,7 @@ class ActionManager:
         """
         logger.debug("Creating actions...")
 
-        # === FILE MENU ACTIONS (10 actions) ===
+        # === FILE MENU ACTIONS (11 actions - includes template action v2.0.0) ===
         # These actions handle file operations: create, open, save, export, quit
 
         # New file (Ctrl+N) - creates a blank document
@@ -490,6 +491,13 @@ class ActionManager:
             "Create a new file",
             self.window.new_file,
             shortcut=QKeySequence.StandardKey.New,
+        )
+
+        # New from template (v2.0.0) - creates file from template
+        self.new_from_template_act = self._create_action(
+            "New from &Template...",
+            "Create a new document from a template",
+            self.window.new_from_template,
         )
 
         self.open_act = self._create_action(
@@ -930,8 +938,9 @@ class ActionManager:
         # Create File menu (&F makes Alt+F open the menu)
         file_menu = menubar.addMenu("&File")
 
-        # Add file operations (New, Open)
+        # Add file operations (New, New from Template, Open)
         file_menu.addAction(self.new_act)  # New file (Ctrl+N)
+        file_menu.addAction(self.new_from_template_act)  # New from template (v2.0.0)
         file_menu.addAction(self.open_act)  # Open file (Ctrl+O)
 
         # Separator (visual divider line)

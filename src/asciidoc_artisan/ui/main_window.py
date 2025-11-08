@@ -783,6 +783,41 @@ class AsciiDocEditor(QMainWindow):
         """Create a new file (delegates to FileHandler)."""
         self.file_handler.new_file()
 
+    def new_from_template(self) -> None:
+        """
+        Create a new document from a template (v2.0.0).
+
+        Shows the TemplateBrowser dialog with 6 built-in templates.
+        If user selects a template and provides variable values,
+        creates a new document with the instantiated template content.
+        """
+        from asciidoc_artisan.core.template_engine import TemplateEngine
+        from asciidoc_artisan.ui.template_browser import TemplateBrowser
+
+        # Show template browser dialog
+        browser = TemplateBrowser(self.template_manager, self)
+
+        if browser.exec():
+            # User selected a template
+            template = browser.selected_template
+            variables = browser.variable_values
+
+            if template:
+                # Instantiate template with user-provided variables
+                engine = TemplateEngine()
+                content = engine.instantiate(template, variables)
+
+                # Create new document with template content
+                self.file_handler.new_file()
+                self.editor.setPlainText(content)
+                self.has_unsaved_changes = True
+
+                # Log template usage
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.info(f"Created new document from template: {template.name}")
+
     @Slot()
     def open_file(self) -> None:
         """Open a file (delegates to FileOperationsManager)."""
