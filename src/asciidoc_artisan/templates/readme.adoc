@@ -1,0 +1,104 @@
+---
+name: README
+category: documentation
+description: Project README with installation and usage instructions
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: project_name
+    description: Project name
+    required: true
+  - name: description
+    description: Short project description
+    required: true
+  - name: author
+    description: Project author
+    default: "{{user.name}}"
+  - name: license
+    description: License type
+    default: "MIT"
+  - name: badges
+    description: Include badges
+    type: boolean
+    default: "true"
+---
+= {{project_name}}
+:toc:
+:icons: font
+
+{{description}}
+
+{{#if badges}}
+image:https://img.shields.io/badge/version-1.0.0-blue.svg[Version]
+image:https://img.shields.io/badge/license-{{license}}-green.svg[License]
+image:https://img.shields.io/badge/status-active-success.svg[Status]
+{{/if}}
+
+== Features
+
+* Feature 1
+* Feature 2
+* Feature 3
+
+== Installation
+
+=== Prerequisites
+
+* Requirement 1
+* Requirement 2
+
+=== Install from Source
+
+[source,bash]
+----
+git clone https://github.com/{{author}}/{{project_name}}.git
+cd {{project_name}}
+# Add installation commands here
+----
+
+== Usage
+
+=== Quick Start
+
+[source,bash]
+----
+# Add quick start example here
+----
+
+=== Basic Example
+
+[source,bash]
+----
+# Add basic usage example here
+----
+
+=== Advanced Usage
+
+For more advanced usage examples, see the link:docs/[documentation].
+
+== Configuration
+
+Describe configuration options and how to set them.
+
+== Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+== License
+
+This project is licensed under the {{license}} License - see the link:LICENSE[LICENSE] file for details.
+
+== Author
+
+{{author}}
+
+== Acknowledgments
+
+* Acknowledgment 1
+* Acknowledgment 2

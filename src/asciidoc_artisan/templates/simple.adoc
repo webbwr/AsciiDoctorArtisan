@@ -1,0 +1,34 @@
+---
+name: Simple Document
+category: general
+description: Basic AsciiDoc document with minimal structure
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: title
+    description: Document title
+    required: true
+  - name: author
+    description: Author name
+    default: "{{user.name}}"
+  - name: toc
+    description: Include table of contents
+    type: boolean
+    default: "false"
+---
+= {{title}}
+{{author}}
+{{date}}
+{{#if toc}}
+:toc:
+{{/if}}
+
+Write your content here.
+
+== Section 1
+
+Content for section 1.
+
+== Section 2
+
+Content for section 2.

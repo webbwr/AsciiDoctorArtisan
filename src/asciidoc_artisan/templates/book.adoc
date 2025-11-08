@@ -1,0 +1,102 @@
+---
+name: Book
+category: book
+description: Multi-chapter book with table of contents
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: title
+    description: Book title
+    required: true
+  - name: author
+    description: Author name
+    default: "{{user.name}}"
+  - name: version
+    description: Book version
+    default: "1.0"
+  - name: preface
+    description: Include preface
+    type: boolean
+    default: "true"
+---
+= {{title}}
+{{author}}
+v{{version}}, {{today}}
+:doctype: book
+:toc: left
+:toclevels: 2
+:icons: font
+:numbered:
+:source-highlighter: pygments
+:imagesdir: images
+
+{{#if preface}}
+[preface]
+= Preface
+
+Write your preface here. Explain the purpose and scope of this book.
+
+== Who This Book Is For
+
+Describe your target audience.
+
+== What You Will Learn
+
+* Topic 1
+* Topic 2
+* Topic 3
+{{/if}}
+
+= Part I: Getting Started
+
+[partintro]
+--
+Introduction to Part I.
+--
+
+== Chapter 1: Introduction
+
+Write the first chapter content here.
+
+=== Section 1.1
+
+Content for section 1.1.
+
+=== Section 1.2
+
+Content for section 1.2.
+
+== Chapter 2: Core Concepts
+
+Write the second chapter content here.
+
+= Part II: Advanced Topics
+
+[partintro]
+--
+Introduction to Part II.
+--
+
+== Chapter 3: Advanced Feature 1
+
+Write chapter 3 content here.
+
+== Chapter 4: Advanced Feature 2
+
+Write chapter 4 content here.
+
+[appendix]
+= Appendix A: Additional Resources
+
+* Resource 1
+* Resource 2
+
+[glossary]
+= Glossary
+
+[glossary]
+term 1:: Definition 1
+term 2:: Definition 2
+
+[index]
+= Index

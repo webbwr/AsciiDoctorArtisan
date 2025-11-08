@@ -1,0 +1,58 @@
+---
+name: Technical Article
+category: article
+description: Short technical article with abstract and references
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: title
+    description: Article title
+    required: true
+  - name: author
+    description: Author name
+    default: "{{user.name}}"
+  - name: date
+    description: Publication date
+    default: "{{today}}"
+  - name: abstract
+    description: Include abstract section
+    type: boolean
+    default: "true"
+---
+= {{title}}
+{{author}}
+{{date}}
+:toc:
+:icons: font
+:numbered:
+:source-highlighter: pygments
+
+{{#if abstract}}
+[abstract]
+--
+Write your abstract here. Summarize the main points of your article in 2-3 sentences.
+--
+{{/if}}
+
+== Introduction
+
+Write your introduction here. Explain the context and motivation for your article.
+
+== Main Content
+
+=== Section 1
+
+Content for section 1.
+
+=== Section 2
+
+Content for section 2.
+
+== Conclusion
+
+Summarize your findings and provide next steps.
+
+== References
+
+* Reference 1
+* Reference 2

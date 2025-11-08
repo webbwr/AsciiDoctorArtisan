@@ -1,0 +1,97 @@
+---
+name: Man Page
+category: reference
+description: Unix manual page format
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: command
+    description: Command name
+    required: true
+  - name: section
+    description: Manual section (1-8)
+    default: "1"
+  - name: author
+    description: Author name
+    default: "{{user.name}}"
+  - name: version
+    description: Command version
+    default: "1.0"
+---
+= {{command}}({{section}})
+{{author}}
+:doctype: manpage
+:man manual: User Commands
+:man source: {{command}} {{version}}
+
+== NAME
+
+{{command}} - brief description of what {{command}} does
+
+== SYNOPSIS
+
+*{{command}}* [_OPTION_]... [_FILE_]...
+
+== DESCRIPTION
+
+The *{{command}}* utility performs...
+
+Detailed description of the command functionality.
+
+== OPTIONS
+
+*-h*, *--help*::
+  Display help message and exit.
+
+*-v*, *--version*::
+  Display version information and exit.
+
+*-o*, *--output*=_FILE_::
+  Write output to _FILE_ instead of standard output.
+
+*-f*, *--force*::
+  Force operation without prompting.
+
+== EXIT STATUS
+
+*0*::
+  Success
+
+*1*::
+  General error
+
+*2*::
+  Invalid usage
+
+== EXAMPLES
+
+*{{command}} input.txt*::
+  Process input.txt with default settings.
+
+*{{command}} -o output.txt input.txt*::
+  Process input.txt and write to output.txt.
+
+== FILES
+
+_~/.{{command}}rc_::
+  User configuration file.
+
+_/etc/{{command}}.conf_::
+  System-wide configuration file.
+
+== BUGS
+
+Report bugs to: <{{user.email}}>
+
+== SEE ALSO
+
+Related commands or documentation.
+
+== AUTHOR
+
+Written by {{author}}.
+
+== COPYRIGHT
+
+Copyright (C) {{year}} {{author}}.
+Free use of this software is granted under the terms of the MIT License.

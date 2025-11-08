@@ -1,0 +1,116 @@
+---
+name: Technical Report
+category: report
+description: Formal technical report with executive summary
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: title
+    description: Report title
+    required: true
+  - name: author
+    description: Author name
+    default: "{{user.name}}"
+  - name: date
+    description: Report date
+    default: "{{today}}"
+  - name: project
+    description: Project name
+    required: false
+  - name: executive_summary
+    description: Include executive summary
+    type: boolean
+    default: "true"
+---
+= {{title}}
+{{author}}
+{{date}}
+{{#if project}}
+:project: {{project}}
+{{/if}}
+:toc:
+:toclevels: 3
+:numbered:
+:icons: font
+:source-highlighter: pygments
+
+{{#if executive_summary}}
+[abstract]
+== Executive Summary
+
+Provide a brief overview of the report findings and recommendations.
+
+**Key Findings:**
+
+* Finding 1
+* Finding 2
+* Finding 3
+
+**Recommendations:**
+
+* Recommendation 1
+* Recommendation 2
+{{/if}}
+
+== Introduction
+
+=== Background
+
+Describe the context and background for this report.
+
+=== Objectives
+
+* Objective 1
+* Objective 2
+* Objective 3
+
+=== Scope
+
+Define what is included and excluded from this report.
+
+== Methodology
+
+Describe the approach and methods used in this analysis.
+
+== Analysis
+
+=== Data Collection
+
+Explain how data was collected.
+
+=== Results
+
+Present the findings from the analysis.
+
+==== Finding 1
+
+Details of finding 1.
+
+==== Finding 2
+
+Details of finding 2.
+
+== Discussion
+
+Interpret the results and discuss implications.
+
+== Recommendations
+
+=== Short-term Recommendations
+
+1. Immediate action 1
+2. Immediate action 2
+
+=== Long-term Recommendations
+
+1. Strategic action 1
+2. Strategic action 2
+
+== Conclusion
+
+Summarize the key points and next steps.
+
+[appendix]
+== Appendix A: Supporting Data
+
+Include additional supporting information, tables, or charts.
