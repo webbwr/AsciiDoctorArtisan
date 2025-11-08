@@ -166,6 +166,15 @@ from asciidoc_artisan.ui.scroll_manager import (  # Syncs editor/preview scroll
 )
 from asciidoc_artisan.ui.settings_manager import SettingsManager  # Loads/saves settings
 from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager  # Spell checking
+
+# === V2.0.0 FEATURE MANAGERS ===
+from asciidoc_artisan.ui.autocomplete_manager import AutoCompleteManager  # Auto-complete (v2.0.0)
+from asciidoc_artisan.ui.syntax_checker_manager import SyntaxCheckerManager  # Syntax checking (v2.0.0)
+from asciidoc_artisan.core.template_manager import TemplateManager  # Template management (v2.0.0)
+from asciidoc_artisan.core.template_engine import TemplateEngine  # Template rendering (v2.0.0)
+from asciidoc_artisan.core.autocomplete_engine import AutoCompleteEngine  # Auto-complete engine (v2.0.0)
+from asciidoc_artisan.core.syntax_checker import SyntaxChecker  # Syntax checker core (v2.0.0)
+
 from asciidoc_artisan.ui.status_manager import StatusManager  # Status bar updates
 from asciidoc_artisan.ui.theme_manager import ThemeManager  # Dark/light mode switcher
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager  # Sets up UI widgets
@@ -331,6 +340,18 @@ class AsciiDocEditor(QMainWindow):
         # Connect editor to spell check manager for context menu
         self.editor.spell_check_manager = self.spell_check_manager
         logger.info("SpellCheckManager initialized")
+
+        # === Auto-Complete System (v2.0.0) ===
+        # AutoCompleteManager must be initialized AFTER UISetupManager creates editor
+        self._setup_autocomplete()
+
+        # === Syntax Checking System (v2.0.0) ===
+        # SyntaxCheckerManager must be initialized AFTER UISetupManager creates editor
+        self._setup_syntax_checker()
+
+        # === Template System (v2.0.0) ===
+        # TemplateManager must be initialized early (used by File → New from Template)
+        self._setup_template_system()
 
         # === Actions & Menus ===
         self.action_manager = ActionManager(self)
@@ -570,6 +591,67 @@ class AsciiDocEditor(QMainWindow):
         ):
             text = "✓ &Telemetry" if self._settings.telemetry_enabled else "&Telemetry"
             self.action_manager.toggle_telemetry_act.setText(text)
+
+    def _setup_autocomplete(self) -> None:
+        """Initialize Auto-Complete System (v2.0.0).
+
+        Sets up auto-complete with:
+        - Automatic completion on typing (300ms debounce)
+        - Manual trigger with Ctrl+Space
+        - Context-aware suggestions (syntax, snippets, recent)
+        - Smart text insertion with word prefix detection
+        """
+        # Initialize auto-complete engine
+        engine = AutoCompleteEngine()
+
+        # Create manager and connect to editor
+        self.autocomplete_manager = AutoCompleteManager(self.editor, engine)
+
+        # Load settings
+        self.autocomplete_manager.enabled = self._settings.autocomplete_enabled
+        self.autocomplete_manager.auto_delay = self._settings.autocomplete_delay
+
+        logger.info("AutoCompleteManager initialized")
+
+    def _setup_syntax_checker(self) -> None:
+        """Initialize Syntax Checking System (v2.0.0).
+
+        Sets up syntax checking with:
+        - Real-time error detection (500ms debounce)
+        - Color-coded underlines (red=error, orange=warning)
+        - Jump to next/previous error (F8, Shift+F8)
+        - Quick fix suggestions with Ctrl+.
+        """
+        # Initialize syntax checker engine
+        checker = SyntaxChecker()
+
+        # Create manager and connect to editor
+        self.syntax_checker_manager = SyntaxCheckerManager(self.editor, checker)
+
+        # Load settings
+        self.syntax_checker_manager.enabled = self._settings.syntax_check_realtime_enabled
+        self.syntax_checker_manager.check_delay = self._settings.syntax_check_delay
+
+        logger.info("SyntaxCheckerManager initialized")
+
+    def _setup_template_system(self) -> None:
+        """Initialize Template System (v2.0.0).
+
+        Sets up template management with:
+        - Built-in templates (article, book, manual, etc.)
+        - Custom user templates
+        - Recent templates tracking
+        - Template variable substitution
+        """
+        # Initialize template engine
+        engine = TemplateEngine()
+
+        # Create template manager
+        self.template_manager = TemplateManager(engine)
+
+        # Load all templates (built-in + custom)
+        templates = self.template_manager.get_all_templates()
+        logger.info(f"TemplateManager initialized with {len(templates)} templates")
 
     def _setup_synchronized_scrolling(self) -> None:
         """Set up synchronized scrolling (delegates to ScrollManager)."""
