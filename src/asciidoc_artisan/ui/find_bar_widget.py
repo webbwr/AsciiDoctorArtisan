@@ -22,6 +22,7 @@ import logging
 from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import (
     QCheckBox,
     QHBoxLayout,
@@ -289,7 +290,7 @@ class FindBarWidget(QWidget):
         self.replace_all_requested.emit(replace_text)
         logger.debug(f"Replace all requested with: '{replace_text}'")
 
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         """Handle key press events."""
         if event.key() == Qt.Key.Key_Escape:
             self._on_close()

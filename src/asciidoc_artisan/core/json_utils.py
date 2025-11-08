@@ -66,7 +66,8 @@ def dumps(obj: Any, indent: int | None = None) -> str:
             # orjson uses OPT_INDENT_2 for pretty printing (always 2 spaces)
             options = orjson.OPT_INDENT_2
 
-        return orjson.dumps(obj, option=options).decode("utf-8")
+        result: str = orjson.dumps(obj, option=options).decode("utf-8")
+        return result
     else:
         # Standard json.dumps()
         return stdlib_json.dumps(obj, indent=indent)

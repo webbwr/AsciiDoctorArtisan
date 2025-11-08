@@ -78,7 +78,7 @@ import logging  # For recording program events (debug, info, warning, error)
 import platform  # For detecting OS (Windows, Linux, Mac)
 import tempfile  # For creating temporary files (deleted automatically)
 from pathlib import Path  # Modern way to handle file paths (better than strings)
-from typing import Any, Dict, Optional  # Type hints to catch bugs early
+from typing import Any, Dict, List, Optional  # Type hints to catch bugs early
 
 # === QT CORE IMPORTS ===
 # Qt's core functionality (not GUI widgets)
@@ -123,7 +123,7 @@ from asciidoc_artisan.core import (
 from asciidoc_artisan.core.large_file_handler import (  # Handles files >10MB
     LargeFileHandler,
 )
-from asciidoc_artisan.core.search_engine import SearchEngine  # Text search (v1.8.0)
+from asciidoc_artisan.core.search_engine import SearchEngine, SearchMatch  # Text search (v1.8.0)
 
 # === UI MANAGER IMPORTS ===
 # These "manager" classes handle different parts of the UI
@@ -921,8 +921,8 @@ class AsciiDocEditor(QMainWindow):
         message: str,
         model: str,
         context_mode: str,
-        history: list,
-        document_content: object,
+        history: List[Any],
+        document_content: Any,
     ) -> None:
         """
         Route chat message to appropriate AI worker based on active backend.
@@ -1287,7 +1287,7 @@ class AsciiDocEditor(QMainWindow):
             logger.error(f"Replace all error: {e}")
             self.status_manager.show_status(f"Replace failed: {e}", 3000)
 
-    def _select_match(self, match) -> None:
+    def _select_match(self, match: SearchMatch) -> None:
         """Select a search match in the editor.
 
         Args:
@@ -1301,7 +1301,7 @@ class AsciiDocEditor(QMainWindow):
         self.editor.setTextCursor(cursor)
         self.editor.ensureCursorVisible()
 
-    def _highlight_search_matches(self, matches) -> None:
+    def _highlight_search_matches(self, matches: List[SearchMatch]) -> None:
         """Highlight all search matches in the editor.
 
         Args:

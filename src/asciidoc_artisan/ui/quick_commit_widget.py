@@ -17,6 +17,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QWidget
 
 logger = logging.getLogger(__name__)
@@ -119,7 +120,7 @@ class QuickCommitWidget(QWidget):
         self.cancelled.emit()
         self.hide()
 
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         """
         Handle key press events.
 

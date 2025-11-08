@@ -16,7 +16,7 @@ main window complexity and improve modularity.
 
 import logging
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMessageBox
@@ -61,22 +61,24 @@ class DialogManager:
         status += f"PANDOC_AVAILABLE: {pandoc_available}\n"
 
         # Lazy import pypandoc only if needed
-        pypandoc = None
+        pypandoc_module: Any = None
         if pandoc_available:
             try:
                 import pypandoc
+
+                pypandoc_module = pypandoc
             except ImportError:
                 pass
 
-        status += f"pypandoc module: {'Imported' if pypandoc else 'Not found'}\n"
+        status += f"pypandoc module: {'Imported' if pypandoc_module else 'Not found'}\n"
 
-        if pandoc_available and pypandoc:
+        if pandoc_available and pypandoc_module:
             try:
                 # Query pandoc version from system.
-                version = pypandoc.get_pandoc_version()
+                version = pypandoc_module.get_pandoc_version()
                 status += f"Pandoc version: {version}\n"
                 # Show where binary is installed.
-                path = pypandoc.get_pandoc_path()
+                path = pypandoc_module.get_pandoc_path()
                 status += f"Pandoc path: {path}\n"
             except Exception as e:
                 # Pypandoc exists but cannot talk to pandoc.
@@ -351,7 +353,7 @@ class DialogManager:
                 "Open File", QMessageBox.ButtonRole.ActionRole
             )
 
-            def open_file():
+            def open_file() -> None:
                 """Open telemetry file in default application."""
                 logger.info(f"Opening telemetry file: {telemetry_file}")
                 try:
@@ -466,7 +468,7 @@ class DialogManager:
             "Change Directory", QMessageBox.ButtonRole.ActionRole
         )
 
-        def change_directory():
+        def change_directory() -> None:
             """Allow user to select a new telemetry directory."""
             logger.info("User requested to change telemetry directory")
 

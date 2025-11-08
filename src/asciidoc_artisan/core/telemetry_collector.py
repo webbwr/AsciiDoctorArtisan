@@ -286,7 +286,8 @@ class TelemetryCollector:
 
         try:
             with open(self.telemetry_file, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data: List[Dict[str, Any]] = json.load(f)
+                return data
         except Exception as e:
             logger.error(f"Failed to load telemetry events: {e}")
             return []

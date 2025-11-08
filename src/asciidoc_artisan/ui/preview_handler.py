@@ -92,6 +92,7 @@ class PreviewHandler(PreviewHandlerBase):
 
         if preview_max > 0:
             preview_value = preview_scrollbar.value()
-            return preview_value / preview_max
+            scroll_percent: float = preview_value / preview_max
+            return scroll_percent
 
         return None

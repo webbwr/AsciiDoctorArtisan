@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QTextEdit,
     QVBoxLayout,
+    QWidget,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class ValidationWorker(QThread):
         super().__init__()
         self.action = action
 
-    def run(self):
+    def run(self) -> None:
         """Run validation or update in background thread."""
         try:
             if self.action == "validate":
@@ -70,7 +71,7 @@ class ValidationWorker(QThread):
                     }
                 )
 
-    def _validate_installation(self):
+    def _validate_installation(self) -> None:
         """Validate all application requirements."""
         results = {
             "python_packages": [],
@@ -259,7 +260,7 @@ class ValidationWorker(QThread):
         except Exception as e:
             return ("✗", "error", f"Check failed: {str(e)}")
 
-    def _update_dependencies(self):
+    def _update_dependencies(self) -> None:
         """Update all Python dependencies to latest versions."""
         self.update_progress.emit("Starting dependency update...")
 
@@ -426,7 +427,7 @@ class ValidationWorker(QThread):
 class InstallationValidatorDialog(QDialog):
     """Dialog for validating installation and updating dependencies."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         """Initialize installation validator dialog."""
         super().__init__(parent)
         self.setWindowTitle("Installation Validator")
@@ -438,7 +439,7 @@ class InstallationValidatorDialog(QDialog):
         self._apply_theme()  # Apply theme before validation
         self._start_validation()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
         """Setup dialog UI."""
         layout = QVBoxLayout(self)
 
@@ -492,7 +493,7 @@ class InstallationValidatorDialog(QDialog):
 
         layout.addLayout(button_layout)
 
-    def _apply_theme(self):
+    def _apply_theme(self) -> None:
         """Apply theme based on parent editor's dark mode setting."""
         # Check if parent has settings and dark mode attribute
         if self.parent_editor and hasattr(self.parent_editor, "_settings"):
@@ -555,7 +556,7 @@ class InstallationValidatorDialog(QDialog):
             f"background-color: {button_bg}; color: {button_text}; padding: 8px;"
         )
 
-    def _start_validation(self):
+    def _start_validation(self) -> None:
         """Start validation in background thread."""
         if self.worker and self.worker.isRunning():
             return
@@ -572,12 +573,12 @@ class InstallationValidatorDialog(QDialog):
         logger.info("Starting worker thread...")
         self.worker.start()
 
-    def _validation_finished(self):
+    def _validation_finished(self) -> None:
         """Handle validation worker finished."""
         self.validate_btn.setEnabled(True)
         self.update_btn.setEnabled(True)
 
-    def _show_validation_results(self, results: Dict[str, List[Tuple]]):
+    def _show_validation_results(self, results: Dict[str, List[Tuple[str, ...]]]) -> None:
         """
         Display validation results.
 
@@ -636,7 +637,7 @@ class InstallationValidatorDialog(QDialog):
         self.results_text.setPlainText(result_text)
         logger.info("Text set successfully")
 
-    def _start_update(self):
+    def _start_update(self) -> None:
         """Start dependency update in background thread."""
         if self.worker and self.worker.isRunning():
             return
@@ -670,7 +671,7 @@ class InstallationValidatorDialog(QDialog):
         self.worker.finished.connect(self._update_finished)
         self.worker.start()
 
-    def _show_update_progress(self, message: str):
+    def _show_update_progress(self, message: str) -> None:
         """Show update progress message."""
         self.progress_label.setText(message)
         current = self.results_text.toPlainText()
@@ -680,7 +681,7 @@ class InstallationValidatorDialog(QDialog):
         cursor.movePosition(cursor.MoveOperation.End)
         self.results_text.setTextCursor(cursor)
 
-    def _show_update_complete(self, success: bool, message: str):
+    def _show_update_complete(self, success: bool, message: str) -> None:
         """Show update completion message."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -694,7 +695,7 @@ class InstallationValidatorDialog(QDialog):
         else:
             QMessageBox.warning(self, "Update Failed", message)
 
-    def _update_finished(self):
+    def _update_finished(self) -> None:
         """Handle update worker finished."""
         self.validate_btn.setEnabled(True)
         self.update_btn.setEnabled(True)

@@ -22,7 +22,7 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 
 import logging
 import time
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QTextCursor
@@ -124,7 +124,7 @@ class ChatPanelWidget(QWidget):
         # Refresh all messages with new theme
         self.refresh_display()
 
-    def _get_colors(self) -> dict:
+    def _get_colors(self) -> Dict[str, str]:
         """Get theme-aware colors for message styling."""
         if self._dark_mode:
             return {
@@ -365,7 +365,7 @@ class ChatPanelWidget(QWidget):
         """
         return self._messages.copy()
 
-    def get_message_history(self) -> List[dict]:
+    def get_message_history(self) -> List[Dict[str, Any]]:
         """
         Get message history as dictionaries (for settings/JSON serialization).
 

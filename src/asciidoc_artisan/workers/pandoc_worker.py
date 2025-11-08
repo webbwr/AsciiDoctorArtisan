@@ -440,15 +440,8 @@ class PandocWorker(QObject):
             return
 
         # Pandoc conversion path (fallback or primary if AI not requested)
-        # Lazy import pypandoc only when actually needed for conversion
-        pypandoc = None
-        if is_pandoc_available():
-            try:
-                import pypandoc
-            except ImportError:
-                pass
-
-        if not is_pandoc_available() or not pypandoc:
+        # Check if Pandoc is available (pypandoc will be lazily imported in _execute_pandoc_conversion)
+        if not is_pandoc_available():
             err = "Pandoc/pypandoc not available for conversion."
             logger.error(err)
             self.conversion_error.emit(err, context)

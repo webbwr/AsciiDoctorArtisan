@@ -127,7 +127,8 @@ class ClaudeClient:
         Returns:
             True if API key is available in keyring
         """
-        return self.credentials.has_anthropic_key()
+        result: bool = self.credentials.has_anthropic_key()
+        return result
 
     def _get_client(self) -> Optional[Anthropic]:
         """
@@ -214,7 +215,7 @@ class ClaudeClient:
                 "model": self.model,
                 "max_tokens": self.max_tokens,
                 "temperature": self.temperature,
-                "messages": messages,  # type: ignore[arg-type]
+                "messages": messages,
             }
             if system:
                 kwargs["system"] = system
@@ -227,7 +228,7 @@ class ClaudeClient:
                 # Claude returns a list of content blocks
                 first_block = response.content[0]
                 if hasattr(first_block, "text"):
-                    content = first_block.text  # type: ignore[attr-defined]
+                    content = first_block.text
 
             tokens_used = (
                 response.usage.input_tokens + response.usage.output_tokens

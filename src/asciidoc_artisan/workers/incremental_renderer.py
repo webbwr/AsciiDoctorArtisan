@@ -216,7 +216,8 @@ class DocumentBlock:
             # Fallback to MD5 (slower but always available)
             content_hash = hashlib.md5(self.content.encode("utf-8")).hexdigest()
 
-        return content_hash[:BLOCK_HASH_LENGTH]
+        result: str = content_hash[:BLOCK_HASH_LENGTH]
+        return result
 
 
 class BlockCache:

@@ -347,11 +347,11 @@ class AsyncFileContext:
         # Only pass encoding for text modes
         if self.encoding is not None and "b" not in self.mode:
             self._file = await aiofiles.open(  # type: ignore[call-overload]
-                file=str(self.file_path), mode=self.mode, encoding=self.encoding
+                str(self.file_path), self.mode, encoding=self.encoding
             )
         else:
             self._file = await aiofiles.open(  # type: ignore[call-overload]
-                file=str(self.file_path), mode=self.mode
+                str(self.file_path), self.mode
             )
         return self._file
 
