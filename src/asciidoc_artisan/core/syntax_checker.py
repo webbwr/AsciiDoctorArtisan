@@ -232,12 +232,21 @@ class SyntaxChecker:
         Rules are loaded from syntax_validators module. This method
         is called automatically during initialization.
 
-        Note: Rules are added in Phase 2 (syntax_validators.py).
-        For Phase 1, this list is empty.
+        Loads 11 built-in rules (Phase 2):
+        - 3 syntax error rules (E001-E003)
+        - 6 warning rules (W001-W005, W029)
+        - 2 info/style rules (I002-I003)
         """
-        # Import and add built-in rules here (Phase 2)
-        # For now, rules list is empty (will be populated in Phase 2)
-        pass
+        # Import built-in rules (Phase 2)
+        try:
+            from asciidoc_artisan.core.syntax_validators import BUILT_IN_RULES
+
+            self.rules.extend(BUILT_IN_RULES)
+        except ImportError:
+            # If syntax_validators not available, continue with empty rules
+            import logging
+
+            logging.warning("syntax_validators module not found, no built-in rules loaded")
 
     def add_rule(self, rule: ValidationRule) -> None:
         """
