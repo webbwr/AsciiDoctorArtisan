@@ -27,7 +27,7 @@ class Settings:
 
     Attributes match the specification in SPECIFICATIONS.md (v1.8.0).
 
-    All 27 fields (13 original + 5 chat settings + 6 font settings + 3 spell check):
+    All 35 fields (13 original + 5 chat settings + 6 font settings + 3 spell check + 8 v2.0.0):
 
     Core Settings:
     - last_directory: Last directory used for file operations
@@ -67,6 +67,20 @@ class Settings:
     - spell_check_enabled: Enable spell checking (default: True)
     - spell_check_language: Language code (default: "en")
     - spell_check_custom_words: Custom dictionary words
+
+    Auto-Complete Settings (v2.0.0):
+    - autocomplete_enabled: Enable auto-complete (default: True)
+    - autocomplete_delay: Debounce delay in milliseconds (default: 300)
+    - autocomplete_min_chars: Minimum characters to trigger (default: 2)
+
+    Syntax Checking Settings (v2.0.0):
+    - syntax_check_realtime_enabled: Enable real-time syntax checking (default: True)
+    - syntax_check_delay: Debounce delay in milliseconds (default: 500)
+    - syntax_check_show_underlines: Show error underlines (default: True)
+
+    Template Settings (v2.0.0):
+    - template_last_category: Last selected category (default: "All")
+    - template_recent_limit: Maximum recent templates (default: 10)
 
     Telemetry Settings (v1.8.0):
     - telemetry_enabled: Enable privacy-first telemetry (default: False, opt-in only)
@@ -127,6 +141,20 @@ class Settings:
     spell_check_enabled: bool = True
     spell_check_language: str = "en"
     spell_check_custom_words: List[str] = field(default_factory=list)
+
+    # Auto-complete settings (v2.0.0)
+    autocomplete_enabled: bool = True
+    autocomplete_delay: int = 300  # milliseconds
+    autocomplete_min_chars: int = 2
+
+    # Syntax checking settings (v2.0.0)
+    syntax_check_realtime_enabled: bool = True
+    syntax_check_delay: int = 500  # milliseconds
+    syntax_check_show_underlines: bool = True
+
+    # Template settings (v2.0.0)
+    template_last_category: str = "All"
+    template_recent_limit: int = 10
 
     # Telemetry settings (v1.8.0)
     telemetry_enabled: bool = False  # Opt-in only (GDPR compliant)
@@ -261,6 +289,14 @@ class Settings:
             - spell_check_enabled: Must be bool, defaults to True
             - spell_check_language: Non-empty string, defaults to "en"
             - spell_check_custom_words: Must be list of strings
+            - autocomplete_enabled: Must be bool, defaults to True
+            - autocomplete_delay: Integer 100-5000, defaults to 300
+            - autocomplete_min_chars: Integer 1-10, defaults to 2
+            - syntax_check_realtime_enabled: Must be bool, defaults to True
+            - syntax_check_delay: Integer 100-10000, defaults to 500
+            - syntax_check_show_underlines: Must be bool, defaults to True
+            - template_last_category: Non-empty string, defaults to "All"
+            - template_recent_limit: Integer 1-50, defaults to 10
             - telemetry_enabled: Must be bool, defaults to False
             - telemetry_session_id: Optional string (UUID format)
             - telemetry_opt_in_shown: Must be bool, defaults to False
@@ -464,6 +500,41 @@ class Settings:
             self.spell_check_custom_words = [
                 w for w in self.spell_check_custom_words if isinstance(w, str)
             ]
+
+        # Validate auto-complete settings (v2.0.0)
+        if not isinstance(self.autocomplete_enabled, bool):
+            issues.append(f"Invalid autocomplete_enabled: {self.autocomplete_enabled}")
+            self.autocomplete_enabled = True
+
+        if not isinstance(self.autocomplete_delay, int) or not (100 <= self.autocomplete_delay <= 5000):
+            issues.append(f"Invalid autocomplete_delay: {self.autocomplete_delay}")
+            self.autocomplete_delay = 300
+
+        if not isinstance(self.autocomplete_min_chars, int) or not (1 <= self.autocomplete_min_chars <= 10):
+            issues.append(f"Invalid autocomplete_min_chars: {self.autocomplete_min_chars}")
+            self.autocomplete_min_chars = 2
+
+        # Validate syntax checking settings (v2.0.0)
+        if not isinstance(self.syntax_check_realtime_enabled, bool):
+            issues.append(f"Invalid syntax_check_realtime_enabled: {self.syntax_check_realtime_enabled}")
+            self.syntax_check_realtime_enabled = True
+
+        if not isinstance(self.syntax_check_delay, int) or not (100 <= self.syntax_check_delay <= 10000):
+            issues.append(f"Invalid syntax_check_delay: {self.syntax_check_delay}")
+            self.syntax_check_delay = 500
+
+        if not isinstance(self.syntax_check_show_underlines, bool):
+            issues.append(f"Invalid syntax_check_show_underlines: {self.syntax_check_show_underlines}")
+            self.syntax_check_show_underlines = True
+
+        # Validate template settings (v2.0.0)
+        if not isinstance(self.template_last_category, str):
+            issues.append(f"Invalid template_last_category: {self.template_last_category}")
+            self.template_last_category = "All"
+
+        if not isinstance(self.template_recent_limit, int) or not (1 <= self.template_recent_limit <= 50):
+            issues.append(f"Invalid template_recent_limit: {self.template_recent_limit}")
+            self.template_recent_limit = 10
 
         # Validate telemetry settings
         if not isinstance(self.telemetry_enabled, bool):
