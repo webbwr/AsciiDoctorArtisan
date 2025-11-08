@@ -46,6 +46,11 @@ qasync>=0.28.0
 # Data validation and settings (v1.7.0 - enhanced type safety)
 pydantic>=2.0.0
 
+# Fuzzy string matching (v2.0.0 - auto-complete fuzzy matching)
+# Rust-based implementation, 10x faster than fuzzywuzzy
+# Used for intelligent auto-completion ranking
+rapidfuzz>=3.14.0
+
 # AI document conversion and chat (Ollama integration v1.2+, chat v1.7.0)
 # Note: Requires Ollama system binary for local AI features
 # Install: curl https://ollama.ai/install.sh | sh (Linux/Mac)
