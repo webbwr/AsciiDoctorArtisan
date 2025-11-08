@@ -33,7 +33,6 @@ Example:
     ```
 """
 
-
 from PySide6.QtCore import QObject, QTimer
 from PySide6.QtWidgets import QPlainTextEdit
 

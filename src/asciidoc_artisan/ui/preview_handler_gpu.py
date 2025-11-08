@@ -16,7 +16,6 @@ Factory function create_preview_handler() simplifies usage in main_window.py.
 """
 
 import logging
-import time
 from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QUrl

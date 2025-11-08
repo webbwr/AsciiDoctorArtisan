@@ -283,7 +283,9 @@ class SyntaxProvider:
             ),
         ]
 
-    def _get_heading_completions(self, context: CompletionContext) -> List[CompletionItem]:
+    def _get_heading_completions(
+        self, context: CompletionContext
+    ) -> List[CompletionItem]:
         """Get heading-specific completions based on level."""
         level = len(context.line) - len(context.line.lstrip("="))
         heading_items = [
@@ -480,7 +482,9 @@ class IncludeProvider:
         Args:
             current_file_path: Path to current document (for relative paths)
         """
-        self.current_file_path = Path(current_file_path) if current_file_path else Path.cwd()
+        self.current_file_path = (
+            Path(current_file_path) if current_file_path else Path.cwd()
+        )
         self.base_dir = (
             self.current_file_path.parent
             if self.current_file_path.is_file()

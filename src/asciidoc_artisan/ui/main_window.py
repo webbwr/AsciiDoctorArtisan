@@ -120,15 +120,35 @@ from asciidoc_artisan.core import (
     ResourceMonitor,  # Tracks CPU/memory usage
     atomic_save_text,  # Save files atomically (prevents corruption)
 )
+from asciidoc_artisan.core.autocomplete_engine import (
+    AutoCompleteEngine,
+)  # Auto-complete engine (v2.0.0)
 from asciidoc_artisan.core.large_file_handler import (  # Handles files >10MB
     LargeFileHandler,
 )
-from asciidoc_artisan.core.search_engine import SearchEngine, SearchMatch  # Text search (v1.8.0)
+from asciidoc_artisan.core.search_engine import (
+    SearchEngine,
+    SearchMatch,
+)  # Text search (v1.8.0)
+from asciidoc_artisan.core.syntax_checker import (
+    SyntaxChecker,
+)  # Syntax checker core (v2.0.0)
+from asciidoc_artisan.core.template_engine import (
+    TemplateEngine,
+)  # Template rendering (v2.0.0)
+from asciidoc_artisan.core.template_manager import (
+    TemplateManager,
+)  # Template management (v2.0.0)
 
 # === UI MANAGER IMPORTS ===
 # These "manager" classes handle different parts of the UI
 # This is the "Delegation Pattern" - main window delegates to specialists
 from asciidoc_artisan.ui.action_manager import ActionManager  # Creates menu actions
+
+# === V2.0.0 FEATURE MANAGERS ===
+from asciidoc_artisan.ui.autocomplete_manager import (
+    AutoCompleteManager,
+)  # Auto-complete (v2.0.0)
 
 # === REMOVED FEATURES (KEPT AS COMMENTS FOR REFERENCE) ===
 # MenuManager removed in v1.5.0 - replaced by ActionManager (better architecture)
@@ -166,16 +186,10 @@ from asciidoc_artisan.ui.scroll_manager import (  # Syncs editor/preview scroll
 )
 from asciidoc_artisan.ui.settings_manager import SettingsManager  # Loads/saves settings
 from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager  # Spell checking
-
-# === V2.0.0 FEATURE MANAGERS ===
-from asciidoc_artisan.ui.autocomplete_manager import AutoCompleteManager  # Auto-complete (v2.0.0)
-from asciidoc_artisan.ui.syntax_checker_manager import SyntaxCheckerManager  # Syntax checking (v2.0.0)
-from asciidoc_artisan.core.template_manager import TemplateManager  # Template management (v2.0.0)
-from asciidoc_artisan.core.template_engine import TemplateEngine  # Template rendering (v2.0.0)
-from asciidoc_artisan.core.autocomplete_engine import AutoCompleteEngine  # Auto-complete engine (v2.0.0)
-from asciidoc_artisan.core.syntax_checker import SyntaxChecker  # Syntax checker core (v2.0.0)
-
 from asciidoc_artisan.ui.status_manager import StatusManager  # Status bar updates
+from asciidoc_artisan.ui.syntax_checker_manager import (
+    SyntaxCheckerManager,
+)  # Syntax checking (v2.0.0)
 from asciidoc_artisan.ui.theme_manager import ThemeManager  # Dark/light mode switcher
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager  # Sets up UI widgets
 from asciidoc_artisan.ui.ui_state_manager import UIStateManager  # Tracks UI state
@@ -629,7 +643,9 @@ class AsciiDocEditor(QMainWindow):
         self.syntax_checker_manager = SyntaxCheckerManager(self.editor, checker)
 
         # Load settings
-        self.syntax_checker_manager.enabled = self._settings.syntax_check_realtime_enabled
+        self.syntax_checker_manager.enabled = (
+            self._settings.syntax_check_realtime_enabled
+        )
         self.syntax_checker_manager.check_delay = self._settings.syntax_check_delay
 
         logger.info("SyntaxCheckerManager initialized")

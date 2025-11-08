@@ -40,7 +40,7 @@ Example:
 """
 
 from functools import lru_cache
-from typing import List, Protocol
+from typing import Any, List, Optional, Protocol
 
 from asciidoc_artisan.core.models import CompletionContext, CompletionItem
 
@@ -245,12 +245,13 @@ class AutoCompleteEngine:
 
         # Try to import rapidfuzz for fuzzy matching
         has_rapidfuzz = False
+        rapidfuzz_fuzz: Optional[Any] = None
         try:
-            from rapidfuzz import fuzz as rapidfuzz_module
+            from rapidfuzz import fuzz as rapidfuzz_fuzz  # type: ignore[no-redef]
 
             has_rapidfuzz = True
         except ImportError:
-            rapidfuzz_module = None
+            pass
 
         for item in items:
             text = item.filter_text.lower() if item.filter_text else item.text.lower()
@@ -265,8 +266,8 @@ class AutoCompleteEngine:
                 position_bonus = (1 - pos / len(text)) * 10 if text else 0
                 item.score = 80.0 + position_bonus
             # Fuzzy match (if available)
-            elif has_rapidfuzz and rapidfuzz_module and query:
-                fuzzy_score = rapidfuzz_module.ratio(query, text)
+            elif has_rapidfuzz and rapidfuzz_fuzz and query:
+                fuzzy_score = rapidfuzz_fuzz.ratio(query, text)
                 item.score = fuzzy_score * 0.6
             # Substring match (fallback)
             elif query in text:
@@ -354,7 +355,9 @@ class AutoCompleteEngine:
         return {
             "size": size,
             "max_size": self._cache_size,
-            "utilization": int((size / self._cache_size) * 100) if self._cache_size > 0 else 0,
+            "utilization": (
+                int((size / self._cache_size) * 100) if self._cache_size > 0 else 0
+            ),
         }
 
 

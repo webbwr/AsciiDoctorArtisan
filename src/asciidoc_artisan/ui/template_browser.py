@@ -152,7 +152,9 @@ class TemplateBrowser(QDialog):
         ```
     """
 
-    def __init__(self, manager: TemplateManager, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self, manager: TemplateManager, parent: Optional[QWidget] = None
+    ) -> None:
         """
         Initialize template browser.
 

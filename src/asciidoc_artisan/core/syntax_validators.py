@@ -242,7 +242,9 @@ class BrokenXRefRule:
 
                 if target and target not in anchors:
                     # Suggest similar anchors (simple substring matching)
-                    suggestions = [a for a in anchors if target.lower() in a.lower()][:3]
+                    suggestions = [a for a in anchors if target.lower() in a.lower()][
+                        :3
+                    ]
 
                     fixes = []
                     for suggestion in suggestions:

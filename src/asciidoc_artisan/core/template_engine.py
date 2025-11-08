@@ -202,7 +202,7 @@ class TemplateEngine:
             ```
         """
         # Pattern: {{varname}} or {{varname:default}}
-        pattern = r'\{\{([^}:]+)(?::([^}]+))?\}\}'
+        pattern = r"\{\{([^}:]+)(?::([^}]+))?\}\}"
 
         def replace(match: re.Match[str]) -> str:
             var_name = match.group(1).strip()
@@ -255,7 +255,7 @@ class TemplateEngine:
             ```
         """
         # Process {{#if var}}...{{/if}}
-        if_pattern = r'\{\{#if\s+(\w+)\}\}(.*?)\{\{/if\}\}'
+        if_pattern = r"\{\{#if\s+(\w+)\}\}(.*?)\{\{/if\}\}"
 
         def replace_if(match: re.Match[str]) -> str:
             var_name = match.group(1)
@@ -268,7 +268,7 @@ class TemplateEngine:
         text = re.sub(if_pattern, replace_if, text, flags=re.DOTALL)
 
         # Process {{#unless var}}...{{/unless}}
-        unless_pattern = r'\{\{#unless\s+(\w+)\}\}(.*?)\{\{/unless\}\}'
+        unless_pattern = r"\{\{#unless\s+(\w+)\}\}(.*?)\{\{/unless\}\}"
 
         def replace_unless(match: re.Match[str]) -> str:
             var_name = match.group(1)
@@ -302,7 +302,7 @@ class TemplateEngine:
             # Returns: "Header\\nContent here\\nFooter"
             ```
         """
-        pattern = r'\{\{include:([^}]+)\}\}'
+        pattern = r"\{\{include:([^}]+)\}\}"
 
         def replace(match: re.Match[str]) -> str:
             file_path = match.group(1).strip()
@@ -435,8 +435,14 @@ class TemplateEngine:
         category = metadata.get("category")
         description = metadata.get("description")
 
-        if not isinstance(name, str) or not isinstance(category, str) or not isinstance(description, str):
-            raise ValueError("Template must have name, category, and description as strings")
+        if (
+            not isinstance(name, str)
+            or not isinstance(category, str)
+            or not isinstance(description, str)
+        ):
+            raise ValueError(
+                "Template must have name, category, and description as strings"
+            )
 
         if not all([name, category, description]):
             raise ValueError("Template must have name, category, and description")
@@ -502,7 +508,7 @@ class TemplateEngine:
         warnings = []
 
         # Extract all variable references from content
-        pattern = r'\{\{([^}:]+)(?::([^}]+))?\}\}'
+        pattern = r"\{\{([^}:]+)(?::([^}]+))?\}\}"
         matches = re.findall(pattern, template.content)
 
         # Check if all referenced vars are defined
@@ -521,15 +527,15 @@ class TemplateEngine:
                 )
 
         # Check for malformed conditionals
-        if_count = len(re.findall(r'\{\{#if\s+\w+\}\}', template.content))
-        endif_count = len(re.findall(r'\{\{/if\}\}', template.content))
+        if_count = len(re.findall(r"\{\{#if\s+\w+\}\}", template.content))
+        endif_count = len(re.findall(r"\{\{/if\}\}", template.content))
         if if_count != endif_count:
             warnings.append(
                 f"Mismatched {{{{#if}}}} tags: {if_count} opening, {endif_count} closing"
             )
 
-        unless_count = len(re.findall(r'\{\{#unless\s+\w+\}\}', template.content))
-        endunless_count = len(re.findall(r'\{\{/unless\}\}', template.content))
+        unless_count = len(re.findall(r"\{\{#unless\s+\w+\}\}", template.content))
+        endunless_count = len(re.findall(r"\{\{/unless\}\}", template.content))
         if unless_count != endunless_count:
             warnings.append(
                 f"Mismatched {{{{#unless}}}} tags: {unless_count} opening, {endunless_count} closing"

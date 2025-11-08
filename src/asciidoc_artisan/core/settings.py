@@ -506,34 +506,52 @@ class Settings:
             issues.append(f"Invalid autocomplete_enabled: {self.autocomplete_enabled}")
             self.autocomplete_enabled = True
 
-        if not isinstance(self.autocomplete_delay, int) or not (100 <= self.autocomplete_delay <= 5000):
+        if not isinstance(self.autocomplete_delay, int) or not (
+            100 <= self.autocomplete_delay <= 5000
+        ):
             issues.append(f"Invalid autocomplete_delay: {self.autocomplete_delay}")
             self.autocomplete_delay = 300
 
-        if not isinstance(self.autocomplete_min_chars, int) or not (1 <= self.autocomplete_min_chars <= 10):
-            issues.append(f"Invalid autocomplete_min_chars: {self.autocomplete_min_chars}")
+        if not isinstance(self.autocomplete_min_chars, int) or not (
+            1 <= self.autocomplete_min_chars <= 10
+        ):
+            issues.append(
+                f"Invalid autocomplete_min_chars: {self.autocomplete_min_chars}"
+            )
             self.autocomplete_min_chars = 2
 
         # Validate syntax checking settings (v2.0.0)
         if not isinstance(self.syntax_check_realtime_enabled, bool):
-            issues.append(f"Invalid syntax_check_realtime_enabled: {self.syntax_check_realtime_enabled}")
+            issues.append(
+                f"Invalid syntax_check_realtime_enabled: {self.syntax_check_realtime_enabled}"
+            )
             self.syntax_check_realtime_enabled = True
 
-        if not isinstance(self.syntax_check_delay, int) or not (100 <= self.syntax_check_delay <= 10000):
+        if not isinstance(self.syntax_check_delay, int) or not (
+            100 <= self.syntax_check_delay <= 10000
+        ):
             issues.append(f"Invalid syntax_check_delay: {self.syntax_check_delay}")
             self.syntax_check_delay = 500
 
         if not isinstance(self.syntax_check_show_underlines, bool):
-            issues.append(f"Invalid syntax_check_show_underlines: {self.syntax_check_show_underlines}")
+            issues.append(
+                f"Invalid syntax_check_show_underlines: {self.syntax_check_show_underlines}"
+            )
             self.syntax_check_show_underlines = True
 
         # Validate template settings (v2.0.0)
         if not isinstance(self.template_last_category, str):
-            issues.append(f"Invalid template_last_category: {self.template_last_category}")
+            issues.append(
+                f"Invalid template_last_category: {self.template_last_category}"
+            )
             self.template_last_category = "All"
 
-        if not isinstance(self.template_recent_limit, int) or not (1 <= self.template_recent_limit <= 50):
-            issues.append(f"Invalid template_recent_limit: {self.template_recent_limit}")
+        if not isinstance(self.template_recent_limit, int) or not (
+            1 <= self.template_recent_limit <= 50
+        ):
+            issues.append(
+                f"Invalid template_recent_limit: {self.template_recent_limit}"
+            )
             self.template_recent_limit = 10
 
         # Validate telemetry settings

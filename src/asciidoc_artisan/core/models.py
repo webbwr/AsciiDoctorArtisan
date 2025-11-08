@@ -477,7 +477,9 @@ class CompletionContext(BaseModel):
     trigger_char: Optional[str] = Field(
         default=None, description="Character that triggered completion"
     )
-    manual: bool = Field(default=False, description="Manually triggered with Ctrl+Space")
+    manual: bool = Field(
+        default=False, description="Manually triggered with Ctrl+Space"
+    )
 
     @field_validator("line_number", "column")
     @classmethod
@@ -582,7 +584,9 @@ class QuickFix(BaseModel):
     """
 
     title: str = Field(..., description="Fix description")
-    edits: List[TextEdit] = Field(default_factory=list, description="Text edits to apply")
+    edits: List[TextEdit] = Field(
+        default_factory=list, description="Text edits to apply"
+    )
 
     @field_validator("title")
     @classmethod
@@ -640,7 +644,9 @@ class SyntaxErrorModel(BaseModel):
     line: int = Field(..., description="Line number (0-indexed)")
     column: int = Field(..., description="Column number (0-indexed)")
     length: int = Field(..., description="Error span length")
-    fixes: List[QuickFix] = Field(default_factory=list, description="Quick fix suggestions")
+    fixes: List[QuickFix] = Field(
+        default_factory=list, description="Quick fix suggestions"
+    )
 
     @field_validator("code")
     @classmethod

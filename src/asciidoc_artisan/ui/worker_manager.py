@@ -338,7 +338,9 @@ class WorkerManager:
         if self.ollama_chat_thread and self.ollama_chat_thread.isRunning():
             self.ollama_chat_thread.quit()
             if not self.ollama_chat_thread.wait(2000):
-                logger.warning("Ollama chat thread did not exit cleanly, force terminating")
+                logger.warning(
+                    "Ollama chat thread did not exit cleanly, force terminating"
+                )
                 self.ollama_chat_thread.terminate()
                 self.ollama_chat_thread.wait(1000)
 

@@ -96,6 +96,7 @@ class AsyncFileHandler(QObject):
 
         # Persistent thread pool for efficient async I/O
         from concurrent.futures import ThreadPoolExecutor
+
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
 
         logger.info(f"Async file handler initialized with {max_workers} worker threads")
@@ -111,6 +112,7 @@ class AsyncFileHandler(QObject):
             read_complete: On success
             read_error: On failure
         """
+
         # Run in thread pool using persistent executor
         def read_task() -> None:
             try:
@@ -149,6 +151,7 @@ class AsyncFileHandler(QObject):
             write_complete: On success
             write_error: On failure
         """
+
         def write_task() -> None:
             try:
                 path = Path(file_path)
@@ -187,6 +190,7 @@ class AsyncFileHandler(QObject):
             read_complete: When done
             read_error: On failure
         """
+
         def stream_task() -> None:
             try:
                 path = Path(file_path)
@@ -249,6 +253,7 @@ class AsyncFileHandler(QObject):
             write_complete: When done
             write_error: On failure
         """
+
         def stream_task() -> None:
             try:
                 path = Path(file_path)
@@ -290,7 +295,7 @@ class AsyncFileHandler(QObject):
         logger.info("Cleaning up async file handler resources")
 
         # Shutdown thread pool (wait for completion)
-        if hasattr(self, '_executor'):
+        if hasattr(self, "_executor"):
             self._executor.shutdown(wait=True)
             logger.debug("Thread pool shutdown complete")
 

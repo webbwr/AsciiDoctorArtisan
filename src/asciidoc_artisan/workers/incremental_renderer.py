@@ -42,6 +42,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 # Fast hashing with xxHash (10x faster than MD5, hot path optimization)
 try:
     import xxhash
+
     HAS_XXHASH = True
 except ImportError:
     HAS_XXHASH = False

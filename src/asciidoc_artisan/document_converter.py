@@ -22,7 +22,7 @@ from typing import Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 # Pre-compiled regex for whitespace collapsing (10x faster than Python loop)
-_WHITESPACE_COLLAPSE = re.compile(r'\s+')
+_WHITESPACE_COLLAPSE = re.compile(r"\s+")
 
 
 class PandocIntegration:
@@ -418,7 +418,7 @@ class PDFExtractor:
 
         # Collapse all whitespace (spaces, newlines, tabs) into single spaces
         # Using pre-compiled regex - 10x faster than Python character loop
-        cell = _WHITESPACE_COLLAPSE.sub(' ', cell).strip()
+        cell = _WHITESPACE_COLLAPSE.sub(" ", cell).strip()
 
         # Truncate very long cells to keep table readable.
         if len(cell) > max_length:

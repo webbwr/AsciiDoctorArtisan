@@ -578,7 +578,9 @@ class InstallationValidatorDialog(QDialog):
         self.validate_btn.setEnabled(True)
         self.update_btn.setEnabled(True)
 
-    def _show_validation_results(self, results: Dict[str, List[Tuple[str, ...]]]) -> None:
+    def _show_validation_results(
+        self, results: Dict[str, List[Tuple[str, ...]]]
+    ) -> None:
         """
         Display validation results.
 

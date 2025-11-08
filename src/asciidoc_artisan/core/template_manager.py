@@ -240,9 +240,7 @@ class TemplateManager:
         """
         return sorted(set(t.category for t in self.templates.values()))
 
-    def create_template(
-        self, template: Template, custom: bool = True
-    ) -> bool:
+    def create_template(self, template: Template, custom: bool = True) -> bool:
         """
         Create new template file.
 

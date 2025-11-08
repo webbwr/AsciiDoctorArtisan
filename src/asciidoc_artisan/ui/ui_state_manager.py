@@ -14,13 +14,12 @@ main window complexity and improve modularity.
 import logging
 from typing import TYPE_CHECKING
 
+from asciidoc_artisan.core.constants import is_pandoc_available
+
 if TYPE_CHECKING:
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
-
-# Lazy import check for Pandoc (deferred until first use for faster startup)
-from asciidoc_artisan.core.constants import is_pandoc_available
 
 
 class UIStateManager:

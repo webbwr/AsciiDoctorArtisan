@@ -16,7 +16,6 @@ Extracted from monolithic main_window.py to improve maintainability.
 """
 
 import logging
-import time
 from typing import Any, Optional
 
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser

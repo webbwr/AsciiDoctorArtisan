@@ -21,14 +21,13 @@ from typing import TYPE_CHECKING, Any
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMessageBox
 
+from asciidoc_artisan.core.constants import is_pandoc_available
+
 if TYPE_CHECKING:
 
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
-
-# Lazy import check for Pandoc (deferred until first use for faster startup)
-from asciidoc_artisan.core.constants import is_pandoc_available
 
 
 class DialogManager:

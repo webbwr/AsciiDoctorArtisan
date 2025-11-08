@@ -615,7 +615,9 @@ class ChatManager(QObject):
                             )
                         except RuntimeError:
                             # Parent widget was deleted (common in tests)
-                            logger.debug("Parent widget deleted before show_chat callback")
+                            logger.debug(
+                                "Parent widget deleted before show_chat callback"
+                            )
 
                     QTimer.singleShot(150, show_chat)
                 elif not chat_visible and sizes[2] > 0:

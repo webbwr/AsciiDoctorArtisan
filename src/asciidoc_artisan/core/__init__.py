@@ -91,6 +91,9 @@ VERSION HISTORY:
 
 from typing import Any
 
+# Fast JSON utilities (v1.9.1 - 3-5x faster with orjson, used for settings at startup)
+from . import json_utils
+
 # === EAGER IMPORTS (Load Immediately) ===
 # These are the most commonly used items - we import them RIGHT NOW (not lazily)
 # because we know the main window will need them within the first second
@@ -101,13 +104,9 @@ from .file_operations import (
     sanitize_path,  # Clean file paths (prevent directory traversal attacks)
 )
 
-# Fast JSON utilities (v1.9.1 - 3-5x faster with orjson, used for settings at startup)
-from . import json_utils
-
 # Data models - MOVED TO LAZY LOADING (v1.9.1 optimization, saves 115ms startup time)
 # These models import Pydantic (heavy library), so we load them only when first accessed.
 # GitResult, GitStatus, GitHubResult are used by worker threads, so 115ms delay is not noticeable.
-
 # Settings (used by main window immediately at startup)
 from .settings import Settings  # Application settings (theme, font, recent files)
 

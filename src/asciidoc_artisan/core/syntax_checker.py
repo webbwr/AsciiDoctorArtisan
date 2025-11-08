@@ -80,7 +80,9 @@ class ValidationContext:
         ```
     """
 
-    def __init__(self, document: str, changed_lines: Optional[List[int]] = None) -> None:
+    def __init__(
+        self, document: str, changed_lines: Optional[List[int]] = None
+    ) -> None:
         """
         Initialize validation context.
 
@@ -111,7 +113,7 @@ class ValidationContext:
         """
         if self._anchors is None:
             # Match [[id]] and [#id] patterns
-            pattern = r'\[\[([^\]]+)\]\]|\[#([^\]]+)\]'
+            pattern = r"\[\[([^\]]+)\]\]|\[#([^\]]+)\]"
             matches = re.findall(pattern, self.document)
             # Flatten tuples (each match has 2 groups)
             self._anchors = [m[0] or m[1] for m in matches]
@@ -128,7 +130,7 @@ class ValidationContext:
             Dictionary mapping attribute names to values
         """
         if self._attributes is None:
-            pattern = r'^:([^:]+):\s*(.*)$'
+            pattern = r"^:([^:]+):\s*(.*)$"
             matches = re.findall(pattern, self.document, re.MULTILINE)
             self._attributes = {key.strip(): value.strip() for key, value in matches}
         return self._attributes
@@ -144,7 +146,7 @@ class ValidationContext:
             List of include file paths
         """
         if self._includes is None:
-            pattern = r'include::([^\[]+)\['
+            pattern = r"include::([^\[]+)\["
             self._includes = re.findall(pattern, self.document)
         return self._includes
 
@@ -246,7 +248,9 @@ class SyntaxChecker:
             # If syntax_validators not available, continue with empty rules
             import logging
 
-            logging.warning("syntax_validators module not found, no built-in rules loaded")
+            logging.warning(
+                "syntax_validators module not found, no built-in rules loaded"
+            )
 
     def add_rule(self, rule: ValidationRule) -> None:
         """
@@ -332,7 +336,8 @@ class SyntaxChecker:
                 import logging
 
                 logging.error(
-                    f"Validation rule {rule.__class__.__name__} failed: {e}", exc_info=True
+                    f"Validation rule {rule.__class__.__name__} failed: {e}",
+                    exc_info=True,
                 )
 
         # Sort by line, then column
@@ -428,7 +433,7 @@ def extract_anchors(document: str) -> List[str]:
         # Returns: ['intro', 'summary']
         ```
     """
-    pattern = r'\[\[([^\]]+)\]\]|\[#([^\]]+)\]'
+    pattern = r"\[\[([^\]]+)\]\]|\[#([^\]]+)\]"
     matches = re.findall(pattern, document)
     return [m[0] or m[1] for m in matches]
 
@@ -452,7 +457,7 @@ def extract_attributes(document: str) -> Dict[str, str]:
         # Returns: {'author': 'John Doe', 'version': '1.0', 'toc': ''}
         ```
     """
-    pattern = r'^:([^:]+):\s*(.*)$'
+    pattern = r"^:([^:]+):\s*(.*)$"
     matches = re.findall(pattern, document, re.MULTILINE)
     return {key.strip(): value.strip() for key, value in matches}
 
@@ -492,7 +497,7 @@ def is_inside_code_block(lines: List[str], line_number: int) -> bool:
     in_block = False
     for i in range(line_number + 1):
         line = lines[i].strip()
-        if re.match(r'^-{4,}$', line):
+        if re.match(r"^-{4,}$", line):
             in_block = not in_block
 
     return in_block
