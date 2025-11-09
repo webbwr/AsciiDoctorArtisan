@@ -474,3 +474,82 @@ class TestErrorHandling:
 
         assert error is not None
         assert "unexpected" in error.lower() or "error" in error.lower()
+
+    @patch("asciidoc_artisan.workers.ollama_chat_worker.subprocess.run")
+    def test_model_not_found_error_message(self, mock_run):
+        """Test _parse_ollama_error for model not found."""
+        error = subprocess.CalledProcessError(1, "ollama")
+        error.stderr = "Error: model 'unknown-model' not found"
+        mock_run.side_effect = error
+
+        worker = OllamaChatWorker()
+        worker._user_message = "Test"
+        worker._current_model = "unknown-model"
+        worker._context_mode = "general"
+        worker._chat_history = []
+
+        error_msg = None
+
+        def capture_error(err):
+            nonlocal error_msg
+            error_msg = err
+
+        worker.chat_error.connect(capture_error)
+        worker._process_chat()
+
+        # Should have user-friendly message about model not found
+        assert error_msg is not None
+        assert "not found" in error_msg.lower()
+        assert "pull" in error_msg.lower() or "ollama" in error_msg.lower()
+
+    @patch("asciidoc_artisan.workers.ollama_chat_worker.subprocess.run")
+    def test_connection_refused_error_message(self, mock_run):
+        """Test _parse_ollama_error for connection refused."""
+        error = subprocess.CalledProcessError(1, "ollama")
+        error.stderr = "Error: connection refused - is Ollama running?"
+        mock_run.side_effect = error
+
+        worker = OllamaChatWorker()
+        worker._user_message = "Test"
+        worker._current_model = "llama2"
+        worker._context_mode = "general"
+        worker._chat_history = []
+
+        error_msg = None
+
+        def capture_error(err):
+            nonlocal error_msg
+            error_msg = err
+
+        worker.chat_error.connect(capture_error)
+        worker._process_chat()
+
+        # Should have user-friendly message about Ollama not running
+        assert error_msg is not None
+        assert "connect" in error_msg.lower() or "ollama" in error_msg.lower()
+
+    @patch("asciidoc_artisan.workers.ollama_chat_worker.subprocess.run")
+    def test_context_length_error_message(self, mock_run):
+        """Test _parse_ollama_error for context length exceeded."""
+        error = subprocess.CalledProcessError(1, "ollama")
+        error.stderr = "Error: context length exceeded for model"
+        mock_run.side_effect = error
+
+        worker = OllamaChatWorker()
+        worker._user_message = "Test"
+        worker._current_model = "llama2"
+        worker._context_mode = "general"
+        worker._chat_history = []
+
+        error_msg = None
+
+        def capture_error(err):
+            nonlocal error_msg
+            error_msg = err
+
+        worker.chat_error.connect(capture_error)
+        worker._process_chat()
+
+        # Should have user-friendly message about message length
+        assert error_msg is not None
+        assert ("too long" in error_msg.lower() or "context" in error_msg.lower() or "shorter" in error_msg.lower())
