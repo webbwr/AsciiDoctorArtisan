@@ -209,13 +209,34 @@ class OptimizedWorkerPool:
         stats = pool.get_statistics()
     """
 
-    def __init__(self, max_threads: int = 4):
+    def __init__(self, max_threads: Optional[int] = None):
         """
         Initialize optimized worker pool.
 
         Args:
-            max_threads: Maximum number of worker threads
+            max_threads: Maximum number of worker threads.
+                        If None, auto-detect optimal count for platform.
+                        On Apple Silicon: uses P-cores * 2 for optimal performance.
+                        On other platforms: uses CPU count.
         """
+        # Auto-detect optimal thread count if not specified
+        if max_threads is None:
+            try:
+                from asciidoc_artisan.core.macos_optimizer import (
+                    get_optimal_thread_count,
+                )
+
+                max_threads = get_optimal_thread_count()
+                logger.info(
+                    f"Auto-detected optimal thread count: {max_threads} (Apple Silicon optimized)"
+                )
+            except ImportError:
+                # Fallback to CPU count
+                import multiprocessing
+
+                max_threads = multiprocessing.cpu_count()
+                logger.info(f"Using default thread count: {max_threads}")
+
         self.max_threads = max_threads
         self._thread_pool = QThreadPool.globalInstance()
         self._thread_pool.setMaxThreadCount(max_threads)
