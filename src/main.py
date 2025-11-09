@@ -77,11 +77,10 @@ def _setup_gpu_acceleration() -> None:
     system = platform.system()
 
     if system == "Darwin":  # macOS
-        # macOS uses Metal, not OpenGL - disable QtWebEngine GPU to avoid crashes
-        # The preview will fall back to QTextBrowser (software rendering)
-        logger.info(
-            "macOS detected - disabling QtWebEngine GPU acceleration (using software rendering)"
-        )
+        # macOS uses Metal natively - no OpenGL flags needed
+        # QtWebEngineView will use Metal automatically (GPU-accelerated)
+        # Skip Linux-specific OpenGL flags to avoid crashes
+        logger.info("macOS detected - using native Metal GPU acceleration")
     else:
         # Linux/Windows: Enable GPU acceleration
         # Tell Qt to use desktop OpenGL (the graphics API for 3D acceleration)
