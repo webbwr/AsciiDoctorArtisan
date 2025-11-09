@@ -36,6 +36,9 @@ env/
 # Claude Code / AI agents (credentials & private artifacts)
 .claude/
 !.claude/skills/
+!.claude/settings.json
+!.claude/statusline.sh
+!.claude/README.md
 .claude.json
 
 # OS files
