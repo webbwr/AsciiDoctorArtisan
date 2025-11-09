@@ -205,7 +205,11 @@ class UISetupManager:
         from asciidoc_artisan.ui.preview_handler_gpu import create_preview_widget
 
         self.editor.preview = create_preview_widget(self.editor)
-        self.editor.preview.setOpenExternalLinks(True)
+
+        # Only QTextBrowser has setOpenExternalLinks, not QWebEngineView
+        if hasattr(self.editor.preview, "setOpenExternalLinks"):
+            self.editor.preview.setOpenExternalLinks(True)
+
         preview_layout.addWidget(self.editor.preview)
 
         return preview_container

@@ -73,31 +73,42 @@ def _setup_gpu_acceleration() -> None:
     We set "environment variables" - special settings the operating system reads
     before starting the program. These tell Qt to enable GPU features.
     """
-    # Tell Qt to use desktop OpenGL (the graphics API for 3D acceleration)
-    os.environ.setdefault("QT_OPENGL", "desktop")
+    # Detect operating system
+    system = platform.system()
 
-    # Configure X11 OpenGL integration (Linux/WSL specific)
-    os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
+    if system == "Darwin":  # macOS
+        # macOS uses Metal, not OpenGL - disable QtWebEngine GPU to avoid crashes
+        # The preview will fall back to QTextBrowser (software rendering)
+        logger.info(
+            "macOS detected - disabling QtWebEngine GPU acceleration (using software rendering)"
+        )
+    else:
+        # Linux/Windows: Enable GPU acceleration
+        # Tell Qt to use desktop OpenGL (the graphics API for 3D acceleration)
+        os.environ.setdefault("QT_OPENGL", "desktop")
 
-    # Pass special flags to Chromium (the web engine used for preview)
-    # These flags enable various GPU acceleration features
-    os.environ.setdefault(
-        "QTWEBENGINE_CHROMIUM_FLAGS",
-        "--enable-gpu-rasterization "  # Use GPU to draw shapes/text
-        "--enable-zero-copy "  # Share memory between GPU and CPU (faster)
-        "--enable-hardware-overlays "  # Use GPU for video playback
-        "--enable-features=VaapiVideoDecoder,VaapiVideoEncoder "  # Hardware video
-        "--use-gl=desktop "  # Use desktop OpenGL
-        "--disable-gpu-driver-bug-workarounds",  # Assume modern drivers
-    )
+        # Configure X11 OpenGL integration (Linux/WSL specific)
+        os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
 
-    # === OPTIONAL: NPU (Neural Processing Unit) ACCELERATION ===
-    # Some modern CPUs (Intel 11th gen+) have built-in AI chips called NPUs
-    # OpenVINO can use these for even faster AI operations
-    os.environ.setdefault("OPENCV_DNN_BACKEND", "5")  # Backend 5 = OpenVINO
-    os.environ.setdefault("OPENCV_DNN_TARGET", "6")  # Target 6 = NPU
+        # Pass special flags to Chromium (the web engine used for preview)
+        # These flags enable various GPU acceleration features
+        os.environ.setdefault(
+            "QTWEBENGINE_CHROMIUM_FLAGS",
+            "--enable-gpu-rasterization "  # Use GPU to draw shapes/text
+            "--enable-zero-copy "  # Share memory between GPU and CPU (faster)
+            "--enable-hardware-overlays "  # Use GPU for video playback
+            "--enable-features=VaapiVideoDecoder,VaapiVideoEncoder "  # Hardware video
+            "--use-gl=desktop "  # Use desktop OpenGL
+            "--disable-gpu-driver-bug-workarounds",  # Assume modern drivers
+        )
 
-    logger.info("GPU/NPU acceleration configured")
+        # === OPTIONAL: NPU (Neural Processing Unit) ACCELERATION ===
+        # Some modern CPUs (Intel 11th gen+) have built-in AI chips called NPUs
+        # OpenVINO can use these for even faster AI operations
+        os.environ.setdefault("OPENCV_DNN_BACKEND", "5")  # Backend 5 = OpenVINO
+        os.environ.setdefault("OPENCV_DNN_TARGET", "6")  # Target 6 = NPU
+
+        logger.info("GPU/NPU acceleration configured")
 
 
 def _create_app() -> Any:

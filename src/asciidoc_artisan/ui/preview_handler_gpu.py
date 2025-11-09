@@ -75,8 +75,7 @@ class WebEngineHandler(PreviewHandlerBase):
         # Verify widget type
         if not hasattr(preview, "page"):
             raise TypeError(
-                "WebEngineHandler requires QWebEngineView, got"
-                f" {type(preview).__name__}"
+                f"WebEngineHandler requires QWebEngineView, got {type(preview).__name__}"
             )
 
         logger.info("PreviewHandler initialized with QWebEngineView (GPU-accelerated)")
@@ -152,30 +151,44 @@ def create_preview_widget(parent: Optional[QWidget] = None) -> QWidget:
 
     if gpu_info.can_use_webengine and gpu_info.has_gpu:
         logger.info(
-            f"GPU detected ({gpu_info.gpu_name}), using QWebEngineView with"
-            " acceleration"
+            f"GPU detected ({gpu_info.gpu_name}), attempting QWebEngineView with acceleration"
         )
 
-        # Create QWebEngineView with GPU acceleration
-        web_view = QWebEngineView(parent)
+        try:
+            # Create QWebEngineView with GPU acceleration
+            web_view = QWebEngineView(parent)
 
-        # Enable hardware acceleration
-        settings = web_view.settings()
-        settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
-        settings.setAttribute(QWebEngineSettings.PluginsEnabled, False)
-        settings.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, False)
+            # Enable hardware acceleration
+            # NOTE: This may fail on macOS if QtWebEngine can't initialize
+            settings = web_view.settings()
+            settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
+            settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
+            settings.setAttribute(QWebEngineSettings.PluginsEnabled, False)
+            settings.setAttribute(
+                QWebEngineSettings.LocalContentCanAccessRemoteUrls, False
+            )
 
-        # Log GPU info
-        logger.info(f"  GPU Type: {gpu_info.gpu_type}")
-        logger.info(f"  GPU Name: {gpu_info.gpu_name}")
-        if gpu_info.driver_version:
-            logger.info(f"  Driver: {gpu_info.driver_version}")
-        logger.info(f"  Device: {gpu_info.render_device}")
-        logger.info("  Accelerated2dCanvas: ENABLED")
-        logger.info("  WebGL: ENABLED")
+            # Log GPU info
+            logger.info(f"  GPU Type: {gpu_info.gpu_type}")
+            logger.info(f"  GPU Name: {gpu_info.gpu_name}")
+            if gpu_info.driver_version:
+                logger.info(f"  Driver: {gpu_info.driver_version}")
+            logger.info(f"  Device: {gpu_info.render_device}")
+            logger.info("  Accelerated2dCanvas: ENABLED")
+            logger.info("  WebGL: ENABLED")
+            logger.info("QWebEngineView initialized successfully with GPU acceleration")
 
-        return web_view
+            return web_view
+
+        except Exception as e:
+            # QWebEngineView initialization failed - fall back to QTextBrowser
+            logger.warning(
+                f"QWebEngineView initialization failed: {e}. Falling back to QTextBrowser."
+            )
+            logger.info(
+                "Using QTextBrowser (software rendering) - GPU acceleration unavailable"
+            )
+            return QTextBrowser(parent)
     else:
         logger.info(f"Using QTextBrowser: {gpu_info.reason}")
         return QTextBrowser(parent)

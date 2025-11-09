@@ -520,15 +520,16 @@ def detect_gpu() -> GPUInfo:
         # Detect compute capabilities
         compute_capabilities = detect_compute_capabilities()
 
-        # macOS with Metal GPU - fully supported!
+        # macOS with Metal GPU detected, but QtWebEngine not compatible
+        # Use QTextBrowser (software rendering) to avoid crashes
         return GPUInfo(
             has_gpu=True,
             gpu_type="apple",
             gpu_name=macos_gpu_name,
             driver_version=metal_version,
             render_device="Metal",
-            can_use_webengine=True,
-            reason=f"Hardware acceleration available: {macos_gpu_name} (Metal {metal_version or 'supported'})",
+            can_use_webengine=False,  # Disabled on macOS - QtWebEngine crashes with Metal
+            reason=f"macOS Metal GPU detected ({macos_gpu_name}) - using software rendering (QtWebEngine not compatible)",
             has_npu=has_npu,
             npu_type=npu_type,
             npu_name=npu_name,
