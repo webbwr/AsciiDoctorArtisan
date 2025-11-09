@@ -367,6 +367,168 @@ class TestGetErrors:
         assert errors[0].code == "E001"
 
 
+class TestGetErrorAtCursor:
+    """Test getting error at cursor position."""
+
+    def test_get_error_at_cursor_found(self, manager, editor):
+        """Test getting error at cursor position when error exists."""
+        editor.setPlainText("Line 1\nLine 2\nLine 3")
+
+        manager.errors = [
+            SyntaxErrorModel(
+                code="E001",
+                message="Error at column 2",
+                severity=ErrorSeverity.ERROR,
+                line=1,
+                column=2,
+                length=4,
+            ),
+        ]
+
+        # Position cursor at error location (line 1, column 3)
+        cursor = editor.textCursor()
+        cursor.setPosition(editor.document().findBlockByNumber(1).position() + 3)
+        editor.setTextCursor(cursor)
+
+        error = manager.get_error_at_cursor()
+        assert error is not None
+        assert error.code == "E001"
+
+    def test_get_error_at_cursor_not_found(self, manager, editor):
+        """Test getting error at cursor when no error at position."""
+        editor.setPlainText("Line 1\nLine 2")
+
+        manager.errors = [
+            SyntaxErrorModel(
+                code="E001",
+                message="Error",
+                severity=ErrorSeverity.ERROR,
+                line=0,
+                column=0,
+                length=5,
+            ),
+        ]
+
+        # Position cursor away from error (line 1)
+        cursor = editor.textCursor()
+        cursor.setPosition(editor.document().findBlockByNumber(1).position())
+        editor.setTextCursor(cursor)
+
+        error = manager.get_error_at_cursor()
+        assert error is None
+
+
+class TestClearErrors:
+    """Test clearing errors."""
+
+    def test_clear_errors(self, manager, editor, qtbot):
+        """Test clearing all errors."""
+        manager.errors = [
+            SyntaxErrorModel(
+                code="E001",
+                message="Error",
+                severity=ErrorSeverity.ERROR,
+                line=0,
+                column=0,
+                length=5,
+            ),
+        ]
+        manager._show_underlines()
+
+        # Clear errors
+        with qtbot.waitSignal(manager.errors_changed, timeout=1000):
+            manager.clear_errors()
+
+        assert len(manager.errors) == 0
+        assert len(editor.extraSelections()) == 0
+
+    def test_clear_errors_when_already_empty(self, manager, editor, qtbot):
+        """Test clearing errors when list is already empty."""
+        assert len(manager.errors) == 0
+
+        with qtbot.waitSignal(manager.errors_changed, timeout=1000):
+            manager.clear_errors()
+
+        assert len(manager.errors) == 0
+
+
+class TestValidateNow:
+    """Test immediate validation."""
+
+    def test_validate_now(self, manager, editor):
+        """Test immediate validation without debounce."""
+        editor.setPlainText("= Test")
+
+        # Should validate immediately
+        manager.validate_now()
+
+        # Timer should be stopped
+        assert not manager.timer.isActive()
+
+    def test_validate_now_stops_pending_timer(self, manager, editor, qtbot):
+        """Test validate_now stops pending timer."""
+        manager.check_delay = 1000
+        editor.setPlainText("= Test")
+
+        # Start timer via text change
+        qtbot.keyClick(editor, ord("x"))
+        assert manager.timer.isActive()
+
+        # Immediate validation should stop timer
+        manager.validate_now()
+        assert not manager.timer.isActive()
+
+
+class TestInfoSeverityUnderlines:
+    """Test INFO severity underlines are shown with blue color."""
+
+    def test_info_severity_underlines(self, manager, editor):
+        """Test INFO severity errors get blue underlines."""
+        error = SyntaxErrorModel(
+            code="I001",
+            message="Info message",
+            severity=ErrorSeverity.INFO,
+            line=0,
+            column=0,
+            length=5,
+        )
+
+        manager.errors = [error]
+        manager._show_underlines()
+
+        # Should create extra selection
+        selections = editor.extraSelections()
+        assert len(selections) > 0
+
+
+class TestNavigationEdgeCases:
+    """Test navigation edge cases."""
+
+    def test_jump_to_next_error_with_no_errors(self, manager, editor):
+        """Test jumping to next error when no errors exist."""
+        manager.errors = []
+        editor.setPlainText("Line 1\nLine 2")
+
+        # Should not crash
+        manager.jump_to_next_error()
+
+    def test_jump_to_previous_error_with_no_errors(self, manager, editor):
+        """Test jumping to previous error when no errors exist."""
+        manager.errors = []
+        editor.setPlainText("Line 1\nLine 2")
+
+        # Should not crash
+        manager.jump_to_previous_error()
+
+    def test_current_error_index_property(self, manager):
+        """Test current_error_index property getter and setter."""
+        manager.current_error_index = 5
+        assert manager.current_error_index == 5
+
+        manager.current_error_index = 0
+        assert manager.current_error_index == 0
+
+
 class TestEdgeCases:
     """Test edge cases and error handling."""
 
