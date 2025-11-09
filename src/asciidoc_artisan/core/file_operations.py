@@ -82,8 +82,7 @@ def sanitize_path(
                 resolved_path.relative_to(allowed_base_resolved)
             except ValueError:
                 logger.warning(
-                    f"Path sanitization blocked path outside allowed base: "
-                    f"{path_input} (base: {allowed_base})"
+                    f"Path sanitization blocked path outside allowed base: {path_input} (base: {allowed_base})"
                 )
                 return None
 

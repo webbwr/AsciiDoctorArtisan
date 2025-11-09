@@ -394,8 +394,7 @@ class TemplateEngine:
             import yaml  # type: ignore[import-untyped]
         except ImportError:
             raise ImportError(
-                "PyYAML is required for template parsing. "
-                "Install with: pip install pyyaml"
+                "PyYAML is required for template parsing. Install with: pip install pyyaml"
             )
 
         # Read file

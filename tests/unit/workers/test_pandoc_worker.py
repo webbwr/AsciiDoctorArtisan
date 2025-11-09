@@ -508,7 +508,9 @@ class TestErrorHandling:
 
         assert error is not None
 
-    @patch("asciidoc_artisan.workers.pandoc_worker.is_pandoc_available", return_value=False)
+    @patch(
+        "asciidoc_artisan.workers.pandoc_worker.is_pandoc_available", return_value=False
+    )
     def test_pandoc_not_available_error(self, mock_is_available):
         """Test error when Pandoc is not available."""
         # Ensure pypandoc is NOT in sys.modules (simulate it not being installed)
@@ -640,7 +642,9 @@ class TestOllamaConversion:
             def import_side_effect(name, *args, **kwargs):
                 if name == "ollama":
                     mock_ollama = type("ollama", (), {})()
-                    mock_ollama.generate = lambda **kwargs: {"response": "abc"}  # < 10 chars
+                    mock_ollama.generate = lambda **kwargs: {
+                        "response": "abc"
+                    }  # < 10 chars
                     return mock_ollama
                 return __import__(name, *args, **kwargs)
 

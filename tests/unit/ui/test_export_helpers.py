@@ -7,15 +7,15 @@ Tests export helper classes including:
 - ClipboardHelper: Clipboard format detection
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 import subprocess
-import io
+from unittest.mock import Mock, patch
+
+import pytest
 
 from asciidoc_artisan.ui.export_helpers import (
+    ClipboardHelper,
     HTMLConverter,
     PDFHelper,
-    ClipboardHelper,
 )
 
 
@@ -90,13 +90,13 @@ class TestPDFHelper:
 
     def test_pdf_engines_list(self):
         """Test PDF_ENGINES constant exists and has engines."""
-        assert hasattr(PDFHelper, 'PDF_ENGINES')
+        assert hasattr(PDFHelper, "PDF_ENGINES")
         assert len(PDFHelper.PDF_ENGINES) > 0
         assert "wkhtmltopdf" in PDFHelper.PDF_ENGINES
 
     def test_check_pdf_engine_available_specific_engine_found(self):
         """Test checking specific engine that is available."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             # Mock successful engine check
             mock_run.return_value = Mock(returncode=0)
 
@@ -111,7 +111,7 @@ class TestPDFHelper:
 
     def test_check_pdf_engine_available_specific_engine_not_found(self):
         """Test checking specific engine that is not available."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             # Mock FileNotFoundError (engine not installed)
             mock_run.side_effect = FileNotFoundError()
 
@@ -121,7 +121,7 @@ class TestPDFHelper:
 
     def test_check_pdf_engine_available_engine_returns_error(self):
         """Test checking engine that returns non-zero exit code."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             # Mock failed engine check
             mock_run.return_value = Mock(returncode=1)
 
@@ -131,7 +131,7 @@ class TestPDFHelper:
 
     def test_check_pdf_engine_available_any_engine_found(self):
         """Test checking for any available engine (first one works)."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             # First engine works
             mock_run.return_value = Mock(returncode=0)
 
@@ -144,11 +144,11 @@ class TestPDFHelper:
 
     def test_check_pdf_engine_available_any_engine_second_works(self):
         """Test checking for any engine when first fails but second works."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             # First fails, second succeeds
             mock_run.side_effect = [
                 FileNotFoundError(),  # First engine not found
-                Mock(returncode=0),   # Second engine works
+                Mock(returncode=0),  # Second engine works
             ]
 
             result = PDFHelper.check_pdf_engine_available(None)
@@ -158,7 +158,7 @@ class TestPDFHelper:
 
     def test_check_pdf_engine_available_no_engines_available(self):
         """Test when no PDF engines are available."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             # All engines fail
             mock_run.side_effect = FileNotFoundError()
 
@@ -170,7 +170,7 @@ class TestPDFHelper:
 
     def test_check_pdf_engine_available_timeout(self):
         """Test handling subprocess timeout."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             # Mock timeout
             mock_run.side_effect = subprocess.TimeoutExpired("cmd", 5)
 
@@ -180,7 +180,9 @@ class TestPDFHelper:
 
     def test_add_print_css_to_html_with_head_tag(self):
         """Test adding CSS when HTML has </head> tag."""
-        html_content = "<html><head><title>Test</title></head><body>Content</body></html>"
+        html_content = (
+            "<html><head><title>Test</title></head><body>Content</body></html>"
+        )
 
         result = PDFHelper.add_print_css_to_html(html_content)
 

@@ -182,8 +182,7 @@ class APIKeySetupDialog(QDialog):
             QMessageBox.warning(
                 self,
                 "Invalid Format",
-                "Anthropic API keys should start with 'sk-ant-'.\n\n"
-                "Please check your API key and try again.",
+                "Anthropic API keys should start with 'sk-ant-'.\n\nPlease check your API key and try again.",
             )
             return
 
@@ -208,8 +207,7 @@ class APIKeySetupDialog(QDialog):
                 QMessageBox.warning(
                     self,
                     "Invalid Format",
-                    "Anthropic API keys should start with 'sk-ant-'.\n\n"
-                    "Please check your API key.",
+                    "Anthropic API keys should start with 'sk-ant-'.\n\nPlease check your API key.",
                 )
                 return
 
@@ -230,8 +228,7 @@ class APIKeySetupDialog(QDialog):
                 QMessageBox.information(
                     self,
                     "Success",
-                    "API key stored securely in system keyring.\n\n"
-                    "You can now use AI-enhanced document conversion.",
+                    "API key stored securely in system keyring.\n\nYou can now use AI-enhanced document conversion.",
                 )
                 self.accept()
             else:
@@ -239,8 +236,7 @@ class APIKeySetupDialog(QDialog):
                 QMessageBox.critical(
                     self,
                     "Storage Failed",
-                    "Failed to store API key in system keyring.\n\n"
-                    "Please check system logs for details.",
+                    "Failed to store API key in system keyring.\n\nPlease check system logs for details.",
                 )
         else:
             # No key entered, just close dialog.

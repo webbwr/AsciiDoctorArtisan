@@ -4,11 +4,17 @@ Unit tests for Claude Worker.
 Tests the ClaudeWorker class for asynchronous Claude API operations.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, Mock
 from PySide6.QtCore import QThread
 
-from asciidoc_artisan.claude import ClaudeWorker, ClaudeClient, ClaudeResult, ClaudeMessage
+from asciidoc_artisan.claude import (
+    ClaudeClient,
+    ClaudeMessage,
+    ClaudeResult,
+    ClaudeWorker,
+)
 
 
 @pytest.mark.unit
@@ -189,9 +195,7 @@ class TestClaudeWorker:
         assert "Connection OK" in result.content
 
     @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_send_message_without_api_key_emits_response(
-        self, mock_credentials, qtbot
-    ):
+    def test_send_message_without_api_key_emits_response(self, mock_credentials, qtbot):
         """Test send_message without API key emits error response."""
         # Setup mock
         mock_creds = Mock()
@@ -260,7 +264,9 @@ class TestClaudeWorker:
             ClaudeMessage(role="assistant", content="First response"),
         ]
 
-        with patch.object(worker.client, "send_message", return_value=mock_result) as mock_send:
+        with patch.object(
+            worker.client, "send_message", return_value=mock_result
+        ) as mock_send:
             with qtbot.waitSignal(worker.response_ready, timeout=5000) as blocker:
                 worker.send_message("Second message", conversation_history=history)
 

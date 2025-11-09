@@ -441,8 +441,7 @@ class ExportManager(QObject):
             self.status_manager.show_message(
                 "warning",
                 "Pandoc Not Available",
-                "Pandoc is required for clipboard conversion.\n\n"
-                "Please install Pandoc to use this feature.",
+                "Pandoc is required for clipboard conversion.\n\nPlease install Pandoc to use this feature.",
             )
             return
 

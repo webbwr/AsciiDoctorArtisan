@@ -5,7 +5,7 @@ This test suite covers remaining uncovered code paths in preview_worker.py
 to achieve 100% coverage (Phase 2.4 of test coverage push).
 """
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -32,7 +32,9 @@ class TestInitializeAsciiDocErrors:
         assert worker._asciidoc_api is None
 
     @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
-    @patch("asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True)
+    @patch(
+        "asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True
+    )
     @patch("asciidoc_artisan.workers.preview_worker.IncrementalPreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
     def test_initialize_with_incremental_renderer_exception(
@@ -55,8 +57,12 @@ class TestInitializeAsciiDocErrors:
         assert worker._incremental_renderer is None
 
     @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
-    @patch("asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True)
-    @patch("asciidoc_artisan.workers.preview_worker.PREDICTIVE_RENDERER_AVAILABLE", True)
+    @patch(
+        "asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True
+    )
+    @patch(
+        "asciidoc_artisan.workers.preview_worker.PREDICTIVE_RENDERER_AVAILABLE", True
+    )
     @patch("asciidoc_artisan.workers.preview_worker.PredictivePreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.IncrementalPreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
@@ -335,9 +341,7 @@ class TestSchedulePrerender:
         worker._predictive_renderer = mock_predictive
         worker._incremental_renderer = mock_incremental
 
-        blocks = [
-            MagicMock(id=f"block{i}", content=f"Content {i}") for i in range(5)
-        ]
+        blocks = [MagicMock(id=f"block{i}", content=f"Content {i}") for i in range(5)]
 
         # max_blocks=2 (only render 2 blocks)
         worker._schedule_prerender(blocks, max_blocks=2)

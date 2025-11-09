@@ -1,9 +1,10 @@
 """Tests for ui.preview_handler_gpu module."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 from PySide6.QtCore import QUrl
+from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 
 
 @pytest.fixture
@@ -38,16 +39,21 @@ class TestWebEngineHandlerBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
+
         assert WebEngineHandler is not None
 
-    def test_creation_requires_webengine_view(self, mock_editor, mock_preview, mock_parent_window):
+    def test_creation_requires_webengine_view(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         # Should create successfully with proper preview widget
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
         assert handler is not None
 
-    def test_creation_rejects_non_webengine_widget(self, mock_editor, mock_parent_window):
+    def test_creation_rejects_non_webengine_widget(
+        self, mock_editor, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         # Should raise TypeError for non-QWebEngineView widget
@@ -69,7 +75,9 @@ class TestWebEngineHandlerBasics:
 class TestHandlePreviewComplete:
     """Test suite for handle_preview_complete method."""
 
-    def test_updates_preview_with_html(self, mock_editor, mock_preview, mock_parent_window):
+    def test_updates_preview_with_html(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -95,7 +103,9 @@ class TestHandlePreviewComplete:
         styled_html = mock_preview.setHtml.call_args[0][0]
         assert "<style>" in styled_html or "body {" in styled_html
 
-    def test_emits_preview_updated_signal(self, mock_editor, mock_preview, mock_parent_window):
+    def test_emits_preview_updated_signal(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -111,7 +121,9 @@ class TestHandlePreviewComplete:
 class TestScrollSynchronization:
     """Test suite for scroll synchronization."""
 
-    def test_sync_editor_to_preview_uses_javascript(self, mock_editor, mock_preview, mock_parent_window):
+    def test_sync_editor_to_preview_uses_javascript(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -130,7 +142,9 @@ class TestScrollSynchronization:
         assert "window.scrollTo" in js_code
         assert "0.5" in js_code  # 500/1000 = 0.5
 
-    def test_sync_skips_when_disabled(self, mock_editor, mock_preview, mock_parent_window):
+    def test_sync_skips_when_disabled(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -141,7 +155,9 @@ class TestScrollSynchronization:
         # Should not call JavaScript
         mock_preview.page().runJavaScript.assert_not_called()
 
-    def test_sync_skips_when_already_syncing(self, mock_editor, mock_preview, mock_parent_window):
+    def test_sync_skips_when_already_syncing(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -169,7 +185,9 @@ class TestScrollSynchronization:
         # Should not crash, should not call JavaScript
         mock_preview.page().runJavaScript.assert_not_called()
 
-    def test_sync_preview_to_editor_not_implemented(self, mock_editor, mock_preview, mock_parent_window):
+    def test_sync_preview_to_editor_not_implemented(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -212,7 +230,9 @@ class TestCreatePreviewWidget:
     @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
     @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
     @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
-    def test_returns_webengine_when_gpu_available(self, mock_webengine_cls, mock_get_gpu_info):
+    def test_returns_webengine_when_gpu_available(
+        self, mock_webengine_cls, mock_get_gpu_info
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import create_preview_widget
 
         # Mock GPU info with GPU available
@@ -242,7 +262,9 @@ class TestCreatePreviewWidget:
     @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
     @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
     @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineSettings")
-    def test_enables_gpu_acceleration(self, mock_settings_cls, mock_webengine_cls, mock_get_gpu_info):
+    def test_enables_gpu_acceleration(
+        self, mock_settings_cls, mock_webengine_cls, mock_get_gpu_info
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import create_preview_widget
 
         # Mock GPU available
@@ -272,8 +294,13 @@ class TestCreatePreviewHandler:
     """Test suite for create_preview_handler factory function."""
 
     @patch("asciidoc_artisan.ui.preview_handler_gpu.hasattr")
-    def test_returns_webengine_handler_for_webengine_view(self, mock_hasattr, mock_editor, mock_parent_window):
-        from asciidoc_artisan.ui.preview_handler_gpu import create_preview_handler, WebEngineHandler
+    def test_returns_webengine_handler_for_webengine_view(
+        self, mock_hasattr, mock_editor, mock_parent_window
+    ):
+        from asciidoc_artisan.ui.preview_handler_gpu import (
+            WebEngineHandler,
+            create_preview_handler,
+        )
 
         # Mock preview with 'page' attribute (QWebEngineView)
         mock_preview = Mock()
@@ -281,12 +308,16 @@ class TestCreatePreviewHandler:
         mock_hasattr.return_value = True
 
         with patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView", Mock()):
-            handler = create_preview_handler(mock_editor, mock_preview, mock_parent_window)
+            handler = create_preview_handler(
+                mock_editor, mock_preview, mock_parent_window
+            )
 
             # Should return WebEngineHandler
             assert isinstance(handler, WebEngineHandler)
 
-    def test_returns_text_browser_handler_for_text_browser(self, mock_editor, mock_parent_window):
+    def test_returns_text_browser_handler_for_text_browser(
+        self, mock_editor, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import create_preview_handler
 
         # Mock preview without 'page' attribute (QTextBrowser)
@@ -297,6 +328,7 @@ class TestCreatePreviewHandler:
         # Should return PreviewHandler (TextBrowserHandler)
         # Check it's not WebEngineHandler
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
+
         assert not isinstance(handler, WebEngineHandler)
 
 
@@ -306,6 +338,7 @@ class TestWebEngineAvailability:
 
     def test_webengine_available_constant_exists(self):
         from asciidoc_artisan.ui.preview_handler_gpu import WEBENGINE_AVAILABLE
+
         assert isinstance(WEBENGINE_AVAILABLE, bool)
 
 
@@ -323,7 +356,9 @@ class TestHTMLContentVariations:
         mock_preview.setHtml.assert_called_once()
         assert mock_preview.setHtml.call_count == 1
 
-    def test_very_large_html_content(self, mock_editor, mock_preview, mock_parent_window):
+    def test_very_large_html_content(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -336,7 +371,9 @@ class TestHTMLContentVariations:
         styled_html = mock_preview.setHtml.call_args[0][0]
         assert "x" * 1000 in styled_html  # Verify content is there
 
-    def test_html_with_special_characters(self, mock_editor, mock_preview, mock_parent_window):
+    def test_html_with_special_characters(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -361,7 +398,9 @@ class TestHTMLContentVariations:
         assert "世界" in styled_html
         assert "🌍" in styled_html
 
-    def test_html_with_inline_scripts(self, mock_editor, mock_preview, mock_parent_window):
+    def test_html_with_inline_scripts(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -389,7 +428,9 @@ class TestHTMLContentVariations:
 class TestMultipleUpdates:
     """Test suite for consecutive preview updates."""
 
-    def test_multiple_consecutive_updates(self, mock_editor, mock_preview, mock_parent_window):
+    def test_multiple_consecutive_updates(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -411,7 +452,9 @@ class TestMultipleUpdates:
 
         assert mock_preview.setHtml.call_count == 50
 
-    def test_alternating_content_types(self, mock_editor, mock_preview, mock_parent_window):
+    def test_alternating_content_types(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -427,7 +470,9 @@ class TestMultipleUpdates:
 class TestScrollPositionEdgeCases:
     """Test suite for scroll position boundary conditions."""
 
-    def test_negative_scroll_position(self, mock_editor, mock_preview, mock_parent_window):
+    def test_negative_scroll_position(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -443,7 +488,9 @@ class TestScrollPositionEdgeCases:
         # Should not crash, may or may not call JS depending on validation
         assert mock_preview.page().runJavaScript.call_count <= 1
 
-    def test_scroll_position_exceeds_maximum(self, mock_editor, mock_preview, mock_parent_window):
+    def test_scroll_position_exceeds_maximum(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -461,7 +508,9 @@ class TestScrollPositionEdgeCases:
         # Should clamp to 1.0 (100%)
         assert "window.scrollTo" in js_code
 
-    def test_scroll_at_document_boundaries(self, mock_editor, mock_preview, mock_parent_window):
+    def test_scroll_at_document_boundaries(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -477,7 +526,9 @@ class TestScrollPositionEdgeCases:
 
         assert mock_preview.page().runJavaScript.call_count == 2
 
-    def test_scroll_with_float_position(self, mock_editor, mock_preview, mock_parent_window):
+    def test_scroll_with_float_position(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -497,7 +548,9 @@ class TestScrollPositionEdgeCases:
 class TestCSSStyleGeneration:
     """Test suite for CSS style generation."""
 
-    def test_css_includes_body_styles(self, mock_editor, mock_preview, mock_parent_window):
+    def test_css_includes_body_styles(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -507,7 +560,9 @@ class TestCSSStyleGeneration:
         # Should have body styling
         assert "body" in styled_html.lower()
 
-    def test_css_includes_heading_styles(self, mock_editor, mock_preview, mock_parent_window):
+    def test_css_includes_heading_styles(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -517,7 +572,9 @@ class TestCSSStyleGeneration:
         # Should include heading in content
         assert "<h1>Heading</h1>" in styled_html
 
-    def test_css_wrapping_preserves_html(self, mock_editor, mock_preview, mock_parent_window):
+    def test_css_wrapping_preserves_html(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -543,7 +600,9 @@ class TestBaseURLHandling:
         # Second argument should be QUrl
         assert isinstance(call_args[0][1], QUrl)
 
-    def test_base_url_points_to_local(self, mock_editor, mock_preview, mock_parent_window):
+    def test_base_url_points_to_local(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -558,7 +617,9 @@ class TestBaseURLHandling:
 class TestSignalEmission:
     """Test suite for signal emission."""
 
-    def test_preview_updated_signal_emits_original_html(self, mock_editor, mock_preview, mock_parent_window):
+    def test_preview_updated_signal_emits_original_html(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -569,7 +630,9 @@ class TestSignalEmission:
             # Should emit original, not styled HTML
             mock_signal.emit.assert_called_once_with(original_html)
 
-    def test_signal_emitted_with_sethtml(self, mock_editor, mock_preview, mock_parent_window):
+    def test_signal_emitted_with_sethtml(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -592,7 +655,9 @@ class TestSignalEmission:
             assert "signal" in call_order
             assert "sethtml" in call_order
 
-    def test_multiple_signals_for_multiple_updates(self, mock_editor, mock_preview, mock_parent_window):
+    def test_multiple_signals_for_multiple_updates(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -722,7 +787,9 @@ class TestWebEngineSettingsConfiguration:
 class TestHandlerInstanceManagement:
     """Test suite for handler instance lifecycle."""
 
-    def test_multiple_handler_instances(self, mock_editor, mock_preview, mock_parent_window):
+    def test_multiple_handler_instances(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         # Create multiple handlers
@@ -732,7 +799,9 @@ class TestHandlerInstanceManagement:
         # Should be independent instances
         assert handler1 is not handler2
 
-    def test_handler_state_independence(self, mock_editor, mock_preview, mock_parent_window):
+    def test_handler_state_independence(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler1 = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -768,7 +837,9 @@ class TestHandlerInstanceManagement:
 class TestErrorHandling:
     """Test suite for error conditions."""
 
-    def test_sethtml_with_none_html(self, mock_editor, mock_preview, mock_parent_window):
+    def test_sethtml_with_none_html(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -781,7 +852,9 @@ class TestErrorHandling:
             # If it rejects None, that's also acceptable
             pass
 
-    def test_javascript_execution_failure(self, mock_editor, mock_preview, mock_parent_window):
+    def test_javascript_execution_failure(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -847,7 +920,9 @@ class TestFactoryFunctionEdgeCases:
     @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
     @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
     @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
-    def test_create_widget_webengine_initialization_failure(self, mock_webengine_cls, mock_get_gpu_info):
+    def test_create_widget_webengine_initialization_failure(
+        self, mock_webengine_cls, mock_get_gpu_info
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import create_preview_widget
 
         mock_gpu_info = Mock()
@@ -897,7 +972,9 @@ class TestStateManagement:
         handler.sync_scrolling_enabled = True
         assert handler.sync_scrolling_enabled == True
 
-    def test_syncing_guard_prevents_recursion(self, mock_editor, mock_preview, mock_parent_window):
+    def test_syncing_guard_prevents_recursion(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -913,7 +990,9 @@ class TestStateManagement:
         # Should not call JS when already syncing
         mock_preview.page().runJavaScript.assert_not_called()
 
-    def test_state_persists_across_updates(self, mock_editor, mock_preview, mock_parent_window):
+    def test_state_persists_across_updates(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -928,7 +1007,9 @@ class TestStateManagement:
         # State should persist
         assert handler.sync_scrolling_enabled == False
 
-    def test_independent_state_per_instance(self, mock_editor, mock_preview, mock_parent_window):
+    def test_independent_state_per_instance(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler1 = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -947,7 +1028,9 @@ class TestStateManagement:
 class TestPerformanceEdgeCases:
     """Test suite for performance-related edge cases."""
 
-    def test_handles_extremely_large_document(self, mock_editor, mock_preview, mock_parent_window):
+    def test_handles_extremely_large_document(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -960,7 +1043,9 @@ class TestPerformanceEdgeCases:
         # Should handle without crash
         mock_preview.setHtml.assert_called_once()
 
-    def test_handles_deeply_nested_html(self, mock_editor, mock_preview, mock_parent_window):
+    def test_handles_deeply_nested_html(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
@@ -972,7 +1057,9 @@ class TestPerformanceEdgeCases:
 
         mock_preview.setHtml.assert_called_once()
 
-    def test_handles_many_inline_elements(self, mock_editor, mock_preview, mock_parent_window):
+    def test_handles_many_inline_elements(
+        self, mock_editor, mock_preview, mock_parent_window
+    ):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
 
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)

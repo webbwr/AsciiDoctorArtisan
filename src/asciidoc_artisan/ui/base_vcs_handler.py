@@ -142,8 +142,7 @@ class BaseVCSHandler:
             success: Whether operation succeeded
         """
         logger.info(
-            f"{self.__class__.__name__}: Completed {self.last_operation} "
-            f"(success={success})"
+            f"{self.__class__.__name__}: Completed {self.last_operation} (success={success})"
         )
         self.is_processing = False
         self._update_ui_state()

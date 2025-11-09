@@ -1,10 +1,10 @@
 """Tests for ui.dialogs module."""
 
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from PySide6.QtWidgets import QCheckBox, QComboBox, QLabel
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QCheckBox, QComboBox
 
 from asciidoc_artisan.core import Settings
 
@@ -30,11 +30,13 @@ class TestDialogs:
     def test_import_dialogs(self):
         """Test dialogs module can be imported."""
         from asciidoc_artisan.ui import dialogs
+
         assert dialogs is not None
 
     def test_preferences_dialog_exists(self, mock_settings):
         """Test PreferencesDialog can be instantiated."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         assert dialog is not None
         assert dialog.windowTitle() != ""
@@ -42,6 +44,7 @@ class TestDialogs:
     def test_dialog_has_accept_reject(self, mock_settings):
         """Test dialog has accept/reject methods."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         assert hasattr(dialog, "accept")
         assert hasattr(dialog, "reject")
@@ -54,18 +57,21 @@ class TestPreferencesDialog:
     def test_preferences_dialog_title(self, mock_settings):
         """Test dialog has correct title."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         assert dialog.windowTitle() == "Preferences"
 
     def test_preferences_dialog_minimum_width(self, mock_settings):
         """Test dialog has minimum width set."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         assert dialog.minimumWidth() == 500
 
     def test_ai_enabled_checkbox_exists(self, mock_settings):
         """Test AI enabled checkbox is created."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         assert hasattr(dialog, "ai_enabled_checkbox")
         assert isinstance(dialog.ai_enabled_checkbox, QCheckBox)
@@ -73,6 +79,7 @@ class TestPreferencesDialog:
     def test_ai_enabled_checkbox_initial_state_false(self, mock_settings):
         """Test AI checkbox reflects initial disabled state."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         mock_settings.ai_conversion_enabled = False
         dialog = PreferencesDialog(mock_settings)
         assert not dialog.ai_enabled_checkbox.isChecked()
@@ -80,6 +87,7 @@ class TestPreferencesDialog:
     def test_ai_enabled_checkbox_initial_state_true(self, mock_settings):
         """Test AI checkbox reflects initial enabled state."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         mock_settings.ai_conversion_enabled = True
         dialog = PreferencesDialog(mock_settings)
         assert dialog.ai_enabled_checkbox.isChecked()
@@ -87,6 +95,7 @@ class TestPreferencesDialog:
     def test_get_settings_returns_updated_ai_enabled(self, mock_settings):
         """Test get_settings returns updated AI enabled state."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Change checkbox state
@@ -99,6 +108,7 @@ class TestPreferencesDialog:
     def test_get_settings_returns_updated_ai_disabled(self, mock_settings):
         """Test get_settings returns updated AI disabled state."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         mock_settings.ai_conversion_enabled = True
         dialog = PreferencesDialog(mock_settings)
 
@@ -113,6 +123,7 @@ class TestPreferencesDialog:
     def test_api_key_status_configured(self, mock_settings):
         """Test API key status shows configured when key is set."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         assert status == "✓ Configured"
@@ -121,6 +132,7 @@ class TestPreferencesDialog:
     def test_api_key_status_not_set(self, mock_settings):
         """Test API key status shows not set when key is missing."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         assert status == "✗ Not Set"
@@ -129,6 +141,7 @@ class TestPreferencesDialog:
     def test_api_key_status_empty_string(self, mock_settings):
         """Test API key status shows not set for empty string."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         assert status == "✗ Not Set"
@@ -141,18 +154,21 @@ class TestOllamaSettingsDialog:
     def test_ollama_dialog_title(self, mock_settings):
         """Test dialog has correct title."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
         assert dialog.windowTitle() == "Ollama AI Settings"
 
     def test_ollama_dialog_minimum_width(self, mock_settings):
         """Test dialog has minimum width set."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
         assert dialog.minimumWidth() == 500
 
     def test_ollama_enabled_checkbox_exists(self, mock_settings):
         """Test Ollama enabled checkbox is created."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
         assert hasattr(dialog, "ollama_enabled_checkbox")
         assert isinstance(dialog.ollama_enabled_checkbox, QCheckBox)
@@ -160,6 +176,7 @@ class TestOllamaSettingsDialog:
     def test_ollama_model_combo_exists(self, mock_settings):
         """Test Ollama model combo box is created."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
         assert hasattr(dialog, "model_combo")
         assert isinstance(dialog.model_combo, QComboBox)
@@ -167,6 +184,7 @@ class TestOllamaSettingsDialog:
     def test_ollama_enabled_checkbox_initial_state(self, mock_settings):
         """Test Ollama checkbox reflects initial state."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         mock_settings.ollama_enabled = True
         dialog = OllamaSettingsDialog(mock_settings)
         assert dialog.ollama_enabled_checkbox.isChecked()
@@ -202,6 +220,7 @@ class TestOllamaSettingsDialog:
     def test_get_settings_returns_updated_ollama_enabled(self, mock_settings):
         """Test get_settings returns updated Ollama enabled state."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         # Change checkbox state
@@ -218,8 +237,9 @@ class TestDialogHelperFunctions:
 
     def test_create_ok_cancel_buttons_returns_layout(self, qapp):
         """Test helper function returns button layout."""
-        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
         from PySide6.QtWidgets import QDialog, QHBoxLayout
+
+        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
 
         dialog = QDialog()
         layout = _create_ok_cancel_buttons(dialog)
@@ -236,6 +256,7 @@ class TestPreferencesDialogEdgeCases:
     def test_multiple_get_settings_calls(self, mock_settings):
         """Test calling get_settings multiple times returns consistent results."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         dialog.ai_enabled_checkbox.setChecked(True)
@@ -249,6 +270,7 @@ class TestPreferencesDialogEdgeCases:
     def test_dialog_with_null_model_value(self, mock_settings):
         """Test dialog handles None model value."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         mock_settings.ollama_model = None
 
         # Should not crash with None model
@@ -258,6 +280,7 @@ class TestPreferencesDialogEdgeCases:
     def test_ai_checkbox_toggle_multiple_times(self, mock_settings):
         """Test toggling AI checkbox multiple times."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Toggle 5 times
@@ -270,6 +293,7 @@ class TestPreferencesDialogEdgeCases:
     def test_api_key_status_with_very_long_key(self, mock_settings):
         """Test API key status with very long key."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         assert status == "✓ Configured"
@@ -278,6 +302,7 @@ class TestPreferencesDialogEdgeCases:
     def test_api_key_status_with_whitespace_only(self, mock_settings):
         """Test API key status with whitespace-only key."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         # Whitespace key is still considered configured (env var exists)
@@ -332,6 +357,7 @@ class TestOllamaDialogEdgeCases:
     def test_ollama_checkbox_toggle_multiple_times(self, mock_settings):
         """Test toggling Ollama checkbox multiple times."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         # Toggle 5 times
@@ -366,6 +392,7 @@ class TestDialogModalBehavior:
     def test_preferences_dialog_is_modal(self, mock_settings):
         """Test PreferencesDialog has modal property."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Dialogs typically have modal setting
@@ -374,6 +401,7 @@ class TestDialogModalBehavior:
     def test_ollama_dialog_is_modal(self, mock_settings):
         """Test OllamaSettingsDialog has modal property."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         assert hasattr(dialog, "setModal")
@@ -381,6 +409,7 @@ class TestDialogModalBehavior:
     def test_preferences_dialog_has_parent_setter(self, mock_settings):
         """Test dialog can set parent."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         assert hasattr(dialog, "setParent")
@@ -388,6 +417,7 @@ class TestDialogModalBehavior:
     def test_dialog_window_flags(self, mock_settings):
         """Test dialog has window flags."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         assert hasattr(dialog, "windowFlags")
@@ -401,6 +431,7 @@ class TestDialogStateTransitions:
     def test_preferences_initial_to_modified_state(self, mock_settings):
         """Test dialog transitions from initial to modified state."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         initial_state = dialog.ai_enabled_checkbox.isChecked()
@@ -414,6 +445,7 @@ class TestDialogStateTransitions:
     def test_ollama_initial_to_modified_state(self, mock_settings):
         """Test Ollama dialog state transition."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         initial_state = dialog.ollama_enabled_checkbox.isChecked()
@@ -427,6 +459,7 @@ class TestDialogStateTransitions:
     def test_multiple_state_changes_tracked(self, mock_settings):
         """Test dialog can capture different states."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Set to True
@@ -455,6 +488,7 @@ class TestSettingsPersistence:
     def test_get_settings_returns_settings_object(self, mock_settings):
         """Test get_settings returns settings object."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         updated_settings = dialog.get_settings()
@@ -483,7 +517,10 @@ class TestSettingsPersistence:
         dialog1.ai_enabled_checkbox.setChecked(True)
 
         # Other dialog should have original state
-        assert dialog2.ai_enabled_checkbox.isChecked() == mock_settings.ai_conversion_enabled
+        assert (
+            dialog2.ai_enabled_checkbox.isChecked()
+            == mock_settings.ai_conversion_enabled
+        )
 
 
 @pytest.mark.unit
@@ -493,6 +530,7 @@ class TestWidgetInteractions:
     def test_checkbox_click_changes_state(self, mock_settings, qtbot):
         """Test clicking checkbox changes its state."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         initial_state = dialog.ai_enabled_checkbox.isChecked()
@@ -506,6 +544,7 @@ class TestWidgetInteractions:
     def test_combo_box_selection(self, mock_settings):
         """Test combo box allows selection."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         if dialog.model_combo.count() > 0:
@@ -516,6 +555,7 @@ class TestWidgetInteractions:
     def test_widget_enable_disable(self, mock_settings):
         """Test widgets can be enabled and disabled."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Disable checkbox
@@ -534,6 +574,7 @@ class TestDialogValidation:
     def test_get_settings_always_returns_settings_object(self, mock_settings):
         """Test get_settings always returns a Settings object."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         settings = dialog.get_settings()
@@ -544,6 +585,7 @@ class TestDialogValidation:
     def test_get_settings_preserves_unmodified_fields(self, mock_settings):
         """Test get_settings preserves fields that weren't modified."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         mock_settings.sync_scroll = True
         dialog = PreferencesDialog(mock_settings)
 
@@ -556,6 +598,7 @@ class TestDialogValidation:
     def test_ollama_get_settings_returns_settings_object(self, mock_settings):
         """Test Ollama get_settings returns Settings object."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         settings = dialog.get_settings()
@@ -571,6 +614,7 @@ class TestButtonInteractions:
     def test_dialog_has_ok_button(self, mock_settings):
         """Test dialog has OK button."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Dialog should have standard buttons
@@ -579,6 +623,7 @@ class TestButtonInteractions:
     def test_dialog_has_cancel_button(self, mock_settings):
         """Test dialog has Cancel button."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Dialog should have reject method (Cancel)
@@ -587,6 +632,7 @@ class TestButtonInteractions:
     def test_accept_is_callable(self, mock_settings):
         """Test accept method is callable."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         assert callable(dialog.accept)
@@ -594,6 +640,7 @@ class TestButtonInteractions:
     def test_reject_is_callable(self, mock_settings):
         """Test reject method is callable."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         assert callable(dialog.reject)
@@ -606,6 +653,7 @@ class TestLayoutVerification:
     def test_preferences_dialog_has_layout(self, mock_settings):
         """Test PreferencesDialog has a layout."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         assert dialog.layout() is not None
@@ -613,6 +661,7 @@ class TestLayoutVerification:
     def test_ollama_dialog_has_layout(self, mock_settings):
         """Test OllamaSettingsDialog has a layout."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         assert dialog.layout() is not None
@@ -620,6 +669,7 @@ class TestLayoutVerification:
     def test_dialog_layout_contains_widgets(self, mock_settings):
         """Test dialog layout contains widgets."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         layout = dialog.layout()
@@ -628,8 +678,9 @@ class TestLayoutVerification:
 
     def test_button_layout_structure(self, qapp):
         """Test button layout has correct structure."""
-        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
         from PySide6.QtWidgets import QDialog
+
+        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
 
         dialog = QDialog()
         layout = _create_ok_cancel_buttons(dialog)
@@ -681,6 +732,7 @@ class TestDialogWidgetProperties:
     def test_checkbox_text_set(self, mock_settings):
         """Test checkbox has text label."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Checkbox should have text
@@ -689,6 +741,7 @@ class TestDialogWidgetProperties:
     def test_combo_box_editable_property(self, mock_settings):
         """Test combo box editable property."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         dialog = OllamaSettingsDialog(mock_settings)
 
         # Combo box should have isEditable method
@@ -697,6 +750,7 @@ class TestDialogWidgetProperties:
     def test_widget_visibility(self, mock_settings):
         """Test widget has visibility method."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Checkbox should have visibility method
@@ -705,6 +759,7 @@ class TestDialogWidgetProperties:
     def test_widget_parent_set(self, mock_settings):
         """Test widgets have parent set."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
         dialog = PreferencesDialog(mock_settings)
 
         # Widget should have parent

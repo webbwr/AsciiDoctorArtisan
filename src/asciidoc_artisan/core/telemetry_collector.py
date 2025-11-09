@@ -140,8 +140,7 @@ class TelemetryCollector:
         self.buffer_size = 100  # Flush after 100 events
 
         logger.info(
-            f"TelemetryCollector initialized (enabled={enabled}, "
-            f"session_id={self.session_id[:8]}...)"
+            f"TelemetryCollector initialized (enabled={enabled}, session_id={self.session_id[:8]}...)"
         )
 
     def track_event(

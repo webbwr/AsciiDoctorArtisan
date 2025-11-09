@@ -8,9 +8,8 @@ Author: AsciiDoc Artisan Team
 Version: 1.7.4
 """
 
-import subprocess
 import sys
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import pytest
 from PySide6.QtCore import Qt
@@ -74,7 +73,8 @@ class TestValidationWorker:
         # Mock the import to simulate it not being installed
         with patch("builtins.__import__", side_effect=ImportError):
             status, version, message = worker._check_python_package(
-                "ollama", "1.0.0"  # Use known package name so import is attempted
+                "ollama",
+                "1.0.0",  # Use known package name so import is attempted
             )
             assert status == "✗"
             assert version == "not installed"
@@ -337,7 +337,10 @@ class TestValidationWorkerRun:
         python_check = results["python_packages"][0]
         assert python_check[0] == "Python"
         # Should show current Python version
-        assert python_check[2] == f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        assert (
+            python_check[2]
+            == f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        )
 
     def test_validate_installation_checks_packages(self, qtbot):
         """Test validation checks all required packages."""

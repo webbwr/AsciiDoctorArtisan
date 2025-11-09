@@ -27,17 +27,11 @@ def measure_imports():
 
     # Test 1: Core imports
     start = time.perf_counter()
-    import sys
-    import os
-    import logging
-    from pathlib import Path
     core_time = (time.perf_counter() - start) * 1000
     results.append(("Core Python modules", core_time))
 
     # Test 2: PySide6
     start = time.perf_counter()
-    from PySide6.QtWidgets import QApplication, QMainWindow
-    from PySide6.QtCore import Qt, QThread, Signal
     pyside_time = (time.perf_counter() - start) * 1000
     results.append(("PySide6 Qt Framework", pyside_time))
 
@@ -46,6 +40,7 @@ def measure_imports():
     try:
         import asciidoc3
         from asciidoc3.asciidoc3api import AsciiDoc3API
+
         asciidoc_time = (time.perf_counter() - start) * 1000
     except ImportError:
         asciidoc_time = 0
@@ -55,6 +50,7 @@ def measure_imports():
     start = time.perf_counter()
     try:
         import pypandoc
+
         pandoc_time = (time.perf_counter() - start) * 1000
     except ImportError:
         pandoc_time = 0
@@ -64,6 +60,7 @@ def measure_imports():
     start = time.perf_counter()
     try:
         import pymupdf
+
         pymupdf_time = (time.perf_counter() - start) * 1000
     except ImportError:
         pymupdf_time = 0
@@ -71,8 +68,6 @@ def measure_imports():
 
     # Test 6: Application modules
     start = time.perf_counter()
-    from asciidoc_artisan.core import settings, file_operations
-    from asciidoc_artisan.workers import preview_worker, git_worker
     app_time = (time.perf_counter() - start) * 1000
     results.append(("Application modules", app_time))
 
@@ -86,7 +81,9 @@ def measure_imports():
         print(f"  {name:25s} {time_ms:7.1f}ms  ({pct:5.1f}%)")
 
     print(f"  {'─' * 50}")
-    print(f"  {'Total import time':25s} {total_time:7.1f}ms  ({total_time/1000:.2f}s)")
+    print(
+        f"  {'Total import time':25s} {total_time:7.1f}ms  ({total_time / 1000:.2f}s)"
+    )
     print()
 
     # Estimate total startup (imports + window creation ~500ms)
@@ -97,15 +94,21 @@ def measure_imports():
     print(f"  Import time:        {total_time:7.1f}ms")
     print(f"  Window creation:    {window_overhead:7.1f}ms (estimated)")
     print(f"  {'─' * 40}")
-    print(f"  Total:              {estimated_total:7.1f}ms ({estimated_total/1000:.2f}s)")
+    print(
+        f"  Total:              {estimated_total:7.1f}ms ({estimated_total / 1000:.2f}s)"
+    )
     print()
 
     # Check targets
     estimated_s = estimated_total / 1000
 
     print("Performance Targets:")
-    print(f"  v1.5.0 target: < 2.0s  {'✅ PASS' if estimated_s < 2.0 else '❌ FAIL'} ({estimated_s:.2f}s)")
-    print(f"  v1.6.0 target: < 1.5s  {'✅ PASS' if estimated_s < 1.5 else '⚠️  Close ({:.2f}s)'.format(estimated_s)}")
+    print(
+        f"  v1.5.0 target: < 2.0s  {'✅ PASS' if estimated_s < 2.0 else '❌ FAIL'} ({estimated_s:.2f}s)"
+    )
+    print(
+        f"  v1.6.0 target: < 1.5s  {'✅ PASS' if estimated_s < 1.5 else '⚠️  Close ({:.2f}s)'.format(estimated_s)}"
+    )
     print()
 
     # Optimization recommendations

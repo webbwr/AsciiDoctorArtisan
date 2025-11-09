@@ -223,7 +223,9 @@ class TestIncrementalRendering:
         assert worker._use_incremental is True
 
     @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
-    @patch("asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True)
+    @patch(
+        "asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True
+    )
     @patch("asciidoc_artisan.workers.preview_worker.IncrementalPreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
     def test_large_document_uses_incremental_rendering(
@@ -427,9 +429,7 @@ class TestMetricsRecording:
     @patch("asciidoc_artisan.workers.preview_worker.get_metrics_collector")
     @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
     @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
-    def test_metrics_recorded_on_full_render(
-        self, mock_api_class, mock_get_metrics
-    ):
+    def test_metrics_recorded_on_full_render(self, mock_api_class, mock_get_metrics):
         """Test metrics are recorded for full rendering."""
         mock_api_instance = MagicMock()
         mock_api_instance.execute.return_value = None
@@ -452,7 +452,9 @@ class TestMetricsRecording:
     @patch("asciidoc_artisan.workers.preview_worker.METRICS_AVAILABLE", True)
     @patch("asciidoc_artisan.workers.preview_worker.get_metrics_collector")
     @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
-    @patch("asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True)
+    @patch(
+        "asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True
+    )
     @patch("asciidoc_artisan.workers.preview_worker.IncrementalPreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
     def test_metrics_recorded_on_incremental_render(
@@ -473,7 +475,9 @@ class TestMetricsRecording:
         worker.initialize_asciidoc("/path/to/asciidoc3.py")
 
         # Large document to trigger incremental (must be >1000 chars)
-        large_text = "= Document Title\n\n" + ("This is a content paragraph with some text.\n" * 30)
+        large_text = "= Document Title\n\n" + (
+            "This is a content paragraph with some text.\n" * 30
+        )
         assert len(large_text) > 1000  # Verify it's large enough
         worker.render_preview(large_text)
 

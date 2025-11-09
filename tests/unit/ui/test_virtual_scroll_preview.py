@@ -1183,7 +1183,7 @@ class TestViewportCalculatorWidgetHierarchy:
 
     def test_widget_with_qscrollarea_parent(self, qtbot):
         """Test calculate_from_widget with QScrollArea parent."""
-        from PySide6.QtWidgets import QWidget, QScrollArea
+        from PySide6.QtWidgets import QScrollArea, QWidget
 
         scroll_area = QScrollArea()
         qtbot.addWidget(scroll_area)
@@ -1210,7 +1210,7 @@ class TestViewportCalculatorWidgetHierarchy:
 
     def test_widget_with_nested_scroll_areas(self, qtbot):
         """Test widget with multiple nested scroll areas."""
-        from PySide6.QtWidgets import QWidget, QScrollArea
+        from PySide6.QtWidgets import QScrollArea, QWidget
 
         outer_scroll = QScrollArea()
         qtbot.addWidget(outer_scroll)
@@ -1261,7 +1261,7 @@ class TestViewportCalculatorWidgetHierarchy:
 
     def test_scroll_position_extraction(self, qtbot):
         """Test scroll position is correctly extracted."""
-        from PySide6.QtWidgets import QWidget, QScrollArea
+        from PySide6.QtWidgets import QScrollArea, QWidget
 
         scroll_area = QScrollArea()
         qtbot.addWidget(scroll_area)
@@ -1558,7 +1558,9 @@ class TestVirtualScrollingThresholds:
         config = VirtualScrollConfig(min_lines_for_virtual=500)
         renderer = VirtualScrollPreview(api, config)
 
-        source = "\n".join([f"Line {i}" for i in range(500)])  # 500 newlines = 501 lines (counting starts at 1)
+        source = "\n".join(
+            [f"Line {i}" for i in range(500)]
+        )  # 500 newlines = 501 lines (counting starts at 1)
 
         # Should use virtual scrolling (>= threshold)
         assert renderer.should_use_virtual_scrolling(source)
@@ -1571,7 +1573,9 @@ class TestVirtualScrollingThresholds:
         config = VirtualScrollConfig(min_lines_for_virtual=500)
         renderer = VirtualScrollPreview(api, config)
 
-        source = "\n".join([f"Line {i}" for i in range(498)])  # 498 newlines = 499 lines
+        source = "\n".join(
+            [f"Line {i}" for i in range(498)]
+        )  # 498 newlines = 499 lines
 
         # Should NOT use virtual scrolling (< threshold)
         assert not renderer.should_use_virtual_scrolling(source)
@@ -1584,7 +1588,9 @@ class TestVirtualScrollingThresholds:
         config = VirtualScrollConfig(min_lines_for_virtual=500)
         renderer = VirtualScrollPreview(api, config)
 
-        source = "\n".join([f"Line {i}" for i in range(500)])  # 500 newlines = 501 lines
+        source = "\n".join(
+            [f"Line {i}" for i in range(500)]
+        )  # 500 newlines = 501 lines
 
         # Should use virtual scrolling (> threshold)
         assert renderer.should_use_virtual_scrolling(source)

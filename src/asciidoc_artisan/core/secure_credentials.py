@@ -80,12 +80,7 @@ class SecurityAudit:
             user = getpass.getuser()
 
             logger.info(
-                f"SECURITY_AUDIT: "
-                f"timestamp={timestamp} "
-                f"user={user} "
-                f"action={action} "
-                f"service={service} "
-                f"success={success}"
+                f"SECURITY_AUDIT: timestamp={timestamp} user={user} action={action} service={service} success={success}"
             )
         except Exception as e:
             # Never let audit logging break functionality

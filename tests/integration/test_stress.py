@@ -9,18 +9,20 @@ Tests system behavior under heavy load:
 - Resource cleanup
 """
 
-import pytest
+import tempfile
 import time
 from pathlib import Path
-import tempfile
+
+import pytest
 
 
 @pytest.mark.stress
 @pytest.mark.slow
 def test_large_document_preview():
     """Test preview rendering with very large documents."""
-    from asciidoc_artisan.workers.preview_worker import PreviewWorker
     import asciidoc3
+
+    from asciidoc_artisan.workers.preview_worker import PreviewWorker
 
     worker = PreviewWorker()
     worker.initialize_asciidoc(asciidoc3.__file__)
@@ -43,9 +45,11 @@ def test_large_document_preview():
 @pytest.mark.slow
 def test_rapid_file_operations(qtbot):
     """Test rapid successive file operations."""
-    from asciidoc_artisan.ui.file_handler import FileHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
+
+    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit
+
+    from asciidoc_artisan.ui.file_handler import FileHandler
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create handler
@@ -75,8 +79,9 @@ def test_rapid_file_operations(qtbot):
 @pytest.mark.slow
 def test_many_concurrent_tasks():
     """Test handling many concurrent tasks."""
-    from asciidoc_artisan.workers.optimized_worker_pool import OptimizedWorkerPool
     import time
+
+    from asciidoc_artisan.workers.optimized_worker_pool import OptimizedWorkerPool
 
     def slow_func():
         time.sleep(0.01)  # 10ms task
@@ -99,9 +104,11 @@ def test_many_concurrent_tasks():
 @pytest.mark.slow
 def test_rapid_preview_updates(qtbot):
     """Test rapid successive preview updates."""
-    from asciidoc_artisan.ui.preview_handler import PreviewHandler
     from unittest.mock import Mock
-    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QMainWindow
+
+    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit, QTextBrowser
+
+    from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
     editor = QPlainTextEdit()
     preview = QTextBrowser()
@@ -150,9 +157,11 @@ def test_many_metrics_operations():
 @pytest.mark.slow
 async def test_large_file_open_save_async(qtbot):
     """Test opening and saving very large files with async I/O."""
+    from unittest.mock import AsyncMock, Mock
+
+    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit
+
     from asciidoc_artisan.ui.file_handler import FileHandler
-    from unittest.mock import Mock, AsyncMock
-    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create large file (5MB)
@@ -185,7 +194,9 @@ async def test_large_file_open_save_async(qtbot):
         open_time = time.perf_counter() - start
 
         # Async I/O should be fast (mocked)
-        assert open_time < 2.0, f"Async file open took {open_time:.1f}s (should be < 2s with mocking)"
+        assert (
+            open_time < 2.0
+        ), f"Async file open took {open_time:.1f}s (should be < 2s with mocking)"
 
         # Verify content loaded
         assert editor.toPlainText() == large_content
@@ -225,8 +236,8 @@ def test_cache_with_many_entries():
 @pytest.mark.slow
 def test_incremental_renderer_many_blocks():
     """Test incremental renderer with document with many blocks."""
+
     from asciidoc_artisan.workers.incremental_renderer import DocumentBlockSplitter
-    from unittest.mock import Mock
 
     # Create document with many sections (500+)
     sections = []

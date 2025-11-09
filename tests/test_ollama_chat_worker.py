@@ -4,9 +4,7 @@ Tests for Ollama AI Chat Worker.
 Tests the OllamaChatWorker class which handles background AI chat processing.
 """
 
-import json
 import time
-from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from PySide6.QtCore import QThread
@@ -169,7 +167,9 @@ class TestOllamaChatWorkerReentrancy:
         chat_worker._is_processing = True
 
         # Try to send another message
-        chat_worker.send_message("Second message", "gnokit/improve-grammer", "general", [])
+        chat_worker.send_message(
+            "Second message", "gnokit/improve-grammer", "general", []
+        )
 
         # Should not update state since already processing
         # (implementation detail - may vary)
@@ -198,6 +198,7 @@ class TestOllamaChatWorkerErrorHandling:
 
 # Integration tests would require actual Ollama installation
 # These are marked as integration tests
+
 
 @pytest.mark.integration
 class TestOllamaChatWorkerIntegration:
@@ -231,7 +232,9 @@ class TestOllamaChatWorkerIntegration:
             chunks_received.append(chunk)
 
         chat_worker.chat_response_chunk.connect(on_chunk)
-        chat_worker.send_message("Tell me a story", "gnokit/improve-grammer", "general", [])
+        chat_worker.send_message(
+            "Tell me a story", "gnokit/improve-grammer", "general", []
+        )
 
         chat_worker.wait(15000)  # 15 second timeout
         assert len(chunks_received) > 0

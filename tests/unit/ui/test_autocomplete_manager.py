@@ -12,7 +12,11 @@ from PySide6.QtWidgets import QPlainTextEdit
 
 from asciidoc_artisan.core.autocomplete_engine import AutoCompleteEngine
 from asciidoc_artisan.core.autocomplete_providers import SyntaxProvider
-from asciidoc_artisan.core.models import CompletionContext, CompletionItem, CompletionKind
+from asciidoc_artisan.core.models import (
+    CompletionContext,
+    CompletionItem,
+    CompletionKind,
+)
 from asciidoc_artisan.ui.autocomplete_manager import AutoCompleteManager
 
 
@@ -149,7 +153,7 @@ class TestCompletionInsertion:
             text="Heading",
             description="Section heading",
             kind=CompletionKind.SYNTAX,
-            insert_text="Heading"
+            insert_text="Heading",
         )
 
         # Insert completion
@@ -170,7 +174,7 @@ class TestCompletionInsertion:
             text="note",
             description="Note admonition",
             kind=CompletionKind.SYNTAX,
-            insert_text="NOTE: "
+            insert_text="NOTE: ",
         )
 
         manager._insert_completion(item)
@@ -226,9 +230,7 @@ class TestWidgetVisibility:
         assert manager.widget.isVisible()
 
         item = CompletionItem(
-            text="test",
-            description="Test item",
-            kind=CompletionKind.SYNTAX
+            text="test", description="Test item", kind=CompletionKind.SYNTAX
         )
 
         manager._insert_completion(item)

@@ -4,10 +4,11 @@ Unit tests for Claude AI Client.
 Tests the ClaudeClient class for Anthropic Claude API integration.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import Mock, patch
 
-from asciidoc_artisan.claude import ClaudeClient, ClaudeResult, ClaudeMessage
+import pytest
+
+from asciidoc_artisan.claude import ClaudeClient, ClaudeMessage, ClaudeResult
 
 
 @pytest.mark.unit
@@ -132,9 +133,7 @@ class TestClaudeClient:
 
         # Execute
         client = ClaudeClient()
-        result = client.send_message(
-            "Hello", system="You are a helpful assistant"
-        )
+        result = client.send_message("Hello", system="You are a helpful assistant")
 
         # Verify system prompt was passed
         assert result.success is True

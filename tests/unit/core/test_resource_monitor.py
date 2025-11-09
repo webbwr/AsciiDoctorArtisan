@@ -4,13 +4,12 @@ Tests for core.resource_monitor module.
 Tests resource monitoring, document metrics, and adaptive debouncing.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
+
 from asciidoc_artisan.core.resource_monitor import (
-    ResourceMetrics,
     DocumentMetrics,
+    ResourceMetrics,
     ResourceMonitor,
-    PSUTIL_AVAILABLE,
 )
 
 
@@ -25,7 +24,7 @@ class TestResourceMetrics:
             cpu_percent=15.8,
             document_size_bytes=102400,
             document_line_count=500,
-            recommended_debounce_ms=350
+            recommended_debounce_ms=350,
         )
 
         assert metrics.memory_used_mb == 512.5
@@ -42,10 +41,7 @@ class TestDocumentMetrics:
     def test_document_metrics_small(self):
         """Test DocumentMetrics for small document."""
         metrics = DocumentMetrics(
-            size_bytes=5000,
-            line_count=50,
-            char_count=5000,
-            is_large=False
+            size_bytes=5000, line_count=50, char_count=5000, is_large=False
         )
 
         assert metrics.size_bytes == 5000
@@ -55,10 +51,7 @@ class TestDocumentMetrics:
     def test_document_metrics_large(self):
         """Test DocumentMetrics for large document."""
         metrics = DocumentMetrics(
-            size_bytes=600000,
-            line_count=6000,
-            char_count=600000,
-            is_large=True
+            size_bytes=600000, line_count=6000, char_count=600000, is_large=True
         )
 
         assert metrics.size_bytes == 600000
@@ -275,7 +268,7 @@ Line 5"""
         """Test is_available returns True when available (line 239)."""
         monitor = ResourceMonitor()
         # If psutil is available and process initialized
-        if hasattr(monitor, 'process') and monitor.process is not None:
+        if hasattr(monitor, "process") and monitor.process is not None:
             assert monitor.is_available() is True  # Line 239
         else:
             # If not available, should return False
@@ -297,10 +290,13 @@ Line 5"""
 
     def test_psutil_process_init_exception(self):
         """Test exception handling when psutil.Process() fails (lines 91-92)."""
-        from unittest.mock import patch, Mock
+        from unittest.mock import patch
 
-        with patch('asciidoc_artisan.core.resource_monitor.PSUTIL_AVAILABLE', True):
-            with patch('asciidoc_artisan.core.resource_monitor.psutil.Process', side_effect=RuntimeError("Mock error")):
+        with patch("asciidoc_artisan.core.resource_monitor.PSUTIL_AVAILABLE", True):
+            with patch(
+                "asciidoc_artisan.core.resource_monitor.psutil.Process",
+                side_effect=RuntimeError("Mock error"),
+            ):
                 monitor = ResourceMonitor()
                 # Process should be None due to exception
                 assert monitor.process is None
@@ -332,35 +328,39 @@ Line 5"""
 
     def test_psutil_import_error(self):
         """Test handling when psutil is not available (lines 27-29)."""
+        import importlib
         import sys
         from unittest.mock import patch
-        import importlib
 
         # Save original psutil if it exists
-        original_psutil = sys.modules.get('psutil')
-        original_resource_monitor = sys.modules.get('asciidoc_artisan.core.resource_monitor')
+        original_psutil = sys.modules.get("psutil")
+        original_resource_monitor = sys.modules.get(
+            "asciidoc_artisan.core.resource_monitor"
+        )
 
         try:
             # Remove psutil from sys.modules to simulate it not being installed
-            if 'psutil' in sys.modules:
-                del sys.modules['psutil']
-            if 'asciidoc_artisan.core.resource_monitor' in sys.modules:
-                del sys.modules['asciidoc_artisan.core.resource_monitor']
+            if "psutil" in sys.modules:
+                del sys.modules["psutil"]
+            if "asciidoc_artisan.core.resource_monitor" in sys.modules:
+                del sys.modules["asciidoc_artisan.core.resource_monitor"]
 
             # Mock the import to raise ImportError
-            with patch.dict('sys.modules', {'psutil': None}):
+            with patch.dict("sys.modules", {"psutil": None}):
                 # Force ImportError when trying to import psutil
                 import builtins
+
                 original_import = builtins.__import__
 
                 def mock_import(name, *args, **kwargs):
-                    if name == 'psutil':
+                    if name == "psutil":
                         raise ImportError("Mock psutil not available")
                     return original_import(name, *args, **kwargs)
 
-                with patch('builtins.__import__', side_effect=mock_import):
+                with patch("builtins.__import__", side_effect=mock_import):
                     # Reload the module to trigger the import error path
                     import asciidoc_artisan.core.resource_monitor as rm
+
                     importlib.reload(rm)
 
                     # Check that PSUTIL_AVAILABLE is False
@@ -370,23 +370,27 @@ Line 5"""
             # Restore original modules
             try:
                 if original_psutil is not None:
-                    sys.modules['psutil'] = original_psutil
+                    sys.modules["psutil"] = original_psutil
                 else:
                     # Ensure psutil is removed from blacklist
-                    if 'psutil' in sys.modules and sys.modules['psutil'] is None:
-                        del sys.modules['psutil']
+                    if "psutil" in sys.modules and sys.modules["psutil"] is None:
+                        del sys.modules["psutil"]
 
                 # Always restore the original resource_monitor module
                 if original_resource_monitor is not None:
-                    sys.modules['asciidoc_artisan.core.resource_monitor'] = original_resource_monitor
+                    sys.modules["asciidoc_artisan.core.resource_monitor"] = (
+                        original_resource_monitor
+                    )
                 else:
                     # If it wasn't loaded before, make sure it's available now
                     import asciidoc_artisan.core.resource_monitor as rm
-                    sys.modules['asciidoc_artisan.core.resource_monitor'] = rm
+
+                    sys.modules["asciidoc_artisan.core.resource_monitor"] = rm
 
                 # Reload to ensure normal state
-                if 'asciidoc_artisan.core.resource_monitor' in sys.modules:
+                if "asciidoc_artisan.core.resource_monitor" in sys.modules:
                     import asciidoc_artisan.core.resource_monitor
+
                     importlib.reload(asciidoc_artisan.core.resource_monitor)
             except (ImportError, KeyError):
                 # Cleanup failed, but that's okay for this test

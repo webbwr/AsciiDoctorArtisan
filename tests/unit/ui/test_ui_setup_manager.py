@@ -1,8 +1,9 @@
 """Tests for ui.ui_setup_manager module."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from PySide6.QtCore import Qt, QRect
+from PySide6.QtCore import QRect, Qt
 from PySide6.QtWidgets import QMainWindow, QSplitter, QStatusBar
 
 
@@ -39,20 +40,24 @@ class TestUISetupManagerBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         assert UISetupManager is not None
 
     def test_creation(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
         assert manager is not None
 
     def test_stores_editor_reference(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
         assert manager.editor == mock_editor
 
     def test_has_setup_methods(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
         assert hasattr(manager, "setup_ui")
         assert hasattr(manager, "setup_dynamic_sizing")
@@ -61,6 +66,7 @@ class TestUISetupManagerBasics:
 
     def test_has_private_creation_methods(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
         assert hasattr(manager, "_create_editor_pane")
         assert hasattr(manager, "_create_preview_pane")
@@ -75,8 +81,9 @@ class TestSetupUI:
     """Test suite for setup_ui method."""
 
     def test_sets_minimum_window_size(self, mock_editor):
+        from asciidoc_artisan.core import MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
-        from asciidoc_artisan.core import MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT
+
         manager = UISetupManager(mock_editor)
 
         manager.setup_ui()
@@ -87,6 +94,7 @@ class TestSetupUI:
 
     def test_creates_splitter(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager.setup_ui()
@@ -98,6 +106,7 @@ class TestSetupUI:
 
     def test_creates_status_bar(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager.setup_ui()
@@ -108,6 +117,7 @@ class TestSetupUI:
 
     def test_initializes_status_manager_widgets(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager.setup_ui()
@@ -117,6 +127,7 @@ class TestSetupUI:
 
     def test_calls_setup_dynamic_sizing(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         with patch.object(manager, "setup_dynamic_sizing") as mock_sizing:
@@ -125,6 +136,7 @@ class TestSetupUI:
 
     def test_creates_find_bar(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager.setup_ui()
@@ -134,6 +146,7 @@ class TestSetupUI:
 
     def test_creates_quick_commit_widget(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager.setup_ui()
@@ -148,6 +161,7 @@ class TestEditorPaneCreation:
 
     def test_creates_editor_widget(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         pane = manager._create_editor_pane()
@@ -158,6 +172,7 @@ class TestEditorPaneCreation:
 
     def test_creates_undo_redo_buttons(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager._create_editor_pane()
@@ -168,6 +183,7 @@ class TestEditorPaneCreation:
 
     def test_creates_quick_commit_button(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager._create_editor_pane()
@@ -177,6 +193,7 @@ class TestEditorPaneCreation:
 
     def test_connects_editor_text_changed(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager._create_editor_pane()
@@ -192,6 +209,7 @@ class TestPreviewPaneCreation:
 
     def test_creates_preview_widget(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         pane = manager._create_preview_pane()
@@ -202,6 +220,7 @@ class TestPreviewPaneCreation:
 
     def test_sets_open_external_links(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         # Keep reference to pane to prevent C++ object deletion
@@ -219,6 +238,7 @@ class TestChatPaneCreation:
 
     def test_creates_chat_panel(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         pane = manager._create_chat_pane()
@@ -229,6 +249,7 @@ class TestChatPaneCreation:
 
     def test_creates_chat_bar(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager._create_chat_pane()
@@ -238,6 +259,7 @@ class TestChatPaneCreation:
 
     def test_stores_chat_container_reference(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager._create_chat_pane()
@@ -247,6 +269,7 @@ class TestChatPaneCreation:
 
     def test_chat_pane_initially_hidden(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager._create_chat_pane()
@@ -256,6 +279,7 @@ class TestChatPaneCreation:
 
     def test_chat_pane_width_constraints(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         manager._create_chat_pane()
@@ -271,36 +295,48 @@ class TestToolbarCreation:
 
     def test_creates_toolbar_widget(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
-        toolbar = manager._create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
+        toolbar = manager._create_toolbar(
+            "Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)"
+        )
 
         # Should create toolbar widget
         assert toolbar is not None
 
     def test_toolbar_height(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
-        toolbar = manager._create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
+        toolbar = manager._create_toolbar(
+            "Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)"
+        )
 
         # Should have fixed height
         assert toolbar.height() == 30
 
     def test_stores_label_references(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
-        manager._create_toolbar("Editor", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
+        manager._create_toolbar(
+            "Editor", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)"
+        )
 
         # Should store label reference
         assert hasattr(mock_editor, "editor_label")
 
     def test_stores_max_button_references(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
-        manager._create_toolbar("Preview", "#4a9eff", "preview", "rgba(74, 158, 255, 0.2)")
+        manager._create_toolbar(
+            "Preview", "#4a9eff", "preview", "rgba(74, 158, 255, 0.2)"
+        )
 
         # Should store max button reference
         assert hasattr(mock_editor, "preview_max_btn")
@@ -311,8 +347,10 @@ class TestSplitterSizes:
     """Test suite for _set_default_splitter_sizes method."""
 
     def test_sets_sizes_without_chat(self, mock_editor):
-        from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
         from PySide6.QtWidgets import QWidget
+
+        from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         # Create splitter with placeholder widgets
@@ -332,8 +370,10 @@ class TestSplitterSizes:
         assert sizes[2] == 0  # Chat should be 0
 
     def test_sets_sizes_with_chat(self, mock_editor):
-        from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
         from PySide6.QtWidgets import QWidget
+
+        from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         # Create splitter with placeholder widgets
@@ -360,6 +400,7 @@ class TestDynamicSizing:
     @patch("asciidoc_artisan.ui.ui_setup_manager.QGuiApplication.primaryScreen")
     def test_maximizes_when_start_maximized_true(self, mock_screen, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         # Mock screen
@@ -376,6 +417,7 @@ class TestDynamicSizing:
     @patch("asciidoc_artisan.ui.ui_setup_manager.QGuiApplication.primaryScreen")
     def test_calculates_dimensions_when_not_maximized(self, mock_screen, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         # Mock screen
@@ -394,6 +436,7 @@ class TestDynamicSizing:
     @patch("asciidoc_artisan.ui.ui_setup_manager.QGuiApplication.primaryScreen")
     def test_uses_initial_geometry_when_provided(self, mock_screen, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         # Mock screen
@@ -412,6 +455,7 @@ class TestDynamicSizing:
     @patch("asciidoc_artisan.ui.ui_setup_manager.QGuiApplication.primaryScreen")
     def test_handles_no_screen(self, mock_screen, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
+
         manager = UISetupManager(mock_editor)
 
         # No screen available

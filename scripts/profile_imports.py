@@ -19,7 +19,7 @@ def profile_import(module_name: str) -> Tuple[str, float]:
         importlib.import_module(module_name)
         elapsed = time.perf_counter() - start
         return (module_name, elapsed)
-    except ImportError as e:
+    except ImportError:
         return (module_name, -1.0)  # Failed import
 
 

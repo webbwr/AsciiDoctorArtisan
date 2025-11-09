@@ -9,10 +9,10 @@ Tests spell check UI integration including:
 - Context menu with suggestions
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
 from PySide6.QtWidgets import QMainWindow, QPlainTextEdit, QTextEdit
-from PySide6.QtCore import QTimer
-from unittest.mock import Mock, MagicMock, patch
 
 
 @pytest.fixture
@@ -50,14 +50,15 @@ class TestSpellCheckManagerInitialization:
     def test_import(self):
         """Test SpellCheckManager can be imported."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
         assert SpellCheckManager is not None
 
     def test_creation(self, main_window):
         """Test creating SpellCheckManager instance."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
-        
+
         assert manager is not None
         assert manager.enabled is True  # From settings
         assert manager.spell_checker is not None
@@ -65,12 +66,12 @@ class TestSpellCheckManagerInitialization:
     def test_initialization_with_custom_words(self, main_window):
         """Test initializing with custom dictionary words."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         # Add custom words to settings
         main_window._settings.spell_check_custom_words = ["testword1", "testword2"]
-        
+
         manager = SpellCheckManager(main_window)
-        
+
         # Custom words should be added to spell checker
         custom_words = manager.spell_checker.get_custom_words()
         assert "testword1" in custom_words
@@ -84,15 +85,15 @@ class TestSpellCheckToggle:
     def test_toggle_spell_check_off(self, main_window):
         """Test toggling spell check off."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         main_window._settings.spell_check_enabled = True
         manager = SpellCheckManager(main_window)
-        
+
         assert manager.enabled is True
-        
+
         # Toggle off
         manager.toggle_spell_check()
-        
+
         assert manager.enabled is False
         assert main_window._settings.spell_check_enabled is False
         main_window.status_manager.show_message.assert_called()
@@ -100,29 +101,29 @@ class TestSpellCheckToggle:
     def test_toggle_spell_check_on(self, main_window):
         """Test toggling spell check on."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         main_window._settings.spell_check_enabled = False
         manager = SpellCheckManager(main_window)
-        
+
         assert manager.enabled is False
-        
+
         # Toggle on
         manager.toggle_spell_check()
-        
+
         assert manager.enabled is True
         assert main_window._settings.spell_check_enabled is True
 
     def test_toggle_clears_highlights_when_disabled(self, main_window):
         """Test toggling off clears spelling highlights."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
         manager.enabled = True
         manager.errors = [Mock()]  # Simulate existing errors
-        
+
         # Toggle off
         manager.toggle_spell_check()
-        
+
         # Errors should be cleared
         assert manager.errors == []
 
@@ -134,25 +135,25 @@ class TestLanguageSupport:
     def test_set_language(self, main_window):
         """Test changing spell check language."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
-        
+
         # Change language
         manager.set_language("es")
-        
+
         assert manager.spell_checker.get_language() == "es"
         assert main_window._settings.spell_check_language == "es"
 
     def test_set_language_triggers_recheck(self, main_window):
         """Test language change triggers spell check when enabled."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
         manager.enabled = True
-        
-        with patch.object(manager, '_perform_spell_check') as mock_check:
+
+        with patch.object(manager, "_perform_spell_check") as mock_check:
             manager.set_language("fr")
-            
+
             # Should trigger spell check
             mock_check.assert_called_once()
 
@@ -164,28 +165,28 @@ class TestCustomDictionary:
     def test_add_to_dictionary(self, main_window):
         """Test adding word to custom dictionary."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
-        
+
         # Add word
         manager.add_to_dictionary("customword")
-        
+
         # Should be in spell checker's custom dictionary
         assert "customword" in manager.spell_checker.get_custom_words()
-        
+
         # Should be saved to settings
         assert "customword" in main_window._settings.spell_check_custom_words
 
     def test_add_to_dictionary_triggers_recheck(self, main_window):
         """Test adding to dictionary triggers spell check when enabled."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
         manager.enabled = True
-        
-        with patch.object(manager, '_perform_spell_check') as mock_check:
+
+        with patch.object(manager, "_perform_spell_check") as mock_check:
             manager.add_to_dictionary("testword")
-            
+
             # Should trigger spell check to remove highlights
             mock_check.assert_called_once()
 
@@ -197,28 +198,28 @@ class TestIgnoredWords:
     def test_ignore_word(self, main_window):
         """Test ignoring word for session."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
-        
+
         # Ignore word
         manager.ignore_word("tempword")
-        
+
         # Should pass spell check
         assert manager.spell_checker.check_word("tempword") is True
-        
+
         # Should NOT be in custom dictionary (session only)
         assert "tempword" not in manager.spell_checker.get_custom_words()
 
     def test_ignore_word_triggers_recheck(self, main_window):
         """Test ignoring word triggers spell check when enabled."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
         manager.enabled = True
-        
-        with patch.object(manager, '_perform_spell_check') as mock_check:
+
+        with patch.object(manager, "_perform_spell_check") as mock_check:
             manager.ignore_word("ignoreword")
-            
+
             # Should trigger spell check to remove highlights
             mock_check.assert_called_once()
 
@@ -230,14 +231,14 @@ class TestSpellChecking:
     def test_perform_spell_check_when_enabled(self, main_window):
         """Test spell check runs when enabled."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         main_window.editor.setPlainText("Helo world, this is a tset.")
         manager = SpellCheckManager(main_window)
         manager.enabled = True
-        
+
         # Perform spell check
         manager._perform_spell_check()
-        
+
         # Should find errors
         assert len(manager.errors) > 0
         assert any(e.word == "Helo" for e in manager.errors)
@@ -245,43 +246,43 @@ class TestSpellChecking:
     def test_perform_spell_check_when_disabled(self, main_window):
         """Test spell check skipped when disabled."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         main_window.editor.setPlainText("Helo world")
         manager = SpellCheckManager(main_window)
         manager.enabled = False
-        
+
         # Clear errors
         manager.errors = []
-        
+
         # Try to spell check
         manager._perform_spell_check()
-        
+
         # Should not check
         assert manager.errors == []
 
     def test_text_changed_starts_timer(self, main_window):
         """Test text changed starts debounce timer."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
         manager.enabled = True
-        
+
         # Trigger text change
         manager._on_text_changed()
-        
+
         # Timer should be active
         assert manager.check_timer.isActive()
 
     def test_text_changed_ignored_when_disabled(self, main_window):
         """Test text changed ignored when spell check disabled."""
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        
+
         manager = SpellCheckManager(main_window)
         manager.enabled = False
-        
+
         # Trigger text change
         manager._on_text_changed()
-        
+
         # Timer should not be active
         assert not manager.check_timer.isActive()
 
@@ -292,80 +293,63 @@ class TestHighlights:
 
     def test_update_highlights(self, main_window, qapp):
         """Test highlights are created for errors."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
-        
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
         manager = SpellCheckManager(main_window)
-        
+
         # Create mock error
         manager.errors = [
             SpellError(
-                word="helo",
-                start=0,
-                end=4,
-                suggestions=["hello"],
-                line=1,
-                column=0
+                word="helo", start=0, end=4, suggestions=["hello"], line=1, column=0
             )
         ]
-        
+
         # Update highlights
         manager._update_highlights()
-        
+
         # Should create extra selections
         selections = manager.editor.extraSelections()
         assert len(selections) > 0
 
     def test_clear_highlights(self, main_window):
         """Test clearing highlights."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
-        
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
         manager = SpellCheckManager(main_window)
-        
+
         # Add some errors and highlights
         manager.errors = [
-            SpellError(
-                word="test",
-                start=0,
-                end=4,
-                suggestions=[],
-                line=1,
-                column=0
-            )
+            SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)
         ]
         manager._update_highlights()
-        
+
         # Clear highlights
         manager._clear_highlights()
-        
+
         # Should have no selections
         assert len(manager.editor.extraSelections()) == 0
 
     def test_find_error_at_position(self, main_window):
         """Test finding error at cursor position."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
-        
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
         manager = SpellCheckManager(main_window)
-        
+
         # Add error at position 10-14
         manager.errors = [
             SpellError(
-                word="erro",
-                start=10,
-                end=14,
-                suggestions=["error"],
-                line=1,
-                column=10
+                word="erro", start=10, end=14, suggestions=["error"], line=1, column=10
             )
         ]
-        
+
         # Find error at position 12 (inside word)
         error = manager._find_error_at_position(12)
         assert error is not None
         assert error.word == "erro"
-        
+
         # Find at position 5 (no error)
         error = manager._find_error_at_position(5)
         assert error is None
@@ -377,45 +361,49 @@ class TestContextMenu:
 
     def test_show_context_menu_with_suggestions(self, main_window):
         """Test context menu shows suggestions for misspelled word."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        from PySide6.QtGui import QContextMenuEvent
         from PySide6.QtCore import QPoint
-        
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
         manager = SpellCheckManager(main_window)
         manager.enabled = True
-        
+
         # Set up editor with misspelled word
         main_window.editor.setPlainText("Helo world")
         manager._perform_spell_check()
-        
+
         # Create mock context menu event
         event = Mock(spec=QContextMenuEvent)
         event.pos.return_value = QPoint(0, 0)
         event.globalPos.return_value = QPoint(100, 100)
-        
+
         # Mock cursor to select "Helo"
-        with patch.object(main_window.editor, 'cursorForPosition') as mock_cursor_for_pos:
+        with patch.object(
+            main_window.editor, "cursorForPosition"
+        ) as mock_cursor_for_pos:
             mock_cursor = Mock()
             mock_cursor.selectedText.return_value = "Helo"
             mock_cursor.selectionStart.return_value = 0
             mock_cursor_for_pos.return_value = mock_cursor
-            
+
             # Should not crash
             manager.show_context_menu(event)
 
     def test_show_default_menu_when_disabled(self, main_window):
         """Test default context menu shown when spell check disabled."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from PySide6.QtGui import QContextMenuEvent
-        
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
         manager = SpellCheckManager(main_window)
         manager.enabled = False
-        
+
         event = Mock(spec=QContextMenuEvent)
-        
-        with patch.object(manager, '_show_default_context_menu') as mock_default:
+
+        with patch.object(manager, "_show_default_context_menu") as mock_default:
             manager.show_context_menu(event)
-            
+
             # Should show default menu
             mock_default.assert_called_once_with(event)
 
@@ -426,8 +414,9 @@ class TestWordReplacement:
 
     def test_replace_word(self, main_window):
         """Test replacing misspelled word with suggestion."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from PySide6.QtGui import QTextCursor
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
 
@@ -580,8 +569,8 @@ class TestMultipleLanguageSwitching:
 
     def test_language_switch_clears_errors(self, main_window):
         """Test language switch clears existing errors."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
         manager.enabled = True
@@ -591,7 +580,7 @@ class TestMultipleLanguageSwitching:
             SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)
         ]
 
-        with patch.object(manager, '_perform_spell_check') as mock_check:
+        with patch.object(manager, "_perform_spell_check") as mock_check:
             manager.set_language("es")
 
             # Should trigger recheck
@@ -686,8 +675,8 @@ class TestHighlightRenderingEdgeCases:
 
     def test_highlight_many_errors(self, main_window):
         """Test highlighting many spelling errors."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
 
@@ -699,7 +688,7 @@ class TestHighlightRenderingEdgeCases:
                 end=i * 10 + 4,
                 suggestions=[],
                 line=1,
-                column=i * 10
+                column=i * 10,
             )
             for i in range(50)
         ]
@@ -710,8 +699,8 @@ class TestHighlightRenderingEdgeCases:
 
     def test_highlight_at_document_end(self, main_window):
         """Test highlighting error at end of document."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         text = "Hello world erro"
         main_window.editor.setPlainText(text)
@@ -726,7 +715,7 @@ class TestHighlightRenderingEdgeCases:
                 end=len(text),
                 suggestions=["error"],
                 line=1,
-                column=len(text) - 4
+                column=len(text) - 4,
             )
         ]
 
@@ -747,8 +736,8 @@ class TestHighlightRenderingEdgeCases:
 
     def test_highlight_with_overlapping_positions(self, main_window):
         """Test handling errors with overlapping positions."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
 
@@ -769,9 +758,10 @@ class TestContextMenuEdgeCases:
 
     def test_context_menu_with_no_suggestions(self, main_window):
         """Test context menu when word has no suggestions."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        from PySide6.QtGui import QContextMenuEvent
         from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
         manager.enabled = True
@@ -783,7 +773,9 @@ class TestContextMenuEdgeCases:
         event.globalPos.return_value = QPoint(100, 100)
 
         # Should not crash even with no suggestions
-        with patch.object(main_window.editor, 'cursorForPosition') as mock_cursor_for_pos:
+        with patch.object(
+            main_window.editor, "cursorForPosition"
+        ) as mock_cursor_for_pos:
             mock_cursor = Mock()
             mock_cursor.selectedText.return_value = "xyzabc"
             mock_cursor.selectionStart.return_value = 0
@@ -793,9 +785,10 @@ class TestContextMenuEdgeCases:
 
     def test_context_menu_at_document_start(self, main_window):
         """Test context menu at start of document."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        from PySide6.QtGui import QContextMenuEvent
         from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
         manager.enabled = True
@@ -807,14 +800,15 @@ class TestContextMenuEdgeCases:
         event.globalPos.return_value = QPoint(0, 0)
 
         # Should not crash
-        with patch.object(main_window.editor, 'cursorForPosition'):
+        with patch.object(main_window.editor, "cursorForPosition"):
             manager.show_context_menu(event)
 
     def test_context_menu_with_empty_text(self, main_window):
         """Test context menu with empty editor."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-        from PySide6.QtGui import QContextMenuEvent
         from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
         manager.enabled = True
@@ -826,7 +820,7 @@ class TestContextMenuEdgeCases:
         event.globalPos.return_value = QPoint(100, 100)
 
         # Should show default menu
-        with patch.object(manager, '_show_default_context_menu') as mock_default:
+        with patch.object(manager, "_show_default_context_menu") as mock_default:
             manager.show_context_menu(event)
 
 
@@ -909,8 +903,8 @@ class TestErrorRecovery:
 
     def test_highlight_with_invalid_cursor_position(self, main_window):
         """Test highlighting with invalid cursor position."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         main_window.editor.setPlainText("Short")
         manager = SpellCheckManager(main_window)
@@ -918,12 +912,7 @@ class TestErrorRecovery:
         # Error beyond document length
         manager.errors = [
             SpellError(
-                word="test",
-                start=1000,
-                end=1004,
-                suggestions=[],
-                line=1,
-                column=1000
+                word="test", start=1000, end=1004, suggestions=[], line=1, column=1000
             )
         ]
 
@@ -970,7 +959,9 @@ class TestPerformanceScenarios:
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         # Add 100 custom words
-        main_window._settings.spell_check_custom_words = [f"custom{i}" for i in range(100)]
+        main_window._settings.spell_check_custom_words = [
+            f"custom{i}" for i in range(100)
+        ]
 
         manager = SpellCheckManager(main_window)
 
@@ -994,8 +985,8 @@ class TestPerformanceScenarios:
 
     def test_highlight_performance_many_selections(self, main_window):
         """Test highlighting performance with many selections."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
 
@@ -1007,7 +998,7 @@ class TestPerformanceScenarios:
                 end=i * 5 + 3,
                 suggestions=[],
                 line=1,
-                column=i * 5
+                column=i * 5,
             )
             for i in range(100)
         ]
@@ -1145,7 +1136,7 @@ class TestConcurrentOperations:
         manager._perform_spell_check()
 
         # Change language during check
-        with patch.object(manager, '_perform_spell_check') as mock_check:
+        with patch.object(manager, "_perform_spell_check") as mock_check:
             manager.set_language("es")
 
             # Should trigger new check
@@ -1164,7 +1155,7 @@ class TestConcurrentOperations:
         manager._perform_spell_check()
 
         # Add word to dictionary during check
-        with patch.object(manager, '_perform_spell_check') as mock_check:
+        with patch.object(manager, "_perform_spell_check") as mock_check:
             manager.add_to_dictionary("testword")
 
             # Should trigger new check
@@ -1191,8 +1182,8 @@ class TestConcurrentOperations:
 
     def test_clear_highlights_during_spell_check(self, main_window):
         """Test clearing highlights during spell check."""
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
         from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         manager = SpellCheckManager(main_window)
         manager.enabled = True

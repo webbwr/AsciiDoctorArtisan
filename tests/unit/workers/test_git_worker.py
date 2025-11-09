@@ -387,11 +387,7 @@ class TestGitWorkerStatus:
     def test_parse_git_status_v2_deleted_file(self):
         """Test parsing deleted files."""
         worker = GitWorker()
-        output = (
-            "# branch.oid abcd1234\n"
-            "# branch.head main\n"
-            "1 .D N... 100644 000000 000000 abc123 000000 deleted.txt\n"
-        )
+        output = "# branch.oid abcd1234\n# branch.head main\n1 .D N... 100644 000000 000000 abc123 000000 deleted.txt\n"
 
         status = worker._parse_git_status_v2(output)
 
@@ -635,10 +631,7 @@ class TestGitWorkerStatusParsingEdgeCases:
         mock_run.return_value = MagicMock(
             returncode=0,
             stdout=(
-                "# branch.oid abcd1234\n"
-                "# branch.head main\n"
-                "? untracked1.txt\n"
-                "? untracked2.txt\n"
+                "# branch.oid abcd1234\n# branch.head main\n? untracked1.txt\n? untracked2.txt\n"
             ),
             stderr="",
         )
@@ -668,9 +661,7 @@ class TestGitWorkerStatusParsingEdgeCases:
         mock_run.return_value = MagicMock(
             returncode=0,
             stdout=(
-                "# branch.oid abcd1234\n"
-                "# branch.head main\n"
-                "1 M. N... 100644 100644 100644 abc123 def456 staged.txt\n"
+                "# branch.oid abcd1234\n# branch.head main\n1 M. N... 100644 100644 100644 abc123 def456 staged.txt\n"
             ),
             stderr="",
         )

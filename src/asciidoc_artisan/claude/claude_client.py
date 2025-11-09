@@ -206,8 +206,7 @@ class ClaudeClient:
 
             # Make API request
             logger.debug(
-                f"Sending message to Claude (model={self.model}, "
-                f"messages={len(messages)})"
+                f"Sending message to Claude (model={self.model}, messages={len(messages)})"
             )
 
             # Build kwargs, only add system if provided

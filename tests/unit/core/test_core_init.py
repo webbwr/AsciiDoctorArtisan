@@ -47,7 +47,9 @@ class TestEagerImports:
 
         assert GitHubResult is not None
         # GitHubResult is a Pydantic model - check model_fields instead
-        assert hasattr(GitHubResult, "model_fields") or hasattr(GitHubResult, "__init__")
+        assert hasattr(GitHubResult, "model_fields") or hasattr(
+            GitHubResult, "__init__"
+        )
 
     def test_sanitize_path_import(self):
         """Test sanitize_path function is eagerly imported."""
@@ -130,7 +132,12 @@ class TestLazyConstantImports:
 
     @pytest.mark.parametrize(
         "format_list",
-        ["COMMON_FORMATS", "ALL_FORMATS", "SUPPORTED_OPEN_FILTER", "SUPPORTED_SAVE_FILTER"],
+        [
+            "COMMON_FORMATS",
+            "ALL_FORMATS",
+            "SUPPORTED_OPEN_FILTER",
+            "SUPPORTED_SAVE_FILTER",
+        ],
     )
     def test_lazy_format_list_import(self, format_list):
         """Test that format lists are lazily imported."""

@@ -46,7 +46,7 @@ check_readability() {
         echo -e "${RED}Error: File not found: $file${NC}" >&2
         exit 1
     fi
-    
+
     echo -e "${BLUE}Checking readability: $file${NC}"
     python3 "$READABILITY_SCRIPT" "$file"
 }
@@ -57,7 +57,7 @@ improve_file() {
         echo -e "${RED}Error: File not found: $file${NC}" >&2
         exit 1
     fi
-    
+
     echo -e "${YELLOW}Applying grandmaster-techwriter to: $file${NC}"
     echo ""
     echo "This will:"
@@ -67,11 +67,11 @@ improve_file() {
     echo "4. Simplify complex sentences"
     echo "5. Verify Grade ≤5.0"
     echo ""
-    
+
     # First check current state
     echo -e "${BLUE}=== BEFORE ===${NC}"
     python3 "$READABILITY_SCRIPT" "$file" || true
-    
+
     echo ""
     echo -e "${GREEN}Review the skill file for methodology:${NC}"
     echo "  cat $SKILL_FILE"
@@ -86,14 +86,14 @@ watch_file() {
         echo -e "${RED}Error: File not found: $file${NC}" >&2
         exit 1
     fi
-    
+
     echo -e "${BLUE}Watching: $file${NC}"
     echo "Press Ctrl+C to stop"
     echo ""
-    
+
     # Check once at start
     check_readability "$file"
-    
+
     # Watch for changes (requires inotify-tools on Linux)
     if command -v inotifywait &> /dev/null; then
         while inotifywait -e modify "$file" 2>/dev/null; do
@@ -113,14 +113,14 @@ batch_check() {
         echo -e "${RED}Error: Directory not found: $dir${NC}" >&2
         exit 1
     fi
-    
+
     echo -e "${BLUE}Batch checking all .md files in: $dir${NC}"
     echo ""
-    
+
     local count=0
     local passed=0
     local failed=0
-    
+
     while IFS= read -r -d '' file; do
         ((count++))
         echo -e "${YELLOW}[$count] Checking: $file${NC}"
@@ -133,7 +133,7 @@ batch_check() {
         fi
         echo ""
     done < <(find "$dir" -name "*.md" -type f -print0)
-    
+
     echo "================================"
     echo "Summary: $count files checked"
     echo -e "${GREEN}Passed: $passed${NC}"

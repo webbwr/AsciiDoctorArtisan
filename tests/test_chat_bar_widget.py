@@ -7,7 +7,6 @@ for Ollama AI chat.
 
 import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication
 
 from asciidoc_artisan.ui.chat_bar_widget import ChatBarWidget
 
@@ -297,7 +296,9 @@ class TestChatBarWidgetEnabledState:
         chat_bar.set_processing(True)
         qapp.processEvents()  # Process Qt events to update visibility
 
-        assert not chat_bar._send_button.isVisible()  # Send button is hidden, not just disabled
+        assert (
+            not chat_bar._send_button.isVisible()
+        )  # Send button is hidden, not just disabled
         assert chat_bar._cancel_button.isVisible()
 
 

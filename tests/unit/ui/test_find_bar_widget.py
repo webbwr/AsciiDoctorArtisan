@@ -718,7 +718,10 @@ class TestUIComponents:
         qtbot.addWidget(widget)
 
         # Checkbox should have text or tooltip
-        assert len(widget._case_checkbox.text()) > 0 or len(widget._case_checkbox.toolTip()) > 0
+        assert (
+            len(widget._case_checkbox.text()) > 0
+            or len(widget._case_checkbox.toolTip()) > 0
+        )
 
     def test_counter_label_alignment(self, qtbot):
         """Test counter label has appropriate alignment."""

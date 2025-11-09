@@ -297,7 +297,6 @@ class FileOperationsManager:
             True if saved successfully, False otherwise
         """
         if save_as or not self.editor._current_file_path:
-
             suggested_name = (
                 self.editor._current_file_path.name
                 if self.editor._current_file_path
@@ -330,7 +329,6 @@ class FileOperationsManager:
             )
 
             if format_type != "adoc":
-
                 # Use settings preference for AI conversion (defaults to Pandoc)
                 use_ai_for_export = (
                     self.editor._settings_manager.get_ai_conversion_preference(
@@ -351,7 +349,6 @@ class FileOperationsManager:
             assert file_path is not None, "file_path should not be None in save mode"
 
             if file_path.suffix.lower() not in [".adoc", ".asciidoc"]:
-
                 file_path = file_path.with_suffix(".adoc")
                 logger.info(
                     f"Converting save format from {self.editor._current_file_path.suffix} to .adoc"

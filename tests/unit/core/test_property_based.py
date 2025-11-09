@@ -5,39 +5,33 @@ Tests that verify properties hold for all possible inputs (fuzz testing).
 QA-7: Phase 3 - Quality Infrastructure
 """
 
-import tempfile
 from pathlib import Path
 
 import pytest
-from hypothesis import given, strategies as st, assume, settings
-from hypothesis import HealthCheck
+from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import strategies as st
 
-from asciidoc_artisan.core import sanitize_path, atomic_save_text, atomic_save_json
-from asciidoc_artisan.core.lru_cache import LRUCache
+from asciidoc_artisan.core import atomic_save_json, atomic_save_text, sanitize_path
 from asciidoc_artisan.core.adaptive_debouncer import AdaptiveDebouncer
-
+from asciidoc_artisan.core.lru_cache import LRUCache
 
 # Custom strategies
 safe_text = st.text(
     alphabet=st.characters(blacklist_categories=("Cs",)),  # Exclude surrogates
     min_size=0,
-    max_size=10000
+    max_size=10000,
 )
 
 file_content = st.text(
-    alphabet=st.characters(blacklist_categories=("Cs",)),
-    min_size=0,
-    max_size=50000
+    alphabet=st.characters(blacklist_categories=("Cs",)), min_size=0, max_size=50000
 )
 
 safe_filenames = st.text(
     alphabet=st.characters(
-        whitelist_categories=("Lu", "Ll", "Nd"),
-        min_codepoint=32,
-        max_codepoint=126
+        whitelist_categories=("Lu", "Ll", "Nd"), min_codepoint=32, max_codepoint=126
     ),
     min_size=1,
-    max_size=255
+    max_size=255,
 ).filter(lambda s: s.strip() and "/" not in s and "\\" not in s)
 
 
@@ -65,18 +59,20 @@ class TestFileOperationsProperties:
             assert saved_content == content.replace("\r\n", "\n").replace("\r", "\n")
         # If save failed (result False), that's acceptable - no corruption
 
-    @given(data=st.dictionaries(
-        keys=safe_text.filter(lambda s: len(s) > 0 and len(s) < 100),
-        values=st.one_of(
-            st.none(),
-            st.booleans(),
-            st.integers(),
-            st.floats(allow_nan=False, allow_infinity=False),
-            safe_text,
-            st.lists(st.integers(), max_size=10)
-        ),
-        max_size=20
-    ))
+    @given(
+        data=st.dictionaries(
+            keys=safe_text.filter(lambda s: len(s) > 0 and len(s) < 100),
+            values=st.one_of(
+                st.none(),
+                st.booleans(),
+                st.integers(),
+                st.floats(allow_nan=False, allow_infinity=False),
+                safe_text,
+                st.lists(st.integers(), max_size=10),
+            ),
+            max_size=20,
+        )
+    )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     def test_atomic_save_json_always_valid(self, data, tmp_path):
         """Property: JSON save always produces valid JSON or fails cleanly."""
@@ -105,8 +101,7 @@ class TestFileOperationsProperties:
             pass
 
     @given(
-        filename=safe_filenames,
-        content=file_content.filter(lambda s: len(s) < 10000)
+        filename=safe_filenames, content=file_content.filter(lambda s: len(s) < 10000)
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     def test_save_and_load_preserves_content(self, filename, content, tmp_path):
@@ -132,10 +127,10 @@ class TestCacheProperties:
             st.tuples(
                 st.sampled_from(["put", "get"]),
                 st.text(max_size=20),
-                st.text(max_size=100)
+                st.text(max_size=100),
             ),
-            max_size=200
-        )
+            max_size=200,
+        ),
     )
     def test_cache_never_exceeds_max_size(self, max_size, operations):
         """Property: Cache never exceeds configured max size."""
@@ -153,7 +148,7 @@ class TestCacheProperties:
     @given(
         max_size=st.integers(min_value=5, max_value=50),
         key=st.text(min_size=1, max_size=20),
-        value=st.text(max_size=100)
+        value=st.text(max_size=100),
     )
     def test_cache_get_after_put_returns_value(self, max_size, key, value):
         """Property: Get immediately after put returns the value."""
@@ -169,8 +164,8 @@ class TestCacheProperties:
             st.tuples(st.text(min_size=1, max_size=10), st.integers()),
             min_size=1,
             max_size=50,
-            unique_by=lambda x: x[0]
-        )
+            unique_by=lambda x: x[0],
+        ),
     )
     def test_cache_evicts_lru_when_full(self, max_size, entries):
         """Property: Cache evicts least recently used when full."""
@@ -191,7 +186,9 @@ class TestCacheProperties:
                 # Key should exist (unless it was a duplicate)
                 if result is None:
                     # Check if key was overwritten by later entry
-                    later_keys = [k for k, _ in entries[entries.index((key, cache.get(key))):]]
+                    later_keys = [
+                        k for k, _ in entries[entries.index((key, cache.get(key))) :]
+                    ]
                     assert key in later_keys or len(set(recent_keys)) < len(recent_keys)
 
 
@@ -201,15 +198,16 @@ class TestDebouncerProperties:
 
     @given(
         document_size=st.integers(min_value=0, max_value=1_000_000),
-        render_time=st.floats(min_value=0.0, max_value=5.0, allow_nan=False, allow_infinity=False)
+        render_time=st.floats(
+            min_value=0.0, max_value=5.0, allow_nan=False, allow_infinity=False
+        ),
     )
     def test_debouncer_delay_always_positive(self, document_size, render_time):
         """Property: Debouncer always returns positive delay."""
         debouncer = AdaptiveDebouncer()
 
         delay = debouncer.calculate_delay(
-            document_size=document_size,
-            last_render_time=render_time
+            document_size=document_size, last_render_time=render_time
         )
 
         assert delay >= 0
@@ -218,9 +216,7 @@ class TestDebouncerProperties:
 
     @given(
         sizes=st.lists(
-            st.integers(min_value=100, max_value=100_000),
-            min_size=5,
-            max_size=20
+            st.integers(min_value=100, max_value=100_000), min_size=5, max_size=20
         )
     )
     def test_debouncer_larger_docs_longer_delay(self, sizes):
@@ -235,8 +231,8 @@ class TestDebouncerProperties:
             # Check that delays don't decrease dramatically
             for i in range(len(delays) - 1):
                 # Allow some variation, but large docs shouldn't have tiny delays
-                if sorted_sizes[i+1] > sorted_sizes[i] * 2:
-                    assert delays[i+1] >= delays[i] * 0.5  # Relaxed constraint
+                if sorted_sizes[i + 1] > sorted_sizes[i] * 2:
+                    assert delays[i + 1] >= delays[i] * 0.5  # Relaxed constraint
 
 
 @pytest.mark.property
@@ -262,7 +258,7 @@ class TestTextProcessingProperties:
 
     @given(
         text=safe_text.filter(lambda s: len(s) > 0),
-        separator=st.sampled_from(["\n", " ", "\t", ","])
+        separator=st.sampled_from(["\n", " ", "\t", ","]),
     )
     def test_split_and_join_identity(self, text, separator):
         """Property: split then join with same separator restores text (with caveats)."""
@@ -288,12 +284,16 @@ class TestTextProcessingProperties:
 class TestPathSecurityProperties:
     """Property-based tests for path security."""
 
-    @given(dangerous=st.sampled_from([
-        "../../../etc/passwd",
-        "../../secret",
-        "..\\..\\..\\windows\\system32",
-        "folder/../../../etc/shadow",
-    ]))
+    @given(
+        dangerous=st.sampled_from(
+            [
+                "../../../etc/passwd",
+                "../../secret",
+                "..\\..\\..\\windows\\system32",
+                "folder/../../../etc/shadow",
+            ]
+        )
+    )
     def test_sanitize_blocks_directory_traversal(self, dangerous):
         """Property: Directory traversal attacks (using ..) are blocked.
 
@@ -316,10 +316,7 @@ class TestPathSecurityProperties:
             # The key security property: no ".." in resolved path components
             assert ".." not in result.parts
 
-    @given(
-        base=st.sampled_from(["/tmp", "/home", "."]),
-        relative=safe_filenames
-    )
+    @given(base=st.sampled_from(["/tmp", "/home", "."]), relative=safe_filenames)
     def test_path_joining_preserves_safety(self, base, relative):
         """Property: Joining safe paths produces safe paths."""
         from pathlib import Path
@@ -342,7 +339,7 @@ class TestNumericProperties:
 
     @given(
         value=st.integers(min_value=0, max_value=1_000_000_000),
-        threshold=st.integers(min_value=1, max_value=1_000_000_000)
+        threshold=st.integers(min_value=1, max_value=1_000_000_000),
     )
     def test_threshold_comparison_consistent(self, value, threshold):
         """Property: Threshold comparisons are consistent."""
@@ -354,7 +351,7 @@ class TestNumericProperties:
 
     @given(
         start=st.integers(min_value=0, max_value=1000),
-        end=st.integers(min_value=0, max_value=1000)
+        end=st.integers(min_value=0, max_value=1000),
     )
     def test_range_calculations_valid(self, start, end):
         """Property: Range calculations produce valid results."""
@@ -387,10 +384,7 @@ class TestListOperationsProperties:
         second_half = items[half:]
         assert len(first_half) + len(second_half) == original_length
 
-    @given(
-        items=st.lists(st.integers(), min_size=1, max_size=100),
-        index=st.integers()
-    )
+    @given(items=st.lists(st.integers(), min_size=1, max_size=100), index=st.integers())
     def test_safe_list_indexing(self, items, index):
         """Property: Safe indexing never crashes."""
         try:
@@ -402,8 +396,7 @@ class TestListOperationsProperties:
             pytest.fail(f"Safe indexing failed: {e}")
 
     @given(
-        items=st.lists(st.text(max_size=20), max_size=50),
-        element=st.text(max_size=20)
+        items=st.lists(st.text(max_size=20), max_size=50), element=st.text(max_size=20)
     )
     def test_membership_consistency(self, items, element):
         """Property: Membership checks are consistent."""
@@ -421,8 +414,10 @@ class TestDictionaryProperties:
     """Property-based tests for dictionary operations."""
 
     @given(
-        keys=st.lists(st.text(min_size=1, max_size=20), min_size=0, max_size=50, unique=True),
-        values=st.lists(st.integers(), min_size=0, max_size=50)
+        keys=st.lists(
+            st.text(min_size=1, max_size=20), min_size=0, max_size=50, unique=True
+        ),
+        values=st.lists(st.integers(), min_size=0, max_size=50),
     )
     def test_dict_keys_values_length_match(self, keys, values):
         """Property: Dict creation from keys/values preserves structure."""
@@ -442,15 +437,11 @@ class TestDictionaryProperties:
 
     @given(
         initial=st.dictionaries(
-            keys=st.text(min_size=1, max_size=10),
-            values=st.integers(),
-            max_size=20
+            keys=st.text(min_size=1, max_size=10), values=st.integers(), max_size=20
         ),
         updates=st.dictionaries(
-            keys=st.text(min_size=1, max_size=10),
-            values=st.integers(),
-            max_size=10
-        )
+            keys=st.text(min_size=1, max_size=10), values=st.integers(), max_size=10
+        ),
     )
     def test_dict_update_preserves_keys(self, initial, updates):
         """Property: Dict update adds new keys and updates existing."""

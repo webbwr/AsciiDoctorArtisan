@@ -7,7 +7,7 @@ input for fast Git commits (v1.9.0+).
 
 import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QLineEdit
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit
 
 from asciidoc_artisan.ui.quick_commit_widget import QuickCommitWidget
 

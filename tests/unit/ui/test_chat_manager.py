@@ -12,7 +12,7 @@ Tests chat manager orchestration including:
 """
 
 import subprocess
-from unittest.mock import Mock, patch, MagicMock, call
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -254,7 +254,9 @@ class TestModelLoading:
         """Test loading Ollama models handles timeout."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("ollama", 3)):
+        with patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired("ollama", 3)
+        ):
             manager._load_ollama_models()
 
         # Should fall back to defaults
@@ -265,7 +267,9 @@ class TestModelLoading:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         # Mock ClaudeClient at the correct import location (inside the method)
-        with patch("asciidoc_artisan.claude.claude_client.ClaudeClient") as mock_client_class:
+        with patch(
+            "asciidoc_artisan.claude.claude_client.ClaudeClient"
+        ) as mock_client_class:
             mock_client_class.AVAILABLE_MODELS = [
                 "claude-sonnet-4-20250514",
                 "claude-haiku-3-20250307",
@@ -303,7 +307,9 @@ class TestMessageHandling:
 
         # Verify add_user_message was called with correct positional arguments
         mock_chat_panel.add_user_message.assert_called_once()
-        call_args = mock_chat_panel.add_user_message.call_args[0]  # positional args tuple
+        call_args = mock_chat_panel.add_user_message.call_args[
+            0
+        ]  # positional args tuple
         assert call_args[0] == "Test question"  # message
         assert call_args[1] == "qwen2.5-coder:7b"  # model
         assert call_args[2] == "syntax"  # context_mode
@@ -317,9 +323,7 @@ class TestMessageHandling:
         with qtbot.waitSignal(manager.message_sent_to_worker, timeout=1000):
             manager._handle_user_message("Test", "model", "syntax")
 
-    def test_handle_response_ready(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_handle_response_ready(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test handling AI response."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -474,7 +478,9 @@ class TestVisibilityManagement:
         self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test update_visibility shows chat when conditions met."""
-        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings, parent=None)
+        manager = ChatManager(
+            mock_chat_bar, mock_chat_panel, mock_settings, parent=None
+        )
 
         # Mock the parent after initialization
         mock_parent = Mock()
@@ -499,7 +505,9 @@ class TestVisibilityManagement:
         self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
     ):
         """Test update_visibility hides chat when conditions not met."""
-        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings, parent=None)
+        manager = ChatManager(
+            mock_chat_bar, mock_chat_panel, mock_settings, parent=None
+        )
 
         # Mock the parent after initialization
         mock_parent = Mock()
@@ -545,7 +553,9 @@ class TestSignalHandlers:
         # Verify panel was cleared
         mock_chat_panel.clear_messages.assert_called_once()
 
-    def test_on_cancel_requested(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
+    def test_on_cancel_requested(
+        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
+    ):
         """Test cancel request emits status message."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 

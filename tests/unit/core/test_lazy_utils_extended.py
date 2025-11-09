@@ -14,16 +14,16 @@ Phase 4B: 10 focused tests for critical lazy loading utilities
 import threading
 import time
 from unittest.mock import Mock, patch
+
 import pytest
 
 from asciidoc_artisan.core.lazy_utils import (
-    lazy_property,
     LazyImport,
-    defer_method,
     LazyInitializer,
     cached_property,
+    defer_method,
+    lazy_property,
 )
-
 
 # ==============================================================================
 # lazy_property Tests (3 tests)

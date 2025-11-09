@@ -160,8 +160,7 @@ class CPUProfiler:
                 self._results[name] = self._results[name][-self.max_results :]
 
             logger.debug(
-                f"Profile complete: {name} took {elapsed*1000:.2f}ms, "
-                f"{len(hotspots)} hotspots detected"
+                f"Profile complete: {name} took {elapsed * 1000:.2f}ms, {len(hotspots)} hotspots detected"
             )
 
     def _parse_hotspots(self, stats_output: str) -> List[Dict[str, Any]]:

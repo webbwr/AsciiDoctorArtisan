@@ -12,13 +12,13 @@ QA-15: CPU Profiling Integration
 """
 
 import time
-import pytest
+
 from asciidoc_artisan.core.cpu_profiler import (
     CPUProfiler,
     ProfileResult,
-    get_cpu_profiler,
-    enable_cpu_profiling,
     disable_cpu_profiling,
+    enable_cpu_profiling,
+    get_cpu_profiler,
 )
 
 
@@ -102,7 +102,7 @@ class TestCPUProfiler:
             # Create some CPU-intensive work
             result = 0
             for i in range(10000):
-                result += i ** 2
+                result += i**2
             return result
 
         with profiler.profile("work_op"):
@@ -300,7 +300,7 @@ class TestCPUProfilerIntegration:
             result = []
             for item in data:
                 # Some calculations
-                value = item ** 2 + item ** 3
+                value = item**2 + item**3
                 result.append(value)
             return result
 

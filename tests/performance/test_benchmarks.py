@@ -8,15 +8,11 @@ Run with: pytest tests/performance/test_benchmarks.py --benchmark-only
 Compare: pytest tests/performance/test_benchmarks.py --benchmark-compare
 """
 
-import tempfile
-import time
-from pathlib import Path
-
 import pytest
 
-from asciidoc_artisan.core.lru_cache import LRUCache
-from asciidoc_artisan.core.adaptive_debouncer import AdaptiveDebouncer
 from asciidoc_artisan.core import atomic_save_text, sanitize_path
+from asciidoc_artisan.core.adaptive_debouncer import AdaptiveDebouncer
+from asciidoc_artisan.core.lru_cache import LRUCache
 from asciidoc_artisan.workers.incremental_renderer import DocumentBlockSplitter
 
 
@@ -103,7 +99,7 @@ class TestCacheBenchmarks:
                 if i % 2 == 0:
                     cache.put(f"key_{i}", f"value_{i}")
                 else:
-                    cache.get(f"key_{i-1}")
+                    cache.get(f"key_{i - 1}")
 
         benchmark(mixed_ops)
 
@@ -131,9 +127,7 @@ class TestDebouncerBenchmarks:
         debouncer = AdaptiveDebouncer()
 
         result = benchmark(
-            debouncer.calculate_delay,
-            document_size=50_000,
-            last_render_time=0.3
+            debouncer.calculate_delay, document_size=50_000, last_render_time=0.3
         )
         assert result >= 0
 
@@ -219,6 +213,7 @@ class TestCollectionBenchmarks:
 
     def test_benchmark_list_operations(self, benchmark):
         """Benchmark list creation and manipulation."""
+
         def list_ops():
             data = list(range(10000))
             doubled = [x * 2 for x in data]
@@ -230,6 +225,7 @@ class TestCollectionBenchmarks:
 
     def test_benchmark_dict_operations(self, benchmark):
         """Benchmark dictionary creation and lookups."""
+
         def dict_ops():
             data = {f"key_{i}": f"value_{i}" for i in range(1000)}
             lookups = [data.get(f"key_{i}") for i in range(1000)]
@@ -240,6 +236,7 @@ class TestCollectionBenchmarks:
 
     def test_benchmark_set_operations(self, benchmark):
         """Benchmark set operations."""
+
         def set_ops():
             set1 = set(range(1000))
             set2 = set(range(500, 1500))

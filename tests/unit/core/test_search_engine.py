@@ -2,8 +2,9 @@
 Unit tests for SearchEngine - text search and replace functionality.
 """
 
-import pytest
 import re
+
+import pytest
 
 from asciidoc_artisan.core.search_engine import SearchEngine, SearchMatch
 
@@ -164,7 +165,9 @@ class TestSearchEngine:
         engine = SearchEngine(text)
 
         # Start after all matches, should wrap to beginning
-        match = engine.find_next("hello", start_offset=20, case_sensitive=False, wrap_around=True)
+        match = engine.find_next(
+            "hello", start_offset=20, case_sensitive=False, wrap_around=True
+        )
         assert match is not None
         assert match.start == 0
 
@@ -174,7 +177,9 @@ class TestSearchEngine:
         engine = SearchEngine(text)
 
         # Start after all matches, no wrap
-        match = engine.find_next("hello", start_offset=20, case_sensitive=False, wrap_around=False)
+        match = engine.find_next(
+            "hello", start_offset=20, case_sensitive=False, wrap_around=False
+        )
         assert match is None
 
     def test_find_next_no_match(self):
@@ -190,7 +195,9 @@ class TestSearchEngine:
         engine = SearchEngine(text)
 
         # Search backwards from end of text
-        match = engine.find_previous("hello", start_offset=len(text), case_sensitive=False)
+        match = engine.find_previous(
+            "hello", start_offset=len(text), case_sensitive=False
+        )
         assert match is not None
         assert match.start == 13  # Second "hello"
 
@@ -210,7 +217,9 @@ class TestSearchEngine:
         engine = SearchEngine(text)
 
         # Start before all matches, should wrap to end
-        match = engine.find_previous("hello", start_offset=0, case_sensitive=False, wrap_around=True)
+        match = engine.find_previous(
+            "hello", start_offset=0, case_sensitive=False, wrap_around=True
+        )
         assert match is not None
         assert match.start == 13
 
@@ -220,7 +229,9 @@ class TestSearchEngine:
         engine = SearchEngine(text)
 
         # Start before all matches, no wrap
-        match = engine.find_previous("hello", start_offset=0, case_sensitive=False, wrap_around=False)
+        match = engine.find_previous(
+            "hello", start_offset=0, case_sensitive=False, wrap_around=False
+        )
         assert match is None
 
     def test_replace_all_basic(self):
@@ -271,11 +282,7 @@ class TestSearchEngine:
         engine = SearchEngine(text)
 
         # Swap first and last names: "First Last" -> "Last, First"
-        new_text, count = engine.replace_all(
-            r"(\w+) (\w+)",
-            r"\2, \1",
-            use_regex=True
-        )
+        new_text, count = engine.replace_all(r"(\w+) (\w+)", r"\2, \1", use_regex=True)
 
         assert count == 2
         assert "Smith, John" in new_text
@@ -320,6 +327,7 @@ class TestSearchEngine:
         engine = SearchEngine(text)
 
         import time
+
         start = time.time()
         matches = engine.find_all("line")
         elapsed = time.time() - start

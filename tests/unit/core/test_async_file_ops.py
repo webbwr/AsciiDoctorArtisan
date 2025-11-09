@@ -6,26 +6,25 @@ Tests async/await file I/O operations using aiofiles.
 
 import asyncio
 import json
-import pytest
 from pathlib import Path
+
+import pytest
+
 from asciidoc_artisan.core.async_file_ops import (
-    sanitize_path,
+    AIOFILES_AVAILABLE,
+    AsyncFileContext,
+    async_atomic_save_json,
+    async_atomic_save_text,
+    async_copy_file,
+    async_read_json,
     async_read_text,
     async_read_text_chunked,
-    async_atomic_save_text,
-    async_atomic_save_json,
-    async_read_json,
-    AsyncFileContext,
-    async_copy_file,
     run_async,
-    AIOFILES_AVAILABLE,
+    sanitize_path,
 )
-
 
 # Skip all tests if aiofiles not available
-pytestmark = pytest.mark.skipif(
-    not AIOFILES_AVAILABLE, reason="aiofiles not installed"
-)
+pytestmark = pytest.mark.skipif(not AIOFILES_AVAILABLE, reason="aiofiles not installed")
 
 
 @pytest.mark.asyncio
@@ -290,9 +289,7 @@ def test_run_async_read(tmp_path):
 @pytest.mark.asyncio
 async def test_concurrent_writes(tmp_path):
     """Test concurrent async writes don't interfere."""
-    files_and_contents = [
-        (tmp_path / f"file{i}.txt", f"Content {i}") for i in range(5)
-    ]
+    files_and_contents = [(tmp_path / f"file{i}.txt", f"Content {i}") for i in range(5)]
 
     # Write all files concurrently
     tasks = [
@@ -312,9 +309,7 @@ async def test_concurrent_writes(tmp_path):
 @pytest.mark.asyncio
 async def test_concurrent_reads(tmp_path):
     """Test concurrent async reads."""
-    files_and_contents = [
-        (tmp_path / f"file{i}.txt", f"Content {i}") for i in range(5)
-    ]
+    files_and_contents = [(tmp_path / f"file{i}.txt", f"Content {i}") for i in range(5)]
 
     # Create files
     for file, content in files_and_contents:
@@ -378,14 +373,14 @@ def test_sanitize_path_exception():
 
 def test_sanitize_path_blocks_dotdot_in_parts():
     """Test sanitize_path blocks paths with '..' in parts (lines 63-64)."""
-    from unittest.mock import patch, Mock
+    from unittest.mock import Mock, patch
 
     # Mock Path to simulate a path with '..' in parts after resolution
     mock_path = Mock(spec=Path)
-    mock_path.parts = ('/', 'home', '..', 'etc')
+    mock_path.parts = ("/", "home", "..", "etc")
     mock_path.resolve.return_value = mock_path
 
-    with patch('asciidoc_artisan.core.async_file_ops.Path', return_value=mock_path):
+    with patch("asciidoc_artisan.core.async_file_ops.Path", return_value=mock_path):
         result = sanitize_path("/some/path")
         assert result is None
 
@@ -398,7 +393,7 @@ async def test_async_read_text_without_aiofiles(tmp_path):
     test_file = tmp_path / "test.txt"
     test_file.write_text("test content")
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         content = await async_read_text(test_file)
         assert content == "test content"
 
@@ -410,7 +405,7 @@ async def test_async_read_text_sync_fallback_error(tmp_path):
 
     nonexistent = tmp_path / "nonexistent.txt"
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         content = await async_read_text(nonexistent)
         assert content is None
 
@@ -423,7 +418,7 @@ async def test_async_read_text_chunked_without_aiofiles(tmp_path):
     test_file = tmp_path / "test.txt"
     test_file.write_text("test content")
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         chunks = []
         async for chunk in async_read_text_chunked(test_file):
             chunks.append(chunk)
@@ -451,7 +446,7 @@ async def test_async_atomic_save_text_without_aiofiles(tmp_path):
 
     test_file = tmp_path / "test.txt"
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         result = await async_atomic_save_text(test_file, "test content")
         assert result is True
         assert test_file.read_text() == "test content"
@@ -467,13 +462,12 @@ async def test_async_atomic_save_text_none_path():
 @pytest.mark.asyncio
 async def test_async_atomic_save_text_cleanup_on_exception(tmp_path):
     """Test async_atomic_save_text cleans up temp file on exception (lines 204-214)."""
-    from unittest.mock import patch, AsyncMock
-    import aiofiles.os
+    from unittest.mock import patch
 
     test_file = tmp_path / "test.txt"
 
     # Mock aiofiles.os.replace to raise exception
-    with patch('aiofiles.os.replace', side_effect=PermissionError("Mock error")):
+    with patch("aiofiles.os.replace", side_effect=PermissionError("Mock error")):
         result = await async_atomic_save_text(test_file, "test content")
         assert result is False
 
@@ -489,7 +483,7 @@ async def test_async_atomic_save_json_without_aiofiles(tmp_path):
 
     test_file = tmp_path / "test.json"
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         result = await async_atomic_save_json(test_file, {"key": "value"})
         assert result is True
         assert test_file.exists()
@@ -510,7 +504,7 @@ async def test_async_atomic_save_json_cleanup_on_exception(tmp_path):
     test_file = tmp_path / "test.json"
 
     # Mock aiofiles.os.replace to raise exception
-    with patch('aiofiles.os.replace', side_effect=PermissionError("Mock error")):
+    with patch("aiofiles.os.replace", side_effect=PermissionError("Mock error")):
         result = await async_atomic_save_json(test_file, {"key": "value"})
         assert result is False
 
@@ -521,32 +515,34 @@ async def test_async_atomic_save_json_cleanup_on_exception(tmp_path):
 
 def test_aiofiles_import_error():
     """Test handling when aiofiles is not available (lines 35-36)."""
+    import importlib
     import sys
     from unittest.mock import patch
-    import importlib
 
     # Save original modules
-    original_aiofiles = sys.modules.get('aiofiles')
-    original_async_file_ops = sys.modules.get('asciidoc_artisan.core.async_file_ops')
+    original_aiofiles = sys.modules.get("aiofiles")
+    original_async_file_ops = sys.modules.get("asciidoc_artisan.core.async_file_ops")
 
     try:
         # Remove modules
-        for mod in ['aiofiles', 'aiofiles.os', 'asciidoc_artisan.core.async_file_ops']:
+        for mod in ["aiofiles", "aiofiles.os", "asciidoc_artisan.core.async_file_ops"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
         # Mock aiofiles import to raise ImportError
         import builtins
+
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
-            if 'aiofiles' in name:
+            if "aiofiles" in name:
                 raise ImportError("Mock aiofiles not available")
             return original_import(name, *args, **kwargs)
 
-        with patch('builtins.__import__', side_effect=mock_import):
+        with patch("builtins.__import__", side_effect=mock_import):
             # Reload to trigger the import error path
             import asciidoc_artisan.core.async_file_ops as afo
+
             importlib.reload(afo)
 
             # AIOFILES_AVAILABLE should be False
@@ -556,14 +552,17 @@ def test_aiofiles_import_error():
         # Restore
         try:
             if original_aiofiles is not None:
-                sys.modules['aiofiles'] = original_aiofiles
+                sys.modules["aiofiles"] = original_aiofiles
 
             if original_async_file_ops is not None:
-                sys.modules['asciidoc_artisan.core.async_file_ops'] = original_async_file_ops
+                sys.modules["asciidoc_artisan.core.async_file_ops"] = (
+                    original_async_file_ops
+                )
 
             # Reload back to normal
-            if 'asciidoc_artisan.core.async_file_ops' in sys.modules:
+            if "asciidoc_artisan.core.async_file_ops" in sys.modules:
                 import asciidoc_artisan.core.async_file_ops
+
                 importlib.reload(asciidoc_artisan.core.async_file_ops)
         except (ImportError, KeyError):
             pass
@@ -572,7 +571,7 @@ def test_aiofiles_import_error():
 @pytest.mark.asyncio
 async def test_async_atomic_save_text_cleanup_exception(tmp_path):
     """Test cleanup exception handling in atomic_save_text (lines 211-212)."""
-    from unittest.mock import patch, AsyncMock, Mock
+    from unittest.mock import Mock, patch
 
     test_file = tmp_path / "test.txt"
 
@@ -582,11 +581,13 @@ async def test_async_atomic_save_text_cleanup_exception(tmp_path):
     mock_temp.suffix = ".txt"
 
     # Mock Path.with_suffix to return our mock temp path
-    with patch.object(Path, 'with_suffix', return_value=mock_temp):
+    with patch.object(Path, "with_suffix", return_value=mock_temp):
         # Mock aiofiles.os.replace to fail
-        with patch('aiofiles.os.replace', side_effect=PermissionError("Write failed")):
+        with patch("aiofiles.os.replace", side_effect=PermissionError("Write failed")):
             # Mock aiofiles.os.remove to also fail (triggers cleanup exception)
-            with patch('aiofiles.os.remove', side_effect=PermissionError("Cleanup failed")):
+            with patch(
+                "aiofiles.os.remove", side_effect=PermissionError("Cleanup failed")
+            ):
                 result = await async_atomic_save_text(test_file, "content")
                 assert result is False
 
@@ -594,7 +595,7 @@ async def test_async_atomic_save_text_cleanup_exception(tmp_path):
 @pytest.mark.asyncio
 async def test_async_atomic_save_json_cleanup_exception(tmp_path):
     """Test cleanup exception handling in atomic_save_json (lines 273-274)."""
-    from unittest.mock import patch, Mock
+    from unittest.mock import Mock, patch
 
     test_file = tmp_path / "test.json"
 
@@ -603,11 +604,13 @@ async def test_async_atomic_save_json_cleanup_exception(tmp_path):
     mock_temp.exists.return_value = True
     mock_temp.suffix = ".json"
 
-    with patch.object(Path, 'with_suffix', return_value=mock_temp):
+    with patch.object(Path, "with_suffix", return_value=mock_temp):
         # Mock aiofiles.os.replace to fail
-        with patch('aiofiles.os.replace', side_effect=PermissionError("Write failed")):
+        with patch("aiofiles.os.replace", side_effect=PermissionError("Write failed")):
             # Mock aiofiles.os.remove to also fail
-            with patch('aiofiles.os.remove', side_effect=PermissionError("Cleanup failed")):
+            with patch(
+                "aiofiles.os.remove", side_effect=PermissionError("Cleanup failed")
+            ):
                 result = await async_atomic_save_json(test_file, {"key": "value"})
                 assert result is False
 
@@ -616,12 +619,13 @@ async def test_async_atomic_save_json_cleanup_exception(tmp_path):
 async def test_async_file_context_without_aiofiles(tmp_path):
     """Test AsyncFileContext when aiofiles unavailable (lines 342-343)."""
     from unittest.mock import patch
+
     from asciidoc_artisan.core.async_file_ops import AsyncFileContext
 
     test_file = tmp_path / "test.txt"
     test_file.write_text("test")
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         ctx = AsyncFileContext(test_file)
         with pytest.raises(RuntimeError, match="aiofiles not available"):
             async with ctx as f:
@@ -637,7 +641,7 @@ async def test_async_copy_file_without_aiofiles(tmp_path):
     dst = tmp_path / "dest.txt"
     src.write_text("test content")
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         result = await async_copy_file(src, dst)
         assert result is True
         assert dst.read_text() == "test content"
@@ -651,28 +655,28 @@ async def test_async_copy_file_sync_fallback_error(tmp_path):
     src = tmp_path / "nonexistent.txt"
     dst = tmp_path / "dest.txt"
 
-    with patch('asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         result = await async_copy_file(src, dst)
         assert result is False
 
 
 def test_run_async_no_event_loop():
     """Test run_async creates event loop when none exists (lines 423-425)."""
-    import asyncio
-    from unittest.mock import patch, Mock
+    from unittest.mock import Mock, patch
+
     from asciidoc_artisan.core.async_file_ops import run_async
 
     async def dummy_coro():
         return "result"
 
     # Mock get_event_loop to raise RuntimeError
-    with patch('asyncio.get_event_loop', side_effect=RuntimeError("No loop")):
+    with patch("asyncio.get_event_loop", side_effect=RuntimeError("No loop")):
         # Mock new_event_loop and set_event_loop
         mock_loop = Mock()
         mock_loop.run_until_complete.return_value = "result"
 
-        with patch('asyncio.new_event_loop', return_value=mock_loop):
-            with patch('asyncio.set_event_loop') as mock_set:
+        with patch("asyncio.new_event_loop", return_value=mock_loop):
+            with patch("asyncio.set_event_loop") as mock_set:
                 result = run_async(dummy_coro())
 
                 # Should create and set new loop

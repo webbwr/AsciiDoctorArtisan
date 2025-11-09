@@ -6,7 +6,6 @@ Verifies system prompt generation and document content handling.
 """
 
 import pytest
-from PySide6.QtCore import Qt
 
 from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.ui.chat_bar_widget import ChatBarWidget
@@ -685,7 +684,13 @@ class TestMessageHistoryIntegration:
         """Test history with mixed user/assistant roles."""
         chat_worker._context_mode = "document"
         chat_worker._chat_history = [
-            ChatMessage(role="user", content="Q1", timestamp=1.0, model="test", context_mode="document"),
+            ChatMessage(
+                role="user",
+                content="Q1",
+                timestamp=1.0,
+                model="test",
+                context_mode="document",
+            ),
             ChatMessage(
                 role="assistant",
                 content="A1",
@@ -693,7 +698,13 @@ class TestMessageHistoryIntegration:
                 model="test",
                 context_mode="document",
             ),
-            ChatMessage(role="user", content="Q2", timestamp=3.0, model="test", context_mode="document"),
+            ChatMessage(
+                role="user",
+                content="Q2",
+                timestamp=3.0,
+                model="test",
+                context_mode="document",
+            ),
         ]
 
         system_prompt = chat_worker._build_system_prompt()

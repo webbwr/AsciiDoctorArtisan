@@ -403,6 +403,7 @@ class TestSettingsValidation:
     def test_validate_logs_issues(self, caplog):
         """Test that validate() logs validation issues."""
         import logging
+
         caplog.set_level(logging.WARNING)
 
         settings = Settings(font_size=5, chat_max_history=2000)
@@ -415,6 +416,7 @@ class TestSettingsValidation:
     def test_validate_logs_success_when_valid(self, caplog):
         """Test that validate() logs success when all fields valid."""
         import logging
+
         caplog.set_level(logging.INFO)
 
         settings = Settings()

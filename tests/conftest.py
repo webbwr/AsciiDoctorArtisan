@@ -4,12 +4,12 @@ Pytest configuration and fixtures for AsciiDoc Artisan tests.
 Provides shared fixtures, performance profiling, and coverage tracking.
 """
 
-import pytest
-import time
-import psutil
 import os
+import time
 from pathlib import Path
-from typing import Generator
+
+import psutil
+import pytest
 
 # Set Qt to use offscreen platform for headless testing
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
@@ -145,31 +145,31 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     terminalreporter.write_sep("=", "Performance Summary")
 
     # Sort by duration
-    by_duration = sorted(_test_metrics.items(), key=lambda x: x[1]["duration"], reverse=True)
+    by_duration = sorted(
+        _test_metrics.items(), key=lambda x: x[1]["duration"], reverse=True
+    )
 
     terminalreporter.write_line("\nSlowest 10 Tests:")
     for test_name, metrics in by_duration[:10]:
-        terminalreporter.write_line(
-            f"  {metrics['duration']:.3f}s - {test_name}"
-        )
+        terminalreporter.write_line(f"  {metrics['duration']:.3f}s - {test_name}")
 
     # Sort by memory
-    by_memory = sorted(_test_metrics.items(), key=lambda x: abs(x[1]["memory_delta_mb"]), reverse=True)
+    by_memory = sorted(
+        _test_metrics.items(), key=lambda x: abs(x[1]["memory_delta_mb"]), reverse=True
+    )
 
     terminalreporter.write_line("\nHighest Memory Usage (Top 10):")
     for test_name, metrics in by_memory[:10]:
         delta = metrics["memory_delta_mb"]
         sign = "+" if delta > 0 else ""
-        terminalreporter.write_line(
-            f"  {sign}{delta:.2f}MB - {test_name}"
-        )
+        terminalreporter.write_line(f"  {sign}{delta:.2f}MB - {test_name}")
 
     # Overall statistics
     total_duration = sum(m["duration"] for m in _test_metrics.values())
     avg_duration = total_duration / len(_test_metrics)
     max_memory = max(m["memory_end_mb"] for m in _test_metrics.values())
 
-    terminalreporter.write_line(f"\nOverall Statistics:")
+    terminalreporter.write_line("\nOverall Statistics:")
     terminalreporter.write_line(f"  Total tests: {len(_test_metrics)}")
     terminalreporter.write_line(f"  Total time: {total_duration:.2f}s")
     terminalreporter.write_line(f"  Average time: {avg_duration:.3f}s")

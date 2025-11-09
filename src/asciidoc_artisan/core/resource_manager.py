@@ -243,8 +243,7 @@ class ResourceManager:
                 dirs_cleaned += 1
 
         logger.info(
-            f"ResourceManager cleanup complete: "
-            f"{files_cleaned} files, {dirs_cleaned} directories"
+            f"ResourceManager cleanup complete: {files_cleaned} files, {dirs_cleaned} directories"
         )
 
         self._cleaned_up = True

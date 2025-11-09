@@ -1,10 +1,11 @@
 """Tests for ui.editor_state module."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, MagicMock, patch
-from PySide6.QtWidgets import QSplitter, QStatusBar, QPushButton, QPlainTextEdit
-from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QSplitter, QStatusBar
 
 
 @pytest.fixture
@@ -64,31 +65,37 @@ class TestEditorStateBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         assert EditorState is not None
 
     def test_creation(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
         assert state is not None
 
     def test_stores_window_reference(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
         assert state.window == mock_main_window
 
     def test_stores_editor_reference(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
         assert state.editor == mock_main_window.editor
 
     def test_initialization_sets_default_pane_state(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
         assert state.maximized_pane is None
         assert state.saved_splitter_sizes is None
 
     def test_initialization_sets_sync_scrolling(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
         assert state.sync_scrolling is True
 
@@ -99,6 +106,7 @@ class TestZoomFunctionality:
 
     def test_zoom_increases_font_size(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         initial_size = state.editor.font().pointSize()
@@ -108,6 +116,7 @@ class TestZoomFunctionality:
 
     def test_zoom_decreases_font_size(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         initial_size = state.editor.font().pointSize()
@@ -116,8 +125,9 @@ class TestZoomFunctionality:
         assert state.editor.font().pointSize() == initial_size - 2
 
     def test_zoom_respects_minimum_font_size(self, mock_main_window):
-        from asciidoc_artisan.ui.editor_state import EditorState
         from asciidoc_artisan.core import MIN_FONT_SIZE
+        from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         # Try to zoom way out
@@ -128,6 +138,7 @@ class TestZoomFunctionality:
 
     def test_zoom_updates_preview_zoom_factor(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         state.zoom(1)
@@ -155,6 +166,7 @@ class TestDarkModeToggle:
 
     def test_toggle_dark_mode_flips_state(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         mock_main_window._settings.dark_mode = False
@@ -169,16 +181,20 @@ class TestDarkModeToggle:
 
     def test_toggle_dark_mode_updates_menu_checkbox(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         mock_main_window._settings.dark_mode = False
         state.toggle_dark_mode()
 
         # Should set checkbox to True
-        mock_main_window.action_manager.dark_mode_act.setChecked.assert_called_with(True)
+        mock_main_window.action_manager.dark_mode_act.setChecked.assert_called_with(
+            True
+        )
 
     def test_toggle_dark_mode_blocks_signals(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         state.toggle_dark_mode()
@@ -193,6 +209,7 @@ class TestSyncScrollingToggle:
 
     def test_toggle_sync_scrolling_flips_state(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         initial_state = state.sync_scrolling
@@ -202,10 +219,13 @@ class TestSyncScrollingToggle:
 
     def test_toggle_sync_scrolling_reads_from_checkbox(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         # Set checkbox state
-        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(return_value=False)
+        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(
+            return_value=False
+        )
 
         state.toggle_sync_scrolling()
 
@@ -220,6 +240,7 @@ class TestPaneMaximization:
 
     def test_toggle_pane_maximize_maximizes_editor(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         state.toggle_pane_maximize("editor")
@@ -227,8 +248,11 @@ class TestPaneMaximization:
         assert state.maximized_pane == "editor"
         assert state.saved_splitter_sizes is not None
 
-    def test_toggle_pane_maximize_restores_when_already_maximized(self, mock_main_window):
+    def test_toggle_pane_maximize_restores_when_already_maximized(
+        self, mock_main_window
+    ):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         # Maximize first
@@ -240,6 +264,7 @@ class TestPaneMaximization:
 
     def test_maximize_pane_saves_splitter_sizes(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         original_sizes = state.splitter.sizes()
@@ -249,6 +274,7 @@ class TestPaneMaximization:
 
     def test_maximize_pane_sets_editor_visibility(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         state.maximize_pane("preview")
@@ -260,6 +286,7 @@ class TestPaneMaximization:
 
     def test_restore_panes_resets_splitter_sizes(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         # Maximize and save sizes
@@ -271,6 +298,7 @@ class TestPaneMaximization:
 
     def test_restore_panes_shows_all_panes(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         state.maximize_pane("preview")
@@ -287,6 +315,7 @@ class TestCloseEventHandling:
 
     def test_handle_close_event_accepts_event(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         event = Mock()
@@ -301,6 +330,7 @@ class TestCloseEventHandling:
 
     def test_handle_close_event_calls_shutdown(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         event = Mock()
@@ -319,6 +349,7 @@ class TestEdgeCases:
 
     def test_zoom_zero_delta_no_change(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         initial_size = state.editor.font().pointSize()
@@ -328,6 +359,7 @@ class TestEdgeCases:
 
     def test_maximize_unknown_pane_ignored(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
         state = EditorState(mock_main_window)
 
         # Should not crash
@@ -357,7 +389,7 @@ class TestThreePaneLayoutMaximization:
         # Editor maximized, chat visible
         sizes = state.splitter.sizes()
         assert sizes[1] == 0  # Preview hidden
-        assert sizes[2] > 0   # Chat still visible
+        assert sizes[2] > 0  # Chat still visible
 
     def test_maximize_editor_with_chat_hidden(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
@@ -393,7 +425,7 @@ class TestThreePaneLayoutMaximization:
         # Preview maximized, chat visible
         sizes = state.splitter.sizes()
         assert sizes[0] == 0  # Editor hidden
-        assert sizes[2] > 0   # Chat still visible
+        assert sizes[2] > 0  # Chat still visible
 
     def test_maximize_preview_with_chat_hidden(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
@@ -729,7 +761,11 @@ class TestPreviewHandlerIntegration:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         # Remove preview_handler attribute
-        delattr(mock_main_window, "preview_handler") if hasattr(mock_main_window, "preview_handler") else None
+        (
+            delattr(mock_main_window, "preview_handler")
+            if hasattr(mock_main_window, "preview_handler")
+            else None
+        )
         mock_main_window.update_preview = Mock()
 
         state = EditorState(mock_main_window)
@@ -892,7 +928,9 @@ class TestTempFileCleanup:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.export_manager = Mock()
-        mock_main_window.export_manager.cleanup = Mock(side_effect=Exception("Cleanup failed"))
+        mock_main_window.export_manager.cleanup = Mock(
+            side_effect=Exception("Cleanup failed")
+        )
 
         state = EditorState(mock_main_window)
         state._cleanup_temp_files()  # Should not crash
@@ -928,7 +966,9 @@ class TestCloseEventWithUnsavedChanges:
 
         # User cancels save prompt
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=False)
+        mock_main_window.status_manager.prompt_save_before_action = Mock(
+            return_value=False
+        )
 
         state = EditorState(mock_main_window)
         event = Mock()
@@ -944,7 +984,9 @@ class TestCloseEventWithUnsavedChanges:
 
         # User proceeds with close
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
+        mock_main_window.status_manager.prompt_save_before_action = Mock(
+            return_value=True
+        )
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -967,7 +1009,9 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
+        mock_main_window.status_manager.prompt_save_before_action = Mock(
+            return_value=True
+        )
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = "/tmp/test.adoc"
@@ -987,7 +1031,9 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
+        mock_main_window.status_manager.prompt_save_before_action = Mock(
+            return_value=True
+        )
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -1004,7 +1050,9 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
+        mock_main_window.status_manager.prompt_save_before_action = Mock(
+            return_value=True
+        )
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -1024,7 +1072,9 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
+        mock_main_window.status_manager.prompt_save_before_action = Mock(
+            return_value=True
+        )
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -1038,7 +1088,9 @@ class TestCloseEventWithUnsavedChanges:
         state.handle_close_event(event)
 
         # Should pass "closing" as action
-        mock_main_window.status_manager.prompt_save_before_action.assert_called_once_with("closing")
+        mock_main_window.status_manager.prompt_save_before_action.assert_called_once_with(
+            "closing"
+        )
 
 
 @pytest.mark.unit
@@ -1087,8 +1139,8 @@ class TestZoomBoundaryConditions:
         assert state.editor.font().pointSize() > initial_size
 
     def test_zoom_large_negative_delta(self, mock_main_window):
-        from asciidoc_artisan.ui.editor_state import EditorState
         from asciidoc_artisan.core import MIN_FONT_SIZE
+        from asciidoc_artisan.ui.editor_state import EditorState
 
         state = EditorState(mock_main_window)
 
@@ -1161,14 +1213,18 @@ class TestButtonAndStatusBarUpdates:
         state.restore_panes()
 
         # Should show restore message
-        call_args_list = [str(call) for call in state.status_bar.showMessage.call_args_list]
+        call_args_list = [
+            str(call) for call in state.status_bar.showMessage.call_args_list
+        ]
         assert any("restored" in call.lower() for call in call_args_list)
 
     def test_sync_scrolling_shows_status_message(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
 
         state = EditorState(mock_main_window)
-        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(return_value=False)
+        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(
+            return_value=False
+        )
 
         state.toggle_sync_scrolling()
 

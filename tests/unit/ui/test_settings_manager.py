@@ -2,13 +2,11 @@
 
 import json
 import os
-import platform
-import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import pytest
-from PySide6.QtCore import QRect, QStandardPaths, Qt
+from PySide6.QtCore import QRect, Qt
 from PySide6.QtWidgets import QMainWindow, QSplitter
 
 from asciidoc_artisan.core import Settings
@@ -43,24 +41,32 @@ class TestSettingsManager:
     def test_import(self):
         """Test SettingsManager can be imported."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
+
         assert SettingsManager is not None
 
     def test_creation(self, qapp):
         """Test SettingsManager can be instantiated."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
+
         manager = SettingsManager()
         assert manager is not None
 
     def test_has_settings_methods(self, qapp):
         """Test SettingsManager has expected methods."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
+
         manager = SettingsManager()
-        methods = [m for m in dir(manager) if any(x in m.lower() for x in ["get", "set", "load", "save"])]
+        methods = [
+            m
+            for m in dir(manager)
+            if any(x in m.lower() for x in ["get", "set", "load", "save"])
+        ]
         assert len(methods) > 0
 
     def test_initialization_sets_settings_path(self, qapp):
         """Test initialization sets _settings_path attribute."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
+
         manager = SettingsManager()
         assert hasattr(manager, "_settings_path")
         assert isinstance(manager._settings_path, Path)
@@ -68,6 +74,7 @@ class TestSettingsManager:
     def test_initialization_creates_timer(self, qapp):
         """Test initialization creates deferred save timer."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
+
         manager = SettingsManager()
         assert hasattr(manager, "_pending_save_timer")
         assert manager._pending_save_timer.interval() == 100
@@ -109,15 +116,22 @@ class TestSettingsPath:
         """Test settings path on macOS."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
-        mock_writable.return_value = "/Users/test/Library/Application Support/AsciiDocArtisan"
+        mock_writable.return_value = (
+            "/Users/test/Library/Application Support/AsciiDocArtisan"
+        )
         manager = SettingsManager()
 
         path = manager.get_settings_path()
         assert "AsciiDocArtisan" in str(path) or "AsciiDoc Artisan" in str(path)
 
     @patch("platform.system", return_value="Linux")
-    @patch("asciidoc_artisan.ui.settings_manager.QStandardPaths.writableLocation", return_value="")
-    def test_get_settings_path_fallback_when_no_writable(self, mock_writable, mock_system, qapp):
+    @patch(
+        "asciidoc_artisan.ui.settings_manager.QStandardPaths.writableLocation",
+        return_value="",
+    )
+    def test_get_settings_path_fallback_when_no_writable(
+        self, mock_writable, mock_system, qapp
+    ):
         """Test settings path falls back to home when no writable location."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -178,7 +192,9 @@ class TestDefaultSettings:
 class TestLoadSettings:
     """Test suite for settings loading."""
 
-    def test_load_settings_creates_defaults_when_file_missing(self, qapp, temp_settings_file):
+    def test_load_settings_creates_defaults_when_file_missing(
+        self, qapp, temp_settings_file
+    ):
         """Test load_settings returns defaults when file doesn't exist."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -233,7 +249,9 @@ class TestLoadSettings:
 class TestSaveSettings:
     """Test suite for settings saving."""
 
-    def test_save_settings_updates_from_window_state(self, qapp, temp_settings_file, mock_window):
+    def test_save_settings_updates_from_window_state(
+        self, qapp, temp_settings_file, mock_window
+    ):
         """Test save_settings extracts state from window."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -249,7 +267,9 @@ class TestSaveSettings:
         assert result is True
         assert settings.dark_mode is False
 
-    def test_save_settings_schedules_deferred_save(self, qapp, temp_settings_file, mock_window):
+    def test_save_settings_schedules_deferred_save(
+        self, qapp, temp_settings_file, mock_window
+    ):
         """Test save_settings schedules timer instead of saving immediately."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -263,7 +283,9 @@ class TestSaveSettings:
         assert manager._pending_save_timer.isActive()
         assert manager._pending_save_data is not None
 
-    def test_save_settings_with_current_file(self, qapp, temp_settings_file, mock_window):
+    def test_save_settings_with_current_file(
+        self, qapp, temp_settings_file, mock_window
+    ):
         """Test save_settings updates last_file and last_directory."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -279,7 +301,9 @@ class TestSaveSettings:
         # Settings.validate() may correct invalid directories, so just check it's set
         assert settings.last_directory is not None
 
-    def test_save_settings_immediate_saves_synchronously(self, qapp, temp_settings_file, mock_window):
+    def test_save_settings_immediate_saves_synchronously(
+        self, qapp, temp_settings_file, mock_window
+    ):
         """Test save_settings_immediate saves without delay."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -315,8 +339,9 @@ class TestRestoreUISettings:
 
     def test_restore_ui_settings_restores_splitter_sizes(self, qapp, mock_window):
         """Test restore_ui_settings sets splitter sizes."""
-        from asciidoc_artisan.ui.settings_manager import SettingsManager
         from PySide6.QtWidgets import QLabel
+
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
 
         manager = SettingsManager()
         settings = manager.create_default_settings()
@@ -332,8 +357,9 @@ class TestRestoreUISettings:
 
     def test_restore_ui_settings_migrates_2pane_to_3pane(self, qapp, mock_window):
         """Test restore_ui_settings handles 2-pane to 3-pane migration."""
-        from asciidoc_artisan.ui.settings_manager import SettingsManager
         from PySide6.QtWidgets import QLabel
+
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
 
         manager = SettingsManager()
         settings = manager.create_default_settings()

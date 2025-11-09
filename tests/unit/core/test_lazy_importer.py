@@ -429,9 +429,9 @@ class TestLazyImportPerformance:
         # On slow systems, lazy should be significantly faster
         assert lazy_create_time <= eager_time * 2  # Allow some variance
 
-        print(f"\nEager import: {eager_time*1000:.2f}ms")
-        print(f"Lazy creation: {lazy_create_time*1000:.2f}ms")
-        print(f"Savings: {(eager_time - lazy_create_time)*1000:.2f}ms")
+        print(f"\nEager import: {eager_time * 1000:.2f}ms")
+        print(f"Lazy creation: {lazy_create_time * 1000:.2f}ms")
+        print(f"Savings: {(eager_time - lazy_create_time) * 1000:.2f}ms")
 
     def test_deferred_cost(self):
         """Test deferred import cost on first access."""
@@ -451,8 +451,8 @@ class TestLazyImportPerformance:
         # Second access should be much faster
         assert second_access < first_access
 
-        print(f"\nFirst access: {first_access*1000:.2f}ms (import + use)")
-        print(f"Second access: {second_access*1000:.2f}ms (use only)")
+        print(f"\nFirst access: {first_access * 1000:.2f}ms (import + use)")
+        print(f"Second access: {second_access * 1000:.2f}ms (use only)")
 
     def test_import_profiler_overhead(self):
         """Test import profiler overhead."""
@@ -475,9 +475,9 @@ class TestLazyImportPerformance:
         overhead = profiled_time - normal_time
         assert overhead < 0.1  # Less than 100ms overhead
 
-        print(f"\nNormal import: {normal_time*1000:.2f}ms")
-        print(f"Profiled import: {profiled_time*1000:.2f}ms")
-        print(f"Overhead: {overhead*1000:.2f}ms")
+        print(f"\nNormal import: {normal_time * 1000:.2f}ms")
+        print(f"Profiled import: {profiled_time * 1000:.2f}ms")
+        print(f"Overhead: {overhead * 1000:.2f}ms")
 
 
 class TestLazyImportIntegration:

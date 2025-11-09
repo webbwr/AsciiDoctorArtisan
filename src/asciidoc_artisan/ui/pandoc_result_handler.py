@@ -91,7 +91,6 @@ class PandocResultHandler:
         self.editor.status_bar.showMessage(f"Conversion failed: {context}")
 
         if export_path and "Exporting to" in context:
-
             if "PDF" in context and (
                 "pdflatex" in error
                 or "pdf-engine" in error

@@ -1,7 +1,8 @@
 """Tests for ui.scroll_manager module."""
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock, patch
 
 
 @pytest.fixture
@@ -39,20 +40,24 @@ class TestScrollManagerBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         assert ScrollManager is not None
 
     def test_creation(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
         assert manager is not None
 
     def test_stores_editor_reference(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
         assert manager.editor == mock_editor
 
     def test_initialization_sets_scroll_tracking(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
         assert hasattr(manager, "_last_editor_scroll")
         assert hasattr(manager, "_last_preview_scroll")
@@ -60,6 +65,7 @@ class TestScrollManagerBasics:
 
     def test_initial_scroll_values_are_zero(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
         assert manager._last_editor_scroll == 0
         assert manager._last_preview_scroll == 0
@@ -72,6 +78,7 @@ class TestSetupSynchronizedScrolling:
 
     def test_setup_connects_scrollbar_signal(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.setup_synchronized_scrolling()
@@ -83,12 +90,15 @@ class TestSetupSynchronizedScrolling:
 
     def test_setup_connects_to_sync_method(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.setup_synchronized_scrolling()
 
         # Should connect to sync_editor_to_preview
-        call_args = mock_editor.editor.verticalScrollBar().valueChanged.connect.call_args
+        call_args = (
+            mock_editor.editor.verticalScrollBar().valueChanged.connect.call_args
+        )
         assert call_args is not None
 
 
@@ -98,6 +108,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_skips_when_sync_disabled(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         mock_editor._sync_scrolling = False
@@ -108,6 +119,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_skips_when_already_syncing(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         mock_editor._is_syncing_scroll = True
@@ -118,6 +130,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_coalesces_small_changes(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._last_editor_scroll = 500
@@ -128,6 +141,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_accepts_significant_changes(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._last_editor_scroll = 500
@@ -139,6 +153,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_updates_last_scroll_value(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(750)
@@ -147,6 +162,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_processes_scroll_event(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(500)
@@ -157,6 +173,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_detects_scroll_loops(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Simulate loop condition
@@ -171,6 +188,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_sets_syncing_flag(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         mock_editor._is_syncing_scroll = False
@@ -184,6 +202,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_uses_javascript_for_webengine(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(500)
@@ -195,6 +214,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_calculates_scroll_percentage(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Scrollbar max = 1000, value = 500 → 50% (0.5)
@@ -206,6 +226,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_handles_zero_editor_max(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Set max to 0 (edge case)
@@ -220,6 +241,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_uses_fallback_for_text_browser(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Remove page attribute to simulate QTextBrowser
@@ -236,6 +258,7 @@ class TestSyncEditorToPreview:
 
     def test_sync_resets_syncing_flag_after_sync(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(500)
@@ -250,6 +273,7 @@ class TestScrollCoalescing:
 
     def test_coalescing_threshold_is_2_pixels(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._last_editor_scroll = 100
@@ -271,6 +295,7 @@ class TestScrollCoalescing:
 
     def test_negative_scroll_changes_handled(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._last_editor_scroll = 500
@@ -289,6 +314,7 @@ class TestEdgeCases:
 
     def test_sync_with_maximum_scroll_value(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Scroll to bottom
@@ -301,6 +327,7 @@ class TestEdgeCases:
 
     def test_sync_with_zero_scroll_value(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Scroll to top
@@ -316,6 +343,7 @@ class TestScrollLoopDetectionBoundaries:
 
     def test_count_at_99_processes_normally(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._scroll_sync_count = 99
@@ -326,6 +354,7 @@ class TestScrollLoopDetectionBoundaries:
 
     def test_count_at_100_processes_normally(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._scroll_sync_count = 100
@@ -337,6 +366,7 @@ class TestScrollLoopDetectionBoundaries:
 
     def test_count_at_101_triggers_loop_detection(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._scroll_sync_count = 101
@@ -349,6 +379,7 @@ class TestScrollLoopDetectionBoundaries:
 
     def test_count_at_150_triggers_loop_detection(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._scroll_sync_count = 150
@@ -360,6 +391,7 @@ class TestScrollLoopDetectionBoundaries:
 
     def test_count_reset_after_loop_detection(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Trigger loop detection
@@ -378,6 +410,7 @@ class TestJavaScriptCodeGeneration:
 
     def test_javascript_for_zero_percent(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Set last scroll to non-zero to avoid coalescing
@@ -390,6 +423,7 @@ class TestJavaScriptCodeGeneration:
 
     def test_javascript_for_twenty_five_percent(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # 25% scroll (250 / 1000)
@@ -400,6 +434,7 @@ class TestJavaScriptCodeGeneration:
 
     def test_javascript_for_fifty_percent(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # 50% scroll (500 / 1000)
@@ -410,6 +445,7 @@ class TestJavaScriptCodeGeneration:
 
     def test_javascript_for_seventy_five_percent(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # 75% scroll (750 / 1000)
@@ -420,6 +456,7 @@ class TestJavaScriptCodeGeneration:
 
     def test_javascript_for_hundred_percent(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # 100% scroll (1000 / 1000)
@@ -435,6 +472,7 @@ class TestScrollbarMaximumVariations:
 
     def test_negative_maximum_value(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         scrollbar = mock_editor.editor.verticalScrollBar()
@@ -447,6 +485,7 @@ class TestScrollbarMaximumVariations:
 
     def test_very_large_maximum_value(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         scrollbar = mock_editor.editor.verticalScrollBar()
@@ -458,6 +497,7 @@ class TestScrollbarMaximumVariations:
 
     def test_maximum_equals_value(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         scrollbar = mock_editor.editor.verticalScrollBar()
@@ -476,6 +516,7 @@ class TestQTextBrowserFallback:
 
     def test_fallback_uses_setvalue(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Remove page attribute
@@ -492,6 +533,7 @@ class TestQTextBrowserFallback:
 
     def test_fallback_with_zero_preview_max(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         delattr(mock_editor.preview, "page")
@@ -506,6 +548,7 @@ class TestQTextBrowserFallback:
 
     def test_fallback_with_negative_preview_max(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         delattr(mock_editor.preview, "page")
@@ -519,6 +562,7 @@ class TestQTextBrowserFallback:
 
     def test_fallback_with_different_aspect_ratio(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         delattr(mock_editor.preview, "page")
@@ -534,6 +578,7 @@ class TestQTextBrowserFallback:
 
     def test_fallback_clears_syncing_flag(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         delattr(mock_editor.preview, "page")
@@ -554,6 +599,7 @@ class TestSyncingFlagLifecycle:
 
     def test_flag_set_during_sync(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Capture flag state during runJavaScript call
@@ -571,6 +617,7 @@ class TestSyncingFlagLifecycle:
 
     def test_flag_reset_after_sync(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(500)
@@ -580,10 +627,13 @@ class TestSyncingFlagLifecycle:
 
     def test_flag_reset_after_exception(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Make runJavaScript raise exception
-        mock_editor.preview.page().runJavaScript = Mock(side_effect=RuntimeError("Test error"))
+        mock_editor.preview.page().runJavaScript = Mock(
+            side_effect=RuntimeError("Test error")
+        )
 
         try:
             manager.sync_editor_to_preview(500)
@@ -595,6 +645,7 @@ class TestSyncingFlagLifecycle:
 
     def test_flag_not_set_when_coalesced(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._last_editor_scroll = 500
@@ -610,6 +661,7 @@ class TestScrollSyncCountBehavior:
 
     def test_count_increments_on_sync(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         initial_count = manager._scroll_sync_count
@@ -620,6 +672,7 @@ class TestScrollSyncCountBehavior:
 
     def test_count_decrements_after_successful_sync(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._scroll_sync_count = 10
@@ -630,6 +683,7 @@ class TestScrollSyncCountBehavior:
 
     def test_count_does_not_go_negative(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._scroll_sync_count = 0
@@ -640,6 +694,7 @@ class TestScrollSyncCountBehavior:
 
     def test_count_reset_on_loop_detection(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._scroll_sync_count = 101
@@ -650,6 +705,7 @@ class TestScrollSyncCountBehavior:
 
     def test_count_not_incremented_when_coalesced(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager._last_editor_scroll = 500
@@ -666,6 +722,7 @@ class TestPreviewPageAvailability:
 
     def test_page_attribute_exists(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # page attribute exists (default)
@@ -676,6 +733,7 @@ class TestPreviewPageAvailability:
 
     def test_page_attribute_missing(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         delattr(mock_editor.preview, "page")
@@ -691,6 +749,7 @@ class TestPreviewPageAvailability:
 
     def test_page_is_none(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         mock_editor.preview.page = lambda: None
@@ -704,6 +763,7 @@ class TestPreviewPageAvailability:
 
     def test_page_callable_but_raises_exception(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         mock_editor.preview.page = Mock(side_effect=RuntimeError("page() failed"))
@@ -719,6 +779,7 @@ class TestRapidScrollEvents:
 
     def test_multiple_scrolls_in_sequence(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Simulate rapid scrolling
@@ -731,6 +792,7 @@ class TestRapidScrollEvents:
 
     def test_coalesced_scrolls_in_sequence(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Simulate small incremental scrolls (coalesced)
@@ -745,6 +807,7 @@ class TestRapidScrollEvents:
 
     def test_alternating_up_down_scrolls(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Scroll up and down alternately
@@ -757,6 +820,7 @@ class TestRapidScrollEvents:
 
     def test_rapid_scrolls_do_not_trigger_loop_detection(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # 50 rapid scrolls (below 100 threshold)
@@ -768,6 +832,7 @@ class TestRapidScrollEvents:
 
     def test_very_rapid_scrolls_may_trigger_loop_detection(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # 150 rapid scrolls (above 100 threshold)
@@ -789,6 +854,7 @@ class TestScrollPercentageCalculations:
 
     def test_percentage_at_zero(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Set last scroll to non-zero to avoid coalescing
@@ -800,6 +866,7 @@ class TestScrollPercentageCalculations:
 
     def test_percentage_at_one_quarter(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(250)
@@ -809,6 +876,7 @@ class TestScrollPercentageCalculations:
 
     def test_percentage_at_half(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(500)
@@ -818,6 +886,7 @@ class TestScrollPercentageCalculations:
 
     def test_percentage_at_three_quarters(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(750)
@@ -827,6 +896,7 @@ class TestScrollPercentageCalculations:
 
     def test_percentage_at_maximum(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         manager.sync_editor_to_preview(1000)
@@ -841,6 +911,7 @@ class TestSyncPreviewToEditor:
 
     def test_sync_preview_to_editor_exists(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Method should exist
@@ -849,6 +920,7 @@ class TestSyncPreviewToEditor:
 
     def test_sync_preview_to_editor_does_nothing(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Should not crash (stub method)
@@ -859,6 +931,7 @@ class TestSyncPreviewToEditor:
 
     def test_sync_preview_to_editor_accepts_any_value(self, mock_editor):
         from asciidoc_artisan.ui.scroll_manager import ScrollManager
+
         manager = ScrollManager(mock_editor)
 
         # Should accept any int value without error

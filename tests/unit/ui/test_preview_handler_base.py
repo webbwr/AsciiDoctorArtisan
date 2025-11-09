@@ -9,17 +9,16 @@ Tests the abstract base class functionality including:
 - Signal emissions
 """
 
-import pytest
 import time
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
+
+import pytest
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QMainWindow
+from PySide6.QtWidgets import QMainWindow, QPlainTextEdit, QTextBrowser
 
 from asciidoc_artisan.ui.preview_handler_base import (
-    PreviewHandlerBase,
     PREVIEW_FAST_INTERVAL_MS,
-    PREVIEW_NORMAL_INTERVAL_MS,
-    PREVIEW_SLOW_INTERVAL_MS,
+    PreviewHandlerBase,
 )
 
 
@@ -61,45 +60,51 @@ def mock_window(qtbot):
     window.theme_manager = Mock()
     # Use a list to ensure we create new string objects each time
     css_call_count = [0]
+
     def get_preview_css_mock():
         """Return CSS based on dark_mode setting - ensures new object each call."""
         css_call_count[0] += 1
         if window._settings.dark_mode:
             # Use string concatenation to ensure new object
-            return "".join([
-                f"/* Call {css_call_count[0]} */\n",
-                "body {\n",
-                "    color: #e0e0e0;\n",
-                "    background-color: #1a1a1a;\n",
-                "    max-width: 900px;\n",
-                "    margin: 0 auto;\n",
-                "}\n",
-                "code { background: #2d2d2d; font-family: 'Courier New', monospace; }\n",
-                "pre { background: #2d2d2d; padding: 10px; font-family: 'Courier New', monospace; }\n",
-                "table { border: 1px solid #444; }\n",
-                "table th { background: #333; }\n",
-                "table td { padding: 8px; }\n",
-                "h1 { border-bottom: 2px solid #444; }\n",
-                "h1, h2, h3 { color: #fff; }\n",
-            ])
+            return "".join(
+                [
+                    f"/* Call {css_call_count[0]} */\n",
+                    "body {\n",
+                    "    color: #e0e0e0;\n",
+                    "    background-color: #1a1a1a;\n",
+                    "    max-width: 900px;\n",
+                    "    margin: 0 auto;\n",
+                    "}\n",
+                    "code { background: #2d2d2d; font-family: 'Courier New', monospace; }\n",
+                    "pre { background: #2d2d2d; padding: 10px; font-family: 'Courier New', monospace; }\n",
+                    "table { border: 1px solid #444; }\n",
+                    "table th { background: #333; }\n",
+                    "table td { padding: 8px; }\n",
+                    "h1 { border-bottom: 2px solid #444; }\n",
+                    "h1, h2, h3 { color: #fff; }\n",
+                ]
+            )
         else:
             # Use string concatenation to ensure new object
-            return "".join([
-                f"/* Call {css_call_count[0]} */\n",
-                "body {\n",
-                "    color: #333;\n",
-                "    background-color: #fff;\n",
-                "    max-width: 900px;\n",
-                "    margin: 0 auto;\n",
-                "}\n",
-                "code { background: #f5f5f5; font-family: 'Courier New', monospace; }\n",
-                "pre { background: #f5f5f5; padding: 10px; font-family: 'Courier New', monospace; }\n",
-                "table { border: 1px solid #ddd; }\n",
-                "table th { background: #f9f9f9; }\n",
-                "table td { padding: 8px; }\n",
-                "h1 { border-bottom: 2px solid #ddd; }\n",
-                "h1, h2, h3 { color: #000; }\n",
-            ])
+            return "".join(
+                [
+                    f"/* Call {css_call_count[0]} */\n",
+                    "body {\n",
+                    "    color: #333;\n",
+                    "    background-color: #fff;\n",
+                    "    max-width: 900px;\n",
+                    "    margin: 0 auto;\n",
+                    "}\n",
+                    "code { background: #f5f5f5; font-family: 'Courier New', monospace; }\n",
+                    "pre { background: #f5f5f5; padding: 10px; font-family: 'Courier New', monospace; }\n",
+                    "table { border: 1px solid #ddd; }\n",
+                    "table th { background: #f9f9f9; }\n",
+                    "table td { padding: 8px; }\n",
+                    "h1 { border-bottom: 2px solid #ddd; }\n",
+                    "h1, h2, h3 { color: #000; }\n",
+                ]
+            )
+
     window.theme_manager.get_preview_css = get_preview_css_mock
 
     return window
@@ -185,11 +190,16 @@ def test_handle_preview_complete_wraps_with_css(handler):
     assert handler.completed_html == test_html
 
 
-@pytest.mark.parametrize("dark_mode,expected_text_color,expected_bg_color,test_id", [
-    (False, "#333", "#fff", "light_mode"),
-    (True, "#e0e0e0", "#1a1a1a", "dark_mode"),
-])
-def test_css_generation(handler, mock_window, dark_mode, expected_text_color, expected_bg_color, test_id):
+@pytest.mark.parametrize(
+    "dark_mode,expected_text_color,expected_bg_color,test_id",
+    [
+        (False, "#333", "#fff", "light_mode"),
+        (True, "#e0e0e0", "#1a1a1a", "dark_mode"),
+    ],
+)
+def test_css_generation(
+    handler, mock_window, dark_mode, expected_text_color, expected_bg_color, test_id
+):
     """Test CSS generation for different themes.
 
     Parametrized test covering:

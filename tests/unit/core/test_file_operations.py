@@ -88,6 +88,7 @@ class TestFileOperations:
     def test_atomic_save_text_write_error(self):
         """Test atomic_save_text handles write errors gracefully."""
         import os
+
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a read-only directory
             readonly_dir = Path(tmpdir) / "readonly"
@@ -104,6 +105,7 @@ class TestFileOperations:
     def test_atomic_save_json_write_error(self):
         """Test atomic_save_json handles write errors gracefully."""
         import os
+
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a read-only directory
             readonly_dir = Path(tmpdir) / "readonly"
@@ -189,6 +191,7 @@ class TestPathSanitization:
     def test_sanitize_path_with_allowed_base(self):
         """Test sanitize_path with allowed_base parameter."""
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             base_dir = Path(tmpdir)
             safe_file = base_dir / "subdir" / "file.txt"
@@ -206,6 +209,7 @@ class TestPathSanitization:
     def test_sanitize_path_traversal_with_allowed_base(self):
         """Test sanitize_path blocks traversal even with allowed_base."""
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             base_dir = Path(tmpdir)
             # Try to escape using '..'
@@ -217,8 +221,7 @@ class TestPathSanitization:
 
     def test_atomic_save_text_cleanup_on_exception(self):
         """Test atomic_save_text cleans up temp file when exception occurs."""
-        import os
-        from unittest.mock import patch, Mock
+        from unittest.mock import patch
 
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = Path(tmpdir) / "test.txt"
@@ -241,8 +244,7 @@ class TestPathSanitization:
 
     def test_atomic_save_json_cleanup_on_exception(self):
         """Test atomic_save_json cleans up temp file when exception occurs."""
-        import os
-        from unittest.mock import patch, Mock
+        from unittest.mock import patch
 
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = Path(tmpdir) / "test.json"

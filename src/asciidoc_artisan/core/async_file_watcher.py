@@ -325,8 +325,7 @@ class AsyncFileWatcher(QObject):
             )
 
             logger.debug(
-                f"Active file detected (streak={self._activity_streak}), "
-                f"poll interval: {self.poll_interval:.2f}s"
+                f"Active file detected (streak={self._activity_streak}), poll interval: {self.poll_interval:.2f}s"
             )
         else:
             # File is idle - increase polling interval
@@ -344,8 +343,7 @@ class AsyncFileWatcher(QObject):
 
                 if self._idle_count <= 3:  # Only log first few backoffs
                     logger.debug(
-                        f"Idle file detected (count={self._idle_count}), "
-                        f"poll interval: {self.poll_interval:.2f}s"
+                        f"Idle file detected (count={self._idle_count}), poll interval: {self.poll_interval:.2f}s"
                     )
 
     def is_running(self) -> bool:

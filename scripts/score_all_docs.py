@@ -14,10 +14,10 @@ a comprehensive readability report using multiple metrics:
 Target: Grade 5.0 or below (elementary school reading level)
 """
 
+import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
-import re
 
 try:
     import textstat
@@ -30,35 +30,35 @@ except ImportError:
 def clean_markdown(text: str) -> str:
     """Remove markdown formatting for readability analysis."""
     # Remove code blocks
-    text = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
-    text = re.sub(r'`[^`]+`', '', text)
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    text = re.sub(r"`[^`]+`", "", text)
 
     # Remove headers
-    text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^#+\s+", "", text, flags=re.MULTILINE)
 
     # Remove links but keep text
-    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)
 
     # Remove images
-    text = re.sub(r'!\[([^\]]*)\]\([^\)]+\)', '', text)
+    text = re.sub(r"!\[([^\]]*)\]\([^\)]+\)", "", text)
 
     # Remove bold/italic
-    text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', text)
-    text = re.sub(r'\*([^\*]+)\*', r'\1', text)
-    text = re.sub(r'__([^_]+)__', r'\1', text)
-    text = re.sub(r'_([^_]+)_', r'\1', text)
+    text = re.sub(r"\*\*([^\*]+)\*\*", r"\1", text)
+    text = re.sub(r"\*([^\*]+)\*", r"\1", text)
+    text = re.sub(r"__([^_]+)__", r"\1", text)
+    text = re.sub(r"_([^_]+)_", r"\1", text)
 
     # Remove bullet points
-    text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^\s*[-*+]\s+", "", text, flags=re.MULTILINE)
 
     # Remove horizontal rules
-    text = re.sub(r'^-{3,}$', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^-{3,}$", "", text, flags=re.MULTILINE)
 
     # Remove HTML tags
-    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r"<[^>]+>", "", text)
 
     # Clean up whitespace
-    text = re.sub(r'\n\n+', '\n\n', text)
+    text = re.sub(r"\n\n+", "\n\n", text)
 
     return text.strip()
 
@@ -66,7 +66,7 @@ def clean_markdown(text: str) -> str:
 def score_document(file_path: Path) -> Dict[str, float]:
     """Score a single document for readability."""
     try:
-        text = file_path.read_text(encoding='utf-8')
+        text = file_path.read_text(encoding="utf-8")
         clean_text = clean_markdown(text)
 
         # Skip if too short
@@ -79,7 +79,9 @@ def score_document(file_path: Path) -> Dict[str, float]:
             "gunning_fog": textstat.gunning_fog(clean_text),
             "smog_index": textstat.smog_index(clean_text),
             "coleman_liau_index": textstat.coleman_liau_index(clean_text),
-            "automated_readability_index": textstat.automated_readability_index(clean_text),
+            "automated_readability_index": textstat.automated_readability_index(
+                clean_text
+            ),
             "word_count": len(clean_text.split()),
             "sentence_count": textstat.sentence_count(clean_text),
             "avg_sentence_length": textstat.avg_sentence_length(clean_text),
@@ -120,7 +122,14 @@ def main():
     """Main scoring function."""
     # Configuration
     repo_root = Path(__file__).parent.parent
-    exclude_dirs = ["venv", "node_modules", ".git", ".pytest_cache", "htmlcov", ".claude"]
+    exclude_dirs = [
+        "venv",
+        "node_modules",
+        ".git",
+        ".pytest_cache",
+        "htmlcov",
+        ".claude",
+    ]
 
     # Find all markdown files
     print("🔍 Finding markdown files...")
@@ -138,13 +147,12 @@ def main():
     print("=" * 100)
     print("DOCUMENTATION READABILITY REPORT")
     print("=" * 100)
-    print(f"Target: Grade 5.0 or below (Elementary School Reading Level)")
+    print("Target: Grade 5.0 or below (Elementary School Reading Level)")
     print(f"Analyzed: {len(results)} files\n")
 
     # Sort by grade level
     valid_results = [
-        (path, scores) for path, scores in results
-        if "error" not in scores
+        (path, scores) for path, scores in results if "error" not in scores
     ]
     valid_results.sort(key=lambda x: x[1]["flesch_kincaid_grade"])
 
@@ -195,10 +203,18 @@ def main():
         print(f"Worst Score: {max(grades):.2f}\n")
 
         print("Distribution:")
-        print(f"  ✅ EXCELLENT (≤5.0):   {excellent_count:3d} files ({excellent_count/len(valid_results)*100:.1f}%)")
-        print(f"  ✓  GOOD (5.1-8.0):     {good_count:3d} files ({good_count/len(valid_results)*100:.1f}%)")
-        print(f"  ⚠  FAIR (8.1-12.0):    {fair_count:3d} files ({fair_count/len(valid_results)*100:.1f}%)")
-        print(f"  ❌ NEEDS WORK (>12.0): {needs_work_count:3d} files ({needs_work_count/len(valid_results)*100:.1f}%)")
+        print(
+            f"  ✅ EXCELLENT (≤5.0):   {excellent_count:3d} files ({excellent_count / len(valid_results) * 100:.1f}%)"
+        )
+        print(
+            f"  ✓  GOOD (5.1-8.0):     {good_count:3d} files ({good_count / len(valid_results) * 100:.1f}%)"
+        )
+        print(
+            f"  ⚠  FAIR (8.1-12.0):    {fair_count:3d} files ({fair_count / len(valid_results) * 100:.1f}%)"
+        )
+        print(
+            f"  ❌ NEEDS WORK (>12.0): {needs_work_count:3d} files ({needs_work_count / len(valid_results) * 100:.1f}%)"
+        )
         if error_count > 0:
             print(f"  ⚠  ERRORS/SKIPPED:    {error_count:3d} files")
 
@@ -214,7 +230,9 @@ def main():
                 words = scores["word_count"]
                 avg_sent = scores["avg_sentence_length"]
                 print(f"\n📄 {path}")
-                print(f"   Grade: {grade:.1f} | Words: {words} | Avg Sentence: {avg_sent:.1f} words")
+                print(
+                    f"   Grade: {grade:.1f} | Words: {words} | Avg Sentence: {avg_sent:.1f} words"
+                )
 
     print("\n" + "=" * 100)
     print("LEGEND:")

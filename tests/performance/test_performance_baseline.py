@@ -431,8 +431,7 @@ if __name__ == "__main__":
     print("\nPerformance Metrics:")
     for operation, metrics in profiler.metrics.items():
         print(
-            f"  {operation}: {metrics['time_ms']:.2f}ms, "
-            f"memory: {metrics['memory_delta_mb']:.2f}MB"
+            f"  {operation}: {metrics['time_ms']:.2f}ms, memory: {metrics['memory_delta_mb']:.2f}MB"
         )
 
     print("\nSummary:")

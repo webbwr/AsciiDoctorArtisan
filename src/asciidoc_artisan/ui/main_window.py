@@ -757,8 +757,7 @@ class AsciiDocEditor(QMainWindow):
         if self._preview_timer.interval() != debounce_ms:
             self._preview_timer.setInterval(debounce_ms)
             logger.debug(
-                f"Adaptive debounce: {debounce_ms}ms for {len(text)} chars, "
-                f"{text.count(chr(10)) + 1} lines"
+                f"Adaptive debounce: {debounce_ms}ms for {len(text)} chars, {text.count(chr(10)) + 1} lines"
             )
 
         self._preview_timer.start()
@@ -1166,8 +1165,7 @@ class AsciiDocEditor(QMainWindow):
         # Pass to ChatManager
         self.chat_manager.handle_response_ready(chat_message)
         logger.info(
-            f"Claude response adapted and forwarded to ChatManager "
-            f"({claude_result.tokens_used} tokens used)"
+            f"Claude response adapted and forwarded to ChatManager ({claude_result.tokens_used} tokens used)"
         )
 
     @Slot(str, str)

@@ -9,8 +9,9 @@ Tests worker thread lifecycle management including:
 - Shutdown procedures
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, MagicMock, patch, call
 from PySide6.QtCore import QThread
 
 from asciidoc_artisan.ui.worker_manager import WorkerManager
@@ -71,8 +72,10 @@ class TestWorkerManagerInitialization:
         assert manager.ollama_chat_worker is None
         assert manager.claude_worker is None
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
-    def test_initialization_with_pool_default_threads(self, mock_pool_class, mock_editor):
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
+    def test_initialization_with_pool_default_threads(
+        self, mock_pool_class, mock_editor
+    ):
         """Test WorkerManager initializes worker pool with default thread count."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
@@ -88,8 +91,10 @@ class TestWorkerManagerInitialization:
         assert "max_threads" in call_args[1]
         assert call_args[1]["max_threads"] >= 4
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
-    def test_initialization_with_pool_custom_threads(self, mock_pool_class, mock_editor):
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
+    def test_initialization_with_pool_custom_threads(
+        self, mock_pool_class, mock_editor
+    ):
         """Test WorkerManager initializes pool with custom thread count."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
@@ -103,13 +108,13 @@ class TestWorkerManagerInitialization:
 class TestSetupWorkersAndThreads:
     """Test worker and thread setup."""
 
-    @patch('asciidoc_artisan.ui.worker_manager.ClaudeWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.OllamaChatWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PreviewWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PandocWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitHubCLIWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.QThread')
+    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitHubCLIWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.QThread")
     def test_setup_creates_all_workers(
         self,
         mock_thread_class,
@@ -196,13 +201,13 @@ class TestSetupWorkersAndThreads:
         for thread in mock_threads:
             thread.start.assert_called_once()
 
-    @patch('asciidoc_artisan.ui.worker_manager.ClaudeWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.OllamaChatWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PreviewWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PandocWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitHubCLIWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.QThread')
+    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitHubCLIWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.QThread")
     def test_setup_connects_git_signals(
         self,
         mock_thread_class,
@@ -271,11 +276,14 @@ class TestSetupWorkersAndThreads:
 class TestPoolOperations:
     """Test worker pool operations."""
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_get_pool_statistics_with_pool(self, mock_pool_class, mock_editor):
         """Test getting pool statistics when pool is enabled."""
         mock_pool = Mock()
-        mock_pool.get_statistics.return_value = {"active_threads": 2, "pending_tasks": 5}
+        mock_pool.get_statistics.return_value = {
+            "active_threads": 2,
+            "pending_tasks": 5,
+        }
         mock_pool_class.return_value = mock_pool
 
         manager = WorkerManager(mock_editor, use_worker_pool=True)
@@ -291,7 +299,7 @@ class TestPoolOperations:
 
         assert stats == {}
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_cancel_all_pool_tasks_with_pool(self, mock_pool_class, mock_editor):
         """Test cancelling all pool tasks when pool is enabled."""
         mock_pool = Mock()
@@ -311,7 +319,7 @@ class TestPoolOperations:
 
         assert cancelled == 0
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_wait_for_pool_done_with_pool(self, mock_pool_class, mock_editor):
         """Test waiting for pool when pool is enabled."""
         mock_pool = Mock()
@@ -387,7 +395,7 @@ class TestCancellationOperations:
 class TestShutdown:
     """Test worker manager shutdown."""
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_shutdown_with_pool(self, mock_pool_class, mock_editor):
         """Test shutdown cancels and waits for pool tasks."""
         mock_pool = Mock()
@@ -420,10 +428,10 @@ class TestShutdown:
 
         # Mock all threads as running
         threads = [
-            'git_thread',
-            'github_thread',
-            'pandoc_thread',
-            'preview_thread',
+            "git_thread",
+            "github_thread",
+            "pandoc_thread",
+            "preview_thread",
         ]
 
         for thread_name in threads:
@@ -479,7 +487,7 @@ class TestWorkerInitializationEdgeCases:
         assert manager.editor is mock_editor
         assert manager.worker_pool is None
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_pool_initialization_with_zero_threads(self, mock_pool_class, mock_editor):
         """Test pool initialization with zero threads passes value through."""
         mock_pool = Mock()
@@ -490,8 +498,10 @@ class TestWorkerInitializationEdgeCases:
         # Passes value through to pool (pool enforces minimum)
         mock_pool_class.assert_called_once_with(max_threads=0)
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
-    def test_pool_initialization_with_negative_threads(self, mock_pool_class, mock_editor):
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
+    def test_pool_initialization_with_negative_threads(
+        self, mock_pool_class, mock_editor
+    ):
         """Test pool initialization with negative threads passes value through."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
@@ -501,13 +511,17 @@ class TestWorkerInitializationEdgeCases:
         # Passes value through to pool (pool enforces minimum)
         mock_pool_class.assert_called_once_with(max_threads=-5)
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
-    def test_pool_initialization_with_very_large_threads(self, mock_pool_class, mock_editor):
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
+    def test_pool_initialization_with_very_large_threads(
+        self, mock_pool_class, mock_editor
+    ):
         """Test pool initialization with very large thread count."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
 
-        manager = WorkerManager(mock_editor, use_worker_pool=True, max_pool_threads=1000)
+        manager = WorkerManager(
+            mock_editor, use_worker_pool=True, max_pool_threads=1000
+        )
 
         mock_pool_class.assert_called_once_with(max_threads=1000)
 
@@ -515,13 +529,13 @@ class TestWorkerInitializationEdgeCases:
 class TestSignalConnectionVerification:
     """Test signal connection verification."""
 
-    @patch('asciidoc_artisan.ui.worker_manager.ClaudeWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.OllamaChatWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PreviewWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PandocWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitHubCLIWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.QThread')
+    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitHubCLIWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.QThread")
     def test_github_signals_connected(
         self,
         mock_thread_class,
@@ -568,13 +582,13 @@ class TestSignalConnectionVerification:
         mock_editor.request_github_command.connect.assert_called_once()
         mock_github_worker.github_result_ready.connect.assert_called_once()
 
-    @patch('asciidoc_artisan.ui.worker_manager.ClaudeWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.OllamaChatWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PreviewWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PandocWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitHubCLIWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.QThread')
+    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitHubCLIWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.QThread")
     def test_pandoc_signals_connected(
         self,
         mock_thread_class,
@@ -625,13 +639,13 @@ class TestSignalConnectionVerification:
         mock_pandoc_worker.conversion_complete.connect.assert_called_once()
         mock_pandoc_worker.conversion_error.connect.assert_called_once()
 
-    @patch('asciidoc_artisan.ui.worker_manager.ClaudeWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.OllamaChatWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PreviewWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PandocWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitHubCLIWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.QThread')
+    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitHubCLIWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.QThread")
     def test_preview_signals_connected(
         self,
         mock_thread_class,
@@ -735,7 +749,7 @@ class TestThreadLifecycleEdgeCases:
         """Test shutdown handles multiple thread timeouts - with force termination."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
-        threads = ['git_thread', 'github_thread', 'pandoc_thread', 'preview_thread']
+        threads = ["git_thread", "github_thread", "pandoc_thread", "preview_thread"]
         for thread_name in threads:
             thread = Mock()
             thread.isRunning.return_value = True
@@ -765,8 +779,8 @@ class TestThreadLifecycleEdgeCases:
 
         # Manually trigger finished signal callback
         # In real code, this is connected via finished.connect(worker.deleteLater)
-        assert hasattr(manager.git_thread, 'finished')
-        assert hasattr(manager.git_worker, 'deleteLater')
+        assert hasattr(manager.git_thread, "finished")
+        assert hasattr(manager.git_worker, "deleteLater")
 
 
 class TestMultipleWorkerCoordination:
@@ -803,9 +817,9 @@ class TestMultipleWorkerCoordination:
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
         workers = {
-            'git_worker': Mock(cancel=Mock()),
-            'github_worker': Mock(cancel=Mock()),
-            'pandoc_worker': Mock(cancel=Mock()),
+            "git_worker": Mock(cancel=Mock()),
+            "github_worker": Mock(cancel=Mock()),
+            "pandoc_worker": Mock(cancel=Mock()),
         }
 
         for name, worker in workers.items():
@@ -838,7 +852,7 @@ class TestErrorHandling:
             # In production code, this might be caught and logged
             pass
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_pool_statistics_with_exception(self, mock_pool_class, mock_editor):
         """Test getting pool statistics when pool raises exception."""
         mock_pool = Mock()
@@ -883,13 +897,13 @@ class TestWorkerStateTransitions:
         assert manager.ollama_chat_worker is None
         assert manager.claude_worker is None
 
-    @patch('asciidoc_artisan.ui.worker_manager.ClaudeWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.OllamaChatWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PreviewWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.PandocWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitHubCLIWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.GitWorker')
-    @patch('asciidoc_artisan.ui.worker_manager.QThread')
+    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitHubCLIWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.GitWorker")
+    @patch("asciidoc_artisan.ui.worker_manager.QThread")
     def test_worker_initialization_after_setup(
         self,
         mock_thread_class,
@@ -913,21 +927,26 @@ class TestWorkerStateTransitions:
         # Setup worker mocks
         mock_workers = {}
         for name, worker_class in [
-            ('git', mock_git_worker_class),
-            ('github', mock_github_worker_class),
-            ('pandoc', mock_pandoc_worker_class),
-            ('preview', mock_preview_worker_class),
-            ('ollama', mock_ollama_worker_class),
-            ('claude', mock_claude_worker_class),
+            ("git", mock_git_worker_class),
+            ("github", mock_github_worker_class),
+            ("pandoc", mock_pandoc_worker_class),
+            ("preview", mock_preview_worker_class),
+            ("ollama", mock_ollama_worker_class),
+            ("claude", mock_claude_worker_class),
         ]:
             mock_worker = Mock()
             mock_worker.moveToThread = Mock()
             mock_worker.deleteLater = Mock()
             # Add minimal signal mocks
             for signal_name in [
-                'command_complete', 'status_ready', 'detailed_status_ready',
-                'github_result_ready', 'conversion_complete', 'conversion_error',
-                'render_complete', 'render_error',
+                "command_complete",
+                "status_ready",
+                "detailed_status_ready",
+                "github_result_ready",
+                "conversion_complete",
+                "conversion_error",
+                "render_complete",
+                "render_error",
             ]:
                 signal = Mock()
                 signal.connect = Mock()
@@ -941,12 +960,12 @@ class TestWorkerStateTransitions:
         manager.setup_workers_and_threads()
 
         # All workers should be initialized
-        assert manager.git_worker is mock_workers['git']
-        assert manager.github_worker is mock_workers['github']
-        assert manager.pandoc_worker is mock_workers['pandoc']
-        assert manager.preview_worker is mock_workers['preview']
-        assert manager.ollama_chat_worker is mock_workers['ollama']
-        assert manager.claude_worker is mock_workers['claude']
+        assert manager.git_worker is mock_workers["git"]
+        assert manager.github_worker is mock_workers["github"]
+        assert manager.pandoc_worker is mock_workers["pandoc"]
+        assert manager.preview_worker is mock_workers["preview"]
+        assert manager.ollama_chat_worker is mock_workers["ollama"]
+        assert manager.claude_worker is mock_workers["claude"]
 
 
 class TestConcurrentOperations:
@@ -967,7 +986,7 @@ class TestConcurrentOperations:
         # Should call cancel 3 times
         assert manager.git_worker.cancel.call_count == 3
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_concurrent_pool_operations(self, mock_pool_class, mock_editor):
         """Test concurrent pool statistics and cancellation."""
         mock_pool = Mock()
@@ -1005,15 +1024,20 @@ class TestResourceCleanup:
         manager.git_worker = mock_worker
 
         # Verify thread has finished signal
-        assert hasattr(mock_thread, 'finished')
+        assert hasattr(mock_thread, "finished")
         # Verify worker has deleteLater method
-        assert hasattr(mock_worker, 'deleteLater')
+        assert hasattr(mock_worker, "deleteLater")
 
     def test_all_threads_have_finished_signals(self, mock_editor):
         """Test all threads can connect finished signals."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
-        thread_names = ['git_thread', 'github_thread', 'pandoc_thread', 'preview_thread']
+        thread_names = [
+            "git_thread",
+            "github_thread",
+            "pandoc_thread",
+            "preview_thread",
+        ]
 
         for thread_name in thread_names:
             mock_thread = Mock()
@@ -1022,13 +1046,13 @@ class TestResourceCleanup:
             setattr(manager, thread_name, mock_thread)
 
             thread = getattr(manager, thread_name)
-            assert hasattr(thread, 'finished')
+            assert hasattr(thread, "finished")
 
 
 class TestTimeoutHandling:
     """Test timeout handling for operations."""
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_wait_for_pool_with_custom_timeout(self, mock_pool_class, mock_editor):
         """Test waiting for pool with custom timeout."""
         mock_pool = Mock()
@@ -1044,7 +1068,7 @@ class TestTimeoutHandling:
         manager.wait_for_pool_done(timeout_ms=5000)
         mock_pool.wait_for_done.assert_called_with(5000)
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_wait_for_pool_timeout_failure(self, mock_pool_class, mock_editor):
         """Test pool wait timeout returns False."""
         mock_pool = Mock()
@@ -1102,14 +1126,14 @@ class TestWorkerRecoveryScenarios:
         # quit should still only be called once
         manager.git_thread.quit.assert_called_once()
 
-    @patch('asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool')
+    @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_pool_recovery_after_error(self, mock_pool_class, mock_editor):
         """Test pool operations recover after error."""
         mock_pool = Mock()
         # First call fails, second succeeds
         mock_pool.get_statistics.side_effect = [
             RuntimeError("Pool error"),
-            {"active": 0}
+            {"active": 0},
         ]
         mock_pool_class.return_value = mock_pool
 

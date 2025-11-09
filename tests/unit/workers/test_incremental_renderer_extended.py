@@ -10,6 +10,7 @@ Phase 4A.3: 15 focused tests for critical incremental_renderer.py gaps
 """
 
 from unittest.mock import Mock
+
 import pytest
 
 from asciidoc_artisan.workers.incremental_renderer import (
@@ -17,9 +18,7 @@ from asciidoc_artisan.workers.incremental_renderer import (
     DocumentBlock,
     DocumentBlockSplitter,
     IncrementalPreviewRenderer,
-    MAX_CACHE_SIZE,
 )
-
 
 # ==============================================================================
 # Cache Behavior Tests (5 tests)
@@ -251,7 +250,9 @@ class TestIncrementalRendererPerformance:
     def test_large_document_with_1000_headings(self):
         """Test rendering document with 1000 headings (stress test)."""
         mock_api = Mock()
-        mock_api.execute = Mock(side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>"))
+        mock_api.execute = Mock(
+            side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>")
+        )
 
         renderer = IncrementalPreviewRenderer(mock_api)
 
@@ -275,7 +276,9 @@ class TestIncrementalRendererPerformance:
     def test_rapid_sequential_edits(self):
         """Test multiple rapid renders in succession."""
         mock_api = Mock()
-        mock_api.execute = Mock(side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>"))
+        mock_api.execute = Mock(
+            side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>")
+        )
 
         renderer = IncrementalPreviewRenderer(mock_api)
 
@@ -285,7 +288,9 @@ class TestIncrementalRendererPerformance:
 
         # Perform 10 rapid renders - keep Section 1 unchanged, modify Section 2
         for i in range(10):
-            source = f"= Title\n\n== Section 1\n\nStatic content\n\n== Section 2\n\nEdit {i}"
+            source = (
+                f"= Title\n\n== Section 1\n\nStatic content\n\n== Section 2\n\nEdit {i}"
+            )
             html = renderer.render(source)
             assert html is not None
 
@@ -327,7 +332,9 @@ class TestIncrementalRendererPerformance:
     def test_disabled_incremental_rendering_falls_back(self):
         """Test that disabling incremental rendering falls back to full render."""
         mock_api = Mock()
-        mock_api.execute = Mock(side_effect=lambda inf, outf, backend: outf.write("<p>Full render</p>"))
+        mock_api.execute = Mock(
+            side_effect=lambda inf, outf, backend: outf.write("<p>Full render</p>")
+        )
 
         renderer = IncrementalPreviewRenderer(mock_api)
 

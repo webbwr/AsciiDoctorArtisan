@@ -5,14 +5,10 @@ This test suite covers remaining uncovered code paths in github_cli_worker.py
 to achieve 100% coverage (Phase 2.3 of test coverage push).
 """
 
-import json
-import subprocess
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from asciidoc_artisan.core import GitHubResult
 from asciidoc_artisan.workers import GitHubCLIWorker
 
 
@@ -172,7 +168,9 @@ class TestDispatchGitHubOperation:
 
         assert result is not None
         assert result.success is False
-        assert "unknown" in result.error.lower() or "not supported" in result.error.lower()
+        assert (
+            "unknown" in result.error.lower() or "not supported" in result.error.lower()
+        )
 
 
 @pytest.mark.unit
@@ -416,7 +414,10 @@ class TestRunGhCommandEdgeCases:
 
         assert result is not None
         assert result.success is False
-        assert "unexpected" in result.error.lower() or "unexpected" in result.user_message.lower()
+        assert (
+            "unexpected" in result.error.lower()
+            or "unexpected" in result.user_message.lower()
+        )
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_operation_parameter_default(self, mock_run, github_worker):

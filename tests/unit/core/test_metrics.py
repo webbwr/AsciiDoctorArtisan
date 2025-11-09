@@ -1,11 +1,13 @@
 """Tests for metrics collection system."""
 
-import pytest
 import time
+
+import pytest
+
 from asciidoc_artisan.core.metrics import (
+    CacheMetrics,
     MetricsCollector,
     OperationMetrics,
-    CacheMetrics,
     get_metrics_collector,
     measure_time,
 )

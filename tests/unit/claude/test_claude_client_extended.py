@@ -5,16 +5,18 @@ This test suite covers the remaining uncovered code paths in claude_client.py
 to achieve 100% coverage (Phase 2.1 of test coverage push).
 """
 
-import pytest
 from unittest.mock import Mock, patch
-import httpx
 
-from asciidoc_artisan.claude import ClaudeClient, ClaudeResult, ClaudeMessage
+import httpx
+import pytest
+
+from asciidoc_artisan.claude import ClaudeClient, ClaudeMessage
 
 
 def create_mock_api_error(message: str):
     """Helper to create properly initialized APIError."""
     from anthropic import APIError
+
     mock_request = Mock(spec=httpx.Request)
     return APIError(message, request=mock_request, body=None)
 
@@ -22,6 +24,7 @@ def create_mock_api_error(message: str):
 def create_mock_connection_error(message: str = "Network error"):
     """Helper to create properly initialized APIConnectionError."""
     from anthropic import APIConnectionError
+
     mock_request = Mock(spec=httpx.Request)
     return APIConnectionError(message=message, request=mock_request)
 
@@ -57,7 +60,9 @@ class TestClaudeClientErrorHandling:
         mock_credentials.return_value = mock_creds
 
         mock_client = Mock()
-        mock_client.messages.create.side_effect = create_mock_api_error("invalid_api_key: Invalid")
+        mock_client.messages.create.side_effect = create_mock_api_error(
+            "invalid_api_key: Invalid"
+        )
         mock_anthropic.return_value = mock_client
 
         client = ClaudeClient()
@@ -76,7 +81,9 @@ class TestClaudeClientErrorHandling:
         mock_credentials.return_value = mock_creds
 
         mock_client = Mock()
-        mock_client.messages.create.side_effect = create_mock_api_error("rate_limit exceeded")
+        mock_client.messages.create.side_effect = create_mock_api_error(
+            "rate_limit exceeded"
+        )
         mock_anthropic.return_value = mock_client
 
         client = ClaudeClient()
@@ -88,33 +95,43 @@ class TestClaudeClientErrorHandling:
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
     @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_send_message_insufficient_quota_error(self, mock_credentials, mock_anthropic):
+    def test_send_message_insufficient_quota_error(
+        self, mock_credentials, mock_anthropic
+    ):
         """Test send_message handles insufficient quota error."""
         mock_creds = Mock()
         mock_creds.get_anthropic_key.return_value = "sk-ant-test-key"
         mock_credentials.return_value = mock_creds
 
         mock_client = Mock()
-        mock_client.messages.create.side_effect = create_mock_api_error("insufficient_quota: Out of credits")
+        mock_client.messages.create.side_effect = create_mock_api_error(
+            "insufficient_quota: Out of credits"
+        )
         mock_anthropic.return_value = mock_client
 
         client = ClaudeClient()
         result = client.send_message("Hello")
 
         assert result.success is False
-        assert ("insufficient" in result.error.lower() or "credits" in result.error.lower())
+        assert (
+            "insufficient" in result.error.lower() or "credits" in result.error.lower()
+        )
         assert "console.anthropic.com" in result.error
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
     @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_send_message_credit_balance_low_error(self, mock_credentials, mock_anthropic):
+    def test_send_message_credit_balance_low_error(
+        self, mock_credentials, mock_anthropic
+    ):
         """Test send_message handles credit balance too low error."""
         mock_creds = Mock()
         mock_creds.get_anthropic_key.return_value = "sk-ant-test-key"
         mock_credentials.return_value = mock_creds
 
         mock_client = Mock()
-        mock_client.messages.create.side_effect = create_mock_api_error("credit balance is too low")
+        mock_client.messages.create.side_effect = create_mock_api_error(
+            "credit balance is too low"
+        )
         mock_anthropic.return_value = mock_client
 
         client = ClaudeClient()
@@ -133,7 +150,9 @@ class TestClaudeClientErrorHandling:
         mock_credentials.return_value = mock_creds
 
         mock_client = Mock()
-        mock_client.messages.create.side_effect = create_mock_api_error("API is overloaded")
+        mock_client.messages.create.side_effect = create_mock_api_error(
+            "API is overloaded"
+        )
         mock_anthropic.return_value = mock_client
 
         client = ClaudeClient()
@@ -152,7 +171,9 @@ class TestClaudeClientErrorHandling:
         mock_credentials.return_value = mock_creds
 
         mock_client = Mock()
-        mock_client.messages.create.side_effect = create_mock_api_error("Some other API error")
+        mock_client.messages.create.side_effect = create_mock_api_error(
+            "Some other API error"
+        )
         mock_anthropic.return_value = mock_client
 
         client = ClaudeClient()
@@ -204,7 +225,9 @@ class TestClaudeClientEdgeCases:
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
     @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_get_client_exception_during_creation(self, mock_credentials, mock_anthropic):
+    def test_get_client_exception_during_creation(
+        self, mock_credentials, mock_anthropic
+    ):
         """Test _get_client handles exception during Anthropic client creation."""
         mock_creds = Mock()
         mock_creds.get_anthropic_key.return_value = "sk-ant-test-key"
@@ -219,7 +242,9 @@ class TestClaudeClientEdgeCases:
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
     @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_send_message_response_without_usage(self, mock_credentials, mock_anthropic):
+    def test_send_message_response_without_usage(
+        self, mock_credentials, mock_anthropic
+    ):
         """Test send_message handles response without usage attribute."""
         mock_creds = Mock()
         mock_creds.get_anthropic_key.return_value = "sk-ant-test-key"

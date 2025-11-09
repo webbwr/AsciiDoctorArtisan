@@ -14,7 +14,6 @@ If no log file is provided, it will search for logs in standard locations.
 import re
 import sys
 from collections import Counter, defaultdict
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -22,7 +21,9 @@ from typing import Dict, List, Optional
 class AuditLogEntry:
     """Represents a single audit log entry."""
 
-    def __init__(self, timestamp: str, user: str, action: str, service: str, success: bool):
+    def __init__(
+        self, timestamp: str, user: str, action: str, service: str, success: bool
+    ):
         self.timestamp = timestamp
         self.user = user
         self.action = action
@@ -32,16 +33,16 @@ class AuditLogEntry:
     @classmethod
     def from_log_line(cls, line: str) -> Optional["AuditLogEntry"]:
         """Parse a log line into an AuditLogEntry."""
-        pattern = r'SECURITY_AUDIT: timestamp=(?P<timestamp>\S+) user=(?P<user>\S+) action=(?P<action>\S+) service=(?P<service>\S+) success=(?P<success>\S+)'
+        pattern = r"SECURITY_AUDIT: timestamp=(?P<timestamp>\S+) user=(?P<user>\S+) action=(?P<action>\S+) service=(?P<service>\S+) success=(?P<success>\S+)"
         match = re.search(pattern, line)
         if match:
             data = match.groupdict()
             return cls(
-                timestamp=data['timestamp'],
-                user=data['user'],
-                action=data['action'],
-                service=data['service'],
-                success=data['success'] == 'True'
+                timestamp=data["timestamp"],
+                user=data["user"],
+                action=data["action"],
+                service=data["service"],
+                success=data["success"] == "True",
             )
         return None
 
@@ -57,9 +58,9 @@ class SecurityAuditAnalyzer:
 
     def load_from_file(self, filepath: Path):
         """Load audit entries from a log file."""
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             for line in f:
-                if 'SECURITY_AUDIT:' in line:
+                if "SECURITY_AUDIT:" in line:
                     entry = AuditLogEntry.from_log_line(line)
                     if entry:
                         self.entries.append(entry)
@@ -67,7 +68,7 @@ class SecurityAuditAnalyzer:
     def load_from_stdin(self):
         """Load audit entries from stdin."""
         for line in sys.stdin:
-            if 'SECURITY_AUDIT:' in line:
+            if "SECURITY_AUDIT:" in line:
                 entry = AuditLogEntry.from_log_line(line)
                 if entry:
                     self.entries.append(entry)
@@ -133,8 +134,8 @@ class SecurityAuditAnalyzer:
         print(f"  Total entries:       {summary.get('total', 0):,}")
         print(f"  Successful:          {summary.get('successful', 0):,}")
         print(f"  Failed:              {summary.get('failed', 0):,}")
-        if summary.get('total', 0) > 0:
-            failure_rate = (summary.get('failed', 0) / summary['total']) * 100
+        if summary.get("total", 0) > 0:
+            failure_rate = (summary.get("failed", 0) / summary["total"]) * 100
             print(f"  Failure rate:        {failure_rate:.2f}%")
         print(f"  Unique users:        {summary.get('unique_users', 0)}")
         print(f"  Unique services:     {summary.get('unique_services', 0)}")
@@ -189,7 +190,9 @@ class SecurityAuditAnalyzer:
 
             print("  Recent Failures (last 10):")
             for entry in failures[-10:]:
-                print(f"    {entry.timestamp} | {entry.user:15} | {entry.action:20} | {entry.service}")
+                print(
+                    f"    {entry.timestamp} | {entry.user:15} | {entry.action:20} | {entry.service}"
+                )
         else:
             print("FAILURES")
             print("-" * 80)
@@ -199,11 +202,11 @@ class SecurityAuditAnalyzer:
         # Security recommendations
         print("SECURITY RECOMMENDATIONS")
         print("-" * 80)
-        if summary.get('failed', 0) > 10:
+        if summary.get("failed", 0) > 10:
             print("  ⚠ High number of failures detected")
             print("    - Review failed operations for unauthorized access attempts")
             print("    - Consider implementing rate limiting")
-        if summary.get('unique_users', 0) > 5:
+        if summary.get("unique_users", 0) > 5:
             print("  ⚠ Multiple users accessing credentials")
             print("    - Review user access permissions")
             print("    - Ensure principle of least privilege")
@@ -253,8 +256,14 @@ def main():
         log_files = find_log_files()
         if not log_files:
             print("Error: No log files found in standard locations", file=sys.stderr)
-            print("Usage: python scripts/analyze_security_audit.py [log_file]", file=sys.stderr)
-            print("   or: grep SECURITY_AUDIT logs/* | python scripts/analyze_security_audit.py", file=sys.stderr)
+            print(
+                "Usage: python scripts/analyze_security_audit.py [log_file]",
+                file=sys.stderr,
+            )
+            print(
+                "   or: grep SECURITY_AUDIT logs/* | python scripts/analyze_security_audit.py",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         print(f"Found {len(log_files)} log file(s):")

@@ -1,7 +1,8 @@
 """Tests for ui.line_number_area module - Line number display functionality."""
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from PySide6.QtCore import QRect, QSize
 from PySide6.QtGui import QContextMenuEvent, QPaintEvent
 from PySide6.QtWidgets import QPlainTextEdit
@@ -13,22 +14,26 @@ class TestLineNumberPlainTextEditBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         assert LineNumberPlainTextEdit is not None
 
     def test_creation(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         assert editor is not None
 
     def test_is_qplaintextedit(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         assert isinstance(editor, QPlainTextEdit)
 
     def test_has_line_number_area(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         assert hasattr(editor, "line_number_area")
@@ -36,6 +41,7 @@ class TestLineNumberPlainTextEditBasics:
 
     def test_spell_check_manager_initially_none(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         assert hasattr(editor, "spell_check_manager")
@@ -47,7 +53,11 @@ class TestLineNumberArea:
     """Test suite for LineNumberArea widget."""
 
     def test_line_number_area_creation(self, qtbot):
-        from asciidoc_artisan.ui.line_number_area import LineNumberArea, LineNumberPlainTextEdit
+        from asciidoc_artisan.ui.line_number_area import (
+            LineNumberArea,
+            LineNumberPlainTextEdit,
+        )
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         area = editor.line_number_area
@@ -55,6 +65,7 @@ class TestLineNumberArea:
 
     def test_line_number_area_has_editor_reference(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         area = editor.line_number_area
@@ -63,6 +74,7 @@ class TestLineNumberArea:
 
     def test_line_number_area_size_hint(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         area = editor.line_number_area
@@ -72,6 +84,7 @@ class TestLineNumberArea:
 
     def test_line_number_area_paint_event_calls_editor(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         area = editor.line_number_area
@@ -93,6 +106,7 @@ class TestLineNumberWidth:
 
     def test_line_number_area_width_empty(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         width = editor.line_number_area_width()
@@ -102,6 +116,7 @@ class TestLineNumberWidth:
 
     def test_line_number_area_width_single_digit(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         editor.setPlainText("Line 1\nLine 2\nLine 3")
@@ -111,10 +126,11 @@ class TestLineNumberWidth:
 
     def test_line_number_area_width_two_digit(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         # Create 15 lines (2 digits)
-        text = "\n".join([f"Line {i+1}" for i in range(15)])
+        text = "\n".join([f"Line {i + 1}" for i in range(15)])
         editor.setPlainText(text)
         width = editor.line_number_area_width()
         assert editor.blockCount() == 15
@@ -122,10 +138,11 @@ class TestLineNumberWidth:
 
     def test_line_number_area_width_three_digit(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         # Create 100 lines (3 digits)
-        text = "\n".join([f"Line {i+1}" for i in range(100)])
+        text = "\n".join([f"Line {i + 1}" for i in range(100)])
         editor.setPlainText(text)
         width = editor.line_number_area_width()
         assert editor.blockCount() == 100
@@ -133,6 +150,7 @@ class TestLineNumberWidth:
 
     def test_line_number_area_width_formula(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         editor.setPlainText("Test")
@@ -147,6 +165,7 @@ class TestViewportMarginsAndUpdates:
 
     def test_viewport_margins_set_on_init(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         margins = editor.viewportMargins()
@@ -156,6 +175,7 @@ class TestViewportMarginsAndUpdates:
 
     def test_update_line_number_area_width_updates_margins(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -164,7 +184,7 @@ class TestViewportMarginsAndUpdates:
         assert initial_margin == initial_width
 
         # Add many lines to increase width
-        text = "\n".join([f"Line {i+1}" for i in range(1000)])
+        text = "\n".join([f"Line {i + 1}" for i in range(1000)])
         editor.setPlainText(text)
 
         new_width = editor.line_number_area_width()
@@ -174,9 +194,10 @@ class TestViewportMarginsAndUpdates:
 
     def test_update_line_number_area_with_scroll(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
-        editor.setPlainText("\n".join([f"Line {i+1}" for i in range(50)]))
+        editor.setPlainText("\n".join([f"Line {i + 1}" for i in range(50)]))
 
         area = editor.line_number_area
         area.scroll = Mock()
@@ -191,6 +212,7 @@ class TestViewportMarginsAndUpdates:
 
     def test_update_line_number_area_without_scroll(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -212,6 +234,7 @@ class TestViewportMarginsAndUpdates:
 
     def test_update_line_number_area_with_full_viewport(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         editor.setPlainText("Test")
@@ -231,6 +254,7 @@ class TestSignalConnections:
 
     def test_block_count_changed_signal_connected(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -245,6 +269,7 @@ class TestSignalConnections:
 
     def test_update_request_signal_connected(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         editor.setPlainText("Test line")
@@ -265,6 +290,7 @@ class TestResizeHandling:
 
     def test_resize_event_has_handler(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -274,9 +300,10 @@ class TestResizeHandling:
 
     def test_resize_does_not_crash(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
-        editor.setPlainText("\n".join([f"Line {i+1}" for i in range(100)]))
+        editor.setPlainText("\n".join([f"Line {i + 1}" for i in range(100)]))
 
         # Resize should not crash
         editor.resize(500, 400)
@@ -292,6 +319,7 @@ class TestContextMenu:
 
     def test_context_menu_without_spell_check_manager(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -303,6 +331,7 @@ class TestContextMenu:
 
     def test_context_menu_with_spell_check_manager(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -318,6 +347,7 @@ class TestContextMenu:
 
     def test_spell_check_manager_can_be_set(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -336,6 +366,7 @@ class TestPaintEvent:
 
     def test_paint_event_does_not_crash(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         editor.setPlainText("Line 1\nLine 2\nLine 3")
@@ -345,11 +376,12 @@ class TestPaintEvent:
 
     def test_paint_event_with_many_lines(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
         # Create many lines
-        text = "\n".join([f"Line {i+1}" for i in range(1000)])
+        text = "\n".join([f"Line {i + 1}" for i in range(1000)])
         editor.setPlainText(text)
 
         # Force paint (should not crash)
@@ -362,6 +394,7 @@ class TestEdgeCases:
 
     def test_empty_editor(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
@@ -372,6 +405,7 @@ class TestEdgeCases:
 
     def test_single_line(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
         editor.setPlainText("Single line")
@@ -382,11 +416,12 @@ class TestEdgeCases:
 
     def test_very_long_document(self, qtbot):
         from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
+
         editor = LineNumberPlainTextEdit()
         qtbot.addWidget(editor)
 
         # 10,000 lines (5 digits)
-        text = "\n".join([f"Line {i+1}" for i in range(10000)])
+        text = "\n".join([f"Line {i + 1}" for i in range(10000)])
         editor.setPlainText(text)
 
         assert editor.blockCount() == 10000

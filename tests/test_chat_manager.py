@@ -5,7 +5,7 @@ Tests the ChatManager class which orchestrates all chat components.
 """
 
 import time
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -120,9 +120,7 @@ class TestChatManagerVisibility:
         should_show = chat_manager._should_show_chat()
         assert not should_show
 
-    def test_update_visibility_shows_when_enabled(
-        self, chat_manager, settings, qtbot
-    ):
+    def test_update_visibility_shows_when_enabled(self, chat_manager, settings, qtbot):
         """Test update_visibility emits visibility_changed signal."""
         settings.ollama_enabled = True
         settings.ollama_model = "gnokit/improve-grammer"
@@ -151,7 +149,7 @@ class TestChatManagerMessageHandling:
         mock_chat_panel.add_user_message.assert_called_once()
         call_args = mock_chat_panel.add_user_message.call_args
         assert call_args[0][0] == message  # message arg
-        assert call_args[0][1] == model    # model arg
+        assert call_args[0][1] == model  # model arg
         assert call_args[0][2] == context_mode  # context_mode arg
 
     def test_handle_user_message_emits_to_worker(self, chat_manager, qtbot):
@@ -370,7 +368,9 @@ class TestModelValidation:
         with patch("subprocess.run") as mock_run:
             # Mock ollama list output with valid model
             mock_run.return_value = Mock(
-                returncode=0, stdout="NAME\ngnokit/improve-grammer\nqwen2.5-coder:7b\n", stderr=""
+                returncode=0,
+                stdout="NAME\ngnokit/improve-grammer\nqwen2.5-coder:7b\n",
+                stderr="",
             )
 
             # Validate existing model
@@ -382,7 +382,9 @@ class TestModelValidation:
         with patch("subprocess.run") as mock_run:
             # Mock ollama list output without target model
             mock_run.return_value = Mock(
-                returncode=0, stdout="NAME\ngnokit/improve-grammer\nqwen2.5-coder:7b\n", stderr=""
+                returncode=0,
+                stdout="NAME\ngnokit/improve-grammer\nqwen2.5-coder:7b\n",
+                stderr="",
             )
 
             # Validate non-existent model

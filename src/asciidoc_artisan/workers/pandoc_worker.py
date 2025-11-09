@@ -238,8 +238,7 @@ class PandocWorker(QObject):
             "No PDF engine found. Install wkhtmltopdf, weasyprint, or pdflatex."
         )
         raise RuntimeError(
-            "PDF conversion requires a PDF engine. "
-            "Install wkhtmltopdf: sudo apt-get install wkhtmltopdf"
+            "PDF conversion requires a PDF engine. Install wkhtmltopdf: sudo apt-get install wkhtmltopdf"
         )
 
     def _build_pandoc_args(self, from_format: str, to_format: str) -> list[str]:

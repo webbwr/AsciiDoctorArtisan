@@ -252,12 +252,12 @@ class ChatPanelWidget(QWidget):
         if message.role == "user":
             # User message styling
             html = f"""
-            <div style='margin: 10px; padding: 10px; background-color: {colors['user_bg']};
-                        border-left: 4px solid {colors['user_border']}; border-radius: 4px;'>
-                <div style='font-size: 10px; color: {colors['user_meta']}; margin-bottom: 5px;'>
+            <div style='margin: 10px; padding: 10px; background-color: {colors["user_bg"]};
+                        border-left: 4px solid {colors["user_border"]}; border-radius: 4px;'>
+                <div style='font-size: 10px; color: {colors["user_meta"]}; margin-bottom: 5px;'>
                     <b>You</b> • {time_str} • {mode_display}
                 </div>
-                <div style='font-size: 12px; color: {colors['user_text']};'>
+                <div style='font-size: 12px; color: {colors["user_text"]};'>
                     {self._escape_html(message.content)}
                 </div>
             </div>
@@ -265,12 +265,12 @@ class ChatPanelWidget(QWidget):
         else:
             # AI message styling
             html = f"""
-            <div style='margin: 10px; padding: 10px; background-color: {colors['ai_bg']};
-                        border-left: 4px solid {colors['ai_border']}; border-radius: 4px;'>
-                <div style='font-size: 10px; color: {colors['ai_meta']}; margin-bottom: 5px;'>
+            <div style='margin: 10px; padding: 10px; background-color: {colors["ai_bg"]};
+                        border-left: 4px solid {colors["ai_border"]}; border-radius: 4px;'>
+                <div style='font-size: 10px; color: {colors["ai_meta"]}; margin-bottom: 5px;'>
                     <b>AI ({message.model})</b> • {time_str} • {mode_display}
                 </div>
-                <div style='font-size: 12px; color: {colors['ai_text']}; white-space: pre-wrap;'>
+                <div style='font-size: 12px; color: {colors["ai_text"]}; white-space: pre-wrap;'>
                     {self._escape_html(message.content)}
                 </div>
             </div>

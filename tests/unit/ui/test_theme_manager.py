@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QMainWindow
 @pytest.fixture
 def main_window(qapp):
     from unittest.mock import Mock
+
     window = QMainWindow()
     # ThemeManager needs _settings attribute with dark_mode property
     window._settings = Mock()
@@ -20,23 +21,29 @@ class TestThemeManager:
 
     def test_import(self):
         from asciidoc_artisan.ui.theme_manager import ThemeManager
+
         assert ThemeManager is not None
 
     def test_creation(self, main_window):
         from asciidoc_artisan.ui.theme_manager import ThemeManager
+
         manager = ThemeManager(main_window)
         assert manager is not None
 
     def test_has_themes(self, main_window):
         from asciidoc_artisan.ui.theme_manager import ThemeManager
+
         manager = ThemeManager(main_window)
         # Should have dark and light themes
         if hasattr(manager, "themes") or hasattr(manager, "available_themes"):
-            themes = getattr(manager, "themes", getattr(manager, "available_themes", []))
+            themes = getattr(
+                manager, "themes", getattr(manager, "available_themes", [])
+            )
             assert len(themes) >= 2
 
     def test_apply_theme(self, main_window):
         from asciidoc_artisan.ui.theme_manager import ThemeManager
+
         manager = ThemeManager(main_window)
         if hasattr(manager, "apply_theme"):
             manager.apply_theme()  # No arguments - reads from settings
@@ -45,10 +52,11 @@ class TestThemeManager:
     def test_css_constants(self, main_window):
         """Test that CSS constants are returned correctly for each theme."""
         from asciidoc_artisan.ui.theme_manager import (
-            ThemeManager,
             DARK_MODE_CSS,
             LIGHT_MODE_CSS,
+            ThemeManager,
         )
+
         manager = ThemeManager(main_window)
 
         # Get light mode CSS (dark_mode = False)
@@ -85,8 +93,9 @@ class TestThemeManager:
 
     def test_toggle_dark_mode_changes_setting(self, main_window):
         """Test toggle_dark_mode updates settings."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         manager = ThemeManager(main_window)
         main_window.dark_mode_act = Mock()
@@ -130,8 +139,9 @@ class TestThemeManager:
 
     def test_label_colors_dark_mode(self, main_window):
         """Test labels are updated to white in dark mode."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         # Create mock labels
         main_window.editor_label = Mock()
@@ -150,8 +160,9 @@ class TestThemeManager:
 
     def test_label_colors_light_mode(self, main_window):
         """Test labels are updated to black in light mode."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         # Create mock labels
         main_window.editor_label = Mock()
@@ -170,8 +181,9 @@ class TestThemeManager:
 
     def test_chat_manager_dark_mode_update(self, main_window):
         """Test chat manager is updated when theme changes."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         # Create mock chat manager and panel
         chat_panel = Mock()
@@ -189,8 +201,9 @@ class TestThemeManager:
 
     def test_chat_manager_light_mode_update(self, main_window):
         """Test chat manager is updated to light mode."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         # Create mock chat manager and panel
         chat_panel = Mock()
@@ -230,9 +243,21 @@ class TestThemeManager:
         "css_constant,expected_bg,expected_text,expected_code_bg,min_length",
         [
             # Dark mode CSS
-            ("DARK_MODE_CSS", "background:#1e1e1e", "color:#dcdcdc", "background:#2a2a2a", 100),
+            (
+                "DARK_MODE_CSS",
+                "background:#1e1e1e",
+                "color:#dcdcdc",
+                "background:#2a2a2a",
+                100,
+            ),
             # Light mode CSS
-            ("LIGHT_MODE_CSS", "background:#ffffff", "color:#333333", "background:#f8f8f8", 100),
+            (
+                "LIGHT_MODE_CSS",
+                "background:#ffffff",
+                "color:#333333",
+                "background:#f8f8f8",
+                100,
+            ),
         ],
         ids=[
             "dark_mode",
@@ -249,7 +274,9 @@ class TestThemeManager:
 
         # Verify it's a string with substantial content
         assert isinstance(css, str)
-        assert len(css) > min_length, f"{css_constant} should have at least {min_length} characters"
+        assert (
+            len(css) > min_length
+        ), f"{css_constant} should have at least {min_length} characters"
 
         # Verify expected colors are present
         assert expected_bg in css, f"Expected {expected_bg} in {css_constant}"
@@ -259,27 +286,39 @@ class TestThemeManager:
     def test_dark_mode_css_contains_all_required_styles(self):
         """Test dark mode CSS contains all required style sections."""
         from asciidoc_artisan.ui.theme_manager import DARK_MODE_CSS
+
         # Should style body, code blocks, links, etc.
         assert "body {" in DARK_MODE_CSS or "body{" in DARK_MODE_CSS
-        assert "pre {" in DARK_MODE_CSS or "pre{" in DARK_MODE_CSS or "code {" in DARK_MODE_CSS
+        assert (
+            "pre {" in DARK_MODE_CSS
+            or "pre{" in DARK_MODE_CSS
+            or "code {" in DARK_MODE_CSS
+        )
 
     def test_light_mode_css_contains_all_required_styles(self):
         """Test light mode CSS contains all required style sections."""
         from asciidoc_artisan.ui.theme_manager import LIGHT_MODE_CSS
+
         # Should style body, code blocks, links, etc.
         assert "body {" in LIGHT_MODE_CSS or "body{" in LIGHT_MODE_CSS
-        assert "pre {" in LIGHT_MODE_CSS or "pre{" in LIGHT_MODE_CSS or "code {" in LIGHT_MODE_CSS
+        assert (
+            "pre {" in LIGHT_MODE_CSS
+            or "pre{" in LIGHT_MODE_CSS
+            or "code {" in LIGHT_MODE_CSS
+        )
 
     def test_css_constants_are_different(self):
         """Test dark and light mode CSS are different strings."""
         from asciidoc_artisan.ui.theme_manager import DARK_MODE_CSS, LIGHT_MODE_CSS
+
         assert DARK_MODE_CSS != LIGHT_MODE_CSS
 
     # Theme switching edge cases
     def test_toggle_dark_mode_multiple_times(self, main_window):
         """Test toggling dark mode multiple times works correctly."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         manager = ThemeManager(main_window)
         main_window.dark_mode_act = Mock()
@@ -303,8 +342,9 @@ class TestThemeManager:
 
     def test_toggle_dark_mode_with_missing_preview_handler_attr(self, main_window):
         """Test toggle dark mode when preview_handler attribute doesn't exist."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         manager = ThemeManager(main_window)
         main_window.dark_mode_act = Mock()
@@ -318,8 +358,9 @@ class TestThemeManager:
 
     def test_toggle_dark_mode_clears_css_cache(self, main_window):
         """Test toggle dark mode clears CSS cache in preview handler."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         manager = ThemeManager(main_window)
         main_window.dark_mode_act = Mock()
@@ -330,14 +371,15 @@ class TestThemeManager:
         manager.toggle_dark_mode()
 
         # Should call clear_css_cache if available
-        if hasattr(main_window.preview_handler, 'clear_css_cache'):
+        if hasattr(main_window.preview_handler, "clear_css_cache"):
             main_window.preview_handler.clear_css_cache.assert_called()
 
     # Label handling edge cases
     def test_apply_theme_with_only_editor_label(self, main_window):
         """Test apply_theme with only editor_label present."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         main_window.editor_label = Mock()
         # No preview_label or chat_label
@@ -351,8 +393,9 @@ class TestThemeManager:
 
     def test_apply_theme_with_only_preview_label(self, main_window):
         """Test apply_theme with only preview_label present."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         main_window.preview_label = Mock()
         # No editor_label or chat_label
@@ -366,8 +409,9 @@ class TestThemeManager:
 
     def test_apply_theme_with_only_chat_label(self, main_window):
         """Test apply_theme with only chat_label present."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         main_window.chat_label = Mock()
         # No editor_label or preview_label
@@ -381,8 +425,9 @@ class TestThemeManager:
 
     def test_apply_theme_labels_called_with_correct_colors(self, main_window):
         """Test labels are styled with correct colors based on theme."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         main_window.editor_label = Mock()
         main_window.preview_label = Mock()
@@ -394,7 +439,11 @@ class TestThemeManager:
         manager.apply_theme()
 
         # All labels should be white
-        for label in [main_window.editor_label, main_window.preview_label, main_window.chat_label]:
+        for label in [
+            main_window.editor_label,
+            main_window.preview_label,
+            main_window.chat_label,
+        ]:
             label.setStyleSheet.assert_called_with("color: white;")
 
         # Reset mocks
@@ -408,7 +457,11 @@ class TestThemeManager:
         manager.apply_theme()
 
         # All labels should be black
-        for label in [main_window.editor_label, main_window.preview_label, main_window.chat_label]:
+        for label in [
+            main_window.editor_label,
+            main_window.preview_label,
+            main_window.chat_label,
+        ]:
             label.setStyleSheet.assert_called_with("color: black;")
 
     # Chat manager integration edge cases
@@ -425,8 +478,9 @@ class TestThemeManager:
 
     def test_apply_theme_chat_manager_without_panel_attr(self, main_window):
         """Test apply_theme when chat_manager has no _chat_panel attribute."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         chat_manager = Mock(spec=[])  # No _chat_panel attribute
         main_window.chat_manager = chat_manager
@@ -439,8 +493,9 @@ class TestThemeManager:
 
     def test_apply_theme_chat_manager_multiple_calls(self, main_window):
         """Test applying theme multiple times updates chat manager each time."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         chat_panel = Mock()
         chat_manager = Mock()
@@ -494,7 +549,7 @@ class TestThemeManager:
 
     def test_get_preview_css_light_mode_is_constant(self, main_window):
         """Test light mode CSS is the module constant."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager, LIGHT_MODE_CSS
+        from asciidoc_artisan.ui.theme_manager import LIGHT_MODE_CSS, ThemeManager
 
         manager = ThemeManager(main_window)
         main_window._settings.dark_mode = False
@@ -504,7 +559,7 @@ class TestThemeManager:
 
     def test_get_preview_css_dark_mode_is_constant(self, main_window):
         """Test dark mode CSS is the module constant."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager, DARK_MODE_CSS
+        from asciidoc_artisan.ui.theme_manager import DARK_MODE_CSS, ThemeManager
 
         manager = ThemeManager(main_window)
         main_window._settings.dark_mode = True
@@ -539,7 +594,11 @@ class TestThemeManager:
         palette = qapp.palette()
         text_color = palette.color(palette.ColorRole.WindowText)
         # Light text should have high RGB values
-        assert text_color.red() > 150 or text_color.green() > 150 or text_color.blue() > 150
+        assert (
+            text_color.red() > 150
+            or text_color.green() > 150
+            or text_color.blue() > 150
+        )
 
     def test_light_mode_does_not_crash(self, main_window, qapp):
         """Test light mode palette application does not crash."""
@@ -556,7 +615,7 @@ class TestThemeManager:
         from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         manager = ThemeManager(main_window)
-        assert hasattr(manager, 'editor')
+        assert hasattr(manager, "editor")
         assert manager.editor == main_window
 
     def test_theme_manager_initialization_does_not_crash(self, main_window):
@@ -570,8 +629,9 @@ class TestThemeManager:
     # Edge cases for settings interaction
     def test_apply_theme_reads_dark_mode_from_settings(self, main_window):
         """Test apply_theme reads dark_mode value from settings."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         main_window.editor_label = Mock()
 
@@ -626,8 +686,9 @@ class TestThemeManager:
 
     def test_toggle_dark_mode_triggers_update_preview(self, main_window):
         """Test toggle_dark_mode triggers preview update."""
-        from asciidoc_artisan.ui.theme_manager import ThemeManager
         from unittest.mock import Mock
+
+        from asciidoc_artisan.ui.theme_manager import ThemeManager
 
         manager = ThemeManager(main_window)
         main_window.dark_mode_act = Mock()
@@ -644,7 +705,7 @@ class TestThemeManager:
         """Test CSS constants are defined at module level."""
         from asciidoc_artisan.ui import theme_manager
 
-        assert hasattr(theme_manager, 'DARK_MODE_CSS')
-        assert hasattr(theme_manager, 'LIGHT_MODE_CSS')
+        assert hasattr(theme_manager, "DARK_MODE_CSS")
+        assert hasattr(theme_manager, "LIGHT_MODE_CSS")
         assert theme_manager.DARK_MODE_CSS is not None
         assert theme_manager.LIGHT_MODE_CSS is not None

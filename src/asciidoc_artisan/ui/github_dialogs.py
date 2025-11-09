@@ -391,10 +391,7 @@ class CreatePullRequestDialog(QDialog):
 
         self.body_input = QPlainTextEdit()
         self.body_input.setPlaceholderText(
-            "Describe your changes...\n\n"
-            "What does this PR do?\n"
-            "Why is this change needed?\n"
-            "How has this been tested?"
+            "Describe your changes...\n\nWhat does this PR do?\nWhy is this change needed?\nHow has this been tested?"
         )
         self.body_input.setMinimumHeight(150)
         self.body_input.setToolTip("Detailed PR description (optional)")
@@ -631,8 +628,7 @@ class CreateIssueDialog(QDialog):
         self.labels_input = QLineEdit()
         self.labels_input.setPlaceholderText("bug, enhancement, documentation")
         self.labels_input.setToolTip(
-            "Comma-separated labels (optional)\n"
-            "Common labels: bug, enhancement, documentation, question"
+            "Comma-separated labels (optional)\nCommon labels: bug, enhancement, documentation, question"
         )
         form_layout.addRow("Labels:", self.labels_input)
 

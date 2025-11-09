@@ -34,6 +34,7 @@ def measure_startup():
     import_start = time.perf_counter()
     try:
         from PySide6.QtWidgets import QApplication
+
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
     except ImportError as e:
         print(f"❌ Import failed: {e}")
@@ -59,7 +60,7 @@ def measure_startup():
     print(f"  Qt app init:         {qt_time:7.1f}ms")
     print(f"  Main window create:  {window_time:7.1f}ms")
     print(f"  {'─' * 40}")
-    print(f"  Total:               {total_time:7.1f}ms ({total_time/1000:.2f}s)")
+    print(f"  Total:               {total_time:7.1f}ms ({total_time / 1000:.2f}s)")
     print()
 
     # Check against targets
@@ -72,9 +73,9 @@ def measure_startup():
 
     # Percentage breakdown
     print("Time Distribution:")
-    print(f"  Import:      {import_time/total_time*100:5.1f}%")
-    print(f"  Qt app:      {qt_time/total_time*100:5.1f}%")
-    print(f"  Window:      {window_time/total_time*100:5.1f}%")
+    print(f"  Import:      {import_time / total_time * 100:5.1f}%")
+    print(f"  Qt app:      {qt_time / total_time * 100:5.1f}%")
+    print(f"  Window:      {window_time / total_time * 100:5.1f}%")
     print()
 
     print("=" * 70)

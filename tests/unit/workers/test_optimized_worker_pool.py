@@ -419,7 +419,7 @@ class TestWorkerPoolPerformance:
         pool.wait_for_done(5000)
         elapsed = time.time() - start
 
-        print(f"\n100 quick tasks: {elapsed*1000:.2f}ms")
+        print(f"\n100 quick tasks: {elapsed * 1000:.2f}ms")
 
         # All should have completed
         assert call_count == 100

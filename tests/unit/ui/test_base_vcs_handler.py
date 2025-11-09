@@ -8,8 +8,10 @@ Tests base VCS handler functionality including:
 - Operation lifecycle
 """
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock
+
 from asciidoc_artisan.ui.base_vcs_handler import BaseVCSHandler
 
 
@@ -424,7 +426,9 @@ class TestReadinessCheckEdgeCases:
         # Should return False (repo not ready checked first)
         assert handler._ensure_ready() is False
 
-    def test_ensure_ready_called_multiple_times_while_processing(self, mock_dependencies):
+    def test_ensure_ready_called_multiple_times_while_processing(
+        self, mock_dependencies
+    ):
         """Test _ensure_ready called repeatedly while processing."""
         parent, settings, status = mock_dependencies
 
@@ -509,7 +513,9 @@ class TestUIStateUpdateEdgeCases:
         handler._start_operation("test")
         handler._update_ui_state()
 
-        assert parent._update_ui_state.call_count == 2  # Once in _start_operation, once manually
+        assert (
+            parent._update_ui_state.call_count == 2
+        )  # Once in _start_operation, once manually
 
     def test_update_ui_state_called_by_start_and_complete(self, mock_dependencies):
         """Test _update_ui_state called by both start and complete operations."""
@@ -617,7 +623,9 @@ class TestConcreteImplementationEdgeCases:
 class TestProcessingStateAdvanced:
     """Test advanced processing state scenarios."""
 
-    def test_processing_state_persists_across_ensure_ready_calls(self, mock_dependencies):
+    def test_processing_state_persists_across_ensure_ready_calls(
+        self, mock_dependencies
+    ):
         """Test is_processing state persists across _ensure_ready calls."""
         parent, settings, status = mock_dependencies
 
@@ -687,11 +695,11 @@ class TestAttributeStorage:
         handler = ConcreteVCSHandler(parent, settings, status)
 
         # Should not raise AttributeError
-        assert hasattr(handler, 'window')
-        assert hasattr(handler, 'settings_manager')
-        assert hasattr(handler, 'status_manager')
-        assert hasattr(handler, 'is_processing')
-        assert hasattr(handler, 'last_operation')
+        assert hasattr(handler, "window")
+        assert hasattr(handler, "settings_manager")
+        assert hasattr(handler, "status_manager")
+        assert hasattr(handler, "is_processing")
+        assert hasattr(handler, "last_operation")
 
 
 @pytest.mark.unit

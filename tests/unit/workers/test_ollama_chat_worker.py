@@ -5,13 +5,13 @@ Tests Ollama AI chat worker for background chat processing with four
 context modes: document, syntax, general, and editing.
 """
 
-from unittest.mock import MagicMock, patch
 import subprocess
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
 from asciidoc_artisan.core.models import ChatMessage
+from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
 
 
 @pytest.mark.unit
@@ -140,7 +140,12 @@ class TestBuildSystemPrompt:
             (
                 "document",
                 "= My Document\n\nParagraph content here.",
-                ["AsciiDoc document editing", "CURRENT DOCUMENT CONTENT", "My Document", "Paragraph content"],
+                [
+                    "AsciiDoc document editing",
+                    "CURRENT DOCUMENT CONTENT",
+                    "My Document",
+                    "Paragraph content",
+                ],
                 [],
             ),
             # Document mode without content
@@ -200,7 +205,9 @@ class TestBuildSystemPrompt:
 
         # Check all expected strings are present
         for expected in expected_strings:
-            assert expected in prompt, f"Expected '{expected}' in prompt for mode '{context_mode}'"
+            assert (
+                expected in prompt
+            ), f"Expected '{expected}' in prompt for mode '{context_mode}'"
 
         # Check strings that should NOT be present
         for not_expected in not_expected_strings:

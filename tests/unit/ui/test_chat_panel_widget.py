@@ -13,7 +13,6 @@ Tests chat panel widget for AI conversation display including:
 """
 
 import time
-from unittest.mock import Mock
 
 import pytest
 from PySide6.QtWidgets import QTextBrowser
@@ -369,7 +368,7 @@ class TestHTMLEscaping:
         """Test HTML escaping converts quotes to entities."""
         widget = ChatPanelWidget()
 
-        escaped = widget._escape_html('He said "hello" and \'goodbye\'')
+        escaped = widget._escape_html("He said \"hello\" and 'goodbye'")
 
         assert "&quot;" in escaped
         assert "&#39;" in escaped

@@ -519,8 +519,7 @@ class IncrementalPreviewRenderer:
         )
 
         logger.debug(
-            f"Incremental render: {len(changed_blocks)} changed, "
-            f"{len(unchanged_blocks)} cached"
+            f"Incremental render: {len(changed_blocks)} changed, {len(unchanged_blocks)} cached"
         )
 
         # Render changed blocks

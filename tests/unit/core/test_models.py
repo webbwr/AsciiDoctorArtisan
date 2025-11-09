@@ -264,7 +264,10 @@ class TestGitResult:
         json_str = result.model_dump_json()
         assert isinstance(json_str, str)
         assert '"success":true' in json_str or '"success": true' in json_str
-        assert '"user_message":"Success"' in json_str or '"user_message": "Success"' in json_str
+        assert (
+            '"user_message":"Success"' in json_str
+            or '"user_message": "Success"' in json_str
+        )
 
 
 class TestGitHubResult:
@@ -281,7 +284,10 @@ class TestGitHubResult:
         )
 
         assert result.success is True
-        assert result.data == {"number": 42, "url": "https://github.com/user/repo/pull/42"}
+        assert result.data == {
+            "number": 42,
+            "url": "https://github.com/user/repo/pull/42",
+        }
         assert result.error == ""
         assert result.user_message == "PR #42 created successfully"
         assert result.operation == "pr_create"
@@ -406,6 +412,7 @@ class TestChatMessage:
     def test_chat_message_creation(self):
         """Test creating ChatMessage with valid data."""
         import time
+
         msg = ChatMessage(
             role="user",
             content="Hello, how are you?",
@@ -423,6 +430,7 @@ class TestChatMessage:
     def test_chat_message_validation_invalid_role(self):
         """Test that invalid role is rejected."""
         import time
+
         with pytest.raises(ValidationError) as exc_info:
             ChatMessage(
                 role="invalid",  # Should fail
@@ -438,6 +446,7 @@ class TestChatMessage:
     def test_chat_message_validation_empty_content(self):
         """Test that empty content is rejected."""
         import time
+
         with pytest.raises(ValidationError) as exc_info:
             ChatMessage(
                 role="user",
@@ -453,6 +462,7 @@ class TestChatMessage:
     def test_chat_message_validation_whitespace_only_content(self):
         """Test that whitespace-only content is rejected."""
         import time
+
         with pytest.raises(ValidationError) as exc_info:
             ChatMessage(
                 role="user",
@@ -482,6 +492,7 @@ class TestChatMessage:
     def test_chat_message_validation_invalid_context_mode(self):
         """Test that invalid context mode is rejected."""
         import time
+
         with pytest.raises(ValidationError) as exc_info:
             ChatMessage(
                 role="user",
@@ -497,6 +508,7 @@ class TestChatMessage:
     def test_chat_message_valid_roles(self):
         """Test all valid role values."""
         import time
+
         for role in ["user", "assistant"]:
             msg = ChatMessage(
                 role=role,
@@ -510,6 +522,7 @@ class TestChatMessage:
     def test_chat_message_valid_context_modes(self):
         """Test all valid context mode values."""
         import time
+
         for mode in ["document", "syntax", "general", "editing"]:
             msg = ChatMessage(
                 role="user",
@@ -523,6 +536,7 @@ class TestChatMessage:
     def test_chat_message_content_stripped(self):
         """Test that content is stripped of whitespace."""
         import time
+
         msg = ChatMessage(
             role="user",
             content="  Hello world  ",
@@ -535,6 +549,7 @@ class TestChatMessage:
     def test_chat_message_as_dict(self):
         """Test converting ChatMessage to dictionary."""
         import time
+
         timestamp = time.time()
         msg = ChatMessage(
             role="user",

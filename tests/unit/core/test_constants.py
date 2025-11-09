@@ -4,7 +4,6 @@ Tests for core.constants module.
 Tests all constant definitions and ensures they have expected values.
 """
 
-import pytest
 from asciidoc_artisan.core import constants
 
 
@@ -53,15 +52,22 @@ class TestConstants:
 
     def test_file_extensions(self):
         """Test that file extension constants are defined."""
-        ext_attrs = [attr for attr in dir(constants) if "EXT" in attr.upper() or "EXTENSION" in attr.upper()]
+        ext_attrs = [
+            attr
+            for attr in dir(constants)
+            if "EXT" in attr.upper() or "EXTENSION" in attr.upper()
+        ]
         # Should have at least one file extension defined
         assert len(ext_attrs) > 0, "Should have file extension constants"
 
     def test_no_private_constants_exposed(self):
         """Test that only public constants are exposed."""
         # Constants should not start with underscore (private)
-        public_attrs = [attr for attr in dir(constants)
-                        if not attr.startswith("_") and attr.isupper()]
+        public_attrs = [
+            attr
+            for attr in dir(constants)
+            if not attr.startswith("_") and attr.isupper()
+        ]
         assert len(public_attrs) > 0, "Should have public constants"
 
     def test_constants_are_immutable_types(self):
@@ -71,8 +77,9 @@ class TestConstants:
                 value = getattr(constants, attr)
                 # Constants should generally be immutable types
                 # (str, int, float, tuple, frozenset, etc.)
-                assert isinstance(value, (str, int, float, tuple, frozenset, bool, type(None))), \
-                    f"{attr} should be an immutable type, got {type(value)}"
+                assert isinstance(
+                    value, (str, int, float, tuple, frozenset, bool, type(None))
+                ), f"{attr} should be an immutable type, got {type(value)}"
 
     def test_all_constants_have_docstrings(self):
         """Test that the constants module has documentation."""
@@ -89,33 +96,35 @@ class TestConstants:
 
     def test_pypandoc_import_error_handling(self):
         """Test handling when pypandoc is not available (lines 112-113)."""
+        import importlib
         import sys
         from unittest.mock import patch
-        import importlib
 
         # Save original modules
-        original_pypandoc = sys.modules.get('pypandoc')
-        original_constants = sys.modules.get('asciidoc_artisan.core.constants')
+        original_pypandoc = sys.modules.get("pypandoc")
+        original_constants = sys.modules.get("asciidoc_artisan.core.constants")
 
         try:
             # Remove modules
-            if 'pypandoc' in sys.modules:
-                del sys.modules['pypandoc']
-            if 'asciidoc_artisan.core.constants' in sys.modules:
-                del sys.modules['asciidoc_artisan.core.constants']
+            if "pypandoc" in sys.modules:
+                del sys.modules["pypandoc"]
+            if "asciidoc_artisan.core.constants" in sys.modules:
+                del sys.modules["asciidoc_artisan.core.constants"]
 
             # Mock pypandoc import to raise ImportError
             import builtins
+
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
-                if name == 'pypandoc':
+                if name == "pypandoc":
                     raise ImportError("Mock pypandoc not available")
                 return original_import(name, *args, **kwargs)
 
-            with patch('builtins.__import__', side_effect=mock_import):
+            with patch("builtins.__import__", side_effect=mock_import):
                 # Reload to trigger the import error path
                 import asciidoc_artisan.core.constants as c
+
                 importlib.reload(c)
 
                 # Reset the lazy check cache
@@ -129,17 +138,18 @@ class TestConstants:
             # Restore
             try:
                 if original_pypandoc is not None:
-                    sys.modules['pypandoc'] = original_pypandoc
+                    sys.modules["pypandoc"] = original_pypandoc
                 else:
-                    if 'pypandoc' in sys.modules:
-                        del sys.modules['pypandoc']
+                    if "pypandoc" in sys.modules:
+                        del sys.modules["pypandoc"]
 
                 if original_constants is not None:
-                    sys.modules['asciidoc_artisan.core.constants'] = original_constants
+                    sys.modules["asciidoc_artisan.core.constants"] = original_constants
 
                 # Reload back to normal
-                if 'asciidoc_artisan.core.constants' in sys.modules:
+                if "asciidoc_artisan.core.constants" in sys.modules:
                     import asciidoc_artisan.core.constants
+
                     importlib.reload(asciidoc_artisan.core.constants)
             except (ImportError, KeyError):
                 pass

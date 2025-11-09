@@ -21,32 +21,37 @@ HARDWARE_FILE = TESTS_DIR / "test_hardware_detection.py"
 SKIP_TESTS = {
     "test_cache_entry_creation",
     "test_cache_entry_to_gpu_info",
-    "test_get_gpu_info_force_redetect"
+    "test_get_gpu_info_force_redetect",
 }
+
 
 def extract_fixtures(content):
     """Extract fixture definitions from file content."""
-    fixture_pattern = r'@pytest\.fixture[^\n]*\ndef\s+(\w+)\([^)]*\):[^@]+'
+    fixture_pattern = r"@pytest\.fixture[^\n]*\ndef\s+(\w+)\([^)]*\):[^@]+"
     fixtures = re.findall(fixture_pattern, content, re.MULTILINE | re.DOTALL)
     return fixtures
+
 
 def extract_tests(content):
     """Extract test function definitions."""
     # Match test functions
-    test_pattern = r'((?:@pytest\.mark\.[^\n]+\n)*def\s+test_\w+\([^)]*\):(?:[^d]|d(?!ef\s))*?)(?=\n(?:def\s|class\s|$))'
+    test_pattern = r"((?:@pytest\.mark\.[^\n]+\n)*def\s+test_\w+\([^)]*\):(?:[^d]|d(?!ef\s))*?)(?=\n(?:def\s|class\s|$))"
     tests = re.findall(test_pattern, content, re.MULTILINE | re.DOTALL)
     return tests
 
+
 def extract_test_classes(content):
     """Extract test class definitions."""
-    class_pattern = r'(class\s+Test\w+:[^c]*?)(?=\nclass\s|\Z)'
+    class_pattern = r"(class\s+Test\w+:[^c]*?)(?=\nclass\s|\Z)"
     classes = re.findall(class_pattern, content, re.MULTILINE | re.DOTALL)
     return classes
 
+
 def get_test_name(test_def):
     """Extract test name from test definition."""
-    match = re.search(r'def\s+(test_\w+)\(', test_def)
+    match = re.search(r"def\s+(test_\w+)\(", test_def)
     return match.group(1) if match else None
+
 
 def main():
     print("=" * 70)
@@ -56,21 +61,27 @@ def main():
     # Read base file
     print("\n1. Reading base file (test_gpu_detection.py)...")
     base_content = BASE_FILE.read_text()
-    print(f"   Base file: {len(base_content)} characters, {base_content.count('def test_')} tests")
+    print(
+        f"   Base file: {len(base_content)} characters, {base_content.count('def test_')} tests"
+    )
 
     # Read cache file
     print("\n2. Reading cache file (test_gpu_cache.py)...")
     cache_content = CACHE_FILE.read_text()
     cache_tests = extract_tests(cache_content)
     cache_fixtures = extract_fixtures(cache_content)
-    print(f"   Cache file: {len(cache_tests)} test functions, {len(cache_fixtures)} fixtures")
+    print(
+        f"   Cache file: {len(cache_tests)} test functions, {len(cache_fixtures)} fixtures"
+    )
 
     # Read hardware file
     print("\n3. Reading hardware file (test_hardware_detection.py)...")
     hardware_content = HARDWARE_FILE.read_text()
     hardware_classes = extract_test_classes(hardware_content)
     hardware_fixtures = extract_fixtures(hardware_content)
-    print(f"   Hardware file: {len(hardware_classes)} test classes, {len(hardware_fixtures)} fixtures")
+    print(
+        f"   Hardware file: {len(hardware_classes)} test classes, {len(hardware_fixtures)} fixtures"
+    )
 
     # Filter out duplicate tests from cache
     print("\n4. Filtering duplicate tests...")
@@ -92,7 +103,9 @@ def main():
     print(f"   - Base file tests: {base_content.count('def test_')}")
     print(f"   - Cache tests to merge: {len(unique_cache_tests)}")
     print(f"   - Hardware classes to merge: {len(hardware_classes)}")
-    print(f"   - Total after merge: ~{base_content.count('def test_') + len(unique_cache_tests) + sum(c.count('def test_') for c in hardware_classes)}")
+    print(
+        f"   - Total after merge: ~{base_content.count('def test_') + len(unique_cache_tests) + sum(c.count('def test_') for c in hardware_classes)}"
+    )
 
     print("\n6. Files identified for manual merge:")
     print(f"   ✓ {BASE_FILE} (base)")
@@ -108,6 +121,7 @@ def main():
     print("3. Merge 13 unique cache tests into appropriate classes")
     print("4. Merge hardware test classes")
     print("5. Run pytest to validate")
+
 
 if __name__ == "__main__":
     main()

@@ -10,11 +10,12 @@ Tests file I/O operations including:
 - Path validation
 """
 
-import pytest
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-from PySide6.QtWidgets import QPlainTextEdit, QMessageBox, QMainWindow
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QPlainTextEdit
 
 from asciidoc_artisan.ui.file_handler import FileHandler
 
@@ -238,7 +239,9 @@ async def test_load_file_tracks_loading_state_async(handler, tmp_path):
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_load_file_updates_settings_async(handler, tmp_path, mock_settings_manager):
+async def test_load_file_updates_settings_async(
+    handler, tmp_path, mock_settings_manager
+):
     """Test loading file updates last directory in settings."""
     test_file = tmp_path / "test.adoc"
     test_content = "Content"
@@ -333,7 +336,9 @@ async def test_save_file_emits_signal_async(handler, tmp_path, mock_editor, qtbo
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_save_file_updates_settings_async(handler, tmp_path, mock_editor, mock_settings_manager):
+async def test_save_file_updates_settings_async(
+    handler, tmp_path, mock_editor, mock_settings_manager
+):
     """Test saving file updates last directory."""
     test_file = tmp_path / "settings_test.adoc"
     test_content = "Content"
@@ -356,7 +361,9 @@ async def test_save_file_updates_settings_async(handler, tmp_path, mock_editor, 
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_save_file_error_handling_async(handler, mock_editor, mock_status_manager):
+async def test_save_file_error_handling_async(
+    handler, mock_editor, mock_status_manager
+):
     """Test error handling when async save fails."""
     invalid_path = Path("/invalid/path/file.adoc")
     test_content = "Content"
@@ -391,7 +398,10 @@ def test_prompt_save_before_action_save(handler, tmp_path):
     # Mock os.environ to bypass pytest test environment check
     with patch("os.environ.get", return_value=None):
         # Mock dialog and save_file
-        with patch("PySide6.QtWidgets.QMessageBox.question", return_value=QMessageBox.StandardButton.Save):
+        with patch(
+            "PySide6.QtWidgets.QMessageBox.question",
+            return_value=QMessageBox.StandardButton.Save,
+        ):
             with patch.object(handler, "save_file", return_value=True) as mock_save:
                 # prompt_save_before_action is synchronous, calls save_file wrapper
                 result = handler.prompt_save_before_action("test action")
@@ -404,7 +414,10 @@ def test_prompt_save_before_action_discard(handler):
     """Test prompt returns True when user chooses Discard."""
     handler.unsaved_changes = True
 
-    with patch("PySide6.QtWidgets.QMessageBox.question", return_value=QMessageBox.StandardButton.Discard):
+    with patch(
+        "PySide6.QtWidgets.QMessageBox.question",
+        return_value=QMessageBox.StandardButton.Discard,
+    ):
         result = handler.prompt_save_before_action("test action")
 
     assert result is True
@@ -417,7 +430,10 @@ def test_prompt_save_before_action_cancel(handler):
 
     # Mock os.environ to bypass pytest test environment check
     with patch("os.environ.get", return_value=None):
-        with patch("PySide6.QtWidgets.QMessageBox.question", return_value=QMessageBox.StandardButton.Cancel):
+        with patch(
+            "PySide6.QtWidgets.QMessageBox.question",
+            return_value=QMessageBox.StandardButton.Cancel,
+        ):
             result = handler.prompt_save_before_action("test action")
 
     assert result is False
@@ -462,6 +478,7 @@ class TestPathValidation:
 
         # Convert to relative path
         import os
+
         original_cwd = os.getcwd()
         try:
             os.chdir(tmp_path.parent)
@@ -560,6 +577,7 @@ class TestLargeFileHandling:
         test_file.write_text("Content")
 
         import gc
+
         gc.collect()
 
         # Should not cause excessive memory allocation
@@ -632,7 +650,9 @@ class TestFilePermissions:
         finally:
             test_file.chmod(0o644)  # Restore permissions
 
-    def test_save_to_readonly_file(self, handler, tmp_path, mock_editor, mock_status_manager):
+    def test_save_to_readonly_file(
+        self, handler, tmp_path, mock_editor, mock_status_manager
+    ):
         """Test saving to a read-only file shows error."""
         test_file = tmp_path / "readonly_save.adoc"
         test_file.write_text("Original")
@@ -756,7 +776,9 @@ class TestAutoSaveEdgeCases:
 class TestSignalEmissions:
     """Test signal emission edge cases."""
 
-    def test_file_opened_signal_not_emitted_on_error(self, handler, qtbot, mock_status_manager):
+    def test_file_opened_signal_not_emitted_on_error(
+        self, handler, qtbot, mock_status_manager
+    ):
         """Test file_opened signal not emitted when load fails."""
         # Test that opening non-existent file doesn't emit signal
         handler.open_file("/nonexistent.adoc")
@@ -773,7 +795,9 @@ class TestSignalEmissions:
         # Save should fail without emitting signal
         handler.save_file()
 
-    def test_file_modified_signal_emitted_once_per_change(self, handler, mock_editor, qtbot):
+    def test_file_modified_signal_emitted_once_per_change(
+        self, handler, mock_editor, qtbot
+    ):
         """Test file_modified signal emitted for each text change."""
         with qtbot.waitSignal(handler.file_modified, timeout=1000):
             mock_editor.setPlainText("First change")
@@ -803,23 +827,31 @@ class TestFileDialogIntegration:
         mock_editor.setPlainText("Content")
         handler.current_file_path = None
 
-        with patch("PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")):
+        with patch(
+            "PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")
+        ):
             result = handler.save_file(save_as=True)
 
         # Should return False if user cancels
 
-    def test_open_file_dialog_respects_last_directory(self, handler, tmp_path, mock_settings_manager):
+    def test_open_file_dialog_respects_last_directory(
+        self, handler, tmp_path, mock_settings_manager
+    ):
         """Test open file dialog uses last directory from settings."""
         settings = Mock()
         settings.last_directory = str(tmp_path)
         mock_settings_manager.load_settings.return_value = settings
 
-        with patch("PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")):
+        with patch(
+            "PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")
+        ):
             handler.open_file()
 
         # Dialog should open in last_directory
 
-    def test_save_as_with_existing_file_overwrites(self, handler, tmp_path, mock_editor):
+    def test_save_as_with_existing_file_overwrites(
+        self, handler, tmp_path, mock_editor
+    ):
         """Test save_as can overwrite existing file."""
         test_file = tmp_path / "existing.adoc"
         test_file.write_text("Old content")
@@ -828,12 +860,17 @@ class TestFileDialogIntegration:
         handler.current_file_path = test_file
         handler.async_manager.write_file = AsyncMock(return_value=True)
 
-        with patch("PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=(str(test_file), "")):
+        with patch(
+            "PySide6.QtWidgets.QFileDialog.getSaveFileName",
+            return_value=(str(test_file), ""),
+        ):
             handler.save_file(save_as=True)
 
     def test_dialog_filters_correct_extensions(self, handler):
         """Test file dialogs filter correct file extensions."""
-        with patch("PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")) as mock_dialog:
+        with patch(
+            "PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")
+        ) as mock_dialog:
             handler.open_file()
 
             # Should include .adoc filter
@@ -849,7 +886,6 @@ class TestFileWatchingEdgeCases:
         handler.current_file_path = test_file
 
         # Simulate external modification
-        import time
         time.sleep(0.1)
         test_file.write_text("Modified externally")
 
@@ -878,7 +914,7 @@ class TestSpecialFileTypes:
     def test_load_file_with_binary_content_fails_gracefully(self, handler, tmp_path):
         """Test loading file with binary content fails gracefully."""
         test_file = tmp_path / "binary.adoc"
-        test_file.write_bytes(b"\x00\x01\x02\x03\xFF\xFE")
+        test_file.write_bytes(b"\x00\x01\x02\x03\xff\xfe")
 
         # Should detect binary and show error
         try:
@@ -910,7 +946,7 @@ class TestSpecialFileTypes:
     def test_load_file_with_bom(self, handler, tmp_path, mock_editor):
         """Test loading file with UTF-8 BOM."""
         test_file = tmp_path / "bom.adoc"
-        test_file.write_bytes(b"\xEF\xBB\xBFContent with BOM")
+        test_file.write_bytes(b"\xef\xbb\xbfContent with BOM")
 
         # Should strip BOM correctly
         handler.async_manager.read_file = AsyncMock(return_value="Content with BOM")
@@ -938,6 +974,7 @@ class TestMemoryManagement:
 
         # Multiple loads should not leak memory
         import gc
+
         gc.collect()
 
         for _ in range(10):

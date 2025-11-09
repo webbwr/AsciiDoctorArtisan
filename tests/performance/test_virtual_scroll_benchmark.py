@@ -72,7 +72,7 @@ class TestVirtualScrollBenchmark:
         stats = renderer.get_statistics()
 
         print("\n1000 lines:")
-        print(f"  Render time: {elapsed*1000:.2f}ms")
+        print(f"  Render time: {elapsed * 1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
@@ -104,7 +104,7 @@ class TestVirtualScrollBenchmark:
         stats = renderer.get_statistics()
 
         print("\n5000 lines:")
-        print(f"  Render time: {elapsed*1000:.2f}ms")
+        print(f"  Render time: {elapsed * 1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
@@ -136,7 +136,7 @@ class TestVirtualScrollBenchmark:
         stats = renderer.get_statistics()
 
         print("\n10000 lines:")
-        print(f"  Render time: {elapsed*1000:.2f}ms")
+        print(f"  Render time: {elapsed * 1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
@@ -168,7 +168,7 @@ class TestVirtualScrollBenchmark:
         stats = renderer.get_statistics()
 
         print("\n50000 lines:")
-        print(f"  Render time: {elapsed*1000:.2f}ms")
+        print(f"  Render time: {elapsed * 1000:.2f}ms")
         print(f"  Lines rendered: {stats['rendered_lines']}/{stats['total_lines']}")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
@@ -207,9 +207,9 @@ class TestVirtualScrollBenchmark:
 
         print("\nScroll through 10000 lines:")
         print(f"  Positions tested: {len(scroll_positions)}")
-        print(f"  Average time: {avg_time*1000:.2f}ms")
-        print(f"  Min time: {min(times)*1000:.2f}ms")
-        print(f"  Max time: {max(times)*1000:.2f}ms")
+        print(f"  Average time: {avg_time * 1000:.2f}ms")
+        print(f"  Min time: {min(times) * 1000:.2f}ms")
+        print(f"  Max time: {max(times) * 1000:.2f}ms")
 
         # All scroll positions should be fast
         assert all(t < 0.1 for t in times)  # Under 100ms
@@ -282,8 +282,8 @@ class TestVirtualScrollBenchmark:
         speedup = full_time / virtual_time if virtual_time > 0 else 1
 
         print("\nComparison (10000 lines):")
-        print(f"  Virtual scroll: {virtual_time*1000:.2f}ms")
-        print(f"  Full render: {full_time*1000:.2f}ms")
+        print(f"  Virtual scroll: {virtual_time * 1000:.2f}ms")
+        print(f"  Full render: {full_time * 1000:.2f}ms")
         print(f"  Speedup: {speedup:.1f}x")
         print(f"  Render ratio: {stats['render_ratio']:.2f}%")
 
@@ -330,15 +330,15 @@ class TestVirtualScrollScaling:
 
         print("\nScaling test:")
         for size, elapsed in zip(sizes, times):
-            print(f"  {size:6d} lines: {elapsed*1000:6.2f}ms")
+            print(f"  {size:6d} lines: {elapsed * 1000:6.2f}ms")
 
         # Time should not increase significantly
         # (Variance should be low)
         avg_time = sum(times) / len(times)
         max_deviation = max(abs(t - avg_time) for t in times)
 
-        print(f"  Average: {avg_time*1000:.2f}ms")
-        print(f"  Max deviation: {max_deviation*1000:.2f}ms")
+        print(f"  Average: {avg_time * 1000:.2f}ms")
+        print(f"  Max deviation: {max_deviation * 1000:.2f}ms")
 
         # Max deviation should be small relative to average
         assert max_deviation < avg_time * 2  # Within 2x of average
@@ -389,10 +389,7 @@ class TestVirtualScrollBuffering:
         print("\nBuffer size impact:")
         for r in results:
             print(
-                f"  Buffer {r['buffer']:2d}: "
-                f"{r['time']*1000:6.2f}ms, "
-                f"{r['lines']:3d} lines, "
-                f"{r['ratio']:5.2f}%"
+                f"  Buffer {r['buffer']:2d}: {r['time'] * 1000:6.2f}ms, {r['lines']:3d} lines, {r['ratio']:5.2f}%"
             )
 
         # Larger buffer should render more lines

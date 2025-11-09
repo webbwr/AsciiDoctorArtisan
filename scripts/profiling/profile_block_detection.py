@@ -5,8 +5,8 @@ Measures the performance of the current block detection algorithm
 to establish a baseline before optimization.
 """
 
-import time
 import sys
+import time
 from pathlib import Path
 
 # Add src to path
@@ -106,7 +106,7 @@ def profile_block_detection(iterations: int = 100):
     print("=" * 60)
 
     medium_result = results[1]  # Medium document
-    print(f"Medium document (50 sections, 20 lines each):")
+    print("Medium document (50 sections, 20 lines each):")
     print(f"  Current: {medium_result['avg_time_ms']:.3f} ms")
     print(f"  Target (20% improvement): {medium_result['avg_time_ms'] * 0.8:.3f} ms")
     print(f"  Target (30% improvement): {medium_result['avg_time_ms'] * 0.7:.3f} ms")

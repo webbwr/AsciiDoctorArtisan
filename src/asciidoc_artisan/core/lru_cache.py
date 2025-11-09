@@ -121,7 +121,7 @@ class LRUCache(Generic[K, V]):
             evicted_key, evicted_value = self._cache.popitem(last=False)
             self._evictions += 1
             logger.debug(
-                f"{self.name}: Evicted {evicted_key} " f"(size={len(self._cache)})"
+                f"{self.name}: Evicted {evicted_key} (size={len(self._cache)})"
             )
 
     def delete(self, key: K) -> bool:
@@ -226,8 +226,7 @@ class LRUCache(Generic[K, V]):
             self._evictions += 1
 
         logger.debug(
-            f"{self.name}: Resized from {old_size} to {new_max_size} "
-            f"(current size={len(self._cache)})"
+            f"{self.name}: Resized from {old_size} to {new_max_size} (current size={len(self._cache)})"
         )
 
 
@@ -311,7 +310,6 @@ class SizeAwareLRUCache(LRUCache[K, V]):
         while len(self._cache) >= self.max_size or (
             self.max_total_size and self._total_size + size > self.max_total_size
         ):
-
             if len(self._cache) == 0:
                 break
 

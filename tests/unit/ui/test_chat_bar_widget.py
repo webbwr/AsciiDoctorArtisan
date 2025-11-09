@@ -12,9 +12,8 @@ Tests chat bar widget for AI interaction including:
 """
 
 import pytest
-from PySide6.QtWidgets import QLineEdit, QPushButton, QComboBox
 from PySide6.QtTest import QSignalSpy
-from unittest.mock import Mock, patch
+from PySide6.QtWidgets import QComboBox, QLineEdit, QPushButton
 
 from asciidoc_artisan.ui.chat_bar_widget import ChatBarWidget
 
@@ -73,7 +72,10 @@ class TestChatBarWidgetInitialization:
         """Test context selector has correct items."""
         widget = ChatBarWidget()
 
-        items = [widget._context_selector.itemText(i) for i in range(widget._context_selector.count())]
+        items = [
+            widget._context_selector.itemText(i)
+            for i in range(widget._context_selector.count())
+        ]
 
         assert "Document Q&A" in items
         assert "Syntax Help" in items
@@ -113,37 +115,37 @@ class TestSignals:
         """Test message_sent signal exists."""
         widget = ChatBarWidget()
 
-        assert hasattr(widget, 'message_sent')
+        assert hasattr(widget, "message_sent")
 
     def test_clear_requested_signal_exists(self, qapp):
         """Test clear_requested signal exists."""
         widget = ChatBarWidget()
 
-        assert hasattr(widget, 'clear_requested')
+        assert hasattr(widget, "clear_requested")
 
     def test_cancel_requested_signal_exists(self, qapp):
         """Test cancel_requested signal exists."""
         widget = ChatBarWidget()
 
-        assert hasattr(widget, 'cancel_requested')
+        assert hasattr(widget, "cancel_requested")
 
     def test_model_changed_signal_exists(self, qapp):
         """Test model_changed signal exists."""
         widget = ChatBarWidget()
 
-        assert hasattr(widget, 'model_changed')
+        assert hasattr(widget, "model_changed")
 
     def test_context_mode_changed_signal_exists(self, qapp):
         """Test context_mode_changed signal exists."""
         widget = ChatBarWidget()
 
-        assert hasattr(widget, 'context_mode_changed')
+        assert hasattr(widget, "context_mode_changed")
 
     def test_scan_models_requested_signal_exists(self, qapp):
         """Test scan_models_requested signal exists."""
         widget = ChatBarWidget()
 
-        assert hasattr(widget, 'scan_models_requested')
+        assert hasattr(widget, "scan_models_requested")
 
 
 @pytest.mark.unit

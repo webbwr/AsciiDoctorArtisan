@@ -385,8 +385,9 @@ class TestAuditLoggingFailure:
 
     def test_audit_log_getuser_exception(self, mocker):
         """Test audit logging when getuser() fails."""
-        from asciidoc_artisan.core.secure_credentials import SecurityAudit
         import getpass
+
+        from asciidoc_artisan.core.secure_credentials import SecurityAudit
 
         # Mock getuser() to raise exception
         mocker.patch.object(getpass, "getuser", side_effect=OSError("No user"))

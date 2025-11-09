@@ -354,16 +354,10 @@ class OllamaChatWorker(QObject):
 
         # Common error patterns
         if "model" in stderr.lower() and "not found" in stderr.lower():
-            return (
-                f"Model '{self._current_model}' not found. "
-                "Pull it with: ollama pull {model}"
-            )
+            return f"Model '{self._current_model}' not found. Pull it with: ollama pull {{model}}"
         elif "connection refused" in stderr.lower():
-            return "Cannot connect to Ollama. " "Ensure Ollama is running: ollama serve"
+            return "Cannot connect to Ollama. Ensure Ollama is running: ollama serve"
         elif "context length" in stderr.lower():
-            return (
-                "Message too long for model context. "
-                "Try a shorter message or clear chat history."
-            )
+            return "Message too long for model context. Try a shorter message or clear chat history."
         else:
             return f"Ollama error: {stderr[:200]}"  # Limit error message length

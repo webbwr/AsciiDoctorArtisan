@@ -5,9 +5,6 @@ This module tests the template manager that loads and manages
 built-in and custom document templates.
 """
 
-import tempfile
-from pathlib import Path
-
 import pytest
 
 from asciidoc_artisan.core.template_engine import TemplateEngine

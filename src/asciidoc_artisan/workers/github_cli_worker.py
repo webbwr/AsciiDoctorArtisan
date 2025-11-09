@@ -245,10 +245,7 @@ class GitHubCLIWorker(BaseWorker):
                 )
             )
         except FileNotFoundError:
-            error_msg = (
-                "GitHub CLI (gh) not found. Ensure gh is installed and in system PATH. "
-                "Install: https://cli.github.com/"
-            )
+            error_msg = "GitHub CLI (gh) not found. Ensure gh is installed and in system PATH. Install: https://cli.github.com/"
             logger.error(error_msg)
             self.github_result_ready.emit(
                 GitHubResult(

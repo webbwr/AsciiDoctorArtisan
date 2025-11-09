@@ -1,7 +1,7 @@
 # Threading Architecture Analysis - AsciiDoc Artisan
-**Analysis Date:** November 6, 2025  
-**Version:** v1.9.0  
-**Analyst:** Claude Code  
+**Analysis Date:** November 6, 2025
+**Version:** v1.9.0
+**Analyst:** Claude Code
 
 ---
 
@@ -9,7 +9,7 @@
 
 AsciiDoc Artisan uses a **hybrid threading architecture** with 7 dedicated worker threads plus an optional worker pool. The architecture follows Qt's moveToThread() pattern consistently, with a mix of QThread inheritance (legacy) and QObject-based workers (modern).
 
-**Overall Assessment:** ⚠️ MODERATE RISK  
+**Overall Assessment:** ⚠️ MODERATE RISK
 - Architecture is sound but has **2 distinct patterns** (QThread inheritance vs QObject)
 - Good reentrancy guards exist but **coverage is incomplete**
 - **No resource leaks detected** in worker lifecycle management
@@ -69,7 +69,7 @@ self.git_thread.start()
 # claude_worker.py:26-43
 class ClaudeWorker(QThread):
     response_ready = Signal(object)
-    
+
     def run(self) -> None:
         if self._operation == "send_message":
             self._execute_send_message()
@@ -118,7 +118,7 @@ All workers follow the same initialization sequence in `WorkerManager.setup_work
 self.editor.request_git_command.connect(self.git_worker.run_git_command)
 ```
 
-**Connection Type:** `Qt.AutoConnection` (default)  
+**Connection Type:** `Qt.AutoConnection` (default)
 **Thread Safety:** ✅ Safe (Qt queues signal across threads automatically)
 
 #### Worker Thread → Main Thread (Results)
@@ -127,7 +127,7 @@ self.editor.request_git_command.connect(self.git_worker.run_git_command)
 self.git_worker.command_complete.connect(self.editor._handle_git_result)
 ```
 
-**Connection Type:** `Qt.AutoConnection` (default)  
+**Connection Type:** `Qt.AutoConnection` (default)
 **Thread Safety:** ✅ Safe (Qt queues signal across threads automatically)
 
 #### Special Case: Pandoc Results
@@ -253,12 +253,12 @@ def shutdown(self) -> None:
     if self.worker_pool:
         cancelled = self.cancel_all_pool_tasks()
         self.wait_for_pool_done(5000)  # Wait 5s max
-    
+
     # 2. Quit each thread gracefully
     if self.git_thread and self.git_thread.isRunning():
         self.git_thread.quit()
         self.git_thread.wait(2000)  # Wait 2s max per thread
-    
+
     # ... repeat for all 6 workers
 ```
 
@@ -317,7 +317,7 @@ process = subprocess.run(
 def cancel(self) -> None:
     """
     Request cancellation of current operation.
-    
+
     Note: Operations use blocking subprocess.run() so cancellation
     only prevents new operations from starting. In-progress subprocess
     commands cannot be interrupted.
@@ -432,7 +432,7 @@ class OptimizedWorkerPool:
     def __init__(self, max_threads: int = 4):
         self._thread_pool = QThreadPool.globalInstance()
         self._thread_pool.setMaxThreadCount(max_threads)
-        
+
         # Task tracking
         self._active_tasks: Dict[str, CancelableRunnable] = {}
         self._coalesce_keys: Dict[str, str] = {}  # Deduplication
@@ -468,9 +468,9 @@ if self.use_worker_pool:
 ### 8.2 High Priority Issues
 
 #### ISSUE-01: ClaudeWorker Uses Legacy QThread Pattern
-**File:** `claude_worker.py:26`  
-**Severity:** ⚠️ MEDIUM  
-**Impact:** Code inconsistency, harder maintenance  
+**File:** `claude_worker.py:26`
+**Severity:** ⚠️ MEDIUM
+**Impact:** Code inconsistency, harder maintenance
 
 **Current Code:**
 ```python
@@ -485,7 +485,7 @@ class ClaudeWorker(QThread):
 class ClaudeWorker(QObject):  # Inherit from QObject
     # Remove run() method
     # Add @Slot decorators to operations
-    
+
     @Slot(str, str, list)
     def send_message(self, message: str, ...) -> None:
         self._execute_send_message()  # Runs on worker thread
@@ -499,9 +499,9 @@ class ClaudeWorker(QObject):  # Inherit from QObject
 ---
 
 #### ISSUE-02: No Force-Termination on Shutdown Timeout
-**File:** `worker_manager.py:294-334`  
-**Severity:** ⚠️ MEDIUM  
-**Impact:** Zombie threads on exit if worker stuck  
+**File:** `worker_manager.py:294-334`
+**Severity:** ⚠️ MEDIUM
+**Impact:** Zombie threads on exit if worker stuck
 
 **Current Code:**
 ```python
@@ -523,9 +523,9 @@ if self.git_thread.isRunning():
 ---
 
 #### ISSUE-03: GPU Detection Blocks Main Thread
-**File:** `core/gpu_detection.py`  
-**Severity:** ⚠️ MEDIUM  
-**Impact:** UI freeze (100-500ms) on startup  
+**File:** `core/gpu_detection.py`
+**Severity:** ⚠️ MEDIUM
+**Impact:** UI freeze (100-500ms) on startup
 
 **Recommendation:**
 ```python
@@ -533,7 +533,7 @@ if self.git_thread.isRunning():
 def detect_gpu_async(callback):
     worker = QThread()
     # ... detect in thread, signal when done
-    
+
 # Option 2: Cache more aggressively (24hr → 7 days)
 CACHE_TTL = 7 * 24 * 3600  # 7 days
 ```
@@ -543,9 +543,9 @@ CACHE_TTL = 7 * 24 * 3600  # 7 days
 ### 8.3 Medium Priority Issues
 
 #### ISSUE-04: Preview Update During File Load (Race Condition)
-**File:** `preview_worker.py:197-231`  
-**Severity:** ⚠️ LOW-MEDIUM  
-**Impact:** Could render partial content during file load  
+**File:** `preview_worker.py:197-231`
+**Severity:** ⚠️ LOW-MEDIUM
+**Impact:** Could render partial content during file load
 
 **Recommendation:**
 Add file loading flag to prevent concurrent preview updates.
@@ -553,11 +553,11 @@ Add file loading flag to prevent concurrent preview updates.
 ---
 
 #### ISSUE-05: Inconsistent Signal Connection Types
-**File:** `worker_manager.py` (multiple locations)  
-**Severity:** ℹ️ LOW  
-**Impact:** Implicit behavior, potential confusion  
+**File:** `worker_manager.py` (multiple locations)
+**Severity:** ℹ️ LOW
+**Impact:** Implicit behavior, potential confusion
 
-**Current:** Most use AutoConnection (implicit)  
+**Current:** Most use AutoConnection (implicit)
 **Recommendation:** Use explicit `Qt.ConnectionType.QueuedConnection` for all cross-thread signals
 
 **Example:**
@@ -574,9 +574,9 @@ self.git_worker.command_complete.connect(
 ### 8.4 Low Priority Issues
 
 #### ISSUE-06: Worker Pool Underutilized
-**File:** `worker_manager.py`  
-**Severity:** ℹ️ OPTIMIZATION  
-**Impact:** Resource waste (pool exists but rarely used)  
+**File:** `worker_manager.py`
+**Severity:** ℹ️ OPTIMIZATION
+**Impact:** Resource waste (pool exists but rarely used)
 
 **Recommendation:** Migrate lightweight workers to pool:
 - Git status checks (short-lived)
@@ -748,11 +748,11 @@ class ClaudeWorker(QThread):
     def __init__(self, model: str = ...):
         super().__init__()
         self.client = ClaudeClient(...)
-    
+
     def run(self) -> None:
         if self._operation == "send_message":
             self._execute_send_message()
-    
+
     @Slot(str, str, list)
     def send_message(self, message: str, ...) -> None:
         if self.isRunning():
@@ -766,19 +766,19 @@ class ClaudeWorker(QThread):
 class ClaudeWorker(QObject):  # Changed from QThread
     response_ready = Signal(object)
     error_occurred = Signal(str)
-    
+
     def __init__(self, model: str = ...):
         super().__init__()  # No threading logic here
         self.client = ClaudeClient(...)
         self._is_processing = False  # Reentrancy guard
-    
+
     @Slot(str, str, list)
     def send_message(self, message: str, ...) -> None:
         if self._is_processing:  # Check reentrancy
             logger.warning("Worker busy")
             self.error_occurred.emit("Worker is busy")
             return
-        
+
         self._is_processing = True
         try:
             result = self.client.send_message(...)  # Runs on worker thread
@@ -822,12 +822,12 @@ if self.git_thread and self.git_thread.isRunning():
 if self.git_thread and self.git_thread.isRunning():
     logger.info("Shutting down Git thread...")
     self.git_thread.quit()
-    
+
     if not self.git_thread.wait(2000):
         # Thread didn't exit in 2 seconds, force kill
         logger.warning("Git thread did not exit cleanly, force terminating")
         self.git_thread.terminate()
-        
+
         # Wait 1 more second for termination
         if not self.git_thread.wait(1000):
             logger.error("Git thread could not be terminated!")
@@ -855,7 +855,7 @@ gpu_available = detect_gpu()  # BLOCKING
 # New file: core/gpu_detection_async.py
 class GPUDetectionWorker(QObject):
     detection_complete = Signal(bool)  # gpu_available
-    
+
     @Slot()
     def detect(self) -> None:
         from asciidoc_artisan.core.gpu_detection import detect_gpu
@@ -867,7 +867,7 @@ def _setup_gpu_detection(self):
     self.gpu_thread = QThread()
     self.gpu_worker = GPUDetectionWorker()
     self.gpu_worker.moveToThread(self.gpu_thread)
-    
+
     self.gpu_worker.detection_complete.connect(self._on_gpu_detected)
     QTimer.singleShot(100, self.gpu_worker.detect)  # Detect after 100ms
     self.gpu_thread.start()
@@ -891,37 +891,37 @@ def _on_gpu_detected(self, available: bool):
 def test_concurrent_git_operations():
     """Verify reentrancy guard prevents concurrent Git ops."""
     editor = AsciiDocEditor()
-    
+
     # Simulate rapid double-click on "Commit"
     editor.git_handler.commit("First")
     editor.git_handler.commit("Second")
-    
+
     # Only first operation should execute
     assert editor._is_processing_git is True
 
 def test_preview_during_file_load():
     """Verify preview doesn't update during file load."""
     editor = AsciiDocEditor()
-    
+
     # Start file load
     editor._is_opening_file = True
-    
+
     # Try to update preview (should be blocked)
     editor._update_preview_debounced()
-    
+
     # Preview should not trigger
     assert editor.preview_worker was not called
 
 def test_worker_shutdown_timeout():
     """Verify workers are force-terminated on timeout."""
     manager = WorkerManager(editor)
-    
+
     # Block git worker (simulate hung operation)
     manager.git_worker._block_for_test = True
-    
+
     # Shutdown should force-terminate after timeout
     manager.shutdown()
-    
+
     # Thread should be dead (either quit or terminated)
     assert not manager.git_thread.isRunning()
 ```
@@ -934,15 +934,15 @@ def test_worker_shutdown_timeout():
 def test_rapid_file_operations():
     """Verify no race condition in rapid file open/save."""
     editor = AsciiDocEditor()
-    
+
     # Simulate rapid Open → Save → Open
     QTimer.singleShot(0, lambda: editor.file_handler.open_file("test1.adoc"))
     QTimer.singleShot(10, lambda: editor.file_handler.save_file())
     QTimer.singleShot(20, lambda: editor.file_handler.open_file("test2.adoc"))
-    
+
     # Wait for operations to complete
     QTest.qWait(1000)
-    
+
     # Final state should be test2.adoc (last operation wins)
     assert editor._current_file_path.name == "test2.adoc"
     assert editor._is_opening_file is False  # Guard released
@@ -1010,7 +1010,7 @@ AsciiDoc Artisan has a **well-architected threading system** with only minor iss
 
 ### 16.2 Risk Assessment
 
-**Overall Risk Level:** ⚠️ MODERATE  
+**Overall Risk Level:** ⚠️ MODERATE
 
 **Risk Breakdown:**
 - **Correctness:** ✅ LOW (no critical bugs)
@@ -1041,10 +1041,10 @@ AsciiDoc Artisan has a **well-architected threading system** with only minor iss
 
 ### 16.4 Compliance Score
 
-**Qt Threading Best Practices:** 87.5% (7/8 compliant)  
-**Thread Safety:** 95% (minor race condition)  
-**Performance:** 100% (all targets met)  
-**Code Quality:** 85% (one legacy pattern)  
+**Qt Threading Best Practices:** 87.5% (7/8 compliant)
+**Thread Safety:** 95% (minor race condition)
+**Performance:** 100% (all targets met)
+**Code Quality:** 85% (one legacy pattern)
 
 **Overall Grade:** **B+ (87%)**
 
@@ -1118,7 +1118,7 @@ error_occurred = Signal(str)
 
 ---
 
-**Generated by:** Claude Code (claude-sonnet-4-5)  
-**Analysis Duration:** 18 minutes  
-**Files Analyzed:** 79 Python files, 11 worker modules  
-**Lines of Code Reviewed:** ~15,000 lines  
+**Generated by:** Claude Code (claude-sonnet-4-5)
+**Analysis Duration:** 18 minutes
+**Files Analyzed:** 79 Python files, 11 worker modules
+**Lines of Code Reviewed:** ~15,000 lines

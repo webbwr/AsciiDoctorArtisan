@@ -9,16 +9,13 @@ v1.7.0: Task P1-3 - Async Integration Tests
 
 import asyncio
 import gc
-import json
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
-from PySide6.QtCore import QTimer
 from pytestqt.qtbot import QtBot
 
-from asciidoc_artisan.core import Settings
 from asciidoc_artisan.core.async_file_watcher import AsyncFileWatcher
 from asciidoc_artisan.core.qt_async_file_manager import QtAsyncFileManager
 from asciidoc_artisan.ui import AsciiDocEditor
@@ -142,9 +139,7 @@ class TestAsyncQtIntegration:
         await manager.cleanup()
 
     @pytest.mark.anyio
-    async def test_concurrent_file_operations_stress(
-        self, qasync_app, tmp_path: Path
-    ):
+    async def test_concurrent_file_operations_stress(self, qasync_app, tmp_path: Path):
         """Test concurrent async operations (100+ files) for stability."""
         manager = QtAsyncFileManager()
         num_files = 100
@@ -181,8 +176,9 @@ class TestAsyncQtIntegration:
         self, qasync_app, tmp_path: Path
     ):
         """Test memory leak detection for long-running file watcher."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
 
@@ -214,7 +210,9 @@ class TestAsyncQtIntegration:
 
         # Memory increase should be minimal (< 10 MB)
         # This is a loose threshold to avoid flaky tests
-        assert memory_increase < 10.0, f"Memory leak detected: {memory_increase:.2f} MB increase"
+        assert (
+            memory_increase < 10.0
+        ), f"Memory leak detected: {memory_increase:.2f} MB increase"
 
         await manager.cleanup()
 
@@ -238,9 +236,7 @@ class TestAsyncQtIntegration:
         await manager.cleanup()
 
     @pytest.mark.anyio
-    async def test_concurrent_read_write_operations(
-        self, qasync_app, tmp_path: Path
-    ):
+    async def test_concurrent_read_write_operations(self, qasync_app, tmp_path: Path):
         """Test concurrent async reads and writes don't interfere."""
         manager = QtAsyncFileManager()
 
@@ -347,9 +343,7 @@ class TestAsyncQtIntegration:
         await manager.cleanup()
 
     @pytest.mark.anyio
-    async def test_multiple_watchers_cleanup(
-        self, qasync_app, tmp_path: Path
-    ):
+    async def test_multiple_watchers_cleanup(self, qasync_app, tmp_path: Path):
         """Test cleanup of multiple file watchers doesn't leak."""
         managers = [QtAsyncFileManager() for _ in range(5)]
         files = [tmp_path / f"watch_{i}.txt" for i in range(5)]
@@ -485,9 +479,7 @@ class TestAsyncQtIntegration:
         await manager.cleanup()
 
     @pytest.mark.anyio
-    async def test_qt_integration_under_load(
-        self, qasync_app, tmp_path: Path
-    ):
+    async def test_qt_integration_under_load(self, qasync_app, tmp_path: Path):
         """Test Qt integration stability under sustained load."""
         manager = QtAsyncFileManager()
 

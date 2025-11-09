@@ -6,12 +6,10 @@ to achieve 100% coverage (Phase 2.2 of test coverage push).
 """
 
 import subprocess
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 
-from asciidoc_artisan.core import GitResult
 from asciidoc_artisan.workers.worker_tasks import (
     ConversionTask,
     GitTask,
@@ -108,9 +106,7 @@ class TestConversionTaskExecution:
         """Test ConversionTask actually executes file conversion."""
         mock_convert_file.return_value = "Converted file result"
 
-        task = ConversionTask(
-            "/path/to/file.md", "asciidoc", "markdown", is_file=True
-        )
+        task = ConversionTask("/path/to/file.md", "asciidoc", "markdown", is_file=True)
 
         # Run the task
         task.run()

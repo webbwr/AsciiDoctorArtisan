@@ -171,8 +171,7 @@ class PreferencesDialog(QDialog):
         self.ai_enabled_checkbox = QCheckBox("Enable AI-enhanced conversion by default")
         self.ai_enabled_checkbox.setChecked(self.settings.ai_conversion_enabled)
         self.ai_enabled_checkbox.setToolTip(
-            "Use Claude AI for better document conversions\n"
-            "Preserves complex formatting like nested lists and tables"
+            "Use Claude AI for better document conversions\nPreserves complex formatting like nested lists and tables"
         )
         ai_layout.addWidget(self.ai_enabled_checkbox)
 
@@ -273,8 +272,7 @@ class OllamaSettingsDialog(QDialog):
             getattr(self.settings, "ollama_enabled", False)
         )
         self.ollama_enabled_checkbox.setToolTip(
-            "Use local Ollama AI for document conversions\n"
-            "Runs on your computer - no cloud services required"
+            "Use local Ollama AI for document conversions\nRuns on your computer - no cloud services required"
         )
         self.ollama_enabled_checkbox.stateChanged.connect(self._on_enabled_changed)
         ollama_layout.addWidget(self.ollama_enabled_checkbox)
@@ -335,8 +333,7 @@ class OllamaSettingsDialog(QDialog):
             getattr(self.settings, "ollama_chat_max_history", 100)
         )
         self.max_history_spin.setToolTip(
-            "Maximum number of messages to store in chat history\n"
-            "Older messages are automatically removed"
+            "Maximum number of messages to store in chat history\nOlder messages are automatically removed"
         )
         history_layout.addWidget(self.max_history_spin)
         history_layout.addStretch()
@@ -358,8 +355,7 @@ class OllamaSettingsDialog(QDialog):
             ]
         )
         self.context_mode_combo.setToolTip(
-            "Default interaction mode when chat starts\n"
-            "You can change this in the chat bar at any time"
+            "Default interaction mode when chat starts\nYou can change this in the chat bar at any time"
         )
 
         # Map current setting to combo index
@@ -756,8 +752,7 @@ class SettingsEditorDialog(QDialog):
         reply = QMessageBox.question(
             self,
             "Clear All Settings",
-            "Are you sure you want to reset all settings to defaults?\n"
-            "This cannot be undone.",
+            "Are you sure you want to reset all settings to defaults?\nThis cannot be undone.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )

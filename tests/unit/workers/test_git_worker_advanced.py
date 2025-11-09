@@ -11,13 +11,11 @@ Phase 4A.2: 12 focused tests for critical git_worker.py gaps
 """
 
 import subprocess
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
+
 import pytest
 
 from asciidoc_artisan.workers.git_worker import GitWorker
-from asciidoc_artisan.core.models import GitResult, GitStatus
-
 
 # ==============================================================================
 # Extended Error Analysis Tests (6 tests)
@@ -76,7 +74,9 @@ class TestGitWorkerExtendedErrorAnalysis:
 
     def test_analyze_untracked_files_error(self, worker):
         """Test untracked files would be overwritten error."""
-        stderr = "error: The following untracked working tree files would be overwritten"
+        stderr = (
+            "error: The following untracked working tree files would be overwritten"
+        )
         result = worker._analyze_git_error(stderr, ["git", "checkout"])
 
         assert "Git command failed" in result

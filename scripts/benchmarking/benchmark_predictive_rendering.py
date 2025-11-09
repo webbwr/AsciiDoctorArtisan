@@ -11,19 +11,17 @@ Measures the performance improvement from predictive rendering by:
 Target: 30-50% reduction in perceived preview latency
 """
 
-import io
-import time
-from typing import List, Tuple
-
 # Add src to path
 import sys
+import time
 from pathlib import Path
+from typing import List, Tuple
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
-    from asciidoc3.asciidoc3api import AsciiDoc3API
     import asciidoc3
+    from asciidoc3.asciidoc3api import AsciiDoc3API
 
     ASCIIDOC_AVAILABLE = True
 except ImportError:
@@ -36,7 +34,6 @@ from asciidoc_artisan.workers.incremental_renderer import (
     IncrementalPreviewRenderer,
 )
 from asciidoc_artisan.workers.predictive_renderer import (
-    PredictiveRenderer,
     PredictivePreviewRenderer,
 )
 
@@ -91,9 +88,7 @@ class BenchmarkRunner:
         self.asciidoc_api.attributes["icons"] = "font"
 
         self.incremental_renderer = IncrementalPreviewRenderer(self.asciidoc_api)
-        self.predictive_renderer = PredictivePreviewRenderer(
-            self.incremental_renderer
-        )
+        self.predictive_renderer = PredictivePreviewRenderer(self.incremental_renderer)
 
     def benchmark_without_prediction(
         self, text: str, edit_sequence: List[Tuple[int, str]], iterations: int = 10
@@ -153,9 +148,7 @@ class BenchmarkRunner:
 
                     # Pre-render up to 3 blocks
                     for _ in range(3):
-                        block_idx = (
-                            self.predictive_renderer.get_next_prerender_block()
-                        )
+                        block_idx = self.predictive_renderer.get_next_prerender_block()
                         if block_idx is not None and block_idx < len(blocks):
                             block = blocks[block_idx]
                             rendered = self.incremental_renderer._render_block(block)
@@ -250,13 +243,13 @@ class BenchmarkRunner:
             # Display results
             print()
             print("Results:")
-            print(f"  Without Prediction:")
+            print("  Without Prediction:")
             print(f"    Average: {without['avg_ms']:.3f}ms")
             print(f"    Min:     {without['min_ms']:.3f}ms")
             print(f"    Max:     {without['max_ms']:.3f}ms")
             print(f"    Cache Hit Rate: {without['cache_hit_rate']:.1f}%")
             print()
-            print(f"  With Prediction:")
+            print("  With Prediction:")
             print(f"    Average: {with_pred['avg_ms']:.3f}ms")
             print(f"    Min:     {with_pred['min_ms']:.3f}ms")
             print(f"    Max:     {with_pred['max_ms']:.3f}ms")
@@ -269,9 +262,9 @@ class BenchmarkRunner:
             print(f"  ✨ Latency Improvement: {improvement:.1f}%")
 
             if improvement >= 30:
-                print(f"  ✅ Target achieved! (≥30% reduction)")
+                print("  ✅ Target achieved! (≥30% reduction)")
             else:
-                print(f"  ⚠️  Below target (30-50% expected)")
+                print("  ⚠️  Below target (30-50% expected)")
 
         print()
         print("=" * 70)

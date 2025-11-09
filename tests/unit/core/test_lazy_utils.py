@@ -402,4 +402,6 @@ class TestLazyLoadingPerformance:
         # Lazy creation should be extremely fast (< 50 microseconds)
         # No actual import happens until attribute access
         # Relaxed threshold to accommodate varying system loads
-        assert lazy_time < 0.00005, f"LazyImport creation took {lazy_time*1000000:.2f}µs (expected < 50µs)"
+        assert (
+            lazy_time < 0.00005
+        ), f"LazyImport creation took {lazy_time * 1000000:.2f}µs (expected < 50µs)"

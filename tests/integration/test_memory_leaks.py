@@ -9,17 +9,19 @@ Tests to detect memory leaks and ensure proper resource cleanup:
 - File handle cleanup
 """
 
-import pytest
 import gc
 import sys
 from unittest.mock import Mock
+
+import pytest
 
 
 @pytest.mark.memory
 def test_preview_handler_cleanup(qtbot):
     """Test preview handler is properly cleaned up."""
+    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit, QTextBrowser
+
     from asciidoc_artisan.ui.preview_handler import PreviewHandler
-    from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QMainWindow
 
     # Create widgets
     editor = QPlainTextEdit()
@@ -47,12 +49,13 @@ def test_preview_handler_cleanup(qtbot):
 @pytest.mark.memory
 def test_worker_pool_cleanup():
     """Test worker pool properly cleans up threads."""
+    import threading
+    import time
+
     from asciidoc_artisan.workers.optimized_worker_pool import (
         OptimizedWorkerPool,
         TaskPriority,
     )
-    import threading
-    import time
 
     def dummy_task():
         """Simple task that returns immediately."""
@@ -76,21 +79,24 @@ def test_worker_pool_cleanup():
 
     # Thread count should return to normal (or close to it)
     final_threads = threading.active_count()
-    assert final_threads <= initial_threads + 2, \
-        f"Thread leak detected: {initial_threads} -> {final_threads}"
+    assert (
+        final_threads <= initial_threads + 2
+    ), f"Thread leak detected: {initial_threads} -> {final_threads}"
 
 
 @pytest.mark.asyncio
 @pytest.mark.memory
 async def test_file_handler_no_handle_leak_async(qtbot):
     """Test async file handler doesn't leak file handles."""
-    from asciidoc_artisan.ui.file_handler import FileHandler
-    from PySide6.QtWidgets import QPlainTextEdit, QMainWindow
-    from unittest.mock import AsyncMock
+    import os
     import tempfile
     from pathlib import Path
+    from unittest.mock import AsyncMock
+
     import psutil
-    import os
+    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit
+
+    from asciidoc_artisan.ui.file_handler import FileHandler
 
     process = psutil.Process(os.getpid())
     initial_handles = len(process.open_files())
@@ -119,7 +125,9 @@ async def test_file_handler_no_handle_leak_async(qtbot):
         # Open files asynchronously
         for test_file in test_files:
             # Mock async read to return content
-            handler.async_manager.read_file = AsyncMock(return_value=test_file.read_text())
+            handler.async_manager.read_file = AsyncMock(
+                return_value=test_file.read_text()
+            )
             await handler._load_file_async(test_file)
 
         # Cleanup
@@ -130,14 +138,17 @@ async def test_file_handler_no_handle_leak_async(qtbot):
     handle_diff = final_handles - initial_handles
 
     # Allow small variation (±5 handles is acceptable)
-    assert abs(handle_diff) < 5, f"File handle leak detected: {initial_handles} → {final_handles} (diff: {handle_diff})"
+    assert (
+        abs(handle_diff) < 5
+    ), f"File handle leak detected: {initial_handles} → {final_handles} (diff: {handle_diff})"
 
 
 @pytest.mark.memory
 def test_lru_cache_memory_bounded():
     """Test LRU cache doesn't grow unbounded."""
-    from asciidoc_artisan.core.lru_cache import LRUCache
     import sys
+
+    from asciidoc_artisan.core.lru_cache import LRUCache
 
     cache = LRUCache(max_size=100)
 
@@ -153,8 +164,9 @@ def test_lru_cache_memory_bounded():
     # Memory should be bounded (rough check)
     cache_size_bytes = sys.getsizeof(cache._cache)
     # Should be much less than 10_000 entries * 10KB = 100MB
-    assert cache_size_bytes < 5_000_000, \
-        f"Cache using {cache_size_bytes / 1_000_000:.1f}MB"
+    assert (
+        cache_size_bytes < 5_000_000
+    ), f"Cache using {cache_size_bytes / 1_000_000:.1f}MB"
 
 
 @pytest.mark.memory
@@ -175,15 +187,17 @@ def test_metrics_collector_ring_buffer():
 
     # But durations are limited to buffer size
     op_metrics = collector.operations["test_op"]
-    assert len(op_metrics.durations) <= 1000, \
-        "Ring buffer should limit duration storage"
+    assert (
+        len(op_metrics.durations) <= 1000
+    ), "Ring buffer should limit duration storage"
 
 
 @pytest.mark.memory
 def test_incremental_renderer_cache_bounded():
     """Test incremental renderer cache is bounded."""
-    from asciidoc_artisan.workers.incremental_renderer import IncrementalPreviewRenderer
     from unittest.mock import Mock
+
+    from asciidoc_artisan.workers.incremental_renderer import IncrementalPreviewRenderer
 
     mock_api = Mock()
     # No cache_size parameter - uses MAX_CACHE_SIZE constant (500)
@@ -226,8 +240,9 @@ def test_adaptive_debouncer_history_bounded():
 @pytest.mark.memory
 def test_preview_worker_cleanup():
     """Test preview worker cleans up resources."""
-    from asciidoc_artisan.workers.preview_worker import PreviewWorker
     import asciidoc3
+
+    from asciidoc_artisan.workers.preview_worker import PreviewWorker
 
     worker = PreviewWorker()
     worker.initialize_asciidoc(asciidoc3.__file__)
@@ -240,7 +255,7 @@ def test_preview_worker_cleanup():
 @pytest.mark.memory
 def test_timer_cleanup():
     """Test QTimers are properly cleaned up."""
-    from PySide6.QtCore import QTimer, QObject
+    from PySide6.QtCore import QObject, QTimer
 
     parent = QObject()
 
@@ -302,9 +317,10 @@ def test_signal_disconnection():
 @pytest.mark.memory
 def test_theme_manager_css_cache_bounded():
     """Test theme manager CSS cache doesn't leak (QA-11)."""
-    from asciidoc_artisan.ui.theme_manager import ThemeManager
-    from unittest.mock import Mock
     import sys
+    from unittest.mock import Mock
+
+    from asciidoc_artisan.ui.theme_manager import ThemeManager
 
     # Create mock editor
     mock_editor = Mock()
@@ -319,7 +335,7 @@ def test_theme_manager_css_cache_bounded():
     # Generate CSS multiple times
     for i in range(1000):
         # Toggle dark mode
-        mock_editor._settings.dark_mode = (i % 2 == 0)
+        mock_editor._settings.dark_mode = i % 2 == 0
         css = manager.get_preview_css()
 
     # Cache should be bounded (only 2 entries max - dark and light)
@@ -328,17 +344,19 @@ def test_theme_manager_css_cache_bounded():
 
     # Total cache should be small (< 100KB)
     total_cache_size = light_cache_size + dark_cache_size
-    assert total_cache_size < 100_000, \
-        f"CSS cache using {total_cache_size / 1_000:.1f}KB"
+    assert (
+        total_cache_size < 100_000
+    ), f"CSS cache using {total_cache_size / 1_000:.1f}KB"
 
 
 @pytest.mark.memory
 def test_settings_manager_deferred_save_no_leak():
     """Test settings manager deferred save doesn't leak timers (QA-12)."""
-    from asciidoc_artisan.ui.settings_manager import SettingsManager
-    from asciidoc_artisan.core.settings import Settings
-    from unittest.mock import Mock
     import gc
+    from unittest.mock import Mock
+
+    from asciidoc_artisan.core.settings import Settings
+    from asciidoc_artisan.ui.settings_manager import SettingsManager
 
     manager = SettingsManager()
 
@@ -365,10 +383,11 @@ def test_settings_manager_deferred_save_no_leak():
 @pytest.mark.asyncio
 async def test_async_file_watcher_adaptive_polling_no_leak():
     """Test async file watcher adaptive polling doesn't leak state (QA-13)."""
-    from asciidoc_artisan.core.async_file_watcher import AsyncFileWatcher
+    import asyncio
     import tempfile
     from pathlib import Path
-    import asyncio
+
+    from asciidoc_artisan.core.async_file_watcher import AsyncFileWatcher
 
     with tempfile.TemporaryDirectory() as tmpdir:
         test_file = Path(tmpdir) / "test.txt"
@@ -394,9 +413,10 @@ async def test_async_file_watcher_adaptive_polling_no_leak():
 @pytest.mark.memory
 def test_incremental_renderer_increased_cache_bounded():
     """Test incremental renderer with increased cache is still bounded (QA-10)."""
-    from asciidoc_artisan.workers.incremental_renderer import IncrementalPreviewRenderer
-    from unittest.mock import Mock
     import sys
+    from unittest.mock import Mock
+
+    from asciidoc_artisan.workers.incremental_renderer import IncrementalPreviewRenderer
 
     mock_api = Mock()
     renderer = IncrementalPreviewRenderer(mock_api)
@@ -413,19 +433,19 @@ def test_incremental_renderer_increased_cache_bounded():
     # Memory usage should be reasonable
     # 500 blocks * ~500 bytes = ~250KB
     cache_memory = sys.getsizeof(renderer.cache._cache)
-    assert cache_memory < 5_000_000, \
-        f"Cache using {cache_memory / 1_000_000:.1f}MB"
+    assert cache_memory < 5_000_000, f"Cache using {cache_memory / 1_000_000:.1f}MB"
 
 
 @pytest.mark.memory
 def test_worker_pool_task_cleanup():
     """Test worker pool processes many tasks without memory issues (QA-14)."""
+    import time
+    import tracemalloc
+
     from asciidoc_artisan.workers.optimized_worker_pool import (
         OptimizedWorkerPool,
         TaskPriority,
     )
-    import time
-    import tracemalloc
 
     def dummy_task():
         return "done"
@@ -442,7 +462,9 @@ def test_worker_pool_task_cleanup():
 
     # Verify tasks were submitted
     stats = pool.get_statistics()
-    assert stats["submitted"] == 500, f"Expected 500 submitted, got {stats['submitted']}"
+    assert (
+        stats["submitted"] == 500
+    ), f"Expected 500 submitted, got {stats['submitted']}"
 
     # Wait for tasks to execute
     time.sleep(2.0)
@@ -456,8 +478,9 @@ def test_worker_pool_task_cleanup():
     memory_growth = current_memory - initial_memory
     tracemalloc.stop()
 
-    assert memory_growth < 50_000_000, \
-        f"Memory grew by {memory_growth / 1_000_000:.1f}MB (expected < 50MB)"
+    assert (
+        memory_growth < 50_000_000
+    ), f"Memory grew by {memory_growth / 1_000_000:.1f}MB (expected < 50MB)"
 
 
 @pytest.mark.memory
@@ -483,8 +506,9 @@ def test_metrics_collector_bounded_operations():
 @pytest.mark.memory
 def test_memory_profiler_no_leak():
     """Test memory profiler doesn't leak profiling data (QA-14)."""
-    from asciidoc_artisan.core.memory_profiler import MemoryProfiler
     import time
+
+    from asciidoc_artisan.core.memory_profiler import MemoryProfiler
 
     profiler = MemoryProfiler()
 

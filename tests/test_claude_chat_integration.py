@@ -4,14 +4,13 @@ Test Claude AI chat integration.
 Validates the complete communication flow from user message to Claude response.
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock, patch
-from PySide6.QtCore import QThread
 import time
 
-from asciidoc_artisan.core.settings import Settings
+import pytest
+
+from asciidoc_artisan.claude import ClaudeMessage, ClaudeResult
 from asciidoc_artisan.core.models import ChatMessage
-from asciidoc_artisan.claude import ClaudeClient, ClaudeResult, ClaudeMessage
+from asciidoc_artisan.core.settings import Settings
 
 
 @pytest.mark.unit
@@ -31,7 +30,6 @@ class TestClaudeChatFlow:
 
     def test_system_prompt_generation_for_context_modes(self):
         """Test system prompt generation for different context modes."""
-        from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
         # We're testing the _build_claude_system_prompt logic
         context_modes = {
@@ -126,9 +124,7 @@ class TestClaudeChatFlow:
         claude_history = []
         for msg in history:
             if hasattr(msg, "role") and hasattr(msg, "content"):
-                claude_history.append(
-                    ClaudeMessage(role=msg.role, content=msg.content)
-                )
+                claude_history.append(ClaudeMessage(role=msg.role, content=msg.content))
 
         assert len(claude_history) == 2
         assert claude_history[0].role == "user"

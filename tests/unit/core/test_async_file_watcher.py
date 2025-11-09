@@ -297,8 +297,10 @@ class TestAsyncFileWatcher:
 
         # Track error signal
         error_received = []
+
         def on_error(error: str):
             error_received.append(error)
+
         watcher.error.connect(on_error)
 
         # Mock _check_file to raise exception once, then succeed
@@ -311,7 +313,7 @@ class TestAsyncFileWatcher:
                 raise RuntimeError("Mock error in check_file")
             await original_check()
 
-        with patch.object(watcher, '_check_file', side_effect=mock_check):
+        with patch.object(watcher, "_check_file", side_effect=mock_check):
             await watcher.start()
             await asyncio.sleep(0.3)  # Wait for exception and recovery
             await watcher.stop()
@@ -333,15 +335,17 @@ class TestAsyncFileWatcher:
         self, qtbot: QtBot, watcher: AsyncFileWatcher, tmp_path: Path, caplog
     ):
         """Test file creation with stat() exception (lines 233-234)."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
 
         nonexistent = tmp_path / "will_be_created.txt"
         watcher.set_file(nonexistent)
 
         # Track creation signal
         created_received = []
+
         def on_created(path: Path):
             created_received.append(path)
+
         watcher.file_created.connect(on_created)
 
         await watcher.start()
@@ -362,7 +366,7 @@ class TestAsyncFileWatcher:
                 return original_stat(self, *args, **kwargs)
             raise PermissionError("Mock stat error")
 
-        with patch.object(Path, 'stat', mock_stat):
+        with patch.object(Path, "stat", mock_stat):
             await asyncio.sleep(0.3)  # Wait for watcher to detect
 
         await watcher.stop()
@@ -375,7 +379,7 @@ class TestAsyncFileWatcher:
         self, qtbot: QtBot, watcher: AsyncFileWatcher, temp_file: Path, caplog
     ):
         """Test file modification check with stat() exception (lines 257-258)."""
-        from unittest.mock import patch, Mock
+        from unittest.mock import patch
 
         watcher.set_file(temp_file)
         await watcher.start()
@@ -391,7 +395,7 @@ class TestAsyncFileWatcher:
                 raise PermissionError("Mock stat error for modification check")
             return original_stat(self, *args, **kwargs)
 
-        with patch.object(Path, 'stat', mock_stat):
+        with patch.object(Path, "stat", mock_stat):
             await asyncio.sleep(0.25)  # Wait for watcher to check and hit exception
 
         await watcher.stop()
@@ -402,11 +406,12 @@ class TestAsyncFileWatcher:
         # Since we reached 100% coverage, the lines are being hit
         # The assertion is for documentation - either handler can catch it
         log_text = caplog.text.lower()
-        assert (len(log_text) == 0 or  # No logs is OK (timing issue)
-                "failed to check" in log_text or
-                "error in watch loop" in log_text or
-                "mock stat error" in log_text)
-
+        assert (
+            len(log_text) == 0  # No logs is OK (timing issue)
+            or "failed to check" in log_text
+            or "error in watch loop" in log_text
+            or "mock stat error" in log_text
+        )
 
     @pytest.mark.asyncio
     async def test_adaptive_polling_enabled(self):

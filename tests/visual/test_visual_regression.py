@@ -11,18 +11,10 @@ Run with: pytest tests/visual/test_visual_regression.py --regen-all
 Compare: pytest tests/visual/test_visual_regression.py
 """
 
-import tempfile
-from pathlib import Path
-
 import pytest
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtWidgets import QApplication
 
-from asciidoc_artisan.ui.theme_manager import ThemeManager
-from asciidoc_artisan.ui.status_manager import StatusManager
-from asciidoc_artisan.workers.preview_worker import PreviewWorker
-from asciidoc_artisan.workers.incremental_renderer import DocumentBlockSplitter
 from asciidoc_artisan.core.lru_cache import LRUCache
+from asciidoc_artisan.workers.incremental_renderer import DocumentBlockSplitter
 
 
 @pytest.mark.visual
@@ -314,7 +306,6 @@ class TestStatusMessageRegression:
 
     def test_status_message_formatting(self, data_regression):
         """Verify status message formatting remains consistent."""
-        from asciidoc_artisan.ui.status_manager import StatusManager
 
         # Test different message types
         messages = {
@@ -337,7 +328,6 @@ class TestStatusMessageRegression:
 
     def test_version_extraction_patterns(self, data_regression):
         """Verify version extraction produces consistent results."""
-        from asciidoc_artisan.ui.status_manager import StatusManager
 
         test_documents = {
             "attribute_version": ":version: 2.1.0\n\n= Document",
@@ -362,7 +352,10 @@ class TestStatusMessageRegression:
             elif match := re.search(r"\sv(\d+\.\d+\.\d+)", content):
                 version = match.group(1)
 
-            version_data[doc_type] = {"extracted_version": version, "found": version is not None}
+            version_data[doc_type] = {
+                "extracted_version": version,
+                "found": version is not None,
+            }
 
         data_regression.check(version_data)
 
@@ -383,7 +376,9 @@ class TestFileOperationRegression:
         file_data = {
             "save_successful": result,
             "file_exists": test_file.exists(),
-            "content_matches": test_file.read_text() == content if test_file.exists() else False,
+            "content_matches": (
+                test_file.read_text() == content if test_file.exists() else False
+            ),
             "file_size": test_file.stat().st_size if test_file.exists() else 0,
         }
 
@@ -490,7 +485,11 @@ class TestErrorStateRegression:
             "normal": {"has_error": False, "can_save": True, "can_render": True},
             "file_error": {"has_error": True, "can_save": False, "can_render": True},
             "render_error": {"has_error": True, "can_save": True, "can_render": False},
-            "critical_error": {"has_error": True, "can_save": False, "can_render": False},
+            "critical_error": {
+                "has_error": True,
+                "can_save": False,
+                "can_render": False,
+            },
         }
 
         data_regression.check(states)

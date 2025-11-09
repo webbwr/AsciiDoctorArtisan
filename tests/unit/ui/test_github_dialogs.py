@@ -8,10 +8,7 @@ UPDATED: Fixed API mismatches to align with actual dialog implementation.
 """
 
 import pytest
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog
-
-from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QDialog, QPushButton
 
 from asciidoc_artisan.ui.github_dialogs import (
     CreateIssueDialog,
@@ -54,11 +51,16 @@ class TestCreatePullRequestDialog:
         # Check for draft checkbox
         assert hasattr(dialog, "draft_checkbox")
 
-    @pytest.mark.parametrize("title,base,head,expected_accepted,test_id", [
-        ("", "main", "feature-branch", False, "empty_title"),
-        ("Test PR Title", "main", "feature-branch", True, "valid_input"),
-    ])
-    def test_dialog_validation(self, qtbot, title, base, head, expected_accepted, test_id):
+    @pytest.mark.parametrize(
+        "title,base,head,expected_accepted,test_id",
+        [
+            ("", "main", "feature-branch", False, "empty_title"),
+            ("Test PR Title", "main", "feature-branch", True, "valid_input"),
+        ],
+    )
+    def test_dialog_validation(
+        self, qtbot, title, base, head, expected_accepted, test_id
+    ):
         """Test dialog validation with various inputs.
 
         Parametrized test covering:
@@ -255,10 +257,13 @@ class TestCreateIssueDialog:
         # Check for labels field (actual name: labels_input)
         assert hasattr(dialog, "labels_input")
 
-    @pytest.mark.parametrize("title,expected_accepted,test_id", [
-        ("", False, "empty_title"),
-        ("Test Issue Title", True, "valid_input"),
-    ])
+    @pytest.mark.parametrize(
+        "title,expected_accepted,test_id",
+        [
+            ("", False, "empty_title"),
+            ("Test Issue Title", True, "valid_input"),
+        ],
+    )
     def test_dialog_validation(self, qtbot, title, expected_accepted, test_id):
         """Test dialog validation with various inputs.
 

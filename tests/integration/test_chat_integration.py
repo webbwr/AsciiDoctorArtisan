@@ -6,31 +6,30 @@ and OllamaChatWorker with the main window.
 """
 
 import pytest
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication
 
-from asciidoc_artisan.core import Settings
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 
 @pytest.fixture
 def main_window(qtbot, test_settings):
     """Create main window for testing with safe settings."""
-    from unittest.mock import patch, Mock
+    from unittest.mock import Mock, patch
 
     # Mock settings loading to use test_settings
     # Also mock Claude API client to prevent real API calls
-    with patch(
-        "asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings",
-        return_value=test_settings,
-    ), patch(
-        "asciidoc_artisan.claude.claude_client.Anthropic"
-    ) as mock_anthropic, patch(
-        "asciidoc_artisan.claude.claude_client.SecureCredentials"
-    ) as mock_creds:
+    with (
+        patch(
+            "asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings",
+            return_value=test_settings,
+        ),
+        patch("asciidoc_artisan.claude.claude_client.Anthropic") as mock_anthropic,
+        patch("asciidoc_artisan.claude.claude_client.SecureCredentials") as mock_creds,
+    ):
         # Setup mocks to prevent API calls
         mock_creds_instance = Mock()
-        mock_creds_instance.get_anthropic_key.return_value = None  # No key = no API calls
+        mock_creds_instance.get_anthropic_key.return_value = (
+            None  # No key = no API calls
+        )
         mock_creds.return_value = mock_creds_instance
 
         window = AsciiDocEditor()
@@ -96,10 +95,10 @@ class TestChatIntegration:
             # This should emit message_sent_to_worker with correct signature
             main_window.chat_manager.message_sent_to_worker.emit(
                 "Test message",  # message
-                "test-model",    # model
-                "general",       # mode
-                [],             # history
-                None            # doc_content
+                "test-model",  # model
+                "general",  # mode
+                [],  # history
+                None,  # doc_content
             )
 
         # Signal was emitted
@@ -207,6 +206,7 @@ class TestChatWorkerIntegration:
         thread interference with other tests (v1.9.2+).
         """
         import time
+
         from asciidoc_artisan.core.models import ChatMessage
 
         # Worker should emit signals that ChatManager receives
@@ -220,7 +220,7 @@ class TestChatWorkerIntegration:
                 content="Test response",
                 timestamp=time.time(),
                 model="test-model",
-                context_mode="general"
+                context_mode="general",
             )
             # Emit test response with correct signature
             main_window.ollama_chat_worker.chat_response_ready.emit(test_message)

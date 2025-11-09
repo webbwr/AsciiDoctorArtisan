@@ -18,8 +18,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
-
 from asciidoc_artisan.core.telemetry_collector import (
     EVENT_DIALOG_OPEN,
     EVENT_ERROR,
@@ -401,9 +399,7 @@ class TestPrivacySanitization:
         """Test sanitize_data skips complex types (lists, objects)."""
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
-        sanitized = collector._sanitize_data(
-            {"list": [1, 2, 3], "object": Mock()}
-        )
+        sanitized = collector._sanitize_data({"list": [1, 2, 3], "object": Mock()})
 
         assert "list" not in sanitized
         assert "object" not in sanitized

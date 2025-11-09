@@ -122,7 +122,7 @@ class TestErrorUnderlines:
             severity=ErrorSeverity.ERROR,
             line=0,
             column=0,
-            length=5
+            length=5,
         )
 
         manager.errors = [error]
@@ -141,7 +141,7 @@ class TestErrorUnderlines:
                 severity=ErrorSeverity.ERROR,
                 line=0,
                 column=0,
-                length=5
+                length=5,
             ),
             SyntaxErrorModel(
                 code="W001",
@@ -149,7 +149,7 @@ class TestErrorUnderlines:
                 severity=ErrorSeverity.WARNING,
                 line=1,
                 column=0,
-                length=5
+                length=5,
             ),
         ]
 
@@ -175,7 +175,7 @@ class TestErrorNavigation:
                 severity=ErrorSeverity.ERROR,
                 line=0,
                 column=0,
-                length=6
+                length=6,
             ),
             SyntaxErrorModel(
                 code="E002",
@@ -183,7 +183,7 @@ class TestErrorNavigation:
                 severity=ErrorSeverity.ERROR,
                 line=2,
                 column=0,
-                length=6
+                length=6,
             ),
         ]
 
@@ -215,7 +215,7 @@ class TestErrorNavigation:
                 severity=ErrorSeverity.ERROR,
                 line=0,
                 column=0,
-                length=6
+                length=6,
             ),
             SyntaxErrorModel(
                 code="E002",
@@ -223,7 +223,7 @@ class TestErrorNavigation:
                 severity=ErrorSeverity.ERROR,
                 line=2,
                 column=0,
-                length=6
+                length=6,
             ),
         ]
 
@@ -250,7 +250,7 @@ class TestErrorNavigation:
                 severity=ErrorSeverity.ERROR,
                 line=0,
                 column=0,
-                length=6
+                length=6,
             ),
         ]
 
@@ -276,7 +276,7 @@ class TestErrorSignals:
                     severity=ErrorSeverity.ERROR,
                     line=0,
                     column=0,
-                    length=5
+                    length=5,
                 )
             ]
             manager.errors_changed.emit(len(manager.errors))
@@ -322,7 +322,7 @@ class TestGetErrors:
                 severity=ErrorSeverity.ERROR,
                 line=0,
                 column=0,
-                length=5
+                length=5,
             ),
             SyntaxErrorModel(
                 code="E002",
@@ -330,7 +330,7 @@ class TestGetErrors:
                 severity=ErrorSeverity.ERROR,
                 line=1,
                 column=0,
-                length=5
+                length=5,
             ),
         ]
 
@@ -350,7 +350,7 @@ class TestGetErrors:
                 severity=ErrorSeverity.ERROR,
                 line=0,
                 column=0,
-                length=5
+                length=5,
             ),
             SyntaxErrorModel(
                 code="W001",
@@ -358,7 +358,7 @@ class TestGetErrors:
                 severity=ErrorSeverity.WARNING,
                 line=1,
                 column=0,
-                length=5
+                length=5,
             ),
         ]
 

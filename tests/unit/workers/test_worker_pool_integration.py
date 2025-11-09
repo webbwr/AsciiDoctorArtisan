@@ -5,16 +5,17 @@ Tests the integration of OptimizedWorkerPool with WorkerManager and
 the new task types (RenderTask, ConversionTask, GitTask).
 """
 
-import pytest
 import time
 from pathlib import Path
 
+import pytest
+
 from asciidoc_artisan.workers import (
-    OptimizedWorkerPool,
-    TaskPriority,
-    RenderTask,
     ConversionTask,
     GitTask,
+    OptimizedWorkerPool,
+    RenderTask,
+    TaskPriority,
 )
 
 
@@ -184,6 +185,7 @@ class TestWorkerTasks:
 
     def test_render_task_creation(self):
         """Test creating a RenderTask."""
+
         # Mock AsciiDoc API
         class MockAsciiDocAPI:
             def execute(self, infile, outfile, backend=None):

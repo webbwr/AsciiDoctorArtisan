@@ -538,8 +538,7 @@ class InstallationValidatorDialog(QDialog):
 
         # Apply to results text
         self.results_text.setStyleSheet(
-            f"font-family: monospace; padding: 10px; "
-            f"background-color: {results_bg}; color: {results_text};"
+            f"font-family: monospace; padding: 10px; background-color: {results_bg}; color: {results_text};"
         )
 
         # Apply to buttons
@@ -548,8 +547,7 @@ class InstallationValidatorDialog(QDialog):
         )
 
         self.update_btn.setStyleSheet(
-            f"background-color: {update_btn_bg}; color: {update_btn_text}; "
-            f"font-weight: bold; padding: 8px;"
+            f"background-color: {update_btn_bg}; color: {update_btn_text}; font-weight: bold; padding: 8px;"
         )
 
         self.close_btn.setStyleSheet(

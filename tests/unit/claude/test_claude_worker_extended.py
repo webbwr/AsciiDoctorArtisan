@@ -5,10 +5,11 @@ This test suite covers remaining uncovered code paths in claude_worker.py
 to achieve 100% coverage (Phase 3 of test coverage push).
 """
 
-import pytest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import patch
 
-from asciidoc_artisan.claude import ClaudeWorker, ClaudeResult, ClaudeMessage
+import pytest
+
+from asciidoc_artisan.claude import ClaudeMessage, ClaudeResult, ClaudeWorker
 
 
 @pytest.mark.unit
@@ -100,7 +101,9 @@ class TestExecuteSendMessage:
             stop_reason="end_turn",
         )
 
-        with patch.object(worker.client, "send_message", return_value=mock_result) as mock_send:
+        with patch.object(
+            worker.client, "send_message", return_value=mock_result
+        ) as mock_send:
             worker._operation = "send_message"
             worker._current_message = "User message"
             worker._current_system = "System prompt"
@@ -135,7 +138,9 @@ class TestExecuteSendMessage:
             ClaudeMessage(role="assistant", content="Response"),
         ]
 
-        with patch.object(worker.client, "send_message", return_value=mock_result) as mock_send:
+        with patch.object(
+            worker.client, "send_message", return_value=mock_result
+        ) as mock_send:
             worker._operation = "send_message"
             worker._current_message = "Second message"
             worker._current_system = "System"
@@ -197,7 +202,9 @@ class TestExecuteTestConnection:
             stop_reason="end_turn",
         )
 
-        with patch.object(worker.client, "test_connection", return_value=mock_result) as mock_test:
+        with patch.object(
+            worker.client, "test_connection", return_value=mock_result
+        ) as mock_test:
             worker._operation = "test_connection"
 
             with qtbot.waitSignal(worker.connection_tested, timeout=5000) as blocker:
@@ -264,7 +271,9 @@ class TestExceptionHandlingInRun:
         worker = ClaudeWorker()
 
         with patch.object(
-            worker.client, "test_connection", side_effect=RuntimeError("Connection error")
+            worker.client,
+            "test_connection",
+            side_effect=RuntimeError("Connection error"),
         ):
             worker._operation = "test_connection"
 

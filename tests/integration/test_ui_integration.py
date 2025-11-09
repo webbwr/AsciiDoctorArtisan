@@ -26,16 +26,18 @@ class TestAsciiDocEditorUI:
         """Create AsciiDocEditor instance for testing with proper cleanup."""
         from unittest.mock import Mock
 
-        with patch(
-            "asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"
-        ), patch(
-            "asciidoc_artisan.claude.claude_client.Anthropic"
-        ) as mock_anthropic, patch(
-            "asciidoc_artisan.claude.claude_client.SecureCredentials"
-        ) as mock_creds:
+        with (
+            patch("asciidoc_artisan.ui.settings_manager.SettingsManager.load_settings"),
+            patch("asciidoc_artisan.claude.claude_client.Anthropic") as mock_anthropic,
+            patch(
+                "asciidoc_artisan.claude.claude_client.SecureCredentials"
+            ) as mock_creds,
+        ):
             # Setup mocks to prevent Claude API calls
             mock_creds_instance = Mock()
-            mock_creds_instance.get_anthropic_key.return_value = None  # No key = no API calls
+            mock_creds_instance.get_anthropic_key.return_value = (
+                None  # No key = no API calls
+            )
             mock_creds_instance.has_anthropic_key.return_value = False
             mock_creds.return_value = mock_creds_instance
 
@@ -44,7 +46,10 @@ class TestAsciiDocEditorUI:
             # Mock the prompt_save_before_action to prevent dialog during teardown
             def mock_prompt(*args, **kwargs):
                 return True  # Always proceed without showing dialog
-            monkeypatch.setattr(window.status_manager, "prompt_save_before_action", mock_prompt)
+
+            monkeypatch.setattr(
+                window.status_manager, "prompt_save_before_action", mock_prompt
+            )
 
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests

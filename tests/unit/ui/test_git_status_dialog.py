@@ -6,8 +6,6 @@ view of Git repository status (v1.9.0+).
 """
 
 import pytest
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication
 
 from asciidoc_artisan.ui.git_status_dialog import GitStatusDialog
 
@@ -88,8 +86,18 @@ class TestGitStatusDialogPopulation:
     def test_populate_modified_files(self, dialog):
         """Test populating modified files list."""
         modified_files = [
-            {"path": "file1.txt", "status": "M", "lines_added": "10", "lines_deleted": "5"},
-            {"path": "file2.txt", "status": "M", "lines_added": "3", "lines_deleted": "1"},
+            {
+                "path": "file1.txt",
+                "status": "M",
+                "lines_added": "10",
+                "lines_deleted": "5",
+            },
+            {
+                "path": "file2.txt",
+                "status": "M",
+                "lines_added": "3",
+                "lines_deleted": "1",
+            },
         ]
 
         dialog.populate_status("main", modified_files, [], [])
@@ -103,7 +111,12 @@ class TestGitStatusDialogPopulation:
     def test_populate_staged_files(self, dialog):
         """Test populating staged files list."""
         staged_files = [
-            {"path": "staged1.txt", "status": "A", "lines_added": "20", "lines_deleted": "8"},
+            {
+                "path": "staged1.txt",
+                "status": "A",
+                "lines_added": "20",
+                "lines_deleted": "8",
+            },
         ]
 
         dialog.populate_status("feature", [], staged_files, [])
@@ -133,8 +146,17 @@ class TestGitStatusDialogPopulation:
 
     def test_populate_all_categories(self, dialog):
         """Test populating all file categories at once."""
-        modified = [{"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
-        staged = [{"path": "stage.txt", "status": "A", "lines_added": "10", "lines_deleted": "0"}]
+        modified = [
+            {"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}
+        ]
+        staged = [
+            {
+                "path": "stage.txt",
+                "status": "A",
+                "lines_added": "10",
+                "lines_deleted": "0",
+            }
+        ]
         untracked = [{"path": "new.txt", "status": "?"}]
 
         dialog.populate_status("develop", modified, staged, untracked)
@@ -148,17 +170,36 @@ class TestGitStatusDialogPopulation:
         """Test that repopulating clears old data."""
         # First population
         modified1 = [
-            {"path": "file1.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"},
-            {"path": "file2.txt", "status": "M", "lines_added": "3", "lines_deleted": "1"},
+            {
+                "path": "file1.txt",
+                "status": "M",
+                "lines_added": "5",
+                "lines_deleted": "2",
+            },
+            {
+                "path": "file2.txt",
+                "status": "M",
+                "lines_added": "3",
+                "lines_deleted": "1",
+            },
         ]
         dialog.populate_status("main", modified1, [], [])
         assert dialog.modified_table.rowCount() == 2
 
         # Second population (fewer files)
-        modified2 = [{"path": "file3.txt", "status": "M", "lines_added": "1", "lines_deleted": "0"}]
+        modified2 = [
+            {
+                "path": "file3.txt",
+                "status": "M",
+                "lines_added": "1",
+                "lines_deleted": "0",
+            }
+        ]
         dialog.populate_status("main", modified2, [], [])
         assert dialog.modified_table.rowCount() == 1
-        assert dialog.modified_table.item(0, 1).text() == "file3.txt"  # Column 1 is File
+        assert (
+            dialog.modified_table.item(0, 1).text() == "file3.txt"
+        )  # Column 1 is File
 
 
 @pytest.mark.unit
@@ -247,7 +288,9 @@ class TestGitStatusDialogEdgeCases:
     def test_populate_with_very_long_file_path(self, dialog):
         """Test handling very long file paths."""
         long_path = "very/long/path/" + "subdir/" * 50 + "file.txt"
-        modified = [{"path": long_path, "status": "M", "lines_added": "5", "lines_deleted": "2"}]
+        modified = [
+            {"path": long_path, "status": "M", "lines_added": "5", "lines_deleted": "2"}
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -257,7 +300,14 @@ class TestGitStatusDialogEdgeCases:
     def test_populate_with_unicode_file_path(self, dialog):
         """Test handling Unicode characters in file paths."""
         unicode_path = "файл.txt"  # Russian
-        modified = [{"path": unicode_path, "status": "M", "lines_added": "1", "lines_deleted": "0"}]
+        modified = [
+            {
+                "path": unicode_path,
+                "status": "M",
+                "lines_added": "1",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -267,7 +317,14 @@ class TestGitStatusDialogEdgeCases:
     def test_populate_with_emoji_in_path(self, dialog):
         """Test handling emoji in file paths."""
         emoji_path = "test_🔥_file.txt"
-        modified = [{"path": emoji_path, "status": "M", "lines_added": "2", "lines_deleted": "1"}]
+        modified = [
+            {
+                "path": emoji_path,
+                "status": "M",
+                "lines_added": "2",
+                "lines_deleted": "1",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -277,7 +334,12 @@ class TestGitStatusDialogEdgeCases:
     def test_populate_with_many_files(self, dialog):
         """Test populating with many files (100)."""
         modified = [
-            {"path": f"file{i}.txt", "status": "M", "lines_added": f"{i}", "lines_deleted": "1"}
+            {
+                "path": f"file{i}.txt",
+                "status": "M",
+                "lines_added": f"{i}",
+                "lines_deleted": "1",
+            }
             for i in range(100)
         ]
 
@@ -287,7 +349,14 @@ class TestGitStatusDialogEdgeCases:
 
     def test_populate_with_deleted_status(self, dialog):
         """Test handling deleted file status."""
-        modified = [{"path": "deleted.txt", "status": "D", "lines_added": "0", "lines_deleted": "50"}]
+        modified = [
+            {
+                "path": "deleted.txt",
+                "status": "D",
+                "lines_added": "0",
+                "lines_deleted": "50",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -296,7 +365,14 @@ class TestGitStatusDialogEdgeCases:
 
     def test_populate_with_renamed_status(self, dialog):
         """Test handling renamed file status."""
-        staged = [{"path": "new_name.txt", "status": "R", "lines_added": "0", "lines_deleted": "0"}]
+        staged = [
+            {
+                "path": "new_name.txt",
+                "status": "R",
+                "lines_added": "0",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", [], staged, [])
 
@@ -305,7 +381,14 @@ class TestGitStatusDialogEdgeCases:
 
     def test_populate_with_copied_status(self, dialog):
         """Test handling copied file status."""
-        staged = [{"path": "copy.txt", "status": "C", "lines_added": "100", "lines_deleted": "0"}]
+        staged = [
+            {
+                "path": "copy.txt",
+                "status": "C",
+                "lines_added": "100",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", [], staged, [])
 
@@ -313,7 +396,14 @@ class TestGitStatusDialogEdgeCases:
 
     def test_populate_with_zero_line_changes(self, dialog):
         """Test handling files with no line changes."""
-        modified = [{"path": "unchanged.txt", "status": "M", "lines_added": "0", "lines_deleted": "0"}]
+        modified = [
+            {
+                "path": "unchanged.txt",
+                "status": "M",
+                "lines_added": "0",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -321,7 +411,14 @@ class TestGitStatusDialogEdgeCases:
 
     def test_populate_with_large_line_changes(self, dialog):
         """Test handling files with large line changes."""
-        modified = [{"path": "huge.txt", "status": "M", "lines_added": "99999", "lines_deleted": "88888"}]
+        modified = [
+            {
+                "path": "huge.txt",
+                "status": "M",
+                "lines_added": "99999",
+                "lines_deleted": "88888",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -378,7 +475,15 @@ class TestGitStatusDialogMultiplePopulations:
 
     def test_populate_from_many_to_empty(self, dialog):
         """Test populating from many files to empty."""
-        modified = [{"path": f"file{i}.txt", "status": "M", "lines_added": "1", "lines_deleted": "0"} for i in range(10)]
+        modified = [
+            {
+                "path": f"file{i}.txt",
+                "status": "M",
+                "lines_added": "1",
+                "lines_deleted": "0",
+            }
+            for i in range(10)
+        ]
         dialog.populate_status("main", modified, [], [])
         assert dialog.modified_table.rowCount() == 10
 
@@ -388,13 +493,27 @@ class TestGitStatusDialogMultiplePopulations:
     def test_populate_switching_categories(self, dialog):
         """Test switching files between categories."""
         # First: files in modified
-        modified = [{"path": "file.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
+        modified = [
+            {
+                "path": "file.txt",
+                "status": "M",
+                "lines_added": "5",
+                "lines_deleted": "2",
+            }
+        ]
         dialog.populate_status("main", modified, [], [])
         assert dialog.modified_table.rowCount() == 1
         assert dialog.staged_table.rowCount() == 0
 
         # Second: same file now staged
-        staged = [{"path": "file.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
+        staged = [
+            {
+                "path": "file.txt",
+                "status": "M",
+                "lines_added": "5",
+                "lines_deleted": "2",
+            }
+        ]
         dialog.populate_status("main", [], staged, [])
         assert dialog.modified_table.rowCount() == 0
         assert dialog.staged_table.rowCount() == 1
@@ -407,8 +526,18 @@ class TestGitStatusDialogTableInteraction:
     def test_select_row_in_modified_table(self, dialog):
         """Test selecting a row in modified table."""
         modified = [
-            {"path": "file1.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"},
-            {"path": "file2.txt", "status": "M", "lines_added": "3", "lines_deleted": "1"},
+            {
+                "path": "file1.txt",
+                "status": "M",
+                "lines_added": "5",
+                "lines_deleted": "2",
+            },
+            {
+                "path": "file2.txt",
+                "status": "M",
+                "lines_added": "3",
+                "lines_deleted": "1",
+            },
         ]
         dialog.populate_status("main", modified, [], [])
 
@@ -418,8 +547,17 @@ class TestGitStatusDialogTableInteraction:
     def test_click_different_tabs(self, dialog):
         """Test clicking through all tabs."""
         # Populate all tabs
-        modified = [{"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
-        staged = [{"path": "stage.txt", "status": "A", "lines_added": "10", "lines_deleted": "0"}]
+        modified = [
+            {"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}
+        ]
+        staged = [
+            {
+                "path": "stage.txt",
+                "status": "A",
+                "lines_added": "10",
+                "lines_deleted": "0",
+            }
+        ]
         untracked = [{"path": "new.txt", "status": "?"}]
         dialog.populate_status("main", modified, staged, untracked)
 
@@ -510,7 +648,14 @@ class TestGitStatusDialogStatusMapping:
 
     def test_unknown_status_code(self, dialog):
         """Test handling unknown status code."""
-        modified = [{"path": "file.txt", "status": "X", "lines_added": "1", "lines_deleted": "0"}]
+        modified = [
+            {
+                "path": "file.txt",
+                "status": "X",
+                "lines_added": "1",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -519,7 +664,14 @@ class TestGitStatusDialogStatusMapping:
 
     def test_lowercase_status_code(self, dialog):
         """Test handling lowercase status code."""
-        modified = [{"path": "file.txt", "status": "m", "lines_added": "1", "lines_deleted": "0"}]
+        modified = [
+            {
+                "path": "file.txt",
+                "status": "m",
+                "lines_added": "1",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -532,8 +684,17 @@ class TestGitStatusDialogDataIntegrity:
 
     def test_data_persists_after_tab_switch(self, dialog):
         """Test data persists when switching tabs."""
-        modified = [{"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
-        staged = [{"path": "stage.txt", "status": "A", "lines_added": "10", "lines_deleted": "0"}]
+        modified = [
+            {"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}
+        ]
+        staged = [
+            {
+                "path": "stage.txt",
+                "status": "A",
+                "lines_added": "10",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", modified, staged, [])
 
@@ -564,7 +725,14 @@ class TestGitStatusDialogSpecialCases:
 
     def test_file_path_with_spaces(self, dialog):
         """Test file path containing spaces."""
-        modified = [{"path": "my file.txt", "status": "M", "lines_added": "1", "lines_deleted": "0"}]
+        modified = [
+            {
+                "path": "my file.txt",
+                "status": "M",
+                "lines_added": "1",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -572,7 +740,14 @@ class TestGitStatusDialogSpecialCases:
 
     def test_file_path_with_special_chars(self, dialog):
         """Test file path with special characters."""
-        modified = [{"path": "file-@#$%.txt", "status": "M", "lines_added": "1", "lines_deleted": "0"}]
+        modified = [
+            {
+                "path": "file-@#$%.txt",
+                "status": "M",
+                "lines_added": "1",
+                "lines_deleted": "0",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -580,7 +755,14 @@ class TestGitStatusDialogSpecialCases:
 
     def test_negative_line_counts(self, dialog):
         """Test handling negative line counts (shouldn't happen but test robustness)."""
-        modified = [{"path": "file.txt", "status": "M", "lines_added": "-5", "lines_deleted": "-2"}]
+        modified = [
+            {
+                "path": "file.txt",
+                "status": "M",
+                "lines_added": "-5",
+                "lines_deleted": "-2",
+            }
+        ]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -589,7 +771,14 @@ class TestGitStatusDialogSpecialCases:
 
     def test_non_numeric_line_counts(self, dialog):
         """Test handling non-numeric line counts."""
-        modified = [{"path": "file.txt", "status": "M", "lines_added": "N/A", "lines_deleted": "N/A"}]
+        modified = [
+            {
+                "path": "file.txt",
+                "status": "M",
+                "lines_added": "N/A",
+                "lines_deleted": "N/A",
+            }
+        ]
 
         # Current implementation may not handle non-numeric values gracefully
         try:

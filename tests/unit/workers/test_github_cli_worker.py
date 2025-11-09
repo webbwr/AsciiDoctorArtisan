@@ -10,7 +10,6 @@ import subprocess
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6.QtCore import QThread
 
 from asciidoc_artisan.core import GitHubResult
 from asciidoc_artisan.workers import GitHubCLIWorker
@@ -99,7 +98,10 @@ class TestGitHubCLIWorkerCommands:
         # Verify
         assert result is not None
         assert result.success is False
-        assert "not authenticated" in result.error or "not authenticated" in result.user_message.lower()
+        assert (
+            "not authenticated" in result.error
+            or "not authenticated" in result.user_message.lower()
+        )
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_gh_command_timeout(self, mock_run, github_worker):
@@ -121,7 +123,10 @@ class TestGitHubCLIWorkerCommands:
         # Verify timeout handled gracefully
         assert result is not None
         assert result.success is False
-        assert "timeout" in result.user_message.lower() or "timed out" in result.user_message.lower()
+        assert (
+            "timeout" in result.user_message.lower()
+            or "timed out" in result.user_message.lower()
+        )
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_gh_not_installed(self, mock_run, github_worker):
@@ -143,7 +148,10 @@ class TestGitHubCLIWorkerCommands:
         # Verify
         assert result is not None
         assert result.success is False
-        assert "not found" in result.user_message.lower() or "not installed" in result.user_message.lower()
+        assert (
+            "not found" in result.user_message.lower()
+            or "not installed" in result.user_message.lower()
+        )
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_json_parsing_success(self, mock_run, github_worker):
@@ -164,7 +172,9 @@ class TestGitHubCLIWorkerCommands:
         github_worker.github_result_ready.connect(capture_result)
 
         # Execute
-        github_worker.run_gh_command(["gh", "pr", "view", "42", "--json", "number,title,state"])
+        github_worker.run_gh_command(
+            ["gh", "pr", "view", "42", "--json", "number,title,state"]
+        )
 
         # Verify
         assert result is not None
@@ -226,10 +236,7 @@ class TestGitHubCLIWorkerPullRequests:
 
         # Execute
         github_worker.create_pull_request(
-            title="Test PR",
-            body="Test description",
-            base="main",
-            head="feature-branch"
+            title="Test PR", body="Test description", base="main", head="feature-branch"
         )
 
         # Verify
@@ -244,10 +251,12 @@ class TestGitHubCLIWorkerPullRequests:
         # Setup mock
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout=json.dumps([
-                {"number": 42, "title": "PR 1", "state": "open"},
-                {"number": 41, "title": "PR 2", "state": "open"}
-            ]),
+            stdout=json.dumps(
+                [
+                    {"number": 42, "title": "PR 1", "state": "open"},
+                    {"number": 41, "title": "PR 2", "state": "open"},
+                ]
+            ),
             stderr="",
         )
 
@@ -274,11 +283,13 @@ class TestGitHubCLIWorkerPullRequests:
         """Test listing all pull requests regardless of state."""
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout=json.dumps([
-                {"number": 42, "title": "Open PR", "state": "open"},
-                {"number": 41, "title": "Closed PR", "state": "closed"},
-                {"number": 40, "title": "Merged PR", "state": "merged"}
-            ]),
+            stdout=json.dumps(
+                [
+                    {"number": 42, "title": "Open PR", "state": "open"},
+                    {"number": 41, "title": "Closed PR", "state": "closed"},
+                    {"number": 40, "title": "Merged PR", "state": "merged"},
+                ]
+            ),
             stderr="",
         )
 
@@ -322,10 +333,7 @@ class TestGitHubCLIWorkerIssues:
         github_worker.github_result_ready.connect(capture_result)
 
         # Execute
-        github_worker.create_issue(
-            title="Bug report",
-            body="Something is broken"
-        )
+        github_worker.create_issue(title="Bug report", body="Something is broken")
 
         # Verify
         assert result is not None
@@ -339,10 +347,12 @@ class TestGitHubCLIWorkerIssues:
         # Setup mock
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout=json.dumps([
-                {"number": 15, "title": "Issue 1", "state": "open"},
-                {"number": 14, "title": "Issue 2", "state": "open"}
-            ]),
+            stdout=json.dumps(
+                [
+                    {"number": 15, "title": "Issue 1", "state": "open"},
+                    {"number": 14, "title": "Issue 2", "state": "open"},
+                ]
+            ),
             stderr="",
         )
 
@@ -368,9 +378,9 @@ class TestGitHubCLIWorkerIssues:
         """Test listing closed issues."""
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout=json.dumps([
-                {"number": 13, "title": "Fixed issue", "state": "closed"}
-            ]),
+            stdout=json.dumps(
+                [{"number": 13, "title": "Fixed issue", "state": "closed"}]
+            ),
             stderr="",
         )
 
@@ -402,16 +412,18 @@ class TestGitHubCLIWorkerRepository:
         # Setup mock
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout=json.dumps({
-                "name": "AsciiDoctorArtisan",
-                "nameWithOwner": "user/AsciiDoctorArtisan",
-                "description": "AsciiDoc editor",
-                "stargazerCount": 42,
-                "forkCount": 10,
-                "defaultBranchRef": {"name": "main"},
-                "visibility": "PUBLIC",
-                "url": "https://github.com/user/AsciiDoctorArtisan"
-            }),
+            stdout=json.dumps(
+                {
+                    "name": "AsciiDoctorArtisan",
+                    "nameWithOwner": "user/AsciiDoctorArtisan",
+                    "description": "AsciiDoc editor",
+                    "stargazerCount": 42,
+                    "forkCount": 10,
+                    "defaultBranchRef": {"name": "main"},
+                    "visibility": "PUBLIC",
+                    "url": "https://github.com/user/AsciiDoctorArtisan",
+                }
+            ),
             stderr="",
         )
 
@@ -511,7 +523,7 @@ class TestGitHubResult:
             data={"number": 42, "url": "https://github.com/..."},
             error="",
             user_message="PR created successfully",
-            operation="pr_create"
+            operation="pr_create",
         )
 
         assert result.success is True
@@ -526,7 +538,7 @@ class TestGitHubResult:
             data=None,
             error="Not authenticated",
             user_message="Please authenticate with 'gh auth login'",
-            operation="pr_list"
+            operation="pr_list",
         )
 
         assert result.success is False

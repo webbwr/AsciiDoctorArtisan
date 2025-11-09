@@ -16,14 +16,14 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from asciidoc_artisan.core.secure_credentials import SecureCredentials, SecurityAudit
+from asciidoc_artisan.core.secure_credentials import SecureCredentials
 
 
 def setup_logging():
     """Configure logging to show audit entries clearly."""
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
 
@@ -68,7 +68,9 @@ def demo_verify_deletion(creds):
     """Verify the key was deleted."""
     print_section("5. VERIFYING DELETION")
     exists = creds.has_api_key("demo_service")
-    print(f"Result: {'✗ Key still exists (ERROR)' if exists else '✓ Key successfully removed'}")
+    print(
+        f"Result: {'✗ Key still exists (ERROR)' if exists else '✓ Key successfully removed'}"
+    )
 
 
 def demo_nonexistent_key(creds):

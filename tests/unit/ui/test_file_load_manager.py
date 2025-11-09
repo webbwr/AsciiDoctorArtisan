@@ -1,9 +1,10 @@
 """Tests for ui.file_load_manager module."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
-from PySide6.QtWidgets import QProgressDialog, QPlainTextEdit, QStatusBar
+from unittest.mock import Mock, patch
+
+import pytest
+from PySide6.QtWidgets import QPlainTextEdit, QProgressDialog, QStatusBar
 
 
 @pytest.fixture
@@ -23,7 +24,9 @@ def mock_editor(qapp):
 
     # Mock showMessage to track calls
     editor.status_bar._original_showMessage = editor.status_bar.showMessage
-    editor.status_bar.showMessage = Mock(side_effect=editor.status_bar._original_showMessage)
+    editor.status_bar.showMessage = Mock(
+        side_effect=editor.status_bar._original_showMessage
+    )
 
     # Status manager
     editor.status_manager = Mock()
@@ -50,20 +53,24 @@ class TestFileLoadManagerBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         assert FileLoadManager is not None
 
     def test_creation(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
         assert manager is not None
 
     def test_stores_editor_reference(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
         assert manager.editor == mock_editor
 
     def test_has_load_methods(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
         assert hasattr(manager, "load_content_into_editor")
         assert hasattr(manager, "on_file_load_progress")
@@ -77,6 +84,7 @@ class TestLoadContentIntoEditor:
 
     def test_sets_is_opening_file_flag(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "= Test Document"
@@ -89,6 +97,7 @@ class TestLoadContentIntoEditor:
 
     def test_sets_editor_content(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "= Test Document"
@@ -101,6 +110,7 @@ class TestLoadContentIntoEditor:
 
     def test_updates_current_file_path(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "= Test Document"
@@ -113,6 +123,7 @@ class TestLoadContentIntoEditor:
 
     def test_clears_unsaved_changes_flag(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         mock_editor._unsaved_changes = True
@@ -126,6 +137,7 @@ class TestLoadContentIntoEditor:
 
     def test_updates_window_title(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "= Test Document"
@@ -138,6 +150,7 @@ class TestLoadContentIntoEditor:
 
     def test_updates_document_metrics(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "= Test Document"
@@ -150,6 +163,7 @@ class TestLoadContentIntoEditor:
 
     def test_shows_status_message_for_native_file(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "= Test Document"
@@ -164,6 +178,7 @@ class TestLoadContentIntoEditor:
 
     def test_shows_converted_message_for_markdown(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "# Test Document"
@@ -178,6 +193,7 @@ class TestLoadContentIntoEditor:
 
     def test_shows_converted_message_for_docx(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "Test Document Content"
@@ -191,6 +207,7 @@ class TestLoadContentIntoEditor:
 
     def test_triggers_preview_update(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         content = "= Test Document"
@@ -203,6 +220,7 @@ class TestLoadContentIntoEditor:
 
     def test_clears_flag_even_if_error_occurs(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         # Make setPlainText raise an error
@@ -227,6 +245,7 @@ class TestLargeFileHandling:
     @patch("asciidoc_artisan.ui.file_load_manager.LARGE_FILE_THRESHOLD_BYTES", 100)
     def test_detects_large_file(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         # Content larger than threshold (100 bytes)
@@ -241,6 +260,7 @@ class TestLargeFileHandling:
     @patch("asciidoc_artisan.ui.file_load_manager.LARGE_FILE_THRESHOLD_BYTES", 100)
     def test_handles_small_file_normally(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         # Content smaller than threshold (100 bytes)
@@ -259,6 +279,7 @@ class TestProgressTracking:
 
     def test_creates_progress_dialog_on_first_update(self, mock_editor, qapp):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         manager.on_file_load_progress(50, "Loading...")
@@ -269,6 +290,7 @@ class TestProgressTracking:
 
     def test_does_not_create_dialog_at_zero_percent(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         manager.on_file_load_progress(0, "Starting...")
@@ -278,6 +300,7 @@ class TestProgressTracking:
 
     def test_does_not_create_dialog_at_hundred_percent(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         manager.on_file_load_progress(100, "Complete")
@@ -287,6 +310,7 @@ class TestProgressTracking:
 
     def test_updates_existing_progress_dialog(self, mock_editor, qapp):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         # First update creates dialog
@@ -299,6 +323,7 @@ class TestProgressTracking:
 
     def test_closes_progress_dialog_on_completion(self, mock_editor, qapp):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         # Create dialog
@@ -313,6 +338,7 @@ class TestProgressTracking:
 
     def test_shows_status_bar_message_on_completion(self, mock_editor, qapp):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         # Create dialog first
@@ -322,10 +348,13 @@ class TestProgressTracking:
         manager.on_file_load_progress(100, "File loaded successfully")
 
         # Should show status bar message
-        mock_editor.status_bar.showMessage.assert_called_with("File loaded successfully", 3000)
+        mock_editor.status_bar.showMessage.assert_called_with(
+            "File loaded successfully", 3000
+        )
 
     def test_shows_status_bar_message_for_initial_progress(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         manager.on_file_load_progress(0, "Starting load...")
@@ -335,6 +364,7 @@ class TestProgressTracking:
 
     def test_progress_dialog_has_no_cancel_button(self, mock_editor, qapp):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         manager.on_file_load_progress(50, "Loading...")
@@ -348,19 +378,23 @@ class TestProgressTracking:
 class TestConvertedFormats:
     """Test suite for converted format detection."""
 
-    @pytest.mark.parametrize("extension,content", [
-        (".md", "# Markdown"),
-        (".markdown", "# Markdown"),
-        (".docx", "DOCX content"),
-        (".html", "<h1>HTML</h1>"),
-        (".htm", "<h1>HTML</h1>"),
-        (".tex", "\\section{LaTeX}"),
-        (".rst", "reStructuredText"),
-        (".org", "* Org Mode"),
-        (".textile", "h1. Textile"),
-    ])
+    @pytest.mark.parametrize(
+        "extension,content",
+        [
+            (".md", "# Markdown"),
+            (".markdown", "# Markdown"),
+            (".docx", "DOCX content"),
+            (".html", "<h1>HTML</h1>"),
+            (".htm", "<h1>HTML</h1>"),
+            (".tex", "\\section{LaTeX}"),
+            (".rst", "reStructuredText"),
+            (".org", "* Org Mode"),
+            (".textile", "h1. Textile"),
+        ],
+    )
     def test_shows_converted_message_for_format(self, mock_editor, extension, content):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager
+
         manager = FileLoadManager(mock_editor)
 
         file_path = Path(f"/tmp/test{extension}")

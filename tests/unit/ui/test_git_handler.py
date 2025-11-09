@@ -1,10 +1,11 @@
 """Tests for ui.git_handler module."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
-from PySide6.QtWidgets import QMainWindow, QStatusBar
 import subprocess
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
+from PySide6.QtWidgets import QMainWindow, QStatusBar
 
 
 @pytest.fixture
@@ -39,19 +40,26 @@ class TestGitHandler:
 
     def test_import(self):
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         assert GitHandler is not None
 
     def test_creation(self, main_window, mock_managers):
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
         handler = GitHandler(main_window, settings_manager, status_manager)
         assert handler is not None
 
     def test_has_git_methods(self, main_window, mock_managers):
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
         handler = GitHandler(main_window, settings_manager, status_manager)
-        git_methods = [m for m in dir(handler) if any(x in m.lower() for x in ["commit", "push", "pull", "git"])]
+        git_methods = [
+            m
+            for m in dir(handler)
+            if any(x in m.lower() for x in ["commit", "push", "pull", "git"])
+        ]
         assert len(git_methods) > 0
 
     # Initialization Tests
@@ -59,13 +67,14 @@ class TestGitHandler:
     def test_initialize_with_valid_repo(self, main_window, mock_managers):
         """Test initialization with valid Git repository."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         # Set up valid repo path
         settings = settings_manager.load_settings.return_value
         settings.git_repo_path = "/home/user/repo"
 
-        with patch.object(Path, 'is_dir', return_value=True):
+        with patch.object(Path, "is_dir", return_value=True):
             handler = GitHandler(main_window, settings_manager, status_manager)
             handler.initialize()
 
@@ -75,6 +84,7 @@ class TestGitHandler:
     def test_initialize_without_repo(self, main_window, mock_managers):
         """Test initialization without configured repository."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         # No repo configured
@@ -92,6 +102,7 @@ class TestGitHandler:
     def test_get_repository_path_set(self, main_window, mock_managers):
         """Test getting repository path when set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -105,6 +116,7 @@ class TestGitHandler:
     def test_get_repository_path_not_set(self, main_window, mock_managers):
         """Test getting repository path when not set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -118,6 +130,7 @@ class TestGitHandler:
     def test_is_repository_set_true(self, main_window, mock_managers):
         """Test is_repository_set returns True when repo is set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -130,6 +143,7 @@ class TestGitHandler:
     def test_is_repository_set_false(self, main_window, mock_managers):
         """Test is_repository_set returns False when repo not set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -144,6 +158,7 @@ class TestGitHandler:
     def test_commit_changes_no_repo(self, main_window, mock_managers):
         """Test commit_changes shows message when no repo set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -158,6 +173,7 @@ class TestGitHandler:
     def test_pull_changes(self, main_window, mock_managers):
         """Test pull_changes triggers Git pull."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -178,6 +194,7 @@ class TestGitHandler:
     def test_push_changes(self, main_window, mock_managers):
         """Test push_changes triggers Git push."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -198,6 +215,7 @@ class TestGitHandler:
     def test_quick_commit(self, main_window, mock_managers):
         """Test quick_commit with inline message (v1.9.0)."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -221,6 +239,7 @@ class TestGitHandler:
     def test_quick_commit_empty_message(self, main_window, mock_managers):
         """Test quick_commit with empty message does nothing."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -237,6 +256,7 @@ class TestGitHandler:
     def test_is_busy_true(self, main_window, mock_managers):
         """Test is_busy returns True during operation."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -247,6 +267,7 @@ class TestGitHandler:
     def test_is_busy_false(self, main_window, mock_managers):
         """Test is_busy returns False when idle."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -258,8 +279,9 @@ class TestGitHandler:
 
     def test_handle_git_result_commit_staging_success(self, main_window, mock_managers):
         """Test handling successful git add (staging for commit)."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -287,8 +309,9 @@ class TestGitHandler:
 
     def test_handle_git_result_final_success(self, main_window, mock_managers):
         """Test handling final operation success."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -318,8 +341,9 @@ class TestGitHandler:
 
     def test_handle_git_result_failure(self, main_window, mock_managers):
         """Test handling operation failure."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -349,10 +373,11 @@ class TestGitHandler:
 
     # Branch Info Tests
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_get_current_branch_success(self, mock_run, main_window, mock_managers):
         """Test getting current branch name."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -366,10 +391,13 @@ class TestGitHandler:
 
         assert branch == "main"
 
-    @patch('subprocess.run')
-    def test_get_current_branch_detached_head(self, mock_run, main_window, mock_managers):
+    @patch("subprocess.run")
+    def test_get_current_branch_detached_head(
+        self, mock_run, main_window, mock_managers
+    ):
         """Test getting branch name for detached HEAD."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -390,6 +418,7 @@ class TestGitHandler:
     def test_get_current_branch_no_repo(self, main_window, mock_managers):
         """Test getting branch when no repo is set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -405,6 +434,7 @@ class TestGitHandler:
     def test_start_status_refresh(self, main_window, mock_managers):
         """Test starting periodic Git status refresh."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -420,6 +450,7 @@ class TestGitHandler:
     def test_stop_status_refresh(self, main_window, mock_managers):
         """Test stopping periodic Git status refresh."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -438,6 +469,7 @@ class TestGitHandler:
     def test_refresh_git_status(self, main_window, mock_managers):
         """Test requesting Git status update."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -452,6 +484,7 @@ class TestGitHandler:
     def test_refresh_git_status_while_busy(self, main_window, mock_managers):
         """Test status refresh skipped when Git operation in progress."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -470,10 +503,13 @@ class TestGitHandler:
 class TestRepositorySelection:
     """Test suite for select_repository() method."""
 
-    @patch('asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory')
-    def test_select_repository_user_cancels_dialog(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory")
+    def test_select_repository_user_cancels_dialog(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test select_repository when user cancels dialog."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         # User cancels dialog (returns empty string)
@@ -485,16 +521,19 @@ class TestRepositorySelection:
         # Should not save or update UI
         settings_manager.save_settings.assert_not_called()
 
-    @patch('asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory')
-    def test_select_repository_not_a_git_repo_shows_warning(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory")
+    def test_select_repository_not_a_git_repo_shows_warning(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test select_repository with non-Git directory."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         # User selects directory without .git
         mock_dialog.return_value = "/home/user/not-a-repo"
 
-        with patch.object(Path, 'is_dir', return_value=False):
+        with patch.object(Path, "is_dir", return_value=False):
             handler = GitHandler(main_window, settings_manager, status_manager)
             handler.select_repository()
 
@@ -504,10 +543,13 @@ class TestRepositorySelection:
         assert call_args[0] == "warning"
         assert "Not a Git Repository" in call_args[1]
 
-    @patch('asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory')
-    def test_select_repository_valid_repo_saves_to_settings(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory")
+    def test_select_repository_valid_repo_saves_to_settings(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test select_repository with valid Git repository."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         # User selects valid Git repo
@@ -515,7 +557,7 @@ class TestRepositorySelection:
 
         settings = settings_manager.load_settings.return_value
 
-        with patch.object(Path, 'is_dir', return_value=True):
+        with patch.object(Path, "is_dir", return_value=True):
             handler = GitHandler(main_window, settings_manager, status_manager)
             handler.select_repository()
 
@@ -523,10 +565,13 @@ class TestRepositorySelection:
         assert settings.git_repo_path == "/home/user/valid-repo"
         settings_manager.save_settings.assert_called_once()
 
-    @patch('asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory')
-    def test_select_repository_updates_ui_state(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory")
+    def test_select_repository_updates_ui_state(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test select_repository updates UI state."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         mock_dialog.return_value = "/home/user/valid-repo"
@@ -534,38 +579,44 @@ class TestRepositorySelection:
         # Add _update_ui_state method to window
         main_window._update_ui_state = Mock()
 
-        with patch.object(Path, 'is_dir', return_value=True):
+        with patch.object(Path, "is_dir", return_value=True):
             handler = GitHandler(main_window, settings_manager, status_manager)
             handler.select_repository()
 
         # Should call _update_ui_state
         main_window._update_ui_state.assert_called_once()
 
-    @patch('asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory')
-    def test_select_repository_shows_status_message(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory")
+    def test_select_repository_shows_status_message(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test select_repository shows status bar message."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         mock_dialog.return_value = "/home/user/valid-repo"
 
-        with patch.object(Path, 'is_dir', return_value=True):
+        with patch.object(Path, "is_dir", return_value=True):
             handler = GitHandler(main_window, settings_manager, status_manager)
             handler.select_repository()
 
         # Should show status message (status_bar exists in fixture)
         # Note: Real QStatusBar.showMessage was called, can't assert on mock
 
-    @patch('asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory')
-    def test_select_repository_uses_last_directory_as_start_dir(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QFileDialog.getExistingDirectory")
+    def test_select_repository_uses_last_directory_as_start_dir(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test select_repository uses settings.last_directory when git_repo_path not set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
         # Don't set git_repo_path attribute at all (not even to None)
-        if hasattr(settings, 'git_repo_path'):
-            delattr(settings, 'git_repo_path')
+        if hasattr(settings, "git_repo_path"):
+            delattr(settings, "git_repo_path")
         settings.last_directory = "/home/user/documents"
 
         mock_dialog.return_value = ""  # User cancels
@@ -583,10 +634,13 @@ class TestRepositorySelection:
 class TestCommitWithUnsavedChanges:
     """Test suite for commit_changes() with unsaved file handling."""
 
-    @patch('asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText')
-    def test_commit_changes_auto_saves_unsaved_changes(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText")
+    def test_commit_changes_auto_saves_unsaved_changes(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test commit_changes auto-saves file before commit."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -609,10 +663,13 @@ class TestCommitWithUnsavedChanges:
         # Should call save_file
         main_window.save_file.assert_called_once()
 
-    @patch('asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText')
-    def test_commit_changes_aborts_if_save_fails(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText")
+    def test_commit_changes_aborts_if_save_fails(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test commit_changes aborts if save fails."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -630,10 +687,13 @@ class TestCommitWithUnsavedChanges:
         # Should NOT emit git command
         main_window.request_git_command.emit.assert_not_called()
 
-    @patch('asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText')
-    def test_commit_changes_user_cancels_dialog(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText")
+    def test_commit_changes_user_cancels_dialog(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test commit_changes when user cancels dialog."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -648,10 +708,13 @@ class TestCommitWithUnsavedChanges:
         # Should NOT emit git command
         main_window.request_git_command.emit.assert_not_called()
 
-    @patch('asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText')
-    def test_commit_changes_user_enters_empty_message(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText")
+    def test_commit_changes_user_enters_empty_message(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test commit_changes with empty message does nothing."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -666,10 +729,13 @@ class TestCommitWithUnsavedChanges:
         # Should NOT emit git command
         main_window.request_git_command.emit.assert_not_called()
 
-    @patch('asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText')
-    def test_commit_changes_full_flow_with_message(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText")
+    def test_commit_changes_full_flow_with_message(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test full commit flow with valid message."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -698,6 +764,7 @@ class TestQuickCommitEdgeCases:
     def test_quick_commit_no_repo_shows_message(self, main_window, mock_managers):
         """Test quick_commit with no repo shows message."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -709,9 +776,12 @@ class TestQuickCommitEdgeCases:
         # Should show message to user
         status_manager.show_message.assert_called_once()
 
-    def test_quick_commit_whitespace_only_message_ignored(self, main_window, mock_managers):
+    def test_quick_commit_whitespace_only_message_ignored(
+        self, main_window, mock_managers
+    ):
         """Test quick_commit with whitespace-only message does nothing."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -723,9 +793,12 @@ class TestQuickCommitEdgeCases:
         # Should NOT emit git command
         main_window.request_git_command.emit.assert_not_called()
 
-    def test_quick_commit_sets_last_operation_to_commit(self, main_window, mock_managers):
+    def test_quick_commit_sets_last_operation_to_commit(
+        self, main_window, mock_managers
+    ):
         """Test quick_commit sets last_operation correctly."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -743,6 +816,7 @@ class TestQuickCommitEdgeCases:
     def test_quick_commit_emits_quick_commit_signal(self, main_window, mock_managers):
         """Test quick_commit emits git_operation_started with 'quick_commit'."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -759,6 +833,7 @@ class TestQuickCommitEdgeCases:
     def test_quick_commit_updates_ui_state(self, main_window, mock_managers):
         """Test quick_commit calls _update_ui_state."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -780,10 +855,13 @@ class TestQuickCommitEdgeCases:
 class TestResultHandlingMultiStep:
     """Test suite for multi-step result handling (commit staging)."""
 
-    def test_handle_result_commit_stage_failure_shows_error(self, main_window, mock_managers):
+    def test_handle_result_commit_stage_failure_shows_error(
+        self, main_window, mock_managers
+    ):
         """Test handling git add failure."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -809,10 +887,13 @@ class TestResultHandlingMultiStep:
         status_manager.show_message.assert_called()
         assert status_manager.show_message.call_args[0][0] == "critical"
 
-    def test_handle_result_commit_stage_success_triggers_commit(self, main_window, mock_managers):
+    def test_handle_result_commit_stage_success_triggers_commit(
+        self, main_window, mock_managers
+    ):
         """Test successful staging triggers commit step."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -842,10 +923,13 @@ class TestResultHandlingMultiStep:
         # Should update last_operation to commit_final
         assert handler.last_operation == "commit_final"
 
-    def test_handle_result_commit_final_success_clears_message(self, main_window, mock_managers):
+    def test_handle_result_commit_final_success_clears_message(
+        self, main_window, mock_managers
+    ):
         """Test successful final commit clears pending_commit_message."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -871,10 +955,13 @@ class TestResultHandlingMultiStep:
         # Should clear last_operation
         assert handler.last_operation == ""
 
-    def test_handle_result_commit_final_failure_clears_message(self, main_window, mock_managers):
+    def test_handle_result_commit_final_failure_clears_message(
+        self, main_window, mock_managers
+    ):
         """Test failed final commit clears pending_commit_message."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -898,10 +985,13 @@ class TestResultHandlingMultiStep:
         # Should clear pending message even on failure
         assert handler.pending_commit_message is None
 
-    def test_handle_result_push_success_emits_completed_signal(self, main_window, mock_managers):
+    def test_handle_result_push_success_emits_completed_signal(
+        self, main_window, mock_managers
+    ):
         """Test successful push emits git_operation_completed signal."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -925,10 +1015,13 @@ class TestResultHandlingMultiStep:
         handler.git_operation_completed.emit.assert_called_once()
         assert handler.git_operation_completed.emit.call_args[0][0] is True
 
-    def test_handle_result_pull_failure_emits_completed_signal(self, main_window, mock_managers):
+    def test_handle_result_pull_failure_emits_completed_signal(
+        self, main_window, mock_managers
+    ):
         """Test failed pull emits git_operation_completed signal."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -957,10 +1050,13 @@ class TestResultHandlingMultiStep:
 class TestBranchNameQueryErrors:
     """Test suite for get_current_branch() error handling."""
 
-    @patch('subprocess.run')
-    def test_get_current_branch_subprocess_timeout(self, mock_run, main_window, mock_managers):
+    @patch("subprocess.run")
+    def test_get_current_branch_subprocess_timeout(
+        self, mock_run, main_window, mock_managers
+    ):
         """Test get_current_branch handles subprocess timeout."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -975,10 +1071,13 @@ class TestBranchNameQueryErrors:
         # Should return empty string on timeout
         assert branch == ""
 
-    @patch('subprocess.run')
-    def test_get_current_branch_git_not_found(self, mock_run, main_window, mock_managers):
+    @patch("subprocess.run")
+    def test_get_current_branch_git_not_found(
+        self, mock_run, main_window, mock_managers
+    ):
         """Test get_current_branch handles git not installed."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -993,10 +1092,13 @@ class TestBranchNameQueryErrors:
         # Should return empty string
         assert branch == ""
 
-    @patch('subprocess.run')
-    def test_get_current_branch_generic_exception(self, mock_run, main_window, mock_managers):
+    @patch("subprocess.run")
+    def test_get_current_branch_generic_exception(
+        self, mock_run, main_window, mock_managers
+    ):
         """Test get_current_branch handles generic exception."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1011,10 +1113,13 @@ class TestBranchNameQueryErrors:
         # Should return empty string
         assert branch == ""
 
-    @patch('subprocess.run')
-    def test_get_current_branch_detached_head_rev_parse_fails(self, mock_run, main_window, mock_managers):
+    @patch("subprocess.run")
+    def test_get_current_branch_detached_head_rev_parse_fails(
+        self, mock_run, main_window, mock_managers
+    ):
         """Test detached HEAD when rev-parse fails."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1032,17 +1137,22 @@ class TestBranchNameQueryErrors:
         # Should return generic detached message
         assert branch == "HEAD (detached)"
 
-    @patch('subprocess.run')
-    def test_get_current_branch_non_zero_returncode(self, mock_run, main_window, mock_managers):
+    @patch("subprocess.run")
+    def test_get_current_branch_non_zero_returncode(
+        self, mock_run, main_window, mock_managers
+    ):
         """Test get_current_branch with non-zero return code."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
         settings.git_repo_path = "/home/user/repo"
 
         # Mock non-zero return code
-        mock_run.return_value = Mock(returncode=128, stdout="fatal: not a git repository")
+        mock_run.return_value = Mock(
+            returncode=128, stdout="fatal: not a git repository"
+        )
 
         handler = GitHandler(main_window, settings_manager, status_manager)
         branch = handler.get_current_branch()
@@ -1050,10 +1160,13 @@ class TestBranchNameQueryErrors:
         # Should return empty string
         assert branch == ""
 
-    @patch('subprocess.run')
-    def test_get_current_branch_empty_output_with_rev_parse_success(self, mock_run, main_window, mock_managers):
+    @patch("subprocess.run")
+    def test_get_current_branch_empty_output_with_rev_parse_success(
+        self, mock_run, main_window, mock_managers
+    ):
         """Test detached HEAD with successful rev-parse."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1076,9 +1189,12 @@ class TestBranchNameQueryErrors:
 class TestStatusRefreshLifecycle:
     """Test suite for status refresh lifecycle management."""
 
-    def test_start_status_refresh_when_already_started_no_op(self, main_window, mock_managers):
+    def test_start_status_refresh_when_already_started_no_op(
+        self, main_window, mock_managers
+    ):
         """Test starting status refresh when already started."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1095,9 +1211,12 @@ class TestStatusRefreshLifecycle:
         # (call count should not increase beyond initial immediate fetch)
         assert main_window.request_git_status.emit.call_count == start_call_count
 
-    def test_stop_status_refresh_when_already_stopped_no_op(self, main_window, mock_managers):
+    def test_stop_status_refresh_when_already_stopped_no_op(
+        self, main_window, mock_managers
+    ):
         """Test stopping status refresh when already stopped."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -1111,6 +1230,7 @@ class TestStatusRefreshLifecycle:
     def test_start_status_refresh_no_repo_no_op(self, main_window, mock_managers):
         """Test starting status refresh with no repo set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1123,9 +1243,12 @@ class TestStatusRefreshLifecycle:
         assert not handler.status_timer.isActive()
         main_window.request_git_status.emit.assert_not_called()
 
-    def test_start_status_refresh_emits_immediate_request(self, main_window, mock_managers):
+    def test_start_status_refresh_emits_immediate_request(
+        self, main_window, mock_managers
+    ):
         """Test start_status_refresh emits immediate status request."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1137,9 +1260,12 @@ class TestStatusRefreshLifecycle:
         # Should emit immediate request (before first timer interval)
         main_window.request_git_status.emit.assert_called_with("/home/user/repo")
 
-    def test_stop_status_refresh_stops_timer_and_clears_flag(self, main_window, mock_managers):
+    def test_stop_status_refresh_stops_timer_and_clears_flag(
+        self, main_window, mock_managers
+    ):
         """Test stop_status_refresh stops timer and clears flag."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1161,9 +1287,12 @@ class TestStatusRefreshLifecycle:
 class TestSignalEmissions:
     """Test suite for git_operation_started and git_operation_completed signals."""
 
-    def test_commit_changes_emits_git_operation_started(self, main_window, mock_managers):
+    def test_commit_changes_emits_git_operation_started(
+        self, main_window, mock_managers
+    ):
         """Test commit_changes emits git_operation_started signal."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1172,7 +1301,9 @@ class TestSignalEmissions:
         handler = GitHandler(main_window, settings_manager, status_manager)
         handler.git_operation_started = Mock()
 
-        with patch('asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText') as mock_dialog:
+        with patch(
+            "asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText"
+        ) as mock_dialog:
             mock_dialog.return_value = ("Test commit", True)
             handler.commit_changes()
 
@@ -1182,6 +1313,7 @@ class TestSignalEmissions:
     def test_pull_changes_emits_git_operation_started(self, main_window, mock_managers):
         """Test pull_changes emits git_operation_started signal."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1198,6 +1330,7 @@ class TestSignalEmissions:
     def test_push_changes_emits_git_operation_started(self, main_window, mock_managers):
         """Test push_changes emits git_operation_started signal."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1214,6 +1347,7 @@ class TestSignalEmissions:
     def test_quick_commit_emits_git_operation_started(self, main_window, mock_managers):
         """Test quick_commit emits git_operation_started signal."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1227,10 +1361,13 @@ class TestSignalEmissions:
         # Should emit signal with "quick_commit"
         handler.git_operation_started.emit.assert_called_once_with("quick_commit")
 
-    def test_handle_result_success_emits_git_operation_completed(self, main_window, mock_managers):
+    def test_handle_result_success_emits_git_operation_completed(
+        self, main_window, mock_managers
+    ):
         """Test successful result emits git_operation_completed signal."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -1252,12 +1389,18 @@ class TestSignalEmissions:
 
         # Should emit completed signal with success=True
         handler.git_operation_completed.emit.assert_called_once()
-        assert handler.git_operation_completed.emit.call_args[0] == (True, "Pull successful")
+        assert handler.git_operation_completed.emit.call_args[0] == (
+            True,
+            "Pull successful",
+        )
 
-    def test_handle_result_failure_emits_git_operation_completed(self, main_window, mock_managers):
+    def test_handle_result_failure_emits_git_operation_completed(
+        self, main_window, mock_managers
+    ):
         """Test failed result emits git_operation_completed signal."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -1279,22 +1422,28 @@ class TestSignalEmissions:
 
         # Should emit completed signal with success=False
         handler.git_operation_completed.emit.assert_called_once()
-        assert handler.git_operation_completed.emit.call_args[0] == (False, "Push failed: no upstream")
+        assert handler.git_operation_completed.emit.call_args[0] == (
+            False,
+            "Push failed: no upstream",
+        )
 
 
 @pytest.mark.unit
 class TestInitializeRepoValidation:
     """Test suite for initialize() repository validation."""
 
-    def test_initialize_invalid_repo_clears_from_settings(self, main_window, mock_managers):
+    def test_initialize_invalid_repo_clears_from_settings(
+        self, main_window, mock_managers
+    ):
         """Test initialize clears invalid repo from settings."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
         settings.git_repo_path = "/home/user/invalid-repo"
 
-        with patch.object(Path, 'is_dir', return_value=False):
+        with patch.object(Path, "is_dir", return_value=False):
             handler = GitHandler(main_window, settings_manager, status_manager)
             handler.initialize()
 
@@ -1306,13 +1455,14 @@ class TestInitializeRepoValidation:
     def test_initialize_invalid_repo_logs_warning(self, main_window, mock_managers):
         """Test initialize logs warning for invalid repo."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
         settings.git_repo_path = "/home/user/invalid-repo"
 
-        with patch.object(Path, 'is_dir', return_value=False):
-            with patch('asciidoc_artisan.ui.git_handler.logger') as mock_logger:
+        with patch.object(Path, "is_dir", return_value=False):
+            with patch("asciidoc_artisan.ui.git_handler.logger") as mock_logger:
                 handler = GitHandler(main_window, settings_manager, status_manager)
                 handler.initialize()
 
@@ -1321,15 +1471,18 @@ class TestInitializeRepoValidation:
                 call_args = str(mock_logger.warning.call_args)
                 assert "no longer valid" in call_args
 
-    def test_initialize_valid_repo_starts_status_refresh(self, main_window, mock_managers):
+    def test_initialize_valid_repo_starts_status_refresh(
+        self, main_window, mock_managers
+    ):
         """Test initialize starts status refresh for valid repo."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
         settings.git_repo_path = "/home/user/valid-repo"
 
-        with patch.object(Path, 'is_dir', return_value=True):
+        with patch.object(Path, "is_dir", return_value=True):
             handler = GitHandler(main_window, settings_manager, status_manager)
             handler.start_status_refresh = Mock()
             handler.initialize()
@@ -1340,13 +1493,14 @@ class TestInitializeRepoValidation:
     def test_initialize_valid_repo_logs_info(self, main_window, mock_managers):
         """Test initialize logs info for valid repo."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
         settings.git_repo_path = "/home/user/valid-repo"
 
-        with patch.object(Path, 'is_dir', return_value=True):
-            with patch('asciidoc_artisan.ui.git_handler.logger') as mock_logger:
+        with patch.object(Path, "is_dir", return_value=True):
+            with patch("asciidoc_artisan.ui.git_handler.logger") as mock_logger:
                 handler = GitHandler(main_window, settings_manager, status_manager)
                 handler.initialize()
 
@@ -1354,17 +1508,22 @@ class TestInitializeRepoValidation:
                 # Just check at least one call contains "loaded from settings"
                 mock_logger.info.assert_called()
                 call_args_list = [str(call) for call in mock_logger.info.call_args_list]
-                assert any("loaded from settings" in args.lower() for args in call_args_list)
+                assert any(
+                    "loaded from settings" in args.lower() for args in call_args_list
+                )
 
-    def test_initialize_no_git_repo_path_attribute_handles_gracefully(self, main_window, mock_managers):
+    def test_initialize_no_git_repo_path_attribute_handles_gracefully(
+        self, main_window, mock_managers
+    ):
         """Test initialize handles missing git_repo_path attribute."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
         # Remove git_repo_path attribute
-        if hasattr(settings, 'git_repo_path'):
-            delattr(settings, 'git_repo_path')
+        if hasattr(settings, "git_repo_path"):
+            delattr(settings, "git_repo_path")
 
         handler = GitHandler(main_window, settings_manager, status_manager)
         handler.initialize()
@@ -1377,9 +1536,12 @@ class TestInitializeRepoValidation:
 class TestCheckRepositoryReady:
     """Test suite for _check_repository_ready() validation."""
 
-    def test_check_repository_ready_no_repo_shows_message(self, main_window, mock_managers):
+    def test_check_repository_ready_no_repo_shows_message(
+        self, main_window, mock_managers
+    ):
         """Test _check_repository_ready shows message when no repo."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1393,9 +1555,12 @@ class TestCheckRepositoryReady:
         call_args = status_manager.show_message.call_args[0]
         assert "No Repository" in call_args[1]
 
-    def test_check_repository_ready_no_repo_returns_false(self, main_window, mock_managers):
+    def test_check_repository_ready_no_repo_returns_false(
+        self, main_window, mock_managers
+    ):
         """Test _check_repository_ready returns False when no repo."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1406,9 +1571,12 @@ class TestCheckRepositoryReady:
 
         assert result is False
 
-    def test_check_repository_ready_repo_set_returns_true(self, main_window, mock_managers):
+    def test_check_repository_ready_repo_set_returns_true(
+        self, main_window, mock_managers
+    ):
         """Test _check_repository_ready returns True when repo set."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1422,6 +1590,7 @@ class TestCheckRepositoryReady:
     def test_ensure_ready_checks_repository(self, main_window, mock_managers):
         """Test _ensure_ready calls _check_repository_ready."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1439,6 +1608,7 @@ class TestCheckRepositoryReady:
     def test_ensure_ready_checks_busy_state(self, main_window, mock_managers):
         """Test _ensure_ready checks is_processing flag."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1457,10 +1627,13 @@ class TestCheckRepositoryReady:
 class TestUIStateUpdateCalls:
     """Test suite for _update_ui_state() calls throughout operations."""
 
-    @patch('asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText')
-    def test_commit_changes_updates_ui_state_before_emit(self, mock_dialog, main_window, mock_managers):
+    @patch("asciidoc_artisan.ui.git_handler.QInputDialog.getMultiLineText")
+    def test_commit_changes_updates_ui_state_before_emit(
+        self, mock_dialog, main_window, mock_managers
+    ):
         """Test commit_changes calls _update_ui_state before emitting."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1479,9 +1652,12 @@ class TestUIStateUpdateCalls:
         # Should call _update_ui_state
         handler._update_ui_state.assert_called()
 
-    def test_pull_changes_updates_ui_state_before_emit(self, main_window, mock_managers):
+    def test_pull_changes_updates_ui_state_before_emit(
+        self, main_window, mock_managers
+    ):
         """Test pull_changes calls _update_ui_state before emitting."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1498,9 +1674,12 @@ class TestUIStateUpdateCalls:
         # Should call _update_ui_state
         handler._update_ui_state.assert_called()
 
-    def test_push_changes_updates_ui_state_before_emit(self, main_window, mock_managers):
+    def test_push_changes_updates_ui_state_before_emit(
+        self, main_window, mock_managers
+    ):
         """Test push_changes calls _update_ui_state before emitting."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1517,10 +1696,13 @@ class TestUIStateUpdateCalls:
         # Should call _update_ui_state
         handler._update_ui_state.assert_called()
 
-    def test_handle_result_updates_ui_state_after_complete(self, main_window, mock_managers):
+    def test_handle_result_updates_ui_state_after_complete(
+        self, main_window, mock_managers
+    ):
         """Test handle_git_result calls _update_ui_state after completion."""
-        from asciidoc_artisan.ui.git_handler import GitHandler
         from asciidoc_artisan.core import GitResult
+        from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         handler = GitHandler(main_window, settings_manager, status_manager)
@@ -1544,9 +1726,12 @@ class TestUIStateUpdateCalls:
         # Should call _update_ui_state
         handler._update_ui_state.assert_called()
 
-    def test_ui_state_update_handles_missing_method_gracefully(self, main_window, mock_managers):
+    def test_ui_state_update_handles_missing_method_gracefully(
+        self, main_window, mock_managers
+    ):
         """Test operations handle missing _update_ui_state gracefully."""
         from asciidoc_artisan.ui.git_handler import GitHandler
+
         settings_manager, status_manager = mock_managers
 
         settings = settings_manager.load_settings.return_value
@@ -1559,7 +1744,7 @@ class TestUIStateUpdateCalls:
 
         # BaseVCSHandler has _update_ui_state, so handler will have it
         # Test that it can be called (not that it's missing)
-        assert hasattr(handler, '_update_ui_state')
+        assert hasattr(handler, "_update_ui_state")
 
         # Call operation to ensure _update_ui_state doesn't crash
         handler.pull_changes()

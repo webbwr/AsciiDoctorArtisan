@@ -1,8 +1,9 @@
 """Tests for ui.pandoc_result_handler module."""
 
-import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch
+
+import pytest
 
 
 @pytest.fixture
@@ -54,26 +55,31 @@ class TestPandocResultHandlerBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         assert PandocResultHandler is not None
 
     def test_creation(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
         assert handler is not None
 
     def test_stores_editor_reference(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
         assert handler.editor == mock_editor
 
     def test_has_handle_pandoc_result_method(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
         assert hasattr(handler, "handle_pandoc_result")
         assert callable(handler.handle_pandoc_result)
 
     def test_has_handle_pandoc_error_result_method(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
         assert hasattr(handler, "handle_pandoc_error_result")
         assert callable(handler.handle_pandoc_error_result)
@@ -85,6 +91,7 @@ class TestHandlePandocResult:
 
     def test_resets_processing_flag_on_success(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._is_processing_pandoc = True
@@ -95,6 +102,7 @@ class TestHandlePandocResult:
 
     def test_updates_ui_state_on_success(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         handler.handle_pandoc_result("= Converted Content", "importing file")
@@ -104,6 +112,7 @@ class TestHandlePandocResult:
 
     def test_delegates_to_export_manager(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         result = "= Converted Content"
@@ -117,6 +126,7 @@ class TestHandlePandocResult:
 
     def test_emits_load_signal_when_pending_file_path_set(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         pending_path = Path("/tmp/test.docx")
@@ -133,6 +143,7 @@ class TestHandlePandocResult:
 
     def test_clears_pending_file_path_after_emitting_signal(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         pending_path = Path("/tmp/test.docx")
@@ -145,6 +156,7 @@ class TestHandlePandocResult:
 
     def test_no_signal_emission_when_no_pending_file_path(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = None
@@ -161,6 +173,7 @@ class TestHandlePandocErrorResult:
 
     def test_resets_processing_flag_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._is_processing_pandoc = True
@@ -171,6 +184,7 @@ class TestHandlePandocErrorResult:
 
     def test_clears_pending_file_path_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -181,6 +195,7 @@ class TestHandlePandocErrorResult:
 
     def test_clears_export_manager_state_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
@@ -194,6 +209,7 @@ class TestHandlePandocErrorResult:
 
     def test_updates_ui_state_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         handler.handle_pandoc_error_result("Pandoc failed", "importing file")
@@ -203,6 +219,7 @@ class TestHandlePandocErrorResult:
 
     def test_shows_status_bar_message_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         context = "importing DOCX file"
@@ -210,9 +227,7 @@ class TestHandlePandocErrorResult:
 
         # Should show status bar message
         mock_editor.status_bar.showMessage.assert_called_once()
-        assert "Conversion failed" in str(
-            mock_editor.status_bar.showMessage.call_args
-        )
+        assert "Conversion failed" in str(mock_editor.status_bar.showMessage.call_args)
 
 
 @pytest.mark.unit
@@ -221,6 +236,7 @@ class TestPDFExportErrorHandling:
 
     def test_shows_pdf_workaround_for_pdflatex_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
@@ -237,6 +253,7 @@ class TestPDFExportErrorHandling:
 
     def test_shows_pdf_workaround_for_pdf_engine_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
@@ -251,6 +268,7 @@ class TestPDFExportErrorHandling:
 
     def test_shows_generic_export_error_for_non_pdf(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.docx")
@@ -271,6 +289,7 @@ class TestImportErrorHandling:
 
     def test_clears_editor_on_import_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -281,6 +300,7 @@ class TestImportErrorHandling:
 
     def test_shows_error_html_on_import_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -293,6 +313,7 @@ class TestImportErrorHandling:
 
     def test_shows_error_dialog_with_file_path(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         file_path = Path("/tmp/test.docx")
@@ -314,6 +335,7 @@ class TestFileLoadRequest:
 
     def test_loads_content_into_editor(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         result = "= Test Document\n\nContent"
@@ -329,12 +351,15 @@ class TestFileLoadRequest:
 
     def test_schedules_preview_update(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         result = "= Test Document"
         pending_path = Path("/tmp/test.docx")
 
-        with patch("asciidoc_artisan.ui.pandoc_result_handler.QTimer.singleShot") as mock_timer:
+        with patch(
+            "asciidoc_artisan.ui.pandoc_result_handler.QTimer.singleShot"
+        ) as mock_timer:
             handler._handle_file_load_request(result, pending_path, "importing")
 
             # Should schedule preview update with 100ms delay
@@ -347,6 +372,7 @@ class TestSuccessResultSequencing:
 
     def test_consecutive_import_operations(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         # First import
@@ -364,6 +390,7 @@ class TestSuccessResultSequencing:
 
     def test_consecutive_export_operations(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         # First export
@@ -377,6 +404,7 @@ class TestSuccessResultSequencing:
 
     def test_alternating_import_export_operations(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         # Import
@@ -390,6 +418,7 @@ class TestSuccessResultSequencing:
 
     def test_processing_flag_reset_after_each_success(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         for i in range(5):
@@ -399,6 +428,7 @@ class TestSuccessResultSequencing:
 
     def test_ui_state_update_called_after_each_success(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         for i in range(3):
@@ -414,6 +444,7 @@ class TestErrorResultVariations:
 
     def test_error_with_very_long_message(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         error = "x" * 1000  # Very long error message
@@ -424,6 +455,7 @@ class TestErrorResultVariations:
 
     def test_error_with_special_characters(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         error = "Error: \n\t特殊字符\n@#$%^&*()"
@@ -436,6 +468,7 @@ class TestErrorResultVariations:
 
     def test_error_with_empty_message(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -446,6 +479,7 @@ class TestErrorResultVariations:
 
     def test_error_resets_all_state_flags(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         # Set all flags
@@ -464,6 +498,7 @@ class TestErrorResultVariations:
 
     def test_consecutive_errors(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         for i in range(3):
@@ -479,6 +514,7 @@ class TestNonPDFExportErrors:
 
     def test_docx_export_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.docx")
@@ -491,6 +527,7 @@ class TestNonPDFExportErrors:
 
     def test_html_export_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.html")
@@ -501,6 +538,7 @@ class TestNonPDFExportErrors:
 
     def test_markdown_export_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.md")
@@ -511,6 +549,7 @@ class TestNonPDFExportErrors:
 
     def test_export_error_with_path_suffix_uppercase(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.DOCX")
@@ -522,6 +561,7 @@ class TestNonPDFExportErrors:
 
     def test_export_error_returns_early(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
@@ -538,6 +578,7 @@ class TestPDFErrorPatterns:
 
     def test_pdflatex_error_shows_workaround(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
@@ -549,6 +590,7 @@ class TestPDFErrorPatterns:
 
     def test_pdf_engine_error_shows_workaround(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
@@ -559,16 +601,20 @@ class TestPDFErrorPatterns:
 
     def test_no_such_file_error_shows_workaround(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
-        handler.handle_pandoc_error_result("No such file or directory", "Exporting to PDF")
+        handler.handle_pandoc_error_result(
+            "No such file or directory", "Exporting to PDF"
+        )
 
         call_args = str(mock_editor.status_manager.show_message.call_args)
         assert "Export to HTML" in call_args
 
     def test_pdf_error_includes_technical_details(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         error = "pdflatex: command not found"
@@ -584,8 +630,11 @@ class TestFileLoadRequestDetails:
     """Test suite for _handle_file_load_request method details."""
 
     @patch("asciidoc_artisan.ui.pandoc_result_handler.QTimer")
-    def test_qtimer_single_shot_called_with_correct_delay(self, mock_qtimer, mock_editor):
+    def test_qtimer_single_shot_called_with_correct_delay(
+        self, mock_qtimer, mock_editor
+    ):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         result = "= Test"
@@ -597,6 +646,7 @@ class TestFileLoadRequestDetails:
 
     def test_file_load_manager_called_before_preview_update(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         result = "= Test"
@@ -610,22 +660,24 @@ class TestFileLoadRequestDetails:
 
     def test_context_logged_successfully(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         with patch("asciidoc_artisan.ui.pandoc_result_handler.logger") as mock_logger:
-            handler._handle_file_load_request("= Test", Path("/tmp/test.docx"), "importing DOCX")
+            handler._handle_file_load_request(
+                "= Test", Path("/tmp/test.docx"), "importing DOCX"
+            )
             # Should log success message
             mock_logger.info.assert_called_once()
 
     def test_multiple_file_load_requests(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         for i in range(3):
             handler._handle_file_load_request(
-                f"= Document {i}",
-                Path(f"/tmp/doc{i}.docx"),
-                f"importing doc{i}"
+                f"= Document {i}", Path(f"/tmp/doc{i}.docx"), f"importing doc{i}"
             )
 
         # Should call load_content_into_editor 3 times
@@ -638,6 +690,7 @@ class TestStateTransitions:
 
     def test_pending_file_path_cleared_on_success(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -648,6 +701,7 @@ class TestStateTransitions:
 
     def test_pending_file_path_cleared_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -658,6 +712,7 @@ class TestStateTransitions:
 
     def test_processing_flag_always_reset_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._is_processing_pandoc = True
@@ -673,6 +728,7 @@ class TestStateTransitions:
 
     def test_export_state_cleared_only_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         # Success: export manager handles clearing
@@ -692,16 +748,20 @@ class TestStateTransitions:
 class TestContextStringVariations:
     """Test suite for different context string patterns."""
 
-    @pytest.mark.parametrize("context", [
-        "importing file",
-        "Exporting to PDF",
-        "Exporting to DOCX",
-        "Converting from Markdown",
-        "Processing document",
-        "Handling user request"
-    ])
+    @pytest.mark.parametrize(
+        "context",
+        [
+            "importing file",
+            "Exporting to PDF",
+            "Exporting to DOCX",
+            "Converting from Markdown",
+            "Processing document",
+            "Handling user request",
+        ],
+    )
     def test_success_with_various_contexts(self, mock_editor, context):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         handler.handle_pandoc_result("= Result", context)
@@ -711,14 +771,12 @@ class TestContextStringVariations:
             "= Result", context
         )
 
-    @pytest.mark.parametrize("context", [
-        "importing",
-        "exporting",
-        "Exporting to PDF",
-        "Converting markdown"
-    ])
+    @pytest.mark.parametrize(
+        "context", ["importing", "exporting", "Exporting to PDF", "Converting markdown"]
+    )
     def test_error_with_various_contexts(self, mock_editor, context):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -730,6 +788,7 @@ class TestContextStringVariations:
 
     def test_context_with_special_characters(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         context = "Exporting to 文件.pdf"
@@ -746,6 +805,7 @@ class TestStatusBarMessages:
 
     def test_conversion_failed_message_on_error(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         context = "importing test file"
@@ -759,6 +819,7 @@ class TestStatusBarMessages:
 
     def test_status_bar_message_includes_context(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         contexts = ["importing DOCX", "exporting PDF", "converting Markdown"]
@@ -775,6 +836,7 @@ class TestErrorDialogContent:
 
     def test_import_error_includes_file_path(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         file_path = Path("/tmp/test.docx")
@@ -786,6 +848,7 @@ class TestErrorDialogContent:
 
     def test_import_error_shows_critical_severity(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.file_operations_manager._pending_file_path = Path("/tmp/test.docx")
@@ -797,6 +860,7 @@ class TestErrorDialogContent:
 
     def test_export_error_shows_critical_severity(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
@@ -807,6 +871,7 @@ class TestErrorDialogContent:
 
     def test_error_dialog_title_varies_by_operation(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         # Export error
@@ -828,6 +893,7 @@ class TestSignalEmissions:
 
     def test_request_load_file_content_signal_emitted(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         result = "= Test Document"
@@ -844,6 +910,7 @@ class TestSignalEmissions:
 
     def test_signal_emitted_only_when_pending_path_exists(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         # No pending path
@@ -855,16 +922,19 @@ class TestSignalEmissions:
 
     def test_signal_emission_with_different_result_types(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
+
         handler = PandocResultHandler(mock_editor)
 
         results = [
             "= AsciiDoc content",
             "# Markdown content",
-            "<html><body>HTML content</body></html>"
+            "<html><body>HTML content</body></html>",
         ]
 
         for i, result in enumerate(results):
-            mock_editor.file_operations_manager._pending_file_path = Path(f"/tmp/file{i}.txt")
+            mock_editor.file_operations_manager._pending_file_path = Path(
+                f"/tmp/file{i}.txt"
+            )
             handler.handle_pandoc_result(result, f"operation {i}")
 
         # Should emit signal 3 times

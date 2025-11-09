@@ -401,7 +401,7 @@ class TestAsyncPerformance:
         results = batch.read_files(files)
         elapsed = time.time() - start
 
-        print(f"\nBatch read 20 files: {elapsed*1000:.2f}ms")
+        print(f"\nBatch read 20 files: {elapsed * 1000:.2f}ms")
 
         # All should succeed
         assert len(results) == 20
@@ -425,7 +425,7 @@ class TestAsyncPerformance:
             chunks = list(reader.read_chunks())
         elapsed = time.time() - start
 
-        print(f"\nStreaming read 1 MB: {elapsed*1000:.2f}ms ({len(chunks)} chunks)")
+        print(f"\nStreaming read 1 MB: {elapsed * 1000:.2f}ms ({len(chunks)} chunks)")
 
         # Should read in multiple chunks
         assert len(chunks) > 1
@@ -449,7 +449,7 @@ class TestAsyncPerformance:
         results = batch.write_files(file_data)
         elapsed = time.time() - start
 
-        print(f"\nBatch write 20 files: {elapsed*1000:.2f}ms")
+        print(f"\nBatch write 20 files: {elapsed * 1000:.2f}ms")
 
         # All should succeed
         assert len(results) == 20
@@ -534,6 +534,7 @@ def test_read_file_streaming_not_found(qtbot, tmp_path):
 def test_read_file_streaming_exception(qtbot, tmp_path):
     """Test read_file_streaming handles exceptions (lines 234-236)."""
     from unittest.mock import patch
+
     handler = AsyncFileHandler()
 
     # Track error signal
@@ -549,7 +550,7 @@ def test_read_file_streaming_exception(qtbot, tmp_path):
     test_file.write_text("test content")
 
     # Mock Path.stat to raise exception
-    with patch('pathlib.Path.stat', side_effect=PermissionError("Mock error")):
+    with patch("pathlib.Path.stat", side_effect=PermissionError("Mock error")):
         handler.read_file_streaming(str(test_file))
 
         # Wait for error signal
@@ -582,10 +583,11 @@ def test_write_file_streaming_exception(qtbot, tmp_path):
 
 def test_file_stream_reader_not_opened():
     """Test FileStreamReader raises when not opened (line 347)."""
-    from asciidoc_artisan.core.async_file_handler import FileStreamReader
     import tempfile
 
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+    from asciidoc_artisan.core.async_file_handler import FileStreamReader
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
         f.write("test content")
         temp_path = f.name
 
@@ -602,10 +604,11 @@ def test_file_stream_reader_not_opened():
 
 def test_file_stream_writer_not_opened():
     """Test FileStreamWriter raises when not opened (line 416)."""
-    from asciidoc_artisan.core.async_file_handler import FileStreamWriter
     import tempfile
 
-    temp_path = tempfile.mktemp(suffix='.txt')
+    from asciidoc_artisan.core.async_file_handler import FileStreamWriter
+
+    temp_path = tempfile.mktemp(suffix=".txt")
 
     try:
         writer = FileStreamWriter(temp_path)

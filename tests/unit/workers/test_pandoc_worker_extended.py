@@ -12,14 +12,13 @@ Phase 4A.1: 25 tests for pandoc_worker.py coverage gaps
 """
 
 import subprocess
-import sys
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch, call
+from unittest.mock import Mock, patch
+
 import pytest
 
-from asciidoc_artisan.workers.pandoc_worker import PandocWorker
 from asciidoc_artisan.core.constants import is_pandoc_available
-
+from asciidoc_artisan.workers.pandoc_worker import PandocWorker
 
 # ==============================================================================
 # Ollama AI Integration Tests (7 tests)
@@ -71,7 +70,10 @@ class TestPandocWorkerOllamaIntegration:
 
         with patch.dict("sys.modules", {"ollama": mock_ollama}):
             # Call _try_ai_conversion_with_fallback to test binary output path
-            with patch("asciidoc_artisan.workers.pandoc_worker.time.perf_counter", return_value=1.0):
+            with patch(
+                "asciidoc_artisan.workers.pandoc_worker.time.perf_counter",
+                return_value=1.0,
+            ):
                 result, source, method = worker._try_ai_conversion_with_fallback(
                     source="# Markdown",
                     to_format="pdf",
@@ -344,7 +346,9 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
+        with patch(
+            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
+        ) as mock_convert:
             # Simulate subprocess crash
             mock_convert.side_effect = RuntimeError("Pandoc subprocess crashed")
 
@@ -397,7 +401,9 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
+        with patch(
+            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
+        ) as mock_convert:
             # Simulate disk full error
             mock_convert.side_effect = OSError(28, "No space left on device")
 
@@ -420,9 +426,13 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
+        with patch(
+            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
+        ) as mock_convert:
             # Simulate timeout
-            mock_convert.side_effect = subprocess.TimeoutExpired(cmd="pandoc", timeout=30)
+            mock_convert.side_effect = subprocess.TimeoutExpired(
+                cmd="pandoc", timeout=30
+            )
 
             with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:
                 worker.run_pandoc_conversion(
@@ -443,7 +453,9 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch("asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text") as mock_convert:
+        with patch(
+            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
+        ) as mock_convert:
             # Simulate argument error
             mock_convert.side_effect = RuntimeError("Unknown option --invalid-arg")
 
@@ -464,7 +476,9 @@ class TestPandocWorkerErrorHandling:
     def test_pandoc_not_available_error_path(self, qtbot):
         """Test error path when is_pandoc_available() returns False."""
         # Create worker when Pandoc is not available
-        with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=False):
+        with patch(
+            "asciidoc_artisan.core.constants.is_pandoc_available", return_value=False
+        ):
             worker = PandocWorker()
 
             with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:

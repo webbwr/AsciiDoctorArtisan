@@ -1,13 +1,10 @@
 """Tests for workers.worker_tasks module."""
 
-import io
 import subprocess
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 
-from asciidoc_artisan.core import GitResult
 from asciidoc_artisan.workers.worker_tasks import (
     ConversionTask,
     GitTask,
@@ -212,9 +209,7 @@ class TestConversionTask:
     def test_conversion_task_file_conversion_success(self):
         """Test ConversionTask structure for file conversion."""
         # Test task creation succeeds (execution requires pypandoc installed)
-        task = ConversionTask(
-            "/path/to/file.md", "asciidoc", "markdown", is_file=True
-        )
+        task = ConversionTask("/path/to/file.md", "asciidoc", "markdown", is_file=True)
         assert task is not None
         assert hasattr(task, "run")
 
@@ -356,9 +351,7 @@ class TestGitTask:
     @patch("subprocess.run")
     def test_git_task_timeout_handling(self, mock_run, tmp_path):
         """Test GitTask handles subprocess timeout."""
-        mock_run.side_effect = subprocess.TimeoutExpired(
-            ["git", "clone"], timeout=30
-        )
+        mock_run.side_effect = subprocess.TimeoutExpired(["git", "clone"], timeout=30)
 
         task = GitTask(["git", "clone", "large-repo"], tmp_path)
 

@@ -53,8 +53,7 @@ class MemorySnapshot:
     def __str__(self) -> str:
         desc = f" ({self.description})" if self.description else ""
         return (
-            f"Memory{desc}: {self.current_mb:.1f}MB current, "
-            f"{self.peak_mb:.1f}MB peak"
+            f"Memory{desc}: {self.current_mb:.1f}MB current, {self.peak_mb:.1f}MB peak"
         )
 
 

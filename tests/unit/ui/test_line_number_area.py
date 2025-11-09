@@ -8,11 +8,11 @@ Tests line number display functionality including:
 - Theme-aware rendering (dark/light mode)
 """
 
-import pytest
-from PySide6.QtCore import QRect, QSize, Qt
+from unittest.mock import Mock, patch
+
+from PySide6.QtCore import QRect, QSize
 from PySide6.QtGui import QColor, QContextMenuEvent, QPaintEvent, QResizeEvent
-from PySide6.QtWidgets import QPlainTextEdit, QFrame
-from unittest.mock import Mock, MagicMock, patch
+from PySide6.QtWidgets import QFrame, QPlainTextEdit
 
 from asciidoc_artisan.ui.line_number_area import (
     LineNumberArea,
@@ -64,6 +64,7 @@ class TestLineNumberMixin:
 
     def test_setup_line_numbers(self, qapp):
         """Test setup_line_numbers creates area and connects signals."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -71,12 +72,13 @@ class TestLineNumberMixin:
         editor.setup_line_numbers()
 
         # Line number area should be created
-        assert hasattr(editor, 'line_number_area')
+        assert hasattr(editor, "line_number_area")
         assert isinstance(editor.line_number_area, LineNumberArea)
         assert editor.line_number_area.editor is editor
 
     def test_line_number_area_width_single_digit(self, qapp):
         """Test width calculation for single digit line numbers."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -94,6 +96,7 @@ class TestLineNumberMixin:
 
     def test_line_number_area_width_double_digit(self, qapp):
         """Test width calculation for double digit line numbers."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -112,6 +115,7 @@ class TestLineNumberMixin:
 
     def test_line_number_area_width_triple_digit(self, qapp):
         """Test width calculation for triple digit line numbers."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -130,6 +134,7 @@ class TestLineNumberMixin:
 
     def test_update_line_number_area_width(self, qapp):
         """Test updating viewport margins."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -145,6 +150,7 @@ class TestLineNumberMixin:
 
     def test_update_line_number_area_with_scroll(self, qapp):
         """Test updating area when scrolling."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -164,6 +170,7 @@ class TestLineNumberMixin:
 
     def test_update_line_number_area_without_scroll(self, qapp):
         """Test updating area without scrolling."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -188,6 +195,7 @@ class TestLineNumberMixin:
 
     def test_resize_event_repositions_area(self, qapp):
         """Test resize event repositions line number area."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -207,6 +215,7 @@ class TestLineNumberMixin:
 
     def test_paint_event_dark_mode(self, qapp):
         """Test painting line numbers in dark mode."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -222,7 +231,9 @@ class TestLineNumberMixin:
         editor.setPlainText("Line 1\nLine 2\nLine 3")
 
         # Mock painter
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -238,6 +249,7 @@ class TestLineNumberMixin:
 
     def test_paint_event_light_mode(self, qapp):
         """Test painting line numbers in light mode."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -253,7 +265,9 @@ class TestLineNumberMixin:
         editor.setPlainText("Line 1\nLine 2\nLine 3")
 
         # Mock painter
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -276,7 +290,7 @@ class TestLineNumberPlainTextEdit:
         editor = LineNumberPlainTextEdit()
 
         # Line numbers should be set up automatically
-        assert hasattr(editor, 'line_number_area')
+        assert hasattr(editor, "line_number_area")
         assert isinstance(editor.line_number_area, LineNumberArea)
 
         # Spell check manager should be None initially
@@ -315,7 +329,7 @@ class TestLineNumberPlainTextEdit:
         assert editor.spell_check_manager is None
 
         # Mock parent contextMenuEvent
-        with patch.object(QPlainTextEdit, 'contextMenuEvent') as mock_super:
+        with patch.object(QPlainTextEdit, "contextMenuEvent") as mock_super:
             event = Mock(spec=QContextMenuEvent)
             editor.contextMenuEvent(event)
 
@@ -378,6 +392,7 @@ class TestLineNumberCalculationEdgeCases:
 
     def test_empty_editor_width(self, qapp):
         """Test width calculation with empty editor."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -391,6 +406,7 @@ class TestLineNumberCalculationEdgeCases:
 
     def test_single_line_width(self, qapp):
         """Test width with single line."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -403,6 +419,7 @@ class TestLineNumberCalculationEdgeCases:
 
     def test_thousand_lines_width(self, qapp):
         """Test width calculation for 1000+ lines."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -419,6 +436,7 @@ class TestLineNumberCalculationEdgeCases:
 
     def test_ten_thousand_lines_width(self, qapp):
         """Test width calculation for 10000+ lines."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -434,6 +452,7 @@ class TestLineNumberCalculationEdgeCases:
 
     def test_width_increases_with_more_lines(self, qapp):
         """Test width increases as line count increases."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -461,6 +480,7 @@ class TestPaintEventEdgeCases:
 
     def test_paint_with_no_visible_blocks(self, qapp):
         """Test painting when no blocks are visible."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -469,7 +489,9 @@ class TestPaintEventEdgeCases:
         editor.setPlainText("")
 
         # Mock painter
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -483,6 +505,7 @@ class TestPaintEventEdgeCases:
 
     def test_paint_with_very_long_document(self, qapp):
         """Test painting with very long document."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -493,7 +516,9 @@ class TestPaintEventEdgeCases:
         lines = "\n".join([f"Line {i}" for i in range(1, 501)])
         editor.setPlainText(lines)
 
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -507,6 +532,7 @@ class TestPaintEventEdgeCases:
 
     def test_paint_with_unicode_content(self, qapp):
         """Test painting with unicode content in editor."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -514,7 +540,9 @@ class TestPaintEventEdgeCases:
         editor.setup_line_numbers()
         editor.setPlainText("Line 1\nЛиния 2\n行 3\n🌍 4")
 
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -532,6 +560,7 @@ class TestResizeEdgeCases:
 
     def test_resize_to_zero_width(self, qapp):
         """Test resizing to zero width."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -548,6 +577,7 @@ class TestResizeEdgeCases:
 
     def test_resize_to_zero_height(self, qapp):
         """Test resizing to zero height."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -563,6 +593,7 @@ class TestResizeEdgeCases:
 
     def test_multiple_rapid_resizes(self, qapp):
         """Test multiple rapid resize events."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -580,6 +611,7 @@ class TestResizeEdgeCases:
 
     def test_resize_very_large(self, qapp):
         """Test resizing to very large dimensions."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -600,6 +632,7 @@ class TestThemeSwitching:
 
     def test_switch_from_light_to_dark(self, qapp):
         """Test switching from light to dark theme."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -617,7 +650,9 @@ class TestThemeSwitching:
         editor.setPalette(palette)
 
         # Paint should use dark colors
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -630,6 +665,7 @@ class TestThemeSwitching:
 
     def test_switch_from_dark_to_light(self, qapp):
         """Test switching from dark to light theme."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -647,7 +683,9 @@ class TestThemeSwitching:
         editor.setPalette(palette)
 
         # Paint should use light colors
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -664,6 +702,7 @@ class TestMarginCalculations:
 
     def test_margins_update_on_text_change(self, qapp):
         """Test margins update when text changes."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -684,6 +723,7 @@ class TestMarginCalculations:
 
     def test_margins_non_negative(self, qapp):
         """Test margins are never negative."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -698,6 +738,7 @@ class TestMarginCalculations:
 
     def test_margins_preserved_after_clear(self, qapp):
         """Test margins remain after clearing text."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -737,6 +778,7 @@ class TestWidgetLifecycle:
 
     def test_setup_line_numbers_called_once(self, qapp):
         """Test setup_line_numbers is idempotent."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -756,6 +798,7 @@ class TestScrollBehavior:
 
     def test_scroll_down_updates_area(self, qapp):
         """Test scrolling down updates line number area."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -776,6 +819,7 @@ class TestScrollBehavior:
 
     def test_scroll_up_updates_area(self, qapp):
         """Test scrolling up updates line number area."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -795,6 +839,7 @@ class TestScrollBehavior:
 
     def test_no_scroll_updates_area_geometry(self, qapp):
         """Test update without scroll updates specific region."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -912,7 +957,7 @@ class TestSpellCheckIntegration:
         editor.setPlainText("Line 1\nLine 2")
 
         # Should not crash
-        with patch.object(QPlainTextEdit, 'contextMenuEvent') as mock_super:
+        with patch.object(QPlainTextEdit, "contextMenuEvent") as mock_super:
             event = Mock(spec=QContextMenuEvent)
             editor.contextMenuEvent(event)
 
@@ -940,6 +985,7 @@ class TestConcurrentOperations:
 
     def test_multiple_paint_events(self, qapp):
         """Test handling multiple paint events."""
+
         class TestEditor(LineNumberMixin, QPlainTextEdit):
             pass
 
@@ -947,7 +993,9 @@ class TestConcurrentOperations:
         editor.setup_line_numbers()
         editor.setPlainText("Line 1\nLine 2\nLine 3")
 
-        with patch('asciidoc_artisan.ui.line_number_area.QPainter') as mock_painter_class:
+        with patch(
+            "asciidoc_artisan.ui.line_number_area.QPainter"
+        ) as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 

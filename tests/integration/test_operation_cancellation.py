@@ -10,11 +10,12 @@ issues in headless environments (WSL2). UI functionality should be
 tested manually or in a GUI test environment.
 """
 
-import pytest
 from unittest.mock import Mock
 
-from asciidoc_artisan.workers import GitWorker
+import pytest
+
 from asciidoc_artisan.core import GitResult
+from asciidoc_artisan.workers import GitWorker
 
 
 @pytest.mark.integration

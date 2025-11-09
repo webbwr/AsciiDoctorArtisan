@@ -224,7 +224,7 @@ class VirtualScrollPreview:
         logger.debug(
             f"Virtual render: lines {start_line}-{end_line} "
             f"({self._rendered_lines}/{self._total_lines}, "
-            f"{self._rendered_lines/self._total_lines*100:.1f}%)"
+            f"{self._rendered_lines / self._total_lines * 100:.1f}%)"
         )
 
         # Render visible portion

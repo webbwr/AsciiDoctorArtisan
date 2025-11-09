@@ -31,10 +31,10 @@ CURRENT TEST STATUS:
 - ~10/30 tests skipped (need architectural refactoring)
 """
 
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 
 import pytest
-from PySide6.QtCore import QTimer, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QMainWindow
 
 from asciidoc_artisan.core import GitHubResult
@@ -82,14 +82,13 @@ def mock_git_handler():
 
 
 @pytest.fixture
-def github_handler(mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler):
+def github_handler(
+    mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler
+):
     """Fixture for GitHubHandler instance."""
     # Pass all 4 required arguments (matches production usage in main_window.py:324-326)
     handler = GitHubHandler(
-        mock_parent_window,
-        mock_settings_manager,
-        mock_status_manager,
-        mock_git_handler
+        mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler
     )
     yield handler
     # Cleanup: Note - worker is managed by WorkerManager, not GitHubHandler
@@ -148,7 +147,9 @@ class TestGitHubHandlerReentrancy:
         github_handler.is_processing = False
 
         # Mock dialog to return immediately (patch at import site)
-        with patch("asciidoc_artisan.ui.github_handler.CreatePullRequestDialog") as mock_dialog:
+        with patch(
+            "asciidoc_artisan.ui.github_handler.CreatePullRequestDialog"
+        ) as mock_dialog:
             mock_dialog.return_value.exec.return_value = False  # User cancelled
 
             # Try to start operation
@@ -168,7 +169,7 @@ class TestGitHubHandlerReentrancy:
             data={"number": 42},
             error="",
             user_message="Success",
-            operation="pr_create"
+            operation="pr_create",
         )
         github_handler.handle_github_result(result)
 
@@ -201,19 +202,23 @@ class TestGitHubHandlerPullRequests:
         # Setup mock dialog with valid data
         mock_dialog_instance = Mock()
         mock_dialog_instance.exec.return_value = True  # User clicked OK
-        mock_dialog_instance.get_pr_data.return_value = {  # ✅ Fixed: get_pr_data not get_data
-            "title": "Test PR",
-            "body": "Description",
-            "base": "main",
-            "head": "feature"
-        }
+        mock_dialog_instance.get_pr_data.return_value = (
+            {  # ✅ Fixed: get_pr_data not get_data
+                "title": "Test PR",
+                "body": "Description",
+                "base": "main",
+                "head": "feature",
+            }
+        )
         mock_dialog.return_value = mock_dialog_instance
 
         # Call method
         github_handler.create_pull_request()
 
         # Verify data was retrieved
-        assert mock_dialog_instance.get_pr_data.called  # ✅ Fixed: get_pr_data not get_data
+        assert (
+            mock_dialog_instance.get_pr_data.called
+        )  # ✅ Fixed: get_pr_data not get_data
 
     @patch("asciidoc_artisan.ui.github_handler.CreatePullRequestDialog")
     def test_create_pull_request_requires_repo(self, mock_dialog, github_handler):
@@ -244,7 +249,9 @@ class TestGitHubHandlerPullRequests:
         assert mock_dialog.called
 
     @patch("asciidoc_artisan.ui.github_handler.PullRequestListDialog")
-    def test_list_pull_requests_triggers_worker(self, mock_dialog, github_handler, qtbot):
+    def test_list_pull_requests_triggers_worker(
+        self, mock_dialog, github_handler, qtbot
+    ):
         """Test list_pull_requests triggers worker via signal emission."""
         # Setup: Mock window to capture signal
         signal_emitted = []
@@ -290,17 +297,21 @@ class TestGitHubHandlerIssues:
         # Setup mock dialog
         mock_dialog_instance = Mock()
         mock_dialog_instance.exec.return_value = True
-        mock_dialog_instance.get_issue_data.return_value = {  # ✅ Fixed: get_issue_data not get_data
-            "title": "Bug report",
-            "body": "Something is broken"
-        }
+        mock_dialog_instance.get_issue_data.return_value = (
+            {  # ✅ Fixed: get_issue_data not get_data
+                "title": "Bug report",
+                "body": "Something is broken",
+            }
+        )
         mock_dialog.return_value = mock_dialog_instance
 
         # Call method
         github_handler.create_issue()
 
         # Verify data was retrieved
-        assert mock_dialog_instance.get_issue_data.called  # ✅ Fixed: get_issue_data not get_data
+        assert (
+            mock_dialog_instance.get_issue_data.called
+        )  # ✅ Fixed: get_issue_data not get_data
 
     @patch("asciidoc_artisan.ui.github_handler.IssueListDialog")
     def test_list_issues_opens_dialog(self, mock_dialog, github_handler):
@@ -369,13 +380,10 @@ class TestGitHubHandlerRepository:
         # Create mock result with repo data
         result = GitHubResult(
             success=True,
-            data={
-                "nameWithOwner": "test/repo",
-                "description": "Test repository"
-            },
+            data={"nameWithOwner": "test/repo", "description": "Test repository"},
             error="",
             user_message="Repository info retrieved",
-            operation="repo_view"
+            operation="repo_view",
         )
 
         # Test that _handle_repo_info logs the data
@@ -398,7 +406,7 @@ class TestGitHubHandlerErrorHandling:
             data=None,
             error="not authenticated",
             user_message="Please authenticate with 'gh auth login'",
-            operation="pr_create"
+            operation="pr_create",
         )
 
         github_handler.handle_github_result(result)
@@ -413,7 +421,7 @@ class TestGitHubHandlerErrorHandling:
             data=None,
             error="no default remote configured",
             user_message="Please add a GitHub remote",
-            operation="pr_list"
+            operation="pr_list",
         )
 
         github_handler.handle_github_result(result)
@@ -428,7 +436,7 @@ class TestGitHubHandlerErrorHandling:
             data=None,
             error="timeout",
             user_message="Operation timed out",
-            operation="issue_create"
+            operation="issue_create",
         )
 
         github_handler.handle_github_result(result)
@@ -443,7 +451,7 @@ class TestGitHubHandlerErrorHandling:
             data={"number": 42, "url": "https://github.com/..."},
             error="",
             user_message="PR created successfully",
-            operation="pr_create"
+            operation="pr_create",
         )
 
         github_handler.handle_github_result(result)
@@ -483,7 +491,7 @@ class TestGitHubHandlerSignalSlots:
             data={"number": 123},
             error="",
             user_message="Success",
-            operation="pr_create"
+            operation="pr_create",
         )
 
         # Verify handler can process result without error
@@ -515,7 +523,7 @@ class TestGitHubHandlerStateManagement:
             data=None,
             error="test error",
             user_message="Error occurred",
-            operation="pr_create"  # ✅ Fixed: use valid operation
+            operation="pr_create",  # ✅ Fixed: use valid operation
         )
         github_handler.handle_github_result(result)
 
@@ -538,7 +546,7 @@ class TestGitHubHandlerIntegration:
             "title": "Test PR",
             "body": "PR body",
             "base": "main",
-            "head": "feature"
+            "head": "feature",
         }
 
         # Capture signal
@@ -570,7 +578,7 @@ class TestGitHubHandlerIntegration:
             "title": "Test Issue",
             "body": "Issue body",
             "labels": ["bug"],
-            "assignees": []
+            "assignees": [],
         }
 
         # Capture signal
@@ -606,7 +614,7 @@ class TestGitHubHandlerCleanup:
             mock_parent_window,
             Mock(),  # settings_manager
             Mock(),  # status_manager
-            Mock()   # git_handler
+            Mock(),  # git_handler
         )
 
         # Verify it exists
@@ -625,6 +633,7 @@ class TestGitHubHandlerCleanup:
 
         # Store reference count info
         import sys
+
         refcount_before = sys.getrefcount(github_handler)
 
         # Handler should be deletable (no circular references or resource locks)

@@ -258,8 +258,9 @@ class TestIncrementalRenderingBenchmark:
         # (block detection, hashing, cache lookup, CPU/I/O load variance)
         # For small edits on medium documents, overhead roughly equals caching benefit
         # Empirical data shows 0.77x-1.00x speedup range (up to 30% slower in worst case)
-        assert avg_edit_time < first_render * 1.35, \
-            f"Edit renders ({avg_edit_time:.4f}s) should not be >35% slower than first ({first_render:.4f}s)"
+        assert (
+            avg_edit_time < first_render * 1.35
+        ), f"Edit renders ({avg_edit_time:.4f}s) should not be >35% slower than first ({first_render:.4f}s)"
 
         stats = incremental.get_cache_stats()
         print(f"  Final cache stats: {stats}")

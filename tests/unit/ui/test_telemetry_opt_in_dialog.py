@@ -9,10 +9,9 @@ Tests GDPR-compliant telemetry consent dialog including:
 - Privacy-first messaging
 """
 
-import pytest
-from PySide6.QtWidgets import QDialog, QLabel, QPushButton, QTextBrowser, QDialogButtonBox
-from PySide6.QtCore import Qt
 from unittest.mock import Mock, patch
+
+from PySide6.QtWidgets import QDialog, QLabel, QPushButton, QTextBrowser
 
 from asciidoc_artisan.ui.telemetry_opt_in_dialog import TelemetryOptInDialog
 
@@ -75,7 +74,9 @@ class TestResultCodes:
 
     def test_remind_later_result_code(self):
         """Test REMIND_LATER result code."""
-        assert TelemetryOptInDialog.Result.REMIND_LATER == QDialog.DialogCode.Rejected + 1
+        assert (
+            TelemetryOptInDialog.Result.REMIND_LATER == QDialog.DialogCode.Rejected + 1
+        )
 
 
 class TestUIComponents:
@@ -266,7 +267,7 @@ class TestButtonHandlers:
         dialog = TelemetryOptInDialog()
         dialog.done = Mock()
 
-        with patch('asciidoc_artisan.ui.telemetry_opt_in_dialog.logger') as mock_logger:
+        with patch("asciidoc_artisan.ui.telemetry_opt_in_dialog.logger") as mock_logger:
             dialog._accept_telemetry()
 
             mock_logger.info.assert_called_once()
@@ -278,7 +279,7 @@ class TestButtonHandlers:
         dialog = TelemetryOptInDialog()
         dialog.done = Mock()
 
-        with patch('asciidoc_artisan.ui.telemetry_opt_in_dialog.logger') as mock_logger:
+        with patch("asciidoc_artisan.ui.telemetry_opt_in_dialog.logger") as mock_logger:
             dialog._decline_telemetry()
 
             mock_logger.info.assert_called_once()
@@ -290,7 +291,7 @@ class TestButtonHandlers:
         dialog = TelemetryOptInDialog()
         dialog.done = Mock()
 
-        with patch('asciidoc_artisan.ui.telemetry_opt_in_dialog.logger') as mock_logger:
+        with patch("asciidoc_artisan.ui.telemetry_opt_in_dialog.logger") as mock_logger:
             dialog._remind_later()
 
             mock_logger.info.assert_called_once()

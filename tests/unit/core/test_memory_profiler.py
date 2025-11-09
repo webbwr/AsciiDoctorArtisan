@@ -5,13 +5,13 @@ Tests the MemoryProfiler system that tracks application memory usage
 to identify optimization opportunities.
 """
 
-import pytest
 import time
+
 from asciidoc_artisan.core.memory_profiler import (
     MemoryProfiler,
     MemorySnapshot,
     get_profiler,
-    profile_memory
+    profile_memory,
 )
 
 
@@ -266,6 +266,7 @@ def test_profile_memory_decorator_auto_start():
     """Test decorator auto-starts profiler if not running."""
     # Create new profiler instance
     import asciidoc_artisan.core.memory_profiler as mp
+
     mp._global_profiler = None
 
     profiler = get_profiler()
@@ -291,7 +292,7 @@ def test_memory_snapshot_str():
         current_mb=50.5,
         peak_mb=75.3,
         top_allocations=[],
-        description="test snapshot"
+        description="test snapshot",
     )
 
     s = str(snapshot)
@@ -393,14 +394,16 @@ def test_profiler_custom_top_n():
 
 def test_psutil_import_error_handling():
     """Test graceful handling when psutil unavailable."""
-    from unittest.mock import patch
     import sys
+    from unittest.mock import patch
 
     # Mock psutil to be unavailable
-    with patch.dict(sys.modules, {'psutil': None}):
+    with patch.dict(sys.modules, {"psutil": None}):
         # Re-import to trigger ImportError path
         import importlib
+
         from asciidoc_artisan.core import memory_profiler
+
         importlib.reload(memory_profiler)
 
         # Should still work, just with limited functionality
@@ -414,10 +417,10 @@ def test_psutil_import_error_handling():
 
 def test_psutil_process_init_error():
     """Test handling of psutil Process initialization error."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import patch
 
-    with patch('asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE', True):
-        with patch('asciidoc_artisan.core.memory_profiler.psutil') as mock_psutil:
+    with patch("asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE", True):
+        with patch("asciidoc_artisan.core.memory_profiler.psutil") as mock_psutil:
             # Mock Process() to raise exception
             mock_psutil.Process.side_effect = Exception("Test error")
 
@@ -454,7 +457,7 @@ def test_memory_snapshot_dataclass():
         current_mb=100.5,
         peak_mb=150.7,
         top_allocations=[("test.py:10", 1024)],
-        description="test"
+        description="test",
     )
 
     assert snapshot.timestamp == 1234567890.0
@@ -487,7 +490,7 @@ def test_get_memory_usage_without_psutil():
     # Mock PSUTIL_AVAILABLE to False
     from unittest.mock import patch
 
-    with patch('asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE', False):
+    with patch("asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE", False):
         mem_mb, mem_percent = profiler.get_memory_usage()
 
         assert mem_mb == 0.0
@@ -525,7 +528,7 @@ def test_snapshot_without_description():
 
 def test_snapshot_with_no_traceback():
     """Test take_snapshot() when traceback is None (line 158)."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
     profiler = MemoryProfiler()
     profiler.start()
@@ -538,7 +541,7 @@ def test_snapshot_with_no_traceback():
     mock_snapshot = MagicMock()
     mock_snapshot.statistics.return_value = [mock_stat]
 
-    with patch('tracemalloc.take_snapshot', return_value=mock_snapshot):
+    with patch("tracemalloc.take_snapshot", return_value=mock_snapshot):
         snapshot = profiler.take_snapshot("test")
 
         # Should handle missing traceback with "unknown"
@@ -553,7 +556,7 @@ def test_snapshot_with_no_traceback():
 
 def test_log_top_allocations_with_no_traceback():
     """Test log_top_allocations() when traceback is None (line 220)."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
     profiler = MemoryProfiler()
     profiler.start()
@@ -566,7 +569,7 @@ def test_log_top_allocations_with_no_traceback():
     mock_snapshot = MagicMock()
     mock_snapshot.statistics.return_value = [mock_stat]
 
-    with patch('tracemalloc.take_snapshot', return_value=mock_snapshot):
+    with patch("tracemalloc.take_snapshot", return_value=mock_snapshot):
         # Should log "unknown" location
         profiler.log_top_allocations(5)
 
@@ -575,13 +578,15 @@ def test_log_top_allocations_with_no_traceback():
 
 def test_get_memory_usage_exception():
     """Test get_memory_usage() exception handling (lines 195-197)."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
     profiler = MemoryProfiler()
 
     # Ensure process is set (not None)
-    with patch('asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE', True):
-        with patch('asciidoc_artisan.core.memory_profiler.psutil.Process') as mock_process_class:
+    with patch("asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE", True):
+        with patch(
+            "asciidoc_artisan.core.memory_profiler.psutil.Process"
+        ) as mock_process_class:
             # Create a mock process that raises exception
             mock_process = MagicMock()
             mock_process.memory_info.side_effect = Exception("Memory access error")

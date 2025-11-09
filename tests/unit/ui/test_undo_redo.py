@@ -1,9 +1,10 @@
 """Comprehensive tests for undo/redo functionality and buttons."""
 
+from unittest.mock import patch
+
 import pytest
-from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
-from unittest.mock import Mock, patch, MagicMock
+from PySide6.QtWidgets import QApplication
 
 
 @pytest.fixture
@@ -18,9 +19,11 @@ def qapp():
 @pytest.fixture
 def main_window(qapp):
     """Create main window instance for testing."""
-    with patch("asciidoc_artisan.workers.git_worker.GitWorker"), patch(
-        "asciidoc_artisan.workers.pandoc_worker.PandocWorker"
-    ), patch("asciidoc_artisan.workers.preview_worker.PreviewWorker"):
+    with (
+        patch("asciidoc_artisan.workers.git_worker.GitWorker"),
+        patch("asciidoc_artisan.workers.pandoc_worker.PandocWorker"),
+        patch("asciidoc_artisan.workers.preview_worker.PreviewWorker"),
+    ):
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
         window = AsciiDocEditor()
@@ -634,7 +637,6 @@ class TestUndoRedoIntegration:
 
         # Simulate Ctrl+Z
         from PySide6.QtTest import QTest
-        from PySide6.QtCore import Qt
 
         QTest.keyClick(editor, Qt.Key_Z, Qt.ControlModifier)
         qapp.processEvents()

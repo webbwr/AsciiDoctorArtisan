@@ -253,8 +253,12 @@ class ActionManager:
         self.validate_install_act: (
             QAction  # Validate installation and update dependencies
         )
-        self.autocomplete_settings_act: QAction  # Configure auto-complete settings (v2.0.0)
-        self.syntax_check_settings_act: QAction  # Configure syntax checking settings (v2.0.0)
+        self.autocomplete_settings_act: (
+            QAction  # Configure auto-complete settings (v2.0.0)
+        )
+        self.syntax_check_settings_act: (
+            QAction  # Configure syntax checking settings (v2.0.0)
+        )
         self.toggle_chat_pane_act: QAction  # Toggle chat pane visibility
         self.toggle_theme_act: QAction  # Toggle dark/light theme
         self.pandoc_status_act: QAction  # Show Pandoc installation status
@@ -1090,7 +1094,9 @@ class ActionManager:
         )  # Configure Anthropic API key
 
         tools_menu.addAction(self.app_settings_act)  # Edit all app settings
-        tools_menu.addAction(self.autocomplete_settings_act)  # Auto-complete settings (v2.0.0)
+        tools_menu.addAction(
+            self.autocomplete_settings_act
+        )  # Auto-complete settings (v2.0.0)
         tools_menu.addAction(
             self.toggle_chat_pane_act
         )  # Toggle chat pane visibility (shows ✓ when visible)
@@ -1098,7 +1104,9 @@ class ActionManager:
         tools_menu.addAction(
             self.toggle_spell_check_act
         )  # Toggle spell checking (F7, shows ✓ when enabled)
-        tools_menu.addAction(self.syntax_check_settings_act)  # Syntax checking settings (v2.0.0)
+        tools_menu.addAction(
+            self.syntax_check_settings_act
+        )  # Syntax checking settings (v2.0.0)
         tools_menu.addAction(
             self.toggle_telemetry_act
         )  # Toggle telemetry collection (shows ✓ when enabled)

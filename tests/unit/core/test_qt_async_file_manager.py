@@ -349,6 +349,7 @@ class TestQtAsyncFileManager:
             raise PermissionError("Read permission denied")
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
         monkeypatch.setattr(qt_module, "async_read_text", mock_read_error)
 
         # Should emit operation_failed signal
@@ -372,6 +373,7 @@ class TestQtAsyncFileManager:
             raise PermissionError("Write permission denied")
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
         monkeypatch.setattr(qt_module, "async_atomic_save_text", mock_write_error)
 
         # Should emit operation_failed signal
@@ -396,6 +398,7 @@ class TestQtAsyncFileManager:
             raise ValueError("Invalid JSON")
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
         monkeypatch.setattr(qt_module, "async_read_json", mock_json_read_error)
 
         # Should emit operation_failed signal
@@ -420,6 +423,7 @@ class TestQtAsyncFileManager:
             raise OSError("Disk full")
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
         monkeypatch.setattr(qt_module, "async_atomic_save_json", mock_json_write_error)
 
         # Should emit operation_failed signal
@@ -445,6 +449,7 @@ class TestQtAsyncFileManager:
             raise IOError("Copy failed")
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
         monkeypatch.setattr(qt_module, "async_copy_file", mock_copy_error)
 
         # Should emit operation_failed signal
@@ -505,7 +510,9 @@ class TestQtAsyncFileManager:
 
         # Start multiple operations
         tasks = [
-            asyncio.create_task(manager.write_file(tmp_path / f"file{i}.txt", f"Content {i}"))
+            asyncio.create_task(
+                manager.write_file(tmp_path / f"file{i}.txt", f"Content {i}")
+            )
             for i in range(3)
         ]
 
@@ -535,7 +542,10 @@ class TestQtAsyncFileManager:
             return False
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
-        monkeypatch.setattr(qt_module, "async_atomic_save_text", mock_save_returns_false)
+
+        monkeypatch.setattr(
+            qt_module, "async_atomic_save_text", mock_save_returns_false
+        )
 
         # Should emit operation_failed signal
         with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
@@ -559,6 +569,7 @@ class TestQtAsyncFileManager:
             return None
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
         monkeypatch.setattr(qt_module, "async_read_json", mock_read_returns_none)
 
         # Should emit operation_failed signal
@@ -583,7 +594,10 @@ class TestQtAsyncFileManager:
             return False
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
-        monkeypatch.setattr(qt_module, "async_atomic_save_json", mock_json_save_returns_false)
+
+        monkeypatch.setattr(
+            qt_module, "async_atomic_save_json", mock_json_save_returns_false
+        )
 
         # Should emit operation_failed signal
         with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
@@ -608,6 +622,7 @@ class TestQtAsyncFileManager:
             return False
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
         monkeypatch.setattr(qt_module, "async_copy_file", mock_copy_returns_false)
 
         # Should emit operation_failed signal

@@ -100,7 +100,7 @@ class LazyModule:
                 )
 
                 logger.debug(
-                    f"Lazy loaded {self._module_name} in {self._import_time*1000:.2f}ms"
+                    f"Lazy loaded {self._module_name} in {self._import_time * 1000:.2f}ms"
                 )
             except Exception as exc:
                 logger.error(f"Failed to lazy load {self._module_name}: {exc}")
@@ -123,7 +123,7 @@ class LazyModule:
         if self._module is None:
             return f"<LazyModule '{self._module_name}' (not loaded)>"
         else:
-            return f"<LazyModule '{self._module_name}' (loaded in {self._import_time*1000:.2f}ms)>"
+            return f"<LazyModule '{self._module_name}' (loaded in {self._import_time * 1000:.2f}ms)>"
 
 
 class ImportProfiler:
@@ -470,8 +470,7 @@ class ImportOptimizer:
                             heavy in obj_module for heavy in self._heavy_modules
                         ):
                             suggestions.append(
-                                f"Consider lazy loading '{obj_module}' "
-                                f"(used in '{name}')"
+                                f"Consider lazy loading '{obj_module}' (used in '{name}')"
                             )
 
         except Exception as exc:

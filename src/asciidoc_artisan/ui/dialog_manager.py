@@ -24,7 +24,6 @@ from PySide6.QtWidgets import QMessageBox
 from asciidoc_artisan.core.constants import is_pandoc_available
 
 if TYPE_CHECKING:
-
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)

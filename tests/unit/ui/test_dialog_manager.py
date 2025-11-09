@@ -1,8 +1,9 @@
 """Tests for ui.dialog_manager module."""
 
-import pytest
 from unittest.mock import Mock, patch
-from PySide6.QtWidgets import QMainWindow, QPlainTextEdit, QTextBrowser, QStatusBar
+
+import pytest
+from PySide6.QtWidgets import QMainWindow, QPlainTextEdit, QStatusBar, QTextBrowser
 
 
 @pytest.fixture
@@ -37,6 +38,7 @@ def mock_main_window(qapp):
     window.telemetry_collector = Mock()
     # Create a mock Path object for telemetry_file
     from pathlib import Path
+
     mock_file = Mock(spec=Path)
     mock_file.parent = Mock(spec=Path)
     mock_file.exists = Mock(return_value=False)
@@ -51,20 +53,24 @@ class TestDialogManagerBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         assert DialogManager is not None
 
     def test_creation(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert manager is not None
 
     def test_stores_editor_reference(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert manager.editor == mock_main_window
 
     def test_has_dialog_methods(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_pandoc_status")
         assert hasattr(manager, "show_supported_formats")
@@ -82,6 +88,7 @@ class TestPandocStatusDialog:
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
     def test_show_pandoc_status_available(self, mock_is_available, mock_main_window):
         import sys
+
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Mock pypandoc module in sys.modules
@@ -123,12 +130,15 @@ class TestSupportedFormatsDialog:
 
     def test_has_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_supported_formats")
         assert callable(manager.show_supported_formats)
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=False)
-    def test_show_supported_formats_unavailable(self, mock_is_available, mock_main_window):
+    def test_show_supported_formats_unavailable(
+        self, mock_is_available, mock_main_window
+    ):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         manager = DialogManager(mock_main_window)
@@ -190,6 +200,7 @@ class TestAnthropicStatusDialog:
 
     def test_has_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_anthropic_status")
         assert callable(manager.show_anthropic_status)
@@ -215,6 +226,7 @@ class TestTelemetryStatusDialog:
 
     def test_has_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_telemetry_status")
         assert callable(manager.show_telemetry_status)
@@ -226,24 +238,28 @@ class TestSettingsDialogs:
 
     def test_has_ollama_settings_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_ollama_settings")
         assert callable(manager.show_ollama_settings)
 
     def test_has_anthropic_settings_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_anthropic_settings")
         assert callable(manager.show_anthropic_settings)
 
     def test_has_app_settings_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_app_settings")
         assert callable(manager.show_app_settings)
 
     def test_has_font_settings_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_font_settings")
         assert callable(manager.show_font_settings)
@@ -322,6 +338,7 @@ class TestInstallationValidator:
 
     def test_has_method(self, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         manager = DialogManager(mock_main_window)
         assert hasattr(manager, "show_installation_validator")
         assert callable(manager.show_installation_validator)
@@ -332,8 +349,11 @@ class TestPandocStatusEdgeCases:
     """Test edge cases for Pandoc status dialog."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_pandoc_status_with_old_version(self, mock_is_available, mock_main_window):
+    def test_show_pandoc_status_with_old_version(
+        self, mock_is_available, mock_main_window
+    ):
         import sys
+
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Mock pypandoc module in sys.modules
@@ -357,6 +377,7 @@ class TestPandocStatusEdgeCases:
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
     def test_show_pandoc_status_with_no_path(self, mock_is_available, mock_main_window):
         import sys
+
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Mock pypandoc module in sys.modules
@@ -378,8 +399,11 @@ class TestPandocStatusEdgeCases:
                 sys.modules.pop("pypandoc", None)
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_pandoc_status_with_exception(self, mock_is_available, mock_main_window):
+    def test_show_pandoc_status_with_exception(
+        self, mock_is_available, mock_main_window
+    ):
         import sys
+
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Mock pypandoc module in sys.modules
@@ -405,7 +429,9 @@ class TestSupportedFormatsEdgeCases:
     """Test edge cases for supported formats dialog."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_supported_formats_available(self, mock_is_available, mock_main_window):
+    def test_show_supported_formats_available(
+        self, mock_is_available, mock_main_window
+    ):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Note: show_supported_formats() doesn't actually call get_pandoc_formats,
@@ -416,7 +442,9 @@ class TestSupportedFormatsEdgeCases:
         assert mock_main_window.status_manager.show_message.called
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_supported_formats_with_exception(self, mock_is_available, mock_main_window):
+    def test_show_supported_formats_with_exception(
+        self, mock_is_available, mock_main_window
+    ):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Note: show_supported_formats() doesn't use pypandoc.get_pandoc_formats,
@@ -486,7 +514,9 @@ class TestAnthropicStatusEdgeCases:
         assert mock_main_window.status_manager.show_message.called
 
     @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
-    def test_show_anthropic_status_with_exception(self, mock_creds_cls, mock_main_window):
+    def test_show_anthropic_status_with_exception(
+        self, mock_creds_cls, mock_main_window
+    ):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         mock_creds_cls.side_effect = Exception("Keyring error")
@@ -496,7 +526,9 @@ class TestAnthropicStatusEdgeCases:
         manager.show_anthropic_status()
 
     @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
-    def test_show_anthropic_status_with_different_models(self, mock_creds_cls, mock_main_window):
+    def test_show_anthropic_status_with_different_models(
+        self, mock_creds_cls, mock_main_window
+    ):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         mock_creds = Mock()

@@ -1,8 +1,9 @@
 """Tests for ui.file_operations_manager module."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 @pytest.fixture
@@ -81,26 +82,31 @@ class TestFileOperationsManagerBasics:
 
     def test_import(self):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         assert FileOperationsManager is not None
 
     def test_creation(self, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
         assert manager is not None
 
     def test_stores_editor_reference(self, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
         assert manager.editor == mock_editor
 
     def test_initialization_sets_processing_flag(self, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
         assert hasattr(manager, "_is_processing_pandoc")
         assert manager._is_processing_pandoc is False
 
     def test_initialization_sets_pending_file_path(self, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
         assert hasattr(manager, "_pending_file_path")
         assert manager._pending_file_path is None
@@ -113,6 +119,7 @@ class TestOpenFile:
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
     def test_open_file_prompts_save_if_unsaved_changes(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         mock_editor._unsaved_changes = True
@@ -127,6 +134,7 @@ class TestOpenFile:
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
     def test_open_file_blocked_when_processing(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         manager._is_processing_pandoc = True
@@ -139,6 +147,7 @@ class TestOpenFile:
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
     def test_open_file_cancelled_dialog_returns_early(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         # User cancels dialog
@@ -151,6 +160,7 @@ class TestOpenFile:
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
     def test_open_pdf_calls_pdf_extraction(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         pdf_file = tmp_path / "test.pdf"
@@ -162,8 +172,11 @@ class TestOpenFile:
             mock_pdf.assert_called_once_with(pdf_file)
 
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
-    def test_open_docx_calls_pandoc_conversion(self, mock_dialog, mock_editor, tmp_path):
+    def test_open_docx_calls_pandoc_conversion(
+        self, mock_dialog, mock_editor, tmp_path
+    ):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         docx_file = tmp_path / "test.docx"
@@ -177,6 +190,7 @@ class TestOpenFile:
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
     def test_open_asciidoc_loads_directly(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         adoc_file = tmp_path / "test.adoc"
@@ -194,12 +208,16 @@ class TestSaveFile:
 
     def test_save_file_uses_current_path_when_available(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         current_file = tmp_path / "test.adoc"
         mock_editor._current_file_path = current_file
 
-        with patch("asciidoc_artisan.ui.file_operations_manager.atomic_save_text", return_value=True):
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=True,
+        ):
             result = manager.save_file(save_as=False)
 
         # Should save to current path without showing dialog
@@ -207,14 +225,20 @@ class TestSaveFile:
         assert mock_editor._unsaved_changes is False
 
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
-    def test_save_file_shows_dialog_when_save_as(self, mock_dialog, mock_editor, tmp_path):
+    def test_save_file_shows_dialog_when_save_as(
+        self, mock_dialog, mock_editor, tmp_path
+    ):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         save_file = tmp_path / "new.adoc"
         mock_dialog.return_value = (str(save_file), "")
 
-        with patch("asciidoc_artisan.ui.file_operations_manager.atomic_save_text", return_value=True):
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=True,
+        ):
             result = manager.save_file(save_as=True)
 
         # Should show dialog even if current file exists
@@ -224,6 +248,7 @@ class TestSaveFile:
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
     def test_save_file_cancelled_dialog_returns_false(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         # User cancels dialog
@@ -234,8 +259,11 @@ class TestSaveFile:
         assert result is False
 
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
-    def test_save_file_delegates_to_export_for_non_adoc(self, mock_dialog, mock_editor, tmp_path):
+    def test_save_file_delegates_to_export_for_non_adoc(
+        self, mock_dialog, mock_editor, tmp_path
+    ):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         docx_file = tmp_path / "export.docx"
@@ -247,13 +275,17 @@ class TestSaveFile:
 
     def test_save_file_updates_unsaved_changes_flag(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         current_file = tmp_path / "test.adoc"
         mock_editor._current_file_path = current_file
         mock_editor._unsaved_changes = True
 
-        with patch("asciidoc_artisan.ui.file_operations_manager.atomic_save_text", return_value=True):
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=True,
+        ):
             manager.save_file()
 
         # Should clear unsaved changes flag
@@ -266,11 +298,15 @@ class TestSaveAsFormatInternal:
 
     def test_save_as_asciidoc_uses_atomic_save(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         adoc_file = tmp_path / "test.adoc"
 
-        with patch("asciidoc_artisan.ui.file_operations_manager.atomic_save_text", return_value=True) as mock_save:
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=True,
+        ) as mock_save:
             result = manager.save_as_format_internal(adoc_file, "adoc")
 
         # Should use atomic_save_text
@@ -279,11 +315,15 @@ class TestSaveAsFormatInternal:
 
     def test_save_as_html_uses_asciidoc_api(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         html_file = tmp_path / "test.html"
 
-        with patch("asciidoc_artisan.ui.file_operations_manager.atomic_save_text", return_value=True):
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=True,
+        ):
             result = manager.save_as_format_internal(html_file, "html")
 
         # Should call asciidoc_api.execute for HTML conversion
@@ -292,6 +332,7 @@ class TestSaveAsFormatInternal:
 
     def test_save_as_docx_emits_pandoc_signal(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         docx_file = tmp_path / "test.docx"
@@ -309,6 +350,7 @@ class TestSaveAsFormatInternal:
 
     def test_save_as_pdf_emits_pandoc_signal(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         pdf_file = tmp_path / "test.pdf"
@@ -331,6 +373,7 @@ class TestPDFExtraction:
 
     def test_pdf_extraction_checks_availability(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         pdf_file = tmp_path / "test.pdf"
@@ -348,6 +391,7 @@ class TestPDFExtraction:
 
     def test_pdf_extraction_shows_error_if_unavailable(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         pdf_file = tmp_path / "test.pdf"
@@ -364,6 +408,7 @@ class TestPDFExtraction:
 
     def test_pdf_extraction_loads_content_on_success(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         pdf_file = tmp_path / "test.pdf"
@@ -385,6 +430,7 @@ class TestPandocConversion:
 
     def test_pandoc_conversion_checks_availability(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         docx_file = tmp_path / "test.docx"
@@ -397,6 +443,7 @@ class TestPandocConversion:
 
     def test_pandoc_conversion_sets_processing_flag(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         docx_file = tmp_path / "test.docx"
@@ -410,6 +457,7 @@ class TestPandocConversion:
 
     def test_pandoc_conversion_emits_signal(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         md_file = tmp_path / "test.md"
@@ -426,8 +474,9 @@ class TestDetermineSaveFormat:
     """Test suite for _determine_save_format method."""
 
     def test_determine_format_from_filter(self, mock_editor):
-        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
         from asciidoc_artisan.core import MD_FILTER
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         file_path = Path("/tmp/test")
@@ -442,6 +491,7 @@ class TestDetermineSaveFormat:
 
     def test_determine_format_from_extension(self, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         file_path = Path("/tmp/test.docx")
@@ -453,6 +503,7 @@ class TestDetermineSaveFormat:
 
     def test_determine_format_adds_extension_if_missing(self, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         file_path = Path("/tmp/test")
@@ -466,6 +517,7 @@ class TestDetermineSaveFormat:
 
     def test_determine_format_defaults_to_adoc(self, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
         manager = FileOperationsManager(mock_editor)
 
         file_path = Path("/tmp/test.unknown")
