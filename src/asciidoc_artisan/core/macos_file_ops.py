@@ -15,7 +15,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -223,6 +223,7 @@ def apfs_create_snapshot(path: str, snapshot_name: Optional[str] = None) -> bool
         result = subprocess.run(
             ["tmutil", "localsnapshot", volume_name, snapshot_name],
             capture_output=True,
+            text=True,
             timeout=5,
         )
 
@@ -241,7 +242,7 @@ def apfs_create_snapshot(path: str, snapshot_name: Optional[str] = None) -> bool
     return False
 
 
-def optimize_file_operations_for_macos(file_path: str) -> dict:
+def optimize_file_operations_for_macos(file_path: str) -> Dict[str, bool]:
     """
     Get optimized file operation settings for macOS/APFS.
 
