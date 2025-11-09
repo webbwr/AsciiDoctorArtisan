@@ -38,7 +38,7 @@ All AI works on your computer. No cloud needed.
 ## What You Need
 
 You need these programs first:
-- **Python 3.14** - Makes it run
+- **Python 3.11+** - Makes it run
 - **Pandoc** - Changes file types
 - **wkhtmltopdf** - Makes PDF files
 
@@ -438,7 +438,7 @@ How to help:
 2. Make it better
 3. Send it back to us
 
-See our guide: [how-to-contribute.md](docs/developer/how-to-contribute.md)
+See our guide: [contributing.md](docs/developer/contributing.md)
 
 ## License
 
@@ -447,10 +447,10 @@ This is free to use! We use the MIT License.
 ## Get Help
 
 Need more help?
-- [How to Use](docs/user/how-to-use.md) - All features
-- [GitHub Guide](docs/user/GITHUB_CLI_INTEGRATION.md) - Pull requests and issues
-- [Performance Guide](docs/user/PERFORMANCE_GUIDE.md) - Speed tips and fixes
-- [Ollama Chat Guide](docs/user/OLLAMA_CHAT_GUIDE.md) - AI chat help
+- [User Guide](docs/user/user-guide.md) - All features
+- [GitHub Integration](docs/user/github-integration.md) - Pull requests and issues
+- [Performance Tips](docs/user/performance-tips.md) - Speed tips and fixes
+- [Ollama Chat](docs/user/ollama-chat.md) - AI chat help
 - Look at our GitHub page
 - Make a new issue on GitHub
 
@@ -458,14 +458,14 @@ Need more help?
 
 ## Version
 
-**Current Version**: 1.9.1 (Complete)
+**Current Version**: 2.0.0 (Complete)
 
-**What's New in v1.9.1:**
-- Comprehensive codebase cleanup (7 issues fixed)
-- Critical pypandoc bugfix (file opening fixed)
-- Test infrastructure modernized
-- Zero technical debt achieved
-- 3,638 tests passing (96.4% coverage)
+**What's New in v2.0.0:**
+- Smart writing help (auto-complete)
+- Error checking (finds mistakes)
+- Paper plans (templates)
+- Very fast (0.586 seconds to start)
+- 4,092 tests passing (96.4% coverage)
 
 **What's New in v1.9.0:**
 - Enhanced Git Status Display (real-time updates)

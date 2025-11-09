@@ -1,7 +1,7 @@
 # AsciiDoc Artisan - Production Requirements
 # Version: 1.4.0-beta
 # Last updated: 2025-10-27
-# Python 3.14+ required
+# Python 3.11+ required
 #
 # These are pinned versions tested and verified for production use.
 # For development, use requirements.txt with flexible version ranges.

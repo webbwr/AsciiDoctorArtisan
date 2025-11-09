@@ -1,7 +1,7 @@
 # AsciiDoc Artisan Python Dependencies
 # Version: 1.4.0-beta
 # Last updated: 2025-10-27
-# Python 3.14+ required
+# Python 3.11+ required
 
 # ============================================================================
 # CORE DEPENDENCIES (Required for all installations)
