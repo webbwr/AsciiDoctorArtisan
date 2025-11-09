@@ -357,6 +357,26 @@ def __getattr__(name: str) -> Any:
         # Return the cached class
         return _MODULE_CACHE[name]
 
+    # === GROUP 8: DEPENDENCY VALIDATOR (v2.0.1) ===
+    # Startup dependency validation for system and Python requirements
+    if name in (
+        "DependencyValidator",
+        "validate_dependencies",
+        "DependencyType",
+        "DependencyStatus",
+        "Dependency",
+    ):
+        # Check if we've already imported dependency validator
+        if name not in _MODULE_CACHE:
+            # First time accessing validator - import it now
+            from . import dependency_validator
+
+            # Get the class/function and cache it
+            _MODULE_CACHE[name] = getattr(dependency_validator, name)
+
+        # Return the cached class/function
+        return _MODULE_CACHE[name]
+
     # === UNKNOWN ATTRIBUTE ===
     # If we get here, they asked for something not in our public API
     # Raise AttributeError (same as Python does for missing attributes)
@@ -443,6 +463,13 @@ __all__ = [
     # Privacy-first usage analytics (opt-in only, local storage)
     "TelemetryCollector",  # Telemetry collector (event tracking, performance metrics)
     "TelemetryEvent",  # Data structure for telemetry events (type, timestamp, data)
+    # === DEPENDENCY VALIDATOR (v2.0.1) ===
+    # Startup dependency validation for system and Python requirements
+    "DependencyValidator",  # Main validator class (checks all dependencies)
+    "validate_dependencies",  # Convenience function for quick validation
+    "DependencyType",  # Enum for dependency types (REQUIRED, OPTIONAL, PYTHON, SYSTEM)
+    "DependencyStatus",  # Enum for validation status (INSTALLED, MISSING, etc.)
+    "Dependency",  # Data structure for dependency information
     # === CONSTANTS - APPLICATION METADATA ===
     # Basic application information
     "APP_NAME",  # "AsciiDoc Artisan" (shown in title bar, about dialog)

@@ -11,6 +11,7 @@ Works with GitHandler to share repository path.
 """
 
 import logging
+import shutil
 from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import QObject, Qt, Signal
@@ -73,6 +74,13 @@ class GitHubHandler(BaseVCSHandler, QObject):
         Called after UI setup is complete and Git repository is loaded.
         Automatically fetches and displays repository information in status bar.
         """
+        # Check if gh CLI is available
+        if not shutil.which("gh"):
+            logger.debug(
+                "GitHub CLI (gh) not found - skipping automatic repo info fetch"
+            )
+            return
+
         # Check if Git repository is set
         if self.git_handler.is_repository_set():
             # Silently fetch repository info to update status bar

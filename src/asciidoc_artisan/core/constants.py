@@ -20,7 +20,7 @@ DEFAULT_FILENAME = "untitled.adoc"
 SETTINGS_FILENAME = "AsciiDocArtisan.json"
 
 # UI Configuration
-PREVIEW_UPDATE_INTERVAL_MS = 200  # Preview debounce delay - Optimized (was 350ms)
+PREVIEW_UPDATE_INTERVAL_MS = 50  # Preview debounce delay - Ultra-fast (was 200ms)
 EDITOR_FONT_FAMILY = "Consolas" if platform.system() == "Windows" else "Courier New"
 EDITOR_FONT_SIZE = 12
 MIN_FONT_SIZE = 8
@@ -49,10 +49,7 @@ SUPPORTED_OPEN_FILTER = (
     f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;"
     f"{LATEX_FILTER};;{RST_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
 )
-SUPPORTED_SAVE_FILTER = (
-    f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;"
-    f"{PDF_FILTER};;{ALL_FILES_FILTER}"
-)
+SUPPORTED_SAVE_FILTER = f"{ADOC_FILTER};;{MD_FILTER};;{DOCX_FILTER};;{HTML_FILTER};;{PDF_FILTER};;{ALL_FILES_FILTER}"
 
 # Window Settings
 MIN_WINDOW_WIDTH = 800

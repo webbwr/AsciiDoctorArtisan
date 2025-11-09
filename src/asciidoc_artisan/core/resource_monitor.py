@@ -76,11 +76,11 @@ class ResourceMonitor:
     LARGE_DOC_LINES = 5000
 
     # Debounce intervals (milliseconds)
-    MIN_DEBOUNCE_MS = 200  # Fast response for small docs
-    NORMAL_DEBOUNCE_MS = 350  # Default (current behavior)
-    MEDIUM_DEBOUNCE_MS = 500  # For medium docs
-    LARGE_DEBOUNCE_MS = 750  # For large docs
-    HUGE_DEBOUNCE_MS = 1000  # For very large docs
+    MIN_DEBOUNCE_MS = 50  # Fast response for small docs (was 200ms)
+    NORMAL_DEBOUNCE_MS = 150  # Default - faster (was 350ms)
+    MEDIUM_DEBOUNCE_MS = 300  # For medium docs (was 500ms)
+    LARGE_DEBOUNCE_MS = 500  # For large docs (was 750ms)
+    HUGE_DEBOUNCE_MS = 750  # For very large docs (was 1000ms)
 
     def __init__(self) -> None:
         """Initialize the resource monitor."""

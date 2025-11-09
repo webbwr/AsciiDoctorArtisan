@@ -54,7 +54,6 @@ _SENTENCE_SPLITTER = re.compile(r"[.!?]+")
 _SYLLABLE_VOWELS = re.compile(r"[aeiouy]+")
 
 if TYPE_CHECKING:
-
     from .main_window import AsciiDocEditor
 
 
@@ -110,22 +109,33 @@ class StatusManager:
         # Word count: wider for larger numbers
         self.word_count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.word_count_label.setMinimumWidth(100)
+        self.word_count_label.setToolTip(
+            "Document word count (excludes code blocks and comments)"
+        )
 
         # Version: narrower, often short
         self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.version_label.setMinimumWidth(60)
+        self.version_label.setToolTip(
+            "Document version (extracted from :version: or :revnumber: attributes)"
+        )
 
         # Grade level: medium width
         self.grade_level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.grade_level_label.setMinimumWidth(90)
+        self.grade_level_label.setToolTip(
+            "Reading grade level (Flesch-Kincaid readability score)"
+        )
 
         # Git status: brief branch indicator
         self.git_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.git_status_label.setMinimumWidth(80)
+        self.git_status_label.setToolTip("Git repository status (click for details)")
 
         # AI status: wider for model names
         self.ai_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.ai_status_label.setMinimumWidth(150)
+        # Tooltip set dynamically in set_ai_model()
 
         # Add widgets to status bar (right side, permanent)
         # Order: Version | Word Count | Grade Level | Git | AI Status
@@ -327,19 +337,66 @@ class StatusManager:
         version = self.extract_document_version(text)
         if version:
             self.version_label.setText(f"v{version}")
+            self.version_label.setToolTip(
+                f"Document Version: {version}\n"
+                "Detected from AsciiDoc attributes (:version:, :revnumber:, :rev:) or version text"
+            )
         else:
             self.version_label.setText("None")
+            self.version_label.setToolTip(
+                "No document version detected\n"
+                "Add version using AsciiDoc attributes:\n"
+                "  :version: 1.0.0\n"
+                "  :revnumber: 1.0"
+            )
 
         # Update word count
         word_count = self.count_words(text)
+        char_count = len(text)
+        line_count = len(text.splitlines())
         self.word_count_label.setText(f"Words: {word_count}")
+        self.word_count_label.setToolTip(
+            f"Document Statistics:\n"
+            f"  Words: {word_count:,}\n"
+            f"  Characters: {char_count:,}\n"
+            f"  Lines: {line_count:,}\n"
+            "(Excludes code blocks and comments)"
+        )
 
         # Update grade level
         if word_count > 0:
             grade = self.calculate_grade_level(text)
             self.grade_level_label.setText(f"Grade: {grade}")
+
+            # Interpret grade level for tooltip
+            if grade <= 5:
+                difficulty = "Elementary"
+                audience = "Easy to read for most audiences"
+            elif grade <= 8:
+                difficulty = "Middle School"
+                audience = "Accessible to general readers"
+            elif grade <= 12:
+                difficulty = "High School"
+                audience = "Suitable for educated readers"
+            elif grade <= 16:
+                difficulty = "College"
+                audience = "Technical or academic content"
+            else:
+                difficulty = "Graduate"
+                audience = "Complex academic content"
+
+            self.grade_level_label.setToolTip(
+                f"Reading Grade Level: {grade}\n"
+                f"Difficulty: {difficulty}\n"
+                f"Target Audience: {audience}\n\n"
+                "Based on Flesch-Kincaid readability formula\n"
+                "(Average sentence length + syllables per word)"
+            )
         else:
             self.grade_level_label.setText("Grade: --")
+            self.grade_level_label.setToolTip(
+                "Reading Grade Level: Not available\n(Document has no content to analyze)"
+            )
 
     def set_ai_model(self, model_name: Optional[str] = None) -> None:
         """Set AI model name in status bar.
@@ -433,14 +490,17 @@ class StatusManager:
             # Red for conflicts
             text = f"{branch} ⚠"
             color = "#ef4444"
+            status_desc = "Conflicts"
         elif total_changes > 0:
             # Yellow for changes (show count)
             text = f"{branch} ●{total_changes}"
             color = "#fbbf24"
+            status_desc = "Changes"
         else:
             # Green for clean
             text = f"{branch} ✓"
             color = "#4ade80"
+            status_desc = "Clean"
 
         # Store current state for theme restoration
         self._current_git_color = color
@@ -449,6 +509,33 @@ class StatusManager:
         # Apply color and text
         self.git_status_label.setStyleSheet(f"color: {color};")
         self.git_status_label.setText(text)
+
+        # Build detailed tooltip
+        tooltip_parts = [
+            f"Git Repository Status: {status_desc}",
+            f"Branch: {branch}",
+            "",
+        ]
+
+        if status.has_conflicts:
+            tooltip_parts.append("⚠ CONFLICTS DETECTED - Resolve before committing")
+            tooltip_parts.append("")
+
+        if total_changes > 0:
+            tooltip_parts.append("Changes:")
+            if status.modified_count > 0:
+                tooltip_parts.append(f"  Modified: {status.modified_count} files")
+            if status.staged_count > 0:
+                tooltip_parts.append(f"  Staged: {status.staged_count} files")
+            if status.untracked_count > 0:
+                tooltip_parts.append(f"  Untracked: {status.untracked_count} files")
+        else:
+            tooltip_parts.append("✓ Working tree clean")
+
+        tooltip_parts.append("")
+        tooltip_parts.append("Click to view detailed status (Ctrl+Shift+G)")
+
+        self.git_status_label.setToolTip("\n".join(tooltip_parts))
 
         logger.debug(f"Git status updated: {text} ({color})")
 

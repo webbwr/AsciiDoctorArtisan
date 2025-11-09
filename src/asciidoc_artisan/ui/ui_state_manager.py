@@ -14,6 +14,8 @@ main window complexity and improve modularity.
 import logging
 from typing import TYPE_CHECKING
 
+from PySide6.QtCore import QThread, QTimer
+
 from asciidoc_artisan.core.constants import is_pandoc_available
 
 if TYPE_CHECKING:
@@ -46,6 +48,11 @@ class UIStateManager:
         - Git repository availability
         - Pandoc availability
         """
+        # Ensure this runs on the main thread (Qt requirement for UI updates)
+        if QThread.currentThread() != self.editor.thread():
+            QTimer.singleShot(0, self.update_ui_state)
+            return
+
         # Save/Save As actions - disabled during Pandoc processing
         is_processing_pandoc = self.editor.file_operations_manager._is_processing_pandoc
         self.editor.action_manager.save_act.setEnabled(not is_processing_pandoc)

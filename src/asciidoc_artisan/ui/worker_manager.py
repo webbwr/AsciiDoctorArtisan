@@ -162,15 +162,21 @@ class WorkerManager:
         self.preview_worker = PreviewWorker()
         self.preview_worker.moveToThread(self.preview_thread)
 
-        if ASCIIDOC3_AVAILABLE and asciidoc3:
-            self.preview_worker.initialize_asciidoc(asciidoc3.__file__)
-
+        # Connect signals BEFORE starting thread
         self.editor.request_preview_render.connect(self.preview_worker.render_preview)
         self.preview_worker.render_complete.connect(
             self.editor._handle_preview_complete
         )
         self.preview_worker.render_error.connect(self.editor._handle_preview_error)
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
+
+        # Initialize AsciiDoc API on worker thread after thread starts
+        if ASCIIDOC3_AVAILABLE and asciidoc3:
+            # Use lambda to defer initialization until thread is running
+            self.preview_thread.started.connect(
+                lambda: self.preview_worker.initialize_asciidoc(asciidoc3.__file__)
+            )
+
         self.preview_thread.start()
 
         # Ollama Chat Worker (v1.7.0)
@@ -307,48 +313,78 @@ class WorkerManager:
             self.wait_for_pool_done(5000)
 
         # Stop dedicated threads with force-termination fallback
-        if self.git_thread and self.git_thread.isRunning():
-            self.git_thread.quit()
-            if not self.git_thread.wait(2000):
-                logger.warning("Git thread did not exit cleanly, force terminating")
-                self.git_thread.terminate()
-                self.git_thread.wait(1000)
+        # IMPORTANT: Must wait for threads to fully exit AND explicitly delete them
+        # to avoid "QThread: Destroyed while thread is still running" crash
 
-        if self.github_thread and self.github_thread.isRunning():
-            self.github_thread.quit()
-            if not self.github_thread.wait(2000):
-                logger.warning("GitHub thread did not exit cleanly, force terminating")
-                self.github_thread.terminate()
-                self.github_thread.wait(1000)
+        if self.git_thread:
+            if self.git_thread.isRunning():
+                self.git_thread.quit()
+                if not self.git_thread.wait(3000):
+                    logger.warning("Git thread did not exit cleanly, force terminating")
+                    self.git_thread.terminate()
+                    self.git_thread.wait(1000)
+            # Explicitly delete the thread to avoid destructor issues
+            self.git_thread.deleteLater()
+            self.git_thread = None
 
-        if self.pandoc_thread and self.pandoc_thread.isRunning():
-            self.pandoc_thread.quit()
-            if not self.pandoc_thread.wait(2000):
-                logger.warning("Pandoc thread did not exit cleanly, force terminating")
-                self.pandoc_thread.terminate()
-                self.pandoc_thread.wait(1000)
+        if self.github_thread:
+            if self.github_thread.isRunning():
+                self.github_thread.quit()
+                if not self.github_thread.wait(3000):
+                    logger.warning(
+                        "GitHub thread did not exit cleanly, force terminating"
+                    )
+                    self.github_thread.terminate()
+                    self.github_thread.wait(1000)
+            self.github_thread.deleteLater()
+            self.github_thread = None
 
-        if self.preview_thread and self.preview_thread.isRunning():
-            self.preview_thread.quit()
-            if not self.preview_thread.wait(2000):
-                logger.warning("Preview thread did not exit cleanly, force terminating")
-                self.preview_thread.terminate()
-                self.preview_thread.wait(1000)
+        if self.pandoc_thread:
+            if self.pandoc_thread.isRunning():
+                self.pandoc_thread.quit()
+                if not self.pandoc_thread.wait(3000):
+                    logger.warning(
+                        "Pandoc thread did not exit cleanly, force terminating"
+                    )
+                    self.pandoc_thread.terminate()
+                    self.pandoc_thread.wait(1000)
+            self.pandoc_thread.deleteLater()
+            self.pandoc_thread = None
 
-        if self.ollama_chat_thread and self.ollama_chat_thread.isRunning():
-            self.ollama_chat_thread.quit()
-            if not self.ollama_chat_thread.wait(2000):
-                logger.warning(
-                    "Ollama chat thread did not exit cleanly, force terminating"
-                )
-                self.ollama_chat_thread.terminate()
-                self.ollama_chat_thread.wait(1000)
+        if self.preview_thread:
+            if self.preview_thread.isRunning():
+                self.preview_thread.quit()
+                if not self.preview_thread.wait(3000):
+                    logger.warning(
+                        "Preview thread did not exit cleanly, force terminating"
+                    )
+                    self.preview_thread.terminate()
+                    self.preview_thread.wait(1000)
+            self.preview_thread.deleteLater()
+            self.preview_thread = None
 
-        if self.claude_thread and self.claude_thread.isRunning():
-            self.claude_thread.quit()
-            if not self.claude_thread.wait(2000):
-                logger.warning("Claude thread did not exit cleanly, force terminating")
-                self.claude_thread.terminate()
-                self.claude_thread.wait(1000)
+        if self.ollama_chat_thread:
+            if self.ollama_chat_thread.isRunning():
+                self.ollama_chat_thread.quit()
+                if not self.ollama_chat_thread.wait(3000):
+                    logger.warning(
+                        "Ollama chat thread did not exit cleanly, force terminating"
+                    )
+                    self.ollama_chat_thread.terminate()
+                    self.ollama_chat_thread.wait(1000)
+            self.ollama_chat_thread.deleteLater()
+            self.ollama_chat_thread = None
+
+        if self.claude_thread:
+            if self.claude_thread.isRunning():
+                self.claude_thread.quit()
+                if not self.claude_thread.wait(3000):
+                    logger.warning(
+                        "Claude thread did not exit cleanly, force terminating"
+                    )
+                    self.claude_thread.terminate()
+                    self.claude_thread.wait(1000)
+            self.claude_thread.deleteLater()
+            self.claude_thread = None
 
         logger.info("All workers shutdown complete")

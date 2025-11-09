@@ -202,6 +202,21 @@ def main() -> None:
     # Once Qt is imported, it's too late to change GPU settings
     _setup_gpu_acceleration()
 
+    # === STEP 2.5: VALIDATE DEPENDENCIES ===
+    # Check for required and optional dependencies before starting the app
+    # This provides clear feedback about missing system tools or Python packages
+    from asciidoc_artisan.core import validate_dependencies
+
+    validator = validate_dependencies()
+
+    # Log validation summary
+    logger.info(validator.get_validation_summary())
+
+    # Check for critical issues
+    if validator.has_critical_issues():
+        logger.error("Critical dependencies are missing!")
+        # Will show detailed dialog after Qt is initialized
+
     # === STEP 3: OPTIONAL MEMORY PROFILING ===
     # For developers: Track memory usage to find leaks
     # Enable by setting environment variable: ASCIIDOC_ARTISAN_PROFILE_MEMORY=1
@@ -232,6 +247,30 @@ def main() -> None:
     if profiler:
         profiler.take_snapshot("after_window_show")  # Snapshot 4: After window shown
 
+    # === STEP 6.3: SHOW DEPENDENCY VALIDATION RESULTS ===
+    # If there are missing dependencies, show informational dialog
+    # This happens after window is shown so user has visual feedback
+    missing_optional = validator.get_missing_optional()
+    if len(missing_optional) > 0:
+        logger.info(
+            f"Showing dependency information: {len(missing_optional)} optional dependencies missing"
+        )
+        from asciidoc_artisan.ui.dependency_dialog import (
+            show_dependency_summary_message,
+        )
+
+        # Show summary (non-blocking for optional deps)
+        show_dependency_summary_message(validator.dependencies, window)
+
+    # If critical dependencies missing, show detailed dialog and potentially exit
+    if validator.has_critical_issues():
+        from asciidoc_artisan.ui.dependency_dialog import show_dependency_validation
+
+        can_continue = show_dependency_validation(validator.dependencies, window)
+        if not can_continue:
+            logger.error("User chose to exit due to missing dependencies")
+            sys.exit(1)
+
     # === STEP 6.5: APPLY FONT SETTINGS ===
     # Apply saved font settings from last session
     if hasattr(window, "dialog_manager"):
@@ -239,12 +278,22 @@ def main() -> None:
         logger.info("Font settings applied on startup")
 
     # === STEP 7: RENDER INITIAL PREVIEW ===
-    # Generate the first preview so user sees content immediately
-    window.update_preview()
-    if profiler:
-        profiler.take_snapshot(
-            "after_initial_preview"
-        )  # Snapshot 5: After first render
+    # Wait for preview worker to be ready, then generate the first preview
+    # This ensures non-blocking initialization - worker initializes on background thread
+    if hasattr(window, "preview_worker") and window.preview_worker:
+        # Connect to worker's ready signal to trigger initial preview
+        def trigger_initial_preview():
+            window.update_preview()
+            if profiler:
+                profiler.take_snapshot("after_initial_preview")
+            logger.info("Initial preview rendered after worker ready")
+
+        window.preview_worker.ready.connect(trigger_initial_preview)
+    else:
+        # Fallback: No worker available, render immediately
+        window.update_preview()
+        if profiler:
+            profiler.take_snapshot("after_initial_preview")
 
     # === STEP 8: START EVENT LOOP (WITH ASYNC SUPPORT) ===
     # This is where the program "runs" - it processes user actions in a loop:

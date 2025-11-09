@@ -344,7 +344,18 @@ class EditorState:
         logger.info("Application closed")
 
     def _shutdown_threads(self) -> None:
-        """Safely shut down worker threads."""
+        """Safely shut down worker threads - delegates to WorkerManager."""
+        # Delegate to WorkerManager which handles all 6 threads properly:
+        # git, github, pandoc, preview, ollama_chat, claude
+        if hasattr(self.window, "worker_manager") and self.window.worker_manager:
+            self.window.worker_manager.shutdown()
+        else:
+            # Fallback for older code paths (should not happen in v1.5.0+)
+            logger.warning("WorkerManager not found, using fallback shutdown")
+            self._shutdown_threads_fallback()
+
+    def _shutdown_threads_fallback(self) -> None:
+        """Fallback shutdown logic for legacy compatibility."""
         # List of threads to stop.
         threads = [
             ("git_thread", self.window.git_thread),

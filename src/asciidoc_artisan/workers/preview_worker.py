@@ -98,6 +98,7 @@ class PreviewWorker(QObject):
 
     render_complete = Signal(str)
     render_error = Signal(str)
+    ready = Signal()  # Emitted when worker is fully initialized and ready
 
     def __init__(self) -> None:
         """Initialize PreviewWorker with uninitialized AsciiDoc API."""
@@ -160,10 +161,15 @@ class PreviewWorker(QObject):
                         logger.debug("PreviewWorker: Predictive renderer initialized")
 
                 logger.debug("PreviewWorker: AsciiDoc API initialized")
+
+                # Emit ready signal to indicate worker is fully initialized
+                self.ready.emit()
             except Exception as exc:
                 logger.error(
                     f"PreviewWorker: AsciiDoc API initialization failed: {exc}"
                 )
+                # Emit ready signal even on error so app doesn't hang waiting
+                self.ready.emit()
 
     @Slot(str)
     def render_preview(self, source_text: str) -> None:
