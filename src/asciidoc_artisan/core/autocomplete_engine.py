@@ -247,7 +247,7 @@ class AutoCompleteEngine:
         has_rapidfuzz = False
         rapidfuzz_fuzz: Optional[Any] = None
         try:
-            from rapidfuzz import fuzz as rapidfuzz_fuzz  # type: ignore[no-redef]
+            from rapidfuzz import fuzz as rapidfuzz_fuzz
 
             has_rapidfuzz = True
         except ImportError:

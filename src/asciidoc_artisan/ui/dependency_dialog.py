@@ -12,7 +12,7 @@ v2.0.1: Created for startup validation feedback
 """
 
 import logging
-from typing import List
+from typing import List, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QTextEdit,
     QVBoxLayout,
+    QWidget,
 )
 
 from asciidoc_artisan.core import (
@@ -37,7 +38,9 @@ logger = logging.getLogger(__name__)
 class DependencyValidationDialog(QDialog):
     """Dialog for displaying dependency validation results."""
 
-    def __init__(self, dependencies: List[Dependency], parent=None) -> None:
+    def __init__(
+        self, dependencies: List[Dependency], parent: Optional[QWidget] = None
+    ) -> None:
         """
         Initialize the dependency validation dialog.
 
@@ -241,7 +244,9 @@ class DependencyValidationDialog(QDialog):
         return footer_layout
 
 
-def show_dependency_validation(dependencies: List[Dependency], parent=None) -> bool:
+def show_dependency_validation(
+    dependencies: List[Dependency], parent: Optional[QWidget] = None
+) -> bool:
     """
     Show dependency validation results in a dialog.
 
@@ -267,7 +272,7 @@ def show_dependency_validation(dependencies: List[Dependency], parent=None) -> b
 
 
 def show_dependency_summary_message(
-    dependencies: List[Dependency], parent=None
+    dependencies: List[Dependency], parent: Optional[QWidget] = None
 ) -> None:
     """
     Show a brief summary message box for dependency validation.
