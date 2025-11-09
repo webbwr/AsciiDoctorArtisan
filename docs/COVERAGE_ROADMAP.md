@@ -58,15 +58,15 @@ Files: 94 total
 - ✅ `worker_manager.py` - 95% → 98% (EVALUATED - 41 tests passing, 7 failing tests noted)
 - ⏭️ Fix 158 failing tests (UI state, workers, etc.) - DEFERRED to separate effort
 
-### **Phase 4: Zero Coverage Files (Target: 95% coverage)**
+### **Phase 4: Zero Coverage Files (Target: 95% coverage)** ⭐ IN PROGRESS
 **Estimated Time:** 8-12 hours
 **Expected Gain:** +5%
 
 **Critical Files (0% coverage, 23 total):**
-1. `dependency_validator.py` - 130 lines
-2. `macos_optimizer.py` - 156 lines
-3. `macos_file_ops.py` - 96 lines
-4. `template_browser.py` - 177 lines
+1. ✅ `dependency_validator.py` - 436 lines (COMPLETED - 34 tests, 100% pass, 0% → ~80%+)
+2. `macos_optimizer.py` - 156 lines (MEDIUM priority, macOS-specific)
+3. `macos_file_ops.py` - 96 lines (MEDIUM priority, macOS-specific)
+4. `template_browser.py` - 177 lines (LOW priority, complex Qt UI)
 5. Plus 19 more files...
 
 ### **Phase 5: Edge Cases & Error Paths (Target: 100% coverage)**
@@ -160,16 +160,18 @@ Files: 94 total
 ### **In Progress**
 - ✅ **Phase 1 COMPLETE!** All 5 quick wins modules done (190 tests total)
 - ✅ **Phase 2 COMPLETE!** All 5 core modules done (154 tests: 45 + 19 + 31 + 21 + 38)
-- ⭐ **Phase 3 IN PROGRESS:** UI components evaluated (3/3 modules)
+- ✅ **Phase 3 COMPLETE!** UI components evaluated (3/3 modules, 92 tests: 30 + 21 + 41)
   - syntax_checker_manager: 30 tests (+10 new), 100% pass
   - autocomplete_manager: 21 tests, 100% pass (comprehensive)
   - worker_manager: 41 tests passing, 7 failing (infrastructure issues noted)
-- ⏭️ **Phase 4 ready:** Zero coverage files (23 files, 2000+ lines)
+- ⭐ **Phase 4 IN PROGRESS:** Zero coverage files (1/23 files complete)
+  - dependency_validator: 34 tests, 100% pass, 0% → ~80%+
+  - Remaining: 22 files (~1,600 lines)
 
 ### **Next Session Goals**
 1. ✅ Complete Phase 2 core modules
-2. ⭐ Evaluate Phase 3 UI components
-3. ⏭️ Start Phase 4 zero coverage files OR fix failing tests
+2. ✅ Evaluate Phase 3 UI components
+3. ⭐ Continue Phase 4 zero coverage files (22 remaining)
 
 ---
 
