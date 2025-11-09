@@ -157,11 +157,19 @@ disable_error_code = ["attr-defined", "call-overload", "misc", "assignment", "un
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --cov=. --cov-report=term-missing --cov-report=html"
+# IMPORTANT: No multiprocessing flags (--forked, -n, etc.) on macOS
+# macOS Security.framework doesn't work in forked processes
+# Coverage uses --cov-branch for more thorough analysis
+addopts = "-ra -q --strict-markers --cov=src/asciidoc_artisan --cov-branch --cov-report=term-missing:skip-covered --cov-report=html"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+# Environment variables for test execution
+env = [
+    "QT_QPA_PLATFORM=offscreen",
+    "PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring",
+]
 
 [tool.coverage.run]
 source = ["."]
