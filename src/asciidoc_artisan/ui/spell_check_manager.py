@@ -103,6 +103,8 @@ class SpellCheckManager:
             )
             logger.info("Spell check enabled")
         else:
+            # Stop any pending spell check
+            self.check_timer.stop()
             # Clear all highlights
             self._clear_highlights()
             self.errors = []

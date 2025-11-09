@@ -660,8 +660,8 @@ class TestCustomDictionaryEdgeCases:
 
         manager.add_to_dictionary("TestWord")
 
-        # Should preserve case
-        assert "TestWord" in manager.spell_checker.get_custom_words()
+        # Words are normalized to lowercase for case-insensitive matching
+        assert "testword" in manager.spell_checker.get_custom_words()
 
     def test_add_very_long_word(self, main_window):
         """Test adding very long word to dictionary."""
