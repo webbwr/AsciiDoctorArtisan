@@ -32,7 +32,7 @@ Files: 94 total
 
 **Targets:**
 - ✅ `json_utils.py` - 65% → 100% (COMPLETED)
-- ⏭️ `syntax_checker.py` - 63% → 95% (~27 lines)
+- ✅ `syntax_checker.py` - 63% → 95% (COMPLETED - 38 tests)
 - ⏭️ `secure_credentials.py` - 77% → 95% (~20 lines)
 - ⏭️ `autocomplete_engine.py` - 61% → 90% (~25 lines)
 - ⏭️ `syntax_validators.py` - 69% → 90% (~30 lines)
@@ -146,8 +146,10 @@ Files: 94 total
 ## 📈 Progress Tracking
 
 ### **Completed (November 9, 2025)**
-- ✅ `json_utils.py` - 65% → 100% (+11 lines)
+- ✅ `json_utils.py` - 65% → 100% (17 tests)
 - ✅ Committed: `0d65822` "test: Add comprehensive tests for json_utils.py"
+- ✅ `syntax_checker.py` - 63% → 95% (38 tests)
+- ✅ Committed: `6de3ba0` "test: Add comprehensive tests for syntax_checker.py"
 
 ### **In Progress**
 - ⏳ Quick wins phase (5 modules remaining)
