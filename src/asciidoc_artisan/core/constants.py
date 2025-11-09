@@ -20,7 +20,7 @@ DEFAULT_FILENAME = "untitled.adoc"
 SETTINGS_FILENAME = "AsciiDocArtisan.json"
 
 # UI Configuration
-PREVIEW_UPDATE_INTERVAL_MS = 50  # Preview debounce delay - Ultra-fast (was 200ms)
+PREVIEW_UPDATE_INTERVAL_MS = 25  # Preview debounce delay - Maximum speed (was 50ms)
 EDITOR_FONT_FAMILY = "Consolas" if platform.system() == "Windows" else "Courier New"
 EDITOR_FONT_SIZE = 12
 MIN_FONT_SIZE = 8

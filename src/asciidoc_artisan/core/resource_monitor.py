@@ -75,12 +75,13 @@ class ResourceMonitor:
     MEDIUM_DOC_LINES = 1000
     LARGE_DOC_LINES = 5000
 
-    # Debounce intervals (milliseconds)
-    MIN_DEBOUNCE_MS = 50  # Fast response for small docs (was 200ms)
-    NORMAL_DEBOUNCE_MS = 150  # Default - faster (was 350ms)
-    MEDIUM_DEBOUNCE_MS = 300  # For medium docs (was 500ms)
-    LARGE_DEBOUNCE_MS = 500  # For large docs (was 750ms)
-    HUGE_DEBOUNCE_MS = 750  # For very large docs (was 1000ms)
+    # Debounce intervals (milliseconds) - Ultra-aggressive for maximum speed
+    INSTANT_DEBOUNCE_MS = 0  # Instant for tiny docs (<1KB) - zero latency!
+    MIN_DEBOUNCE_MS = 25  # Ultra-fast for small docs (was 50ms)
+    NORMAL_DEBOUNCE_MS = 100  # Fast default (was 150ms)
+    MEDIUM_DEBOUNCE_MS = 250  # For medium docs (was 300ms)
+    LARGE_DEBOUNCE_MS = 400  # For large docs (was 500ms)
+    HUGE_DEBOUNCE_MS = 600  # For very large docs (was 750ms)
 
     def __init__(self) -> None:
         """Initialize the resource monitor."""
@@ -135,7 +136,11 @@ class ResourceMonitor:
         """
         doc_metrics = self.get_document_metrics(text)
 
-        # Small document - fast response
+        # Tiny document - instant rendering (zero latency!)
+        if doc_metrics.size_bytes < 1000:  # < 1KB
+            return self.INSTANT_DEBOUNCE_MS
+
+        # Small document - ultra-fast response
         if (
             doc_metrics.size_bytes < self.SMALL_DOC_BYTES
             and doc_metrics.line_count < self.SMALL_DOC_LINES

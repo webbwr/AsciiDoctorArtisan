@@ -21,7 +21,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSplitter,
     QStatusBar,
-    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
@@ -202,10 +201,11 @@ class UISetupManager:
         )
         preview_layout.addWidget(preview_toolbar)
 
-        # Create preview widget (QTextBrowser for WSLg compatibility)
-        self.editor.preview = QTextBrowser(self.editor)
+        # Create preview widget with automatic GPU detection
+        from asciidoc_artisan.ui.preview_handler_gpu import create_preview_widget
+
+        self.editor.preview = create_preview_widget(self.editor)
         self.editor.preview.setOpenExternalLinks(True)
-        logger.info("Using QTextBrowser for WSLg compatibility (no WebEngine)")
         preview_layout.addWidget(self.editor.preview)
 
         return preview_container
@@ -270,8 +270,7 @@ class UISetupManager:
         toolbar = QWidget()
         toolbar.setFixedHeight(30)
         toolbar.setStyleSheet(
-            f"background-color: {SEPARATOR_BACKGROUND_COLOR}; "
-            f"border-bottom: 1px solid {SEPARATOR_BORDER_COLOR};"
+            f"background-color: {SEPARATOR_BACKGROUND_COLOR}; border-bottom: 1px solid {SEPARATOR_BORDER_COLOR};"
         )
         toolbar_layout = QHBoxLayout(toolbar)
         toolbar_layout.setContentsMargins(5, 2, 5, 2)
@@ -311,11 +310,11 @@ class UISetupManager:
                     border-color: {color};
                 }}
                 QPushButton:pressed {{
-                    background-color: {highlight_color.replace('0.2', '0.3')};
+                    background-color: {highlight_color.replace("0.2", "0.3")};
                 }}
                 QPushButton:disabled {{
-                    color: {color.replace(')', ', 0.3)')};
-                    border-color: {color.replace(')', ', 0.3)')};
+                    color: {color.replace(")", ", 0.3)")};
+                    border-color: {color.replace(")", ", 0.3)")};
                 }}
             """
             )
@@ -341,11 +340,11 @@ class UISetupManager:
                     border-color: {color};
                 }}
                 QPushButton:pressed {{
-                    background-color: {highlight_color.replace('0.2', '0.3')};
+                    background-color: {highlight_color.replace("0.2", "0.3")};
                 }}
                 QPushButton:disabled {{
-                    color: {color.replace(')', ', 0.3)')};
-                    border-color: {color.replace(')', ', 0.3)')};
+                    color: {color.replace(")", ", 0.3)")};
+                    border-color: {color.replace(")", ", 0.3)")};
                 }}
             """
             )
@@ -372,11 +371,11 @@ class UISetupManager:
                     border-color: {color};
                 }}
                 QPushButton:pressed {{
-                    background-color: {highlight_color.replace('0.2', '0.3')};
+                    background-color: {highlight_color.replace("0.2", "0.3")};
                 }}
                 QPushButton:disabled {{
-                    color: {color.replace(')', ', 0.3)')};
-                    border-color: {color.replace(')', ', 0.3)')};
+                    color: {color.replace(")", ", 0.3)")};
+                    border-color: {color.replace(")", ", 0.3)")};
                 }}
             """
             )
@@ -402,7 +401,7 @@ class UISetupManager:
                 border-color: {color};
             }}
             QPushButton:pressed {{
-                background-color: {highlight_color.replace('0.2', '0.3')};
+                background-color: {highlight_color.replace("0.2", "0.3")};
             }}
         """
         )

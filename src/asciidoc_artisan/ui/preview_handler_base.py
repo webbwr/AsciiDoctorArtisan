@@ -117,9 +117,10 @@ logger = logging.getLogger(__name__)
 # === DEBOUNCE INTERVAL CONSTANTS ===
 # These define how long to wait before updating preview
 # Shorter intervals = faster updates but more CPU usage
-PREVIEW_FAST_INTERVAL_MS = 50  # 50ms for small documents (ultra-fast, was 100ms)
-PREVIEW_NORMAL_INTERVAL_MS = 150  # 150ms for medium documents (was 250ms)
-PREVIEW_SLOW_INTERVAL_MS = 300  # 300ms for large documents (was 500ms)
+PREVIEW_INSTANT_MS = 0  # Instant for tiny documents (<1KB) - zero latency!
+PREVIEW_FAST_INTERVAL_MS = 25  # 25ms for small documents (2x faster)
+PREVIEW_NORMAL_INTERVAL_MS = 100  # 100ms for medium documents (was 150ms)
+PREVIEW_SLOW_INTERVAL_MS = 250  # 250ms for large documents (was 300ms)
 
 # === CONTENT SECURITY POLICY (CSP) ===
 # Security rules for preview HTML to prevent XSS attacks
@@ -264,8 +265,10 @@ class PreviewHandlerBase(QObject):
             # Calculate adaptive delay
             delay = self._adaptive_debouncer.calculate_delay(document_size=text_size)
         else:
-            # Fall back to simple size-based delay
-            if text_size < 10000:  # < 10KB
+            # Fall back to simple size-based delay with aggressive optimization
+            if text_size < 1000:  # < 1KB - instant rendering!
+                delay = PREVIEW_INSTANT_MS
+            elif text_size < 10000:  # < 10KB
                 delay = PREVIEW_FAST_INTERVAL_MS
             elif text_size < 100000:  # < 100KB
                 delay = PREVIEW_NORMAL_INTERVAL_MS

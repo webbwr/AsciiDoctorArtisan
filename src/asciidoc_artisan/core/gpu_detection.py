@@ -10,6 +10,7 @@ Implements caching to avoid repeated detection (reduces startup time by ~100ms).
 import json
 import logging
 import os
+import platform
 import subprocess
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
@@ -24,18 +25,21 @@ class GPUInfo:
     """GPU and NPU information container."""
 
     has_gpu: bool
-    gpu_type: Optional[str] = None  # "nvidia", "amd", "intel", "unknown"
+    gpu_type: Optional[str] = None  # "nvidia", "amd", "intel", "apple", "unknown"
     gpu_name: Optional[str] = None
     driver_version: Optional[str] = None
-    render_device: Optional[str] = None  # e.g., "/dev/dri/renderD128"
+    render_device: Optional[str] = (
+        None  # e.g., "/dev/dri/renderD128" (Linux) or "Metal" (macOS)
+    )
     can_use_webengine: bool = False
     reason: str = ""  # Explanation
     has_npu: bool = False  # Neural Processing Unit
-    npu_type: Optional[str] = None  # "intel_npu", "qualcomm_npu", "amd_npu", etc.
+    npu_type: Optional[str] = None  # "intel_npu", "apple_neural_engine", etc.
     npu_name: Optional[str] = None
     compute_capabilities: list[str] = field(
         default_factory=list
-    )  # ["cuda", "opencl", "vulkan", "openvino", etc.]
+    )  # ["cuda", "opencl", "vulkan", "openvino", "metal", etc.]
+    metal_version: Optional[str] = None  # Metal framework version (macOS only)
 
 
 @dataclass
@@ -320,6 +324,106 @@ def check_intel_npu() -> tuple[bool, Optional[str]]:
     return False, None
 
 
+def check_macos_gpu() -> tuple[bool, Optional[str], Optional[str]]:
+    """
+    Check for macOS GPU (Metal framework).
+
+    Returns:
+        Tuple of (has_gpu, gpu_name, metal_version)
+    """
+    try:
+        # Check for Metal support via system_profiler
+        result = subprocess.run(
+            ["system_profiler", "SPDisplaysDataType"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            # Parse output for GPU name and Metal version
+            gpu_name = None
+            metal_version = None
+
+            for line in result.stdout.split("\n"):
+                # Look for Chipset Model or GPU name
+                if "Chipset Model:" in line or "GPU:" in line:
+                    gpu_name = line.split(":")[-1].strip()
+                # Look for Metal version
+                elif "Metal:" in line or "Metal Support:" in line:
+                    metal_version = line.split(":")[-1].strip()
+
+            # If we found GPU info, return it
+            if gpu_name:
+                return True, gpu_name, metal_version
+
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # Try alternate method - sysctl for Apple Silicon
+    try:
+        result = subprocess.run(
+            ["sysctl", "-n", "machdep.cpu.brand_string"],
+            capture_output=True,
+            text=True,
+            timeout=1,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            cpu_brand = result.stdout.strip()
+            # Apple Silicon (M1, M2, M3, M4) includes integrated GPU
+            if "Apple M" in cpu_brand:
+                # Extract chip name (e.g., "Apple M1 Ultra")
+                return True, f"{cpu_brand} Integrated GPU", "Metal 4"
+
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    return False, None, None
+
+
+def check_apple_neural_engine() -> tuple[bool, Optional[str]]:
+    """
+    Check for Apple Neural Engine (NPU on Apple Silicon).
+
+    Returns:
+        Tuple of (has_npu, npu_name)
+    """
+    try:
+        # Check for Apple Silicon chip via sysctl
+        result = subprocess.run(
+            ["sysctl", "-n", "machdep.cpu.brand_string"],
+            capture_output=True,
+            text=True,
+            timeout=1,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            cpu_brand = result.stdout.strip()
+            # Apple Silicon (M1+) includes Neural Engine
+            if "Apple M" in cpu_brand:
+                # Extract core count if available
+                try:
+                    # Try to get Neural Engine core count
+                    # M1: 16-core, M1 Pro/Max: 16-core, M1 Ultra: 32-core
+                    # M2: 16-core, M2 Pro/Max: 16-core, M2 Ultra: 32-core
+                    # M3: 16-core, M3 Pro/Max: 16-core
+                    if "Ultra" in cpu_brand:
+                        return True, f"{cpu_brand} Neural Engine (32-core)"
+                    elif "Max" in cpu_brand or "Pro" in cpu_brand:
+                        return True, f"{cpu_brand} Neural Engine (16-core)"
+                    else:
+                        return True, f"{cpu_brand} Neural Engine (16-core)"
+                except Exception:
+                    # Fallback - just report it exists
+                    return True, f"{cpu_brand} Neural Engine"
+
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    return False, None
+
+
 def detect_compute_capabilities() -> list[str]:
     """
     Detect available compute capabilities.
@@ -368,6 +472,20 @@ def detect_compute_capabilities() -> list[str]:
     if Path("/opt/rocm").exists():
         capabilities.append("rocm")
 
+    # Check Metal (macOS GPU framework).
+    if platform.system() == "Darwin":
+        try:
+            result = subprocess.run(
+                ["system_profiler", "SPDisplaysDataType"],
+                capture_output=True,
+                text=True,
+                timeout=1,
+            )
+            if result.returncode == 0 and "Metal" in result.stdout:
+                capabilities.append("metal")
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+
     return capabilities
 
 
@@ -380,6 +498,45 @@ def detect_gpu() -> GPUInfo:
     """
     logger.info("Detecting GPU capabilities...")
 
+    # macOS detection (Metal framework)
+    if platform.system() == "Darwin":
+        logger.info("Detected macOS - checking for Metal GPU support")
+
+        # Check for macOS GPU (Metal)
+        has_macos_gpu, macos_gpu_name, metal_version = check_macos_gpu()
+
+        if not has_macos_gpu:
+            # No GPU detected on macOS
+            return GPUInfo(
+                has_gpu=False,
+                can_use_webengine=False,
+                reason="No Metal-compatible GPU detected on macOS",
+            )
+
+        # GPU detected - check for Neural Engine (NPU)
+        has_npu, npu_name = check_apple_neural_engine()
+        npu_type = "apple_neural_engine" if has_npu else None
+
+        # Detect compute capabilities
+        compute_capabilities = detect_compute_capabilities()
+
+        # macOS with Metal GPU - fully supported!
+        return GPUInfo(
+            has_gpu=True,
+            gpu_type="apple",
+            gpu_name=macos_gpu_name,
+            driver_version=metal_version,
+            render_device="Metal",
+            can_use_webengine=True,
+            reason=f"Hardware acceleration available: {macos_gpu_name} (Metal {metal_version or 'supported'})",
+            has_npu=has_npu,
+            npu_type=npu_type,
+            npu_name=npu_name,
+            compute_capabilities=compute_capabilities,
+            metal_version=metal_version,
+        )
+
+    # Linux/Windows detection (DRI devices)
     # Check for DRI devices (required for GPU access in Linux).
     has_dri, render_device = check_dri_devices()
 
@@ -465,6 +622,8 @@ def log_gpu_info(gpu_info: GPUInfo) -> None:
         logger.info(f"GPU detected: {gpu_info.gpu_name} ({gpu_info.gpu_type})")
         if gpu_info.driver_version:
             logger.info(f"Driver version: {gpu_info.driver_version}")
+        if gpu_info.metal_version:
+            logger.info(f"Metal version: {gpu_info.metal_version}")
         logger.info(f"Render device: {gpu_info.render_device}")
         logger.info(f"WebEngine GPU support: {gpu_info.can_use_webengine}")
     else:
