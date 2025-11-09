@@ -1,14 +1,17 @@
 # AsciiDoc Artisan
 
-**Version 1.9.1** | November 2025
+**Version 2.0.0** | November 2025
 
-A simple program. It helps you write papers. It is very fast.
+A smart program for writing papers. Very fast. Has smart help.
 
 ## What It Does
 
 This program does many things:
 - Shows your work as you type
-- Finds and changes words (new!)
+- Helps you write (smart hints)
+- Checks for mistakes (finds errors)
+- Makes papers from plans (templates)
+- Finds and changes words
 - Saves your work with Git
 - Works with GitHub
 - Opens Word files
