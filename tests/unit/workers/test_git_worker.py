@@ -685,3 +685,153 @@ class TestGitWorkerStatusParsingEdgeCases:
         assert status.staged_count == 1
         assert status.modified_count == 0  # Only counting unstaged
         assert status.is_dirty is True
+
+
+@pytest.mark.unit
+class TestGitWorkerExceptionHandling:
+    """Test GitWorker exception handling paths."""
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_git_command_file_not_found_error(self, mock_run):
+        """Test FileNotFoundError when git command not found."""
+        # Mock subprocess.run to raise FileNotFoundError
+        mock_run.side_effect = FileNotFoundError("git command not found")
+
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "status"], str(tmpdir))
+
+        # Verify
+        assert result is not None
+        assert result.success is False
+        assert "Git command not found" in result.user_message
+        assert "Git command not found" in result.stderr
+        assert result.exit_code is None
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_git_command_unexpected_exception(self, mock_run):
+        """Test generic Exception handling in _run_git_command."""
+        # Mock subprocess.run to raise unexpected exception
+        mock_run.side_effect = RuntimeError("Unexpected error")
+
+        worker = GitWorker()
+        result = None
+
+        def capture_result(git_result):
+            nonlocal result
+            result = git_result
+
+        worker.command_complete.connect(capture_result)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.run_git_command(["git", "status"], str(tmpdir))
+
+        # Verify
+        assert result is not None
+        assert result.success is False
+        assert "Unexpected error" in result.user_message
+        assert result.exit_code is None
+
+    def test_get_repository_status_invalid_directory(self):
+        """Test get_repository_status with invalid working directory."""
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Execute with invalid path (should emit default status or nothing)
+        worker.get_repository_status("/nonexistent/invalid/path/12345")
+
+        # Verify - invalid directory returns early, no signal emitted
+        # (behavior is to return without emitting)
+        assert status is None
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_get_repository_status_timeout_expired(self, mock_run):
+        """Test TimeoutExpired exception in get_repository_status."""
+        import subprocess
+
+        # Mock subprocess.run to raise TimeoutExpired
+        mock_run.side_effect = subprocess.TimeoutExpired(
+            cmd=["git", "status"], timeout=2
+        )
+
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_repository_status(str(tmpdir))
+
+        # Verify - should emit default GitStatus on timeout
+        assert status is not None
+        assert status.branch == ""
+        assert status.is_dirty is False
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_get_repository_status_file_not_found(self, mock_run):
+        """Test FileNotFoundError in get_repository_status."""
+        # Mock subprocess.run to raise FileNotFoundError
+        mock_run.side_effect = FileNotFoundError("git not found")
+
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_repository_status(str(tmpdir))
+
+        # Verify - should emit default GitStatus when git not found
+        assert status is not None
+        assert status.branch == ""
+        assert status.is_dirty is False
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_get_repository_status_unexpected_exception(self, mock_run):
+        """Test generic Exception handling in get_repository_status."""
+        # Mock subprocess.run to raise unexpected exception
+        mock_run.side_effect = RuntimeError("Unexpected error")
+
+        worker = GitWorker()
+        status = None
+
+        def capture_status(git_status):
+            nonlocal status
+            status = git_status
+
+        worker.status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_repository_status(str(tmpdir))
+
+        # Verify - should emit default GitStatus on error
+        assert status is not None
+        assert status.branch == ""
+        assert status.is_dirty is False
