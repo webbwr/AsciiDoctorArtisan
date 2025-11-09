@@ -18,6 +18,13 @@ import pytest
 # This prevents macOS Security.framework crashes in multiprocess/fork scenarios
 os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"
 
+# CRITICAL: Disable QtWebEngine completely during tests
+# QtWebEngineCore is Chromium-based and does NOT support fork() at all
+# This will cause tests to skip WebEngine-dependent code
+os.environ["QTWEBENGINE_DISABLE_SANDBOX"] = "1"
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox --disable-dev-shm-usage"
+os.environ["DISABLE_QTWEBENGINE_IN_TESTS"] = "1"
+
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
