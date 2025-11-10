@@ -811,11 +811,12 @@ class TestDetectComputeCapabilities:
     def test_opencl_detected(self, mocker):
         """Test OpenCL capability detected."""
         mock_run = mocker.patch("subprocess.run")
-        # Need enough side_effect values for all subprocess.run calls (CUDA, OpenCL, Vulkan)
+        # Need enough side_effect values for all subprocess.run calls (CUDA, OpenCL, Vulkan, Metal on macOS)
         mock_run.side_effect = [
             FileNotFoundError("nvidia-smi not found"),  # No CUDA
             MagicMock(returncode=0, stdout="Platform Name: Intel OpenCL"),  # OpenCL
             FileNotFoundError("vulkaninfo not found"),  # No Vulkan
+            FileNotFoundError("system_profiler not found"),  # No Metal (or not macOS)
         ]
 
         capabilities = detect_compute_capabilities()
@@ -828,6 +829,7 @@ class TestDetectComputeCapabilities:
             FileNotFoundError("nvidia-smi not found"),  # No CUDA
             FileNotFoundError("clinfo not found"),  # No OpenCL
             MagicMock(returncode=0),  # Vulkan
+            FileNotFoundError("system_profiler not found"),  # No Metal (or not macOS)
         ]
 
         capabilities = detect_compute_capabilities()
@@ -873,6 +875,10 @@ class TestDetectGPU:
 
     def test_detect_gpu_no_dri(self, mocker):
         """Test GPU detection when /dev/dri not found."""
+        # Mock platform to test Linux code path
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux"
+        )
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_dri_devices",
             return_value=(False, None),
@@ -885,6 +891,10 @@ class TestDetectGPU:
 
     def test_detect_gpu_software_renderer(self, mocker):
         """Test GPU detection with software renderer."""
+        # Mock platform to test Linux code path
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux"
+        )
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_dri_devices",
             return_value=(True, "/dev/dri/renderD128"),
@@ -993,6 +1003,10 @@ class TestDetectGPU:
         - Intel GPU with NPU
         - Unknown GPU type
         """
+        # Mock platform to test Linux code path
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux"
+        )
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_dri_devices",
             return_value=(True, render_device),

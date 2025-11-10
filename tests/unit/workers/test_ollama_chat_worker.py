@@ -45,7 +45,7 @@ class TestOllamaChatWorkerInitialization:
 class TestSendMessage:
     """Test send_message method."""
 
-    @patch('asciidoc_artisan.workers.ollama_chat_worker.OllamaChatWorker._process_chat')
+    @patch("asciidoc_artisan.workers.ollama_chat_worker.OllamaChatWorker._process_chat")
     def test_send_message_sets_state(self, mock_process):
         """Test send_message sets internal state correctly."""
         worker = OllamaChatWorker()
@@ -548,4 +548,8 @@ class TestErrorHandling:
 
         # Should have user-friendly message about message length
         assert error_msg is not None
-        assert ("too long" in error_msg.lower() or "context" in error_msg.lower() or "shorter" in error_msg.lower())
+        assert (
+            "too long" in error_msg.lower()
+            or "context" in error_msg.lower()
+            or "shorter" in error_msg.lower()
+        )
