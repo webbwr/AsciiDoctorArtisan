@@ -803,6 +803,9 @@ class TestThreadShutdown:
     def test_shutdown_running_threads(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
 
+        # Force fallback code path by not having worker_manager
+        mock_main_window.worker_manager = None
+
         # Mock running threads
         mock_main_window.git_thread = Mock()
         mock_main_window.git_thread.isRunning = Mock(return_value=True)
@@ -844,6 +847,9 @@ class TestThreadShutdown:
     def test_shutdown_handles_stuck_threads(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
 
+        # Force fallback code path by not having worker_manager
+        mock_main_window.worker_manager = None
+
         # Mock thread that doesn't stop within timeout
         mock_main_window.git_thread = Mock()
         mock_main_window.git_thread.isRunning = Mock(return_value=True)
@@ -873,6 +879,9 @@ class TestThreadShutdown:
     def test_shutdown_waits_with_timeout(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
 
+        # Force fallback code path by not having worker_manager
+        mock_main_window.worker_manager = None
+
         # Mock thread that responds to wait()
         mock_main_window.git_thread = Mock()
         mock_main_window.git_thread.isRunning = Mock(return_value=True)
@@ -890,6 +899,9 @@ class TestThreadShutdown:
 
     def test_shutdown_mixed_thread_states(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
+
+        # Force fallback code path by not having worker_manager
+        mock_main_window.worker_manager = None
 
         # Mix of running, stopped, and None threads
         mock_main_window.git_thread = Mock()
