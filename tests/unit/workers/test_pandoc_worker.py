@@ -837,8 +837,11 @@ class TestAIConversionWithFallback:
         # Pandoc should have been called
         mock_pypandoc.convert_text.assert_called_once()
 
+    @patch.object(PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf")
     @patch.object(PandocWorker, "_try_ollama_conversion")
-    def test_ai_conversion_for_pdf_uses_pandoc(self, mock_ollama, mock_pypandoc):
+    def test_ai_conversion_for_pdf_uses_pandoc(
+        self, mock_ollama, mock_pdf_engine, mock_pypandoc
+    ):
         """Test AI conversion for PDF format uses Pandoc for binary output."""
         mock_ollama.return_value = "= AI Text"  # AI produces text
         mock_pypandoc.convert_text.return_value = None  # Pandoc saves to file
@@ -927,7 +930,8 @@ class TestPathSourceConversion:
 
         assert result is not None
 
-    def test_path_source_to_binary_output(self, mock_pypandoc, tmp_path):
+    @patch.object(PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf")
+    def test_path_source_to_binary_output(self, mock_pdf_engine, mock_pypandoc, tmp_path):
         """Test conversion from Path source to binary file output."""
         test_file = tmp_path / "test.adoc"
         test_file.write_text("= Test Document")
