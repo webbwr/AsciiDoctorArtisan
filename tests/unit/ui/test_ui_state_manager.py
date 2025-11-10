@@ -8,29 +8,45 @@ import pytest
 @pytest.fixture
 def mock_editor(qapp):
     """Create a mock editor with all required attributes for UIStateManager."""
+    from PySide6.QtCore import QThread
+
     editor = Mock()
+
+    # Thread method - return current thread so update_ui_state runs immediately
+    editor.thread.return_value = QThread.currentThread()
 
     # Action manager with all actions
     editor.action_manager = Mock()
 
-    # Save actions
+    # Save actions (with explicit setEnabled mocks)
     editor.action_manager.save_act = Mock()
+    editor.action_manager.save_act.setEnabled = Mock()
     editor.action_manager.save_as_act = Mock()
+    editor.action_manager.save_as_act.setEnabled = Mock()
 
-    # Export actions
+    # Export actions (with explicit setEnabled mocks)
     editor.action_manager.save_as_adoc_act = Mock()
+    editor.action_manager.save_as_adoc_act.setEnabled = Mock()
     editor.action_manager.save_as_md_act = Mock()
+    editor.action_manager.save_as_md_act.setEnabled = Mock()
     editor.action_manager.save_as_docx_act = Mock()
+    editor.action_manager.save_as_docx_act.setEnabled = Mock()
     editor.action_manager.save_as_html_act = Mock()
+    editor.action_manager.save_as_html_act.setEnabled = Mock()
     editor.action_manager.save_as_pdf_act = Mock()
+    editor.action_manager.save_as_pdf_act.setEnabled = Mock()
 
-    # Git actions
+    # Git actions (with explicit setEnabled mocks)
     editor.action_manager.git_commit_act = Mock()
+    editor.action_manager.git_commit_act.setEnabled = Mock()
     editor.action_manager.git_pull_act = Mock()
+    editor.action_manager.git_pull_act.setEnabled = Mock()
     editor.action_manager.git_push_act = Mock()
+    editor.action_manager.git_push_act.setEnabled = Mock()
 
-    # Convert action
+    # Convert action (with explicit setEnabled mock)
     editor.action_manager.convert_paste_act = Mock()
+    editor.action_manager.convert_paste_act.setEnabled = Mock()
 
     # File operations manager
     editor.file_operations_manager = Mock()
@@ -144,7 +160,7 @@ class TestExportActionsState:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_pandoc_exports_enabled_when_pandoc_available(self, mock_editor):
+    def test_pandoc_exports_enabled_when_pandoc_available(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -160,7 +176,7 @@ class TestExportActionsState:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=False
     )
-    def test_pandoc_exports_disabled_when_pandoc_unavailable(self, mock_editor):
+    def test_pandoc_exports_disabled_when_pandoc_unavailable(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -241,7 +257,7 @@ class TestConvertPasteAction:
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
     def test_convert_paste_enabled_when_pandoc_available_and_not_processing(
-        self, mock_editor
+        self, mock_is_pandoc, mock_editor
     ):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
@@ -256,7 +272,7 @@ class TestConvertPasteAction:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=False
     )
-    def test_convert_paste_disabled_when_pandoc_unavailable(self, mock_editor):
+    def test_convert_paste_disabled_when_pandoc_unavailable(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -272,7 +288,7 @@ class TestConvertPasteAction:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_convert_paste_disabled_when_processing_pandoc(self, mock_editor):
+    def test_convert_paste_disabled_when_processing_pandoc(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -467,7 +483,7 @@ class TestConcurrentProcessingStates:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_git_processing_does_not_affect_export_actions(self, mock_editor):
+    def test_git_processing_does_not_affect_export_actions(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -499,7 +515,7 @@ class TestConcurrentProcessingStates:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_processing_states_are_independent(self, mock_editor):
+    def test_processing_states_are_independent(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -517,7 +533,7 @@ class TestConcurrentProcessingStates:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_actions_reenable_when_both_processing_complete(self, mock_editor):
+    def test_actions_reenable_when_both_processing_complete(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -559,7 +575,7 @@ class TestAllExportActions:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_markdown_export_requires_pandoc(self, mock_editor):
+    def test_markdown_export_requires_pandoc(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -573,7 +589,7 @@ class TestAllExportActions:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_docx_export_requires_pandoc(self, mock_editor):
+    def test_docx_export_requires_pandoc(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -598,7 +614,7 @@ class TestAllExportActions:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_pdf_export_requires_pandoc(self, mock_editor):
+    def test_pdf_export_requires_pandoc(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -632,7 +648,7 @@ class TestActionStateTransitions:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_export_action_transitions_disabled_to_enabled(self, mock_editor):
+    def test_export_action_transitions_disabled_to_enabled(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -666,7 +682,7 @@ class TestActionStateTransitions:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_convert_paste_transitions_disabled_to_enabled(self, mock_editor):
+    def test_convert_paste_transitions_disabled_to_enabled(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -686,7 +702,7 @@ class TestActionStateTransitions:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_all_actions_transition_together_on_update(self, mock_editor):
+    def test_all_actions_transition_together_on_update(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -919,7 +935,7 @@ class TestActionManagerCalls:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_verifies_all_save_action_calls(self, mock_editor):
+    def test_verifies_all_save_action_calls(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -933,7 +949,7 @@ class TestActionManagerCalls:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_verifies_all_export_action_calls(self, mock_editor):
+    def test_verifies_all_export_action_calls(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -989,7 +1005,7 @@ class TestProcessingStateCombinations:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_no_processing_all_actions_enabled(self, mock_editor):
+    def test_no_processing_all_actions_enabled(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -1009,7 +1025,7 @@ class TestProcessingStateCombinations:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_only_git_processing_only_git_actions_disabled(self, mock_editor):
+    def test_only_git_processing_only_git_actions_disabled(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -1029,7 +1045,7 @@ class TestProcessingStateCombinations:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_only_pandoc_processing_only_pandoc_actions_disabled(self, mock_editor):
+    def test_only_pandoc_processing_only_pandoc_actions_disabled(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
@@ -1049,7 +1065,7 @@ class TestProcessingStateCombinations:
     @patch(
         "asciidoc_artisan.ui.ui_state_manager.is_pandoc_available", return_value=True
     )
-    def test_both_processing_all_relevant_actions_disabled(self, mock_editor):
+    def test_both_processing_all_relevant_actions_disabled(self, mock_is_pandoc, mock_editor):
         from asciidoc_artisan.ui.ui_state_manager import UIStateManager
 
         manager = UIStateManager(mock_editor)
