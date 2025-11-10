@@ -395,7 +395,8 @@ class TestCPUInfo:
 
     def test_get_cpu_info_success(self, mocker):
         """Test getting CPU cores and RAM."""
-        mock_cpu_count = mocker.patch("os.cpu_count", return_value=8)
+        # Mock psutil.cpu_count(logical=False) to return 8 physical cores
+        mock_cpu_count = mocker.patch("psutil.cpu_count", return_value=8)
         mock_virtual_memory = mocker.patch("psutil.virtual_memory")
         mock_virtual_memory.return_value = MagicMock(
             total=16 * 1024 * 1024 * 1024
