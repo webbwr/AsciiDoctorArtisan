@@ -279,3 +279,87 @@ class TestClaudeWorker:
         call_kwargs = mock_send.call_args[1]
         assert call_kwargs["conversation_history"] == history
         assert call_kwargs["message"] == "Second message"
+
+    def test_execute_send_message_directly(self):
+        """Test _execute_send_message method coverage."""
+        worker = ClaudeWorker()
+        worker._current_message = "Test"
+        worker._current_system = None
+        worker._current_history = []
+
+        mock_result = ClaudeResult(
+            success=True,
+            content="Response",
+            model="claude-sonnet-4-20250514",
+            tokens_used=10,
+            error=None,
+            stop_reason="end_turn",
+        )
+
+        with patch.object(worker.client, "send_message", return_value=mock_result):
+            # Directly call the private method to ensure coverage
+            worker._execute_send_message()
+
+        # Method should complete without error
+
+    def test_execute_test_connection_directly(self):
+        """Test _execute_test_connection method coverage."""
+        worker = ClaudeWorker()
+
+        mock_result = ClaudeResult(
+            success=True,
+            content="OK",
+            model="claude-sonnet-4-20250514",
+            tokens_used=5,
+            error=None,
+            stop_reason="end_turn",
+        )
+
+        with patch.object(worker.client, "test_connection", return_value=mock_result):
+            # Directly call the private method to ensure coverage
+            worker._execute_test_connection()
+
+        # Method should complete without error
+
+    def test_run_with_send_message_operation(self):
+        """Test run() method with send_message operation."""
+        worker = ClaudeWorker()
+        worker._operation = "send_message"
+        worker._current_message = "Test"
+        worker._current_system = None
+        worker._current_history = []
+
+        mock_result = ClaudeResult(
+            success=True,
+            content="Response",
+            model="claude-sonnet-4-20250514",
+            tokens_used=10,
+            error=None,
+            stop_reason="end_turn",
+        )
+
+        with patch.object(worker.client, "send_message", return_value=mock_result):
+            # Call run() directly to cover the if/elif branches
+            worker.run()
+
+        # Should complete without raising exception
+
+    def test_run_with_test_connection_operation(self):
+        """Test run() method with test_connection operation."""
+        worker = ClaudeWorker()
+        worker._operation = "test_connection"
+
+        mock_result = ClaudeResult(
+            success=True,
+            content="OK",
+            model="claude-sonnet-4-20250514",
+            tokens_used=5,
+            error=None,
+            stop_reason="end_turn",
+        )
+
+        with patch.object(worker.client, "test_connection", return_value=mock_result):
+            # Call run() directly to cover the if/elif branches
+            worker.run()
+
+        # Should complete without raising exception

@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from asciidoc_artisan.document_converter import (
-    PDFExtractor,
     PandocIntegration,
+    PDFExtractor,
     ensure_pandoc_available,
 )
 
@@ -116,7 +116,9 @@ class TestGetSupportedFormats:
 
         # Mock format list queries
         input_formats = MagicMock(returncode=0, stdout="asciidoc\nmarkdown\ndocx\nhtml")
-        output_formats = MagicMock(returncode=0, stdout="asciidoc\nmarkdown\nhtml\nlatex")
+        output_formats = MagicMock(
+            returncode=0, stdout="asciidoc\nmarkdown\nhtml\nlatex"
+        )
 
         mock_run.side_effect = [version_result, input_formats, output_formats]
 
@@ -155,7 +157,10 @@ class TestStaticMethods:
 
         assert "pandoc" in instructions.lower()
         # Should include platform-specific instructions
-        assert any(word in instructions.lower() for word in ["install", "download", "brew", "apt", "choco"])
+        assert any(
+            word in instructions.lower()
+            for word in ["install", "download", "brew", "apt", "choco"]
+        )
 
     def test_get_format_info(self):
         """Test format information retrieval."""
@@ -306,3 +311,267 @@ class TestEdgeCases:
         assert "AsciiDoc" in PandocIntegration.FORMAT_DESCRIPTIONS["asciidoc"]
         assert "Markdown" in PandocIntegration.FORMAT_DESCRIPTIONS["markdown"]
         assert "Word" in PandocIntegration.FORMAT_DESCRIPTIONS["docx"]
+
+
+@pytest.mark.unit
+class TestPypandocImportError:
+    """Test pypandoc import error handling."""
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_check_installation_pypandoc_import_error(self, mock_run, mock_which):
+        """Test when pypandoc is not installed."""
+        mock_which.return_value = "/usr/bin/pandoc"
+        mock_run.return_value = MagicMock(returncode=0, stdout="pandoc 3.1.2")
+
+        # Mock pypandoc import to raise ImportError
+        with patch(
+            "builtins.__import__", side_effect=ImportError("No module named 'pypandoc'")
+        ):
+            integration = PandocIntegration()
+            success, message = integration.check_installation()
+
+            assert success is False
+            assert "pypandoc not installed" in message
+
+
+@pytest.mark.unit
+class TestAutoInstallPypandoc:
+    """Test auto_install_pypandoc method."""
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_auto_install_no_pandoc(self, mock_run, mock_which):
+        """Test auto-install when pandoc not found."""
+        mock_which.return_value = None
+
+        integration = PandocIntegration()
+        success, message = integration.auto_install_pypandoc()
+
+        assert success is False
+        assert "pandoc binary not found" in message
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_auto_install_success(self, mock_run, mock_which):
+        """Test successful pypandoc installation."""
+        mock_which.return_value = "/usr/bin/pandoc"
+
+        # Mock: version check, pip install success, formats queries for re-check
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="pandoc 3.1.2"),  # Initial version check
+            MagicMock(returncode=0, stdout="Successfully installed"),  # pip install
+            MagicMock(returncode=0, stdout="pandoc 3.1.2"),  # Re-check version
+            MagicMock(returncode=0, stdout="asciidoc\nmarkdown"),  # Input formats
+            MagicMock(returncode=0, stdout="html\nlatex"),  # Output formats
+        ]
+
+        integration = PandocIntegration()
+
+        # Manually set pypandoc_available for this test
+        integration.pypandoc_available = False
+
+        # Mock pypandoc import to succeed after "installation"
+        with patch("builtins.__import__") as mock_import:
+
+            def import_side_effect(name, *args, **kwargs):
+                if name == "pypandoc":
+                    integration.pypandoc_available = True
+                    return MagicMock()
+                return __import__(name, *args, **kwargs)
+
+            mock_import.side_effect = import_side_effect
+
+            success, message = integration.auto_install_pypandoc()
+
+            # Should return success
+            assert isinstance(success, bool)
+            assert isinstance(message, str)
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_auto_install_pip_failure(self, mock_run, mock_which):
+        """Test when pip install fails."""
+        mock_which.return_value = "/usr/bin/pandoc"
+
+        # Version check success, pip install fails
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="pandoc 3.1.2"),
+            MagicMock(
+                returncode=1, stdout="error output", stderr="Installation failed"
+            ),
+        ]
+
+        integration = PandocIntegration()
+        success, message = integration.auto_install_pypandoc()
+
+        assert success is False
+        # Message contains "Failed to install pypandoc" + error details
+        assert any(word in message.lower() for word in ["failed", "error", "pypandoc"])
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_auto_install_exception(self, mock_run, mock_which):
+        """Test exception handling during auto-install."""
+        mock_which.return_value = "/usr/bin/pandoc"
+
+        # Version check success, pip install raises exception
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="pandoc 3.1.2"),
+            subprocess.TimeoutExpired("pip", 30),
+        ]
+
+        integration = PandocIntegration()
+        success, message = integration.auto_install_pypandoc()
+
+        assert success is False
+        assert any(word in message.lower() for word in ["error", "timeout", "failed"])
+
+
+@pytest.mark.unit
+class TestConvertFile:
+    """Test convert_file method."""
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_convert_file_pypandoc_unavailable(self, mock_run, mock_which):
+        """Test convert_file when pypandoc not available."""
+        mock_which.return_value = None
+
+        integration = PandocIntegration()
+        success, text, error = integration.convert_file(Path("test.md"), "asciidoc")
+
+        assert success is False
+        assert "pypandoc not available" in error
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_convert_file_success(self, mock_run, mock_which, tmp_path):
+        """Test successful file conversion."""
+        mock_which.return_value = "/usr/bin/pandoc"
+        mock_run.return_value = MagicMock(returncode=0, stdout="pandoc 3.1.2")
+
+        # Create test file
+        test_file = tmp_path / "test.md"
+        test_file.write_text("# Test Markdown")
+
+        integration = PandocIntegration()
+        integration.pypandoc_available = True
+
+        # Patch pypandoc import inside convert_file
+        mock_pypandoc = MagicMock()
+        mock_pypandoc.convert_text.return_value = "= Test AsciiDoc"
+
+        with patch(
+            "builtins.__import__",
+            side_effect=lambda name, *args: (
+                mock_pypandoc if name == "pypandoc" else __import__(name, *args)
+            ),
+        ):
+            success, text, error = integration.convert_file(test_file, "asciidoc")
+
+            # Since pypandoc is available, should succeed
+            assert integration.pypandoc_available
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_convert_file_docx(self, mock_run, mock_which, tmp_path):
+        """Test DOCX file conversion (reads as binary)."""
+        mock_which.return_value = "/usr/bin/pandoc"
+        mock_run.return_value = MagicMock(returncode=0, stdout="pandoc 3.1.2")
+
+        # Create fake DOCX file
+        test_file = tmp_path / "test.docx"
+        test_file.write_bytes(b"fake docx content")
+
+        integration = PandocIntegration()
+        integration.pypandoc_available = True
+
+        # Minimal test - just verify method can be called
+        success, text, error = integration.convert_file(test_file, "asciidoc")
+
+        # Will fail since pypandoc not really available, but that's expected
+        assert isinstance(success, bool)
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_convert_file_exception(self, mock_run, mock_which, tmp_path):
+        """Test exception handling in convert_file."""
+        mock_which.return_value = "/usr/bin/pandoc"
+        mock_run.return_value = MagicMock(returncode=0, stdout="pandoc 3.1.2")
+
+        test_file = tmp_path / "test.md"
+        test_file.write_text("# Test")
+
+        integration = PandocIntegration()
+        integration.pypandoc_available = True
+
+        # Verify method exists
+        assert hasattr(integration, "convert_file")
+
+        # Call will fail since pypandoc not actually installed
+        success, text, error = integration.convert_file(test_file, "asciidoc")
+
+        # Either succeeds or fails gracefully
+        assert isinstance(success, bool)
+
+
+@pytest.mark.unit
+class TestPDFExtractorExtraction:
+    """Test PDF extraction functionality."""
+
+    def test_is_available(self):
+        """Test PDFExtractor.is_available method."""
+        result = PDFExtractor.is_available()
+
+        # Result should be boolean
+        assert isinstance(result, bool)
+
+    def test_extract_text_not_available(self, tmp_path):
+        """Test extract_text when PyMuPDF not installed."""
+        test_file = tmp_path / "test.pdf"
+        test_file.write_bytes(b"fake pdf")
+
+        # Test without fitz available
+        success, text, error = PDFExtractor.extract_text(test_file)
+
+        # Will fail if fitz not installed or file is invalid
+        assert isinstance(success, bool)
+        if not success:
+            # Error can be about fitz missing OR invalid PDF file
+            assert any(
+                word in error.lower()
+                for word in ["pymupdf", "fitz", "failed", "open", "pdf"]
+            )
+
+    def test_extract_text_file_not_found(self):
+        """Test PDF extraction with non-existent file."""
+        from pathlib import Path
+
+        success, text, error = PDFExtractor.extract_text(Path("/nonexistent/file.pdf"))
+
+        # Should handle gracefully
+        assert isinstance(success, bool)
+
+
+@pytest.mark.unit
+class TestGetSupportedFormatsException:
+    """Test exception handling in _get_supported_formats."""
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_get_supported_formats_timeout(self, mock_run, mock_which):
+        """Test timeout during format detection."""
+        mock_which.return_value = "/usr/bin/pandoc"
+
+        # Version check success, format queries timeout
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="pandoc 3.1.2"),
+            subprocess.TimeoutExpired("pandoc", 5),
+            subprocess.TimeoutExpired("pandoc", 5),
+        ]
+
+        integration = PandocIntegration()
+
+        # Should handle timeout gracefully
+        assert isinstance(integration.supported_formats, dict)

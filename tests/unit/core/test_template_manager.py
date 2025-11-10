@@ -234,10 +234,10 @@ class TestTemplateContent:
 
         # Check that defined variables appear in content
         for var in template.variables:
-            var_placeholder = f"{{{{{var.name}}}}}"
             # Variable might appear in content (not guaranteed for all)
             # Just verify content is not empty
             assert len(template.content) > 0
+            assert var.name  # Verify variable has a name
 
 
 class TestTemplateCategories:
@@ -323,7 +323,7 @@ class TestPerformance:
         import time
 
         start = time.time()
-        manager = TemplateManager(engine)
+        _ = TemplateManager(engine)
         elapsed = time.time() - start
 
         # Should initialize in less than 200ms
@@ -358,3 +358,417 @@ class TestEdgeCases:
 
         # Should have exactly 6 built-in templates
         assert len(templates) == 6
+
+
+class TestCRUDOperations:
+    """Test create, update, delete operations."""
+
+    def test_create_template(self, manager, tmp_path, monkeypatch):
+        """Test creating a new template."""
+        from asciidoc_artisan.core.models import Template, TemplateVariable
+
+        # Monkey-patch custom_dir to use tmp_path
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        template = Template(
+            name="Test Template",
+            category="article",
+            description="Test description",
+            author="Test Author",
+            version="1.0",
+            variables=[
+                TemplateVariable(
+                    name="title",
+                    description="Document title",
+                    required=True,
+                    default="",
+                    type="string",
+                )
+            ],
+            content="= {{title}}\n\nTest content",
+        )
+
+        result = manager.create_template(template)
+        assert result is True
+
+        # Verify file was created
+        filename = "test-template.adoc"
+        assert (tmp_path / filename).exists()
+
+        # Verify template is in manager
+        assert "Test Template" in manager.templates
+
+    def test_create_template_existing_file(self, manager, tmp_path, monkeypatch):
+        """Test creating template when file already exists."""
+        from asciidoc_artisan.core.models import Template
+
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        # Create file first
+        (tmp_path / "test-template.adoc").write_text("existing content")
+
+        template = Template(
+            name="Test Template",
+            category="article",
+            description="Test",
+            author="Author",
+            version="1.0",
+            variables=[],
+            content="Content",
+        )
+
+        result = manager.create_template(template)
+        assert result is False
+
+    def test_update_template(self, manager, tmp_path, monkeypatch):
+        """Test updating an existing template."""
+        from pathlib import Path
+
+        from asciidoc_artisan.core.models import Template
+
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        # Create template first
+        template = Template(
+            name="Update Test",
+            category="article",
+            description="Original",
+            author="Author",
+            version="1.0",
+            variables=[],
+            content="Original content",
+        )
+        manager.create_template(template)
+
+        # Update it
+        template.description = "Updated description"
+        result = manager.update_template(template)
+        assert result is True
+
+        # Verify file was updated
+        content = template.file_path and Path(template.file_path).read_text()
+        assert "Updated description" in content
+
+    def test_update_template_no_file_path(self, manager):
+        """Test updating template with no file_path."""
+        from asciidoc_artisan.core.models import Template
+
+        template = Template(
+            name="No Path",
+            category="article",
+            description="Test",
+            author="Author",
+            version="1.0",
+            variables=[],
+            content="Content",
+        )
+
+        result = manager.update_template(template)
+        assert result is False
+
+    def test_delete_template(self, manager, tmp_path, monkeypatch):
+        """Test deleting a custom template."""
+        from asciidoc_artisan.core.models import Template
+
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        # Create template
+        template = Template(
+            name="Delete Test",
+            category="article",
+            description="To be deleted",
+            author="Author",
+            version="1.0",
+            variables=[],
+            content="Content",
+        )
+        manager.create_template(template)
+
+        # Delete it
+        result = manager.delete_template("Delete Test")
+        assert result is True
+
+        # Verify file is gone
+        assert not (tmp_path / "delete-test.adoc").exists()
+
+        # Verify not in manager
+        assert "Delete Test" not in manager.templates
+
+    def test_delete_template_not_found(self, manager):
+        """Test deleting non-existent template."""
+        result = manager.delete_template("Nonexistent")
+        assert result is False
+
+    def test_delete_built_in_template_fails(self, manager):
+        """Test deleting built-in template fails."""
+        result = manager.delete_template("Technical Article")
+        assert result is False
+
+
+class TestReloadTemplates:
+    """Test reloading templates from disk."""
+
+    def test_reload_templates(self, manager, tmp_path, monkeypatch):
+        """Test reloading templates picks up new files."""
+
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        # Create a template file directly on disk
+        template_file = tmp_path / "new-template.adoc"
+        template_file.write_text(
+            """---
+name: New Template
+category: article
+description: Created externally
+author: External
+version: "1.0"
+variables: []
+---
+= Content
+"""
+        )
+
+        # Reload templates
+        manager.reload_templates()
+
+        # Verify new template is loaded
+        template = manager.get_template("New Template")
+        assert template is not None
+
+
+class TestGetCategories:
+    """Test getting all categories."""
+
+    def test_get_categories(self, manager):
+        """Test getting sorted list of categories."""
+        categories = manager.get_categories()
+
+        assert isinstance(categories, list)
+        assert len(categories) >= 5
+
+        # Verify sorted
+        assert categories == sorted(categories)
+
+        # Verify expected categories
+        assert "article" in categories
+        assert "book" in categories
+
+
+class TestSanitizeFilename:
+    """Test filename sanitization."""
+
+    def test_sanitize_filename_spaces(self, manager):
+        """Test spaces converted to hyphens."""
+        result = manager._sanitize_filename("Technical Article")
+        assert result == "technical-article"
+
+    def test_sanitize_filename_lowercase(self, manager):
+        """Test conversion to lowercase."""
+        result = manager._sanitize_filename("UPPERCASE")
+        assert result == "uppercase"
+
+    def test_sanitize_filename_special_chars(self, manager):
+        """Test removal of special characters."""
+        result = manager._sanitize_filename("Test! @#Template$")
+        assert result == "test-template"
+
+    def test_sanitize_filename_multiple_spaces(self, manager):
+        """Test multiple spaces."""
+        result = manager._sanitize_filename("Test  Multiple   Spaces")
+        assert result == "test--multiple---spaces"
+
+
+class TestSerializeTemplate:
+    """Test template serialization."""
+
+    def test_serialize_template_basic(self, manager):
+        """Test serializing template to YAML format."""
+        from asciidoc_artisan.core.models import Template, TemplateVariable
+
+        template = Template(
+            name="Serialize Test",
+            category="article",
+            description="Test serialization",
+            author="Test Author",
+            version="1.0",
+            variables=[
+                TemplateVariable(
+                    name="title",
+                    description="Title",
+                    required=True,
+                    default="Untitled",
+                    type="string",
+                )
+            ],
+            content="= {{title}}",
+        )
+
+        result = manager._serialize_template(template)
+
+        # Check format
+        assert result.startswith("---\n")
+        assert "name: Serialize Test" in result
+        assert "category: article" in result
+        assert "= {{title}}" in result
+
+    def test_serialize_template_no_author(self, manager):
+        """Test serializing template without author."""
+        from asciidoc_artisan.core.models import Template
+
+        template = Template(
+            name="No Author",
+            category="article",
+            description="Test",
+            author="",
+            version="1.0",
+            variables=[],
+            content="Content",
+        )
+
+        result = manager._serialize_template(template)
+        assert "---" in result
+
+
+class TestRecentPersistence:
+    """Test saving and loading recent templates."""
+
+    def test_load_recent_from_disk(self, manager, tmp_path, monkeypatch):
+        """Test loading recent list from disk."""
+        import json
+
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        # Create recent.json
+        recent_file = tmp_path / "recent.json"
+        recent_file.write_text(json.dumps(["Template 1", "Template 2"]))
+
+        # Load it
+        manager._load_recent()
+
+        assert manager.recent == ["Template 1", "Template 2"]
+
+    def test_load_recent_missing_file(self, manager, tmp_path, monkeypatch):
+        """Test loading recent when file doesn't exist."""
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        manager._load_recent()
+
+        # Should not crash, recent stays empty
+        assert isinstance(manager.recent, list)
+
+    def test_load_recent_corrupt_file(self, manager, tmp_path, monkeypatch):
+        """Test loading recent with corrupt JSON."""
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        # Create corrupt file
+        recent_file = tmp_path / "recent.json"
+        recent_file.write_text("not json{{{")
+
+        manager._load_recent()
+
+        # Should fall back to empty list
+        assert manager.recent == []
+
+    def test_save_recent_to_disk(self, manager, tmp_path, monkeypatch):
+        """Test saving recent list to disk."""
+        import json
+
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        manager.recent = ["Template A", "Template B"]
+        manager._save_recent()
+
+        # Verify file was created
+        recent_file = tmp_path / "recent.json"
+        assert recent_file.exists()
+
+        # Verify content
+        data = json.loads(recent_file.read_text())
+        assert data == ["Template A", "Template B"]
+
+
+class TestDeleteTemplateRecentCleanup:
+    """Test that deleting templates removes them from recent list."""
+
+    def test_delete_removes_from_recent(self, manager, tmp_path, monkeypatch):
+        """Test deleting template removes it from recent."""
+        from asciidoc_artisan.core.models import Template
+
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+
+        # Create template
+        template = Template(
+            name="Recent Test",
+            category="article",
+            description="Test",
+            author="Author",
+            version="1.0",
+            variables=[],
+            content="Content",
+        )
+        manager.create_template(template)
+
+        # Add to recent
+        manager.add_to_recent("Recent Test")
+        assert "Recent Test" in manager.recent
+
+        # Delete template
+        manager.delete_template("Recent Test")
+
+        # Verify removed from recent
+        assert "Recent Test" not in manager.recent
+
+
+class TestGetBuiltInDir:
+    """Test getting built-in template directory."""
+
+    def test_get_built_in_dir(self, manager):
+        """Test built-in dir points to correct location."""
+        from pathlib import Path
+
+        built_in_dir = manager._get_built_in_dir()
+
+        assert isinstance(built_in_dir, Path)
+        assert built_in_dir.name == "templates"
+        assert built_in_dir.parent.name == "asciidoc_artisan"
+
+
+class TestGetCustomDir:
+    """Test getting custom template directory."""
+
+    def test_get_custom_dir(self, manager):
+        """Test custom dir is created."""
+        from pathlib import Path
+
+        custom_dir = manager._get_custom_dir()
+
+        assert isinstance(custom_dir, Path)
+        assert custom_dir.exists()
+        assert custom_dir.name == "templates"
+
+    def test_get_custom_dir_creates_if_missing(self, tmp_path, monkeypatch):
+        """Test custom dir is created if it doesn't exist."""
+
+        # Mock QStandardPaths to return tmp_path
+        class MockQStandardPaths:
+            class StandardLocation:
+                AppDataLocation = 0
+
+            @staticmethod
+            def writableLocation(location):
+                return str(tmp_path)
+
+        # Patch where it's used (inside the method)
+        monkeypatch.setattr(
+            "PySide6.QtCore.QStandardPaths", MockQStandardPaths, raising=False
+        )
+
+        from asciidoc_artisan.core.template_engine import TemplateEngine
+        from asciidoc_artisan.core.template_manager import TemplateManager
+
+        engine = TemplateEngine()
+        manager = TemplateManager(engine)
+
+        custom_dir = manager.custom_dir
+        assert custom_dir.exists()
+        assert custom_dir.name == "templates"
