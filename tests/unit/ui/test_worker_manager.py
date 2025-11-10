@@ -412,21 +412,24 @@ class TestShutdown:
     def test_shutdown_stops_git_thread(self, mock_editor):
         """Test shutdown stops Git thread."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
-        manager.git_thread = Mock()
-        manager.git_thread.isRunning.return_value = True
-        manager.git_thread.quit = Mock()
-        manager.git_thread.wait = Mock()
+        mock_thread = Mock()
+        mock_thread.isRunning.return_value = True
+        mock_thread.quit = Mock()
+        mock_thread.wait = Mock()
+        manager.git_thread = mock_thread
 
         manager.shutdown()
 
-        manager.git_thread.quit.assert_called_once()
-        manager.git_thread.wait.assert_called_once_with(2000)
+        # Check the saved mock reference (git_thread is None after shutdown)
+        mock_thread.quit.assert_called_once()
+        mock_thread.wait.assert_called_once_with(3000)
 
     def test_shutdown_stops_all_threads(self, mock_editor):
         """Test shutdown stops all running threads."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
-        # Mock all threads as running
+        # Mock all threads as running and save references
+        thread_mocks = {}
         threads = [
             "git_thread",
             "github_thread",
@@ -440,27 +443,28 @@ class TestShutdown:
             thread.quit = Mock()
             thread.wait = Mock()
             setattr(manager, thread_name, thread)
+            thread_mocks[thread_name] = thread
 
         manager.shutdown()
 
-        # Verify all threads were stopped
-        for thread_name in threads:
-            thread = getattr(manager, thread_name)
+        # Verify all threads were stopped (check saved mocks)
+        for thread_name, thread in thread_mocks.items():
             thread.quit.assert_called_once()
-            thread.wait.assert_called_once_with(2000)
+            thread.wait.assert_called_once_with(3000)
 
     def test_shutdown_skips_stopped_threads(self, mock_editor):
         """Test shutdown skips threads that are not running."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
-        manager.git_thread = Mock()
-        manager.git_thread.isRunning.return_value = False
-        manager.git_thread.quit = Mock()
+        mock_thread = Mock()
+        mock_thread.isRunning.return_value = False
+        mock_thread.quit = Mock()
+        manager.git_thread = mock_thread
 
         manager.shutdown()
 
-        # Should not call quit on stopped thread
-        manager.git_thread.quit.assert_not_called()
+        # Should not call quit on stopped thread (check saved mock)
+        mock_thread.quit.assert_not_called()
 
     def test_shutdown_handles_none_threads(self, mock_editor):
         """Test shutdown handles None threads gracefully."""
@@ -730,25 +734,28 @@ class TestThreadLifecycleEdgeCases:
         """Test shutdown when thread wait times out - now uses force termination."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
-        manager.git_thread = Mock()
-        manager.git_thread.isRunning.return_value = True
-        manager.git_thread.quit = Mock()
-        manager.git_thread.wait = Mock(return_value=False)  # Timeout
-        manager.git_thread.terminate = Mock()
+        mock_thread = Mock()
+        mock_thread.isRunning.return_value = True
+        mock_thread.quit = Mock()
+        mock_thread.wait = Mock(return_value=False)  # Timeout
+        mock_thread.terminate = Mock()
+        manager.git_thread = mock_thread
 
         manager.shutdown()
 
-        # Should call quit, wait, then terminate and wait again
-        manager.git_thread.quit.assert_called_once()
-        assert manager.git_thread.wait.call_count == 2
-        manager.git_thread.wait.assert_any_call(2000)  # First graceful wait
-        manager.git_thread.wait.assert_any_call(1000)  # Second wait after terminate
-        manager.git_thread.terminate.assert_called_once()
+        # Should call quit, wait, then terminate and wait again (check saved mock)
+        mock_thread.quit.assert_called_once()
+        assert mock_thread.wait.call_count == 2
+        mock_thread.wait.assert_any_call(3000)  # First graceful wait
+        mock_thread.wait.assert_any_call(1000)  # Second wait after terminate
+        mock_thread.terminate.assert_called_once()
 
     def test_shutdown_with_multiple_timeouts(self, mock_editor):
         """Test shutdown handles multiple thread timeouts - with force termination."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
+        # Save mock references before shutdown
+        thread_mocks = {}
         threads = ["git_thread", "github_thread", "pandoc_thread", "preview_thread"]
         for thread_name in threads:
             thread = Mock()
@@ -757,12 +764,12 @@ class TestThreadLifecycleEdgeCases:
             thread.wait = Mock(return_value=False)  # All timeout
             thread.terminate = Mock()
             setattr(manager, thread_name, thread)
+            thread_mocks[thread_name] = thread
 
         manager.shutdown()
 
-        # All should be attempted with terminate fallback
-        for thread_name in threads:
-            thread = getattr(manager, thread_name)
+        # All should be attempted with terminate fallback (check saved mocks)
+        for thread_name, thread in thread_mocks.items():
             thread.quit.assert_called_once()
             assert thread.wait.call_count == 2  # Graceful + post-terminate
             thread.terminate.assert_called_once()
@@ -1081,18 +1088,19 @@ class TestTimeoutHandling:
         assert result is False
 
     def test_thread_wait_with_default_timeout(self, mock_editor):
-        """Test thread shutdown uses default 2000ms timeout."""
+        """Test thread shutdown uses default 3000ms timeout."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
-        manager.git_thread = Mock()
-        manager.git_thread.isRunning.return_value = True
-        manager.git_thread.quit = Mock()
-        manager.git_thread.wait = Mock()
+        mock_thread = Mock()
+        mock_thread.isRunning.return_value = True
+        mock_thread.quit = Mock()
+        mock_thread.wait = Mock()
+        manager.git_thread = mock_thread
 
         manager.shutdown()
 
-        # Should use default 2000ms timeout
-        manager.git_thread.wait.assert_called_once_with(2000)
+        # Should use default 3000ms timeout (check saved mock)
+        mock_thread.wait.assert_called_once_with(3000)
 
 
 class TestWorkerRecoveryScenarios:
@@ -1112,19 +1120,20 @@ class TestWorkerRecoveryScenarios:
         """Test calling shutdown multiple times."""
         manager = WorkerManager(mock_editor, use_worker_pool=False)
 
-        manager.git_thread = Mock()
-        manager.git_thread.isRunning.side_effect = [True, False, False]
-        manager.git_thread.quit = Mock()
-        manager.git_thread.wait = Mock()
+        mock_thread = Mock()
+        mock_thread.isRunning.side_effect = [True, False, False]
+        mock_thread.quit = Mock()
+        mock_thread.wait = Mock()
+        manager.git_thread = mock_thread
 
         # First shutdown
         manager.shutdown()
-        manager.git_thread.quit.assert_called_once()
+        mock_thread.quit.assert_called_once()
 
-        # Second shutdown (thread no longer running)
+        # Second shutdown (git_thread is None after first shutdown)
         manager.shutdown()
-        # quit should still only be called once
-        manager.git_thread.quit.assert_called_once()
+        # quit should still only be called once (check saved mock)
+        mock_thread.quit.assert_called_once()
 
     @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
     def test_pool_recovery_after_error(self, mock_pool_class, mock_editor):
