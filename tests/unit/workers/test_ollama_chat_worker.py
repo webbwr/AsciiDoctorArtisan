@@ -45,7 +45,8 @@ class TestOllamaChatWorkerInitialization:
 class TestSendMessage:
     """Test send_message method."""
 
-    def test_send_message_sets_state(self):
+    @patch('asciidoc_artisan.workers.ollama_chat_worker.OllamaChatWorker._process_chat')
+    def test_send_message_sets_state(self, mock_process):
         """Test send_message sets internal state correctly."""
         worker = OllamaChatWorker()
         history = [
@@ -65,9 +66,6 @@ class TestSendMessage:
             ),
         ]
 
-        # Prevent worker from actually starting thread
-        worker.start = MagicMock()
-
         worker.send_message(
             message="Test message",
             model="qwen2.5-coder:7b",
@@ -82,13 +80,12 @@ class TestSendMessage:
         assert worker._chat_history == history
         assert worker._document_content == "= Doc\n\nContent"
         assert worker._should_cancel is False
-        worker.start.assert_called_once()
+        mock_process.assert_called_once()
 
     def test_send_message_when_busy_ignores_request(self):
         """Test send_message ignores request when already processing."""
         worker = OllamaChatWorker()
         worker._is_processing = True
-        worker.start = MagicMock()
 
         worker.send_message(
             message="Test",
@@ -99,7 +96,6 @@ class TestSendMessage:
         )
 
         # Should not start thread when busy
-        worker.start.assert_not_called()
         # Should not update state
         assert worker._user_message is None
 
@@ -301,7 +297,7 @@ class TestRunMethod:
             error = err
 
         worker.chat_error.connect(capture_error)
-        worker.run()
+        worker._process_chat()
 
         assert error is not None
         assert "missing message" in error.lower()
@@ -318,7 +314,7 @@ class TestRunMethod:
             error = err
 
         worker.chat_error.connect(capture_error)
-        worker.run()
+        worker._process_chat()
 
         assert error is not None
         assert "missing" in error.lower() and "model" in error.lower()
@@ -345,7 +341,7 @@ class TestRunMethod:
             result = msg
 
         worker.chat_response_ready.connect(capture_result)
-        worker.run()
+        worker._process_chat()
 
         assert result is not None
         assert isinstance(result, ChatMessage)
@@ -370,7 +366,7 @@ class TestRunMethod:
             error = err
 
         worker.chat_error.connect(capture_error)
-        worker.run()
+        worker._process_chat()
 
         assert error is not None
         assert "timed out" in error.lower() or "timeout" in error.lower()
@@ -396,7 +392,7 @@ class TestRunMethod:
             error_msg = err
 
         worker.chat_error.connect(capture_error)
-        worker.run()
+        worker._process_chat()
 
         assert error_msg is not None
 
@@ -414,7 +410,7 @@ class TestRunMethod:
         worker._context_mode = "general"
         worker._chat_history = []
 
-        worker.run()
+        worker._process_chat()
 
         # State should be cleared
         assert worker._is_processing is False
@@ -442,7 +438,7 @@ class TestRunMethod:
             cancelled = True
 
         worker.operation_cancelled.connect(capture_cancel)
-        worker.run()
+        worker._process_chat()
 
         # Should emit cancellation signal
         assert cancelled is True
@@ -470,7 +466,7 @@ class TestErrorHandling:
             error = err
 
         worker.chat_error.connect(capture_error)
-        worker.run()
+        worker._process_chat()
 
         assert error is not None
         assert "unexpected" in error.lower() or "error" in error.lower()
