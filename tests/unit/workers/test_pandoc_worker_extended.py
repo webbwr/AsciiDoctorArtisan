@@ -346,9 +346,7 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch(
-            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
-        ) as mock_convert:
+        with patch("pypandoc.convert_text") as mock_convert:
             # Simulate subprocess crash
             mock_convert.side_effect = RuntimeError("Pandoc subprocess crashed")
 
@@ -378,15 +376,24 @@ class TestPandocWorkerErrorHandling:
 
         output_file = readonly_dir / "output.pdf"
 
-        with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:
-            worker.run_pandoc_conversion(
-                source="# Test",
-                to_format="pdf",
-                from_format="markdown",
-                context="permission_test",
-                output_file=output_file,
-                use_ai_conversion=False,
-            )
+        with patch.object(
+            PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf"
+        ):
+            with patch("pypandoc.convert_text") as mock_convert:
+                # Simulate permission denied error
+                mock_convert.side_effect = PermissionError(
+                    "Permission denied: cannot write to readonly directory"
+                )
+
+                with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:
+                    worker.run_pandoc_conversion(
+                        source="# Test",
+                        to_format="pdf",
+                        from_format="markdown",
+                        context="permission_test",
+                        output_file=output_file,
+                        use_ai_conversion=False,
+                    )
 
         error_msg, context = blocker.args
         assert context == "permission_test"
@@ -401,9 +408,7 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch(
-            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
-        ) as mock_convert:
+        with patch("pypandoc.convert_text") as mock_convert:
             # Simulate disk full error
             mock_convert.side_effect = OSError(28, "No space left on device")
 
@@ -426,9 +431,7 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch(
-            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
-        ) as mock_convert:
+        with patch("pypandoc.convert_text") as mock_convert:
             # Simulate timeout
             mock_convert.side_effect = subprocess.TimeoutExpired(
                 cmd="pandoc", timeout=30
@@ -453,9 +456,7 @@ class TestPandocWorkerErrorHandling:
         if not is_pandoc_available():
             pytest.skip("Pandoc not available")
 
-        with patch(
-            "asciidoc_artisan.workers.pandoc_worker.pypandoc.convert_text"
-        ) as mock_convert:
+        with patch("pypandoc.convert_text") as mock_convert:
             # Simulate argument error
             mock_convert.side_effect = RuntimeError("Unknown option --invalid-arg")
 
@@ -476,8 +477,10 @@ class TestPandocWorkerErrorHandling:
     def test_pandoc_not_available_error_path(self, qtbot):
         """Test error path when is_pandoc_available() returns False."""
         # Create worker when Pandoc is not available
+        # Patch where it's imported TO, not where it's imported FROM
         with patch(
-            "asciidoc_artisan.core.constants.is_pandoc_available", return_value=False
+            "asciidoc_artisan.workers.pandoc_worker.is_pandoc_available",
+            return_value=False,
         ):
             worker = PandocWorker()
 
