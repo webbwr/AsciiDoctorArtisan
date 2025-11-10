@@ -95,13 +95,14 @@ class TestResourceMonitor:
         mock_psutil.cpu_percent.return_value = 25.0
 
         monitor = ResourceMonitor()
-        small_doc = "Hello World\n" * 10  # Small document
+        # Create document > 1KB to avoid INSTANT_DEBOUNCE_MS (0ms for <1KB docs)
+        small_doc = "Hello World\n" * 100  # ~1.2KB document
 
         metrics = monitor.get_metrics(small_doc)
 
         assert isinstance(metrics, ResourceMetrics)
         assert metrics.document_size_bytes == len(small_doc.encode())
-        assert metrics.document_line_count == 11  # 10 lines + 1
+        assert metrics.document_line_count == 101  # 100 lines + 1
         assert metrics.recommended_debounce_ms >= ResourceMonitor.MIN_DEBOUNCE_MS
 
     @patch("asciidoc_artisan.core.resource_monitor.PSUTIL_AVAILABLE", False)
@@ -154,7 +155,8 @@ class TestResourceMonitor:
     def test_calculate_debounce_small_doc(self):
         """Test debounce calculation for small document."""
         monitor = ResourceMonitor()
-        small_text = "Small document\n" * 50
+        # Create document > 1KB to avoid INSTANT_DEBOUNCE_MS (0ms for <1KB docs)
+        small_text = "Small document\n" * 70  # ~1.05KB
 
         debounce = monitor.calculate_debounce_interval(small_text)
 
