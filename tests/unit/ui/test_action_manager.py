@@ -28,6 +28,7 @@ def main_window(qapp):
 
     # Mock all window methods that create_actions() connects to
     window.new_file = Mock()
+    window.new_from_template = Mock()  # v2.0.0 template feature
     window.open_file = Mock()
     window.save_file = Mock()
     window.save_file_as_format = Mock()
@@ -67,6 +68,8 @@ def main_window(qapp):
     window.spell_check_manager = Mock()
     window.spell_check_manager.toggle_spell_check = Mock()
     window.toggle_telemetry = Mock()
+    window.show_autocomplete_settings = Mock()  # v2.0.0 auto-complete
+    window.show_syntax_check_settings = Mock()  # v2.0.0 syntax checking
     window._show_app_settings = Mock()
     window._show_about = Mock()
 
