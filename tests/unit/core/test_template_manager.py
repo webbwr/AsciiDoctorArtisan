@@ -772,3 +772,235 @@ class TestGetCustomDir:
         custom_dir = manager.custom_dir
         assert custom_dir.exists()
         assert custom_dir.name == "templates"
+
+
+@pytest.mark.unit
+class TestQtImportFallback:
+    """Test Qt import fallback path."""
+
+    def test_get_config_dir_without_qt(self):
+        """Test config dir fallback when Qt not available (tests line 117-119)."""
+        import sys
+        from unittest.mock import patch
+
+        # Mock sys.modules to make PySide6 unavailable
+        with patch.dict(sys.modules, {"PySide6": None, "PySide6.QtCore": None}):
+            # Reload the module to trigger ImportError path
+            import importlib
+
+            import asciidoc_artisan.core.template_manager as tm_module
+
+            importlib.reload(tm_module)
+
+            # Verify fallback path is used
+            from asciidoc_artisan.core.template_engine import TemplateEngine
+
+            engine = TemplateEngine()
+            manager = tm_module.TemplateManager(engine)
+
+            # Should use fallback: Path.home() / ".config" / "AsciiDocArtisan"
+            custom_dir = manager.custom_dir
+            assert ".config" in str(custom_dir) or "AsciiDocArtisan" in str(
+                custom_dir
+            )
+
+
+@pytest.mark.unit
+class TestTemplateLoadingErrors:
+    """Test error handling in template loading."""
+
+    def test_load_builtin_template_parse_error(self, engine, tmp_path, monkeypatch):
+        """Test error handling when built-in template parsing fails (tests line 143-146)."""
+        # Create a corrupt template file
+        builtin_dir = tmp_path / "builtin"
+        builtin_dir.mkdir()
+        corrupt_file = builtin_dir / "corrupt.adoc"
+        corrupt_file.write_text("= Corrupt\n{{ invalid syntax")
+
+        # Mock engine.parse_template to raise exception
+        def mock_parse(path):
+            raise ValueError("Invalid template syntax")
+
+        monkeypatch.setattr(engine, "parse_template", mock_parse)
+
+        # Mock built_in_dir to point to our test dir
+        from asciidoc_artisan.core.template_manager import TemplateManager
+
+        manager = TemplateManager(engine)
+        monkeypatch.setattr(manager, "built_in_dir", builtin_dir)
+
+        # Should not crash, just log error
+        manager._load_templates()
+
+        # Manager should still work
+        assert hasattr(manager, "templates")
+
+    def test_load_custom_template_parse_error(self, engine, tmp_path, monkeypatch):
+        """Test error handling when custom template parsing fails (tests line 154-157)."""
+        # Create a corrupt custom template
+        custom_dir = tmp_path / "custom"
+        custom_dir.mkdir()
+        corrupt_file = custom_dir / "corrupt_custom.adoc"
+        corrupt_file.write_text("= Corrupt Custom\n{{ bad }}")
+
+        # Mock engine.parse_template to raise exception
+        def mock_parse(path):
+            raise ValueError("Invalid template syntax")
+
+        monkeypatch.setattr(engine, "parse_template", mock_parse)
+
+        # Create manager with custom dir
+        from asciidoc_artisan.core.template_manager import TemplateManager
+
+        manager = TemplateManager(engine)
+        monkeypatch.setattr(manager, "custom_dir", custom_dir)
+        monkeypatch.setattr(manager, "built_in_dir", tmp_path / "builtin")
+
+        # Should not crash, just log error
+        manager._load_templates()
+
+        # Manager should still work
+        assert hasattr(manager, "templates")
+
+
+@pytest.mark.unit
+class TestCRUDExceptionHandling:
+    """Test exception handling in CRUD operations."""
+
+    def test_create_template_file_write_error(self, manager, monkeypatch):
+        """Test create_template error handling (tests line 296-300)."""
+        from asciidoc_artisan.core.models import Template
+
+        template = Template(
+            name="test_template",
+            category="document",
+            description="Test",
+            content="= Test\nContent",
+        )
+
+        # Mock _serialize_template to raise exception
+        def mock_serialize(t):
+            raise IOError("Disk full")
+
+        monkeypatch.setattr(manager, "_serialize_template", mock_serialize)
+
+        # Should return False on error
+        result = manager.create_template(template)
+        assert result is False
+
+    def test_update_template_file_error(self, manager, tmp_path, monkeypatch):
+        """Test update_template error handling (tests line 334-338)."""
+        from asciidoc_artisan.core.models import Template
+
+        template = Template(
+            name="test_update",
+            category="document",
+            description="Test",
+            content="= Updated",
+        )
+
+        # Add template to manager
+        manager.templates[template.name] = template
+
+        # Mock custom_dir to be unwritable
+        unwritable_dir = tmp_path / "unwritable"
+        unwritable_dir.mkdir()
+        unwritable_dir.chmod(0o444)
+
+        monkeypatch.setattr(manager, "custom_dir", unwritable_dir)
+
+        # Should return False on error
+        result = manager.update_template(template)
+        assert result is False
+
+        # Clean up
+        unwritable_dir.chmod(0o755)
+
+    def test_delete_template_file_error(self, manager, tmp_path, monkeypatch):
+        """Test delete_template error handling (tests line 383-387)."""
+        # Create a template that can't be deleted
+        template_name = "undeletable"
+        template_file = tmp_path / "custom" / f"{template_name}.adoc"
+        template_file.parent.mkdir(parents=True, exist_ok=True)
+        template_file.write_text("= Test")
+
+        monkeypatch.setattr(manager, "custom_dir", template_file.parent)
+
+        # Make file read-only
+        template_file.chmod(0o444)
+        template_file.parent.chmod(0o555)  # Read-only directory
+
+        # Should return False on error
+        result = manager.delete_template(template_name)
+        assert result is False
+
+        # Clean up
+        template_file.chmod(0o644)
+        template_file.parent.chmod(0o755)
+
+
+@pytest.mark.unit
+class TestRecentSaveError:
+    """Test error handling in recent template persistence."""
+
+    def test_save_recent_write_error(self, manager, tmp_path, monkeypatch):
+        """Test _save_recent error handling (tests line 455-458)."""
+        # Add to recent
+        manager.add_to_recent("test_template")
+
+        # Mock custom_dir to be unwritable
+        unwritable_dir = tmp_path / "unwritable"
+        unwritable_dir.mkdir()
+        unwritable_dir.chmod(0o444)
+
+        monkeypatch.setattr(manager, "custom_dir", unwritable_dir)
+
+        # Should not crash, just log error
+        manager._save_recent()
+
+        # Clean up
+        unwritable_dir.chmod(0o755)
+
+
+@pytest.mark.unit
+class TestYamlImportError:
+    """Test yaml import error handling."""
+
+    def test_serialize_template_no_yaml(self, manager, monkeypatch):
+        """Test _serialize_template without yaml installed (tests line 509-510)."""
+        from asciidoc_artisan.core.models import Template
+
+        template = Template(
+            name="test", category="document", description="Test", content="= Test"
+        )
+
+        # Mock yaml import to fail
+        import sys
+        from unittest.mock import patch
+
+        with patch.dict(sys.modules, {"yaml": None}):
+            # Should raise ImportError
+            with pytest.raises(ImportError, match="PyYAML is required"):
+                manager._serialize_template(template)
+
+
+@pytest.mark.unit
+class TestSerializeVersion:
+    """Test template serialization version handling."""
+
+    def test_serialize_template_non_default_version(self, manager):
+        """Test _serialize_template with non-default version (tests line 523)."""
+        from asciidoc_artisan.core.models import Template
+
+        # Create template with version != "1.0"
+        template = Template(
+            name="test",
+            category="document",
+            description="Test",
+            content="= Test",
+            version="2.0",  # Non-default version
+        )
+
+        # Should include version in serialization
+        serialized = manager._serialize_template(template)
+        assert "version: '2.0'" in serialized or 'version: "2.0"' in serialized
