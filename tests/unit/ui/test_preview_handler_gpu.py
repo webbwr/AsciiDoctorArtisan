@@ -1071,3 +1071,139 @@ class TestPerformanceEdgeCases:
         handler.handle_preview_complete(html)
 
         mock_preview.setHtml.assert_called_once()
+
+
+@pytest.mark.unit
+class TestGetPreviewWidgetInfo:
+    """Test suite for get_preview_widget_info function."""
+
+    def test_widget_info_for_text_browser(self, qapp):
+        """Test get_preview_widget_info for QTextBrowser widget."""
+        from asciidoc_artisan.ui.preview_handler_gpu import get_preview_widget_info
+
+        text_browser = QTextBrowser()
+
+        info = get_preview_widget_info(text_browser)
+
+        # Should identify as QTextBrowser
+        assert info["widget_type"] == "QTextBrowser"
+        assert info["is_webengine"] is False
+        assert info["is_textbrowser"] is True
+        # Should include GPU info
+        assert "gpu_detected" in info
+        assert "gpu_name" in info
+        assert "gpu_type" in info
+
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineSettings")
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
+    def test_widget_info_for_webengine_view(
+        self, mock_get_gpu_info, mock_settings_cls, mock_webengine_cls
+    ):
+        """Test get_preview_widget_info for QWebEngineView widget."""
+        from asciidoc_artisan.ui.preview_handler_gpu import get_preview_widget_info
+
+        # Mock QWebEngineView widget
+        mock_widget = Mock()
+        mock_widget.page = Mock()
+        mock_settings = Mock()
+        mock_settings.testAttribute = Mock(side_effect=[True, True])  # 2d canvas, webgl
+        mock_widget.settings = Mock(return_value=mock_settings)
+
+        # Mock GPU info
+        mock_gpu_info = Mock()
+        mock_gpu_info.has_gpu = True
+        mock_gpu_info.gpu_name = "NVIDIA RTX 4060"
+        mock_gpu_info.gpu_type = "nvidia"
+        mock_get_gpu_info.return_value = mock_gpu_info
+
+        # Get info
+        info = get_preview_widget_info(mock_widget)
+
+        # Should include widget info
+        assert info["is_webengine"] is True
+        assert info["is_textbrowser"] is False
+        # Should include WebEngine settings
+        assert info["accelerated_2d_canvas"] is True
+        assert info["webgl_enabled"] is True
+        # Should include GPU info
+        assert info["gpu_detected"] is True
+        assert info["gpu_name"] == "NVIDIA RTX 4060"
+        assert info["gpu_type"] == "nvidia"
+
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
+    def test_widget_info_includes_gpu_detection(self, mock_get_gpu_info, qapp):
+        """Test that widget info includes GPU detection results."""
+        from asciidoc_artisan.ui.preview_handler_gpu import get_preview_widget_info
+
+        # Mock GPU info with no GPU
+        mock_gpu_info = Mock()
+        mock_gpu_info.has_gpu = False
+        mock_gpu_info.gpu_name = "No GPU"
+        mock_gpu_info.gpu_type = "none"
+        mock_get_gpu_info.return_value = mock_gpu_info
+
+        text_browser = QTextBrowser()
+        info = get_preview_widget_info(text_browser)
+
+        # Should report no GPU
+        assert info["gpu_detected"] is False
+        assert info["gpu_name"] == "No GPU"
+        assert info["gpu_type"] == "none"
+
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineSettings")
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
+    def test_widget_info_webengine_settings_disabled(
+        self, mock_get_gpu_info, mock_settings_cls
+    ):
+        """Test widget info when WebEngine settings are disabled."""
+        from asciidoc_artisan.ui.preview_handler_gpu import get_preview_widget_info
+
+        # Mock QWebEngineView widget with settings disabled
+        mock_widget = Mock()
+        mock_widget.page = Mock()
+        mock_settings = Mock()
+        mock_settings.testAttribute = Mock(
+            side_effect=[False, False]
+        )  # 2d canvas and webgl disabled
+        mock_widget.settings = Mock(return_value=mock_settings)
+
+        # Mock GPU info
+        mock_gpu_info = Mock()
+        mock_gpu_info.has_gpu = True
+        mock_gpu_info.gpu_name = "GPU"
+        mock_gpu_info.gpu_type = "intel"
+        mock_get_gpu_info.return_value = mock_gpu_info
+
+        info = get_preview_widget_info(mock_widget)
+
+        # Should report settings as disabled
+        assert info["accelerated_2d_canvas"] is False
+        assert info["webgl_enabled"] is False
+
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", False)
+    @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
+    def test_widget_info_webengine_unavailable(self, mock_get_gpu_info):
+        """Test widget info when WebEngine is not available."""
+        from asciidoc_artisan.ui.preview_handler_gpu import get_preview_widget_info
+
+        # Mock widget with page attribute but WebEngine unavailable
+        mock_widget = Mock()
+        mock_widget.page = Mock()
+
+        # Mock GPU info
+        mock_gpu_info = Mock()
+        mock_gpu_info.has_gpu = False
+        mock_gpu_info.gpu_name = "N/A"
+        mock_gpu_info.gpu_type = "none"
+        mock_get_gpu_info.return_value = mock_gpu_info
+
+        info = get_preview_widget_info(mock_widget)
+
+        # Should not include WebEngine settings (WEBENGINE_AVAILABLE is False)
+        assert "accelerated_2d_canvas" not in info
+        assert "webgl_enabled" not in info
+        # Should still include GPU info
+        assert info["gpu_detected"] is False
