@@ -4,6 +4,9 @@ Tests for core.autocomplete_engine module.
 Tests auto-complete engine with fuzzy matching, ranking, and caching.
 """
 
+import sys
+from unittest.mock import patch
+
 import pytest
 
 from asciidoc_artisan.core.autocomplete_engine import (
@@ -778,3 +781,281 @@ class TestEdgeCases:
         # Both match, but exact match (score 100) beats prefix (score 80+)
         assert ranked[0].text == "test"
         assert ranked[1].text == "testing"
+
+
+@pytest.mark.unit
+class TestRankItemsFallback:
+    """Test _rank_items fallback paths and edge cases."""
+
+    def test_rank_items_substring_match(self):
+        """Test substring match scoring (tests line 273-274)."""
+        engine = AutoCompleteEngine()
+
+        # Item with substring match (not prefix, not exact)
+        items = [
+            CompletionItem(
+                text="latest_test_value",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+        ]
+
+        context = CompletionContext(
+            line="test",
+            line_number=1,
+            column=4,
+            word_before_cursor="test",
+            prefix="test",
+            trigger_char=None,
+            manual=False,
+        )
+
+        ranked = engine._rank_items(items, context)
+
+        # Should match via substring (fuzzy or substring fallback)
+        # Score should be > 0 (either fuzzy ~60% or substring 50.0)
+        assert len(ranked) == 1
+        assert ranked[0].score > 0
+
+    def test_rank_items_no_match_score_zero(self):
+        """Test items with very poor fuzzy match get low scores (tests line 269-276)."""
+        engine = AutoCompleteEngine()
+
+        # Items with no meaningful match (very different from query)
+        items = [
+            CompletionItem(
+                text="zzz",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+            CompletionItem(
+                text="qqq",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+        ]
+
+        context = CompletionContext(
+            line="abc",
+            line_number=1,
+            column=3,
+            word_before_cursor="abc",
+            prefix="abc",
+            trigger_char=None,
+            manual=False,
+        )
+
+        ranked = engine._rank_items(items, context)
+
+        # Items with very low fuzzy scores should still be filtered out or have low scores
+        # With rapidfuzz, even poor matches get small scores
+        # But we can verify they're ranked by fuzzy score
+        if len(ranked) > 0:
+            # All scores should be very low (< 20, which is fuzzy * 0.6)
+            for item in ranked:
+                assert item.score < 20.0
+
+
+@pytest.mark.unit
+class TestRankItemsEdgeCases:
+    """Test _rank_items edge cases for complete coverage."""
+
+    def test_rank_items_empty_query_matches_all(self):
+        """Test ranking with empty query includes all items."""
+        engine = AutoCompleteEngine()
+
+        items = [
+            CompletionItem(
+                text="test1",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+            CompletionItem(
+                text="test2",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+        ]
+
+        context = CompletionContext(
+            line="",
+            line_number=1,
+            column=0,
+            word_before_cursor="",
+            prefix="",
+            trigger_char=None,
+            manual=False,
+        )
+
+        ranked = engine._rank_items(items, context)
+
+        # All items should be included with default scores
+        assert len(ranked) == 2
+
+    def test_rank_items_with_filter_text(self):
+        """Test ranking uses filter_text when available."""
+        engine = AutoCompleteEngine()
+
+        items = [
+            CompletionItem(
+                text="Display Text",
+                filter_text="filtertext",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+        ]
+
+        context = CompletionContext(
+            line="filter",
+            line_number=1,
+            column=6,
+            word_before_cursor="filter",
+            prefix="filter",
+            trigger_char=None,
+            manual=False,
+        )
+
+        ranked = engine._rank_items(items, context)
+
+        # Should match using filter_text (prefix match)
+        assert len(ranked) == 1
+        assert ranked[0].score > 80.0  # Prefix match score
+
+    def test_rank_items_case_insensitive_matching(self):
+        """Test ranking is case-insensitive."""
+        engine = AutoCompleteEngine()
+
+        items = [
+            CompletionItem(
+                text="TestValue",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+        ]
+
+        context = CompletionContext(
+            line="test",
+            line_number=1,
+            column=4,
+            word_before_cursor="test",
+            prefix="test",
+            trigger_char=None,
+            manual=False,
+        )
+
+        ranked = engine._rank_items(items, context)
+
+        # Should match despite case difference (prefix match)
+        assert len(ranked) == 1
+        assert ranked[0].score > 80.0
+
+
+@pytest.mark.unit
+class TestRapidFuzzFallback:
+    """Test fallback behavior when rapidfuzz is not available."""
+
+    def test_rank_items_without_rapidfuzz_substring(self):
+        """Test _rank_items substring fallback when rapidfuzz unavailable (tests line 273-274)."""
+        engine = AutoCompleteEngine()
+
+        items = [
+            CompletionItem(
+                text="my_test_value",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+        ]
+
+        context = CompletionContext(
+            line="test",
+            line_number=1,
+            column=4,
+            word_before_cursor="test",
+            prefix="test",
+            trigger_char=None,
+            manual=False,
+        )
+
+        # Mock rapidfuzz to not be available
+        with patch.dict(sys.modules, {"rapidfuzz": None, "rapidfuzz.fuzz": None}):
+            # Reload the module to force ImportError path
+            import importlib
+
+            import asciidoc_artisan.core.autocomplete_engine as ace_module
+
+            importlib.reload(ace_module)
+
+            # Create new engine with reloaded module
+            engine = ace_module.AutoCompleteEngine()
+
+            ranked = engine._rank_items(items, context)
+
+            # Should match via substring fallback (score 50.0)
+            assert len(ranked) == 1
+            assert ranked[0].score == 50.0
+
+    def test_rank_items_without_rapidfuzz_no_match(self):
+        """Test _rank_items no match when rapidfuzz unavailable (tests line 275-276)."""
+        engine = AutoCompleteEngine()
+
+        items = [
+            CompletionItem(
+                text="xyz",
+                kind=CompletionKind.SYNTAX,
+                detail="Test",
+            ),
+        ]
+
+        context = CompletionContext(
+            line="abc",
+            line_number=1,
+            column=3,
+            word_before_cursor="abc",
+            prefix="abc",
+            trigger_char=None,
+            manual=False,
+        )
+
+        # Mock rapidfuzz to not be available
+        with patch.dict(sys.modules, {"rapidfuzz": None, "rapidfuzz.fuzz": None}):
+            # Reload the module to force ImportError path
+            import importlib
+
+            import asciidoc_artisan.core.autocomplete_engine as ace_module
+
+            importlib.reload(ace_module)
+
+            # Create new engine with reloaded module
+            engine = ace_module.AutoCompleteEngine()
+
+            ranked = engine._rank_items(items, context)
+
+            # No match, should be filtered out (score 0)
+            assert len(ranked) == 0
+
+    def test_fuzzy_match_score_without_rapidfuzz(self):
+        """Test fuzzy_match_score fallback when rapidfuzz unavailable (tests line 393-405)."""
+        # Mock rapidfuzz to not be available
+        with patch.dict(sys.modules, {"rapidfuzz": None, "rapidfuzz.fuzz": None}):
+            # Reload the module to force ImportError path
+            import importlib
+
+            import asciidoc_artisan.core.autocomplete_engine as ace_module
+
+            importlib.reload(ace_module)
+
+            # Test exact match fallback
+            score = ace_module.fuzzy_match_score("test", "test")
+            assert score == 100.0
+
+            # Test prefix match fallback
+            score = ace_module.fuzzy_match_score("test", "testing")
+            assert score == 90.0
+
+            # Test substring match fallback
+            score = ace_module.fuzzy_match_score("test", "my_test_value")
+            assert score == 60.0
+
+            # Test no match fallback
+            score = ace_module.fuzzy_match_score("test", "xyz")
+            assert score == 0.0
