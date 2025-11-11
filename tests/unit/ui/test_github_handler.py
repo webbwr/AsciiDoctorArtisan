@@ -639,3 +639,619 @@ class TestGitHubHandlerCleanup:
         # Handler should be deletable (no circular references or resource locks)
         # This is tested implicitly by pytest fixture cleanup
         assert refcount_before > 0  # Has at least one reference
+
+
+@pytest.mark.unit
+class TestGitHubHandlerInitializeAutoFetch:
+    """Test initialize method auto-fetches repo info (lines 85-88)."""
+
+    def test_initialize_auto_fetches_when_repo_set(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test initialize auto-fetches repo info when repository is set."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        # Mock git handler to return repo is set
+        mock_git_handler.is_repository_set = Mock(return_value=True)
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        # Mock shutil.which to simulate gh CLI available
+        # Mock get_repo_info to verify it's called
+        with patch("shutil.which", return_value="/usr/bin/gh"):
+            with patch.object(handler, "get_repo_info") as mock_get_repo:
+                handler.initialize()
+
+                # Should call get_repo_info with silent=True
+                mock_get_repo.assert_called_once_with(silent=True)
+
+    def test_initialize_skips_fetch_when_no_repo(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test initialize skips fetch when no repository set."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        # Mock git handler to return repo not set
+        mock_git_handler.is_repository_set = Mock(return_value=False)
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        # Mock shutil.which to simulate gh CLI available
+        # Mock get_repo_info to verify it's NOT called
+        with patch("shutil.which", return_value="/usr/bin/gh"):
+            with patch.object(handler, "get_repo_info") as mock_get_repo:
+                handler.initialize()
+
+                # Should NOT call get_repo_info
+                mock_get_repo.assert_not_called()
+
+
+@pytest.mark.unit
+class TestGitHubHandlerEarlyReturns:
+    """Test early returns when not ready (lines 138, 174, 214, 255)."""
+
+    def test_list_pull_requests_early_return(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test list_pull_requests returns early when not ready (line 138)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        # Mock _ensure_ready to return False
+        with patch.object(handler, "_ensure_ready", return_value=False):
+            # Should return early without creating dialog
+            handler.list_pull_requests()
+
+            # Verify no dialog created (would crash if attempted)
+            assert handler.current_dialog is None
+
+    def test_create_issue_early_return(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test create_issue returns early when not ready (line 174)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        with patch.object(handler, "_ensure_ready", return_value=False):
+            handler.create_issue()
+
+            # Verify processing not started
+            assert not handler.is_processing
+
+    def test_list_issues_early_return(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test list_issues returns early when not ready (line 214)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        with patch.object(handler, "_ensure_ready", return_value=False):
+            handler.list_issues()
+
+            assert handler.current_dialog is None
+
+    def test_get_repo_info_early_return(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test get_repo_info returns early when not ready (line 255)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        with patch.object(handler, "_ensure_ready", return_value=False):
+            handler.get_repo_info()
+
+            assert not handler.is_processing
+
+
+@pytest.mark.unit
+class TestGitHubHandlerResultDispatching:
+    """Test result handler dispatching (lines 296-303)."""
+
+    def test_handle_result_dispatches_pr_list(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test handle_github_result dispatches to _handle_pr_list (line 297)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+        handler.is_processing = True
+        handler.last_operation = "pr_list"
+
+        result = GitHubResult(
+            success=True,
+            operation="pr_list",
+            user_message="PRs loaded",
+            data=[{"number": 1, "title": "Test PR"}],
+        )
+
+        with patch.object(handler, "_handle_pr_list") as mock_handler:
+            handler.handle_github_result(result)
+
+            mock_handler.assert_called_once_with(result)
+
+    def test_handle_result_dispatches_issue_create(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test handle_github_result dispatches to _handle_issue_created (line 299)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+        handler.is_processing = True
+
+        result = GitHubResult(
+            success=True,
+            operation="issue_create",
+            user_message="Issue created",
+            data={"number": 42, "url": "https://github.com/org/repo/issues/42"},
+        )
+
+        with patch.object(handler, "_handle_issue_created") as mock_handler:
+            handler.handle_github_result(result)
+
+            mock_handler.assert_called_once_with(result)
+
+    def test_handle_result_dispatches_issue_list(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test handle_github_result dispatches to _handle_issue_list (line 301)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+        handler.is_processing = True
+
+        result = GitHubResult(
+            success=True,
+            operation="issue_list",
+            user_message="Issues loaded",
+            data=[{"number": 1, "title": "Test Issue"}],
+        )
+
+        with patch.object(handler, "_handle_issue_list") as mock_handler:
+            handler.handle_github_result(result)
+
+            mock_handler.assert_called_once_with(result)
+
+    def test_handle_result_dispatches_repo_info(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test handle_github_result dispatches to _handle_repo_info (line 303)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+        handler.is_processing = True
+
+        result = GitHubResult(
+            success=True,
+            operation="repo_info",
+            user_message="Repo info loaded",
+            data={"name": "test-repo", "description": "Test"},
+        )
+
+        with patch.object(handler, "_handle_repo_info") as mock_handler:
+            handler.handle_github_result(result)
+
+            mock_handler.assert_called_once_with(result)
+
+
+@pytest.mark.unit
+class TestGitHubHandlerResultHandlers:
+    """Test individual result handler methods (lines 336-365)."""
+
+    def test_handle_pr_list_updates_cache(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test _handle_pr_list updates cached PRs (lines 336-346)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        pr_data = [
+            {"number": 1, "title": "PR 1"},
+            {"number": 2, "title": "PR 2"},
+        ]
+
+        result = GitHubResult(
+            success=True, operation="pr_list", user_message="Success", data=pr_data
+        )
+
+        handler._handle_pr_list(result)
+
+        # Verify cache updated
+        assert handler.cached_prs == pr_data
+
+    def test_handle_pr_list_updates_open_dialog(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+        qapp,
+    ):
+        """Test _handle_pr_list updates open dialog (lines 341-344)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        # Create mock dialog
+        mock_dialog = Mock()
+        mock_dialog.set_pr_data = Mock()
+        handler.current_dialog = mock_dialog
+
+        # Mock isinstance to return True for PullRequestListDialog
+        with patch("asciidoc_artisan.ui.github_handler.isinstance", return_value=True):
+            pr_data = [{"number": 1, "title": "Test PR"}]
+            result = GitHubResult(
+                success=True, operation="pr_list", user_message="Success", data=pr_data
+            )
+
+            handler._handle_pr_list(result)
+
+            # Verify dialog updated
+            mock_dialog.set_pr_data.assert_called_once_with(pr_data)
+
+    def test_handle_issue_created_logs_url(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+        caplog,
+    ):
+        """Test _handle_issue_created logs issue URL (lines 350-353)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        result = GitHubResult(
+            success=True,
+            operation="issue_create",
+            user_message="Success",
+            data={"number": 42, "url": "https://github.com/org/repo/issues/42"},
+        )
+
+        with caplog.at_level("INFO"):
+            handler._handle_issue_created(result)
+
+            # Verify logged
+            assert "Issue #42 created" in caplog.text
+            assert "https://github.com/org/repo/issues/42" in caplog.text
+
+    def test_handle_issue_list_updates_cache(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test _handle_issue_list updates cached issues (lines 357-365)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        issue_data = [
+            {"number": 1, "title": "Issue 1"},
+            {"number": 2, "title": "Issue 2"},
+        ]
+
+        result = GitHubResult(
+            success=True,
+            operation="issue_list",
+            user_message="Success",
+            data=issue_data,
+        )
+
+        handler._handle_issue_list(result)
+
+        # Verify cache updated
+        assert handler.cached_issues == issue_data
+
+    def test_handle_issue_list_updates_open_dialog(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test _handle_issue_list updates open dialog (lines 362-363)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        # Create mock dialog
+        mock_dialog = Mock()
+        mock_dialog.set_issue_data = Mock()
+        handler.current_dialog = mock_dialog
+
+        # Mock isinstance to return True for IssueListDialog
+        with patch("asciidoc_artisan.ui.github_handler.isinstance", return_value=True):
+            issue_data = [{"number": 1, "title": "Test Issue"}]
+            result = GitHubResult(
+                success=True,
+                operation="issue_list",
+                user_message="Success",
+                data=issue_data,
+            )
+
+            handler._handle_issue_list(result)
+
+            # Verify dialog updated
+            mock_dialog.set_issue_data.assert_called_once_with(issue_data)
+
+
+@pytest.mark.unit
+class TestGitHubHandlerRepoInfoDialog:
+    """Test repository info dialog (lines 404-422)."""
+
+    def test_handle_repo_info_shows_dialog(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+        qapp,
+    ):
+        """Test _handle_repo_info shows QMessageBox (lines 404-422)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+        handler.last_operation = "repo_info"  # Not silent
+
+        repo_data = {
+            "name": "test-repo",
+            "description": "A test repository",
+            "default_branch": "main",
+            "visibility": "public",
+            "stargazers_count": 42,
+            "forks_count": 7,
+            "html_url": "https://github.com/org/test-repo",
+        }
+
+        result = GitHubResult(
+            success=True, operation="repo_info", user_message="Success", data=repo_data
+        )
+
+        # Mock QMessageBox (imported locally in _handle_repo_info)
+        with patch("PySide6.QtWidgets.QMessageBox") as mock_msgbox:
+            mock_box_instance = Mock()
+            mock_msgbox.return_value = mock_box_instance
+
+            handler._handle_repo_info(result)
+
+            # Verify QMessageBox created and shown
+            mock_msgbox.assert_called_once_with(mock_parent_window)
+            mock_box_instance.setWindowTitle.assert_called_once_with(
+                "Repository Information"
+            )
+            mock_box_instance.exec.assert_called_once()
+
+    def test_handle_repo_info_skips_dialog_when_silent(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test _handle_repo_info skips dialog for silent operations."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+        from asciidoc_artisan.workers.github_cli_worker import GitHubResult
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+        handler.last_operation = "repo_info_silent"  # Silent operation
+
+        repo_data = {
+            "name": "test-repo",
+            "description": "Test",
+            "default_branch": "main",
+            "visibility": "public",
+            "stargazers_count": 0,
+            "forks_count": 0,
+            "html_url": "https://github.com/org/test-repo",
+        }
+
+        result = GitHubResult(
+            success=True, operation="repo_info", user_message="Success", data=repo_data
+        )
+
+        # Mock QMessageBox - should NOT be called (imported locally in _handle_repo_info)
+        with patch("PySide6.QtWidgets.QMessageBox") as mock_msgbox:
+            handler._handle_repo_info(result)
+
+            # Verify QMessageBox NOT created
+            mock_msgbox.assert_not_called()
+
+
+@pytest.mark.unit
+class TestGitHubHandlerHelperMethods:
+    """Test helper methods (lines 466, 470)."""
+
+    def test_get_current_branch_returns_empty_when_no_handler(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test _get_current_branch returns empty string when no git_handler (line 466)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        # Remove git_handler
+        delattr(mock_parent_window, "git_handler")
+
+        # Should return empty string
+        result = handler._get_current_branch()
+        assert result == ""
+
+    def test_is_busy_returns_processing_state(
+        self,
+        mock_parent_window,
+        mock_settings_manager,
+        mock_status_manager,
+        mock_git_handler,
+    ):
+        """Test is_busy returns processing state (line 470)."""
+        from asciidoc_artisan.ui.github_handler import GitHubHandler
+
+        handler = GitHubHandler(
+            mock_parent_window,
+            mock_settings_manager,
+            mock_status_manager,
+            mock_git_handler,
+        )
+
+        # Not processing
+        handler.is_processing = False
+        assert handler.is_busy() is False
+
+        # Processing
+        handler.is_processing = True
+        assert handler.is_busy() is True
