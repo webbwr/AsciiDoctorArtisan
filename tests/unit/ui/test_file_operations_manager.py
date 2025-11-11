@@ -525,3 +525,322 @@ class TestDetermineSaveFormat:
 
         # Should default to adoc for unknown types
         assert format_type == "adoc"
+
+
+@pytest.mark.unit
+class TestFileOperationsErrorHandling:
+    """Test error handling in file operations (lines 280-284, 368-373, 408-413)."""
+
+    def test_open_file_generic_exception(self, mock_editor, tmp_path):
+        """Test generic exception handling during file open (lines 280-284)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+
+        # Create a test file
+        test_file = tmp_path / "test.adoc"
+        test_file.write_text("test content")
+
+        # Mock QFileDialog to return the file path
+        # Mock Path.read_text to raise an exception
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName",
+            return_value=(str(test_file), ""),
+        ):
+            with patch("pathlib.Path.read_text", side_effect=Exception("Read error")):
+                manager.open_file()
+
+                # Should show error message
+                mock_editor.status_manager.show_message.assert_called()
+                call_args = mock_editor.status_manager.show_message.call_args[0]
+                assert call_args[0] == "critical"
+                assert "Failed to open file" in call_args[2]
+
+    def test_save_file_atomic_save_failure(self, mock_editor, tmp_path):
+        """Test save failure error handler (lines 368-373)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._current_file_path = tmp_path / "test.adoc"
+
+        # Mock atomic_save_text to return False (save failure)
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=False,
+        ):
+            result = manager.save_file()
+
+            # Should return False and show error message
+            assert result is False
+            mock_editor.status_manager.show_message.assert_called()
+            call_args = mock_editor.status_manager.show_message.call_args[0]
+            assert call_args[0] == "critical"
+            assert "Save Error" in call_args[1]
+            assert "Failed to save file" in call_args[2]
+
+    def test_save_as_format_asciidoc_save_failure(self, mock_editor, tmp_path):
+        """Test AsciiDoc save failure in format conversion (lines 408-413)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        target_file = tmp_path / "output.adoc"
+
+        # Mock atomic_save_text to return False
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=False,
+        ):
+            result = manager.save_as_format_internal(target_file, "adoc")
+
+            # Should return False and show error message
+            assert result is False
+            mock_editor.status_manager.show_message.assert_called()
+            call_args = mock_editor.status_manager.show_message.call_args[0]
+            assert call_args[0] == "critical"
+            assert "Save Error" in call_args[1]
+            assert "Failed to save AsciiDoc file" in call_args[2]
+
+
+@pytest.mark.unit
+class TestFormatConversionErrors:
+    """Test format conversion error handling (lines 419, 431-437, 466, 478-485)."""
+
+    def test_html_export_asciidoc_api_none(self, mock_editor, tmp_path):
+        """Test HTML export when asciidoc_api is None (line 419, caught at 432)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._asciidoc_api = None  # Set to None
+        target_file = tmp_path / "output.html"
+
+        # Exception is caught in try-except block (line 432)
+        result = manager.save_as_format_internal(target_file, "html")
+
+        # Should return False and show error message
+        assert result is False
+        mock_editor.status_manager.show_message.assert_called()
+        call_args = mock_editor.status_manager.show_message.call_args[0]
+        assert call_args[0] == "critical"
+        assert "Save Error" in call_args[1]
+        assert "Failed to save HTML file" in call_args[2]
+
+    def test_html_save_exception_handler(self, mock_editor, tmp_path):
+        """Test HTML save exception handler (lines 431-437)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        target_file = tmp_path / "output.html"
+
+        # Mock execute to succeed but atomic_save_text to raise IOError
+        mock_editor._asciidoc_api.execute.return_value = "<html>test</html>"
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            side_effect=IOError("Disk full"),
+        ):
+            result = manager.save_as_format_internal(target_file, "html")
+
+            # Should return False and show error message
+            assert result is False
+            mock_editor.status_manager.show_message.assert_called()
+            call_args = mock_editor.status_manager.show_message.call_args[0]
+            assert call_args[0] == "critical"
+            assert "Failed to save HTML file" in call_args[2]
+
+    def test_asciidoc_to_html_conversion_error(self, mock_editor, tmp_path):
+        """Test AsciiDoc→HTML conversion exception (lines 478-485)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._current_file_path = tmp_path / "source.adoc"
+        target_file = tmp_path / "output.pdf"
+
+        # Mock asciidoc_api.execute to raise exception
+        mock_editor._asciidoc_api.execute.side_effect = Exception("Conversion failed")
+
+        # Exception is caught in try-except block (lines 478-485)
+        result = manager.save_as_format_internal(target_file, "pdf")
+
+        # Should return False and show error message
+        assert result is False
+        mock_editor.status_manager.show_message.assert_called()
+        call_args = mock_editor.status_manager.show_message.call_args[0]
+        assert call_args[0] == "critical"
+        assert "Failed to convert AsciiDoc to HTML" in call_args[2]
+
+    def test_non_asciidoc_format_asciidoc_api_none(self, mock_editor, tmp_path):
+        """Test non-HTML format export when asciidoc_api is None (line 466, caught at 478)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._asciidoc_api = None  # Set to None
+        mock_editor._current_file_path = tmp_path / "source.adoc"
+        target_file = tmp_path / "output.pdf"
+
+        # Exception is caught in try-except block (lines 478-485)
+        result = manager.save_as_format_internal(target_file, "pdf")
+
+        # Should return False and show error message
+        assert result is False
+        mock_editor.status_manager.show_message.assert_called()
+        call_args = mock_editor.status_manager.show_message.call_args[0]
+        assert call_args[0] == "critical"
+        assert "Failed to convert AsciiDoc to HTML" in call_args[2]
+
+
+@pytest.mark.unit
+class TestPandocAvailability:
+    """Test Pandoc availability checking (line 442)."""
+
+    def test_save_as_format_pandoc_unavailable(self, mock_editor, tmp_path):
+        """Test early return when Pandoc unavailable (line 442)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        target_file = tmp_path / "output.docx"
+
+        # Set ui_state_manager.check_pandoc_availability to return False
+        mock_editor.ui_state_manager.check_pandoc_availability.return_value = False
+
+        result = manager.save_as_format_internal(target_file, "docx")
+
+        # Should return False without attempting conversion
+        assert result is False
+        mock_editor.ui_state_manager.check_pandoc_availability.assert_called_once()
+
+
+@pytest.mark.unit
+class TestSourceFormatDetection:
+    """Test source format mapping (lines 451-460)."""
+
+    def test_source_format_markdown(self, mock_editor, tmp_path):
+        """Test source format detection for .md files (lines 451-460)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._current_file_path = tmp_path / "source.md"
+        target_file = tmp_path / "output.pdf"
+
+        # Mock Path.write_text for temp file creation
+        with patch("pathlib.Path.write_text"):
+            result = manager.save_as_format_internal(target_file, "pdf")
+
+            # Should emit pandoc conversion signal
+            assert result is True
+            mock_editor.request_pandoc_conversion.emit.assert_called_once()
+            call_args = mock_editor.request_pandoc_conversion.emit.call_args[0]
+            assert call_args[2] == "markdown"  # source_format argument
+
+    def test_source_format_docx(self, mock_editor, tmp_path):
+        """Test source format detection for .docx files (lines 451-460)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._current_file_path = tmp_path / "source.docx"
+        target_file = tmp_path / "output.pdf"
+
+        # Mock Path.write_text for temp file creation
+        with patch("pathlib.Path.write_text"):
+            result = manager.save_as_format_internal(target_file, "pdf")
+
+            # Should emit pandoc conversion signal
+            assert result is True
+            mock_editor.request_pandoc_conversion.emit.assert_called_once()
+            call_args = mock_editor.request_pandoc_conversion.emit.call_args[0]
+            assert call_args[2] == "docx"  # source_format argument
+
+    def test_source_format_html(self, mock_editor, tmp_path):
+        """Test source format detection for .html files (lines 451-460)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._current_file_path = tmp_path / "source.html"
+        target_file = tmp_path / "output.pdf"
+
+        # Mock Path.write_text for temp file creation
+        with patch("pathlib.Path.write_text"):
+            result = manager.save_as_format_internal(target_file, "pdf")
+
+            # Should emit pandoc conversion signal
+            assert result is True
+            mock_editor.request_pandoc_conversion.emit.assert_called_once()
+            call_args = mock_editor.request_pandoc_conversion.emit.call_args[0]
+            assert call_args[2] == "html"  # source_format argument
+
+
+@pytest.mark.unit
+class TestTempFileCreation:
+    """Test temp file creation error handling (lines 489-499)."""
+
+    def test_temp_file_creation_exception(self, mock_editor, tmp_path):
+        """Test exception during temp file creation (lines 489-499)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._current_file_path = tmp_path / "source.md"
+        target_file = tmp_path / "output.pdf"
+
+        # Mock Path.write_text to raise an exception
+        with patch(
+            "pathlib.Path.write_text", side_effect=Exception("Permission denied")
+        ):
+            result = manager.save_as_format_internal(target_file, "pdf")
+
+            # Should return False and show error message
+            assert result is False
+            mock_editor.status_manager.show_message.assert_called()
+            call_args = mock_editor.status_manager.show_message.call_args[0]
+            assert call_args[0] == "critical"
+            assert "Failed to create temporary file" in call_args[2]
+
+
+@pytest.mark.unit
+class TestNonStandardExportFormats:
+    """Test non-PDF/DOCX export signal emission (lines 522-531)."""
+
+    def test_markdown_export_signal_emission(self, mock_editor, tmp_path):
+        """Test markdown export emits pandoc signal (lines 522-531)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        mock_editor._current_file_path = tmp_path / "source.adoc"
+        target_file = tmp_path / "output.md"
+
+        # Mock Path.write_text for temp file creation
+        with patch("pathlib.Path.write_text"):
+            result = manager.save_as_format_internal(target_file, "md")
+
+            # Should emit signal for pandoc conversion
+            assert result is True
+            mock_editor.request_pandoc_conversion.emit.assert_called_once()
+            call_args = mock_editor.request_pandoc_conversion.emit.call_args[0]
+            assert call_args[1] == "md"  # format_type
+
+
+@pytest.mark.unit
+class TestNonAsciidocExtensionConversion:
+    """Test non-AsciiDoc extension conversion (lines 352-355)."""
+
+    def test_save_converts_non_adoc_extension(self, mock_editor, tmp_path):
+        """Test save converts non-.adoc extensions (lines 352-355)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+
+        # Set current file to have a .txt extension
+        mock_editor._current_file_path = tmp_path / "test.txt"
+
+        # Mock atomic_save_text to return True
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=True,
+        ) as mock_save:
+            result = manager.save_file()
+
+            # Should succeed and convert to .adoc
+            assert result is True
+
+            # Verify atomic_save_text was called with .adoc extension
+            mock_save.assert_called_once()
+            saved_path = mock_save.call_args[0][0]
+            assert saved_path.suffix == ".adoc"
+            assert saved_path.name == "test.adoc"
