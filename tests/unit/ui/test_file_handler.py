@@ -830,7 +830,7 @@ class TestFileDialogIntegration:
         with patch(
             "PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")
         ):
-            result = handler.save_file(save_as=True)
+            handler.save_file(save_as=True)
 
         # Should return False if user cancels
 
@@ -870,7 +870,7 @@ class TestFileDialogIntegration:
         """Test file dialogs filter correct file extensions."""
         with patch(
             "PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")
-        ) as mock_dialog:
+        ):
             handler.open_file()
 
             # Should include .adoc filter
@@ -990,3 +990,314 @@ class TestMemoryManagement:
 
         # Editor should be cleared, memory released
         assert mock_editor.toPlainText() == ""
+
+
+# ============================================================================
+# NEW TEST CLASSES - Missing Coverage (35 lines → 95%+)
+# ============================================================================
+
+
+class TestMetricsImportFallback:
+    """Test metrics module import fallback (lines 38-40)."""
+
+    def test_metrics_unavailable_fallback(self):
+        """Test fallback when metrics module unavailable."""
+        import sys
+        from unittest.mock import patch
+
+        # Mock import failure for metrics
+        with patch.dict(sys.modules, {"asciidoc_artisan.core.metrics": None}):
+            # Force module reload to trigger import
+            import importlib
+
+            import asciidoc_artisan.ui.file_handler as fh_module
+
+            try:
+                importlib.reload(fh_module)
+                # Should not crash, METRICS_AVAILABLE should be False
+            finally:
+                # Reload again to restore normal state
+                importlib.reload(fh_module)
+
+
+class TestFileDialogCancellation:
+    """Test file dialog cancellation (line 163)."""
+
+    def test_open_file_dialog_cancelled(self, handler):
+        """Test opening file with dialog when user cancels."""
+        with patch(
+            "PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")
+        ):
+            # Should return early without error
+            handler.open_file()  # No path provided, triggers dialog
+
+    def test_save_file_dialog_cancelled(self, handler, mock_editor):
+        """Test save file dialog when user cancels."""
+        mock_editor.setPlainText("Content")
+        handler.current_file_path = None
+
+        with patch(
+            "PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")
+        ):
+            result = handler.save_file(save_as=True)
+
+        # Should return False when cancelled
+        assert result is False
+
+
+class TestFileSizeValidation:
+    """Test file size validation (lines 194-217)."""
+
+    @pytest.mark.asyncio
+    async def test_open_file_too_large(self, handler, tmp_path, mock_status_manager):
+        """Test opening file larger than 100MB shows error (lines 194-206)."""
+        # Create a file
+        test_file = tmp_path / "huge.adoc"
+        test_file.write_text("Content")
+
+        # Mock the file_path.stat() call to return huge size
+        def mock_stat(self, **kwargs):
+            from unittest.mock import Mock
+
+            mock_result = Mock()
+            mock_result.st_size = 105 * 1024 * 1024  # 105MB
+            return mock_result
+
+        with patch.object(Path, "stat", mock_stat):
+            # Call async method directly
+            await handler._load_file_async(test_file)
+
+        # Should show error message
+        mock_status_manager.show_message.assert_called()
+        assert handler.is_opening_file is False
+
+    @pytest.mark.asyncio
+    async def test_open_large_file_logs_info(self, handler, tmp_path, caplog):
+        """Test opening file >10MB logs info (lines 210-212)."""
+        import logging
+
+        test_file = tmp_path / "large.adoc"
+        test_file.write_text("Content")
+
+        # Mock the file_path.stat() call to return 15MB size
+        def mock_stat(self, **kwargs):
+            from unittest.mock import Mock
+
+            mock_result = Mock()
+            mock_result.st_size = 15 * 1024 * 1024  # 15MB
+            return mock_result
+
+        handler.async_manager.read_file = AsyncMock(return_value="Content")
+
+        with patch.object(Path, "stat", mock_stat):
+            with caplog.at_level(logging.INFO):
+                # Call async method directly
+                await handler._load_file_async(test_file)
+
+        # Should log info about large file
+        assert any("Opening large file" in record.message for record in caplog.records)
+
+    @pytest.mark.asyncio
+    async def test_file_size_check_exception_handled(
+        self, handler, tmp_path, mock_status_manager
+    ):
+        """Test exception during file size check is handled (lines 214-217)."""
+        test_file = tmp_path / "test.adoc"
+        test_file.write_text("Content")
+
+        # Mock stat to raise exception
+        def mock_stat_error(self, **kwargs):
+            raise OSError("Permission denied")
+
+        with patch.object(Path, "stat", mock_stat_error):
+            # Call async method directly
+            await handler._load_file_async(test_file)
+
+        # Should handle exception gracefully (returns early)
+        assert handler.is_opening_file is False
+
+
+class TestMemoryProfiling:
+    """Test memory profiling integration (lines 223-227, 275-279)."""
+
+    @pytest.mark.asyncio
+    async def test_memory_profiling_before_load(self, handler, tmp_path):
+        """Test memory profiling before file load (lines 223-227)."""
+        test_file = tmp_path / "profile.adoc"
+        test_file.write_text("Content")
+
+        handler.async_manager.read_file = AsyncMock(return_value="Content")
+
+        # Mock profiler
+        mock_profiler = Mock()
+        mock_profiler.is_running = True
+        mock_profiler.take_snapshot = Mock()
+
+        # get_profiler is imported inside the function from asciidoc_artisan.core
+        with patch("os.environ.get", return_value="1"):  # Enable profiling
+            with patch(
+                "asciidoc_artisan.core.get_profiler", return_value=mock_profiler
+            ):
+                await handler._load_file_async(test_file)
+
+        # Should take snapshot before load
+        mock_profiler.take_snapshot.assert_any_call(f"before_load_{test_file.name}")
+
+    @pytest.mark.asyncio
+    async def test_memory_profiling_after_load(self, handler, tmp_path):
+        """Test memory profiling after file load (lines 275-279)."""
+        test_file = tmp_path / "profile.adoc"
+        test_file.write_text("Content")
+
+        handler.async_manager.read_file = AsyncMock(return_value="Content")
+
+        # Mock profiler
+        mock_profiler = Mock()
+        mock_profiler.is_running = True
+        mock_profiler.take_snapshot = Mock()
+
+        # get_profiler is imported inside the function from asciidoc_artisan.core
+        with patch("os.environ.get", return_value="1"):  # Enable profiling
+            with patch(
+                "asciidoc_artisan.core.get_profiler", return_value=mock_profiler
+            ):
+                await handler._load_file_async(test_file)
+
+        # Should take snapshot after load
+        mock_profiler.take_snapshot.assert_any_call(f"after_load_{test_file.name}")
+
+
+class TestAsyncReadErrors:
+    """Test async read error handling (lines 235, 282-283)."""
+
+    @pytest.mark.asyncio
+    async def test_async_read_returns_none(self, handler, tmp_path):
+        """Test async read returning None (line 235)."""
+        test_file = tmp_path / "test.adoc"
+        test_file.write_text("Content")
+
+        # Mock async read to return None (error case)
+        handler.async_manager.read_file = AsyncMock(return_value=None)
+
+        await handler._load_file_async(test_file)
+
+        # Should return early without loading
+        assert handler.current_file_path != test_file
+
+    @pytest.mark.asyncio
+    async def test_load_file_exception_handled(
+        self, handler, tmp_path, mock_status_manager
+    ):
+        """Test exception during file load shows error (lines 281-283)."""
+        test_file = tmp_path / "error.adoc"
+        test_file.write_text("Content")
+
+        # Mock async read to raise exception
+        handler.async_manager.read_file = AsyncMock(
+            side_effect=RuntimeError("Read failed")
+        )
+
+        await handler._load_file_async(test_file)
+
+        # Should show error message
+        mock_status_manager.show_message.assert_called()
+        assert handler.is_opening_file is False
+
+
+class TestPromptSaveEdgeCases:
+    """Test prompt_save_before_action edge cases (lines 414, 429)."""
+
+    def test_prompt_save_no_changes_returns_true(self, handler):
+        """Test prompt returns True when no unsaved changes (line 414)."""
+        handler.unsaved_changes = False
+
+        # Should return True immediately without dialog
+        result = handler.prompt_save_before_action("test action")
+
+        assert result is True
+
+    def test_prompt_save_discard_returns_true(self, handler):
+        """Test prompt returns True when user discards (line 429)."""
+        handler.unsaved_changes = True
+
+        with patch(
+            "PySide6.QtWidgets.QMessageBox.question",
+            return_value=QMessageBox.StandardButton.Discard,
+        ):
+            result = handler.prompt_save_before_action("test action")
+
+        assert result is True
+
+
+class TestAsyncSignalHandlers:
+    """Test async operation signal handlers (lines 460, 471, 486, 498-505)."""
+
+    def test_on_async_read_complete_logs(self, handler, tmp_path, caplog):
+        """Test async read complete signal handler (line 460)."""
+        import logging
+
+        test_file = tmp_path / "test.adoc"
+
+        with caplog.at_level(logging.DEBUG):
+            handler._on_async_read_complete(test_file, "Content")
+
+        # Should log debug message
+        assert any("Async read complete" in record.message for record in caplog.records)
+
+    def test_on_async_write_complete_logs(self, handler, tmp_path, caplog):
+        """Test async write complete signal handler (line 471)."""
+        import logging
+
+        test_file = tmp_path / "test.adoc"
+
+        with caplog.at_level(logging.DEBUG):
+            handler._on_async_write_complete(test_file)
+
+        # Should log debug message
+        assert any(
+            "Async write complete" in record.message for record in caplog.records
+        )
+
+    def test_on_async_operation_failed_logs(self, handler, tmp_path, caplog):
+        """Test async operation failed signal handler (line 486)."""
+        import logging
+
+        test_file = tmp_path / "test.adoc"
+
+        with caplog.at_level(logging.ERROR):
+            handler._on_async_operation_failed("read", test_file, "Error message")
+
+        # Should log error message
+        assert any("Async read failed" in record.message for record in caplog.records)
+
+    def test_on_file_changed_externally_emits_signal(
+        self, handler, tmp_path, qtbot, caplog
+    ):
+        """Test file changed externally signal handler (lines 498-505)."""
+        import logging
+
+        test_file = tmp_path / "test.adoc"
+
+        with caplog.at_level(logging.INFO):
+            with qtbot.waitSignal(handler.file_changed_externally, timeout=1000):
+                handler._on_file_changed_externally(test_file)
+
+        # Should log info message
+        assert any(
+            "File changed externally" in record.message for record in caplog.records
+        )
+
+    def test_on_file_changed_externally_shows_status(self, handler, tmp_path):
+        """Test file changed externally shows status bar message (lines 504-506)."""
+        test_file = tmp_path / "test.adoc"
+
+        # Mock window status_bar
+        handler.window.status_bar = Mock()
+        handler.window.status_bar.showMessage = Mock()
+
+        handler._on_file_changed_externally(test_file)
+
+        # Should show status message
+        handler.window.status_bar.showMessage.assert_called_once()
+        call_args = handler.window.status_bar.showMessage.call_args[0]
+        assert test_file.name in call_args[0]
