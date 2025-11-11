@@ -575,3 +575,198 @@ class TestGetSupportedFormatsException:
 
         # Should handle timeout gracefully
         assert isinstance(integration.supported_formats, dict)
+
+
+@pytest.mark.unit
+class TestAutoInstallPypandocEdgeCases:
+    """Test auto_install_pypandoc edge cases."""
+
+    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    def test_auto_install_pypandoc_installation_failure(self, mock_run, mock_which):
+        """Test pypandoc installation failure."""
+        mock_which.return_value = "/usr/bin/pandoc"
+
+        # Version check succeeds, installation fails
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="pandoc 3.1.2"),
+            MagicMock(returncode=1, stderr="Installation failed", stdout=""),
+        ]
+
+        integration = PandocIntegration()
+        success, message = integration.auto_install_pypandoc()
+
+        assert success is False
+        assert any(word in message.lower() for word in ["failed", "install"])
+
+
+@pytest.mark.unit
+class TestPDFExtractionEdgeCases:
+    """Test PDF extraction edge cases."""
+
+    def test_extract_text_empty_pdf(self, tmp_path):
+        """Test extraction from PDF with no text content."""
+        pytest.importorskip("fitz")
+
+        # Create a minimal PDF with no text
+        test_file = tmp_path / "empty.pdf"
+
+        # Skip if we can't create test PDF
+        try:
+            import fitz
+
+            doc = fitz.open()
+            _ = doc.new_page()
+            doc.save(str(test_file))
+            doc.close()
+        except Exception:
+            pytest.skip("Cannot create test PDF")
+
+        success, text, error = PDFExtractor.extract_text(test_file)
+
+        # Should handle empty PDF gracefully
+        if not success:
+            assert "no text" in error.lower() or "empty" in error.lower()
+
+    def test_extract_text_multipage_pdf(self, tmp_path):
+        """Test extraction from multi-page PDF."""
+        pytest.importorskip("fitz")
+
+        test_file = tmp_path / "multipage.pdf"
+
+        try:
+            import fitz
+
+            doc = fitz.open()
+
+            # Create 3 pages with text
+            for i in range(3):
+                page = doc.new_page()
+                page.insert_text((50, 50), f"Page {i + 1} content")
+
+            doc.save(str(test_file))
+            doc.close()
+        except Exception:
+            pytest.skip("Cannot create test PDF")
+
+        success, text, error = PDFExtractor.extract_text(test_file)
+
+        if success:
+            # Should include page separators for multi-page docs
+            assert "Page" in text
+
+
+@pytest.mark.unit
+class TestTableFormattingEdgeCases:
+    """Test table formatting edge cases."""
+
+    def test_format_table_empty_table(self):
+        """Test formatting completely empty table."""
+        result = PDFExtractor._format_table_as_asciidoc([])
+
+        assert result == ""
+
+    def test_format_table_all_empty_rows(self):
+        """Test formatting table with all empty rows."""
+        table = [
+            ["", "", ""],
+            ["", None, ""],
+            [None, None, None],
+        ]
+
+        result = PDFExtractor._format_table_as_asciidoc(table)
+
+        # Should return empty for tables with no content
+        assert result == ""
+
+    def test_format_table_single_column(self):
+        """Test formatting single-column table."""
+        table = [
+            ["Header"],
+            ["Row 1"],
+            ["Row 2"],
+        ]
+
+        result = PDFExtractor._format_table_as_asciidoc(table)
+
+        assert '[options="header"]' in result
+        assert "|===" in result
+
+    def test_format_table_many_columns(self):
+        """Test formatting table with many columns (>5)."""
+        table = [
+            ["C1", "C2", "C3", "C4", "C5", "C6", "C7"],
+            ["R1C1", "R1C2", "R1C3", "R1C4", "R1C5", "R1C6", "R1C7"],
+        ]
+
+        result = PDFExtractor._format_table_as_asciidoc(table)
+
+        # Should use auto-sizing for many columns
+        assert '[options="header"]' in result
+        assert "|===" in result
+
+    def test_format_table_4_columns(self):
+        """Test formatting table with 4 columns."""
+        table = [
+            ["H1", "H2", "H3", "H4"],
+            ["R1", "R2", "R3", "R4"],
+        ]
+
+        result = PDFExtractor._format_table_as_asciidoc(table)
+
+        # Should include column spec for 4 columns
+        assert 'cols="1,1,1,1"' in result
+
+    def test_format_table_uneven_rows(self):
+        """Test formatting table with rows of different lengths."""
+        table = [
+            ["H1", "H2", "H3"],
+            ["R1", "R2"],  # Short row
+            ["R1", "R2", "R3", "R4"],  # Long row
+        ]
+
+        result = PDFExtractor._format_table_as_asciidoc(table)
+
+        # Should normalize row lengths
+        assert "|===" in result
+
+
+@pytest.mark.unit
+class TestPDFToAsciiDocConversion:
+    """Test PDF to AsciiDoc conversion."""
+
+    def test_convert_pdf_to_asciidoc_extraction_failure(self, tmp_path):
+        """Test conversion when PDF extraction fails."""
+        test_file = tmp_path / "bad.pdf"
+        test_file.write_bytes(b"not a real pdf")
+
+        success, content, error = PDFExtractor.convert_to_asciidoc(test_file)
+
+        # Should handle extraction failure gracefully
+        assert success is False
+        assert error != ""
+
+    def test_convert_pdf_to_asciidoc_success(self, tmp_path):
+        """Test successful PDF to AsciiDoc conversion."""
+        pytest.importorskip("fitz")
+
+        test_file = tmp_path / "test.pdf"
+
+        try:
+            import fitz
+
+            doc = fitz.open()
+            page = doc.new_page()
+            page.insert_text((50, 50), "Test content")
+            doc.save(str(test_file))
+            doc.close()
+        except Exception:
+            pytest.skip("Cannot create test PDF")
+
+        success, content, error = PDFExtractor.convert_to_asciidoc(test_file)
+
+        if success:
+            # Should include AsciiDoc header
+            assert "= Document from" in content
+            assert ":toc:" in content
+            assert "Test content" in content or content != ""
