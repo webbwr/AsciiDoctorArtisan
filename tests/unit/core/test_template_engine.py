@@ -6,9 +6,7 @@ conditionals, includes, and YAML front matter parsing.
 """
 
 import os
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -341,7 +339,9 @@ class TestTemplateValidation:
             description="Test with variables",
             variables=[
                 TemplateVariable(name="var1", description="Variable 1"),
-                TemplateVariable(name="var2", description="Variable 2", default="default"),
+                TemplateVariable(
+                    name="var2", description="Variable 2", default="default"
+                ),
             ],
             content="{{var1}} {{var2}}",
         )
@@ -365,7 +365,9 @@ class TestInstantiation:
             description="Technical article",
             variables=[
                 TemplateVariable(name="title", description="Title", required=True),
-                TemplateVariable(name="author", description="Author", default="Anonymous"),
+                TemplateVariable(
+                    name="author", description="Author", default="Anonymous"
+                ),
             ],
             content="= {{title}}\n{{author}}\n{{today}}\n\n{{#if toc}}:toc:{{/if}}\n\n== Introduction",
         )
@@ -408,7 +410,9 @@ class TestEdgeCases:
             name="Test",
             category="test",
             description="Test",
-            variables=[TemplateVariable(name="title", description="Title", required=True)],
+            variables=[
+                TemplateVariable(name="title", description="Title", required=True)
+            ],
             content="= {{title}}",
         )
 
@@ -461,3 +465,354 @@ class TestEdgeCases:
 
         # Undefined variable should be falsy
         assert "Content" not in result
+
+
+@pytest.mark.unit
+class TestTemplateEngineErrorHandling:
+    """Test suite for template engine error handling."""
+
+    def test_substitute_variables_with_boolean_true(self):
+        """Test boolean variable substitution returns 'true'."""
+        engine = TemplateEngine()
+        template = Template(
+            name="Test",
+            category="test",
+            description="Test",
+            variables=[],
+            content="Value: {{flag}}",
+        )
+
+        result = engine.instantiate(template, {"flag": True})
+
+        assert "Value: true" in result
+
+    def test_substitute_variables_with_boolean_false(self):
+        """Test boolean variable substitution returns empty string."""
+        engine = TemplateEngine()
+        template = Template(
+            name="Test",
+            category="test",
+            description="Test",
+            variables=[],
+            content="Value: {{flag}}",
+        )
+
+        result = engine.instantiate(template, {"flag": False})
+
+        assert "Value: " in result
+        assert "false" not in result
+
+    def test_substitute_variables_keep_original_syntax(self):
+        """Test allow_missing keeps original {{var}} syntax."""
+        engine = TemplateEngine()
+
+        # With allow_missing=True in _substitute_variables
+        result = engine._substitute_variables(
+            "Keep: {{undefined_var}}", {}, allow_missing=True
+        )
+
+        assert "{{undefined_var}}" in result
+
+    def test_include_file_not_found(self, tmp_path):
+        """Test file inclusion with non-existent file."""
+        engine = TemplateEngine()
+        template = Template(
+            name="Test",
+            category="test",
+            description="Test",
+            variables=[],
+            content="{{include:nonexistent.txt}}",
+        )
+
+        result = engine.instantiate(template, {})
+
+        assert "[ERROR: File not found:" in result
+
+    def test_include_file_read_error(self, tmp_path):
+        """Test file inclusion with read error."""
+        engine = TemplateEngine()
+
+        # Create a directory instead of file to trigger read error
+        bad_file = tmp_path / "bad_file"
+        bad_file.mkdir()
+
+        template = Template(
+            name="Test",
+            category="test",
+            description="Test",
+            variables=[],
+            content=f"{{{{include:{bad_file}}}}}",
+        )
+
+        result = engine.instantiate(template, {})
+
+        assert "[ERROR: Cannot read file:" in result
+
+
+@pytest.mark.unit
+class TestTemplateEngineParseErrors:
+    """Test suite for parse_template error handling."""
+
+    def test_parse_template_missing_yaml(self, tmp_path, monkeypatch):
+        """Test parsing when yaml module is not available."""
+        from asciidoc_artisan.core.template_engine import TemplateEngine
+
+        engine = TemplateEngine()
+
+        # Create valid template file
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+name: Test
+category: test
+description: Test template
+---
+Content"""
+        )
+
+        # Mock yaml import to fail
+        import builtins
+        import sys
+
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "yaml":
+                raise ImportError("No module named 'yaml'")
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+
+        # Remove yaml from sys.modules if present
+        if "yaml" in sys.modules:
+            monkeypatch.delitem(sys.modules, "yaml")
+
+        with pytest.raises(ImportError, match="PyYAML is required"):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_not_found(self):
+        """Test parsing non-existent file."""
+        engine = TemplateEngine()
+
+        with pytest.raises(ValueError, match="Template file not found"):
+            engine.parse_template("/nonexistent/file.adoc")
+
+    def test_parse_template_read_exception(self, tmp_path, monkeypatch):
+        """Test parsing with read exception."""
+        engine = TemplateEngine()
+
+        # Create file
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text("content")
+
+        # Mock open to raise exception
+        def mock_open(*args, **kwargs):
+            raise PermissionError("Cannot read file")
+
+        monkeypatch.setattr("builtins.open", mock_open)
+
+        with pytest.raises(ValueError, match="Cannot read template file"):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_missing_front_matter(self, tmp_path):
+        """Test parsing file without YAML front matter."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text("Just content, no front matter")
+
+        with pytest.raises(ValueError, match="must start with YAML front matter"):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_missing_closing_front_matter(self, tmp_path):
+        """Test parsing file with incomplete YAML front matter."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        # Only one --- means it will split into 2 parts instead of 3
+        template_file.write_text(
+            """---
+name: Test"""
+        )
+
+        with pytest.raises(ValueError, match="missing closing ---"):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_invalid_yaml(self, tmp_path):
+        """Test parsing file with invalid YAML."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+name: Test
+category: [unclosed list
+description: Test
+---
+Content"""
+        )
+
+        with pytest.raises(ValueError, match="Invalid YAML"):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_yaml_not_dict(self, tmp_path):
+        """Test parsing file where YAML is not a dictionary."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+- item1
+- item2
+---
+Content"""
+        )
+
+        with pytest.raises(ValueError, match="must be a dictionary"):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_missing_name_field(self, tmp_path):
+        """Test parsing file without name field."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+category: test
+description: Test template
+---
+Content"""
+        )
+
+        with pytest.raises(
+            ValueError, match="must have name, category, and description"
+        ):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_non_string_fields(self, tmp_path):
+        """Test parsing file with non-string required fields."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+name: 123
+category: test
+description: Test template
+---
+Content"""
+        )
+
+        with pytest.raises(
+            ValueError, match="must have name, category, and description as strings"
+        ):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_empty_required_fields(self, tmp_path):
+        """Test parsing file with empty required fields."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+name: ""
+category: test
+description: Test template
+---
+Content"""
+        )
+
+        with pytest.raises(
+            ValueError, match="must have name, category, and description"
+        ):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_invalid_variable_definition(self, tmp_path):
+        """Test parsing file with invalid variable definition."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+name: Test
+category: test
+description: Test template
+variables:
+  - "not a dict"
+---
+Content"""
+        )
+
+        with pytest.raises(ValueError, match="Invalid variable definition"):
+            engine.parse_template(str(template_file))
+
+    def test_parse_template_variable_without_name(self, tmp_path):
+        """Test parsing file with variable missing name."""
+        engine = TemplateEngine()
+
+        template_file = tmp_path / "template.adoc"
+        template_file.write_text(
+            """---
+name: Test
+category: test
+description: Test template
+variables:
+  - description: "Variable without name"
+---
+Content"""
+        )
+
+        with pytest.raises(ValueError, match="Variable must have a name"):
+            engine.parse_template(str(template_file))
+
+
+@pytest.mark.unit
+class TestTemplateEngineValidation:
+    """Test suite for template validation warnings."""
+
+    def test_validate_template_undefined_variable(self):
+        """Test validation warns about undefined variables."""
+        engine = TemplateEngine()
+        template = Template(
+            name="Test",
+            category="test",
+            description="Test",
+            variables=[],
+            content="{{undefined_var}}",
+        )
+
+        warnings = engine.validate_template(template)
+
+        assert len(warnings) == 1
+        assert "undefined_var" in warnings[0]
+        assert "not defined" in warnings[0]
+
+    def test_validate_template_mismatched_if_tags(self):
+        """Test validation warns about mismatched #if tags."""
+        engine = TemplateEngine()
+        template = Template(
+            name="Test",
+            category="test",
+            description="Test",
+            variables=[],
+            content="{{#if condition}}Content",  # Missing {{/if}}
+        )
+
+        warnings = engine.validate_template(template)
+
+        assert any("Mismatched {{#if}}" in w for w in warnings)
+
+    def test_validate_template_mismatched_unless_tags(self):
+        """Test validation warns about mismatched #unless tags."""
+        engine = TemplateEngine()
+        template = Template(
+            name="Test",
+            category="test",
+            description="Test",
+            variables=[],
+            content="{{#unless condition}}Content",  # Missing {{/unless}}
+        )
+
+        warnings = engine.validate_template(template)
+
+        assert any("Mismatched {{#unless}}" in w for w in warnings)
