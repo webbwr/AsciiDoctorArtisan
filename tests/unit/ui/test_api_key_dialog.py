@@ -123,10 +123,7 @@ class TestAPIKeyStatusUpdates:
         dialog = APIKeySetupDialog()
 
         # Status should show "✓ Key is configured"
-        assert (
-            "✓" in dialog.anthropic_status.text()
-            and "configured" in dialog.anthropic_status.text().lower()
-        )
+        assert "✓" in dialog.anthropic_status.text() and "configured" in dialog.anthropic_status.text().lower()
 
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
     def test_status_shows_not_set_when_no_key(self, mock_creds_class, qapp):
@@ -691,3 +688,285 @@ class TestKeyringAvailability:
 
         dialog = APIKeySetupDialog()
         assert dialog is not None
+
+
+@pytest.mark.unit
+class TestAPIKeyDialogTestButton:
+    """Test suite for API key testing functionality."""
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.warning")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_test_button_with_no_key(self, mock_creds_class, mock_msgbox, qapp):
+        """Test clicking test button with no key shows warning."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.get_anthropic_key.return_value = None
+
+        dialog = APIKeySetupDialog()
+        dialog.anthropic_key_input.setText("")
+
+        # Trigger test button click
+        dialog._test_api_key()
+
+        # Verify warning shown
+        mock_msgbox.assert_called_once()
+        args = mock_msgbox.call_args[0]
+        assert "No API Key" in args[1] or "enter an API key" in args[2].lower()
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.warning")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_test_button_with_invalid_format(self, mock_creds_class, mock_msgbox, qapp):
+        """Test clicking test button with invalid format shows warning."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.get_anthropic_key.return_value = None
+
+        dialog = APIKeySetupDialog()
+        dialog.anthropic_key_input.setText("invalid-key-format")
+
+        # Trigger test button click
+        dialog._test_api_key()
+
+        # Verify warning shown
+        mock_msgbox.assert_called_once()
+        args = mock_msgbox.call_args[0]
+        assert "Invalid Format" in args[1] or "sk-ant-" in args[2]
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.information")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_test_button_with_valid_format(self, mock_creds_class, mock_msgbox, qapp):
+        """Test clicking test button with valid format shows success."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.get_anthropic_key.return_value = None
+
+        dialog = APIKeySetupDialog()
+        dialog.anthropic_key_input.setText("sk-ant-test123456")
+
+        # Trigger test button click
+        dialog._test_api_key()
+
+        # Verify success message shown
+        mock_msgbox.assert_called_once()
+        args = mock_msgbox.call_args[0]
+        assert "valid" in args[1].lower() or "valid" in args[2].lower()
+
+
+@pytest.mark.unit
+class TestAPIKeyDialogSaveValidation:
+    """Test suite for API key save validation."""
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.warning")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_save_with_invalid_format_shows_warning(self, mock_creds_class, mock_msgbox, qapp):
+        """Test saving invalid format key shows warning."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.get_anthropic_key.return_value = None
+
+        dialog = APIKeySetupDialog()
+        dialog.anthropic_key_input.setText("invalid-format")
+
+        # Trigger save
+        dialog._save_and_accept()
+
+        # Verify warning shown
+        mock_msgbox.assert_called_once()
+        args = mock_msgbox.call_args[0]
+        assert "Invalid Format" in args[1] or "sk-ant-" in args[2]
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.critical")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_save_when_keyring_unavailable_shows_error(self, mock_creds_class, mock_msgbox, qapp):
+        """Test saving when keyring unavailable shows error."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = False
+        mock_creds.get_anthropic_key.return_value = None
+
+        dialog = APIKeySetupDialog()
+        dialog.anthropic_key_input.setText("sk-ant-test123")
+
+        # Trigger save
+        dialog._save_and_accept()
+
+        # Verify error shown
+        mock_msgbox.assert_called_once()
+        args = mock_msgbox.call_args[0]
+        assert "Keyring Unavailable" in args[1] or "keyring" in args[2].lower()
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.critical")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_save_when_storage_fails_shows_error(self, mock_creds_class, mock_msgbox, qapp):
+        """Test saving when storage fails shows error."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.get_anthropic_key.return_value = None
+        mock_creds.store_anthropic_key.return_value = False  # Storage fails
+
+        dialog = APIKeySetupDialog()
+        dialog.anthropic_key_input.setText("sk-ant-test123")
+
+        # Trigger save
+        dialog._save_and_accept()
+
+        # Verify error shown
+        mock_msgbox.assert_called_once()
+        args = mock_msgbox.call_args[0]
+        assert "Storage Failed" in args[1] or "Failed to store" in args[2] or "failed" in args[2].lower()
+
+
+@pytest.mark.unit
+class TestAPIKeyDialogClearFunctionality:
+    """Test suite for API key clear functionality."""
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.warning")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_clear_when_keyring_unavailable(self, mock_creds_class, mock_msgbox, qapp):
+        """Test clearing when keyring unavailable shows warning."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = False
+        mock_creds.get_anthropic_key.return_value = None
+
+        dialog = APIKeySetupDialog()
+
+        # Trigger clear
+        dialog._clear_stored_key()
+
+        # Verify warning shown
+        mock_msgbox.assert_called_once()
+        args = mock_msgbox.call_args[0]
+        assert "Keyring Unavailable" in args[1] or "unavailable" in args[2].lower()
+
+    @patch("os.environ.get")
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_clear_with_user_cancels(self, mock_creds_class, mock_msgbox, mock_env_get, qapp):
+        """Test clearing when user cancels confirmation."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.has_anthropic_key.return_value = True
+        mock_creds.get_anthropic_key.return_value = "sk-ant-test123"
+        mock_msgbox.return_value = QMessageBox.StandardButton.No  # User cancels
+        mock_env_get.return_value = None  # Not in pytest
+
+        dialog = APIKeySetupDialog()
+
+        # Trigger clear
+        dialog._clear_stored_key()
+
+        # Verify confirmation dialog shown
+        mock_msgbox.assert_called_once()
+        # Verify delete not called
+        mock_creds.delete_anthropic_key.assert_not_called()
+
+    @patch("os.environ.get")
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.information")
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_clear_with_user_confirms_success(self, mock_creds_class, mock_question, mock_info, mock_env_get, qapp):
+        """Test clearing when user confirms and deletion succeeds."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.has_anthropic_key.return_value = True
+        mock_creds.get_anthropic_key.return_value = "sk-ant-test123"
+        mock_creds.delete_anthropic_key.return_value = True  # Success
+        mock_question.return_value = QMessageBox.StandardButton.Yes  # User confirms
+        mock_env_get.return_value = None  # Not in pytest
+
+        dialog = APIKeySetupDialog()
+
+        # Trigger clear
+        dialog._clear_stored_key()
+
+        # Verify confirmation dialog shown
+        mock_question.assert_called_once()
+        # Verify delete called
+        mock_creds.delete_anthropic_key.assert_called_once()
+        # Verify success message
+        mock_info.assert_called_once()
+
+    @patch("os.environ.get")
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.warning")
+    @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_clear_with_user_confirms_failure(self, mock_creds_class, mock_question, mock_warning, mock_env_get, qapp):
+        """Test clearing when user confirms but deletion fails."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = True
+        mock_creds.has_anthropic_key.return_value = True
+        mock_creds.get_anthropic_key.return_value = "sk-ant-test123"
+        mock_creds.delete_anthropic_key.return_value = False  # Fails
+        mock_question.return_value = QMessageBox.StandardButton.Yes  # User confirms
+        mock_env_get.return_value = None  # Not in pytest
+
+        dialog = APIKeySetupDialog()
+
+        # Trigger clear
+        dialog._clear_stored_key()
+
+        # Verify confirmation dialog shown
+        mock_question.assert_called_once()
+        # Verify delete called
+        mock_creds.delete_anthropic_key.assert_called_once()
+        # Verify failure warning
+        mock_warning.assert_called_once()
+        args = mock_warning.call_args[0]
+        assert "Deletion Failed" in args[1] or "failed" in args[2].lower()
+
+
+@pytest.mark.unit
+class TestAPIKeyDialogGetKey:
+    """Test suite for get_api_key method."""
+
+    @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
+    def test_get_api_key_when_keyring_unavailable_returns_none(self, mock_creds_class, qapp):
+        """Test get_api_key returns None when keyring unavailable."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
+        mock_creds = Mock()
+        mock_creds_class.return_value = mock_creds
+        mock_creds_class.is_available.return_value = False
+
+        dialog = APIKeySetupDialog()
+
+        # Get API key when keyring unavailable
+        result = dialog.get_api_key()
+
+        # Verify None returned
+        assert result is None
