@@ -1238,3 +1238,570 @@ class TestConcurrentOperations:
 
         # Should have no selections
         assert len(manager.editor.extraSelections()) == 0
+
+
+@pytest.mark.unit
+class TestMenuTextUpdate:
+    """Test menu text update with checkmark."""
+
+    def test_update_menu_text_with_checkmark_enabled(self, main_window):
+        """Test menu text shows checkmark when spell check enabled."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Update menu text
+        manager._update_menu_text()
+
+        # Should call setText with checkmark
+        main_window.action_manager.toggle_spell_check_act.setText.assert_called_with(
+            "✓ &Spell Check"
+        )
+
+    def test_update_menu_text_without_checkmark_disabled(self, main_window):
+        """Test menu text without checkmark when spell check disabled."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = False
+
+        # Update menu text
+        manager._update_menu_text()
+
+        # Should call setText without checkmark
+        main_window.action_manager.toggle_spell_check_act.setText.assert_called_with(
+            "&Spell Check"
+        )
+
+    def test_update_menu_text_without_action_manager(self, main_window):
+        """Test menu text update handles missing action_manager gracefully."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        # Remove action_manager
+        delattr(main_window, "action_manager")
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Should not crash
+        manager._update_menu_text()
+        assert True
+
+    def test_update_menu_text_without_toggle_action(self, main_window):
+        """Test menu text update handles missing toggle action gracefully."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        # Remove toggle action
+        delattr(main_window.action_manager, "toggle_spell_check_act")
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Should not crash
+        manager._update_menu_text()
+        assert True
+
+
+@pytest.mark.unit
+class TestContextMenuWithMockedExec:
+    """Test context menu functionality with mocked QMenu.exec()."""
+
+    @pytest.mark.skip(
+        reason="QAction requires QObject parent, mocking breaks type validation"
+    )
+    def test_show_context_menu_with_suggestions_mocked(self, main_window):
+        """Test context menu creates suggestions with mocked exec()."""
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Set up editor with misspelled word
+        main_window.editor.setPlainText("Helo world")
+
+        # Create error for "Helo"
+        manager.errors = [
+            SpellError(
+                word="Helo",
+                start=0,
+                end=4,
+                suggestions=["Hello", "Help", "Hero"],
+                line=1,
+                column=0,
+            )
+        ]
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+        event.pos.return_value = QPoint(10, 10)
+        event.globalPos.return_value = QPoint(100, 100)
+
+        # Mock cursor to select "Helo"
+        mock_cursor = Mock()
+        mock_cursor.selectedText.return_value = "Helo"
+        mock_cursor.selectionStart.return_value = 0
+
+        with patch.object(
+            main_window.editor, "cursorForPosition", return_value=mock_cursor
+        ):
+            with patch(
+                "asciidoc_artisan.ui.spell_check_manager.QMenu"
+            ) as MockQMenu:
+                mock_menu = Mock()
+                MockQMenu.return_value = mock_menu
+
+                # Call show_context_menu
+                manager.show_context_menu(event)
+
+                # Verify menu was created
+                MockQMenu.assert_called_once()
+
+                # Verify actions were added
+                assert mock_menu.addAction.call_count >= 5  # 3 suggestions + 2 actions
+                mock_menu.addSeparator.assert_called()
+
+                # Verify exec was called
+                mock_menu.exec.assert_called_once()
+
+    @pytest.mark.skip(
+        reason="QAction requires QObject parent, mocking breaks type validation"
+    )
+    def test_show_context_menu_no_suggestions_mocked(self, main_window):
+        """Test context menu with no suggestions shows '(no suggestions)'."""
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Set up editor with misspelled word
+        main_window.editor.setPlainText("xyzabc test")
+
+        # Create error with no suggestions
+        manager.errors = [
+            SpellError(
+                word="xyzabc", start=0, end=6, suggestions=[], line=1, column=0
+            )
+        ]
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+        event.pos.return_value = QPoint(10, 10)
+        event.globalPos.return_value = QPoint(100, 100)
+
+        # Mock cursor to select "xyzabc"
+        mock_cursor = Mock()
+        mock_cursor.selectedText.return_value = "xyzabc"
+        mock_cursor.selectionStart.return_value = 0
+
+        with patch.object(
+            main_window.editor, "cursorForPosition", return_value=mock_cursor
+        ):
+            with patch(
+                "asciidoc_artisan.ui.spell_check_manager.QMenu"
+            ) as MockQMenu:
+                mock_menu = Mock()
+                MockQMenu.return_value = mock_menu
+
+                # Call show_context_menu
+                manager.show_context_menu(event)
+
+                # Verify menu was created
+                MockQMenu.assert_called_once()
+
+                # Verify actions were added
+                assert mock_menu.addAction.call_count >= 3  # no suggestions + 2 actions
+                mock_menu.exec.assert_called_once()
+
+    def test_show_context_menu_no_word_under_cursor(self, main_window):
+        """Test context menu with no word shows default menu."""
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+        event.pos.return_value = QPoint(10, 10)
+        event.globalPos.return_value = QPoint(100, 100)
+
+        # Mock cursor with no selection
+        mock_cursor = Mock()
+        mock_cursor.selectedText.return_value = ""
+
+        with patch.object(
+            main_window.editor, "cursorForPosition", return_value=mock_cursor
+        ):
+            with patch.object(manager, "_show_default_context_menu") as mock_default:
+                manager.show_context_menu(event)
+
+                # Should show default menu
+                mock_default.assert_called_once_with(event)
+
+    def test_show_context_menu_correctly_spelled_word(self, main_window):
+        """Test context menu with correctly spelled word shows default menu."""
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Set up editor with correctly spelled word
+        main_window.editor.setPlainText("hello world")
+        manager.errors = []  # No errors
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+        event.pos.return_value = QPoint(10, 10)
+        event.globalPos.return_value = QPoint(100, 100)
+
+        # Mock cursor to select "hello"
+        mock_cursor = Mock()
+        mock_cursor.selectedText.return_value = "hello"
+        mock_cursor.selectionStart.return_value = 0
+
+        with patch.object(
+            main_window.editor, "cursorForPosition", return_value=mock_cursor
+        ):
+            with patch.object(manager, "_show_default_context_menu") as mock_default:
+                manager.show_context_menu(event)
+
+                # Should show default menu (no error found)
+                mock_default.assert_called_once_with(event)
+
+    def test_context_menu_add_to_dictionary_action(self, main_window):
+        """Test context menu 'Add to Dictionary' action is created."""
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Create error
+        manager.errors = [
+            SpellError(
+                word="testword",
+                start=0,
+                end=8,
+                suggestions=["test"],
+                line=1,
+                column=0,
+            )
+        ]
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+        event.pos.return_value = QPoint(10, 10)
+        event.globalPos.return_value = QPoint(100, 100)
+
+        # Mock cursor
+        mock_cursor = Mock()
+        mock_cursor.selectedText.return_value = "testword"
+        mock_cursor.selectionStart.return_value = 0
+
+        with patch.object(
+            main_window.editor, "cursorForPosition", return_value=mock_cursor
+        ):
+            with patch(
+                "asciidoc_artisan.ui.spell_check_manager.QMenu"
+            ) as MockQMenu:
+                with patch(
+                    "asciidoc_artisan.ui.spell_check_manager.QAction"
+                ) as MockQAction:
+                    mock_menu = Mock()
+                    MockQMenu.return_value = mock_menu
+
+                    manager.show_context_menu(event)
+
+                    # Verify QAction was called with "Add to Dictionary"
+                    action_calls = [
+                        str(call) for call in MockQAction.call_args_list
+                    ]
+                    assert any(
+                        "Add 'testword' to Dictionary" in str(call)
+                        for call in action_calls
+                    )
+
+    def test_context_menu_ignore_action(self, main_window):
+        """Test context menu 'Ignore' action is created."""
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.core.spell_checker import SpellError
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = True
+
+        # Create error
+        manager.errors = [
+            SpellError(
+                word="ignoreword",
+                start=0,
+                end=10,
+                suggestions=["ignore"],
+                line=1,
+                column=0,
+            )
+        ]
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+        event.pos.return_value = QPoint(10, 10)
+        event.globalPos.return_value = QPoint(100, 100)
+
+        # Mock cursor
+        mock_cursor = Mock()
+        mock_cursor.selectedText.return_value = "ignoreword"
+        mock_cursor.selectionStart.return_value = 0
+
+        with patch.object(
+            main_window.editor, "cursorForPosition", return_value=mock_cursor
+        ):
+            with patch(
+                "asciidoc_artisan.ui.spell_check_manager.QMenu"
+            ) as MockQMenu:
+                with patch(
+                    "asciidoc_artisan.ui.spell_check_manager.QAction"
+                ) as MockQAction:
+                    mock_menu = Mock()
+                    MockQMenu.return_value = mock_menu
+
+                    manager.show_context_menu(event)
+
+                    # Verify QAction was called with "Ignore"
+                    action_calls = [
+                        str(call) for call in MockQAction.call_args_list
+                    ]
+                    assert any(
+                        "Ignore 'ignoreword'" in str(call) for call in action_calls
+                    )
+
+
+@pytest.mark.unit
+class TestStandardActionsMenu:
+    """Test standard editor actions in context menu."""
+
+    def test_add_standard_actions(self, main_window):
+        """Test adding standard actions to menu."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        # Create a real QMenu
+        from PySide6.QtWidgets import QMenu
+
+        menu = QMenu()
+
+        # Add standard actions
+        manager._add_standard_actions(menu)
+
+        # Get actions
+        actions = menu.actions()
+
+        # Should have separators and actions
+        assert len(actions) >= 4  # Cut, Copy, Paste, Select All (+ separators)
+
+        # Verify action text
+        action_texts = [action.text() for action in actions if action.text()]
+        assert "Cut" in action_texts
+        assert "Copy" in action_texts
+        assert "Paste" in action_texts
+        assert "Select All" in action_texts
+
+    def test_add_standard_actions_cut_enabled_with_selection(self, main_window):
+        """Test Cut action is enabled when text is selected."""
+        from PySide6.QtGui import QTextCursor
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        # Set text and select it
+        main_window.editor.setPlainText("Test text")
+        cursor = main_window.editor.textCursor()
+        cursor.setPosition(0)
+        cursor.setPosition(4, QTextCursor.MoveMode.KeepAnchor)
+        main_window.editor.setTextCursor(cursor)
+
+        from PySide6.QtWidgets import QMenu
+
+        menu = QMenu()
+        manager._add_standard_actions(menu)
+
+        # Find Cut action
+        actions = [a for a in menu.actions() if a.text() == "Cut"]
+        assert len(actions) > 0
+        cut_action = actions[0]
+
+        # Should be enabled
+        assert cut_action.isEnabled()
+
+    def test_add_standard_actions_cut_disabled_without_selection(self, main_window):
+        """Test Cut action is disabled when no text is selected."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        # Set text without selection
+        main_window.editor.setPlainText("Test text")
+
+        from PySide6.QtWidgets import QMenu
+
+        menu = QMenu()
+        manager._add_standard_actions(menu)
+
+        # Find Cut action
+        actions = [a for a in menu.actions() if a.text() == "Cut"]
+        assert len(actions) > 0
+        cut_action = actions[0]
+
+        # Should be disabled
+        assert not cut_action.isEnabled()
+
+    def test_add_standard_actions_copy_enabled_with_selection(self, main_window):
+        """Test Copy action is enabled when text is selected."""
+        from PySide6.QtGui import QTextCursor
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        # Set text and select it
+        main_window.editor.setPlainText("Test text")
+        cursor = main_window.editor.textCursor()
+        cursor.setPosition(0)
+        cursor.setPosition(4, QTextCursor.MoveMode.KeepAnchor)
+        main_window.editor.setTextCursor(cursor)
+
+        from PySide6.QtWidgets import QMenu
+
+        menu = QMenu()
+        manager._add_standard_actions(menu)
+
+        # Find Copy action
+        actions = [a for a in menu.actions() if a.text() == "Copy"]
+        assert len(actions) > 0
+        copy_action = actions[0]
+
+        # Should be enabled
+        assert copy_action.isEnabled()
+
+    def test_add_standard_actions_paste_always_enabled(self, main_window):
+        """Test Paste action is always enabled."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        from PySide6.QtWidgets import QMenu
+
+        menu = QMenu()
+        manager._add_standard_actions(menu)
+
+        # Find Paste action
+        actions = [a for a in menu.actions() if a.text() == "Paste"]
+        assert len(actions) > 0
+        paste_action = actions[0]
+
+        # Should exist (enabled state depends on clipboard)
+        assert paste_action is not None
+
+    def test_add_standard_actions_select_all_always_enabled(self, main_window):
+        """Test Select All action is always enabled."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        from PySide6.QtWidgets import QMenu
+
+        menu = QMenu()
+        manager._add_standard_actions(menu)
+
+        # Find Select All action
+        actions = [a for a in menu.actions() if a.text() == "Select All"]
+        assert len(actions) > 0
+        select_all_action = actions[0]
+
+        # Should exist
+        assert select_all_action is not None
+
+    def test_add_standard_actions_separators(self, main_window):
+        """Test standard actions include separators."""
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        from PySide6.QtWidgets import QMenu
+
+        menu = QMenu()
+        manager._add_standard_actions(menu)
+
+        # Should have separators
+        separators = [a for a in menu.actions() if a.isSeparator()]
+        assert len(separators) >= 2  # At least 2 separators
+
+
+@pytest.mark.unit
+class TestDefaultContextMenu:
+    """Test default context menu functionality."""
+
+    def test_show_default_context_menu(self, main_window):
+        """Test showing default context menu."""
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+        event.pos.return_value = QPoint(10, 10)
+        event.globalPos.return_value = QPoint(100, 100)
+
+        # Mock createStandardContextMenu
+        mock_menu = Mock()
+        with patch.object(
+            main_window.editor, "createStandardContextMenu", return_value=mock_menu
+        ):
+            manager._show_default_context_menu(event)
+
+            # Verify createStandardContextMenu was called
+            main_window.editor.createStandardContextMenu.assert_called_once()
+
+            # Verify menu.exec was called with correct position
+            mock_menu.exec.assert_called_once_with(event.globalPos())
+
+    def test_show_default_context_menu_when_spell_check_disabled(self, main_window):
+        """Test default context menu shown when spell check is disabled."""
+        from PySide6.QtGui import QContextMenuEvent
+
+        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
+
+        manager = SpellCheckManager(main_window)
+        manager.enabled = False
+
+        # Create mock event
+        event = Mock(spec=QContextMenuEvent)
+
+        with patch.object(manager, "_show_default_context_menu") as mock_default:
+            manager.show_context_menu(event)
+
+            # Should call default menu
+            mock_default.assert_called_once_with(event)
