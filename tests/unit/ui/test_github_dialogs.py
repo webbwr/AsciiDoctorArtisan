@@ -4,18 +4,126 @@ Unit tests for GitHub dialog classes.
 Tests UI dialogs for creating/viewing pull requests and issues.
 Uses pytest-qt (qtbot) for Qt widget testing.
 
-UPDATED: Fixed API mismatches to align with actual dialog implementation.
+UPDATED: Comprehensive coverage from ~56% to 90%+ including validation helpers,
+state filtering, author variants, missing data handling, and UI interactions.
 """
 
+from unittest.mock import patch
+
 import pytest
-from PySide6.QtWidgets import QDialog, QPushButton
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtWidgets import QDialog, QLineEdit, QPushButton
 
 from asciidoc_artisan.ui.github_dialogs import (
     CreateIssueDialog,
     CreatePullRequestDialog,
     IssueListDialog,
     PullRequestListDialog,
+    _clear_validation_error,
+    _show_validation_error,
+    _validate_required_text,
 )
+
+# === VALIDATION HELPER TESTS ===
+
+
+@pytest.mark.unit
+class TestValidationHelpers:
+    """Test validation helper functions."""
+
+    def test_show_validation_error_applies_red_border(self, qtbot):
+        """Test _show_validation_error applies red border to widget."""
+        widget = QLineEdit()
+        qtbot.addWidget(widget)
+
+        _show_validation_error(widget, "QLineEdit")
+
+        # Verify red border applied
+        assert "border: 1px solid red" in widget.styleSheet()
+
+    def test_show_validation_error_sets_focus(self, qtbot):
+        """Test _show_validation_error sets focus to widget."""
+        widget = QLineEdit()
+        qtbot.addWidget(widget)
+        widget.show()
+
+        _show_validation_error(widget, "QLineEdit")
+
+        # Verify focus set (need to process events for focus to take effect)
+        qtbot.wait(10)
+        assert widget.hasFocus()
+
+    def test_clear_validation_error_removes_styling(self, qtbot):
+        """Test _clear_validation_error removes custom styling."""
+        widget = QLineEdit()
+        qtbot.addWidget(widget)
+
+        # First apply error styling
+        widget.setStyleSheet("QLineEdit { border: 1px solid red; }")
+        assert widget.styleSheet() != ""
+
+        # Clear error
+        _clear_validation_error(widget)
+
+        # Verify styling removed
+        assert widget.styleSheet() == ""
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_validate_required_text_empty_string(self, mock_logger, qtbot):
+        """Test _validate_required_text rejects empty string."""
+        widget = QLineEdit()
+        qtbot.addWidget(widget)
+        widget.setText("")
+
+        result = _validate_required_text(widget, "Test Field")
+
+        assert result is False
+        assert "border: 1px solid red" in widget.styleSheet()
+        mock_logger.warning.assert_called_once_with("Test Field is required")
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_validate_required_text_whitespace_only(self, mock_logger, qtbot):
+        """Test _validate_required_text rejects whitespace-only string."""
+        widget = QLineEdit()
+        qtbot.addWidget(widget)
+        widget.setText("   ")
+
+        result = _validate_required_text(widget, "Test Field")
+
+        assert result is False
+        assert "border: 1px solid red" in widget.styleSheet()
+        mock_logger.warning.assert_called_once_with("Test Field is required")
+
+    def test_validate_required_text_valid_input(self, qtbot):
+        """Test _validate_required_text accepts valid text."""
+        widget = QLineEdit()
+        qtbot.addWidget(widget)
+        widget.setText("Valid text")
+
+        result = _validate_required_text(widget, "Test Field")
+
+        assert result is True
+        assert widget.styleSheet() == ""
+
+    def test_validate_required_text_clears_previous_error(self, qtbot):
+        """Test _validate_required_text clears previous error styling."""
+        widget = QLineEdit()
+        qtbot.addWidget(widget)
+
+        # First fail validation
+        widget.setText("")
+        _validate_required_text(widget, "Test Field")
+        assert widget.styleSheet() != ""
+
+        # Then pass validation
+        widget.setText("Valid text")
+        result = _validate_required_text(widget, "Test Field")
+
+        assert result is True
+        assert widget.styleSheet() == ""
+
+
+# === CREATE PULL REQUEST DIALOG TESTS ===
 
 
 @pytest.mark.unit
@@ -143,6 +251,200 @@ class TestCreatePullRequestDialog:
 
         assert dialog.result() == QDialog.Rejected
 
+    def test_dialog_initialization_with_current_branch(self, qtbot):
+        """Test dialog initializes with current branch parameter."""
+        dialog = CreatePullRequestDialog(current_branch="feature-123")
+        qtbot.addWidget(dialog)
+
+        assert dialog.current_branch == "feature-123"
+        assert dialog.head_input.currentText() == "feature-123"
+
+    def test_dialog_initialization_with_base_branch(self, qtbot):
+        """Test dialog initializes with base branch parameter."""
+        dialog = CreatePullRequestDialog(base_branch="develop")
+        qtbot.addWidget(dialog)
+
+        assert dialog.base_branch == "develop"
+        assert dialog.base_input.text() == "develop"
+
+    def test_dialog_initialization_with_both_branches(self, qtbot):
+        """Test dialog initializes with both branch parameters."""
+        dialog = CreatePullRequestDialog(
+            current_branch="feature-xyz", base_branch="staging"
+        )
+        qtbot.addWidget(dialog)
+
+        assert dialog.current_branch == "feature-xyz"
+        assert dialog.base_branch == "staging"
+        assert dialog.head_input.currentText() == "feature-xyz"
+        assert dialog.base_input.text() == "staging"
+
+    def test_dialog_modal_setting(self, qtbot):
+        """Test dialog is modal."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.isModal() is True
+
+    def test_dialog_minimum_size(self, qtbot):
+        """Test dialog has minimum size."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.minimumSize().width() >= 500
+        assert dialog.minimumSize().height() >= 350
+
+    def test_title_input_placeholder(self, qtbot):
+        """Test title input has placeholder text."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.title_input.placeholderText() != ""
+        assert "title" in dialog.title_input.placeholderText().lower()
+
+    def test_title_input_tooltip(self, qtbot):
+        """Test title input has tooltip."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.title_input.toolTip() != ""
+        assert "required" in dialog.title_input.toolTip().lower()
+
+    def test_base_input_tooltip(self, qtbot):
+        """Test base input has tooltip."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.base_input.toolTip() != ""
+
+    def test_head_input_tooltip(self, qtbot):
+        """Test head input has tooltip."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.head_input.toolTip() != ""
+
+    def test_body_input_placeholder(self, qtbot):
+        """Test body input has placeholder text."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.body_input.placeholderText() != ""
+
+    def test_body_input_tooltip(self, qtbot):
+        """Test body input has tooltip."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.body_input.toolTip() != ""
+
+    def test_draft_checkbox_tooltip(self, qtbot):
+        """Test draft checkbox has tooltip."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.draft_checkbox.toolTip() != ""
+        assert "draft" in dialog.draft_checkbox.toolTip().lower()
+
+    def test_draft_checkbox_default_unchecked(self, qtbot):
+        """Test draft checkbox is unchecked by default."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.draft_checkbox.isChecked() is False
+
+    def test_draft_checkbox_checked_state(self, qtbot):
+        """Test draft checkbox checked state in data."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("Test PR")
+        dialog.draft_checkbox.setChecked(True)
+
+        data = dialog.get_pr_data()
+        assert data["draft"] == "true"
+
+    def test_draft_checkbox_unchecked_state(self, qtbot):
+        """Test draft checkbox unchecked state in data."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("Test PR")
+        dialog.draft_checkbox.setChecked(False)
+
+        data = dialog.get_pr_data()
+        assert data["draft"] == "false"
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_validation_whitespace_title(self, mock_logger, qtbot):
+        """Test validation rejects title with only whitespace."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("   ")
+        dialog.base_input.setText("main")
+        dialog.head_input.setCurrentText("feature")
+
+        dialog._validate_and_accept()
+
+        assert dialog.result() != QDialog.Accepted
+        mock_logger.warning.assert_called_with("PR title is required")
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_validation_same_branches_logs_warning(self, mock_logger, qtbot):
+        """Test validation logs warning when base == head."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("Test PR")
+        dialog.base_input.setText("main")
+        dialog.head_input.setCurrentText("main")
+
+        dialog._validate_and_accept()
+
+        assert dialog.result() != QDialog.Accepted
+        mock_logger.warning.assert_called_with(
+            "Base and head branches cannot be the same"
+        )
+
+    def test_validation_same_branches_shows_error(self, qtbot):
+        """Test validation shows error styling when base == head."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("Test PR")
+        dialog.base_input.setText("main")
+        dialog.head_input.setCurrentText("main")
+
+        dialog._validate_and_accept()
+
+        # Verify error styling applied to head_input
+        assert "border: 1px solid red" in dialog.head_input.styleSheet()
+
+    def test_validation_whitespace_stripped_in_data(self, qtbot):
+        """Test whitespace is stripped from all fields in get_pr_data."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("  Test PR  ")
+        dialog.body_input.setPlainText("  Test body  ")
+        dialog.base_input.setText("  main  ")
+        dialog.head_input.setCurrentText("  feature  ")
+
+        data = dialog.get_pr_data()
+
+        assert data["title"] == "Test PR"
+        assert data["body"] == "Test body"
+        assert data["base"] == "main"
+        assert data["head"] == "feature"
+
+    def test_head_input_is_editable(self, qtbot):
+        """Test head input combo box is editable."""
+        dialog = CreatePullRequestDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.head_input.isEditable() is True
+
 
 @pytest.mark.unit
 class TestPullRequestListDialog:
@@ -228,6 +530,326 @@ class TestPullRequestListDialog:
         item = dialog.pr_table.item(0, 0)
         assert item is not None
         assert "no pull request" in item.text().lower()
+
+    def test_dialog_not_modal(self, qtbot):
+        """Test dialog is not modal."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.isModal() is False
+
+    def test_dialog_minimum_size(self, qtbot):
+        """Test dialog has minimum size."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.minimumSize().width() >= 700
+        assert dialog.minimumSize().height() >= 400
+
+    @pytest.mark.parametrize(
+        "state_filter,pr_state,should_show",
+        [
+            ("Open", "open", True),
+            ("Open", "closed", False),
+            ("Open", "merged", False),
+            ("Closed", "closed", True),
+            ("Closed", "open", False),
+            ("Closed", "merged", False),
+            ("Merged", "merged", True),
+            ("Merged", "open", False),
+            ("Merged", "closed", False),
+            ("All", "open", True),
+            ("All", "closed", True),
+            ("All", "merged", True),
+        ],
+    )
+    def test_state_filter_behavior(self, qtbot, state_filter, pr_state, should_show):
+        """Test state filter shows/hides PRs correctly."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "number": 1,
+            "title": "Test PR",
+            "author": {"login": "testuser"},
+            "state": pr_state,
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/pull/1",
+        }
+
+        dialog.set_pr_data([test_pr])
+        dialog.state_filter.setCurrentText(state_filter)
+
+        # Should show 1 row if should_show, 0 rows otherwise
+        expected_rows = 1 if should_show else 0
+        assert dialog.pr_table.rowCount() == expected_rows
+
+    def test_state_filter_default_is_open(self, qtbot):
+        """Test default state filter is 'Open'."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.state_filter.currentText() == "Open"
+
+    def test_state_filter_has_all_states(self, qtbot):
+        """Test state filter has all expected states."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        states = [
+            dialog.state_filter.itemText(i) for i in range(dialog.state_filter.count())
+        ]
+        assert "Open" in states
+        assert "Closed" in states
+        assert "Merged" in states
+        assert "All" in states
+
+    def test_state_filter_tooltip(self, qtbot):
+        """Test state filter has tooltip."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.state_filter.toolTip() != ""
+        assert "filter" in dialog.state_filter.toolTip().lower()
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_filter_changed_logs_debug(self, mock_logger, qtbot):
+        """Test filter change logs debug message."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.state_filter.setCurrentText("Closed")
+
+        mock_logger.debug.assert_called_with("Filter changed to: Closed")
+
+    @patch("asciidoc_artisan.ui.github_dialogs.QDesktopServices.openUrl")
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_double_click_opens_url(self, mock_logger, mock_open_url, qtbot):
+        """Test double-clicking row opens URL in browser."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "number": 42,
+            "title": "Test PR",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/pull/42",
+        }
+
+        dialog.set_pr_data([test_pr])
+
+        # Simulate double-click on row 0
+        index = dialog.pr_table.model().index(0, 0)
+        dialog._row_double_clicked(index)
+
+        # Verify URL opened
+        mock_open_url.assert_called_once()
+        args = mock_open_url.call_args[0]
+        assert isinstance(args[0], QUrl)
+        assert args[0].toString() == "https://github.com/test/repo/pull/42"
+
+        # Verify logging
+        mock_logger.info.assert_called_once()
+        assert "Opening pull request in browser" in mock_logger.info.call_args[0][0]
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_refresh_button_clicked_logs_debug(self, mock_logger, qtbot):
+        """Test refresh button click logs debug message."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        # Find and click refresh button
+        buttons = dialog.findChildren(QPushButton)
+        refresh_btn = next(btn for btn in buttons if "refresh" in btn.text().lower())
+
+        qtbot.mouseClick(refresh_btn, Qt.LeftButton)
+
+        mock_logger.debug.assert_called_with("Refresh clicked")
+
+    @pytest.mark.parametrize(
+        "author_data,expected_name",
+        [
+            ({"login": "user123"}, "user123"),
+            ({"login": "alice"}, "alice"),
+            ({}, "Unknown"),
+            ({"name": "Alice"}, "Unknown"),  # Missing "login" key
+            ("stringuser", "stringuser"),
+            ("bob", "bob"),
+        ],
+    )
+    def test_author_field_variants(self, qtbot, author_data, expected_name):
+        """Test author field handles dict with login, dict without login, and string."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "number": 1,
+            "title": "Test PR",
+            "author": author_data,
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/pull/1",
+        }
+
+        dialog.set_pr_data([test_pr])
+
+        # Check author column (column 2)
+        author_item = dialog.pr_table.item(0, 2)
+        assert author_item.text() == expected_name
+
+    def test_missing_number_field(self, qtbot):
+        """Test missing number field defaults to 'N/A'."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "title": "Test PR",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/pull/1",
+        }
+
+        dialog.set_pr_data([test_pr])
+
+        number_item = dialog.pr_table.item(0, 0)
+        assert number_item.text() == "#N/A"
+
+    def test_missing_title_field(self, qtbot):
+        """Test missing title field defaults to 'Untitled'."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "number": 1,
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/pull/1",
+        }
+
+        dialog.set_pr_data([test_pr])
+
+        title_item = dialog.pr_table.item(0, 1)
+        assert title_item.text() == "Untitled"
+
+    def test_missing_state_field(self, qtbot):
+        """Test missing state field defaults to 'unknown'."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "number": 1,
+            "title": "Test PR",
+            "author": {"login": "testuser"},
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/pull/1",
+        }
+
+        # Set filter to "All" so PR shows up even without state field
+        dialog.state_filter.setCurrentText("All")
+        dialog.set_pr_data([test_pr])
+
+        status_item = dialog.pr_table.item(0, 3)
+        assert status_item.text() == "Unknown"
+
+    def test_missing_created_at_field(self, qtbot):
+        """Test missing createdAt field defaults to 'Unknown'."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "number": 1,
+            "title": "Test PR",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "url": "https://github.com/test/repo/pull/1",
+        }
+
+        dialog.set_pr_data([test_pr])
+
+        created_item = dialog.pr_table.item(0, 4)
+        assert created_item.text() == "Unknown"
+
+    def test_missing_url_field(self, qtbot):
+        """Test missing url field defaults to empty string."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        test_pr = {
+            "number": 1,
+            "title": "Test PR",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+        }
+
+        dialog.set_pr_data([test_pr])
+
+        url_item = dialog.pr_table.item(0, 5)
+        assert url_item.text() == ""
+
+    def test_table_column_count(self, qtbot):
+        """Test table has correct number of columns."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.pr_table.columnCount() == 6
+
+    def test_table_column_headers(self, qtbot):
+        """Test table has correct column headers."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        expected_headers = ["Number", "Title", "Author", "Status", "Created", "URL"]
+        for i, header in enumerate(expected_headers):
+            assert dialog.pr_table.horizontalHeaderItem(i).text() == header
+
+    def test_table_tooltip(self, qtbot):
+        """Test table has tooltip."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.pr_table.toolTip() != ""
+        assert "double-click" in dialog.pr_table.toolTip().lower()
+
+    def test_backward_compatibility_pr_table_property(self, qtbot):
+        """Test pr_table property returns table widget."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.pr_table is dialog.table
+        assert dialog.pr_table is not None
+
+    def test_empty_state_table_span(self, qtbot):
+        """Test empty state message spans all columns."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.set_pr_data([])
+
+        # Verify span covers all 6 columns
+        assert dialog.pr_table.rowSpan(0, 0) == 1
+        assert dialog.pr_table.columnSpan(0, 0) == 6
+
+    def test_empty_state_centered(self, qtbot):
+        """Test empty state message is centered."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.set_pr_data([])
+
+        item = dialog.pr_table.item(0, 0)
+        assert item.textAlignment() == Qt.AlignCenter
+
+    def test_get_data_attribute_name(self, qtbot):
+        """Test _get_data_attribute_name returns correct attribute name."""
+        dialog = PullRequestListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog._get_data_attribute_name() == "pr_data"
 
 
 @pytest.mark.unit
@@ -337,6 +959,94 @@ class TestCreateIssueDialog:
 
         assert dialog.result() == QDialog.Rejected
 
+    def test_dialog_modal_setting(self, qtbot):
+        """Test dialog is modal."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.isModal() is True
+
+    def test_dialog_minimum_size(self, qtbot):
+        """Test dialog has minimum size."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.minimumSize().width() >= 500
+        assert dialog.minimumSize().height() >= 350
+
+    def test_title_input_placeholder(self, qtbot):
+        """Test title input has placeholder text."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.title_input.placeholderText() != ""
+        assert "title" in dialog.title_input.placeholderText().lower()
+
+    def test_title_input_tooltip(self, qtbot):
+        """Test title input has tooltip."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.title_input.toolTip() != ""
+        assert "required" in dialog.title_input.toolTip().lower()
+
+    def test_labels_input_placeholder(self, qtbot):
+        """Test labels input has placeholder text."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.labels_input.placeholderText() != ""
+
+    def test_labels_input_tooltip(self, qtbot):
+        """Test labels input has tooltip."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.labels_input.toolTip() != ""
+        assert "label" in dialog.labels_input.toolTip().lower()
+
+    def test_body_input_placeholder(self, qtbot):
+        """Test body input has placeholder text."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.body_input.placeholderText() != ""
+
+    def test_body_input_tooltip(self, qtbot):
+        """Test body input has tooltip."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.body_input.toolTip() != ""
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_validation_whitespace_title(self, mock_logger, qtbot):
+        """Test validation rejects title with only whitespace."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("   ")
+
+        dialog._validate_and_accept()
+
+        assert dialog.result() != QDialog.Accepted
+        mock_logger.warning.assert_called_with("Issue title is required")
+
+    def test_validation_whitespace_stripped_in_data(self, qtbot):
+        """Test whitespace is stripped from all fields in get_issue_data."""
+        dialog = CreateIssueDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.title_input.setText("  Test Issue  ")
+        dialog.body_input.setPlainText("  Test body  ")
+        dialog.labels_input.setText("  bug, feature  ")
+
+        data = dialog.get_issue_data()
+
+        assert data["title"] == "Test Issue"
+        assert data["body"] == "Test body"
+        assert data["labels"] == "bug, feature"
+
 
 @pytest.mark.unit
 class TestIssueListDialog:
@@ -424,6 +1134,319 @@ class TestIssueListDialog:
         item = dialog.issue_table.item(0, 0)
         assert item is not None
         assert "no issue" in item.text().lower()
+
+    def test_dialog_not_modal(self, qtbot):
+        """Test dialog is not modal."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.isModal() is False
+
+    def test_dialog_minimum_size(self, qtbot):
+        """Test dialog has minimum size."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.minimumSize().width() >= 700
+        assert dialog.minimumSize().height() >= 400
+
+    @pytest.mark.parametrize(
+        "state_filter,issue_state,should_show",
+        [
+            ("Open", "open", True),
+            ("Open", "closed", False),
+            ("Closed", "closed", True),
+            ("Closed", "open", False),
+            ("All", "open", True),
+            ("All", "closed", True),
+        ],
+    )
+    def test_state_filter_behavior(self, qtbot, state_filter, issue_state, should_show):
+        """Test state filter shows/hides issues correctly."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "number": 1,
+            "title": "Test Issue",
+            "author": {"login": "testuser"},
+            "state": issue_state,
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/issues/1",
+        }
+
+        dialog.set_issue_data([test_issue])
+        dialog.state_filter.setCurrentText(state_filter)
+
+        # Should show 1 row if should_show, 0 rows otherwise
+        expected_rows = 1 if should_show else 0
+        assert dialog.issue_table.rowCount() == expected_rows
+
+    def test_state_filter_default_is_open(self, qtbot):
+        """Test default state filter is 'Open'."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.state_filter.currentText() == "Open"
+
+    def test_state_filter_has_all_states(self, qtbot):
+        """Test state filter has all expected states."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        states = [
+            dialog.state_filter.itemText(i) for i in range(dialog.state_filter.count())
+        ]
+        assert "Open" in states
+        assert "Closed" in states
+        assert "All" in states
+
+    def test_state_filter_tooltip(self, qtbot):
+        """Test state filter has tooltip."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.state_filter.toolTip() != ""
+        assert "filter" in dialog.state_filter.toolTip().lower()
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_filter_changed_logs_debug(self, mock_logger, qtbot):
+        """Test filter change logs debug message."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.state_filter.setCurrentText("Closed")
+
+        mock_logger.debug.assert_called_with("Filter changed to: Closed")
+
+    @patch("asciidoc_artisan.ui.github_dialogs.QDesktopServices.openUrl")
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_double_click_opens_url(self, mock_logger, mock_open_url, qtbot):
+        """Test double-clicking row opens URL in browser."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "number": 15,
+            "title": "Test Issue",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/issues/15",
+        }
+
+        dialog.set_issue_data([test_issue])
+
+        # Simulate double-click on row 0
+        index = dialog.issue_table.model().index(0, 0)
+        dialog._row_double_clicked(index)
+
+        # Verify URL opened
+        mock_open_url.assert_called_once()
+        args = mock_open_url.call_args[0]
+        assert isinstance(args[0], QUrl)
+        assert args[0].toString() == "https://github.com/test/repo/issues/15"
+
+        # Verify logging
+        mock_logger.info.assert_called_once()
+        assert "Opening issue in browser" in mock_logger.info.call_args[0][0]
+
+    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    def test_refresh_button_clicked_logs_debug(self, mock_logger, qtbot):
+        """Test refresh button click logs debug message."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        # Find and click refresh button
+        buttons = dialog.findChildren(QPushButton)
+        refresh_btn = next(btn for btn in buttons if "refresh" in btn.text().lower())
+
+        qtbot.mouseClick(refresh_btn, Qt.LeftButton)
+
+        mock_logger.debug.assert_called_with("Refresh clicked")
+
+    @pytest.mark.parametrize(
+        "author_data,expected_name",
+        [
+            ({"login": "user123"}, "user123"),
+            ({"login": "alice"}, "alice"),
+            ({}, "Unknown"),
+            ({"name": "Alice"}, "Unknown"),  # Missing "login" key
+            ("stringuser", "stringuser"),
+            ("bob", "bob"),
+        ],
+    )
+    def test_author_field_variants(self, qtbot, author_data, expected_name):
+        """Test author field handles dict with login, dict without login, and string."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "number": 1,
+            "title": "Test Issue",
+            "author": author_data,
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/issues/1",
+        }
+
+        dialog.set_issue_data([test_issue])
+
+        # Check author column (column 2)
+        author_item = dialog.issue_table.item(0, 2)
+        assert author_item.text() == expected_name
+
+    def test_missing_number_field(self, qtbot):
+        """Test missing number field defaults to 'N/A'."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "title": "Test Issue",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/issues/1",
+        }
+
+        dialog.set_issue_data([test_issue])
+
+        number_item = dialog.issue_table.item(0, 0)
+        assert number_item.text() == "#N/A"
+
+    def test_missing_title_field(self, qtbot):
+        """Test missing title field defaults to 'Untitled'."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "number": 1,
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/issues/1",
+        }
+
+        dialog.set_issue_data([test_issue])
+
+        title_item = dialog.issue_table.item(0, 1)
+        assert title_item.text() == "Untitled"
+
+    def test_missing_state_field(self, qtbot):
+        """Test missing state field defaults to 'unknown'."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "number": 1,
+            "title": "Test Issue",
+            "author": {"login": "testuser"},
+            "createdAt": "2025-10-01",
+            "url": "https://github.com/test/repo/issues/1",
+        }
+
+        # Set filter to "All" so issue shows up even without state field
+        dialog.state_filter.setCurrentText("All")
+        dialog.set_issue_data([test_issue])
+
+        status_item = dialog.issue_table.item(0, 3)
+        assert status_item.text() == "Unknown"
+
+    def test_missing_created_at_field(self, qtbot):
+        """Test missing createdAt field defaults to 'Unknown'."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "number": 1,
+            "title": "Test Issue",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "url": "https://github.com/test/repo/issues/1",
+        }
+
+        dialog.set_issue_data([test_issue])
+
+        created_item = dialog.issue_table.item(0, 4)
+        assert created_item.text() == "Unknown"
+
+    def test_missing_url_field(self, qtbot):
+        """Test missing url field defaults to empty string."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        test_issue = {
+            "number": 1,
+            "title": "Test Issue",
+            "author": {"login": "testuser"},
+            "state": "open",
+            "createdAt": "2025-10-01",
+        }
+
+        dialog.set_issue_data([test_issue])
+
+        url_item = dialog.issue_table.item(0, 5)
+        assert url_item.text() == ""
+
+    def test_table_column_count(self, qtbot):
+        """Test table has correct number of columns."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.issue_table.columnCount() == 6
+
+    def test_table_column_headers(self, qtbot):
+        """Test table has correct column headers."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        expected_headers = ["Number", "Title", "Author", "Status", "Created", "URL"]
+        for i, header in enumerate(expected_headers):
+            assert dialog.issue_table.horizontalHeaderItem(i).text() == header
+
+    def test_table_tooltip(self, qtbot):
+        """Test table has tooltip."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.issue_table.toolTip() != ""
+        assert "double-click" in dialog.issue_table.toolTip().lower()
+
+    def test_backward_compatibility_issue_table_property(self, qtbot):
+        """Test issue_table property returns table widget."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog.issue_table is dialog.table
+        assert dialog.issue_table is not None
+
+    def test_empty_state_table_span(self, qtbot):
+        """Test empty state message spans all columns."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.set_issue_data([])
+
+        # Verify span covers all 6 columns
+        assert dialog.issue_table.rowSpan(0, 0) == 1
+        assert dialog.issue_table.columnSpan(0, 0) == 6
+
+    def test_empty_state_centered(self, qtbot):
+        """Test empty state message is centered."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        dialog.set_issue_data([])
+
+        item = dialog.issue_table.item(0, 0)
+        assert item.textAlignment() == Qt.AlignCenter
+
+    def test_get_data_attribute_name(self, qtbot):
+        """Test _get_data_attribute_name returns correct attribute name."""
+        dialog = IssueListDialog()
+        qtbot.addWidget(dialog)
+
+        assert dialog._get_data_attribute_name() == "issue_data"
 
 
 @pytest.mark.unit
