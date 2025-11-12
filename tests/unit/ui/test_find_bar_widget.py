@@ -555,7 +555,7 @@ class TestClearOperation:
         widget.clear()
 
         assert widget.get_search_text() == ""
-        assert widget.is_case_sensitive() == True  # Preserved
+        assert widget.is_case_sensitive()  # Preserved
 
     def test_clear_removes_not_found_style(self, qtbot):
         """Test clear removes not-found styling."""
@@ -770,3 +770,174 @@ class TestConcurrentOperations:
 
         assert widget.get_search_text() == ""
         assert widget._counter_label.text() == "No matches"
+
+
+@pytest.mark.unit
+class TestReplaceMode:
+    """Test find and replace mode functionality."""
+
+    def test_toggle_replace_mode_shows_replace_row(self, qtbot):
+        """Test toggling replace mode shows replace controls."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+        widget.show()  # Show parent widget so child visibility works correctly
+
+        # Initially replace row should be hidden
+        assert not widget._replace_row_widget.isVisible()
+        assert not widget._replace_mode
+
+        # Toggle to show
+        widget._toggle_replace_mode()
+
+        # Verify replace row is now visible
+        assert widget._replace_row_widget.isVisible()
+        assert widget._replace_mode
+        assert widget._toggle_replace_btn.text() == "▼"
+
+    def test_toggle_replace_mode_hides_replace_row(self, qtbot):
+        """Test toggling replace mode again hides replace controls."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+        widget.show()  # Show parent widget so child visibility works correctly
+
+        # Enable replace mode
+        widget._toggle_replace_mode()
+        assert widget._replace_row_widget.isVisible()
+        assert widget._replace_mode
+
+        # Toggle again to hide
+        widget._toggle_replace_mode()
+
+        # Verify replace row is now hidden
+        assert not widget._replace_row_widget.isVisible()
+        assert not widget._replace_mode
+        assert widget._toggle_replace_btn.text() == "▶"
+
+    def test_show_replace_and_focus_enables_replace_mode(self, qtbot):
+        """Test show_replace_and_focus enables replace mode."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Initially replace mode is disabled
+        assert not widget._replace_mode
+
+        # Call show_replace_and_focus
+        widget.show_replace_and_focus()
+
+        # Verify replace mode is enabled
+        assert widget._replace_mode
+        assert widget._replace_row_widget.isVisible()
+        assert widget.isVisible()
+        assert widget._search_input.selectedText() == ""
+
+    def test_show_replace_and_focus_when_already_in_replace_mode(self, qtbot):
+        """Test show_replace_and_focus when already in replace mode."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Set some search text
+        widget.set_search_text("test")
+
+        # Enable replace mode first
+        widget._toggle_replace_mode()
+        assert widget._replace_mode
+
+        # Call show_replace_and_focus again
+        widget.show_replace_and_focus()
+
+        # Verify it's still in replace mode (idempotent)
+        assert widget._replace_mode
+        assert widget._replace_row_widget.isVisible()
+        assert widget.isVisible()
+        assert widget._search_input.selectedText() == "test"
+
+    def test_replace_requested_signal_emission(self, qtbot):
+        """Test replace_requested signal is emitted with replacement text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Set replacement text
+        widget.set_replace_text("replacement_text")
+
+        # Connect signal spy
+        with qtbot.waitSignal(widget.replace_requested, timeout=1000) as blocker:
+            widget._on_replace_clicked()
+
+        # Verify signal was emitted with correct text
+        assert blocker.args == ["replacement_text"]
+
+    def test_replace_all_requested_signal_emission(self, qtbot):
+        """Test replace_all_requested signal is emitted with replacement text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Set replacement text
+        widget.set_replace_text("new_replacement")
+
+        # Connect signal spy
+        with qtbot.waitSignal(widget.replace_all_requested, timeout=1000) as blocker:
+            widget._on_replace_all_clicked()
+
+        # Verify signal was emitted with correct text
+        assert blocker.args == ["new_replacement"]
+
+    def test_get_replace_text_returns_current_text(self, qtbot):
+        """Test get_replace_text returns current replacement text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Set replacement text
+        widget.set_replace_text("test_replacement")
+
+        # Verify getter returns correct text
+        assert widget.get_replace_text() == "test_replacement"
+
+    def test_set_replace_text_updates_input(self, qtbot):
+        """Test set_replace_text updates the replace input field."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Set replacement text
+        widget.set_replace_text("new_text")
+
+        # Verify input was updated
+        assert widget._replace_input.text() == "new_text"
+        assert widget.get_replace_text() == "new_text"
+
+    def test_replace_with_empty_text(self, qtbot):
+        """Test replace operations with empty replacement text."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Set replacement text to empty string
+        widget.set_replace_text("")
+
+        # Verify replace signal includes empty string
+        with qtbot.waitSignal(widget.replace_requested, timeout=1000) as blocker:
+            widget._on_replace_clicked()
+        assert blocker.args == [""]
+
+        # Verify replace all signal includes empty string
+        with qtbot.waitSignal(widget.replace_all_requested, timeout=1000) as blocker:
+            widget._on_replace_all_clicked()
+        assert blocker.args == [""]
+
+    def test_replace_mode_persists_across_show_hide(self, qtbot):
+        """Test replace mode persists when hiding and showing widget."""
+        widget = FindBarWidget()
+        qtbot.addWidget(widget)
+
+        # Enable replace mode
+        widget._toggle_replace_mode()
+        assert widget._replace_mode
+
+        # Hide widget
+        widget.hide()
+        assert not widget.isVisible()
+        assert widget._replace_mode  # Mode should persist
+
+        # Show widget again
+        widget.show()
+        assert widget.isVisible()
+        assert widget._replace_mode  # Mode should still be enabled
+        assert widget._replace_row_widget.isVisible()
