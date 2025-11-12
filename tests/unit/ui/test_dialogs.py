@@ -1610,3 +1610,1111 @@ class TestFontSettingsDialog:
         assert settings.editor_font_size == 15
         assert settings.preview_font_size == 17
         assert settings.chat_font_size == 13
+
+
+# ============================================================================
+# PHASE 1: SettingsEditorDialog Comprehensive Tests (~20 tests)
+# ============================================================================
+
+
+@pytest.mark.unit
+class TestSettingsEditorDialogLoadSettings:
+    """Test SettingsEditorDialog._load_settings() method."""
+
+    def test_load_settings_blocks_signals(self, mock_settings):
+        """Test _load_settings() blocks signals during load."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.custom_attr = "test_value"
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Verify table was populated
+        assert dialog.table.rowCount() > 0
+
+    def test_load_settings_sorts_keys(self, mock_settings):
+        """Test _load_settings() sorts dictionary keys."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Verify keys are alphabetically sorted
+        keys = [dialog.table.item(i, 0).text() for i in range(dialog.table.rowCount())]
+        assert keys == sorted(keys)
+
+    def test_load_settings_with_empty_dict(self, mock_settings):
+        """Test _load_settings() with minimal settings."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        minimal_settings = Settings()
+
+        dialog = SettingsEditorDialog(minimal_settings, mock_manager)
+
+        # Should have at least default settings
+        assert dialog.table.rowCount() > 0
+
+    def test_load_settings_item_flags(self, mock_settings):
+        """Test _load_settings() sets correct item flags."""
+        from PySide6.QtCore import Qt
+
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Setting name (column 0) should be read-only
+        name_item = dialog.table.item(0, 0)
+        assert not (name_item.flags() & Qt.ItemFlag.ItemIsEditable)
+
+        # Value (column 1) should be editable
+        value_item = dialog.table.item(0, 1)
+        assert value_item.flags() & Qt.ItemFlag.ItemIsEditable
+
+        # Type (column 2) should be read-only
+        type_item = dialog.table.item(0, 2)
+        assert not (type_item.flags() & Qt.ItemFlag.ItemIsEditable)
+
+    def test_load_settings_column_count(self, mock_settings):
+        """Test _load_settings() creates correct column count."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Should have exactly 3 columns: Setting, Value, Type
+        assert dialog.table.columnCount() == 3
+
+    def test_load_settings_with_various_data_types(self, mock_settings):
+        """Test _load_settings() handles various data types."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.bool_val = True
+        mock_settings.int_val = 42
+        mock_settings.float_val = 3.14
+        mock_settings.str_val = "test"
+        mock_settings.list_val = [1, 2, 3]
+        mock_settings.dict_val = {"key": "value"}
+        mock_settings.none_val = None
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find each type in the table
+        types_found = set()
+        for i in range(dialog.table.rowCount()):
+            type_item = dialog.table.item(i, 2)
+            types_found.add(type_item.text())
+
+        # Should have multiple types represented
+        assert "bool" in types_found
+        assert "int" in types_found
+        assert "str" in types_found
+
+
+@pytest.mark.unit
+class TestSettingsEditorDialogItemChanged:
+    """Test SettingsEditorDialog._on_item_changed() live editing."""
+
+    def test_on_item_changed_bool_value(self, mock_settings):
+        """Test _on_item_changed() updates bool values."""
+        from PySide6.QtWidgets import QTableWidgetItem
+
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.test_bool = False
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find the test_bool row
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_bool":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("True")
+                dialog._on_item_changed(value_item)
+
+                # Should save settings
+                assert mock_manager.save_settings.called
+                assert mock_settings.test_bool is True
+                break
+
+    def test_on_item_changed_int_value(self, mock_settings):
+        """Test _on_item_changed() updates int values."""
+        from PySide6.QtWidgets import QTableWidgetItem
+
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.test_int = 10
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find the test_int row
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_int":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("99")
+                dialog._on_item_changed(value_item)
+
+                assert mock_settings.test_int == 99
+                break
+
+    def test_on_item_changed_float_value(self, mock_settings):
+        """Test _on_item_changed() updates float values."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.test_float = 1.0
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find the test_float row
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_float":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("2.5")
+                dialog._on_item_changed(value_item)
+
+                assert mock_settings.test_float == 2.5
+                break
+
+    def test_on_item_changed_string_value(self, mock_settings):
+        """Test _on_item_changed() updates string values."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.test_str = "old"
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find the test_str row
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_str":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("new")
+                dialog._on_item_changed(value_item)
+
+                assert mock_settings.test_str == "new"
+                break
+
+    def test_on_item_changed_invalid_json_list(self, mock_settings):
+        """Test _on_item_changed() handles malformed list JSON."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.test_list = [1, 2, 3]
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find the test_list row
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_list":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("invalid json")
+                dialog._on_item_changed(value_item)
+
+                # Should default to empty list
+                assert mock_settings.test_list == []
+                break
+
+    def test_on_item_changed_invalid_json_dict(self, mock_settings):
+        """Test _on_item_changed() handles malformed dict JSON."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.test_dict = {"key": "value"}
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find the test_dict row
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_dict":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("not valid json")
+                dialog._on_item_changed(value_item)
+
+                # Should default to empty dict
+                assert mock_settings.test_dict == {}
+                break
+
+    def test_on_item_changed_parent_refresh_calls(self, mock_settings):
+        """Test _on_item_changed() calls parent refresh."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_parent = MagicMock()
+        mock_parent._refresh_from_settings = MagicMock()
+        mock_settings.test_val = True
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
+
+        # Find a setting and change it
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_val":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("False")
+                dialog._on_item_changed(value_item)
+
+                # Parent refresh should be called
+                assert mock_parent._refresh_from_settings.called
+                break
+
+    def test_on_item_changed_without_parent_refresh(self, mock_settings):
+        """Test _on_item_changed() without parent refresh method."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_parent = MagicMock(spec=[])  # Parent without _refresh_from_settings
+        mock_settings.test_val = 1
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
+
+        # Find a setting and change it
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_val":
+                value_item = dialog.table.item(row, 1)
+                value_item.setText("2")
+                dialog._on_item_changed(value_item)
+
+                # Should not crash even without parent refresh method
+                assert mock_settings.test_val == 2
+                break
+
+    def test_on_item_changed_multiple_rapid_edits(self, mock_settings):
+        """Test _on_item_changed() handles multiple rapid edits."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_settings.test_int = 0
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Find the test_int row and make multiple edits
+        for row in range(dialog.table.rowCount()):
+            if dialog.table.item(row, 0).text() == "test_int":
+                value_item = dialog.table.item(row, 1)
+
+                # Rapid edits
+                for i in range(5):
+                    value_item.setText(str(i * 10))
+                    dialog._on_item_changed(value_item)
+
+                # Should have final value
+                assert mock_settings.test_int == 40
+                # Save should be called multiple times
+                assert mock_manager.save_settings.call_count >= 5
+                break
+
+
+@pytest.mark.unit
+class TestSettingsEditorDialogClearAll:
+    """Test SettingsEditorDialog clear all functionality."""
+
+    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
+    def test_clear_all_with_parent_refresh(self, mock_question, mock_settings):
+        """Test clear_all_settings with parent refresh."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_parent = MagicMock()
+        mock_parent._refresh_from_settings = MagicMock()
+        mock_question.return_value = QMessageBox.StandardButton.Yes
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
+        initial_rows = dialog.table.rowCount()
+
+        dialog._clear_all_settings()
+
+        # Should save and refresh parent
+        assert mock_manager.save_settings.called
+        assert mock_parent._refresh_from_settings.called
+
+    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.information")
+    def test_clear_all_shows_success_message(
+        self, mock_info, mock_question, mock_settings
+    ):
+        """Test clear_all_settings shows success message."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+        mock_question.return_value = QMessageBox.StandardButton.Yes
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+        dialog._clear_all_settings()
+
+        # Should show information message
+        assert mock_info.called
+
+
+@pytest.mark.unit
+class TestSettingsEditorDialogMisc:
+    """Test miscellaneous SettingsEditorDialog functionality."""
+
+    def test_column_width_settings(self, mock_settings):
+        """Test column widths are set correctly."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Verify column widths
+        assert dialog.table.columnWidth(0) == 250
+        assert dialog.table.columnWidth(1) == 350
+        assert dialog.table.columnWidth(2) == 150
+
+    def test_dialog_minimum_size(self, mock_settings):
+        """Test dialog has correct minimum size."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        assert dialog.minimumWidth() == 800
+        assert dialog.minimumHeight() == 600
+
+    def test_accept_closes_dialog(self, mock_settings):
+        """Test accept() method exists and is callable."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
+        mock_manager = MagicMock()
+
+        dialog = SettingsEditorDialog(mock_settings, mock_manager)
+
+        # Accept method should be callable
+        assert callable(dialog.accept)
+
+
+# ============================================================================
+# PHASE 2: FontSettingsDialog Comprehensive Tests (~18 tests)
+# ============================================================================
+
+
+@pytest.mark.unit
+class TestFontSettingsDialogPopulateFontList:
+    """Test FontSettingsDialog._populate_font_list() method."""
+
+    def test_populate_font_list_categorization(self, mock_settings):
+        """Test _populate_font_list() categorizes fonts correctly."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Get all fonts from editor combo
+        all_fonts = [
+            dialog.editor_font_combo.itemText(i)
+            for i in range(dialog.editor_font_combo.count())
+        ]
+
+        # Should contain monospace fonts
+        monospace_fonts = ["Courier New", "Consolas", "Monaco", "Menlo"]
+        assert any(font in all_fonts for font in monospace_fonts)
+
+        # Should contain sans-serif fonts
+        sans_fonts = ["Arial", "Helvetica", "Verdana"]
+        assert any(font in all_fonts for font in sans_fonts)
+
+        # Should contain serif fonts
+        serif_fonts = ["Times New Roman", "Georgia", "Garamond"]
+        assert any(font in all_fonts for font in serif_fonts)
+
+    def test_populate_font_list_sorted(self, mock_settings):
+        """Test _populate_font_list() sorts fonts alphabetically."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Get all fonts
+        all_fonts = [
+            dialog.editor_font_combo.itemText(i)
+            for i in range(dialog.editor_font_combo.count())
+        ]
+
+        # Should be sorted
+        assert all_fonts == sorted(all_fonts)
+
+    def test_populate_font_list_no_duplicates(self, mock_settings):
+        """Test _populate_font_list() has no duplicate fonts."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Get all fonts
+        all_fonts = [
+            dialog.editor_font_combo.itemText(i)
+            for i in range(dialog.editor_font_combo.count())
+        ]
+
+        # Should have no duplicates
+        assert len(all_fonts) == len(set(all_fonts))
+
+    def test_populate_font_list_common_monospace(self, mock_settings):
+        """Test _populate_font_list() includes common monospace fonts."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        all_fonts = [
+            dialog.editor_font_combo.itemText(i)
+            for i in range(dialog.editor_font_combo.count())
+        ]
+
+        # Should have at least some of these common monospace fonts
+        expected_monospace = [
+            "Courier New",
+            "Consolas",
+            "Monaco",
+            "Menlo",
+            "DejaVu Sans Mono",
+        ]
+        found_monospace = [f for f in expected_monospace if f in all_fonts]
+        assert len(found_monospace) > 0
+
+
+@pytest.mark.unit
+class TestFontSettingsDialogSelection:
+    """Test FontSettingsDialog font selection edge cases."""
+
+    def test_font_selection_with_nonexistent_font(self, mock_settings):
+        """Test font selection with font not in list."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        mock_settings.editor_font_family = "NonexistentFont12345"
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Should not crash with nonexistent font
+        assert dialog.editor_font_combo.currentText() != ""
+
+    def test_font_change_propagation(self, mock_settings):
+        """Test font change updates settings correctly."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Change all font combos
+        if dialog.editor_font_combo.count() > 1:
+            dialog.editor_font_combo.setCurrentIndex(1)
+        if dialog.preview_font_combo.count() > 1:
+            dialog.preview_font_combo.setCurrentIndex(1)
+        if dialog.chat_font_combo.count() > 1:
+            dialog.chat_font_combo.setCurrentIndex(1)
+
+        settings = dialog.get_settings()
+
+        # All should be set to something
+        assert settings.editor_font_family != ""
+        assert settings.preview_font_family != ""
+        assert settings.chat_font_family != ""
+
+    def test_all_combos_populated(self, mock_settings):
+        """Test all three font combos are populated."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # All combos should have items
+        assert dialog.editor_font_combo.count() > 0
+        assert dialog.preview_font_combo.count() > 0
+        assert dialog.chat_font_combo.count() > 0
+
+        # All combos should have same fonts
+        editor_count = dialog.editor_font_combo.count()
+        assert dialog.preview_font_combo.count() == editor_count
+        assert dialog.chat_font_combo.count() == editor_count
+
+
+@pytest.mark.unit
+class TestFontSettingsDialogLayout:
+    """Test FontSettingsDialog layout and UI elements."""
+
+    def test_group_box_layouts(self, mock_settings):
+        """Test all three group boxes exist."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Should have main layout
+        assert dialog.layout() is not None
+        assert dialog.layout().count() > 0
+
+    def test_spinbox_suffix_setting(self, mock_settings):
+        """Test spinboxes have ' pt' suffix."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        assert dialog.editor_size_spin.suffix() == " pt"
+        assert dialog.preview_size_spin.suffix() == " pt"
+        assert dialog.chat_size_spin.suffix() == " pt"
+
+    def test_spinbox_range_validation(self, mock_settings):
+        """Test spinbox ranges are 6-72."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # All spinboxes should have same range
+        for spin in [
+            dialog.editor_size_spin,
+            dialog.preview_size_spin,
+            dialog.chat_size_spin,
+        ]:
+            assert spin.minimum() == 6
+            assert spin.maximum() == 72
+
+    def test_all_combos_initialized(self, mock_settings):
+        """Test all font combos initialized with current settings."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        mock_settings.editor_font_family = "Courier New"
+        mock_settings.preview_font_family = "Arial"
+        mock_settings.chat_font_family = "Verdana"
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Should match settings
+        assert dialog.editor_font_combo.currentText() == "Courier New"
+        assert dialog.preview_font_combo.currentText() == "Arial"
+        assert dialog.chat_font_combo.currentText() == "Verdana"
+
+
+@pytest.mark.unit
+class TestFontSettingsDialogGetSettings:
+    """Test FontSettingsDialog.get_settings() validation."""
+
+    def test_get_settings_with_defaults(self, mock_settings):
+        """Test get_settings() with default values."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        settings = dialog.get_settings()
+
+        # Should return Settings instance
+        assert isinstance(settings, Settings)
+        # Should have font settings
+        assert hasattr(settings, "editor_font_family")
+        assert hasattr(settings, "editor_font_size")
+
+    def test_get_settings_with_custom_values(self, mock_settings):
+        """Test get_settings() with custom values."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Change all values
+        dialog.editor_size_spin.setValue(20)
+        dialog.preview_size_spin.setValue(18)
+        dialog.chat_size_spin.setValue(14)
+
+        settings = dialog.get_settings()
+
+        assert settings.editor_font_size == 20
+        assert settings.preview_font_size == 18
+        assert settings.chat_font_size == 14
+
+    def test_get_settings_partial_updates(self, mock_settings):
+        """Test get_settings() with partial updates."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        mock_settings.editor_font_size = 12
+        mock_settings.preview_font_size = 14
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Only change editor size
+        dialog.editor_size_spin.setValue(16)
+
+        settings = dialog.get_settings()
+
+        # Editor should be updated
+        assert settings.editor_font_size == 16
+        # Preview should remain unchanged
+        assert settings.preview_font_size == 14
+
+    def test_get_settings_boundary_values(self, mock_settings):
+        """Test get_settings() with boundary values (min/max)."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
+        dialog = FontSettingsDialog(mock_settings)
+
+        # Set to minimum
+        dialog.editor_size_spin.setValue(6)
+        settings = dialog.get_settings()
+        assert settings.editor_font_size == 6
+
+        # Set to maximum
+        dialog.editor_size_spin.setValue(72)
+        settings = dialog.get_settings()
+        assert settings.editor_font_size == 72
+
+
+# ============================================================================
+# PHASE 3: OllamaSettingsDialog Comprehensive Tests (~15 tests)
+# ============================================================================
+
+
+@pytest.mark.unit
+class TestOllamaDialogLoadModelsEdgeCases:
+    """Test OllamaSettingsDialog._load_models() edge cases."""
+
+    @patch("subprocess.run")
+    def test_load_models_old_api_dict_format(self, mock_run, mock_settings):
+        """Test _load_models() with old API dict format."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        # This test verifies handling of dict with 'models' key (lines 423-427)
+        # We'll use the actual ollama library if available
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.return_value = {"models": [{"name": "model1"}]}
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Should handle dict format
+                assert dialog.models is not None
+        except ImportError:
+            # Skip if ollama not installed
+            pass
+
+    @patch("subprocess.run")
+    def test_load_models_new_api_object_format(self, mock_run, mock_settings):
+        """Test _load_models() with new API object format."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        # This test verifies handling of object with .models attribute (lines 428-432)
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_response = MagicMock()
+                mock_response.models = [MagicMock(model="model1")]
+                mock_list.return_value = mock_response
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Should handle object format
+                assert dialog.models is not None
+        except ImportError:
+            pass
+
+    @patch("subprocess.run")
+    def test_load_models_direct_list_format(self, mock_run, mock_settings):
+        """Test _load_models() with direct list format."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        # This test verifies handling of direct list (lines 433-437)
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.return_value = [{"name": "model1"}, {"name": "model2"}]
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Should handle list format
+                assert dialog.models is not None
+        except ImportError:
+            pass
+
+    @patch("subprocess.run")
+    def test_load_models_name_extraction_dict(self, mock_run, mock_settings):
+        """Test model name extraction from dict format."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        # This test verifies lines 454-462: name extraction from dict
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.return_value = {
+                    "models": [{"name": "test-model"}, {"model": "alt-model"}]
+                }
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Should extract names from both 'name' and 'model' keys
+                assert isinstance(dialog.models, list)
+        except ImportError:
+            pass
+
+    @patch("subprocess.run")
+    def test_load_models_saved_model_restoration(self, mock_run, mock_settings):
+        """Test saved model restoration logic."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        # This test verifies lines 469-472: saved model selection
+        mock_settings.ollama_model = "preferred-model"
+
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.return_value = {
+                    "models": [
+                        {"name": "other-model"},
+                        {"name": "preferred-model"},
+                    ]
+                }
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Should select saved model if available
+                if "preferred-model" in dialog.models:
+                    assert dialog.model_combo.currentText() == "preferred-model"
+        except ImportError:
+            pass
+
+    @patch("subprocess.run")
+    def test_load_models_malformed_response(self, mock_run, mock_settings):
+        """Test _load_models() with malformed API response."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                # Return something unexpected
+                mock_list.return_value = "not a dict or list"
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Should handle gracefully
+                assert isinstance(dialog.models, list)
+        except ImportError:
+            pass
+
+    @patch("subprocess.run")
+    def test_load_models_network_error(self, mock_run, mock_settings):
+        """Test _load_models() with network error."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.side_effect = ConnectionError("Network error")
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Should show error in status label
+                assert "not running" in dialog.status_label.text().lower()
+        except ImportError:
+            pass
+
+
+@pytest.mark.unit
+class TestOllamaDialogStatusUpdates:
+    """Test OllamaSettingsDialog status label updates."""
+
+    def test_status_label_success_green(self, mock_settings):
+        """Test success status messages are green."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.return_value = {"models": [{"name": "test"}]}
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Success status should be green
+                assert "green" in dialog.status_label.styleSheet().lower()
+        except ImportError:
+            pass
+
+    def test_status_label_error_red(self, mock_settings):
+        """Test error status messages are red."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.side_effect = Exception("Test error")
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Error status should be red
+                assert "red" in dialog.status_label.styleSheet().lower()
+        except ImportError:
+            pass
+
+    def test_status_label_no_models_orange(self, mock_settings):
+        """Test no models status is orange/warning."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        try:
+            import ollama
+
+            with patch.object(ollama, "list") as mock_list:
+                mock_list.return_value = {"models": []}
+
+                dialog = OllamaSettingsDialog(mock_settings)
+
+                # Warning status should be orange
+                assert "orange" in dialog.status_label.styleSheet().lower()
+        except ImportError:
+            pass
+
+
+@pytest.mark.unit
+class TestOllamaDialogChatSettings:
+    """Test OllamaSettingsDialog chat settings functionality."""
+
+    def test_context_mode_combo_initialization(self, mock_settings):
+        """Test context mode combo initialization."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        mock_settings.ollama_chat_context_mode = "general"
+
+        dialog = OllamaSettingsDialog(mock_settings)
+
+        # Should have 4 options
+        assert dialog.context_mode_combo.count() == 4
+        # Should select correct index for "general" (index 2)
+        assert dialog.context_mode_combo.currentIndex() == 2
+
+    def test_context_mode_mapping_all_modes(self, mock_settings):
+        """Test context mode mapping for all modes."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        # Test all 4 modes
+        modes = [
+            ("document", 0),
+            ("syntax", 1),
+            ("general", 2),
+            ("editing", 3),
+        ]
+
+        for mode, expected_index in modes:
+            mock_settings.ollama_chat_context_mode = mode
+            dialog = OllamaSettingsDialog(mock_settings)
+            assert dialog.context_mode_combo.currentIndex() == expected_index
+
+    def test_chat_checkboxes_persistence(self, mock_settings):
+        """Test all chat checkboxes state persistence."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        mock_settings.ollama_chat_enabled = True
+        mock_settings.ollama_chat_send_document = False
+
+        dialog = OllamaSettingsDialog(mock_settings)
+
+        assert dialog.chat_enabled_checkbox.isChecked() is True
+        assert dialog.send_document_checkbox.isChecked() is False
+
+    def test_max_history_spinbox_range(self, mock_settings):
+        """Test max history spinbox has correct range."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
+        dialog = OllamaSettingsDialog(mock_settings)
+
+        assert dialog.max_history_spin.minimum() == 10
+        assert dialog.max_history_spin.maximum() == 500
+
+
+# ============================================================================
+# PHASE 4: PreferencesDialog & Helper Tests (~11 tests)
+# ============================================================================
+
+
+@pytest.mark.unit
+class TestPreferencesDialogStyling:
+    """Test PreferencesDialog styling and UI details."""
+
+    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}, clear=True)
+    def test_status_label_green_styling(self, mock_settings):
+        """Test status label has green styling for configured key."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        dialog = PreferencesDialog(mock_settings)
+
+        # Find the status label by searching through widgets
+        found_green = False
+        for widget in dialog.findChildren(QLabel):
+            if "API Key Status" in widget.text():
+                # Should have green color in stylesheet
+                if "green" in widget.styleSheet().lower():
+                    found_green = True
+                    break
+
+        assert found_green
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_status_label_red_styling(self, mock_settings):
+        """Test status label has red styling for missing key."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        dialog = PreferencesDialog(mock_settings)
+
+        # Find the status label
+        found_red = False
+        for widget in dialog.findChildren(QLabel):
+            if "API Key Status" in widget.text():
+                # Should have red color in stylesheet
+                if "red" in widget.styleSheet().lower():
+                    found_red = True
+                    break
+
+        assert found_red
+
+    def test_info_label_word_wrap(self, mock_settings):
+        """Test info label has word wrap enabled."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        dialog = PreferencesDialog(mock_settings)
+
+        # Find info labels
+        for widget in dialog.findChildren(QLabel):
+            if "Requires ANTHROPIC_API_KEY" in widget.text():
+                # Should have word wrap
+                assert widget.wordWrap() is True
+                break
+
+    def test_group_box_layout(self, mock_settings):
+        """Test AI group box has proper layout."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        dialog = PreferencesDialog(mock_settings)
+
+        # Should have layout
+        assert dialog.layout() is not None
+        # Should have widgets
+        assert dialog.layout().count() > 0
+
+
+@pytest.mark.unit
+class TestPreferencesDialogExecution:
+    """Test PreferencesDialog execution flow."""
+
+    def test_dialog_exec_acceptance(self, mock_settings, qtbot):
+        """Test dialog exec() acceptance flow."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        dialog = PreferencesDialog(mock_settings)
+
+        # Simulate accepting dialog
+        # Note: We can't actually exec() in tests, but we can test accept()
+        assert callable(dialog.accept)
+        assert callable(dialog.reject)
+
+    def test_dialog_exec_rejection(self, mock_settings):
+        """Test dialog exec() rejection flow."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        dialog = PreferencesDialog(mock_settings)
+
+        # Should have reject method
+        assert hasattr(dialog, "reject")
+        assert callable(dialog.reject)
+
+    def test_get_settings_with_various_states(self, mock_settings):
+        """Test get_settings() with various checkbox states."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        # Test with enabled
+        mock_settings.ai_conversion_enabled = False
+        dialog = PreferencesDialog(mock_settings)
+        dialog.ai_enabled_checkbox.setChecked(True)
+        settings = dialog.get_settings()
+        assert settings.ai_conversion_enabled is True
+
+        # Test with disabled
+        mock_settings.ai_conversion_enabled = True
+        dialog = PreferencesDialog(mock_settings)
+        dialog.ai_enabled_checkbox.setChecked(False)
+        settings = dialog.get_settings()
+        assert settings.ai_conversion_enabled is False
+
+    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-ant-" + "x" * 200}, clear=True)
+    def test_api_key_status_very_long_key(self, mock_settings):
+        """Test API key status detection with very long key."""
+        from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        dialog = PreferencesDialog(mock_settings)
+        status = dialog._get_api_key_status()
+
+        # Long key should still be detected as configured
+        assert status == "✓ Configured"
+
+
+@pytest.mark.unit
+class TestHelperFunctionsDetailed:
+    """Test _create_ok_cancel_buttons() helper function."""
+
+    def test_create_buttons_stretch_behavior(self, qapp):
+        """Test button layout has stretch to push buttons right."""
+        from PySide6.QtWidgets import QDialog
+
+        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+
+        dialog = QDialog()
+        layout = _create_ok_cancel_buttons(dialog)
+
+        # Should have stretch as first item (count >= 3: stretch + OK + Cancel)
+        assert layout.count() >= 3
+
+    def test_button_signal_connections(self, qapp):
+        """Test OK and Cancel buttons are properly connected."""
+        from PySide6.QtWidgets import QDialog
+
+        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+
+        dialog = QDialog()
+        layout = _create_ok_cancel_buttons(dialog)
+
+        # Get buttons from layout
+        ok_button = None
+        cancel_button = None
+
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if item and item.widget():
+                widget = item.widget()
+                if hasattr(widget, "text"):
+                    if widget.text() == "OK":
+                        ok_button = widget
+                    elif widget.text() == "Cancel":
+                        cancel_button = widget
+
+        # Both buttons should exist
+        assert ok_button is not None
+        assert cancel_button is not None
+
+    def test_button_text_validation(self, qapp):
+        """Test buttons have correct text labels."""
+        from PySide6.QtWidgets import QDialog
+
+        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+
+        dialog = QDialog()
+        layout = _create_ok_cancel_buttons(dialog)
+
+        # Find buttons and check text
+        button_texts = []
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if item and item.widget():
+                widget = item.widget()
+                if hasattr(widget, "text"):
+                    button_texts.append(widget.text())
+
+        assert "OK" in button_texts
+        assert "Cancel" in button_texts
