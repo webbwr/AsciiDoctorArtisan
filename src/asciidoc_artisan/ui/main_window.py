@@ -1438,7 +1438,7 @@ class AsciiDocEditor(QMainWindow):
         Args:
             matches: List of SearchMatch objects
         """
-        from PySide6.QtGui import QTextEdit
+        from PySide6.QtWidgets import QTextEdit
 
         # Create extra selections for each match
         search_selections = []
@@ -1446,7 +1446,9 @@ class AsciiDocEditor(QMainWindow):
             selection = QTextEdit.ExtraSelection()
             cursor = self.editor.textCursor()
             cursor.setPosition(match.start)
-            cursor.setPosition(match.end, QTextEdit.ExtraSelection.Cursor.KeepAnchor)
+            from PySide6.QtGui import QTextCursor
+
+            cursor.setPosition(match.end, QTextCursor.MoveMode.KeepAnchor)
 
             # Yellow highlight for matches
             from PySide6.QtGui import QColor
