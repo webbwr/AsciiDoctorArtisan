@@ -8,12 +8,13 @@ Author: AsciiDoc Artisan Team
 Version: 1.7.4
 """
 
+import subprocess
 import sys
 from unittest.mock import Mock, patch
 
 import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
 
 from asciidoc_artisan.ui.installation_validator_dialog import (
     InstallationValidatorDialog,
@@ -370,6 +371,19 @@ class TestInstallationValidatorDialog:
         # Should not change text or start new worker
         assert dialog.results_text.toPlainText() == initial_text
 
+    def test_update_not_started_if_worker_running(self, dialog):
+        """Test that update is not started if worker is already running."""
+        # Create a mock worker that reports as running
+        dialog.worker = Mock(spec=ValidationWorker)
+        dialog.worker.isRunning.return_value = True
+
+        # Try to start update (should return early)
+        dialog._start_update()
+
+        # Worker should not be recreated or started
+        # Original worker should still be there
+        assert dialog.worker.isRunning.return_value is True
+
 
 @pytest.mark.unit
 class TestValidationWorkerRun:
@@ -480,3 +494,550 @@ class TestInstallationValidatorIntegration:
         assert "6.9.0" in text
         assert "pandoc" in text
         assert "git" in text
+
+
+@pytest.mark.unit
+class TestDependencyUpdateFlow:
+    """Test dependency update success flow."""
+
+    def test_update_dependencies_success(self, qtbot):
+        """Test successful dependency update flow."""
+        worker = ValidationWorker(action="update")
+
+        progress_messages = []
+        success = None
+        message = None
+
+        def capture_progress(msg):
+            nonlocal progress_messages
+            progress_messages.append(msg)
+
+        def capture_complete(s, m):
+            nonlocal success, message
+            success = s
+            message = m
+
+        worker.update_progress.connect(capture_progress)
+        worker.update_complete.connect(capture_complete)
+
+        # Mock Path.exists to return True
+        with patch("pathlib.Path.exists", return_value=True):
+            # Mock subprocess.run for pip install
+            with patch("subprocess.run") as mock_run:
+                mock_run.return_value = Mock(
+                    returncode=0, stdout="Successfully installed", stderr=""
+                )
+
+                worker.run()
+
+                # Check progress messages were emitted
+                assert len(progress_messages) > 0
+                assert any("Found requirements" in msg for msg in progress_messages)
+                assert any("Running pip install" in msg for msg in progress_messages)
+                assert any("successfully" in msg for msg in progress_messages)
+
+                # Check successful completion
+                assert success is True
+                assert "restart" in message.lower()
+
+    def test_update_dependencies_pip_failure(self, qtbot):
+        """Test dependency update with pip failure."""
+        worker = ValidationWorker(action="update")
+
+        success = None
+        message = None
+
+        def capture_complete(s, m):
+            nonlocal success, message
+            success = s
+            message = m
+
+        worker.update_complete.connect(capture_complete)
+
+        # Mock Path.exists to return True
+        with patch("pathlib.Path.exists", return_value=True):
+            # Mock subprocess.run for pip install failure
+            with patch("subprocess.run") as mock_run:
+                mock_run.return_value = Mock(
+                    returncode=1,
+                    stdout="",
+                    stderr="ERROR: Could not install packages",
+                )
+
+                worker.run()
+
+                # Check failed completion
+                assert success is False
+                assert "failed" in message.lower()
+
+    def test_update_dependencies_timeout(self, qtbot):
+        """Test dependency update timeout handling."""
+        worker = ValidationWorker(action="update")
+
+        success = None
+        message = None
+
+        def capture_complete(s, m):
+            nonlocal success, message
+            success = s
+            message = m
+
+        worker.update_complete.connect(capture_complete)
+
+        # Mock Path.exists to return True
+        with patch("pathlib.Path.exists", return_value=True):
+            # Mock subprocess.run to raise TimeoutExpired
+            with patch("subprocess.run") as mock_run:
+                mock_run.side_effect = subprocess.TimeoutExpired(
+                    cmd=["pip"], timeout=300
+                )
+
+                worker.run()
+
+                # Check timeout handling
+                assert success is False
+                assert "timed out" in message.lower()
+
+    def test_update_dependencies_general_exception(self, qtbot):
+        """Test dependency update general exception handling."""
+        worker = ValidationWorker(action="update")
+
+        success = None
+        message = None
+
+        def capture_complete(s, m):
+            nonlocal success, message
+            success = s
+            message = m
+
+        worker.update_complete.connect(capture_complete)
+
+        # Mock Path.exists to raise exception
+        with patch("pathlib.Path.exists", side_effect=RuntimeError("Disk error")):
+            worker.run()
+
+            # Check exception handling
+            assert success is False
+            assert "failed" in message.lower()
+
+
+@pytest.mark.unit
+class TestVersionDetectionFallbacks:
+    """Test version detection fallback methods."""
+
+    def test_get_version_from_metadata_success(self):
+        """Test getting version from importlib.metadata successfully."""
+        worker = ValidationWorker()
+
+        with patch("importlib.metadata.version") as mock_version:
+            mock_version.return_value = "1.2.3"
+
+            version = worker._get_version_from_metadata("test_package")
+
+            assert version == "1.2.3"
+            mock_version.assert_called_once_with("test_package")
+
+    def test_get_version_from_metadata_import_error(self):
+        """Test _get_version_from_metadata with ImportError."""
+        worker = ValidationWorker()
+
+        # Mock importlib import to raise ImportError
+        with patch("builtins.__import__", side_effect=ImportError):
+            version = worker._get_version_from_metadata("test_package")
+            assert version == "unknown"
+
+    def test_get_version_from_metadata_package_not_found(self):
+        """Test _get_version_from_metadata with PackageNotFoundError."""
+        worker = ValidationWorker()
+
+        with patch("importlib.metadata.version") as mock_version:
+            from importlib.metadata import PackageNotFoundError
+
+            mock_version.side_effect = PackageNotFoundError
+
+            version = worker._get_version_from_metadata("nonexistent_package")
+
+            assert version == "unknown"
+
+    def test_get_version_from_metadata_general_exception(self):
+        """Test _get_version_from_metadata with general exception."""
+        worker = ValidationWorker()
+
+        with patch("importlib.metadata.version") as mock_version:
+            mock_version.side_effect = RuntimeError("Unexpected error")
+
+            version = worker._get_version_from_metadata("test_package")
+
+            assert version == "unknown"
+
+    def test_get_version_from_pip_success(self):
+        """Test getting version from pip show successfully."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = Mock(
+                returncode=0,
+                stdout="Name: test-package\nVersion: 2.3.4\nLocation: /usr/local",
+                stderr="",
+            )
+
+            version = worker._get_version_from_pip("test-package")
+
+            assert version == "2.3.4"
+
+    def test_get_version_from_pip_failure(self):
+        """Test getting version from pip when command fails."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = Mock(
+                returncode=1, stdout="", stderr="Package not found"
+            )
+
+            version = worker._get_version_from_pip("nonexistent")
+
+            assert version == "unknown"
+
+    def test_get_version_from_pip_timeout(self):
+        """Test _get_version_from_pip timeout handling."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.side_effect = subprocess.TimeoutExpired(cmd=["pip"], timeout=2)
+
+            version = worker._get_version_from_pip("test-package")
+
+            assert version == "unknown"
+
+    def test_get_version_from_pip_exception(self):
+        """Test _get_version_from_pip exception handling."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.side_effect = RuntimeError("Subprocess error")
+
+            version = worker._get_version_from_pip("test-package")
+
+            assert version == "unknown"
+
+
+@pytest.mark.unit
+class TestDarkModeTheme:
+    """Test dark mode theme application."""
+
+    def test_apply_theme_dark_mode(self, qapp, qtbot):
+        """Test theme application with dark mode enabled."""
+        # Create real QWidget parent with mock settings
+        mock_parent = QWidget()
+        mock_settings = Mock()
+        mock_settings.dark_mode = True
+        mock_parent._settings = mock_settings
+
+        # Mock the worker to prevent actual validation
+        with patch(
+            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"
+        ):
+            dialog = InstallationValidatorDialog(parent=mock_parent)
+            qtbot.addWidget(dialog)
+
+            # Verify dark theme colors are applied
+            stylesheet = dialog.styleSheet()
+            assert "#2b2b2b" in stylesheet or "2b2b2b" in stylesheet.lower()
+
+            # Clean up
+            dialog.close()
+            mock_parent.deleteLater()
+
+    def test_apply_theme_light_mode(self, qapp, qtbot):
+        """Test theme application with light mode (default)."""
+        # Create real QWidget parent with mock settings
+        mock_parent = QWidget()
+        mock_settings = Mock()
+        mock_settings.dark_mode = False
+        mock_parent._settings = mock_settings
+
+        # Mock the worker to prevent actual validation
+        with patch(
+            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"
+        ):
+            dialog = InstallationValidatorDialog(parent=mock_parent)
+            qtbot.addWidget(dialog)
+
+            # Verify light theme colors are applied
+            stylesheet = dialog.styleSheet()
+            assert "#ffffff" in stylesheet or "ffffff" in stylesheet.lower()
+
+            # Clean up
+            dialog.close()
+            mock_parent.deleteLater()
+
+    def test_apply_theme_no_parent(self, qapp, qtbot):
+        """Test theme application with no parent (defaults to light)."""
+        # Mock the worker to prevent actual validation
+        with patch(
+            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"
+        ):
+            dialog = InstallationValidatorDialog(parent=None)
+            qtbot.addWidget(dialog)
+
+            # Should default to light mode
+            stylesheet = dialog.styleSheet()
+            assert "#ffffff" in stylesheet or "ffffff" in stylesheet.lower()
+
+            # Clean up
+            dialog.close()
+
+
+@pytest.mark.unit
+class TestErrorHandling:
+    """Test error handling in various scenarios."""
+
+    def test_worker_run_exception_validate(self, qtbot):
+        """Test exception handling in ValidationWorker.run() for validate action."""
+        worker = ValidationWorker(action="validate")
+
+        results = {}
+
+        def capture_results(r):
+            nonlocal results
+            results = r
+
+        worker.validation_complete.connect(capture_results)
+
+        # Mock _validate_installation to raise exception
+        with patch.object(
+            worker, "_validate_installation", side_effect=RuntimeError("Test error")
+        ):
+            worker.run()
+
+            # Should emit error results
+            assert "python_packages" in results
+            assert len(results["python_packages"]) > 0
+            error_entry = results["python_packages"][0]
+            assert error_entry[0] == "ERROR"
+            assert "failed" in error_entry[3].lower()
+
+    def test_check_python_package_exception(self):
+        """Test exception handling in _check_python_package()."""
+        worker = ValidationWorker()
+
+        # Mock import to raise unexpected exception (not ImportError)
+        with patch("builtins.__import__", side_effect=RuntimeError("Unexpected error")):
+            status, version, message = worker._check_python_package("PySide6", "6.0.0")
+
+            assert status == "✗"
+            assert version == "error"
+            assert "Check failed" in message
+
+    def test_version_compare_exception(self):
+        """Test exception handling in _version_compare()."""
+        worker = ValidationWorker()
+
+        # These should not crash even with invalid input
+        result = worker._version_compare("invalid.version", "1.2.3")
+        # Invalid version parses to [], padded to [0,0,0], valid is [1,2,3]
+        # [0,0,0] < [1,2,3] → -1
+        assert result == -1
+
+        result = worker._version_compare("1.2.3", "also.invalid")
+        # Valid version [1,2,3], invalid version [0,0,0]
+        # [1,2,3] > [0,0,0] → 1
+        assert result == 1
+
+    def test_check_system_binary_timeout(self):
+        """Test system binary check timeout handling."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+            # Simulate timeout on 'which' command
+            mock_run.side_effect = subprocess.TimeoutExpired(cmd=["which"], timeout=2)
+
+            status, version, message = worker._check_system_binary("test_binary", True)
+
+            assert status == "⚠"
+            assert version == "timeout"
+            assert "timed out" in message.lower()
+
+    def test_check_system_binary_general_exception(self):
+        """Test system binary check general exception handling."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.side_effect = RuntimeError("Unexpected error")
+
+            status, version, message = worker._check_system_binary("test_binary", True)
+
+            assert status == "✗"
+            assert version == "error"
+            assert "Check failed" in message
+
+
+@pytest.mark.unit
+class TestEdgeCases:
+    """Test edge cases and corner scenarios."""
+
+    def test_check_unknown_package(self):
+        """Test checking a package not in the hardcoded list."""
+        worker = ValidationWorker()
+
+        status, version, message = worker._check_python_package(
+            "completely_unknown_package", "1.0.0"
+        )
+
+        assert status == "✗"
+        assert version == "unknown"
+        assert "Unknown package" in message
+
+    def test_check_package_version_unknown_from_attribute(self):
+        """Test package with unknown version from __version__ attribute."""
+        worker = ValidationWorker()
+
+        # Mock PySide6 import to return unknown version
+        with patch("builtins.__import__") as mock_import:
+
+            def import_side_effect(name, *args, **kwargs):
+                if name == "PySide6":
+                    mock_module = Mock()
+                    # Set __version__ to unknown
+                    mock_module.__version__ = "unknown"
+                    return mock_module
+                return __import__(name, *args, **kwargs)
+
+            mock_import.side_effect = import_side_effect
+
+            # Also mock the fallback methods to return unknown
+            with patch.object(
+                worker, "_get_version_from_metadata", return_value="unknown"
+            ):
+                with patch.object(
+                    worker, "_get_version_from_pip", return_value="unknown"
+                ):
+                    status, version, message = worker._check_python_package(
+                        "PySide6", "6.0.0"
+                    )
+
+                    assert status == "⚠"
+                    assert version == "unknown"
+                    assert "version unknown" in message.lower()
+
+    def test_check_package_version_fallback_to_pip(self):
+        """Test version fallback to pip when metadata fails."""
+        worker = ValidationWorker()
+
+        with patch("builtins.__import__") as mock_import:
+
+            def import_side_effect(name, *args, **kwargs):
+                if name == "PySide6":
+                    mock_module = Mock()
+                    mock_module.__version__ = "unknown"
+                    return mock_module
+                return __import__(name, *args, **kwargs)
+
+            mock_import.side_effect = import_side_effect
+
+            # Mock metadata to return unknown, pip to return valid version
+            with patch.object(
+                worker, "_get_version_from_metadata", return_value="unknown"
+            ):
+                with patch.object(
+                    worker, "_get_version_from_pip", return_value="6.9.0"
+                ):
+                    status, version, message = worker._check_python_package(
+                        "PySide6", "6.0.0"
+                    )
+
+                    # Should use pip version
+                    assert version == "6.9.0"
+                    assert status == "✓"
+
+    def test_check_package_version_comparison_failure(self):
+        """Test package version check when comparison fails."""
+        worker = ValidationWorker()
+
+        with patch("builtins.__import__") as mock_import:
+
+            def import_side_effect(name, *args, **kwargs):
+                if name == "PySide6":
+                    mock_module = Mock()
+                    mock_module.__version__ = "weird.version.format"
+                    return mock_module
+                return __import__(name, *args, **kwargs)
+
+            mock_import.side_effect = import_side_effect
+
+            # Mock _version_compare to raise exception
+            with patch.object(
+                worker, "_version_compare", side_effect=RuntimeError("Compare failed")
+            ):
+                status, version, message = worker._check_python_package(
+                    "PySide6", "6.0.0"
+                )
+
+                assert status == "⚠"
+                assert "version check failed" in message.lower()
+
+    def test_check_package_version_upgrade_recommended(self):
+        """Test package with version below minimum."""
+        worker = ValidationWorker()
+
+        with patch("builtins.__import__") as mock_import:
+
+            def import_side_effect(name, *args, **kwargs):
+                if name == "PySide6":
+                    mock_module = Mock()
+                    mock_module.__version__ = "5.0.0"
+                    return mock_module
+                return __import__(name, *args, **kwargs)
+
+            mock_import.side_effect = import_side_effect
+
+            status, version, message = worker._check_python_package("PySide6", "6.0.0")
+
+            assert status == "⚠"
+            assert version == "5.0.0"
+            assert "Upgrade recommended" in message
+
+    def test_check_system_binary_long_version_truncation(self):
+        """Test system binary version string truncation."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+            # Mock 'which' success
+            mock_run.return_value = Mock(returncode=0, stdout="", stderr="")
+
+            # Mock version command with very long output
+            def run_side_effect(*args, **kwargs):
+                if args[0][0] == "which":
+                    return Mock(returncode=0, stdout="", stderr="")
+                else:  # version command
+                    long_version = "x" * 100  # 100 character version string
+                    return Mock(returncode=0, stdout=long_version, stderr="")
+
+            mock_run.side_effect = run_side_effect
+
+            status, version, message = worker._check_system_binary("test_binary", True)
+
+            # Version should be truncated to 50 chars (47 + "...")
+            assert len(version) == 50
+            assert version.endswith("...")
+
+    def test_check_system_binary_version_unknown_fallback(self):
+        """Test system binary with failed version check but binary exists."""
+        worker = ValidationWorker()
+
+        with patch("subprocess.run") as mock_run:
+
+            def run_side_effect(*args, **kwargs):
+                if args[0][0] == "which":
+                    # Binary exists
+                    return Mock(returncode=0, stdout="/usr/bin/binary", stderr="")
+                else:  # version command fails
+                    return Mock(returncode=1, stdout="", stderr="")
+
+            mock_run.side_effect = run_side_effect
+
+            status, version, message = worker._check_system_binary("test_binary", True)
+
+            assert status == "✓"
+            assert version == "installed"
+            assert "version unknown" in message.lower()
