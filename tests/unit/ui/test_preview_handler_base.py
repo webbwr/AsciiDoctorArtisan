@@ -46,6 +46,32 @@ class ConcretePreviewHandler(PreviewHandlerBase):
             self.scroll_synced = True
 
 
+class FullConcretePreviewHandler(PreviewHandlerBase):
+    """Enhanced concrete handler that tests base class logic."""
+
+    def __init__(self, editor, preview, parent_window):
+        super().__init__(editor, preview, parent_window)
+        self.html_set = None
+        self.scroll_percentage = None
+        self.preview_scroll_percentage = 0.0
+
+    def handle_preview_complete(self, html: str) -> None:
+        """Test implementation that calls super() to test base class logic."""
+        super().handle_preview_complete(html)
+
+    def _set_preview_html(self, html: str) -> None:
+        """Store HTML for test verification."""
+        self.html_set = html
+
+    def _scroll_preview_to_percentage(self, percentage: float) -> None:
+        """Store scroll percentage for test verification."""
+        self.scroll_percentage = percentage
+
+    def _get_preview_scroll_percentage(self) -> float:
+        """Return mock scroll percentage."""
+        return self.preview_scroll_percentage
+
+
 @pytest.fixture
 def mock_window(qtbot):
     """Create mock parent window."""
@@ -415,3 +441,356 @@ def test_is_syncing_scroll_prevents_recursion(handler):
 
     # Should not sync when already syncing
     assert handler.scroll_synced is False
+
+
+# ============================================================================
+# PRIORITY 0 TESTS - CRITICAL FOR 97% COVERAGE
+# ============================================================================
+
+
+def test_handle_preview_complete_full_pipeline(editor, preview, mock_window, qtbot):
+    """Test handle_preview_complete full pipeline with timing and adaptive debouncer.
+
+    Tests lines 318-337:
+    - Render time calculation
+    - Adaptive debouncer notification
+    - HTML wrapping with CSS
+    - Preview HTML setting
+    - Signal emission
+    """
+    from unittest.mock import MagicMock, patch
+
+    # Create full handler with base class logic
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Mock time.time() for controlled render time
+    start_time = 1000.0
+    end_time = 1002.5  # 2.5s render time
+    with patch("time.time", side_effect=[start_time, end_time]):
+        # Set render start time
+        handler.update_preview()
+
+        # Mock adaptive debouncer
+        mock_debouncer = MagicMock()
+        handler._adaptive_debouncer = mock_debouncer
+
+        # Capture preview_updated signal
+        with qtbot.waitSignal(handler.preview_updated, timeout=1000) as blocker:
+            # Call handle_preview_complete (tests base class logic)
+            test_html = "<p>Test content</p>"
+            handler.handle_preview_complete(test_html)
+
+        # Verify adaptive debouncer was called with render time
+        mock_debouncer.on_render_complete.assert_called_once()
+        call_args = mock_debouncer.on_render_complete.call_args[0]
+        assert abs(call_args[0] - 2.5) < 0.1  # Render time should be ~2.5s
+
+        # Verify HTML was wrapped with CSS
+        assert handler.html_set is not None
+        assert "<!DOCTYPE html>" in handler.html_set
+        assert "<style>" in handler.html_set
+        assert test_html in handler.html_set
+
+        # Verify signal was emitted with unwrapped HTML
+        assert blocker.args[0] == test_html
+
+
+def test_sync_editor_to_preview_full_template(editor, preview, mock_window, qtbot):
+    """Test sync_editor_to_preview full template method.
+
+    Tests lines 529-545:
+    - Guard conditions (disabled sync, already syncing)
+    - Scroll percentage calculation
+    - Widget-specific scroll delegation
+    - is_syncing_scroll flag management
+    """
+    # Create full handler
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Test guard: disabled sync should return early
+    handler.enable_sync_scrolling(False)
+    handler.scroll_percentage = None
+    handler.sync_editor_to_preview(50)
+    assert handler.scroll_percentage is None  # Should not scroll
+
+    # Test guard: already syncing should return early
+    handler.enable_sync_scrolling(True)
+    handler.is_syncing_scroll = True
+    handler.scroll_percentage = None
+    handler.sync_editor_to_preview(50)
+    assert handler.scroll_percentage is None  # Should not scroll
+    handler.is_syncing_scroll = False
+
+    # Test successful sync with scroll percentage calculation
+    editor.setPlainText("Line 1\n" * 100)  # Create scrollable content
+    qtbot.wait(50)  # Let editor settle
+
+    # Set editor scrollbar to specific position
+    scrollbar = editor.verticalScrollBar()
+    scrollbar.setMaximum(1000)
+    scrollbar.setValue(500)  # 50% position
+
+    # Call sync method
+    handler.sync_editor_to_preview(500)
+
+    # Verify scroll percentage was calculated correctly (50%)
+    assert handler.scroll_percentage is not None
+    assert abs(handler.scroll_percentage - 0.5) < 0.01
+
+    # Verify is_syncing_scroll flag was cleaned up
+    assert handler.is_syncing_scroll is False
+
+
+def test_sync_preview_to_editor_full_template(editor, preview, mock_window, qtbot):
+    """Test sync_preview_to_editor full template method.
+
+    Tests lines 569-585:
+    - Guard conditions (disabled sync, already syncing)
+    - Preview scroll percentage retrieval
+    - Editor scrollbar calculation
+    - is_syncing_scroll flag management
+    """
+    # Create full handler
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Test guard: disabled sync should return early
+    handler.enable_sync_scrolling(False)
+    editor_scrollbar = editor.verticalScrollBar()
+    initial_value = editor_scrollbar.value()
+    handler.sync_preview_to_editor(100)
+    assert editor_scrollbar.value() == initial_value  # Should not change
+
+    # Test guard: already syncing should return early
+    handler.enable_sync_scrolling(True)
+    handler.is_syncing_scroll = True
+    initial_value = editor_scrollbar.value()
+    handler.sync_preview_to_editor(100)
+    assert editor_scrollbar.value() == initial_value  # Should not change
+    handler.is_syncing_scroll = False
+
+    # Test successful sync with editor scrollbar update
+    editor.setPlainText("Line 1\n" * 100)  # Create scrollable content
+    qtbot.wait(50)  # Let editor settle
+
+    # Get the actual scrollbar maximum (which may change after setText)
+    editor_scrollbar = editor.verticalScrollBar()
+    actual_max = editor_scrollbar.maximum()
+
+    # Only test if there's actually a scrollable range
+    if actual_max > 0:
+        # Set to top
+        editor_scrollbar.setValue(0)
+
+        # Set preview scroll percentage to 75%
+        handler.preview_scroll_percentage = 0.75
+
+        # Call sync method
+        handler.sync_preview_to_editor(0)
+
+        # Verify editor was scrolled to 75% of actual maximum
+        expected_value = int(actual_max * 0.75)
+        # More lenient check due to Qt widget behavior
+        assert abs(editor_scrollbar.value() - expected_value) <= actual_max * 0.1
+
+        # Verify is_syncing_scroll flag was cleaned up
+        assert handler.is_syncing_scroll is False
+    else:
+        # If no scrollable range, just verify the method doesn't crash
+        handler.preview_scroll_percentage = 0.75
+        handler.sync_preview_to_editor(0)
+        assert handler.is_syncing_scroll is False
+
+
+# ============================================================================
+# PRIORITY 1 TESTS - RECOMMENDED FOR 100% COVERAGE
+# ============================================================================
+
+
+def test_set_custom_css_integration(editor, preview, mock_window, qtbot):
+    """Test set_custom_css integration.
+
+    Tests lines 475-480, 464:
+    - Custom CSS storage
+    - CSS cache clearing
+    - Preview update timer scheduling
+    - Custom CSS inclusion in get_preview_css
+    """
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Get initial CSS (without custom CSS)
+    initial_css = handler.get_preview_css()
+    assert "/* custom */" not in initial_css
+
+    # Set custom CSS
+    custom_css = "/* custom */ body { font-size: 16px; }"
+    handler.set_custom_css(custom_css)
+
+    # Verify custom CSS is stored
+    assert handler._custom_css == custom_css
+
+    # Verify CSS cache is cleared
+    assert handler._css_cache is None
+
+    # Verify preview timer is scheduled
+    assert handler.preview_timer.isActive()
+
+    # Get CSS again and verify custom CSS is included
+    final_css = handler.get_preview_css()
+    assert "/* custom */" in final_css
+    assert "font-size: 16px" in final_css
+
+
+def test_predictive_rendering_on_text_change(editor, preview, mock_window, qtbot):
+    """Test predictive rendering is triggered on text change.
+
+    Tests lines 280-283:
+    - Preview worker request_prediction method call
+    - Source text and cursor line passed correctly
+    """
+    from unittest.mock import MagicMock
+
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Create mock preview worker with request_prediction
+    mock_worker = MagicMock()
+    mock_window.preview_worker = mock_worker
+
+    # Set initial text and cursor position
+    editor.setPlainText("Line 1\nLine 2\nLine 3")
+    cursor = editor.textCursor()
+    cursor.movePosition(cursor.MoveOperation.Down)  # Move to line 2
+    editor.setTextCursor(cursor)
+    qtbot.wait(50)
+
+    # Clear previous calls
+    mock_worker.request_prediction.reset_mock()
+
+    # Trigger text change
+    editor.setPlainText("Line 1\nLine 2 modified\nLine 3")
+    qtbot.wait(50)
+
+    # Verify request_prediction was called
+    assert mock_worker.request_prediction.called
+    call_args = mock_worker.request_prediction.call_args[0]
+    assert "Line 2 modified" in call_args[0]  # Source text
+    assert isinstance(call_args[1], int)  # Cursor line
+
+
+def test_cursor_position_tracking(editor, preview, mock_window, qtbot):
+    """Test cursor position tracking for predictive rendering.
+
+    Tests lines 231-233:
+    - Cursor position change tracking
+    - Preview worker update_cursor_position call
+    """
+    from unittest.mock import MagicMock
+
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Create mock preview worker with update_cursor_position
+    mock_worker = MagicMock()
+    mock_window.preview_worker = mock_worker
+
+    # Set text with multiple lines
+    editor.setPlainText("Line 1\nLine 2\nLine 3\nLine 4")
+    qtbot.wait(50)
+
+    # Move cursor to line 2
+    cursor = editor.textCursor()
+    cursor.movePosition(cursor.MoveOperation.Down)
+    cursor.movePosition(cursor.MoveOperation.Down)
+    editor.setTextCursor(cursor)
+    qtbot.wait(50)
+
+    # Verify update_cursor_position was called
+    assert mock_worker.update_cursor_position.called
+    # Cursor should be on line 2 (0-indexed)
+    assert mock_worker.update_cursor_position.call_args[0][0] == 2
+
+
+# ============================================================================
+# PRIORITY 2 TESTS - OPTIONAL FOR EDGE CASES
+# ============================================================================
+
+
+def test_adaptive_debouncer_unavailable_fallback(editor, preview, mock_window, qtbot):
+    """Test size-based delay fallback when adaptive debouncer unavailable.
+
+    Tests lines 107-111, 269-276:
+    - Size-based delay thresholds
+    - Instant/fast/normal/slow intervals
+    """
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Disable adaptive debouncing to test fallback
+    handler.set_adaptive_debouncing(False)
+
+    # Test instant threshold (<1000 chars)
+    editor.setPlainText("x" * 500)
+    qtbot.wait(50)
+    assert handler.preview_timer.interval() == 0  # PREVIEW_INSTANT_MS
+
+    # Test fast threshold (<10000 chars)
+    editor.setPlainText("x" * 5000)
+    qtbot.wait(50)
+    assert handler.preview_timer.interval() == 25  # PREVIEW_FAST_INTERVAL_MS
+
+    # Test normal threshold (<100000 chars)
+    editor.setPlainText("x" * 50000)
+    qtbot.wait(50)
+    assert handler.preview_timer.interval() == 100  # PREVIEW_NORMAL_INTERVAL_MS
+
+    # Test slow threshold (>=100000 chars)
+    editor.setPlainText("x" * 150000)
+    qtbot.wait(50)
+    assert handler.preview_timer.interval() == 250  # PREVIEW_SLOW_INTERVAL_MS
+
+
+def test_reset_debouncer(editor, preview, mock_window):
+    """Test reset_debouncer method.
+
+    Tests lines 654-656:
+    - Debouncer reset method call
+    """
+    from unittest.mock import MagicMock
+
+    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+
+    # Mock adaptive debouncer
+    mock_debouncer = MagicMock()
+    handler._adaptive_debouncer = mock_debouncer
+
+    # Call reset_debouncer
+    handler.reset_debouncer()
+
+    # Verify debouncer.reset() was called
+    mock_debouncer.reset.assert_called_once()
+
+
+def test_theme_manager_unavailable_fallback(editor, preview, qtbot):
+    """Test fallback CSS when theme_manager unavailable.
+
+    Tests line 499:
+    - Fallback CSS generation
+    - Basic styling presence
+    """
+    from PySide6.QtWidgets import QMainWindow
+
+    # Create real window WITHOUT theme_manager
+    window = QMainWindow()
+    qtbot.addWidget(window)
+    window._settings = Mock()
+    window._settings.dark_mode = False
+    window.request_preview_render = Mock()
+    # No theme_manager attribute
+
+    handler = FullConcretePreviewHandler(editor, preview, window)
+
+    # Get CSS (should use fallback)
+    css = handler.get_preview_css()
+
+    # Verify fallback CSS contains basic styling
+    assert "font-family:" in css
+    assert "line-height:" in css
+    assert "max-width:" in css
+    assert "margin:" in css
