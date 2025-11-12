@@ -835,3 +835,232 @@ class TestGitWorkerExceptionHandling:
         assert status is not None
         assert status.branch == ""
         assert status.is_dirty is False
+
+    def test_parse_git_status_v2_malformed_branch_ab(self):
+        """Test ValueError handling when branch.ab line is malformed."""
+        worker = GitWorker()
+        # Invalid integers in branch.ab line
+        output = (
+            "# branch.oid abc123\n"
+            "# branch.head main\n"
+            "# branch.ab +abc -def\n"
+        )
+
+        # Should handle ValueError gracefully
+        status = worker._parse_git_status_v2(output)
+
+        # Verify - should parse successfully with default ahead/behind counts
+        assert status is not None
+        assert status.branch == "main"
+        assert status.ahead_count == 0  # Default on parse error
+        assert status.behind_count == 0  # Default on parse error
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_get_detailed_status_with_cancellation(self, mock_run):
+        """Test get_detailed_repository_status respects cancellation."""
+        worker = GitWorker()
+        detailed_status = None
+
+        def capture_status(status_dict):
+            nonlocal detailed_status
+            detailed_status = status_dict
+
+        worker.detailed_status_ready.connect(capture_status)
+
+        # Cancel before execution
+        worker.cancel()
+
+        # Execute - should return early due to cancellation check
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_detailed_repository_status(str(tmpdir))
+
+        # Verify - detailed_status should be None (not emitted)
+        assert detailed_status is None
+
+    def test_get_detailed_status_invalid_directory(self):
+        """Test get_detailed_repository_status with invalid directory."""
+        worker = GitWorker()
+        detailed_status = None
+
+        def capture_status(status_dict):
+            nonlocal detailed_status
+            detailed_status = status_dict
+
+        worker.detailed_status_ready.connect(capture_status)
+
+        # Execute with nonexistent path
+        worker.get_detailed_repository_status("/nonexistent/invalid/path/12345")
+
+        # Verify - should return early without emitting signal
+        assert detailed_status is None
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_get_detailed_status_git_command_failure(self, mock_run):
+        """Test get_detailed_repository_status with git command failure."""
+        # Mock subprocess to return error
+        mock_run.return_value = MagicMock(
+            returncode=128, stdout="", stderr="fatal: not a git repository"
+        )
+
+        worker = GitWorker()
+        detailed_status = None
+
+        def capture_status(status_dict):
+            nonlocal detailed_status
+            detailed_status = status_dict
+
+        worker.detailed_status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_detailed_repository_status(str(tmpdir))
+
+        # Verify - error result should not emit detailed status
+        assert detailed_status is None
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_get_detailed_status_timeout(self, mock_run):
+        """Test get_detailed_repository_status handles timeout."""
+        import subprocess
+
+        # Mock subprocess to raise TimeoutExpired
+        mock_run.side_effect = subprocess.TimeoutExpired(
+            cmd=["git", "status"], timeout=5
+        )
+
+        worker = GitWorker()
+        detailed_status = None
+
+        def capture_status(status_dict):
+            nonlocal detailed_status
+            detailed_status = status_dict
+
+        worker.detailed_status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_detailed_repository_status(str(tmpdir))
+
+        # Verify - timeout should be handled gracefully
+        assert detailed_status is None
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_get_detailed_status_file_not_found(self, mock_run):
+        """Test get_detailed_repository_status handles FileNotFoundError."""
+        # Mock subprocess to raise FileNotFoundError
+        mock_run.side_effect = FileNotFoundError("git not found")
+
+        worker = GitWorker()
+        detailed_status = None
+
+        def capture_status(status_dict):
+            nonlocal detailed_status
+            detailed_status = status_dict
+
+        worker.detailed_status_ready.connect(capture_status)
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worker.get_detailed_repository_status(str(tmpdir))
+
+        # Verify - should handle error gracefully
+        assert detailed_status is None
+
+    def test_analyze_git_error_resolve_host(self):
+        """Test _analyze_git_error with network error."""
+        worker = GitWorker()
+
+        # Test network connectivity error
+        stderr = "fatal: could not resolve host: github.com"
+        error_msg = worker._analyze_git_error(stderr, ["git", "push"])
+
+        # Verify network error message
+        assert "resolve host" in stderr.lower()
+        assert "connect to Git host" in error_msg
+        assert "internet" in error_msg.lower()
+
+    def test_analyze_git_error_nothing_to_commit(self):
+        """Test _analyze_git_error with nothing to commit."""
+        worker = GitWorker()
+
+        # Test nothing to commit message
+        stderr = "nothing to commit, working tree clean"
+        error_msg = worker._analyze_git_error(stderr, ["git", "commit"])
+
+        # Verify clean status message
+        assert "nothing to commit" in stderr.lower()
+        assert "Nothing to commit" in error_msg
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_add_line_counts_timeout(self, mock_run):
+        """Test _add_line_counts handles timeout."""
+        import subprocess
+
+        # Mock subprocess to raise TimeoutExpired
+        mock_run.side_effect = subprocess.TimeoutExpired(
+            cmd=["git", "diff"], timeout=3
+        )
+
+        worker = GitWorker()
+        files = [{"path": "file1.txt", "status": "M"}]
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = worker._add_line_counts(tmpdir, files, staged=False)
+
+        # Verify - timeout handler doesn't add line counts, returns files as-is
+        assert len(result) == 1
+        # Line counts are NOT added on timeout (only on generic Exception)
+        assert "lines_added" not in result[0]
+        assert "lines_deleted" not in result[0]
+
+    @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
+    def test_add_line_counts_generic_exception(self, mock_run):
+        """Test _add_line_counts handles generic Exception."""
+        # Mock subprocess to raise generic exception
+        mock_run.side_effect = RuntimeError("Unexpected error")
+
+        worker = GitWorker()
+        files = [{"path": "file1.txt", "status": "M"}]
+
+        # Execute
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = worker._add_line_counts(tmpdir, files, staged=False)
+
+        # Verify - should set default values on error
+        assert len(result) == 1
+        assert result[0]["lines_added"] == "0"  # String default on exception
+        assert result[0]["lines_deleted"] == "0"
+
+    def test_parse_detailed_status_detached_head(self):
+        """Test _parse_detailed_status_v2 with detached HEAD."""
+        worker = GitWorker()
+        output = "# branch.oid abc1234\n# branch.head (detached)\n"
+
+        # Execute
+        branch, modified, staged, untracked = worker._parse_detailed_status_v2(output)
+
+        # Verify - detached HEAD is detected
+        assert branch == "HEAD (detached)"
+        assert len(modified) == 0
+        assert len(staged) == 0
+        assert len(untracked) == 0
+
+    def test_parse_git_status_v2_unmerged_conflict_type(self):
+        """Test conflict detection with '1 UU' status code."""
+        worker = GitWorker()
+        # Conflict marked with UU in tracked file (1 prefix)
+        output = (
+            "# branch.oid abcd1234\n"
+            "# branch.head main\n"
+            "1 UU N... 100644 100644 100644 100644 abc123 def456 conflict.txt\n"
+        )
+
+        # Execute
+        status = worker._parse_git_status_v2(output)
+
+        # Verify - conflict is detected with UU status
+        assert status.has_conflicts is True
+        assert status.is_dirty is True
+        assert status.staged_count == 1  # U in X position
+        assert status.modified_count == 1  # U in Y position
