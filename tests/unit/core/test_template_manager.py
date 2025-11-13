@@ -800,9 +800,7 @@ class TestQtImportFallback:
 
             # Should use fallback: Path.home() / ".config" / "AsciiDocArtisan"
             custom_dir = manager.custom_dir
-            assert ".config" in str(custom_dir) or "AsciiDocArtisan" in str(
-                custom_dir
-            )
+            assert ".config" in str(custom_dir) or "AsciiDocArtisan" in str(custom_dir)
 
 
 @pytest.mark.unit
@@ -890,53 +888,74 @@ class TestCRUDExceptionHandling:
 
     def test_update_template_file_error(self, manager, tmp_path, monkeypatch):
         """Test update_template error handling (tests line 334-338)."""
+        from pathlib import Path
+
         from asciidoc_artisan.core.models import Template
+
+        # Create a template with a file path
+        template_file = tmp_path / "test-update.adoc"
+        template_file.write_text("= Test")
 
         template = Template(
             name="test_update",
             category="document",
             description="Test",
             content="= Updated",
+            file_path=str(template_file),
         )
 
         # Add template to manager
         manager.templates[template.name] = template
 
-        # Mock custom_dir to be unwritable
-        unwritable_dir = tmp_path / "unwritable"
-        unwritable_dir.mkdir()
-        unwritable_dir.chmod(0o444)
+        # Mock Path.write_text to raise an exception
+        original_write_text = Path.write_text
 
-        monkeypatch.setattr(manager, "custom_dir", unwritable_dir)
+        def mock_write_text(self, *args, **kwargs):
+            if "test-update" in str(self):
+                raise PermissionError("Cannot write to file")
+            return original_write_text(self, *args, **kwargs)
 
-        # Should return False on error
+        monkeypatch.setattr(Path, "write_text", mock_write_text)
+
+        # Should return False on error and log the exception
         result = manager.update_template(template)
         assert result is False
 
-        # Clean up
-        unwritable_dir.chmod(0o755)
-
     def test_delete_template_file_error(self, manager, tmp_path, monkeypatch):
         """Test delete_template error handling (tests line 383-387)."""
-        # Create a template that can't be deleted
-        template_name = "undeletable"
-        template_file = tmp_path / "custom" / f"{template_name}.adoc"
-        template_file.parent.mkdir(parents=True, exist_ok=True)
+        from pathlib import Path
+
+        from asciidoc_artisan.core.models import Template
+
+        # Create a custom template in tmp_path
+        template_file = tmp_path / "undeletable.adoc"
         template_file.write_text("= Test")
 
-        monkeypatch.setattr(manager, "custom_dir", template_file.parent)
+        template = Template(
+            name="Undeletable",
+            category="document",
+            description="Test",
+            content="= Test",
+            file_path=str(template_file),
+        )
 
-        # Make file read-only
-        template_file.chmod(0o444)
-        template_file.parent.chmod(0o555)  # Read-only directory
+        # Set custom_dir to tmp_path
+        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+        manager.templates["Undeletable"] = template
 
-        # Should return False on error
-        result = manager.delete_template(template_name)
+        # Mock Path.unlink to raise an exception
+        original_unlink = Path.unlink
+
+        def mock_unlink(self, *args, **kwargs):
+            if "undeletable" in str(self):
+                raise PermissionError("Cannot delete file")
+            return original_unlink(self, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "unlink", mock_unlink)
+
+        # Should return False on error and log the exception
+        result = manager.delete_template("Undeletable")
         assert result is False
-
-        # Clean up
-        template_file.chmod(0o644)
-        template_file.parent.chmod(0o755)
 
 
 @pytest.mark.unit

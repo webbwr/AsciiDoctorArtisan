@@ -106,7 +106,7 @@ class TestTelemetryCollectorInitialization:
     def test_initialization_creates_data_directory(self, tmp_path):
         """Test collector creates data directory."""
         data_dir = tmp_path / "telemetry"
-        collector = TelemetryCollector(data_dir=data_dir)
+        TelemetryCollector(data_dir=data_dir)
 
         assert data_dir.exists()
         assert data_dir.is_dir()
@@ -484,6 +484,18 @@ class TestFileRotation:
 
         assert len(rotated) == 0
 
+    def test_rotate_events_skips_events_missing_timestamp(self, tmp_path):
+        """Test rotate_events handles events missing timestamp key (lines 322-324)."""
+        collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
+
+        # Event missing 'timestamp' key triggers KeyError
+        events = [{"event_type": "no_timestamp", "session_id": "test", "data": {}}]
+
+        rotated = collector._rotate_events(events)
+
+        # Should skip the malformed event and return empty list
+        assert len(rotated) == 0
+
     def test_get_file_size_returns_zero_for_nonexistent_file(self, tmp_path):
         """Test get_file_size returns 0 for nonexistent file."""
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
@@ -623,3 +635,165 @@ class TestDestructor:
         with open(telemetry_file) as f:
             events = json.load(f)
         assert len(events) == 1
+
+    def test_destructor_handles_flush_exception(self, tmp_path):
+        """Test destructor handles exceptions during flush (lines 423-425)."""
+
+        collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
+        collector.track_event("test")
+
+        # Mock flush to raise exception
+        def mock_flush():
+            raise RuntimeError("Test error during flush")
+
+        collector.flush = mock_flush
+
+        # Manually call __del__ to ensure coverage
+        try:
+            collector.__del__()
+        except Exception:
+            # Should not raise exception
+            assert False, "Destructor should handle exception gracefully"
+
+
+class TestPlatformSpecificPaths:
+    """Test platform-specific data directory paths."""
+
+    def test_windows_data_dir(self, tmp_path, monkeypatch):
+        """Test Windows platform uses AppData/Local directory (line 121)."""
+        import platform
+
+        # Mock platform.system to return "Windows"
+        monkeypatch.setattr(platform, "system", lambda: "Windows")
+
+        # Create collector without specifying data_dir
+        collector = TelemetryCollector(enabled=False)
+
+        # Should use Windows path
+        assert "AppData" in str(collector.data_dir)
+        assert "Local" in str(collector.data_dir)
+
+    def test_macos_data_dir(self, tmp_path, monkeypatch):
+        """Test macOS platform uses Library/Application Support directory (line 123)."""
+        import platform
+
+        # Mock platform.system to return "Darwin" (macOS)
+        monkeypatch.setattr(platform, "system", lambda: "Darwin")
+
+        # Create collector without specifying data_dir
+        collector = TelemetryCollector(enabled=False)
+
+        # Should use macOS path
+        assert "Library" in str(collector.data_dir)
+        assert "Application Support" in str(collector.data_dir)
+
+
+class TestExceptionHandling:
+    """Test exception handling in various methods."""
+
+    def test_flush_handles_exception(self, tmp_path):
+        """Test flush handles exception gracefully (lines 278-279)."""
+        import unittest.mock as mock
+
+        collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
+        collector.track_event("test")
+
+        # Mock open to raise permission error
+        with mock.patch("builtins.open", side_effect=PermissionError("Access denied")):
+            # flush should not raise exception
+            collector.flush()
+            # Buffer should still have events since flush failed
+            assert len(collector.event_buffer) > 0
+
+    def test_load_events_handles_exception(self, tmp_path):
+        """Test _load_events handles exception gracefully (lines 290-292)."""
+
+        collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
+
+        # Create corrupted JSON file
+        telemetry_file = tmp_path / "telemetry.json"
+        telemetry_file.write_text("invalid json {{{")
+
+        # _load_events should return empty list on error
+        events = collector._load_events()
+        assert events == []
+
+    def test_clear_all_handles_exception(self, tmp_path):
+        """Test clear_all_data handles exception gracefully (lines 416-417)."""
+        import unittest.mock as mock
+        from pathlib import Path
+
+        collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
+        collector.track_event("test")
+        collector.flush()
+
+        # Mock Path.unlink at the instance level to raise permission error
+        with mock.patch.object(
+            Path, "unlink", side_effect=PermissionError("Access denied")
+        ):
+            # clear_all_data should not raise exception
+            collector.clear_all_data()
+            # Buffer should be cleared even if file deletion failed
+            assert len(collector.event_buffer) == 0
+
+
+class TestFileRotationWithSize:
+    """Test file rotation when size exceeds limit."""
+
+    def test_rotation_when_file_exceeds_max_size(self, tmp_path):
+        """Test file rotation when file size exceeds max (line 267)."""
+        import json
+        from datetime import timedelta
+
+        collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
+
+        # Create file with mix of old and recent events
+        old_date = datetime.utcnow() - timedelta(days=31)
+        recent_date = datetime.utcnow()
+
+        events = []
+        # Add 25 old events (will be removed by rotation)
+        for i in range(25):
+            events.append(
+                {
+                    "event_type": f"old_event_{i}",
+                    "timestamp": old_date.isoformat() + "Z",
+                    "session_id": "test",
+                    "data": {"value": i * 100},
+                }
+            )
+
+        # Add 25 recent events (will be kept by rotation)
+        for i in range(25):
+            events.append(
+                {
+                    "event_type": f"recent_event_{i}",
+                    "timestamp": recent_date.isoformat() + "Z",
+                    "session_id": "test",
+                    "data": {"value": i * 100},
+                }
+            )
+
+        # Write events to file
+        telemetry_file = tmp_path / "telemetry.json"
+        with open(telemetry_file, "w") as f:
+            json.dump(events, f)
+
+        # Set very small max file size to trigger rotation on next flush
+        collector.max_file_size = 100
+
+        # Add one more event and flush (should trigger rotation at line 266-267)
+        collector.track_event("trigger_event")
+        collector.flush()
+
+        # Load rotated events
+        with open(telemetry_file) as f:
+            rotated_events = json.load(f)
+
+        # Should only have recent events (old events removed by rotation)
+        # 25 recent events + 1 new event = 26 total
+        assert len(rotated_events) == 26
+
+        # Verify no old events remain
+        for event in rotated_events:
+            assert not event["event_type"].startswith("old_event")

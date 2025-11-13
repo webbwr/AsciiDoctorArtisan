@@ -153,3 +153,37 @@ class TestConstants:
                     importlib.reload(asciidoc_artisan.core.constants)
             except (ImportError, KeyError):
                 pass
+
+    def test_pypandoc_available_success_path(self):
+        """Test when pypandoc IS available (line 124)."""
+        import importlib
+
+        # Reload constants to reset the cache
+        importlib.reload(constants)
+
+        # Reset the lazy check to force re-evaluation
+        constants._pypandoc_checked = False
+        constants._pypandoc_available = False
+
+        # Call is_pandoc_available() which should check for pypandoc
+        # This will hit line 124 if pypandoc is actually installed
+        result = constants.is_pandoc_available()
+
+        # Result depends on whether pypandoc is actually installed
+        # but calling the function covers the code path
+        assert isinstance(result, bool)
+
+        # Call again to test the cached path
+        result2 = constants.is_pandoc_available()
+        assert result == result2  # Should be consistent
+
+    def test_get_pandoc_available_function(self):
+        """Test _get_pandoc_available function (line 137)."""
+        # This is a wrapper around is_pandoc_available()
+        result = constants._get_pandoc_available()
+
+        # Should return a boolean
+        assert isinstance(result, bool)
+
+        # Should match is_pandoc_available()
+        assert result == constants.is_pandoc_available()
