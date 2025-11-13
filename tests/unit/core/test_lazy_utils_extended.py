@@ -435,19 +435,20 @@ class TestCoverageImprovements:
 
         obj = Example()
 
-        # Manually set the value in __dict__ to simulate it being cached
-        # This ensures line 376-377 (if self.attrname in cache: return cache[self.attrname])
-        # is definitely executed
-        obj.__dict__["expensive"] = 999
+        # First access - computes and caches (hits lines 380-381)
+        result1 = obj.expensive
+        assert result1 == 42
+        assert call_count["count"] == 1
 
-        # Now access the property - should return the cached value
-        # This will hit line 377: return cache[self.attrname]
-        result = obj.expensive
+        # Second access - returns cached value (should hit line 377)
+        result2 = obj.expensive
+        assert result2 == 42
+        assert call_count["count"] == 1  # Should not recompute
 
-        # Should return the manually cached value
-        assert result == 999
-        # Should NOT have called the function
-        assert call_count["count"] == 0
+        # Third access - still cached (should hit line 377 again)
+        result3 = obj.expensive
+        assert result3 == 42
+        assert call_count["count"] == 1  # Should not recompute
 
 
 if __name__ == "__main__":
