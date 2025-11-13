@@ -346,5 +346,109 @@ class TestCachedPropertyAdvanced:
         assert obj.__dict__["heavy_computation"] == 84
 
 
+@pytest.mark.unit
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    def test_lazy_property_class_level_access(self):
+        """Test lazy_property returns self when accessed at class level (line 83)."""
+        from asciidoc_artisan.core.lazy_utils import lazy_property
+
+        class Example:
+            @lazy_property
+            def value(self):
+                return 42
+
+        # Access at class level (obj is None)
+        descriptor = Example.value
+        assert isinstance(descriptor, lazy_property)
+        assert descriptor.func is not None
+
+    def test_defer_method_decorator_initializes_deferred_calls(self):
+        """Test defer_method decorator initializes _deferred_calls list (line 205)."""
+        from asciidoc_artisan.core.lazy_utils import defer_method
+
+        class Example:
+            @defer_method
+            def setup(self):
+                self.initialized = True
+
+        obj = Example()
+
+        # Before calling, _deferred_calls shouldn't exist
+        assert not hasattr(obj, "_deferred_calls")
+
+        # Call deferred method - should initialize _deferred_calls (line 205)
+        obj.setup()
+
+        # Now _deferred_calls should exist
+        assert hasattr(obj, "_deferred_calls")
+        assert isinstance(obj._deferred_calls, list)
+        assert len(obj._deferred_calls) == 1
+
+    def test_cached_property_class_level_access(self):
+        """Test cached_property returns self when accessed at class level (line 367)."""
+        from asciidoc_artisan.core.lazy_utils import cached_property
+
+        class Example:
+            @cached_property
+            def value(self):
+                return 42
+
+        # Access at class level (obj is None)
+        descriptor = Example.value
+        assert isinstance(descriptor, cached_property)
+        assert descriptor.func is not None
+
+    def test_cached_property_without_set_name(self):
+        """Test cached_property raises TypeError when attrname is None (lines 370-371)."""
+        from asciidoc_artisan.core.lazy_utils import cached_property
+
+        def compute():
+            return 42
+
+        # Create cached_property without __set_name__ being called
+        prop = cached_property(compute)
+
+        class Example:
+            pass
+
+        obj = Example()
+
+        # Manually set the property without calling __set_name__
+        # This simulates the error condition where attrname is None
+        with pytest.raises(TypeError, match="Cannot use cached_property"):
+            # Access the property - attrname will be None
+            prop.__get__(obj, Example)
+
+    def test_cached_property_returns_cached_value(self):
+        """Test cached_property returns cached value from __dict__ (line 377)."""
+        from asciidoc_artisan.core.lazy_utils import cached_property
+
+        call_count = {"count": 0}
+
+        class Example:
+            @cached_property
+            def expensive(self):
+                call_count["count"] += 1
+                return 42
+
+        obj = Example()
+
+        # Manually set the value in __dict__ to simulate it being cached
+        # This ensures line 376-377 (if self.attrname in cache: return cache[self.attrname])
+        # is definitely executed
+        obj.__dict__["expensive"] = 999
+
+        # Now access the property - should return the cached value
+        # This will hit line 377: return cache[self.attrname]
+        result = obj.expensive
+
+        # Should return the manually cached value
+        assert result == 999
+        # Should NOT have called the function
+        assert call_count["count"] == 0
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
