@@ -409,3 +409,65 @@ class TestEdgeCases:
 
         assert size2 > size1
         assert size2 == file2.stat().st_size
+
+
+@pytest.mark.unit
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    def test_medium_file_exception_handling(self, tmp_path, qtbot):
+        """Test exception handling in _load_medium_file (lines 163-165)."""
+        from unittest.mock import patch
+
+        handler = LargeFileHandler()
+
+        # Create a medium file (between 1MB and 10MB)
+        medium_file = tmp_path / "medium.txt"
+        medium_file.write_text("x" * (2 * 1024 * 1024))  # 2MB medium file
+
+        # Patch the open function to raise an exception during medium file loading
+        original_open = open
+
+        def mock_open(file, mode="r", *args, **kwargs):
+            # If it's our medium file and we're reading it, raise an exception
+            if str(file) == str(medium_file) and ("r" in mode):
+                raise PermissionError("Simulated read error for medium file")
+            return original_open(file, mode, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=mock_open):
+            # Load the medium file - should trigger exception in _load_medium_file
+            success, content, error = handler.load_file_optimized(medium_file)
+
+            # Should fail and return error
+            assert success is False
+            assert content == ""
+            assert "Simulated read error" in error or "Permission" in error
+
+    def test_large_file_exception_handling(self, tmp_path, qtbot):
+        """Test exception handling in _load_large_file (lines 199-201)."""
+        from unittest.mock import patch
+
+        handler = LargeFileHandler()
+
+        # Create a large file (>10MB)
+        large_file = tmp_path / "large.txt"
+        # Write enough content to make it large
+        large_file.write_text("x" * (11 * 1024 * 1024))  # 11MB
+
+        # Patch the open function to raise an exception during large file loading
+        original_open = open
+
+        def mock_open(file, mode="r", *args, **kwargs):
+            # If it's our large file and we're reading it, raise an exception
+            if str(file) == str(large_file) and ("r" in mode):
+                raise PermissionError("Simulated read error for large file")
+            return original_open(file, mode, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=mock_open):
+            # Load the large file - should trigger exception in _load_large_file
+            success, content, error = handler.load_file_optimized(large_file)
+
+            # Should fail and return error
+            assert success is False
+            assert content == ""
+            assert "Simulated read error" in error or "Permission" in error
