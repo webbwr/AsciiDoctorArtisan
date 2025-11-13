@@ -279,3 +279,35 @@ def test_operation_metrics_max_buffer():
     assert len(metrics.durations) == 1000
     # But count should be 1500
     assert metrics.count == 1500
+
+
+def test_operation_metrics_get_average_empty():
+    """Test get_average with no recordings (line 55)."""
+    metrics = OperationMetrics(operation_name="test")
+
+    # With count=0, should return 0.0
+    assert metrics.count == 0
+    assert metrics.get_average() == 0.0
+
+
+def test_operation_metrics_get_percentile_empty():
+    """Test get_percentile with no durations (line 69)."""
+    metrics = OperationMetrics(operation_name="test")
+
+    # With empty durations, should return 0.0
+    assert len(metrics.durations) == 0
+    assert metrics.get_percentile(50) == 0.0
+    assert metrics.get_percentile(95) == 0.0
+    assert metrics.get_percentile(99) == 0.0
+
+
+def test_metrics_collector_record_cache_disabled():
+    """Test record_cache_event when collector is disabled (line 179)."""
+    collector = MetricsCollector()
+    collector.enabled = False  # Disable after initialization
+
+    # Record cache event - should be ignored due to enabled=False
+    collector.record_cache_event("preview", hit=True)
+
+    # No caches should be created
+    assert len(collector.caches) == 0

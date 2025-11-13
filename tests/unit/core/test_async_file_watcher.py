@@ -549,3 +549,74 @@ class TestFileChangeEvent:
         assert modified.event_type == "modified"
         assert deleted.event_type == "deleted"
         assert created.event_type == "created"
+
+
+@pytest.mark.unit
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    @pytest.fixture
+    def temp_file(self, tmp_path: Path) -> Path:
+        """Create a temporary test file."""
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("Initial content")
+        return test_file
+
+    @pytest.mark.asyncio
+    async def test_check_file_exception_handling(
+        self, qtbot: QtBot, temp_file: Path, caplog
+    ):
+        """Test exception handling in _check_file for modified file (lines 280-281)."""
+        from unittest.mock import patch
+
+        watcher = AsyncFileWatcher(poll_interval=0.1)
+        watcher.set_file(temp_file)
+        await watcher.start()
+        await asyncio.sleep(0.15)  # Let watcher settle
+
+        # Patch Path.stat to raise exception for our specific file
+        original_stat = Path.stat
+        call_count = [0]
+
+        def mock_stat(self, *args, **kwargs):
+            if str(self) == str(temp_file):
+                call_count[0] += 1
+                # Fail after the first successful call (from set_file)
+                if call_count[0] > 1:
+                    raise PermissionError("Cannot stat file during modification check")
+            return original_stat(self, *args, **kwargs)
+
+        with patch.object(Path, "stat", mock_stat):
+            # Modify the file WHILE stat is patched to fail
+            # This will cause exists() to return True, but stat() to fail
+            temp_file.write_text("Modified content that triggers check")
+            await asyncio.sleep(0.25)  # Let watcher detect and hit exception
+
+        await watcher.stop()
+
+        # Verify exception was logged
+        assert "Failed to check file" in caplog.text or "error" in caplog.text.lower()
+
+    @pytest.mark.asyncio
+    async def test_adjust_poll_interval_with_disabled_adaptive(self, temp_file: Path):
+        """Test _adjust_poll_interval early return when adaptive disabled (line 314)."""
+        # Create watcher with adaptive_polling=False
+        watcher = AsyncFileWatcher(adaptive_polling=False, poll_interval=0.5)
+        watcher.set_file(temp_file)
+
+        # Store initial interval
+        initial_interval = watcher.poll_interval
+
+        # Start watching
+        await watcher.start()
+        await asyncio.sleep(0.2)
+
+        # Modify file to trigger change detection
+        temp_file.write_text("New content")
+        await asyncio.sleep(0.6)  # Wait for check
+
+        await watcher.stop()
+
+        # Poll interval should NOT have changed (adaptive disabled)
+        # This confirms line 314 was hit (early return)
+        assert watcher.poll_interval == initial_interval
