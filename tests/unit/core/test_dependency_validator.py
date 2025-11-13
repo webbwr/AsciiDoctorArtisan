@@ -567,3 +567,41 @@ class TestEdgeCases:
 
         # Should return None and not crash
         assert version is None
+
+    @patch("builtins.__import__")
+    def test_check_module_with_uppercase_version(self, mock_import):
+        """Test module with uppercase VERSION attribute (lines 194-195)."""
+        # Mock module with VERSION (not __version__)
+        mock_module = type("MockModule", (), {})()
+        mock_module.VERSION = "3.2.1"
+        mock_import.return_value = mock_module
+
+        validator = DependencyValidator()
+        validator._check_python_module(
+            "mock_module", DependencyType.OPTIONAL, min_version=None
+        )
+
+        assert len(validator.dependencies) == 1
+        dep = validator.dependencies[0]
+        assert dep.version == "3.2.1"
+        assert dep.status == DependencyStatus.INSTALLED
+
+    def test_missing_required_module_logs_error(self, caplog):
+        """Test missing REQUIRED module logs error message (line 231)."""
+        import logging
+
+        caplog.set_level(logging.ERROR)
+
+        validator = DependencyValidator()
+        # Try to check a non-existent required module
+        validator._check_python_module(
+            "nonexistent_required_module_xyz123",
+            DependencyType.REQUIRED,
+            min_version=None,
+        )
+
+        # Should have logged an error for missing REQUIRED module
+        assert any(
+            "REQUIRED" in record.message and "nonexistent_required_module_xyz123" in record.message
+            for record in caplog.records
+        )
