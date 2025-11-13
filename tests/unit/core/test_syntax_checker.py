@@ -503,3 +503,50 @@ class TestConvenienceFunctions:
         lines = []
 
         assert is_inside_code_block(lines, 0) is False
+
+
+@pytest.mark.unit
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    def test_syntax_checker_handles_missing_validators_module(self, caplog):
+        """Test SyntaxChecker handles ImportError for syntax_validators (lines 247-251)."""
+        import builtins
+        import logging
+        import sys
+        from unittest.mock import patch
+
+        caplog.set_level(logging.WARNING)
+
+        # Patch builtins.__import__ to raise ImportError for syntax_validators
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if "syntax_validators" in name:
+                raise ImportError(f"No module named '{name}'")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=mock_import):
+            # Remove modules from cache to force reimport
+            modules_to_remove = [
+                "asciidoc_artisan.core.syntax_checker",
+                "asciidoc_artisan.core.syntax_validators",
+            ]
+            for mod in modules_to_remove:
+                if mod in sys.modules:
+                    del sys.modules[mod]
+
+            # Import SyntaxChecker with mocked import
+            from asciidoc_artisan.core.syntax_checker import SyntaxChecker
+
+            # Create instance - should trigger ImportError and log warning
+            checker = SyntaxChecker()
+
+            # Should have logged warning about missing module (lines 251-253)
+            assert any(
+                "syntax_validators" in record.message and "not found" in record.message
+                for record in caplog.records
+            )
+
+            # Should still work but with empty rules
+            assert isinstance(checker.rules, list)
