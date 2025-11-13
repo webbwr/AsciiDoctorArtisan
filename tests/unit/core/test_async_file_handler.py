@@ -676,3 +676,106 @@ def test_batch_write_one_exception(tmp_path):
 
     assert not result.success
     assert result.error is not None
+
+
+@pytest.mark.unit
+def test_async_file_handler_read_exception_logging(qtbot, tmp_path, caplog):
+    """Test read_file_async exception logging (lines 136-138)."""
+    import logging
+    from unittest.mock import patch
+
+    caplog.set_level(logging.ERROR)
+
+    handler = AsyncFileHandler()
+
+    # Create a file
+    test_file = tmp_path / "test.txt"
+    test_file.write_text("content")
+
+    # Patch Path.read_text to raise an exception
+    original_read_text = Path.read_text
+
+    def mock_read_text(self, *args, **kwargs):
+        if str(self) == str(test_file):
+            raise PermissionError("Simulated read error")
+        return original_read_text(self, *args, **kwargs)
+
+    error_received = []
+
+    def on_error(path, error):
+        error_received.append((path, error))
+
+    handler.read_error.connect(on_error)
+
+    with patch.object(Path, "read_text", mock_read_text):
+        handler.read_file_async(str(test_file))
+
+        # Wait for error signal
+        qtbot.waitUntil(lambda: len(error_received) > 0, timeout=2000)
+
+    # Verify error was logged (line 137)
+    assert any("Read failed" in record.message for record in caplog.records)
+    # Verify error signal was emitted (line 138)
+    assert len(error_received) == 1
+
+
+@pytest.mark.unit
+def test_batch_read_future_exception(tmp_path, caplog):
+    """Test batch_read_files future.result() exception handling (lines 481-483)."""
+    import logging
+    from unittest.mock import patch
+
+    caplog.set_level(logging.ERROR)
+
+    from asciidoc_artisan.core.async_file_handler import BatchFileOperations
+
+    # Create a file
+    test_file = tmp_path / "test.txt"
+    test_file.write_text("content")
+
+    batch = BatchFileOperations(max_workers=2)
+
+    # Mock _read_one to raise an exception during future.result()
+    def mock_read_one(path):
+        raise RuntimeError("Simulated future exception")
+
+    with patch.object(BatchFileOperations, "_read_one", side_effect=mock_read_one):
+        results = batch.read_files([str(test_file)])
+
+    # Should have caught the exception and returned error result (lines 481-483)
+    assert len(results) == 1
+    assert not results[0].success
+    assert "Simulated future exception" in results[0].error
+
+    # Verify exception was logged (line 482)
+    assert any("Batch read failed" in record.message for record in caplog.records)
+
+
+@pytest.mark.unit
+def test_batch_write_future_exception(tmp_path, caplog):
+    """Test batch_write_files future.result() exception handling (lines 519-521)."""
+    import logging
+    from unittest.mock import patch
+
+    caplog.set_level(logging.ERROR)
+
+    from asciidoc_artisan.core.async_file_handler import BatchFileOperations
+
+    test_file = tmp_path / "test.txt"
+
+    batch = BatchFileOperations(max_workers=2)
+
+    # Mock _write_one to raise an exception during future.result()
+    def mock_write_one(path, content):
+        raise RuntimeError("Simulated write future exception")
+
+    with patch.object(BatchFileOperations, "_write_one", side_effect=mock_write_one):
+        results = batch.write_files([(str(test_file), "content")])
+
+    # Should have caught the exception and returned error result (lines 519-521)
+    assert len(results) == 1
+    assert not results[0].success
+    assert "Simulated write future exception" in results[0].error
+
+    # Verify exception was logged (line 520)
+    assert any("Batch write failed" in record.message for record in caplog.records)
