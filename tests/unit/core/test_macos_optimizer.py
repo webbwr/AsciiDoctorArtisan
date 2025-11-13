@@ -307,6 +307,121 @@ class TestDetectMacOSCapabilities:
 
 
 @pytest.mark.unit
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
+    def test_detect_m1_max_neural_engine(self, mock_system, mock_machine, mock_run):
+        """Test M1 Max chip neural engine detection (line 168)."""
+        mock_system.return_value = "Darwin"
+        mock_machine.return_value = "arm64"
+        mock_run.side_effect = [
+            MagicMock(stdout="Apple M1 Max\n", returncode=0),  # brand_string
+            MagicMock(stdout="34359738368\n", returncode=0),  # memsize
+            MagicMock(stdout="8\n", returncode=0),  # perf cores
+            MagicMock(stdout="2\n", returncode=0),  # eff cores
+            MagicMock(stdout="", returncode=1),  # system_profiler
+            MagicMock(stdout="APFS\n", returncode=0),  # diskutil
+        ]
+
+        info = detect_macos_capabilities()
+
+        assert info.is_apple_silicon is True
+        assert "M1 Max" in info.chip_name
+        assert info.neural_engine_cores == 16  # M1 Max has 16 cores
+
+    @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
+    def test_detect_m2_ultra_neural_engine(self, mock_system, mock_machine, mock_run):
+        """Test M2 Ultra chip neural engine detection (line 173)."""
+        mock_system.return_value = "Darwin"
+        mock_machine.return_value = "arm64"
+        mock_run.side_effect = [
+            MagicMock(stdout="Apple M2 Ultra\n", returncode=0),
+            MagicMock(stdout="68719476736\n", returncode=0),  # 64GB
+            MagicMock(stdout="16\n", returncode=0),
+            MagicMock(stdout="4\n", returncode=0),
+            MagicMock(stdout="", returncode=1),
+            MagicMock(stdout="APFS\n", returncode=0),
+        ]
+
+        info = detect_macos_capabilities()
+
+        assert info.is_apple_silicon is True
+        assert "M2 Ultra" in info.chip_name
+        assert info.neural_engine_cores == 32  # M2 Ultra has 32 cores
+
+    @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
+    def test_detect_m2_base_neural_engine(self, mock_system, mock_machine, mock_run):
+        """Test M2 base chip neural engine detection (line 177)."""
+        mock_system.return_value = "Darwin"
+        mock_machine.return_value = "arm64"
+        mock_run.side_effect = [
+            MagicMock(stdout="Apple M2\n", returncode=0),
+            MagicMock(stdout="17179869184\n", returncode=0),  # 16GB
+            MagicMock(stdout="4\n", returncode=0),
+            MagicMock(stdout="4\n", returncode=0),
+            MagicMock(stdout="", returncode=1),
+            MagicMock(stdout="APFS\n", returncode=0),
+        ]
+
+        info = detect_macos_capabilities()
+
+        assert info.is_apple_silicon is True
+        assert "M2" in info.chip_name
+        assert info.neural_engine_cores == 16  # M2 base has 16 cores
+
+    @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
+    def test_detect_m3_ultra_neural_engine(self, mock_system, mock_machine, mock_run):
+        """Test M3 Ultra chip neural engine detection (line 180)."""
+        mock_system.return_value = "Darwin"
+        mock_machine.return_value = "arm64"
+        mock_run.side_effect = [
+            MagicMock(stdout="Apple M3 Ultra\n", returncode=0),
+            MagicMock(stdout="68719476736\n", returncode=0),
+            MagicMock(stdout="16\n", returncode=0),
+            MagicMock(stdout="4\n", returncode=0),
+            MagicMock(stdout="", returncode=1),
+            MagicMock(stdout="APFS\n", returncode=0),
+        ]
+
+        info = detect_macos_capabilities()
+
+        assert info.is_apple_silicon is True
+        assert "M3 Ultra" in info.chip_name
+        assert info.neural_engine_cores == 32  # M3 Ultra has 32 cores
+
+    @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
+    @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
+    def test_detect_m4_max_neural_engine(self, mock_system, mock_machine, mock_run):
+        """Test M4 Max chip neural engine detection (line 182)."""
+        mock_system.return_value = "Darwin"
+        mock_machine.return_value = "arm64"
+        mock_run.side_effect = [
+            MagicMock(stdout="Apple M4 Max\n", returncode=0),
+            MagicMock(stdout="34359738368\n", returncode=0),
+            MagicMock(stdout="10\n", returncode=0),
+            MagicMock(stdout="4\n", returncode=0),
+            MagicMock(stdout="", returncode=1),
+            MagicMock(stdout="APFS\n", returncode=0),
+        ]
+
+        info = detect_macos_capabilities()
+
+        assert info.is_apple_silicon is True
+        assert "M4 Max" in info.chip_name
+        assert info.neural_engine_cores == 16  # M4 Max has 16 cores
+
+
+@pytest.mark.unit
 class TestConfigureMetalOptimization:
     """Test Metal GPU optimization configuration."""
 
