@@ -83,6 +83,20 @@ class TestRunMethodExecution:
         error_msg = blocker.args[0]
         assert "unknown operation" in error_msg.lower()
 
+    def test_run_with_unknown_operation(self, qtbot):
+        """Test run() with unknown/invalid operation string."""
+        worker = ClaudeWorker()
+
+        # Set unknown operation
+        worker._operation = "invalid_operation"
+
+        with qtbot.waitSignal(worker.error_occurred, timeout=5000) as blocker:
+            worker.start()
+            worker.wait()
+
+        error_msg = blocker.args[0]
+        assert "Unknown operation: invalid_operation" in error_msg
+
 
 @pytest.mark.unit
 class TestExecuteSendMessage:

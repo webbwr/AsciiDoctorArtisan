@@ -535,3 +535,80 @@ class TestSettingsValidation:
         settings.chat_send_document = "not a bool"  # type: ignore
         validated = settings.validate()
         assert validated.chat_send_document is True
+
+    # v2.0.0 feature validation tests
+    def test_validate_invalid_autocomplete_enabled(self):
+        """Test validation corrects invalid autocomplete_enabled."""
+        settings = Settings()
+        settings.autocomplete_enabled = "not a bool"  # type: ignore
+        validated = settings.validate()
+        assert validated.autocomplete_enabled is True
+
+    def test_validate_invalid_autocomplete_delay(self):
+        """Test validation corrects invalid autocomplete_delay."""
+        settings = Settings(autocomplete_delay=50)  # Too small
+        validated = settings.validate()
+        assert validated.autocomplete_delay == 300
+
+    def test_validate_autocomplete_delay_too_large(self):
+        """Test validation corrects autocomplete_delay above maximum."""
+        settings = Settings(autocomplete_delay=10000)  # Too large
+        validated = settings.validate()
+        assert validated.autocomplete_delay == 300
+
+    def test_validate_invalid_autocomplete_min_chars(self):
+        """Test validation corrects invalid autocomplete_min_chars."""
+        settings = Settings(autocomplete_min_chars=0)  # Too small
+        validated = settings.validate()
+        assert validated.autocomplete_min_chars == 2
+
+    def test_validate_autocomplete_min_chars_too_large(self):
+        """Test validation corrects autocomplete_min_chars above maximum."""
+        settings = Settings(autocomplete_min_chars=20)  # Too large
+        validated = settings.validate()
+        assert validated.autocomplete_min_chars == 2
+
+    def test_validate_invalid_syntax_check_realtime_enabled(self):
+        """Test validation corrects invalid syntax_check_realtime_enabled."""
+        settings = Settings()
+        settings.syntax_check_realtime_enabled = "not a bool"  # type: ignore
+        validated = settings.validate()
+        assert validated.syntax_check_realtime_enabled is True
+
+    def test_validate_invalid_syntax_check_delay(self):
+        """Test validation corrects invalid syntax_check_delay."""
+        settings = Settings(syntax_check_delay=50)  # Too small
+        validated = settings.validate()
+        assert validated.syntax_check_delay == 500
+
+    def test_validate_syntax_check_delay_too_large(self):
+        """Test validation corrects syntax_check_delay above maximum."""
+        settings = Settings(syntax_check_delay=20000)  # Too large
+        validated = settings.validate()
+        assert validated.syntax_check_delay == 500
+
+    def test_validate_invalid_syntax_check_show_underlines(self):
+        """Test validation corrects invalid syntax_check_show_underlines."""
+        settings = Settings()
+        settings.syntax_check_show_underlines = "not a bool"  # type: ignore
+        validated = settings.validate()
+        assert validated.syntax_check_show_underlines is True
+
+    def test_validate_invalid_template_last_category(self):
+        """Test validation corrects invalid template_last_category."""
+        settings = Settings()
+        settings.template_last_category = 123  # type: ignore
+        validated = settings.validate()
+        assert validated.template_last_category == "All"
+
+    def test_validate_invalid_template_recent_limit(self):
+        """Test validation corrects invalid template_recent_limit."""
+        settings = Settings(template_recent_limit=0)  # Too small
+        validated = settings.validate()
+        assert validated.template_recent_limit == 10
+
+    def test_validate_template_recent_limit_too_large(self):
+        """Test validation corrects template_recent_limit above maximum."""
+        settings = Settings(template_recent_limit=100)  # Too large
+        validated = settings.validate()
+        assert validated.template_recent_limit == 10

@@ -566,3 +566,372 @@ class TestChatMessage:
         assert msg_dict["timestamp"] == timestamp
         assert msg_dict["model"] == "llama2"
         assert msg_dict["context_mode"] == "general"
+
+
+@pytest.mark.unit
+class TestCompletionItem:
+    """Test CompletionItem model (v2.0.0+ auto-complete)."""
+
+    def test_completion_item_creation(self):
+        """Test creating a CompletionItem."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        item = CompletionItem(
+            text="= Heading",
+            kind=CompletionKind.SYNTAX,
+            detail="Level 1 heading",
+            score=95.0,
+        )
+
+        assert item.text == "= Heading"
+        assert item.kind == CompletionKind.SYNTAX
+        assert item.detail == "Level 1 heading"
+        assert item.score == 95.0
+
+    def test_completion_item_validation_empty_text(self):
+        """Test CompletionItem validates empty text (lines 417-419)."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            CompletionItem(text="", kind=CompletionKind.SYNTAX, detail="Test")
+
+    def test_completion_item_validation_whitespace_text(self):
+        """Test CompletionItem validates whitespace-only text (lines 417-419)."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            CompletionItem(text="   ", kind=CompletionKind.SYNTAX, detail="Test")
+
+    def test_completion_item_validation_empty_detail(self):
+        """Test CompletionItem validates empty detail (lines 417-419)."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            CompletionItem(text="Test", kind=CompletionKind.SYNTAX, detail="")
+
+    def test_completion_item_validation_score_too_low(self):
+        """Test CompletionItem validates score below 0 (lines 425-427)."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        with pytest.raises(ValueError, match="score must be between 0 and 100"):
+            CompletionItem(
+                text="Test", kind=CompletionKind.SYNTAX, detail="Detail", score=-1.0
+            )
+
+    def test_completion_item_validation_score_too_high(self):
+        """Test CompletionItem validates score above 100 (lines 425-427)."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        with pytest.raises(ValueError, match="score must be between 0 and 100"):
+            CompletionItem(
+                text="Test", kind=CompletionKind.SYNTAX, detail="Detail", score=101.0
+            )
+
+    def test_completion_item_post_init_defaults(self):
+        """Test CompletionItem sets default values in post_init (lines 431-436)."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        item = CompletionItem(text="= Heading", kind=CompletionKind.SYNTAX, detail="Desc")
+
+        # Defaults should be set to text value
+        assert item.insert_text == "= Heading"
+        assert item.sort_text == "= Heading"
+        assert item.filter_text == "= Heading"
+
+    def test_completion_item_post_init_preserves_custom_values(self):
+        """Test CompletionItem preserves custom values in post_init (lines 431-436)."""
+        from asciidoc_artisan.core.models import CompletionItem, CompletionKind
+
+        item = CompletionItem(
+            text="= Heading",
+            kind=CompletionKind.SYNTAX,
+            detail="Desc",
+            insert_text="=",  # Will be stripped due to str_strip_whitespace
+            sort_text="AAA",
+            filter_text="heading",
+        )
+
+        # Custom values should be preserved (note: trailing whitespace stripped)
+        assert item.insert_text == "="
+        assert item.sort_text == "AAA"
+        assert item.filter_text == "heading"
+
+
+@pytest.mark.unit
+class TestCompletionContext:
+    """Test CompletionContext model (v2.0.0+ auto-complete)."""
+
+    def test_completion_context_creation(self):
+        """Test creating a CompletionContext."""
+        from asciidoc_artisan.core.models import CompletionContext
+
+        context = CompletionContext(
+            line="= Heading", prefix="= ", line_number=0, column=2
+        )
+
+        assert context.line == "= Heading"
+        assert context.prefix == "="  # Trailing whitespace stripped by str_strip_whitespace
+        assert context.line_number == 0
+        assert context.column == 2
+
+    def test_completion_context_validation_negative_line(self):
+        """Test CompletionContext validates negative line_number (lines 488-490)."""
+        from asciidoc_artisan.core.models import CompletionContext
+
+        with pytest.raises(ValueError, match="Value must be non-negative"):
+            CompletionContext(line="Test", prefix="", line_number=-1, column=0)
+
+    def test_completion_context_validation_negative_column(self):
+        """Test CompletionContext validates negative column (lines 488-490)."""
+        from asciidoc_artisan.core.models import CompletionContext
+
+        with pytest.raises(ValueError, match="Value must be non-negative"):
+            CompletionContext(line="Test", prefix="", line_number=0, column=-1)
+
+    def test_completion_context_word_before_cursor(self):
+        """Test CompletionContext.word_before_cursor property (lines 495-496)."""
+        from asciidoc_artisan.core.models import CompletionContext
+
+        context = CompletionContext(
+            line="= This is heading", prefix="= This is ", line_number=0, column=10
+        )
+
+        assert context.word_before_cursor == "is"
+
+    def test_completion_context_word_before_cursor_empty(self):
+        """Test CompletionContext.word_before_cursor with empty prefix (lines 495-496)."""
+        from asciidoc_artisan.core.models import CompletionContext
+
+        context = CompletionContext(line="Test", prefix="", line_number=0, column=0)
+
+        assert context.word_before_cursor == ""
+
+
+@pytest.mark.unit
+class TestTextEdit:
+    """Test TextEdit model (v2.0.0+ quick fixes)."""
+
+    def test_text_edit_creation(self):
+        """Test creating a TextEdit."""
+        from asciidoc_artisan.core.models import TextEdit
+
+        edit = TextEdit(
+            start_line=0, start_column=0, end_line=0, end_column=5, new_text="= Heading"
+        )
+
+        assert edit.start_line == 0
+        assert edit.start_column == 0
+        assert edit.end_line == 0
+        assert edit.end_column == 5
+        assert edit.new_text == "= Heading"
+
+    def test_text_edit_validation_negative_positions(self):
+        """Test TextEdit validates negative positions (lines 548-550)."""
+        from asciidoc_artisan.core.models import TextEdit
+
+        with pytest.raises(ValueError, match="Position must be non-negative"):
+            TextEdit(
+                start_line=-1, start_column=0, end_line=0, end_column=0, new_text="Test"
+            )
+
+
+@pytest.mark.unit
+class TestQuickFix:
+    """Test QuickFix model (v2.0.0+ quick fixes)."""
+
+    def test_quick_fix_creation(self):
+        """Test creating a QuickFix."""
+        from asciidoc_artisan.core.models import QuickFix, TextEdit
+
+        fix = QuickFix(
+            title="Add closing delimiter",
+            edits=[
+                TextEdit(
+                    start_line=0,
+                    start_column=0,
+                    end_line=0,
+                    end_column=0,
+                    new_text="----\n",
+                )
+            ],
+        )
+
+        assert fix.title == "Add closing delimiter"
+        assert len(fix.edits) == 1
+
+    def test_quick_fix_validation_empty_title(self):
+        """Test QuickFix validates empty title (lines 595-597)."""
+        from asciidoc_artisan.core.models import QuickFix
+
+        with pytest.raises(ValueError, match="title cannot be empty"):
+            QuickFix(title="", edits=[])
+
+
+@pytest.mark.unit
+class TestSyntaxErrorModel:
+    """Test SyntaxErrorModel (v2.0.0+ syntax checking)."""
+
+    def test_syntax_error_model_creation(self):
+        """Test creating a SyntaxErrorModel."""
+        from asciidoc_artisan.core.models import ErrorSeverity, SyntaxErrorModel
+
+        error = SyntaxErrorModel(
+            code="E001",
+            severity=ErrorSeverity.ERROR,
+            message="Missing closing delimiter",
+            line=10,
+            column=5,
+            length=4,
+        )
+
+        assert error.code == "E001"
+        assert error.severity == ErrorSeverity.ERROR
+        assert error.message == "Missing closing delimiter"
+        assert error.line == 10
+
+    def test_syntax_error_model_validation_invalid_code_length(self):
+        """Test SyntaxErrorModel validates code length (lines 655-661)."""
+        from asciidoc_artisan.core.models import ErrorSeverity, SyntaxErrorModel
+
+        with pytest.raises(ValueError, match="code must be 4 characters"):
+            SyntaxErrorModel(
+                code="E1",
+                severity=ErrorSeverity.ERROR,
+                message="Test",
+                line=0,
+                column=0,
+                length=1,
+            )
+
+    def test_syntax_error_model_validation_invalid_code_prefix(self):
+        """Test SyntaxErrorModel validates code prefix (lines 655-661)."""
+        from asciidoc_artisan.core.models import ErrorSeverity, SyntaxErrorModel
+
+        with pytest.raises(ValueError, match="code must start with E, W, or I"):
+            SyntaxErrorModel(
+                code="X001",
+                severity=ErrorSeverity.ERROR,
+                message="Test",
+                line=0,
+                column=0,
+                length=1,
+            )
+
+    def test_syntax_error_model_validation_invalid_code_suffix(self):
+        """Test SyntaxErrorModel validates code suffix (lines 655-661)."""
+        from asciidoc_artisan.core.models import ErrorSeverity, SyntaxErrorModel
+
+        with pytest.raises(ValueError, match="code must end with 3 digits"):
+            SyntaxErrorModel(
+                code="E00X",
+                severity=ErrorSeverity.ERROR,
+                message="Test",
+                line=0,
+                column=0,
+                length=1,
+            )
+
+    def test_syntax_error_model_validation_empty_message(self):
+        """Test SyntaxErrorModel validates empty message (lines 667-669)."""
+        from asciidoc_artisan.core.models import ErrorSeverity, SyntaxErrorModel
+
+        with pytest.raises(ValueError, match="message cannot be empty"):
+            SyntaxErrorModel(
+                code="E001",
+                severity=ErrorSeverity.ERROR,
+                message="",
+                line=0,
+                column=0,
+                length=1,
+            )
+
+    def test_syntax_error_model_validation_negative_position(self):
+        """Test SyntaxErrorModel validates negative positions (lines 675-677)."""
+        from asciidoc_artisan.core.models import ErrorSeverity, SyntaxErrorModel
+
+        with pytest.raises(ValueError, match="Position must be non-negative"):
+            SyntaxErrorModel(
+                code="E001",
+                severity=ErrorSeverity.ERROR,
+                message="Test",
+                line=-1,
+                column=0,
+                length=1,
+            )
+
+
+@pytest.mark.unit
+class TestTemplateVariable:
+    """Test TemplateVariable model (v2.0.0+ templates)."""
+
+    def test_template_variable_creation(self):
+        """Test creating a TemplateVariable."""
+        from asciidoc_artisan.core.models import TemplateVariable
+
+        var = TemplateVariable(
+            name="title", description="Document title", required=True, type="string"
+        )
+
+        assert var.name == "title"
+        assert var.description == "Document title"
+        assert var.required is True
+        assert var.type == "string"
+
+    def test_template_variable_validation_empty_name(self):
+        """Test TemplateVariable validates empty name (lines 721-723)."""
+        from asciidoc_artisan.core.models import TemplateVariable
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            TemplateVariable(name="", description="Test")
+
+    def test_template_variable_validation_empty_description(self):
+        """Test TemplateVariable validates empty description (lines 721-723)."""
+        from asciidoc_artisan.core.models import TemplateVariable
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            TemplateVariable(name="test", description="")
+
+    def test_template_variable_validation_invalid_type(self):
+        """Test TemplateVariable validates invalid type (lines 729-732)."""
+        from asciidoc_artisan.core.models import TemplateVariable
+
+        with pytest.raises(ValueError, match="type must be one of"):
+            TemplateVariable(name="test", description="Test", type="invalid")
+
+
+@pytest.mark.unit
+class TestTemplate:
+    """Test Template model (v2.0.0+ templates)."""
+
+    def test_template_creation(self):
+        """Test creating a Template."""
+        from asciidoc_artisan.core.models import Template
+
+        template = Template(
+            name="Article", category="Document", description="Standard article template"
+        )
+
+        assert template.name == "Article"
+        assert template.category == "Document"
+        assert template.description == "Standard article template"
+
+    def test_template_validation_empty_name(self):
+        """Test Template validates empty name (lines 790-792)."""
+        from asciidoc_artisan.core.models import Template
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            Template(name="", category="Test", description="Test")
+
+    def test_template_validation_empty_category(self):
+        """Test Template validates empty category (lines 790-792)."""
+        from asciidoc_artisan.core.models import Template
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            Template(name="Test", category="", description="Test")
+
+    def test_template_validation_empty_description(self):
+        """Test Template validates empty description (lines 790-792)."""
+        from asciidoc_artisan.core.models import Template
+
+        with pytest.raises(ValueError, match="Field cannot be empty"):
+            Template(name="Test", category="Test", description="")

@@ -39,9 +39,11 @@ from asciidoc_artisan.core.gpu_detection import (
     GPUDetectionCache,
     GPUInfo,
     check_amd_gpu,
+    check_apple_neural_engine,
     check_dri_devices,
     check_intel_gpu,
     check_intel_npu,
+    check_macos_gpu,
     check_nvidia_gpu,
     check_opengl_renderer,
     check_wslg_environment,
@@ -1308,3 +1310,411 @@ class TestMainCLI:
         captured = capsys.readouterr()
         assert "GPU Detection Cache Manager" in captured.out
         assert "Commands:" in captured.out
+
+
+# ============================================================================
+# MACOS GPU DETECTION TESTS
+# ============================================================================
+
+
+class TestMacOSGPUDetection:
+    """Test suite for macOS GPU detection (Metal framework)."""
+
+    def test_check_macos_gpu_with_metal_via_system_profiler(self, mocker):
+        """Test successful Metal GPU detection via system_profiler."""
+        # Mock subprocess to simulate system_profiler output
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = """Graphics/Displays:
+
+    Apple M1 Pro:
+
+      Chipset Model: Apple M1 Pro
+      Type: GPU
+      Bus: Built-In
+      Total Number of Cores: 16
+      Vendor: Apple (0x106b)
+      Metal: Supported, Metal GPUFamily Apple 7
+        """
+
+        mock_run = mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is True
+        assert gpu_name == "Apple M1 Pro"
+        assert metal_version == "Supported, Metal GPUFamily Apple 7"
+        mock_run.assert_called_once()
+
+    def test_check_macos_gpu_with_discrete_gpu(self, mocker):
+        """Test Metal GPU detection with discrete GPU."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = """Graphics/Displays:
+
+    AMD Radeon Pro 5500M:
+
+      Chipset Model: AMD Radeon Pro 5500M
+      Type: GPU
+      Bus: PCIe
+      Metal Support: Metal 3
+        """
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is True
+        assert gpu_name == "AMD Radeon Pro 5500M"
+        assert metal_version == "Metal 3"
+
+    def test_check_macos_gpu_no_gpu_found_in_output(self, mocker):
+        """Test when system_profiler succeeds but no GPU found."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Some other output without GPU info"
+
+        # First call returns output without GPU info, second call for fallback
+        mock_sysctl = MagicMock()
+        mock_sysctl.returncode = 0
+        mock_sysctl.stdout = "Intel Core i7"  # Not Apple Silicon
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[mock_result, mock_sysctl]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is False
+        assert gpu_name is None
+        assert metal_version is None
+
+    def test_check_macos_gpu_system_profiler_not_found(self, mocker):
+        """Test when system_profiler command not found."""
+        # Mock FileNotFoundError for system_profiler, then success for sysctl
+        mock_sysctl = MagicMock()
+        mock_sysctl.returncode = 0
+        mock_sysctl.stdout = "Apple M2 Max"
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[FileNotFoundError, mock_sysctl]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is True
+        assert gpu_name == "Apple M2 Max Integrated GPU"
+        assert metal_version == "Metal 4"
+
+    def test_check_macos_gpu_system_profiler_timeout(self, mocker):
+        """Test when system_profiler times out."""
+        import subprocess
+
+        # Mock timeout for system_profiler, then success for sysctl
+        mock_sysctl = MagicMock()
+        mock_sysctl.returncode = 0
+        mock_sysctl.stdout = "Apple M1 Ultra"
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[subprocess.TimeoutExpired("system_profiler", 2), mock_sysctl]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is True
+        assert gpu_name == "Apple M1 Ultra Integrated GPU"
+        assert metal_version == "Metal 4"
+
+    def test_check_macos_gpu_apple_silicon_m1(self, mocker):
+        """Test Apple Silicon M1 detection via sysctl fallback."""
+        # system_profiler fails
+        mock_profiler = MagicMock()
+        mock_profiler.returncode = 1
+
+        # sysctl succeeds with M1
+        mock_sysctl = MagicMock()
+        mock_sysctl.returncode = 0
+        mock_sysctl.stdout = "Apple M1"
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[mock_profiler, mock_sysctl]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is True
+        assert "Apple M1 Integrated GPU" == gpu_name
+        assert metal_version == "Metal 4"
+
+    def test_check_macos_gpu_apple_silicon_m3_pro(self, mocker):
+        """Test Apple Silicon M3 Pro detection."""
+        mock_profiler = MagicMock()
+        mock_profiler.returncode = 1
+
+        mock_sysctl = MagicMock()
+        mock_sysctl.returncode = 0
+        mock_sysctl.stdout = "Apple M3 Pro"
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[mock_profiler, mock_sysctl]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is True
+        assert "Apple M3 Pro Integrated GPU" == gpu_name
+        assert metal_version == "Metal 4"
+
+    def test_check_macos_gpu_both_methods_fail(self, mocker):
+        """Test when both detection methods fail."""
+        import subprocess
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[
+                subprocess.TimeoutExpired("system_profiler", 2),
+                FileNotFoundError
+            ]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is False
+        assert gpu_name is None
+        assert metal_version is None
+
+    def test_check_macos_gpu_sysctl_timeout(self, mocker):
+        """Test when sysctl times out."""
+        import subprocess
+
+        mock_profiler = MagicMock()
+        mock_profiler.returncode = 1
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[
+                mock_profiler,
+                subprocess.TimeoutExpired("sysctl", 1)
+            ]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is False
+        assert gpu_name is None
+        assert metal_version is None
+
+    def test_check_macos_gpu_non_apple_silicon(self, mocker):
+        """Test when sysctl returns non-Apple Silicon CPU."""
+        mock_profiler = MagicMock()
+        mock_profiler.returncode = 1
+
+        mock_sysctl = MagicMock()
+        mock_sysctl.returncode = 0
+        mock_sysctl.stdout = "Intel Core i9"
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=[mock_profiler, mock_sysctl]
+        )
+
+        has_gpu, gpu_name, metal_version = check_macos_gpu()
+
+        assert has_gpu is False
+        assert gpu_name is None
+        assert metal_version is None
+
+
+# ============================================================================
+# APPLE NEURAL ENGINE TESTS
+# ============================================================================
+
+
+class TestAppleNeuralEngine:
+    """Test suite for Apple Neural Engine (NPU) detection."""
+
+    def test_check_apple_neural_engine_m1(self, mocker):
+        """Test Neural Engine detection on M1."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M1"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M1 Neural Engine (16-core)"
+
+    def test_check_apple_neural_engine_m1_pro(self, mocker):
+        """Test Neural Engine detection on M1 Pro."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M1 Pro"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M1 Pro Neural Engine (16-core)"
+
+    def test_check_apple_neural_engine_m1_max(self, mocker):
+        """Test Neural Engine detection on M1 Max."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M1 Max"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M1 Max Neural Engine (16-core)"
+
+    def test_check_apple_neural_engine_m1_ultra(self, mocker):
+        """Test Neural Engine detection on M1 Ultra."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M1 Ultra"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M1 Ultra Neural Engine (32-core)"
+
+    def test_check_apple_neural_engine_m2(self, mocker):
+        """Test Neural Engine detection on M2."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M2"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M2 Neural Engine (16-core)"
+
+    def test_check_apple_neural_engine_m2_ultra(self, mocker):
+        """Test Neural Engine detection on M2 Ultra."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M2 Ultra"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M2 Ultra Neural Engine (32-core)"
+
+    def test_check_apple_neural_engine_m3(self, mocker):
+        """Test Neural Engine detection on M3."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M3"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M3 Neural Engine (16-core)"
+
+    def test_check_apple_neural_engine_m4_max(self, mocker):
+        """Test Neural Engine detection on M4 Max."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Apple M4 Max"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        assert npu_name == "Apple M4 Max Neural Engine (16-core)"
+
+    def test_check_apple_neural_engine_exception_in_core_count(self, mocker):
+        """Test fallback when exception occurs during core count detection."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        # Mock an Apple M chip but cause exception in processing
+        mock_result.stdout = "Apple M5"  # Future chip, no specific handling
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is True
+        # Should fall back to generic message
+        assert npu_name == "Apple M5 Neural Engine (16-core)"
+
+    def test_check_apple_neural_engine_non_apple_silicon(self, mocker):
+        """Test when CPU is not Apple Silicon."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "Intel Core i9-9900K"
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is False
+        assert npu_name is None
+
+    def test_check_apple_neural_engine_command_not_found(self, mocker):
+        """Test when sysctl command not found."""
+        mocker.patch("subprocess.run", side_effect=FileNotFoundError)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is False
+        assert npu_name is None
+
+    def test_check_apple_neural_engine_timeout(self, mocker):
+        """Test when sysctl command times out."""
+        import subprocess
+
+        mocker.patch(
+            "subprocess.run",
+            side_effect=subprocess.TimeoutExpired("sysctl", 1)
+        )
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is False
+        assert npu_name is None
+
+    def test_check_apple_neural_engine_command_fails(self, mocker):
+        """Test when sysctl returns non-zero exit code."""
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stdout = ""
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is False
+        assert npu_name is None
+
+    def test_check_apple_neural_engine_empty_output(self, mocker):
+        """Test when sysctl returns empty output."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = ""
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        has_npu, npu_name = check_apple_neural_engine()
+
+        assert has_npu is False
+        assert npu_name is None

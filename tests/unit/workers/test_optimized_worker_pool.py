@@ -491,3 +491,107 @@ class TestWorkerPoolPerformance:
 
         stats = pool.get_statistics()
         print(f"\nCancellation: {stats['canceled']} tasks canceled")
+
+
+class TestExceptionHandling:
+    """Test exception handling in worker pool."""
+
+    def test_runnable_exception_handling(self, app):
+        """Test that exceptions in runnable are caught and logged."""
+        pool = OptimizedWorkerPool(max_threads=1)
+
+        exception_raised = []
+
+        def failing_task():
+            exception_raised.append(True)
+            raise ValueError("Test exception")
+
+        # Should not crash - exception should be caught and logged
+        task_id = pool.submit(failing_task)
+        pool.wait_for_done(1000)
+
+        # Verify task ran (raised exception)
+        assert len(exception_raised) == 1
+
+    def test_cancel_nonexistent_task(self, app):
+        """Test canceling a task that doesn't exist."""
+        pool = OptimizedWorkerPool(max_threads=1)
+
+        # Try to cancel task that was never submitted
+        result = pool.cancel_task("nonexistent_task_id")
+
+        # Should return False (not found)
+        assert result is False
+
+    def test_cancel_task_with_coalesce_key(self, app):
+        """Test canceling task removes coalesce key."""
+        pool = OptimizedWorkerPool(max_threads=1)
+
+        # Block worker thread
+        def blocking_task():
+            time.sleep(1.0)
+
+        pool.submit(blocking_task)
+
+        # Submit task with coalesce key
+        def work():
+            pass
+
+        task_id = pool.submit(work, coalesce_key="test_key")
+
+        # Cancel it before it runs
+        result = pool.cancel_task(task_id)
+
+        # Should successfully cancel
+        assert result is True
+
+        # Submit another task with same coalesce key - should work
+        task_id2 = pool.submit(work, coalesce_key="test_key")
+        assert task_id2 is not None
+        assert task_id2 != task_id  # Different task
+
+
+class TestImportFallback:
+    """Test import fallback for macOS optimizer."""
+
+    def test_macos_optimizer_import_fallback(self, app):
+        """Test fallback when macOS optimizer not available."""
+        import sys
+        from importlib import reload
+
+        # Save original module
+        original_macos = sys.modules.get('asciidoc_artisan.core.macos_optimizer')
+
+        try:
+            # Remove module to simulate import failure
+            if 'asciidoc_artisan.core.macos_optimizer' in sys.modules:
+                del sys.modules['asciidoc_artisan.core.macos_optimizer']
+
+            import builtins
+            original_import = builtins.__import__
+
+            def mock_import(name, *args, **kwargs):
+                if 'macos_optimizer' in name:
+                    raise ImportError("Mocked macos_optimizer import failure")
+                return original_import(name, *args, **kwargs)
+
+            builtins.__import__ = mock_import
+
+            # Reload to trigger import fallback
+            import asciidoc_artisan.workers.optimized_worker_pool as owp
+            reload(owp)
+
+            # Create pool without specifying max_threads to trigger auto-detection
+            pool = owp.OptimizedWorkerPool()
+
+            # Should fall back to multiprocessing.cpu_count()
+            assert pool.max_threads > 0
+            import multiprocessing
+            assert pool.max_threads == multiprocessing.cpu_count()
+
+        finally:
+            # Restore original state
+            builtins.__import__ = original_import
+            if original_macos is not None:
+                sys.modules['asciidoc_artisan.core.macos_optimizer'] = original_macos
+            reload(owp)

@@ -404,6 +404,45 @@ class TestLazyTelemetryImports:
         assert TelemetryEvent is not None
 
 
+class TestLazyDependencyValidatorImports:
+    """Test lazy import of dependency validator classes via __getattr__ (v2.0.1)."""
+
+    def test_dependency_validator_import(self):
+        """Test DependencyValidator class is lazily imported."""
+        import asciidoc_artisan.core as core
+
+        DependencyValidator = getattr(core, "DependencyValidator")
+        assert DependencyValidator is not None
+
+    def test_validate_dependencies_import(self):
+        """Test validate_dependencies function is lazily imported."""
+        import asciidoc_artisan.core as core
+
+        validate_dependencies = getattr(core, "validate_dependencies")
+        assert callable(validate_dependencies)
+
+    def test_dependency_type_import(self):
+        """Test DependencyType enum is lazily imported."""
+        import asciidoc_artisan.core as core
+
+        DependencyType = getattr(core, "DependencyType")
+        assert DependencyType is not None
+
+    def test_dependency_status_import(self):
+        """Test DependencyStatus enum is lazily imported."""
+        import asciidoc_artisan.core as core
+
+        DependencyStatus = getattr(core, "DependencyStatus")
+        assert DependencyStatus is not None
+
+    def test_dependency_import(self):
+        """Test Dependency class is lazily imported."""
+        import asciidoc_artisan.core as core
+
+        Dependency = getattr(core, "Dependency")
+        assert Dependency is not None
+
+
 class TestCachingMechanism:
     """Test that lazy imports are cached for performance."""
 

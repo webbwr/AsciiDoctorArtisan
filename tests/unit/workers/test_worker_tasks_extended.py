@@ -81,6 +81,60 @@ class TestRenderTaskExecution:
         assert mock_api.execute.called
         assert cancellation_checked_after[0]
 
+    def test_render_task_cancellation_before_execute_call(self):
+        """Test RenderTask returns empty string if cancelled before execute (line 86)."""
+        mock_api = Mock()
+        task = RenderTask("= Test", mock_api)
+
+        # Mock is_canceled to return False first, then True at line 86
+        cancel_count = [0]
+
+        def mock_is_canceled():
+            cancel_count[0] += 1
+            # First call (initial check): return False
+            # Second call (line 85-86 before execute): return True to trigger early return
+            return cancel_count[0] >= 2
+
+        task.is_canceled = mock_is_canceled
+
+        # Run task - this triggers line 86
+        task.run()
+
+        # execute should not be called due to cancellation at line 86
+        assert not mock_api.execute.called
+        # Should have checked cancellation at least twice
+        assert cancel_count[0] >= 2
+
+    def test_render_task_cancellation_after_execute_call(self):
+        """Test RenderTask returns empty string if cancelled after execute (line 93)."""
+        mock_api = Mock()
+
+        def execute_then_cancel(infile, outfile, backend):
+            outfile.write("<html>Test</html>")
+
+        mock_api.execute.side_effect = execute_then_cancel
+
+        task = RenderTask("= Test", mock_api)
+
+        # Mock is_canceled to return False until after execute
+        cancel_count = [0]
+
+        def mock_is_canceled():
+            cancel_count[0] += 1
+            # First two calls: return False
+            # Third call (line 92-93 after execute): return True
+            return cancel_count[0] >= 3
+
+        task.is_canceled = mock_is_canceled
+
+        # Run task - this triggers line 93
+        task.run()
+
+        # execute should have been called
+        assert mock_api.execute.called
+        # Should have checked cancellation at least 3 times
+        assert cancel_count[0] >= 3
+
 
 @pytest.mark.unit
 class TestConversionTaskExecution:
@@ -129,6 +183,55 @@ class TestConversionTaskExecution:
 
         # Should not call pypandoc
         assert not mock_convert_text.called
+
+    @patch("pypandoc.convert_text")
+    def test_conversion_task_cancellation_after_import_line_160(self, mock_convert_text):
+        """Test ConversionTask returns cancelled result if cancelled after import (line 160)."""
+        task = ConversionTask("Test", "asciidoc", "markdown")
+
+        # Mock is_canceled to return False for initial checks, then True at line 160
+        cancel_count = [0]
+
+        def mock_is_canceled():
+            cancel_count[0] += 1
+            # First call (initial check): return False to pass
+            # Second call (line 159-160 after import): return True
+            return cancel_count[0] >= 2
+
+        task.is_canceled = mock_is_canceled
+
+        # Run task - this triggers line 160
+        task.run()
+
+        # convert should not have been called due to cancellation at line 160
+        assert not mock_convert_text.called
+        # Should have checked cancellation at least twice
+        assert cancel_count[0] >= 2
+
+    @patch("pypandoc.convert_text")
+    def test_conversion_task_cancellation_after_convert_line_174(self, mock_convert_text):
+        """Test ConversionTask returns cancelled result if cancelled after convert (line 174)."""
+        mock_convert_text.return_value = "Converted"
+        task = ConversionTask("Test", "asciidoc", "markdown")
+
+        # Mock is_canceled to return False until after convert
+        cancel_count = [0]
+
+        def mock_is_canceled():
+            cancel_count[0] += 1
+            # First two calls: return False
+            # Third call (line 173-174 after convert): return True
+            return cancel_count[0] >= 3
+
+        task.is_canceled = mock_is_canceled
+
+        # Run task - this triggers line 174
+        task.run()
+
+        # convert should have been called
+        assert mock_convert_text.called
+        # Should have checked cancellation at least 3 times
+        assert cancel_count[0] >= 3
 
     @patch("pypandoc.convert_text")
     def test_conversion_task_cancellation_after_import(self, mock_convert_text):
@@ -298,6 +401,38 @@ class TestGitTaskExecution:
 
         # Should have called subprocess
         assert mock_run.called
+
+    @patch("subprocess.run")
+    def test_git_task_cancellation_at_line_246(self, mock_run, tmp_path):
+        """Test GitTask returns cancelled result at line 246 check."""
+        mock_run.return_value = Mock(
+            returncode=0,
+            stdout="Success",
+            stderr="",
+            args=["git", "status"],
+        )
+
+        task = GitTask(["git", "status"], tmp_path)
+
+        # Mock is_canceled to return False until after subprocess
+        cancel_count = [0]
+
+        def mock_is_canceled():
+            cancel_count[0] += 1
+            # First two calls: return False
+            # Third call (line 245-246 after subprocess): return True
+            return cancel_count[0] >= 3
+
+        task.is_canceled = mock_is_canceled
+
+        # Run task - this should trigger line 246
+        result = task.run()
+
+        # Should have called subprocess
+        assert mock_run.called
+        # Result should be cancelled GitResult
+        # (GitTask returns GitResult object, not tuple)
+        assert result is None  # run() doesn't return, stores in _result
 
     def test_git_task_error_signal_structure(self, tmp_path):
         """Test GitTask has error signal (structure test)."""
