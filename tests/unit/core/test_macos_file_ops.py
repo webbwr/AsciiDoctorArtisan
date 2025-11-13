@@ -440,3 +440,33 @@ class TestEdgeCases:
         result = apfs_fast_directory_size("/tmp/empty")
 
         assert result == 0
+
+
+@pytest.mark.unit
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    @patch("asciidoc_artisan.core.macos_file_ops.subprocess.run")
+    def test_directory_size_fallback_exception_handling(self, mock_run, caplog):
+        """Test exception handling in fallback directory size calculation (lines 175-177)."""
+        import logging
+
+        caplog.set_level(logging.ERROR)
+
+        # Make subprocess fail to trigger Python fallback
+        mock_run.return_value = MagicMock(returncode=1)
+
+        # Patch Path.rglob to raise an exception during fallback calculation
+        with patch("pathlib.Path.rglob") as mock_rglob:
+            mock_rglob.side_effect = PermissionError("Access denied to directory")
+
+            result = apfs_fast_directory_size("/tmp/testdir")
+
+            # Should return 0 after catching exception
+            assert result == 0
+
+            # Should have logged the error (lines 176-177)
+            assert any(
+                "Directory size calculation failed" in record.message
+                for record in caplog.records
+            )
