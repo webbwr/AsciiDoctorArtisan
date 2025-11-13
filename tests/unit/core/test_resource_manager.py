@@ -340,8 +340,8 @@ class TestResourceManagerEdgeCases:
 
     def test_destructor_cleanup(self):
         """Test __del__ calls cleanup_all."""
-        import unittest.mock as mock
         import gc
+        import unittest.mock as mock
 
         # Create a separate ResourceManager instance (not self.rm)
         ResourceManager._instance = None
@@ -361,6 +361,25 @@ class TestResourceManagerEdgeCases:
             # Note: In some Python implementations, __del__ may not be called immediately
             # So we check if it was called at most once (0 or 1 times)
             assert mock_cleanup.call_count <= 1
+
+    def test_destructor_executes_cleanup(self):
+        """Test __del__ actually executes cleanup_all code (line 266)."""
+        from pathlib import Path
+
+        # Create a separate ResourceManager instance
+        ResourceManager._instance = None
+        rm = ResourceManager.get_instance()
+
+        # Create temp file to verify cleanup
+        temp_file = Path(rm.create_temp_file())
+        assert temp_file.exists()
+
+        # Explicitly call __del__ to cover line 266
+        rm.__del__()
+
+        # File should be cleaned up
+        assert not temp_file.exists()
+        assert rm._cleaned_up is True
 
     def test_cleanup_file_already_deleted(self):
         """Test cleanup_file when file already deleted externally."""

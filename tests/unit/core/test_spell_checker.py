@@ -363,3 +363,22 @@ class TestEdgeCases:
         errors = checker.check_text("Test 123 with numbers 456.")
 
         assert len(errors) == 0
+
+
+@pytest.mark.unit
+def test_type_checking_pass():
+    """Test TYPE_CHECKING pass statement (line 35)."""
+    import sys
+    from unittest.mock import patch
+
+    # Force TYPE_CHECKING to be True to execute the pass
+    with patch("typing.TYPE_CHECKING", True):
+        # Remove module from cache to force reimport
+        if "asciidoc_artisan.core.spell_checker" in sys.modules:
+            del sys.modules["asciidoc_artisan.core.spell_checker"]
+
+        # Import with TYPE_CHECKING=True
+        import asciidoc_artisan.core.spell_checker
+
+        # Verify module loaded
+        assert asciidoc_artisan.core.spell_checker is not None

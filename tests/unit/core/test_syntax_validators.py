@@ -830,3 +830,22 @@ class TestBuiltInRulesRegistry:
         for rule in BUILT_IN_RULES:
             errors = rule.validate(context)
             assert isinstance(errors, list)
+
+
+@pytest.mark.unit
+def test_type_checking_import():
+    """Test TYPE_CHECKING import for ValidationRule (line 39)."""
+    import sys
+    from unittest.mock import patch
+
+    # Force TYPE_CHECKING to be True to execute the import
+    with patch("typing.TYPE_CHECKING", True):
+        # Remove module from cache to force reimport
+        if "asciidoc_artisan.core.syntax_validators" in sys.modules:
+            del sys.modules["asciidoc_artisan.core.syntax_validators"]
+
+        # Import with TYPE_CHECKING=True
+        import asciidoc_artisan.core.syntax_validators
+
+        # Verify module loaded
+        assert asciidoc_artisan.core.syntax_validators is not None

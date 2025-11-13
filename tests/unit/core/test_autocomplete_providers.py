@@ -4,8 +4,9 @@ Tests for autocomplete_providers module.
 Tests all 5 provider classes for AsciiDoc auto-completion.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from asciidoc_artisan.core.autocomplete_providers import (
     AttributeProvider,
@@ -53,7 +54,9 @@ class TestSyntaxProvider:
         """Test built-in completions include block elements."""
         provider = SyntaxProvider()
 
-        block_items = [item for item in provider.completions if item.text.startswith("[")]
+        block_items = [
+            item for item in provider.completions if item.text.startswith("[")
+        ]
         assert len(block_items) >= 7  # source, example, NOTE, TIP, etc.
 
     def test_get_completions_default_returns_all(self):
@@ -490,15 +493,21 @@ class TestIncludeProvider:
         assert any("intro.adoc" in text for text in texts)
 
     def test_get_file_completions_handles_errors_gracefully(self):
-        """Test file completions handle errors gracefully."""
-        # Use invalid path
-        provider = IncludeProvider(current_file_path="/nonexistent/path")
+        """Test file completions handle errors gracefully (lines 529-531)."""
+        from unittest.mock import Mock
 
-        # Should not raise exception
+        provider = IncludeProvider()
+
+        # Mock base_dir.rglob to raise an exception
+        provider.base_dir = Mock()
+        provider.base_dir.rglob.side_effect = PermissionError("Access denied")
+
+        # Should not raise exception - should catch and return empty list
         items = provider._get_file_completions()
 
-        # May return empty or handle error
+        # Should return empty list after exception
         assert isinstance(items, list)
+        assert len(items) == 0
 
 
 @pytest.mark.unit

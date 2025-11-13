@@ -616,6 +616,27 @@ async def test_async_atomic_save_json_cleanup_exception(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_async_file_context_binary_mode(tmp_path):
+    """Test AsyncFileContext with binary mode (line 353)."""
+    test_file = tmp_path / "test.bin"
+    binary_content = b"\x00\x01\x02\x03\x04\x05Binary data"
+    test_file.write_bytes(binary_content)
+
+    # Read in binary mode
+    async with AsyncFileContext(test_file, "rb") as f:
+        result = await f.read()
+
+    assert result == binary_content
+
+    # Write in binary mode
+    new_content = b"\xff\xfe\xfd\xfc"
+    async with AsyncFileContext(tmp_path / "new.bin", "wb") as f:
+        await f.write(new_content)
+
+    assert (tmp_path / "new.bin").read_bytes() == new_content
+
+
+@pytest.mark.asyncio
 async def test_async_file_context_without_aiofiles(tmp_path):
     """Test AsyncFileContext when aiofiles unavailable (lines 342-343)."""
     from unittest.mock import patch
@@ -628,7 +649,7 @@ async def test_async_file_context_without_aiofiles(tmp_path):
     with patch("asciidoc_artisan.core.async_file_ops.AIOFILES_AVAILABLE", False):
         ctx = AsyncFileContext(test_file)
         with pytest.raises(RuntimeError, match="aiofiles not available"):
-            async with ctx as f:
+            async with ctx:
                 pass
 
 

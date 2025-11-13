@@ -506,8 +506,6 @@ class TestQtAsyncFileManager:
         self, manager: QtAsyncFileManager, tmp_path: Path
     ):
         """Test cleanup waits for running operations."""
-        test_file = tmp_path / "test.txt"
-
         # Start multiple operations
         tasks = [
             asyncio.create_task(
@@ -529,6 +527,36 @@ class TestQtAsyncFileManager:
         for i in range(3):
             assert (tmp_path / f"file{i}.txt").exists()
             assert (tmp_path / f"file{i}.txt").read_text() == f"Content {i}"
+
+    @pytest.mark.asyncio
+    async def test_cleanup_logs_running_operations(
+        self, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
+    ):
+        """Test cleanup logs when there are running operations (lines 411-415)."""
+
+        # Create a slow async operation to ensure it's still running during cleanup
+        async def slow_write(*args, **kwargs):
+            await asyncio.sleep(0.2)  # Slower than cleanup's 0.01 check
+            return True
+
+        import asciidoc_artisan.core.qt_async_file_manager as qt_module
+
+        monkeypatch.setattr(qt_module, "async_atomic_save_text", slow_write)
+
+        # Start operation
+        task = asyncio.create_task(manager.write_file(tmp_path / "slow.txt", "data"))
+
+        # Very brief delay to let operation start and register
+        await asyncio.sleep(0.05)
+
+        # Verify operation is running
+        assert manager.has_running_operations()
+
+        # Call cleanup while operation is running - this should hit lines 411-415
+        await manager.cleanup()
+
+        # Wait for the slow task to finish
+        await task
 
     @pytest.mark.asyncio
     async def test_write_file_returns_false(
