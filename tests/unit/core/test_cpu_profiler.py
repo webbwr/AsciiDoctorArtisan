@@ -288,6 +288,41 @@ class TestProfileResult:
         assert result.hotspots[0]["function"] == "foo"
 
 
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    def test_parse_hotspots_with_malformed_stats(self):
+        """Test _parse_hotspots handles malformed stats gracefully (lines 205-206)."""
+        profiler = CPUProfiler(enabled=True)
+
+        # Create malformed stats output that will trigger ValueError/IndexError
+        malformed_stats = """
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        5    invalid  0.000    0.001  0.000 test.py:1(func1)
+        not_a_number  0.001  0.000  0.001  0.000 test.py:2(func2)
+        10  0.001  0.000  BAD  0.000 test.py:3(func3)
+        short_line
+        """
+
+        # This should not raise exception - malformed lines should be skipped
+        hotspots = profiler._parse_hotspots(malformed_stats)
+
+        # Should return empty list or skip malformed entries
+        # The continue on lines 205-206 handles these cases
+        assert isinstance(hotspots, list)
+
+    def test_get_hotspots_with_no_results(self):
+        """Test get_hotspots returns empty list when no results exist (line 235)."""
+        profiler = CPUProfiler(enabled=True)
+
+        # Call get_hotspots for non-existent operation
+        # This should hit line 235: return []
+        hotspots = profiler.get_hotspots("nonexistent_operation", limit=5)
+
+        assert hotspots == []
+        assert len(hotspots) == 0
+
+
 class TestCPUProfilerIntegration:
     """Integration tests for CPU profiler."""
 
