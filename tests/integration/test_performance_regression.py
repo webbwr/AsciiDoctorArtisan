@@ -231,7 +231,7 @@ def test_adaptive_debouncer_overhead():
 
     for i in range(iterations):
         debouncer.on_text_changed()
-        delay = debouncer.calculate_delay(document_size=10000)
+        debouncer.calculate_delay(document_size=10000)
 
     duration_ms = (time.perf_counter() - start) * 1000
     per_calculation_us = (duration_ms * 1000) / iterations

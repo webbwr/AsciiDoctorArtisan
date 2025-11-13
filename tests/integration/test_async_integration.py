@@ -56,16 +56,25 @@ def editor_with_async(qtbot, qasync_app, test_settings):
         # Cleanup
         window._unsaved_changes = False
 
-        # Stop worker threads
-        if hasattr(window, "git_thread") and window.git_thread:
-            window.git_thread.quit()
-            window.git_thread.wait(1000)
-        if hasattr(window, "pandoc_thread") and window.pandoc_thread:
-            window.pandoc_thread.quit()
-            window.pandoc_thread.wait(1000)
-        if hasattr(window, "preview_thread") and window.preview_thread:
-            window.preview_thread.quit()
-            window.preview_thread.wait(1000)
+        # Stop worker threads if still exist
+        try:
+            if hasattr(window, "git_thread") and window.git_thread:
+                window.git_thread.quit()
+                window.git_thread.wait(1000)
+        except RuntimeError:
+            pass  # Thread already deleted
+        try:
+            if hasattr(window, "pandoc_thread") and window.pandoc_thread:
+                window.pandoc_thread.quit()
+                window.pandoc_thread.wait(1000)
+        except RuntimeError:
+            pass  # Thread already deleted
+        try:
+            if hasattr(window, "preview_thread") and window.preview_thread:
+                window.preview_thread.quit()
+                window.preview_thread.wait(1000)
+        except RuntimeError:
+            pass  # Thread already deleted
 
 
 @pytest.fixture

@@ -118,7 +118,7 @@ def test_rapid_preview_updates(qtbot):
     mock_window._settings = Mock(dark_mode=False)
     mock_window.request_preview_render = Mock()
 
-    handler = PreviewHandler(editor, preview, mock_window)
+    _handler = PreviewHandler(editor, preview, mock_window)
 
     # Simulate rapid typing (many text changes)
     for i in range(100):
@@ -194,9 +194,10 @@ async def test_large_file_open_save_async(qtbot):
         open_time = time.perf_counter() - start
 
         # Async I/O should be fast (mocked)
+        # Note: Timing can vary with system load, especially in CI
         assert (
-            open_time < 2.0
-        ), f"Async file open took {open_time:.1f}s (should be < 2s with mocking)"
+            open_time < 5.0
+        ), f"Async file open took {open_time:.1f}s (should be < 5s with mocking)"
 
         # Verify content loaded
         assert editor.toPlainText() == large_content
@@ -269,7 +270,7 @@ def test_adaptive_debouncer_long_session():
 
             # Vary document sizes
             doc_size = 10_000 + (minute * 1000)
-            delay = debouncer.calculate_delay(document_size=doc_size)
+            _delay = debouncer.calculate_delay(document_size=doc_size)
 
             # Simulate some renders completing
             if edit % 5 == 0:

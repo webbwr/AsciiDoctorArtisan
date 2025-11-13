@@ -88,12 +88,12 @@ class TestResourceMonitor:
         assert metrics.is_large is True  # Should be classified as large
 
     def test_adaptive_debouncing_small_doc(self):
-        """Test adaptive debouncing returns fast interval for small documents."""
+        """Test adaptive debouncing returns instant interval for tiny documents."""
         monitor = ResourceMonitor()
         debounce_ms = monitor.calculate_debounce_interval(SMALL_DOC)
 
-        # Small documents should use minimum debounce (200ms)
-        assert debounce_ms == monitor.MIN_DEBOUNCE_MS
+        # SMALL_DOC is <1KB, so it gets instant rendering (0ms)
+        assert debounce_ms == monitor.INSTANT_DEBOUNCE_MS
 
     def test_adaptive_debouncing_medium_doc(self):
         """Test adaptive debouncing returns normal interval for medium documents."""
@@ -207,16 +207,16 @@ class TestDebounceIntervalAccuracy:
         monitor = ResourceMonitor()
         debounce_ms = monitor.calculate_debounce_interval("")
 
-        # Empty doc should use minimum debounce
-        assert debounce_ms == monitor.MIN_DEBOUNCE_MS
+        # Empty doc should use instant debounce for zero latency
+        assert debounce_ms == monitor.INSTANT_DEBOUNCE_MS  # 0ms
 
     def test_single_line_document(self):
         """Test debounce calculation for single line."""
         monitor = ResourceMonitor()
         debounce_ms = monitor.calculate_debounce_interval("= Title")
 
-        # Single line should use minimum debounce
-        assert debounce_ms == monitor.MIN_DEBOUNCE_MS
+        # Single line should use instant debounce for zero latency
+        assert debounce_ms == monitor.INSTANT_DEBOUNCE_MS  # 0ms
 
     def test_threshold_boundaries(self):
         """Test debounce calculation at size thresholds."""

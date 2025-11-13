@@ -35,7 +35,7 @@ def test_preview_handler_cleanup(qtbot):
     handler = PreviewHandler(editor, preview, mock_window)
 
     # Get initial reference count
-    handler_refs_before = sys.getrefcount(handler)
+    sys.getrefcount(handler)
 
     # Delete handler
     del handler
@@ -223,14 +223,14 @@ def test_adaptive_debouncer_history_bounded():
     # Simulate many text changes and renders
     for i in range(10_000):
         # Record keystroke (updates _keystroke_times list)
-        delay = debouncer.calculate_delay(document_size=1000)
+        debouncer.calculate_delay(document_size=1000)
 
         if i % 10 == 0:
             # Record render time (updates _recent_render_times list)
             debouncer.calculate_delay(document_size=1000, last_render_time=0.1)
 
     # History should be bounded
-    stats = debouncer.get_statistics()
+    debouncer.get_statistics()
 
     # Lists should have max length
     assert len(debouncer._recent_render_times) <= debouncer._max_recent_renders
@@ -330,13 +330,13 @@ def test_theme_manager_css_cache_bounded():
     manager = ThemeManager(mock_editor)
 
     # Get initial cache state
-    initial_cache_size = sys.getsizeof(manager._cached_light_css or "")
+    sys.getsizeof(manager._cached_light_css or "")
 
     # Generate CSS multiple times
     for i in range(1000):
         # Toggle dark mode
         mock_editor._settings.dark_mode = i % 2 == 0
-        css = manager.get_preview_css()
+        manager.get_preview_css()
 
     # Cache should be bounded (only 2 entries max - dark and light)
     light_cache_size = sys.getsizeof(manager._cached_light_css or "")

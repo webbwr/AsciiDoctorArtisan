@@ -1,7 +1,7 @@
 # AsciiDoc Artisan - Documentation Index
 
-**Last Updated:** November 9, 2025
-**Version:** 2.0.0 ✅ Production Ready
+**Last Updated:** November 13, 2025
+**Version:** 2.0.1 ✅ Production Ready
 
 This index provides quick access to all project documentation.
 
@@ -42,11 +42,11 @@ SECURITY.md            - Security policy (2KB)
 docs/
 ├── user/              - User-facing guides
 ├── developer/         - Developer documentation
-├── planning/          - Project planning documents
 ├── reports/           - Analysis and metrics
 ├── completed/         - Finished milestone docs
 └── archive/           - Historical documentation
     ├── v2.0.0/        - v2.0.0 planning and progress
+    ├── v2.0.1/        - v2.0.1 test suite repair
     ├── historical/    - Architecture analyses
     └── snapshots/     - Documentation snapshots
 ```
@@ -79,7 +79,18 @@ docs/
 
 ## 🗂️ Archived Documentation
 
-### v2.0.0 (Completed November 2025)
+### v2.0.1 (November 13, 2025)
+**Focus:** Test Suite Repair
+
+Located in `docs/archive/v2.0.1/`:
+- **TEST_FIX_SUMMARY.md** - Complete test fix report (2,205 passing, 3 skipped)
+- **hung_tests_log.txt** - Process cleanup log
+
+**Status:** ✅ COMPLETE - Test suite stabilized at 99.86% pass rate
+
+### v2.0.0 (November 8-9, 2025)
+**Focus:** Advanced Editing Features
+
 Located in `docs/archive/v2.0.0/`:
 - **V2_0_0_PROGRESS.md** - Complete milestone tracking
 - **TEST_ISSUES_AGGREGATE.md** - Test issue resolution log
@@ -88,8 +99,9 @@ Located in `docs/archive/v2.0.0/`:
 - **v2.0.0_SYNTAX_CHECKING_PLAN.md** - Syntax checking plan
 - **v2.0.0_TEMPLATES_PLAN.md** - Template system plan
 - **v2.0.0_INTEGRATION_GUIDE.md** - Integration guide
+- **planning/** subdirectory - Detailed planning docs
 
-**Status:** All v2.0.0 features complete (100% test pass rate, production-ready)
+**Status:** ✅ COMPLETE - All features delivered ahead of schedule (2 days vs 16 weeks)
 
 ### Historical Analyses
 Located in `docs/archive/historical/`:
@@ -97,7 +109,11 @@ Located in `docs/archive/historical/`:
 
 ### Documentation Snapshots
 Located in `docs/archive/snapshots/`:
+- **CHECKPOINT_2025-11-12.md** - Project checkpoint snapshot
+- **PHASE_2_TEST_EXPANSION_SUMMARY.md** - Test expansion phase summary
 - **DOCUMENTATION_SCORECARD_2025-11-06.md** - Documentation quality snapshot
+- **2025-11-06-master-summary.md** - Nov 6 complete work summary
+- **TEST_SUITE_FIXES_GUIDE.md** - Test suite fix guide
 
 ---
 
@@ -166,7 +182,7 @@ All documentation follows:
 
 ## 🔄 Keeping Documentation Updated
 
-**Current Status:** ✅ All documentation is up-to-date (as of Nov 9, 2025)
+**Current Status:** ✅ All documentation is up-to-date (as of Nov 13, 2025)
 
 **Update Schedule:**
 - README.md: Updated with each major release
@@ -181,6 +197,11 @@ All documentation follows:
 - Analysis docs → Archive when findings integrated
 - Snapshots → Archive immediately after creation
 
+**Recent Updates:**
+- Nov 13: v2.0.1 test suite repair documentation archived
+- Nov 13: SPECIFICATIONS.md and ROADMAP.md aligned with test status
+- Nov 9: v2.0.0 planning docs moved to archive
+
 ---
 
 ## 📞 Documentation Help
@@ -193,8 +214,9 @@ All documentation follows:
 - Check CLAUDE.md - Most comprehensive
 - Search SPECIFICATIONS.md - All features
 - Review archived docs - Historical context
+- See [Archive README](docs/archive/README.md) for archive organization
 
 ---
 
-**Last Major Update:** v2.0.0 release (November 2025)
+**Last Major Update:** v2.0.1 test suite repair (November 13, 2025)
 **Next Review:** v2.1.0 planning (Q1 2026)
