@@ -1718,3 +1718,164 @@ class TestAppleNeuralEngine:
 
         assert has_npu is False
         assert npu_name is None
+
+
+@pytest.mark.unit
+class TestCoverageImprovements:
+    """Tests to achieve 100% coverage."""
+
+    def test_check_apple_neural_engine_exception_in_string_check(self, mocker):
+        """Test exception handling during neural engine string checks (lines 417, 419)."""
+        from unittest.mock import MagicMock
+
+        # Create a mock object that raises exception when used in f-string (once only)
+        class BadString(str):
+            call_count = 0
+
+            def __new__(cls, value):
+                instance = str.__new__(cls, value)
+                instance._value = value
+                return instance
+
+            def strip(self):
+                # Return self to preserve the BadString type
+                return self
+
+            def __contains__(self, item):
+                # Allow normal string checks to pass
+                return item in self._value
+
+            def __format__(self, format_spec):
+                # Raise exception only on first call (in try block)
+                # Allow second call (in except block) to succeed
+                BadString.call_count += 1
+                if BadString.call_count == 1:
+                    raise RuntimeError("Simulated formatting exception")
+                # After first exception, return normal string
+                return str(self._value)
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = BadString("Apple M1")
+
+        mocker.patch("subprocess.run", return_value=mock_result)
+
+        # This should trigger the exception handler at lines 417-419
+        has_npu, npu_name = check_apple_neural_engine()
+
+        # Should still detect Apple Silicon but fall back to generic message
+        assert has_npu is True
+        assert "Apple M1 Neural Engine" in npu_name
+        assert "core)" not in npu_name  # Should not have core count
+
+    def test_detect_compute_capabilities_metal_success(self, mocker):
+        """Test Metal detection success path (line 485)."""
+        # Mock platform.system to return Darwin
+        mocker.patch("platform.system", return_value="Darwin")
+
+        # Mock subprocess.run for system_profiler
+        def mock_run(args, **kwargs):
+            if args == ["system_profiler", "SPDisplaysDataType"]:
+                result = MagicMock()
+                result.returncode = 0
+                result.stdout = "Chipset Model: Apple M1\nMetal: Supported"
+                return result
+            # Default mock for other calls
+            result = MagicMock()
+            result.returncode = 1
+            return result
+
+        mocker.patch("subprocess.run", side_effect=mock_run)
+
+        capabilities = detect_compute_capabilities()
+
+        assert "metal" in capabilities
+
+    def test_detect_gpu_macos_no_gpu(self, mocker):
+        """Test macOS path when no GPU detected (lines 503, 506, 508, 510)."""
+        # Mock platform.system to return Darwin
+        mocker.patch("platform.system", return_value="Darwin")
+
+        # Mock check_macos_gpu to return no GPU
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.check_macos_gpu",
+            return_value=(False, None, None),
+        )
+
+        # Mock cache operations
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load",
+            return_value=None,
+        )
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.save"
+        )
+
+        gpu_info = detect_gpu()
+
+        # Should return no GPU detected
+        assert gpu_info.has_gpu is False
+        assert gpu_info.can_use_webengine is False
+        assert "No Metal-compatible GPU" in gpu_info.reason
+
+    def test_detect_gpu_macos_with_npu(self, mocker):
+        """Test macOS path with GPU and NPU detected (lines 517, 518, 521, 525)."""
+        # Mock platform.system to return Darwin
+        mocker.patch("platform.system", return_value="Darwin")
+
+        # Mock check_macos_gpu to return GPU
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.check_macos_gpu",
+            return_value=(True, "Apple M1", "Metal 3.1"),
+        )
+
+        # Mock check_apple_neural_engine to return NPU
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.check_apple_neural_engine",
+            return_value=(True, "Apple M1 Neural Engine (16-core)"),
+        )
+
+        # Mock detect_compute_capabilities
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.detect_compute_capabilities",
+            return_value=["metal", "opencl"],
+        )
+
+        # Mock cache operations
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load",
+            return_value=None,
+        )
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.save"
+        )
+
+        gpu_info = detect_gpu()
+
+        # Should return GPU with NPU
+        assert gpu_info.has_gpu is True
+        assert gpu_info.has_npu is True
+        assert gpu_info.npu_name == "Apple M1 Neural Engine (16-core)"
+        assert gpu_info.npu_type == "apple_neural_engine"
+        assert "metal" in gpu_info.compute_capabilities
+
+    def test_log_gpu_info_with_metal_version(self, caplog):
+        """Test logging GPU info with metal_version (line 627)."""
+        import logging
+
+        caplog.set_level(logging.INFO)
+
+        gpu_info = GPUInfo(
+            has_gpu=True,
+            gpu_type="apple",
+            gpu_name="Apple M1",
+            can_use_webengine=True,
+            driver_version="1.0",
+            metal_version="Metal 3.1",
+            render_device="Apple M1",
+        )
+
+        log_gpu_info(gpu_info)
+
+        # Check that metal_version was logged (line 627)
+        assert any("Metal version: Metal 3.1" in record.message for record in caplog.records)
