@@ -20,23 +20,28 @@ TEMPLATE_OUTPUT = $(TEMPLATE_DIR)/output
 ASCIIDOCTOR = asciidoctor
 ASCIIDOCTOR_PDF = asciidoctor-pdf
 
-.PHONY: help install install-dev test lint format clean build run mutate mutate-report
+.PHONY: help install install-dev test test-fast test-unit test-integration test-slow lint format clean build run mutate mutate-report
 
 # Default target
 help:
 	@echo "AsciiDoc Artisan Build System"
 	@echo ""
 	@echo "Python Application Commands:"
-	@echo "  make install      - Install production dependencies"
-	@echo "  make install-dev  - Install development dependencies"
-	@echo "  make test         - Run tests"
-	@echo "  make lint         - Run linters"
-	@echo "  make format       - Format code"
-	@echo "  make clean        - Clean build artifacts"
-	@echo "  make build        - Build package"
-	@echo "  make run          - Run the application"
-	@echo "  make mutate       - Run mutation testing (slow)"
-	@echo "  make mutate-report - Show mutation testing report"
+	@echo "  make install          - Install production dependencies"
+	@echo "  make install-dev      - Install development dependencies"
+	@echo "  make test             - Run all tests with coverage"
+	@echo "  make test-fast        - Run fast tests only (unit, no slow)"
+	@echo "  make test-unit        - Run unit tests only"
+	@echo "  make test-integration - Run integration tests only"
+	@echo "  make test-slow        - Run slow tests only"
+	@echo "  make test-perf        - Run performance tests with metrics"
+	@echo "  make lint             - Run linters"
+	@echo "  make format           - Format code"
+	@echo "  make clean            - Clean build artifacts"
+	@echo "  make build            - Build package"
+	@echo "  make run              - Run the application"
+	@echo "  make mutate           - Run mutation testing (slow)"
+	@echo "  make mutate-report    - Show mutation testing report"
 	@echo ""
 	@echo "AsciiDoc Template Commands:"
 	@echo "  make template-html    - Build template HTML documentation"
@@ -56,6 +61,26 @@ install-dev:
 
 test:
 	$(PYTEST) $(TESTS_DIR)/ -v --cov=$(SRC_DIR) --cov-report=term-missing --cov-report=html
+
+test-fast:
+	@echo "Running fast tests (unit, no slow markers)..."
+	$(PYTEST) $(TESTS_DIR)/unit/ -v -m "not slow" --durations=10
+
+test-unit:
+	@echo "Running unit tests only..."
+	$(PYTEST) $(TESTS_DIR)/unit/ -v --durations=10
+
+test-integration:
+	@echo "Running integration tests..."
+	$(PYTEST) $(TESTS_DIR)/integration/ -v --durations=10
+
+test-slow:
+	@echo "Running slow tests..."
+	$(PYTEST) $(TESTS_DIR)/ -v -m "slow" --durations=20
+
+test-perf:
+	@echo "Running performance tests with detailed metrics..."
+	$(PYTEST) $(TESTS_DIR)/performance/ $(TESTS_DIR)/integration/test_performance*.py -v --durations=20
 
 lint:
 	$(RUFF) check $(SRC_DIR)

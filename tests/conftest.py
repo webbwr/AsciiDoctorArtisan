@@ -2,6 +2,12 @@
 Pytest configuration and fixtures for AsciiDoc Artisan tests.
 
 Provides shared fixtures, performance profiling, and coverage tracking.
+
+Performance Optimizations:
+- Session-scoped fixtures for expensive setup
+- Fast mock factories
+- Optimized Qt application handling
+- Performance metrics tracking
 """
 
 import os
@@ -13,6 +19,9 @@ import pytest
 
 # Set Qt to use offscreen platform for headless testing
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
+# Disable keyring to prevent macOS Security.framework issues
+os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"
 
 # Performance tracking
 _test_metrics = {}
@@ -110,7 +119,7 @@ def performance_tracker(request):
     # Capture initial state
     start_time = time.time()
     start_mem = process.memory_info().rss / 1024 / 1024  # MB
-    start_cpu = process.cpu_percent()
+    _start_cpu = process.cpu_percent()  # For future use
 
     yield
 
@@ -255,3 +264,139 @@ def test_settings(tmp_path):
     settings.git_repo_path = None
 
     return settings
+
+
+# ============================================================================
+# Session-Scoped Fixtures (Performance Optimization)
+# ============================================================================
+
+
+@pytest.fixture(scope="session")
+def session_temp_dir(tmp_path_factory):
+    """
+    Session-scoped temporary directory.
+
+    Use for expensive setup that can be shared across tests.
+    """
+    return tmp_path_factory.mktemp("session")
+
+
+@pytest.fixture(scope="session")
+def sample_asciidoc_large():
+    """
+    Large AsciiDoc document for performance testing.
+
+    Generated once per session to avoid repeated string building.
+    """
+    sections = []
+    for i in range(100):
+        sections.append(
+            f"""
+== Section {i}
+
+This is section {i} with content.
+
+=== Subsection {i}.1
+
+* Item 1
+* Item 2
+* Item 3
+
+[source,python]
+----
+def function_{i}():
+    return {i}
+----
+"""
+        )
+    return "= Large Test Document\n" + "\n".join(sections)
+
+
+@pytest.fixture(scope="session")
+def sample_markdown_large():
+    """
+    Large Markdown document for performance testing.
+
+    Generated once per session.
+    """
+    sections = []
+    for i in range(100):
+        sections.append(
+            f"""
+## Section {i}
+
+This is section {i} with content.
+
+### Subsection {i}.1
+
+- Item 1
+- Item 2
+- Item 3
+
+```python
+def function_{i}():
+    return {i}
+```
+"""
+        )
+    return "# Large Test Document\n" + "\n".join(sections)
+
+
+@pytest.fixture(scope="module")
+def module_temp_dir(tmp_path_factory):
+    """
+    Module-scoped temporary directory.
+
+    Use for tests in the same module that can share temp dir.
+    """
+    return tmp_path_factory.mktemp("module")
+
+
+# ============================================================================
+# Fast Mock Factories
+# ============================================================================
+
+
+@pytest.fixture
+def fast_qtbot(qtbot):
+    """
+    Optimized qtbot with reduced timeout defaults.
+
+    Uses 500ms timeout instead of 5000ms for faster test execution.
+    """
+    from tests.test_utils import FastQtBot
+
+    return FastQtBot(qtbot)
+
+
+@pytest.fixture
+def fast_settings(tmp_path):
+    """
+    Test settings with all slow features disabled.
+
+    Optimized for test performance:
+    - No telemetry
+    - No AI features
+    - No network calls
+    - Instant preview updates
+    """
+    from tests.test_utils import create_fast_settings
+
+    return create_fast_settings(tmp_path)
+
+
+@pytest.fixture
+def performance_monitor():
+    """
+    Performance monitoring helper for tests.
+
+    Usage:
+        def test_something(performance_monitor):
+            performance_monitor.start()
+            # ... test code ...
+            metrics = performance_monitor.stop()
+            assert metrics["duration"] < 1.0
+    """
+    from tests.test_utils import PerformanceMonitor
+
+    return PerformanceMonitor()
