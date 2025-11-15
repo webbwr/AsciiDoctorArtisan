@@ -11,6 +11,8 @@ Technical documentation for contributors and developers.
 - **[Performance Profiling](performance-profiling.md)** - Profiling tools and benchmarks
 - **[Security Guide](security-guide.md)** - Security best practices and audit logging
 - **[Security Implementation](security-implementation.md)** - Security implementation details
+- **[Test Optimization](test-optimization.md)** - Test suite optimization strategies and performance tips
+- **[Spec-Driven Coding Guide](spec-driven-coding-guide.md)** - AI-assisted development with SPECIFICATIONS_AI.md
 
 **Note:** Test suite evolution history is documented in [ROADMAP.md](../../ROADMAP.md)
 

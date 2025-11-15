@@ -90,9 +90,9 @@ Quality assurance, security audits, and performance analysis reports.
 
 | Document | Description |
 |----------|-------------|
-| [QA Audit 2025](reports/qa-audit-2025.md) | Comprehensive quality assurance audit |
-| [Memory Optimization 2025](reports/memory-optimization-2025.md) | Memory usage analysis and optimization recommendations |
-| [Security Audit 2025](reports/security-audit-2025.md) | Security assessment and vulnerability analysis |
+| [QA Audit](reports/qa-audit.md) | Comprehensive quality assurance audit |
+| [Memory Optimization](reports/memory-optimization.md) | Memory usage analysis and optimization recommendations |
+| [Security Audit](reports/security-audit.md) | Security assessment and vulnerability analysis |
 
 ---
 
