@@ -1,3 +1,5 @@
+import pytest
+
 """
 Tests for LRU cache implementations.
 
@@ -9,6 +11,8 @@ import pytest
 from asciidoc_artisan.core.lru_cache import LRUCache, SizeAwareLRUCache
 
 
+@pytest.mark.fr_084
+@pytest.mark.unit
 class TestLRUCache:
     """Test basic LRU cache."""
 
@@ -261,6 +265,8 @@ class TestLRUCache:
             cache.resize(-5)
 
 
+@pytest.mark.fr_084
+@pytest.mark.unit
 class TestSizeAwareLRUCache:
     """Test size-aware LRU cache."""
 

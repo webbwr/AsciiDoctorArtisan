@@ -1,3 +1,5 @@
+import pytest
+
 """
 Tests for core.telemetry_collector module.
 
@@ -30,6 +32,8 @@ from asciidoc_artisan.core.telemetry_collector import (
 )
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestTelemetryEvent:
     """Test TelemetryEvent dataclass."""
 
@@ -74,6 +78,8 @@ class TestTelemetryEvent:
         assert event.data == {}
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestTelemetryCollectorInitialization:
     """Test TelemetryCollector initialization."""
 
@@ -134,6 +140,8 @@ class TestTelemetryCollectorInitialization:
             assert collector.data_dir == expected_dir
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestEventTracking:
     """Test event tracking methods."""
 
@@ -268,6 +276,8 @@ class TestEventTracking:
         assert "python_version" in event.data
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestEventBufferFlush:
     """Test event buffer and flushing."""
 
@@ -346,6 +356,8 @@ class TestEventBufferFlush:
         assert not collector.telemetry_file.exists()
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestPrivacySanitization:
     """Test privacy sanitization methods."""
 
@@ -430,6 +442,8 @@ class TestPrivacySanitization:
         assert sanitized == "<email redacted>"
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestFileRotation:
     """Test file rotation and retention."""
 
@@ -515,6 +529,8 @@ class TestFileRotation:
         assert size > 0
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestStatistics:
     """Test statistics collection."""
 
@@ -573,6 +589,8 @@ class TestStatistics:
         assert "telemetry.json" in stats["file_path"]
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestDataClearing:
     """Test data clearing (opt-out)."""
 
@@ -605,6 +623,8 @@ class TestDataClearing:
         assert not collector.telemetry_file.exists()
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestEventConstants:
     """Test event type constants."""
 
@@ -618,6 +638,8 @@ class TestEventConstants:
         assert EVENT_FEATURE_USE == "feature_use"
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestDestructor:
     """Test destructor behavior."""
 
@@ -656,6 +678,8 @@ class TestDestructor:
             assert False, "Destructor should handle exception gracefully"
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestPlatformSpecificPaths:
     """Test platform-specific data directory paths."""
 
@@ -688,6 +712,8 @@ class TestPlatformSpecificPaths:
         assert "Application Support" in str(collector.data_dir)
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestExceptionHandling:
     """Test exception handling in various methods."""
 
@@ -737,6 +763,8 @@ class TestExceptionHandling:
             assert len(collector.event_buffer) == 0
 
 
+@pytest.mark.fr_073
+@pytest.mark.unit
 class TestFileRotationWithSize:
     """Test file rotation when size exceeds limit."""
 
