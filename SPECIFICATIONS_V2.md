@@ -59,19 +59,154 @@ This specification follows **AI Specification-Driven Development** principles:
 
 ## Dependency Map
 
+**Comprehensive FR dependency relationships across all 107 requirements**
+
 ```mermaid
 graph TD
+    %% Core Editing Foundation (FR-001-020)
     FR001[FR-001: Text Editor] --> FR002[FR-002: Line Numbers]
     FR001 --> FR003[FR-003: Undo/Redo]
+    FR001 --> FR004[FR-004: Font Customization]
+    FR001 --> FR005[FR-005: Editor State]
     FR001 --> FR006[FR-006: Open Files]
+
+    %% File Operations Chain
     FR006 --> FR007[FR-007: Save Files]
+    FR007 --> FR008[FR-008: Save As]
+    FR006 --> FR009[FR-009: New Document]
+    FR007 --> FR010[FR-010: Recent Files]
+    FR007 --> FR011[FR-011: Auto-Save]
+
+    %% Import Chain (to Editor)
+    FR012[FR-012: Import DOCX] --> FR001
+    FR013[FR-013: Import PDF] --> FR001
+    FR014[FR-014: Import Markdown] --> FR001
+
+    %% Preview Chain
     FR001 --> FR015[FR-015: Live Preview]
     FR015 --> FR016[FR-016: GPU Acceleration]
+    FR015 --> FR017[FR-017: Scroll Sync]
     FR015 --> FR018[FR-018: Incremental Render]
-    FR007 --> FR069[FR-069: Atomic Writes]
+    FR015 --> FR019[FR-019: Debounce]
+    FR015 --> FR020[FR-020: Preview Themes]
+
+    %% Export Chain (from Preview)
+    FR015 --> FR021[FR-021: Export HTML]
+    FR015 --> FR022[FR-022: Export PDF]
+    FR015 --> FR023[FR-023: Export DOCX]
+    FR015 --> FR024[FR-024: Export Markdown]
+    FR043[FR-043: Ollama Integration] --> FR025[FR-025: AI Export Enhancement]
+
+    %% Git Integration Chain
     FR026[FR-026: Select Repo] --> FR027[FR-027: Git Commit]
-    FR027 --> FR028[FR-028: Git Pull]
-    FR027 --> FR029[FR-029: Git Push]
+    FR026 --> FR028[FR-028: Git Pull]
+    FR026 --> FR029[FR-029: Git Push]
+    FR026 --> FR030[FR-030: Git Status Bar]
+    FR026 --> FR031[FR-031: Git Status Dialog]
+    FR026 --> FR032[FR-032: Quick Commit]
+    FR026 --> FR033[FR-033: Cancel Git Ops]
+
+    %% GitHub CLI Chain
+    FR026 --> FR034[FR-034: Create PR]
+    FR026 --> FR035[FR-035: List PRs]
+    FR026 --> FR036[FR-036: Create Issue]
+    FR026 --> FR037[FR-037: List Issues]
+    FR026 --> FR038[FR-038: View Repo]
+
+    %% AI Features Chain
+    FR039[FR-039: Ollama Chat Panel] --> FR040[FR-040: Chat Modes]
+    FR039 --> FR041[FR-041: Model Selection]
+    FR039 --> FR042[FR-042: Chat History]
+    FR039 --> FR043
+    FR039 --> FR044[FR-044: Status Indicator]
+
+    %% Find & Replace Chain
+    FR001 --> FR047[FR-047: Search Engine]
+    FR047 --> FR045[FR-045: Find Bar]
+    FR047 --> FR046[FR-046: Replace]
+    FR047 --> FR048[FR-048: UI Integration]
+    FR047 --> FR049[FR-049: Search Performance]
+
+    %% Spell Check Chain
+    FR001 --> FR050[FR-050: Real-Time Spell Check]
+    FR050 --> FR051[FR-051: Suggestions]
+    FR050 --> FR052[FR-052: Custom Dictionary]
+    FR050 --> FR053[FR-053: Multi-Language]
+    FR050 --> FR054[FR-054: Performance]
+
+    %% UI & UX Chain
+    FR001 --> FR055[FR-055: Theme Support]
+    FR001 --> FR056[FR-056: Status Bar]
+    FR001 --> FR057[FR-057: Document Metrics]
+    FR001 --> FR058[FR-058: Menu Structure]
+    FR001 --> FR059[FR-059: Preferences Dialog]
+    FR001 --> FR060[FR-060: Keyboard Shortcuts]
+    FR001 --> FR061[FR-061: Accessibility]
+
+    %% Performance Chain
+    FR062[FR-062: Fast Startup] --> FR063[FR-063: Worker Pool]
+    FR062 --> FR064[FR-064: Async I/O]
+    FR062 --> FR065[FR-065: Lazy Loading]
+    FR062 --> FR066[FR-066: Resource Monitor]
+    FR062 --> FR067[FR-067: Optimized Imports]
+    FR062 --> FR067a[FR-067a: String Optimization]
+    FR062 --> FR067b[FR-067b: PDF Reading Optimization]
+    FR062 --> FR067c[FR-067c: Binary Operations]
+    FR068[FR-068: Memory Management] --> FR066
+
+    %% Security Chain
+    FR007 --> FR069[FR-069: Atomic Writes]
+    FR069 --> FR070[FR-070: Path Sanitization]
+    FR069 --> FR071[FR-071: Subprocess Safety]
+    FR069 --> FR072[FR-072: Input Validation]
+
+    %% Additional Features (Standalone)
+    FR073[FR-073: Telemetry]
+    FR074[FR-074: Crash Reports]
+    FR075[FR-075: Type Safety]
+    FR076[FR-076: Test Coverage]
+    FR077[FR-077: Documentation]
+    FR078[FR-078: Help System]
+    FR079[FR-079: Update Check]
+    FR080[FR-080: Plugin System]
+    FR081[FR-081: Custom Themes]
+    FR082[FR-082: Export Presets]
+    FR083[FR-083: Macro Recording]
+    FR084[FR-084: LRU Cache]
+
+    %% Auto-Complete Chain (v2.0)
+    FR001 --> FR085[FR-085: Auto-Complete Engine]
+    FR085 --> FR086[FR-086: Context Detection]
+    FR085 --> FR087[FR-087: Completion Provider]
+    FR085 --> FR088[FR-088: Fuzzy Matching]
+    FR085 --> FR089[FR-089: UI Widget]
+    FR085 --> FR090[FR-090: Performance]
+
+    %% Syntax Checking Chain (v2.0)
+    FR001 --> FR091[FR-091: Syntax Checker]
+    FR091 --> FR092[FR-092: Error Detection]
+    FR091 --> FR093[FR-093: Error Display]
+    FR091 --> FR094[FR-094: Quick Fixes]
+    FR091 --> FR095[FR-095: Navigation]
+    FR091 --> FR096[FR-096: Real-Time Validation]
+    FR091 --> FR097[FR-097: Rule Engine]
+    FR091 --> FR098[FR-098: Custom Rules]
+    FR091 --> FR099[FR-099: Performance]
+
+    %% Template System Chain (v2.0)
+    FR001 --> FR100[FR-100: Template Manager]
+    FR100 --> FR101[FR-101: Built-In Templates]
+    FR100 --> FR102[FR-102: Custom Templates]
+    FR100 --> FR103[FR-103: Template Variables]
+    FR100 --> FR104[FR-104: Template Engine]
+    FR100 --> FR105[FR-105: UI Integration]
+    FR100 --> FR106[FR-106: Template Browser]
+    FR100 --> FR107[FR-107: Performance]
+
+    %% Cross-System Dependencies
+    FR018 --> FR084
+    FR016 --> FR062
+    FR068 --> FR084
 ```
 
 ---
@@ -89,6 +224,62 @@ FR-026 to FR-061, FR-073 to FR-084
 
 ### Low (Advanced Features)
 FR-062 to FR-072, FR-085 to FR-107
+
+---
+
+## FR Index (Quick Lookup)
+
+### Core Editing (FR-001-020)
+- **FR-001:** Text Editor | **FR-002:** Line Numbers | **FR-003:** Undo/Redo | **FR-004:** Font Customization | **FR-005:** Editor State
+- **FR-006:** Open Files | **FR-007:** Save Files | **FR-008:** Save As | **FR-009:** New Document | **FR-010:** Recent Files
+- **FR-011:** Auto-Save | **FR-012:** Import DOCX | **FR-013:** Import PDF | **FR-014:** Import Markdown
+- **FR-015:** Live Preview | **FR-016:** GPU Acceleration | **FR-017:** Scroll Sync | **FR-018:** Incremental Render | **FR-019:** Debounce | **FR-020:** Preview Themes
+
+### Export & Conversion (FR-021-025)
+- **FR-021:** Export HTML | **FR-022:** Export PDF | **FR-023:** Export DOCX | **FR-024:** Export Markdown | **FR-025:** AI Export Enhancement
+
+### Git Integration (FR-026-033)
+- **FR-026:** Select Repo | **FR-027:** Git Commit | **FR-028:** Git Pull | **FR-029:** Git Push
+- **FR-030:** Git Status Bar | **FR-031:** Git Status Dialog | **FR-032:** Quick Commit | **FR-033:** Cancel Git Ops
+
+### GitHub CLI (FR-034-038)
+- **FR-034:** Create PR | **FR-035:** List PRs | **FR-036:** Create Issue | **FR-037:** List Issues | **FR-038:** View Repo
+
+### AI Features (FR-039-044)
+- **FR-039:** Ollama Chat Panel | **FR-040:** Chat Modes | **FR-041:** Model Selection | **FR-042:** Chat History | **FR-043:** Ollama Integration | **FR-044:** Status Indicator
+
+### Find & Replace (FR-045-049)
+- **FR-045:** Find Bar | **FR-046:** Replace | **FR-047:** Search Engine | **FR-048:** UI Integration | **FR-049:** Search Performance
+
+### Spell Check (FR-050-054)
+- **FR-050:** Real-Time Spell Check | **FR-051:** Suggestions | **FR-052:** Custom Dictionary | **FR-053:** Multi-Language | **FR-054:** Performance
+
+### UI & UX (FR-055-061)
+- **FR-055:** Theme Support | **FR-056:** Status Bar | **FR-057:** Document Metrics | **FR-058:** Menu Structure
+- **FR-059:** Preferences Dialog | **FR-060:** Keyboard Shortcuts | **FR-061:** Accessibility
+
+### Performance (FR-062-068)
+- **FR-062:** Fast Startup | **FR-063:** Worker Pool | **FR-064:** Async I/O | **FR-065:** Resource Monitoring
+- **FR-066:** Memory Optimization | **FR-067:** Cache Strategy | **FR-067a:** Incremental Rendering | **FR-067b:** Predictive Rendering | **FR-067c:** Render Prioritization | **FR-068:** Path Sanitization
+
+### Security (FR-069-072)
+- **FR-069:** Atomic Writes | **FR-070:** Subprocess Safety | **FR-071:** Secure Credentials | **FR-072:** HTTPS Enforcement
+
+### Additional Features (FR-073-084)
+- **FR-073:** Telemetry | **FR-074:** Settings Persistence | **FR-075:** Type Safety | **FR-076:** Test Coverage
+- **FR-077:** User Documentation | **FR-078:** Inline Help | **FR-079:** Tooltips | **FR-080:** Keyboard Reference
+- **FR-081:** About Dialog | **FR-082:** Auto-Update | **FR-083:** Backup System | **FR-084:** LRU Cache
+
+### Auto-Complete (FR-085-090)
+- **FR-085:** Auto-Complete Engine | **FR-086:** Completion Popup | **FR-087:** Syntax-Aware | **FR-088:** Fuzzy Matching | **FR-089:** Completion Cache | **FR-090:** Custom Completions
+
+### Syntax Checking (FR-091-099)
+- **FR-091:** Real-Time Syntax Checking | **FR-092:** Error Highlighting | **FR-093:** Error Navigation | **FR-094:** Error Panel
+- **FR-095:** Syntax Rules | **FR-096:** Quick Fixes | **FR-097:** Configurable Rules | **FR-098:** Performance Optimization | **FR-099:** Error Recovery
+
+### Templates (FR-100-107)
+- **FR-100:** Template System | **FR-101:** Template Variables | **FR-102:** Custom Templates | **FR-103:** Template Preview
+- **FR-104:** Template Metadata | **FR-105:** Template Categories | **FR-106:** Template Sharing | **FR-107:** Template Engine
 
 ---
 
