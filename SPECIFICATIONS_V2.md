@@ -3066,9 +3066,138 @@ Report: htmlcov/index.html
 
 ---
 
+## FR-021: Export HTML
+
+**Category:** Export System | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-015 (Live Preview) | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/pandoc_worker.py`
+
+### Description
+Export AsciiDoc to standalone HTML with embedded CSS. Uses asciidoc3 for rendering.
+
+### Acceptance Criteria
+- [x] Export to .html format | [x] Standalone HTML (no external dependencies)
+- [x] Embedded CSS styling | [x] Preserve all AsciiDoc features
+- [x] Keyboard shortcut Ctrl+E → HTML | [x] File save dialog
+
+### API Contract
+```python
+def export_html(content: str, output_path: Path) -> bool:
+    """Export AsciiDoc to HTML."""
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 85%+ | **Types:** Unit (5), Integration (3)
+
+---
+
+## FR-022: Export PDF
+
+**Category:** Export System | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-021 (Export HTML) | **Version:** 1.0.0
+**Implementation:** `wkhtmltopdf` via subprocess
+
+### Description
+Export AsciiDoc to PDF using wkhtmltopdf (HTML → PDF pipeline).
+
+### Acceptance Criteria
+- [x] Export to .pdf format | [x] Requires wkhtmltopdf installed
+- [x] Page formatting preserved | [x] Hyperlinks work in PDF
+- [x] Handle large documents (100+ pages) | [x] Show progress indicator
+
+### API Contract
+```python
+def export_pdf(html_content: str, output_path: Path) -> bool:
+    """Export HTML to PDF using wkhtmltopdf."""
+```
+
+### Test Requirements
+**Min Tests:** 6 | **Coverage:** 80%+ | **Types:** Unit (4), Integration (2)
+
+---
+
+## FR-023: Export DOCX
+
+**Category:** Export System | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/pandoc_worker.py`
+
+### Description
+Export AsciiDoc to Microsoft Word (.docx) using Pandoc. Optional AI enhancement via Ollama.
+
+### Acceptance Criteria
+- [x] Export to .docx format | [x] Use Pandoc for conversion
+- [x] Optional Ollama AI enhancement | [x] Preserve formatting (headings, lists, tables)
+- [x] Background worker (non-blocking) | [x] Error handling for Pandoc failures
+
+### API Contract
+```python
+class PandocWorker(QObject):
+    conversion_complete = Signal(str)
+    def export_docx(self, content: str, output_path: Path, use_ai: bool = False) -> None:
+        """Export to DOCX, optionally AI-enhanced."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-024: Export Markdown
+
+**Category:** Export System | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/pandoc_worker.py`
+
+### Description
+Export AsciiDoc to Markdown format using Pandoc conversion.
+
+### Acceptance Criteria
+- [x] Export to .md format | [x] Use Pandoc worker
+- [x] Convert headings correctly | [x] Convert code blocks
+- [x] Convert tables | [x] Handle conversion errors
+
+### API Contract
+```python
+def export_markdown(content: str, output_path: Path) -> bool:
+    """Export AsciiDoc to Markdown via Pandoc."""
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 85%+ | **Types:** Unit (5), Integration (3)
+
+---
+
+## FR-025: AI Export Enhancement
+
+**Category:** Export System | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-039 (Ollama) | **Version:** 1.2.0
+**Implementation:** `src/asciidoc_artisan/workers/ollama_chat_worker.py`
+
+### Description
+AI-enhanced export using Ollama (improve-grammar, llama2, mistral, codellama models). Fallback to Pandoc if Ollama unavailable.
+
+### Acceptance Criteria
+- [x] Ollama AI models: improve-grammar, llama2, mistral, codellama
+- [x] Fallback to Pandoc if Ollama unavailable | [x] 2KB context window
+- [x] Background processing | [x] Error handling with user notification
+
+### API Contract
+```python
+class OllamaChatWorker(QObject):
+    enhancement_complete = Signal(str)
+    def enhance_export(self, content: str, model: str = "improve-grammar") -> None:
+        """Enhance content with AI before export."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 80%+ | **Types:** Unit (7), Integration (5)
+
+---
+
 ## FR Template (For Remaining FRs)
 
-For the remaining 105 FRs, use this template structure:
+For the remaining FRs, use this template structure:
 
 ```markdown
 ## FR-XXX: Feature Name
