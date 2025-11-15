@@ -34,6 +34,8 @@ def mock_window(qapp):
     return window
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsManager:
     """Test suite for SettingsManager basic functionality."""
@@ -81,6 +83,8 @@ class TestSettingsManager:
         assert manager._pending_save_timer.isSingleShot()
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsPath:
     """Test suite for settings path resolution."""
@@ -142,6 +146,8 @@ class TestSettingsPath:
         assert Path.home() in path.parents or str(Path.home()) in str(path)
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestDefaultSettings:
     """Test suite for default settings creation."""
@@ -188,6 +194,8 @@ class TestDefaultSettings:
         assert hasattr(settings, "ai_conversion_enabled")
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestLoadSettings:
     """Test suite for settings loading."""
@@ -245,6 +253,8 @@ class TestLoadSettings:
         assert settings.dark_mode is True
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSaveSettings:
     """Test suite for settings saving."""
@@ -333,6 +343,8 @@ class TestSaveSettings:
         assert result is False
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestRestoreUISettings:
     """Test suite for UI state restoration."""
@@ -390,6 +402,8 @@ class TestRestoreUISettings:
         mock_window.editor.font.assert_called()
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestWindowGeometry:
     """Test suite for window geometry parsing."""
@@ -435,6 +449,8 @@ class TestWindowGeometry:
         assert rect is None
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestAIConversionPreference:
     """Test suite for AI conversion preference."""

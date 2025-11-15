@@ -9,6 +9,8 @@ import pytest
 from asciidoc_artisan.core import Settings
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettings:
     """Test Settings dataclass functionality."""
@@ -102,6 +104,8 @@ class TestSettings:
         assert restored.ai_conversion_enabled == original.ai_conversion_enabled
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsMigration:
     """Test backward compatibility migrations in Settings.from_dict()."""
@@ -183,6 +187,8 @@ class TestSettingsMigration:
         assert settings.claude_model == "custom-model-name"
 
 
+@pytest.mark.fr_004
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsValidation:
     """Test Settings.validate() method for all field validation."""

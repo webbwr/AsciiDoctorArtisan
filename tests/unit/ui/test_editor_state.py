@@ -59,6 +59,7 @@ def mock_main_window(qapp):
     return window
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestEditorStateBasics:
     """Test suite for EditorState basic functionality."""
@@ -100,6 +101,7 @@ class TestEditorStateBasics:
         assert state.sync_scrolling is True
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestZoomFunctionality:
     """Test suite for zoom functionality."""
@@ -160,6 +162,7 @@ class TestZoomFunctionality:
         assert state.editor.font().pointSize() > 10
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestDarkModeToggle:
     """Test suite for dark mode toggle."""
@@ -203,6 +206,7 @@ class TestDarkModeToggle:
         mock_main_window.action_manager.dark_mode_act.blockSignals.assert_called()
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSyncScrollingToggle:
     """Test suite for sync scrolling toggle."""
@@ -234,6 +238,7 @@ class TestSyncScrollingToggle:
         assert state.sync_scrolling is False
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestPaneMaximization:
     """Test suite for pane maximize/restore functionality."""
@@ -309,6 +314,7 @@ class TestPaneMaximization:
         assert all(size > 0 for size in sizes)
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestCloseEventHandling:
     """Test suite for window close event handling."""
@@ -343,6 +349,7 @@ class TestCloseEventHandling:
         mock_shutdown.assert_called_once()
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestEdgeCases:
     """Test suite for edge cases."""
@@ -369,6 +376,7 @@ class TestEdgeCases:
         assert state.maximized_pane in [None, "unknown_pane"]
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestThreePaneLayoutMaximization:
     """Test suite for 3-pane layout (editor/preview/chat) maximization."""
@@ -478,6 +486,7 @@ class TestThreePaneLayoutMaximization:
         assert state.preview_max_btn.isEnabled()
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestThreePaneLayoutRestore:
     """Test suite for restoring 3-pane layouts."""
@@ -582,6 +591,7 @@ class TestThreePaneLayoutRestore:
         assert sizes[2] < 10  # Allow for Qt rounding
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestSplitterSizeEdgeCases:
     """Test suite for splitter size edge cases and error handling."""
@@ -651,6 +661,7 @@ class TestSplitterSizeEdgeCases:
         assert all(size >= 0 for size in sizes)
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestDefaultSizeApplication:
     """Test suite for _apply_default_sizes method."""
@@ -727,6 +738,7 @@ class TestDefaultSizeApplication:
             mock_apply.assert_called_once()
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestPreviewHandlerIntegration:
     """Test suite for preview handler integration."""
@@ -796,6 +808,7 @@ class TestPreviewHandlerIntegration:
         assert mock_main_window._settings.dark_mode != initial_dark_mode
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestThreadShutdown:
     """Test suite for worker thread shutdown."""
@@ -921,6 +934,7 @@ class TestThreadShutdown:
         mock_main_window.git_thread.quit.assert_called_once()
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestTempFileCleanup:
     """Test suite for temporary file cleanup."""
@@ -969,6 +983,7 @@ class TestTempFileCleanup:
         mock_main_window._temp_dir.cleanup.assert_called_once()
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestCloseEventWithUnsavedChanges:
     """Test suite for close event handling with unsaved changes."""
@@ -1105,6 +1120,7 @@ class TestCloseEventWithUnsavedChanges:
         )
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestZoomBoundaryConditions:
     """Test suite for zoom boundary conditions and clamping."""
@@ -1177,6 +1193,7 @@ class TestZoomBoundaryConditions:
             assert 1.05 <= new_zoom <= 1.15  # Approximately 1.1
 
 
+@pytest.mark.fr_005
 @pytest.mark.unit
 class TestButtonAndStatusBarUpdates:
     """Test suite for button and status bar message consistency."""
