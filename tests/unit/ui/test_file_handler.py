@@ -538,6 +538,8 @@ class TestPathValidation:
             pass  # May fail on some systems, but shouldn't crash
 
 
+@pytest.mark.fr_011
+@pytest.mark.edge_case
 class TestLargeFileHandling:
     """Test handling of large files."""
 
@@ -594,6 +596,9 @@ class TestLargeFileHandling:
         handler.async_manager.read_file = AsyncMock(return_value="Content")
 
 
+@pytest.mark.fr_009
+@pytest.mark.fr_011
+@pytest.mark.edge_case
 class TestEmptyFileHandling:
     """Test handling of empty files and edge cases."""
 
@@ -689,6 +694,8 @@ class TestFilePermissions:
         handler.save_file()
 
 
+@pytest.mark.fr_011
+@pytest.mark.edge_case
 class TestConcurrentOperations:
     """Test concurrent file operations."""
 
@@ -736,6 +743,8 @@ class TestConcurrentOperations:
         assert handler.unsaved_changes is False
 
 
+@pytest.mark.fr_011
+@pytest.mark.edge_case
 class TestAutoSaveEdgeCases:
     """Test auto-save edge cases and race conditions."""
 

@@ -35,6 +35,8 @@ def mock_window(qapp):
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsManager:
@@ -84,6 +86,8 @@ class TestSettingsManager:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsPath:
@@ -147,6 +151,8 @@ class TestSettingsPath:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestDefaultSettings:
@@ -195,6 +201,8 @@ class TestDefaultSettings:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestLoadSettings:
@@ -254,6 +262,8 @@ class TestLoadSettings:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestSaveSettings:
@@ -344,6 +354,8 @@ class TestSaveSettings:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestRestoreUISettings:
@@ -403,6 +415,8 @@ class TestRestoreUISettings:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestWindowGeometry:
@@ -450,6 +464,8 @@ class TestWindowGeometry:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestAIConversionPreference:

@@ -10,6 +10,8 @@ from asciidoc_artisan.core import Settings
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettings:
@@ -105,6 +107,8 @@ class TestSettings:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsMigration:
@@ -188,6 +192,8 @@ class TestSettingsMigration:
 
 
 @pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
 @pytest.mark.fr_005
 @pytest.mark.unit
 class TestSettingsValidation:
