@@ -20,6 +20,7 @@ def github_worker():
     return GitHubCLIWorker()
 
 
+@pytest.mark.fr_076
 @pytest.mark.unit
 class TestGitHubCLIWorkerCoverage:
     """Tests to achieve 100% coverage for GitHubCLIWorker."""

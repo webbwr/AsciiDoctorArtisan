@@ -29,6 +29,8 @@ def mock_pypandoc():
         sys.modules.pop("pypandoc", None)
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestPandocWorker:
     """Test PandocWorker for document conversion."""
@@ -169,6 +171,8 @@ class TestPandocWorker:
     # AI conversion test removed - using Ollama for local AI features instead
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestPandocOutputEnhancement:
     """Test AsciiDoc output enhancement logic."""
@@ -204,6 +208,8 @@ code2
         assert "[source,javascript]" in enhanced
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestOllamaIntegration:
     """Test Ollama AI integration features."""
@@ -241,6 +247,8 @@ class TestOllamaIntegration:
         assert worker.ollama_model == "codellama"
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestPDFEngineDetection:
     """Test PDF engine detection logic."""
@@ -284,6 +292,8 @@ class TestPDFEngineDetection:
             worker._detect_pdf_engine()
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestPandocArgsBuilding:
     """Test Pandoc command-line argument building."""
@@ -320,6 +330,8 @@ class TestPandocArgsBuilding:
         worker._build_pandoc_args("docx", "asciidoc")
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestProgressSignals:
     """Test progress update signals."""
@@ -351,6 +363,8 @@ class TestProgressSignals:
         assert isinstance(progress_messages, list)
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestFormatConversions:
     """Test various format conversion scenarios."""
@@ -429,6 +443,8 @@ class TestFormatConversions:
         assert result is not None
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestErrorHandling:
     """Test error handling in various scenarios."""
@@ -545,6 +561,8 @@ class TestErrorHandling:
                 sys.modules["pypandoc"] = original
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestOllamaConversion:
     """Test Ollama AI conversion with fallback."""
@@ -703,6 +721,8 @@ class TestOllamaConversion:
             assert result is None  # Import error should return None
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestConversionPromptCreation:
     """Test Ollama prompt creation for different formats."""
@@ -769,6 +789,8 @@ class TestConversionPromptCreation:
         assert "unknown" in prompt or "UNKNOWN" in prompt
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestAIConversionWithFallback:
     """Test AI conversion with automatic fallback to Pandoc."""
@@ -872,6 +894,8 @@ class TestAIConversionWithFallback:
         # Note: The actual implementation may call Pandoc for PDF binary generation
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestPathSourceConversion:
     """Test conversion with Path source objects."""
@@ -961,6 +985,8 @@ class TestPathSourceConversion:
         assert "File saved" in result or str(output_file) in result
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestEnhanceAsciiDocEdgeCases:
     """Test AsciiDoc enhancement edge cases."""

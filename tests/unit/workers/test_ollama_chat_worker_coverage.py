@@ -16,6 +16,7 @@ from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
 
 
+@pytest.mark.fr_076
 @pytest.mark.unit
 class TestOllamaChatWorkerCoverage:
     """Tests to achieve 100% coverage for OllamaChatWorker."""

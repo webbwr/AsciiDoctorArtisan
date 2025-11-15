@@ -12,6 +12,7 @@ import pytest
 from asciidoc_artisan.workers.worker_tasks import GitTask
 
 
+@pytest.mark.fr_076
 @pytest.mark.unit
 class TestWorkerTasksCoverage:
     """Tests to achieve 100% coverage for worker_tasks."""

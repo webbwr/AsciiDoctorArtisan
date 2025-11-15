@@ -11,6 +11,8 @@ from asciidoc_artisan.core import GitResult
 from asciidoc_artisan.workers import GitWorker
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestGitWorker:
     """Test GitWorker for Git operations."""
@@ -136,6 +138,8 @@ class TestGitWorker:
         assert result.success is False
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestGitResult:
     """Test GitResult named tuple."""
@@ -178,6 +182,8 @@ class TestGitResult:
         assert result.user_message == user_message
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestGitWorkerStatus:
     """Test GitWorker status functionality (v1.9.0+)."""
@@ -420,6 +426,8 @@ class TestGitWorkerStatus:
         assert status.is_dirty is False
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestGitWorkerCancellation:
     """Test Git Worker cancellation functionality."""
@@ -470,6 +478,8 @@ class TestGitWorkerCancellation:
         assert status is None or status.branch == ""
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestGitWorkerOperationTimeout:
     """Test Git Worker timeout configuration for different operation types."""
@@ -593,6 +603,8 @@ class TestGitWorkerOperationTimeout:
         assert call_kwargs["timeout"] == 30
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestGitWorkerStatusParsingEdgeCases:
     """Test Git Worker status parsing for edge cases and complex scenarios."""
@@ -687,6 +699,8 @@ class TestGitWorkerStatusParsingEdgeCases:
         assert status.is_dirty is True
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestGitWorkerExceptionHandling:
     """Test GitWorker exception handling paths."""

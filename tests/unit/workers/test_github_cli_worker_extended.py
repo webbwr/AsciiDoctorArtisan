@@ -18,6 +18,8 @@ def github_worker():
     return GitHubCLIWorker()
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestDispatchGitHubOperation:
     """Test dispatch_github_operation method for all operation types."""
@@ -173,6 +175,8 @@ class TestDispatchGitHubOperation:
         )
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestParseGhError:
     """Test _parse_gh_error method for all error types."""
@@ -275,6 +279,8 @@ class TestParseGhError:
         assert len(result) < 250  # Should be truncated
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestRunGhCommandEdgeCases:
     """Test run_gh_command edge cases and error paths."""
@@ -466,6 +472,8 @@ class TestRunGhCommandEdgeCases:
         assert result.operation == "unknown"
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
 @pytest.mark.unit
 class TestOperationMethods:
     """Test individual operation methods."""

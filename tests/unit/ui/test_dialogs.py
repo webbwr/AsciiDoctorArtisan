@@ -23,6 +23,7 @@ def mock_settings(qapp):
     return settings
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestDialogs:
     """Test suite for basic dialog functionality."""
@@ -50,6 +51,7 @@ class TestDialogs:
         assert hasattr(dialog, "reject")
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestPreferencesDialog:
     """Test suite for PreferencesDialog class."""
@@ -147,6 +149,7 @@ class TestPreferencesDialog:
         assert status == "✗ Not Set"
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestOllamaSettingsDialog:
     """Test suite for OllamaSettingsDialog class."""
@@ -231,6 +234,7 @@ class TestOllamaSettingsDialog:
         assert updated_settings.ollama_enabled is True
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestDialogHelperFunctions:
     """Test suite for dialog helper functions."""
@@ -249,6 +253,7 @@ class TestDialogHelperFunctions:
         assert layout.count() >= 2  # Should have at least OK and Cancel buttons
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestPreferencesDialogEdgeCases:
     """Test edge cases for PreferencesDialog."""
@@ -309,6 +314,7 @@ class TestPreferencesDialogEdgeCases:
         assert status == "✓ Configured"
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestOllamaDialogEdgeCases:
     """Test edge cases for OllamaSettingsDialog."""
@@ -385,6 +391,7 @@ class TestOllamaDialogEdgeCases:
         assert len(dialog.models) >= 0
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestDialogModalBehavior:
     """Test dialog modal behavior and window properties."""
@@ -424,6 +431,7 @@ class TestDialogModalBehavior:
         assert hasattr(dialog, "setWindowFlags")
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestDialogStateTransitions:
     """Test dialog state transitions."""
@@ -471,6 +479,7 @@ class TestDialogStateTransitions:
         assert dialog.ai_enabled_checkbox.isChecked() is False
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestSettingsPersistence:
     """Test settings persistence through dialogs."""
@@ -523,6 +532,7 @@ class TestSettingsPersistence:
         )
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestWidgetInteractions:
     """Test widget interactions within dialogs."""
@@ -567,6 +577,7 @@ class TestWidgetInteractions:
         assert dialog.ai_enabled_checkbox.isEnabled()
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestDialogValidation:
     """Test dialog validation logic."""
@@ -607,6 +618,7 @@ class TestDialogValidation:
         assert isinstance(settings, Settings)
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestButtonInteractions:
     """Test button interactions in dialogs."""
@@ -646,6 +658,7 @@ class TestButtonInteractions:
         assert callable(dialog.reject)
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestLayoutVerification:
     """Test dialog layout structure."""
@@ -689,6 +702,7 @@ class TestLayoutVerification:
         assert layout.count() >= 2
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestErrorHandling:
     """Test error handling in dialogs."""
@@ -725,6 +739,7 @@ class TestErrorHandling:
         assert dialog is not None
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestDialogWidgetProperties:
     """Test widget properties and attributes."""
@@ -767,6 +782,7 @@ class TestDialogWidgetProperties:
         assert parent is not None
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestSettingsEditorDialog:
     """Test suite for SettingsEditorDialog class."""
@@ -1102,6 +1118,7 @@ class TestSettingsEditorDialog:
         assert dialog.parent_window == mock_parent
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestOllamaSettingsDialogEventHandlers:
     """Test suite for OllamaSettingsDialog event handlers."""
@@ -1346,6 +1363,7 @@ class TestOllamaSettingsDialogEventHandlers:
         assert dialog.context_mode_combo.count() == 4
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestFontSettingsDialog:
     """Test suite for FontSettingsDialog class."""
@@ -1617,6 +1635,7 @@ class TestFontSettingsDialog:
 # ============================================================================
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestSettingsEditorDialogLoadSettings:
     """Test SettingsEditorDialog._load_settings() method."""
@@ -1717,6 +1736,7 @@ class TestSettingsEditorDialogLoadSettings:
         assert "str" in types_found
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestSettingsEditorDialogItemChanged:
     """Test SettingsEditorDialog._on_item_changed() live editing."""
@@ -1912,6 +1932,7 @@ class TestSettingsEditorDialogItemChanged:
                 break
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestSettingsEditorDialogClearAll:
     """Test SettingsEditorDialog clear all functionality."""
@@ -1957,6 +1978,7 @@ class TestSettingsEditorDialogClearAll:
         assert mock_info.called
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestSettingsEditorDialogMisc:
     """Test miscellaneous SettingsEditorDialog functionality."""
@@ -2002,6 +2024,7 @@ class TestSettingsEditorDialogMisc:
 # ============================================================================
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestFontSettingsDialogPopulateFontList:
     """Test FontSettingsDialog._populate_font_list() method."""
@@ -2083,6 +2106,7 @@ class TestFontSettingsDialogPopulateFontList:
         assert len(found_monospace) > 0
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestFontSettingsDialogSelection:
     """Test FontSettingsDialog font selection edge cases."""
@@ -2136,6 +2160,7 @@ class TestFontSettingsDialogSelection:
         assert dialog.chat_font_combo.count() == editor_count
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestFontSettingsDialogLayout:
     """Test FontSettingsDialog layout and UI elements."""
@@ -2191,6 +2216,7 @@ class TestFontSettingsDialogLayout:
         assert dialog.chat_font_combo.currentText() == "Verdana"
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestFontSettingsDialogGetSettings:
     """Test FontSettingsDialog.get_settings() validation."""
@@ -2267,6 +2293,7 @@ class TestFontSettingsDialogGetSettings:
 # ============================================================================
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestOllamaDialogLoadModelsEdgeCases:
     """Test OllamaSettingsDialog._load_models() edge cases."""
@@ -2418,6 +2445,7 @@ class TestOllamaDialogLoadModelsEdgeCases:
             pass
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestOllamaDialogStatusUpdates:
     """Test OllamaSettingsDialog status label updates."""
@@ -2474,6 +2502,7 @@ class TestOllamaDialogStatusUpdates:
             pass
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestOllamaDialogChatSettings:
     """Test OllamaSettingsDialog chat settings functionality."""
@@ -2535,6 +2564,7 @@ class TestOllamaDialogChatSettings:
 # ============================================================================
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestPreferencesDialogStyling:
     """Test PreferencesDialog styling and UI details."""
@@ -2600,6 +2630,7 @@ class TestPreferencesDialogStyling:
         assert dialog.layout().count() > 0
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestPreferencesDialogExecution:
     """Test PreferencesDialog execution flow."""
@@ -2655,6 +2686,7 @@ class TestPreferencesDialogExecution:
         assert status == "✓ Configured"
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 class TestHelperFunctionsDetailed:
     """Test _create_ok_cancel_buttons() helper function."""

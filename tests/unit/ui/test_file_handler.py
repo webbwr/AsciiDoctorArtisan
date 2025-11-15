@@ -193,6 +193,7 @@ def test_auto_save_skips_if_no_changes(handler, tmp_path):
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_load_file_content_async(handler, tmp_path, mock_editor):
     """Test loading file content asynchronously."""
@@ -213,6 +214,7 @@ async def test_load_file_content_async(handler, tmp_path, mock_editor):
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_load_file_tracks_loading_state_async(handler, tmp_path):
     """Test loading state is tracked during async file load."""
@@ -238,6 +240,7 @@ async def test_load_file_tracks_loading_state_async(handler, tmp_path):
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_load_file_updates_settings_async(
     handler, tmp_path, mock_settings_manager
@@ -262,6 +265,7 @@ async def test_load_file_updates_settings_async(
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_load_file_emits_signal_async(handler, tmp_path, qtbot):
     """Test loading file emits file_opened signal."""
@@ -292,6 +296,7 @@ def test_load_file_error_handling(handler, mock_status_manager):
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_save_file_with_path_async(handler, tmp_path, mock_editor):
     """Test saving file with existing path asynchronously."""
@@ -315,6 +320,7 @@ async def test_save_file_with_path_async(handler, tmp_path, mock_editor):
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_save_file_emits_signal_async(handler, tmp_path, mock_editor, qtbot):
     """Test saving file emits file_saved signal."""
@@ -335,6 +341,7 @@ async def test_save_file_emits_signal_async(handler, tmp_path, mock_editor, qtbo
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_save_file_updates_settings_async(
     handler, tmp_path, mock_editor, mock_settings_manager
@@ -360,6 +367,7 @@ async def test_save_file_updates_settings_async(
 
 
 @pytest.mark.asyncio
+@pytest.mark.fr_072
 @pytest.mark.unit
 async def test_save_file_error_handling_async(
     handler, mock_editor, mock_status_manager
@@ -388,6 +396,7 @@ def test_prompt_save_before_action_no_changes(handler):
     assert result is True
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 def test_prompt_save_before_action_save(handler, tmp_path):
     """Test prompt saves file when user chooses Save."""
@@ -423,6 +432,7 @@ def test_prompt_save_before_action_discard(handler):
     assert result is True
 
 
+@pytest.mark.fr_072
 @pytest.mark.unit
 def test_prompt_save_before_action_cancel(handler):
     """Test prompt returns False when user cancels."""

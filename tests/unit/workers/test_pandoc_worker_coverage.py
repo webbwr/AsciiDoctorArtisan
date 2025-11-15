@@ -21,6 +21,7 @@ import pytest
 from asciidoc_artisan.workers.pandoc_worker import PandocWorker
 
 
+@pytest.mark.fr_076
 @pytest.mark.unit
 class TestPandocWorkerCoverage:
     """Tests to achieve 100% coverage for PandocWorker."""

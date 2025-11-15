@@ -29,6 +29,9 @@ def git_worker():
     return GitWorker()
 
 
+@pytest.mark.fr_071
+@pytest.mark.security
+@pytest.mark.fr_076
 @pytest.mark.unit
 class TestGitWorkerCoverage:
     """Tests to achieve 100% coverage for GitWorker."""
