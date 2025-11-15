@@ -3195,6 +3195,244 @@ class OllamaChatWorker(QObject):
 
 ---
 
+## FR-026: Select Repository
+
+**Category:** Git Integration | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/git_worker.py`
+
+### Description
+Select Git repository for version control operations. Auto-detects if current directory is a Git repo on startup.
+
+### Acceptance Criteria
+- [x] Auto-detect Git repo on startup | [x] Manual repo selection dialog
+- [x] Validate selected path is Git repo | [x] Display current repo in status bar
+- [x] Enable/disable Git features based on repo status | [x] Handle non-repo directories gracefully
+
+### API Contract
+```python
+class GitWorker(BaseWorker):
+    repo_selected = Signal(str)  # Repository path
+    def select_repo(self, path: str | Path) -> None:
+        """Select Git repository for operations."""
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 90%+ | **Types:** Unit (5), Integration (3)
+
+---
+
+## FR-027: Git Commit
+
+**Category:** Git Integration | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/git_worker.py`
+
+### Description
+Commit changes with message. Supports staged files, all changes, or selective commit. Background worker prevents UI blocking.
+
+### Acceptance Criteria
+- [x] Commit with message | [x] Stage + commit in one operation
+- [x] Selective file commit | [x] Commit all tracked changes
+- [x] Validation: non-empty message | [x] Background processing (QThread)
+- [x] Success/error notifications | [x] Reentrancy guard (_is_processing_git)
+
+### API Contract
+```python
+class GitWorker(BaseWorker):
+    commit_complete = Signal(bool, str)  # (success, message)
+    def commit(self, message: str, files: list[str] | None = None) -> None:
+        """Commit changes with message.
+
+        Args:
+            message: Commit message (required, non-empty)
+            files: Specific files to commit, or None for all staged
+        """
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 95%+ | **Types:** Unit (7), Integration (5)
+
+---
+
+## FR-028: Git Pull
+
+**Category:** Git Integration | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/git_worker.py`
+
+### Description
+Pull changes from remote repository. Handles merge conflicts, fast-forward, and errors. 60-second timeout.
+
+### Acceptance Criteria
+- [x] Pull from current branch's remote | [x] Handle fast-forward merges
+- [x] Detect merge conflicts | [x] Show detailed error messages
+- [x] 60-second timeout | [x] Background processing
+- [x] Reentrancy guard | [x] Update status bar after pull
+
+### API Contract
+```python
+class GitWorker(BaseWorker):
+    pull_complete = Signal(bool, str)  # (success, output)
+    def pull(self) -> None:
+        """Pull changes from remote repository."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 90%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-029: Git Push
+
+**Category:** Git Integration | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/git_worker.py`
+
+### Description
+Push local commits to remote repository. Validates remote exists, handles errors, prevents force push without confirmation.
+
+### Acceptance Criteria
+- [x] Push to current branch's remote | [x] Validate remote configured
+- [x] Handle push rejection (needs pull) | [x] Detailed error messages
+- [x] 60-second timeout | [x] Background processing
+- [x] Reentrancy guard | [x] Confirm before force push
+
+### API Contract
+```python
+class GitWorker(BaseWorker):
+    push_complete = Signal(bool, str)  # (success, output)
+    def push(self, force: bool = False) -> None:
+        """Push commits to remote.
+
+        Args:
+            force: If True, force push (requires confirmation)
+        """
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 90%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-030: Git Status Bar
+
+**Category:** Git Integration | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.9.0
+**Implementation:** `src/asciidoc_artisan/ui/git_manager.py`
+
+### Description
+Display Git status in status bar: branch name, modified/staged/untracked counts, color indicators.
+
+### Acceptance Criteria
+- [x] Show current branch name | [x] Modified file count (yellow)
+- [x] Staged file count (green) | [x] Untracked file count (blue)
+- [x] Update on file changes | [x] Click to open Git Status Dialog
+- [x] Hide when not in Git repo
+
+### API Contract
+```python
+class GitManager:
+    def update_status_bar(self) -> None:
+        """Update Git status in status bar."""
+    def format_status(self, branch: str, modified: int, staged: int, untracked: int) -> str:
+        """Format status text with color indicators."""
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 85%+ | **Types:** Unit (5), Integration (3)
+
+---
+
+## FR-031: Git Status Dialog
+
+**Category:** Git Integration | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.9.0
+**Implementation:** `src/asciidoc_artisan/ui/git_status_dialog.py`
+
+### Description
+Full Git status dialog with 3 tabs (Modified/Staged/Untracked), checkboxes for staging, commit action. Shortcut: Ctrl+Shift+G.
+
+### Acceptance Criteria
+- [x] 3 tabs: Modified, Staged, Untracked | [x] Checkboxes to stage/unstage files
+- [x] Commit button with message input | [x] Refresh button
+- [x] Double-click file to view diff | [x] Ctrl+Shift+G shortcut
+- [x] Auto-refresh after Git operations | [x] File path display with icons
+
+### API Contract
+```python
+class GitStatusDialog(QDialog):
+    def __init__(self, parent: QWidget, git_worker: GitWorker):
+        """Initialize Git status dialog."""
+    def refresh_status(self) -> None:
+        """Refresh Git status from worker."""
+    def stage_selected_files(self) -> None:
+        """Stage files checked in Modified tab."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 85%+ | **Types:** Unit (8), Integration (7)
+
+---
+
+## FR-032: Quick Commit Widget
+
+**Category:** Git Integration | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-026, FR-027 | **Version:** 1.9.0
+**Implementation:** `src/asciidoc_artisan/ui/quick_commit_widget.py`
+
+### Description
+Inline commit widget at bottom of window. Type message, press Enter to commit. Shortcuts: Ctrl+G to focus, Esc to hide.
+
+### Acceptance Criteria
+- [x] Single-line message input | [x] Enter key commits
+- [x] Esc key hides widget | [x] Ctrl+G shortcut to show/focus
+- [x] Show modified file count | [x] Disable if no changes
+- [x] Clear message after commit | [x] Show commit success/error
+
+### API Contract
+```python
+class QuickCommitWidget(QWidget):
+    def __init__(self, parent: QWidget, git_worker: GitWorker):
+        """Initialize quick commit widget."""
+    def show_and_focus(self) -> None:
+        """Show widget and focus message input."""
+    def commit_changes(self) -> None:
+        """Commit with current message."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-033: Cancel Git Operations
+
+**Category:** Git Integration | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.6.0
+**Implementation:** `src/asciidoc_artisan/workers/git_worker.py`
+
+### Description
+Cancel long-running Git operations (pull, push, large commits). Terminate subprocess, reset state, notify user.
+
+### Acceptance Criteria
+- [x] Cancel button during operations | [x] Terminate subprocess
+- [x] Reset reentrancy guards | [x] User notification
+- [x] Clean up temp resources | [x] No corruption on cancel
+
+### API Contract
+```python
+class GitWorker(BaseWorker):
+    operation_cancelled = Signal()
+    def cancel_operation(self) -> None:
+        """Cancel current Git operation."""
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 80%+ | **Types:** Unit (5), Integration (3)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
