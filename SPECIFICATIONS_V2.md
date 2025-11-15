@@ -3593,6 +3593,198 @@ class GitHubCLIWorker(BaseWorker):
 
 ---
 
+## FR-039: Ollama Chat Panel
+
+**Category:** AI Features | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.2.0
+**Implementation:** `src/asciidoc_artisan/ui/chat_panel_widget.py`
+
+### Description
+Chat interface for Ollama local AI models. Sidebar panel with message history, model selection, 4 chat modes. 2KB context window, 100-message history.
+
+### Acceptance Criteria
+- [x] Sidebar chat panel (dockable) | [x] Message input area (multi-line)
+- [x] Chat history display (scrollable) | [x] Model selection dropdown
+- [x] 4 chat modes: Doc Q&A, Syntax Help, General, Editing | [x] 2KB context window
+- [x] Persistent 100-message history | [x] Clear history button
+- [x] Keyboard shortcuts: Ctrl+Return to send | [x] Error handling and status indicators
+
+### API Contract
+```python
+class ChatPanelWidget(QWidget):
+    def __init__(self, parent: QWidget, ollama_worker: OllamaChatWorker):
+        """Initialize chat panel."""
+    def send_message(self, text: str, mode: str) -> None:
+        """Send message to Ollama."""
+    def append_message(self, role: str, content: str) -> None:
+        """Add message to history."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 85%+ | **Types:** Unit (9), Integration (6)
+
+---
+
+## FR-040: Ollama Chat Modes
+
+**Category:** AI Features | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-039 | **Version:** 1.2.0
+**Implementation:** `src/asciidoc_artisan/workers/ollama_chat_worker.py`
+
+### Description
+4 specialized chat modes with tailored system prompts: Doc Q&A (answer questions about document), Syntax Help (AsciiDoc syntax), General (coding/writing), Editing (improve text).
+
+### Acceptance Criteria
+- [x] Doc Q&A mode: Includes current document context | [x] Syntax Help mode: AsciiDoc reference
+- [x] General mode: Coding and writing assistance | [x] Editing mode: Text improvement suggestions
+- [x] Mode selector in chat panel | [x] System prompts tailored per mode
+- [x] Context injection (2KB limit) | [x] Clear mode indicators
+
+### API Contract
+```python
+class OllamaChatWorker(QObject):
+    def set_chat_mode(self, mode: str) -> None:
+        """Set chat mode.
+
+        Args:
+            mode: One of 'doc_qa', 'syntax_help', 'general', 'editing'
+        """
+    def send_message(self, text: str, context: str | None = None) -> None:
+        """Send message with optional document context."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (8), Integration (4)
+
+---
+
+## FR-041: Ollama Model Selection
+
+**Category:** AI Features | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-039 | **Version:** 1.2.0
+**Implementation:** `src/asciidoc_artisan/workers/ollama_chat_worker.py`
+
+### Description
+Model selection for Ollama: improve-grammar, llama2, mistral, codellama. Auto-detect available models, fallback to default if model unavailable.
+
+### Acceptance Criteria
+- [x] Model dropdown in chat panel | [x] Auto-detect installed models
+- [x] Default models: improve-grammar, llama2, mistral, codellama | [x] Fallback to first available
+- [x] Model switch preserves history | [x] Show model status (available/unavailable)
+- [x] Persist selected model in settings
+
+### API Contract
+```python
+class OllamaChatWorker(QObject):
+    models_detected = Signal(list)  # Available models
+    def detect_models(self) -> None:
+        """Detect available Ollama models."""
+    def set_model(self, model_name: str) -> None:
+        """Set active model."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-042: Ollama Chat History
+
+**Category:** AI Features | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** FR-039 | **Version:** 1.2.0
+**Implementation:** `src/asciidoc_artisan/ui/chat_panel_widget.py`
+
+### Description
+Persistent chat history (100 messages). Save to JSON, load on startup. Clear history button, export history to file.
+
+### Acceptance Criteria
+- [x] 100-message limit (FIFO) | [x] Save to JSON file
+- [x] Load history on startup | [x] Clear history button
+- [x] Export history to .txt file | [x] Timestamp each message
+- [x] Separate history per model | [x] History path: ~/.config/AsciiDocArtisan/chat_history.json
+
+### API Contract
+```python
+class ChatPanelWidget(QWidget):
+    def save_history(self) -> None:
+        """Save chat history to JSON."""
+    def load_history(self) -> None:
+        """Load chat history from JSON."""
+    def clear_history(self) -> None:
+        """Clear all messages."""
+    def export_history(self, path: Path) -> None:
+        """Export history to text file."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 90%+ | **Types:** Unit (7), Integration (5)
+
+---
+
+## FR-043: Ollama Integration
+
+**Category:** AI Features | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.2.0
+**Implementation:** `src/asciidoc_artisan/workers/ollama_chat_worker.py`
+
+### Description
+Background worker for Ollama API. Async requests, timeout handling, error recovery. Validate Ollama installation, handle connection errors.
+
+### Acceptance Criteria
+- [x] Background worker (QThread) | [x] Async HTTP requests to Ollama API
+- [x] 30-second timeout per request | [x] Validate Ollama installed and running
+- [x] Connection error handling | [x] Model not found errors
+- [x] Retry logic (3 attempts) | [x] Status signals: processing, success, error
+
+### API Contract
+```python
+class OllamaChatWorker(QObject):
+    response_ready = Signal(str)  # AI response
+    error_occurred = Signal(str)  # Error message
+    processing_started = Signal()
+    processing_finished = Signal()
+
+    def send_request(self, prompt: str, model: str, context: str | None = None) -> None:
+        """Send request to Ollama API."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 85%+ | **Types:** Unit (9), Integration (4), Error handling (2)
+
+---
+
+## FR-044: Ollama Status Indicator
+
+**Category:** AI Features | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** FR-043 | **Version:** 1.2.0
+**Implementation:** `src/asciidoc_artisan/ui/chat_panel_widget.py`
+
+### Description
+Status indicator in chat panel: Ollama available/unavailable, processing animation, error states. Color-coded icons.
+
+### Acceptance Criteria
+- [x] Status icon: green (ready), yellow (processing), red (error), gray (unavailable)
+- [x] Processing animation (spinner) | [x] Tooltip with status details
+- [x] Auto-detect on startup | [x] Manual refresh button
+- [x] Status text: "Ready", "Processing...", "Error: ...", "Ollama not available"
+
+### API Contract
+```python
+class ChatPanelWidget(QWidget):
+    def update_status(self, status: str, message: str = "") -> None:
+        """Update status indicator.
+
+        Args:
+            status: One of 'ready', 'processing', 'error', 'unavailable'
+            message: Optional detailed status message
+        """
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 80%+ | **Types:** Unit (5), Integration (3)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
