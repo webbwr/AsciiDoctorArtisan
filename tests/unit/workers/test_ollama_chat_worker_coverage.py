@@ -16,6 +16,12 @@ from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.fr_076
 @pytest.mark.unit
 class TestOllamaChatWorkerCoverage:

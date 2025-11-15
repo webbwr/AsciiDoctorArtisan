@@ -50,6 +50,7 @@ def chat_manager(qtbot, chat_bar, chat_panel, settings):
     return manager
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistorySaving:
     """Test saving chat history to settings."""
@@ -142,6 +143,7 @@ class TestHistorySaving:
         # (This is handled by the save mechanism, not the panel)
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistoryLoading:
     """Test loading chat history from settings."""
@@ -200,6 +202,7 @@ class TestHistoryLoading:
         assert count == 0  # All entries were invalid
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistoryPersistence:
     """Test history persists across manager instances."""
@@ -234,6 +237,7 @@ class TestHistoryPersistence:
         assert history2[1]["content"] == "Answer 1"
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistoryClearOperation:
     """Test clearing chat history."""
@@ -277,6 +281,7 @@ class TestHistoryClearOperation:
         assert len(settings.ollama_chat_history) == 0
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestSettingsIntegration:
     """Test integration with settings save/load."""
@@ -304,6 +309,7 @@ class TestSettingsIntegration:
         assert settings.ollama_chat_context_mode == "editing"
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistoryFormat:
     """Test history format and serialization."""
@@ -351,6 +357,7 @@ class TestHistoryFormat:
         assert required_keys.issubset(history[0].keys())
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistoryRecovery:
     """Test history recovery from various states."""
@@ -404,6 +411,7 @@ class TestHistoryRecovery:
         assert count >= 0  # At minimum, shouldn't crash
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestMessageEdgeCases:
     """Test edge cases for message content."""
@@ -487,6 +495,7 @@ class TestMessageEdgeCases:
         assert history[0]["content"] == multiline
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestTimestampHandling:
     """Test timestamp handling in messages."""
@@ -530,6 +539,7 @@ class TestTimestampHandling:
             assert msg["timestamp"] is not None
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistoryLimits:
     """Test boundary conditions for history limits."""
@@ -587,6 +597,7 @@ class TestHistoryLimits:
         assert len(history) == 5
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestConcurrentOperations:
     """Test multiple operations performed quickly."""
@@ -636,6 +647,7 @@ class TestConcurrentOperations:
         assert chat_manager._chat_panel.get_message_count() == 0
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestModelHandling:
     """Test handling different models."""
@@ -666,6 +678,7 @@ class TestModelHandling:
         assert history[0]["model"] == long_model
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestContextModeHandling:
     """Test handling different context modes."""
@@ -714,6 +727,7 @@ class TestContextModeHandling:
             pass
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestHistorySize:
     """Test history size and memory usage."""
@@ -750,6 +764,7 @@ class TestHistorySize:
         assert len(history) == 50
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestSerializationEdgeCases:
     """Test edge cases for JSON serialization."""
@@ -804,6 +819,7 @@ class TestSerializationEdgeCases:
         assert history[0]["content"] == backslash_msg
 
 
+@pytest.mark.fr_042
 @pytest.mark.unit
 class TestRoleHandling:
     """Test role field handling."""

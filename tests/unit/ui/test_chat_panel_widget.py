@@ -21,6 +21,9 @@ from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.ui.chat_panel_widget import ChatPanelWidget
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestChatPanelWidgetInitialization:
     """Test ChatPanelWidget initialization."""
@@ -75,6 +78,9 @@ class TestChatPanelWidgetInitialization:
         assert "Ask a question" in html
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestUserMessageDisplay:
     """Test user message display."""
@@ -139,6 +145,9 @@ class TestUserMessageDisplay:
         assert "First message" in html
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestAIMessageDisplay:
     """Test AI message display."""
@@ -201,6 +210,9 @@ class TestAIMessageDisplay:
         assert "qwen2.5-coder:7b" in html
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestMessageObject:
     """Test add_message with ChatMessage objects."""
@@ -223,6 +235,9 @@ class TestMessageObject:
         assert widget._messages[0] == message
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestThemeSwitching:
     """Test dark/light mode theme switching."""
@@ -269,6 +284,9 @@ class TestThemeSwitching:
         assert colors["ai_border"] == "#4caf50"
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestMessageRendering:
     """Test message rendering."""
@@ -343,6 +361,9 @@ class TestMessageRendering:
         assert "✏️ Edit" in html
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestHTMLEscaping:
     """Test HTML escaping for security."""
@@ -396,6 +417,9 @@ class TestHTMLEscaping:
         assert "&lt;b&gt;Bold&lt;/b&gt;" in html
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestMessageHistory:
     """Test message history management."""
@@ -487,6 +511,9 @@ class TestMessageHistory:
         assert widget.get_message_count() == 2
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestAutoScrolling:
     """Test auto-scrolling functionality."""
@@ -508,6 +535,9 @@ class TestAutoScrolling:
         assert widget._auto_scroll is False
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestMessageAppending:
     """Test appending to last message (streaming support)."""
@@ -541,6 +571,9 @@ class TestMessageAppending:
         assert widget._messages[0].content == "Question"
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestRefreshDisplay:
     """Test display refresh."""
@@ -571,6 +604,9 @@ class TestRefreshDisplay:
         assert "AI Chat Ready" in html
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_042
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestExportToText:
     """Test exporting chat history to text."""

@@ -14,6 +14,12 @@ from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestOllamaChatWorkerInitialization:
     """Test worker initialization."""
@@ -41,6 +47,12 @@ class TestOllamaChatWorkerInitialization:
         assert hasattr(worker, "operation_cancelled")
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestSendMessage:
     """Test send_message method."""
@@ -100,6 +112,12 @@ class TestSendMessage:
         assert worker._user_message is None
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestCancelOperation:
     """Test cancel_operation method."""
@@ -125,6 +143,12 @@ class TestCancelOperation:
         assert worker._should_cancel is False
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestBuildSystemPrompt:
     """Test _build_system_prompt method for all context modes."""
@@ -228,6 +252,12 @@ class TestBuildSystemPrompt:
         assert "truncated to 2000 characters" in prompt
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestBuildMessageHistory:
     """Test _build_message_history method."""
@@ -281,6 +311,12 @@ class TestBuildMessageHistory:
         assert messages[-1]["content"] == "Follow-up question"
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestRunMethod:
     """Test run method (thread entry point)."""
@@ -444,6 +480,12 @@ class TestRunMethod:
         assert cancelled is True
 
 
+@pytest.mark.fr_039
+@pytest.mark.fr_040
+@pytest.mark.fr_041
+@pytest.mark.fr_042
+@pytest.mark.fr_043
+@pytest.mark.fr_044
 @pytest.mark.unit
 class TestErrorHandling:
     """Test error handling in various scenarios."""
