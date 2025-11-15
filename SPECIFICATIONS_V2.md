@@ -2191,6 +2191,365 @@ print("code block")
 
 ---
 
+## FR-015: Live Preview
+
+**Category:** Preview System
+**Priority:** Critical
+**Status:** ✅ Implemented
+**Dependencies:** FR-001 (Text Editor)
+**Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/preview_worker.py`
+
+### Description
+
+Real-time AsciiDoc preview pane showing rendered HTML output. Updates automatically as user types, with debouncing to prevent performance issues. Uses background worker thread to avoid blocking UI.
+
+### Acceptance Criteria
+
+- [x] Live preview pane showing rendered HTML
+- [x] Auto-update on text changes (debounced)
+- [x] Background rendering (worker thread)
+- [x] Performance <200ms for small docs (<1000 lines)
+- [x] Performance <750ms for large docs (1000-10000 lines)
+- [x] Error messages shown in preview on invalid AsciiDoc
+- [x] Preserve scroll position during updates
+- [x] Support all AsciiDoc syntax (headings, lists, code, tables, etc.)
+
+### API Contract
+
+```python
+class PreviewWorker(QObject):
+    """Background worker for AsciiDoc rendering."""
+
+    preview_ready = Signal(str)  # Rendered HTML
+    preview_error = Signal(str)  # Error message
+
+    def render_asciidoc(self, content: str) -> None:
+        """Render AsciiDoc to HTML.
+
+        Args:
+            content: AsciiDoc text to render
+
+        Emits:
+            preview_ready: On success with HTML
+            preview_error: On parse error with message
+        """
+```
+
+### Examples
+
+**Example 1: Basic Rendering**
+
+*Input (Editor):*
+```
+= Document Title
+
+== Section 1
+
+This is a *bold* paragraph with _italic_ text.
+```
+
+*Output (Preview):*
+```html
+<h1>Document Title</h1>
+<h2>Section 1</h2>
+<p>This is a <strong>bold</strong> paragraph with <em>italic</em> text.</p>
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 15
+- **Coverage Target:** 90%+
+- **Test Types:** Unit (8), Integration (5), Performance (2)
+
+### Implementation Guidance
+
+**Approach:** Worker thread renders with asciidoc3, signal/slot for UI updates
+
+**Performance:** Debounce 500ms, incremental rendering for large docs
+
+---
+
+## FR-016: GPU Acceleration
+
+**Category:** Preview System
+**Priority:** Critical
+**Status:** ✅ Implemented
+**Dependencies:** FR-015 (Live Preview)
+**Version:** 1.4.0
+**Implementation:** `src/asciidoc_artisan/ui/preview_handler_gpu.py`
+
+### Description
+
+GPU-accelerated preview rendering using QWebEngineView for 10-50x faster rendering and 70-90% less CPU usage. Auto-detects GPU availability with CPU fallback. 24-hour cache for GPU detection.
+
+### Acceptance Criteria
+
+- [x] Auto-detect GPU (NVIDIA, AMD, Intel)
+- [x] Use QWebEngineView when GPU available
+- [x] Fallback to QTextBrowser if no GPU
+- [x] 10-50x rendering speedup with GPU
+- [x] 70-90% CPU usage reduction
+- [x] 24hr cache for GPU detection
+- [x] Support CUDA, OpenCL, Vulkan, ROCm, Intel NPU
+- [x] Smooth scrolling with GPU rendering
+
+### API Contract
+
+```python
+def detect_gpu() -> tuple[bool, str]:
+    """Detect GPU availability.
+
+    Returns:
+        (has_gpu, gpu_info) tuple
+
+    Caches result for 24 hours in:
+        ~/.cache/asciidoc_artisan/gpu_detection.json
+    """
+
+class PreviewHandlerGPU:
+    """GPU-accelerated preview handler."""
+
+    def __init__(self, parent: QWidget):
+        """Initialize with GPU auto-detection."""
+
+    def set_html(self, html: str) -> None:
+        """Render HTML (GPU accelerated if available)."""
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 12
+- **Coverage Target:** 85%+
+- **Test Types:** Unit (6), Integration (4), GPU detection (2)
+
+### Implementation Guidance
+
+**Approach:** Detect GPU on startup, use QWebEngineView if available
+
+**Performance:** 10-50x faster than CPU-only, 70-90% less CPU
+
+---
+
+## FR-017: Scroll Sync
+
+**Category:** Preview System
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-015 (Live Preview)
+**Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/ui/scroll_manager.py`
+
+### Description
+
+Bidirectional scroll synchronization between editor and preview panes. When user scrolls one pane, the other scrolls proportionally to maintain visual alignment.
+
+### Acceptance Criteria
+
+- [x] Editor scroll → Preview scroll
+- [x] Preview scroll → Editor scroll
+- [x] Proportional scrolling (not 1:1 line mapping)
+- [x] Toggle on/off (F11 or menu)
+- [x] No scroll loops (prevent infinite feedback)
+- [x] Smooth scrolling experience
+- [x] Persist sync state in settings
+
+### API Contract
+
+```python
+class ScrollManager:
+    """Manage editor ↔ preview scroll synchronization."""
+
+    def __init__(self, editor: QPlainTextEdit, preview: QWidget):
+        """Initialize scroll manager."""
+
+    def enable_sync(self) -> None:
+        """Enable bidirectional scroll sync."""
+
+    def disable_sync(self) -> None:
+        """Disable scroll sync."""
+
+    def sync_editor_to_preview(self, value: int) -> None:
+        """Sync editor scroll position to preview."""
+
+    def sync_preview_to_editor(self, value: int) -> None:
+        """Sync preview scroll position to editor."""
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 90%+
+- **Test Types:** Unit (4), Integration (4)
+
+### Implementation Guidance
+
+**Approach:** Connect scrollbar signals, use proportional mapping
+
+**Performance:** <10ms per scroll event
+
+---
+
+## FR-018: Incremental Render
+
+**Category:** Preview System
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-015 (Live Preview)
+**Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/workers/incremental_renderer.py`
+
+### Description
+
+Block-based incremental rendering with LRU cache for 3-5x faster edits. Only re-renders changed blocks, caches results using MD5 hashing.
+
+### Acceptance Criteria
+
+- [x] Block detection (split document into logical blocks)
+- [x] MD5 hash tracking for change detection
+- [x] LRU cache (max 100 blocks)
+- [x] Only render changed blocks
+- [x] 3-5x faster for small edits
+- [x] Merge rendered blocks into full HTML
+- [x] Cache hit rate >80% for typical editing
+
+### API Contract
+
+```python
+class IncrementalPreviewRenderer:
+    """Incremental block-based renderer with caching."""
+
+    def __init__(self, cache_size: int = 100):
+        """Initialize with LRU cache."""
+
+    def render(self, content: str) -> str:
+        """Render AsciiDoc incrementally.
+
+        Returns:
+            Fully rendered HTML
+        """
+
+    def get_cache_stats(self) -> dict:
+        """Get cache statistics (hits, misses, hit rate)."""
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 12
+- **Coverage Target:** 90%+
+- **Test Types:** Unit (7), Performance (3), Cache (2)
+
+### Implementation Guidance
+
+**Approach:** Split by blank lines, hash blocks, cache rendered HTML
+
+**Performance:** 3-5x faster edits, >80% cache hit rate
+
+---
+
+## FR-019: Debounce
+
+**Category:** Preview System
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-015 (Live Preview)
+**Version:** 1.5.0
+**Implementation:** Preview debouncing in main window
+
+### Description
+
+Adaptive debouncing for preview updates to prevent excessive rendering during rapid typing. Default 500ms delay, dynamically adjusted based on document size.
+
+### Acceptance Criteria
+
+- [x] Default debounce delay: 500ms
+- [x] Adaptive delay (longer for larger docs)
+- [x] Cancel pending renders on new input
+- [x] Show "Rendering..." indicator during delay
+- [x] No render lag during typing
+- [x] Configurable delay in settings (100ms-2000ms)
+
+### API Contract
+
+```python
+class DebounceTimer:
+    """Debounce timer for preview updates."""
+
+    def __init__(self, delay_ms: int = 500):
+        """Initialize with delay in milliseconds."""
+
+    def trigger(self, callback: callable) -> None:
+        """Trigger callback after delay.
+
+        Resets timer if called again before delay expires.
+        """
+
+    def cancel(self) -> None:
+        """Cancel pending callback."""
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 95%+
+- **Test Types:** Unit (5), Integration (3)
+
+### Implementation Guidance
+
+**Approach:** QTimer with restart on new input
+
+**Performance:** Prevents excessive rendering, smooth typing
+
+---
+
+## FR-020: Preview Themes
+
+**Category:** Preview System
+**Priority:** Medium
+**Status:** ✅ Implemented
+**Dependencies:** FR-015 (Live Preview), FR-055 (Themes)
+**Version:** 1.0.0
+**Implementation:** CSS injection in preview
+
+### Description
+
+Preview pane theme follows application theme (dark/light mode). CSS injection for consistent styling.
+
+### Acceptance Criteria
+
+- [x] Dark mode CSS for preview
+- [x] Light mode CSS for preview
+- [x] Auto-switch with app theme toggle (F11)
+- [x] Preserve preview colors/fonts
+- [x] Syntax highlighting in code blocks
+- [x] Readable in both themes
+
+### API Contract
+
+```python
+def apply_preview_theme(preview_widget: QWidget, dark_mode: bool) -> None:
+    """Apply theme CSS to preview.
+
+    Args:
+        preview_widget: Preview widget
+        dark_mode: True for dark theme, False for light
+    """
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 6
+- **Coverage Target:** 85%+
+- **Test Types:** Unit (4), Integration (2)
+
+### Implementation Guidance
+
+**Approach:** Inject CSS into preview HTML based on theme
+
+**Performance:** Instant theme switching
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining 105 FRs, use this template structure:
