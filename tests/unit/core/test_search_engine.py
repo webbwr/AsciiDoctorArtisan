@@ -9,6 +9,8 @@ import pytest
 from asciidoc_artisan.core.search_engine import SearchEngine, SearchMatch
 
 
+@pytest.mark.fr_047
+@pytest.mark.fr_049
 @pytest.mark.unit
 class TestSearchMatch:
     """Test SearchMatch dataclass."""
@@ -39,6 +41,8 @@ class TestSearchMatch:
         assert "Hello" in repr_str
 
 
+@pytest.mark.fr_047
+@pytest.mark.fr_049
 @pytest.mark.unit
 class TestSearchEngine:
     """Test SearchEngine core functionality."""

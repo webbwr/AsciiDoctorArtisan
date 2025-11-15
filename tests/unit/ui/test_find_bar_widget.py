@@ -9,6 +9,9 @@ from PySide6.QtTest import QTest
 from asciidoc_artisan.ui.find_bar_widget import FindBarWidget
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestFindBarWidget:
     """Test FindBarWidget UI and functionality."""
@@ -222,6 +225,9 @@ class TestFindBarWidget:
         assert widget._counter_label.minimumWidth() == 80
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestSearchTextEdgeCases:
     """Test edge cases for search text input."""
@@ -280,6 +286,9 @@ class TestSearchTextEdgeCases:
         assert widget.get_search_text() == regex_text
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestMatchCounterVariations:
     """Test match counter display variations."""
@@ -341,6 +350,9 @@ class TestMatchCounterVariations:
         # Verify it doesn't crash (specific behavior may vary)
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestShowHideCycles:
     """Test show/hide state transitions."""
@@ -388,6 +400,9 @@ class TestShowHideCycles:
             widget._close_btn.click()
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestSignalEmissionEdgeCases:
     """Test signal emission edge cases."""
@@ -443,6 +458,9 @@ class TestSignalEmissionEdgeCases:
         widget._prev_btn.click()  # Should not emit signal when disabled
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestKeyboardShortcutEdgeCases:
     """Test keyboard shortcut edge cases."""
@@ -478,6 +496,9 @@ class TestKeyboardShortcutEdgeCases:
         QTest.keyPress(widget, Qt.Key.Key_Escape)
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestStyleManagement:
     """Test style application and removal."""
@@ -521,6 +542,9 @@ class TestStyleManagement:
         # Style should still be applied until explicitly cleared
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestClearOperation:
     """Test clear() operation in various states."""
@@ -567,6 +591,9 @@ class TestClearOperation:
         # Implementation may or may not clear style on clear()
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestTextSelection:
     """Test text selection behavior."""
@@ -600,6 +627,9 @@ class TestTextSelection:
         widget._search_input.setText("new")
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestButtonStates:
     """Test button enable/disable states."""
@@ -633,6 +663,9 @@ class TestButtonStates:
         assert widget._close_btn.isEnabled()
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestWidgetLifecycle:
     """Test widget creation and destruction."""
@@ -660,6 +693,9 @@ class TestWidgetLifecycle:
         # Widget will be cleaned up by qtbot
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestCaseSensitivityState:
     """Test case sensitivity state management."""
@@ -696,6 +732,9 @@ class TestCaseSensitivityState:
         assert widget.is_case_sensitive()
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestUIComponents:
     """Test UI component properties."""
@@ -732,6 +771,9 @@ class TestUIComponents:
         assert widget._counter_label.alignment() is not None
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestConcurrentOperations:
     """Test handling of concurrent operations."""
@@ -772,6 +814,9 @@ class TestConcurrentOperations:
         assert widget._counter_label.text() == "No matches"
 
 
+@pytest.mark.fr_045
+@pytest.mark.fr_046
+@pytest.mark.fr_048
 @pytest.mark.unit
 class TestReplaceMode:
     """Test find and replace mode functionality."""

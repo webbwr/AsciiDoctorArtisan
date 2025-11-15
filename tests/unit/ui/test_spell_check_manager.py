@@ -73,6 +73,11 @@ def main_window(qapp):
     return window
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestSpellCheckManagerInitialization:
     """Test SpellCheckManager initialization."""
@@ -108,6 +113,11 @@ class TestSpellCheckManagerInitialization:
         assert "testword2" in custom_words
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestSpellCheckToggle:
     """Test spell check toggle functionality."""
@@ -158,6 +168,11 @@ class TestSpellCheckToggle:
         assert manager.errors == []
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestLanguageSupport:
     """Test language switching."""
@@ -188,6 +203,11 @@ class TestLanguageSupport:
             mock_check.assert_called_once()
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestCustomDictionary:
     """Test custom dictionary management."""
@@ -221,6 +241,11 @@ class TestCustomDictionary:
             mock_check.assert_called_once()
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestIgnoredWords:
     """Test word ignoring functionality."""
@@ -254,6 +279,11 @@ class TestIgnoredWords:
             mock_check.assert_called_once()
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestSpellChecking:
     """Test spell checking functionality."""
@@ -317,6 +347,11 @@ class TestSpellChecking:
         assert not manager.check_timer.isActive()
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestHighlights:
     """Test spelling error highlights."""
@@ -385,6 +420,11 @@ class TestHighlights:
         assert error is None
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestContextMenu:
     """Test context menu functionality."""
@@ -441,6 +481,11 @@ class TestContextMenu:
             mock_default.assert_called_once_with(event)
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestWordReplacement:
     """Test word replacement functionality."""
@@ -469,6 +514,11 @@ class TestWordReplacement:
         assert "Hello world" in text or text.startswith("Hello")
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases for spell checking."""
@@ -567,6 +617,11 @@ class TestEdgeCases:
         assert isinstance(manager.errors, list)
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestMultipleLanguageSwitching:
     """Test multiple language switching scenarios."""
@@ -635,6 +690,11 @@ class TestMultipleLanguageSwitching:
             assert True
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestCustomDictionaryEdgeCases:
     """Test custom dictionary edge cases."""
@@ -702,6 +762,11 @@ class TestCustomDictionaryEdgeCases:
         assert len([w for w in custom_words if w.startswith("word")]) == 50
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestHighlightRenderingEdgeCases:
     """Test highlight rendering edge cases."""
@@ -785,6 +850,11 @@ class TestHighlightRenderingEdgeCases:
         assert isinstance(manager.editor.extraSelections(), list)
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestContextMenuEdgeCases:
     """Test context menu edge cases."""
@@ -863,6 +933,11 @@ class TestContextMenuEdgeCases:
             manager.show_context_menu(event)
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestTimerDebounceEdgeCases:
     """Test timer and debounce edge cases."""
@@ -917,6 +992,11 @@ class TestTimerDebounceEdgeCases:
         assert not manager.check_timer.isActive()
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestErrorRecovery:
     """Test error recovery scenarios."""
@@ -974,6 +1054,11 @@ class TestErrorRecovery:
         assert error is None
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestPerformanceScenarios:
     """Test performance scenarios."""
@@ -1061,6 +1146,11 @@ class TestPerformanceScenarios:
         assert manager.spell_checker is not None
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestStatePersistence:
     """Test state persistence across operations."""
@@ -1120,6 +1210,11 @@ class TestStatePersistence:
         assert "test" in manager.spell_checker.get_custom_words()
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestConcurrentOperations:
     """Test concurrent operations."""
@@ -1240,6 +1335,11 @@ class TestConcurrentOperations:
         assert len(manager.editor.extraSelections()) == 0
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestMenuTextUpdate:
     """Test menu text update with checkmark."""
@@ -1303,6 +1403,11 @@ class TestMenuTextUpdate:
         assert True
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestContextMenuWithMockedExec:
     """Test context menu functionality with mocked QMenu.exec()."""
@@ -1594,6 +1699,11 @@ class TestContextMenuWithMockedExec:
                     )
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestStandardActionsMenu:
     """Test standard editor actions in context menu."""
@@ -1757,6 +1867,11 @@ class TestStandardActionsMenu:
         assert len(separators) >= 2  # At least 2 separators
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestDefaultContextMenu:
     """Test default context menu functionality."""

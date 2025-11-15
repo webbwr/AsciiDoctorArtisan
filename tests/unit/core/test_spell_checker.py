@@ -13,6 +13,11 @@ import pytest
 from asciidoc_artisan.core.spell_checker import SpellChecker, SpellError
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestSpellError:
     """Test SpellError dataclass."""
@@ -42,6 +47,11 @@ class TestSpellError:
         assert "col=5" in repr_str
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestSpellCheckerInitialization:
     """Test SpellChecker initialization."""
@@ -62,6 +72,11 @@ class TestSpellCheckerInitialization:
         assert checker.get_custom_words() == []
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestCheckWord:
     """Test single word spell checking."""
@@ -98,6 +113,11 @@ class TestCheckWord:
         assert checker.check_word("it's") is True
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestSuggestions:
     """Test spelling suggestions."""
@@ -134,6 +154,11 @@ class TestSuggestions:
         assert isinstance(suggestions, list)
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestCustomDictionary:
     """Test custom dictionary management."""
@@ -194,6 +219,11 @@ class TestCustomDictionary:
         assert checker.get_custom_words() == []
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestIgnoredWords:
     """Test ignored words functionality."""
@@ -230,6 +260,11 @@ class TestIgnoredWords:
         assert checker.check_word("tempword") is False
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestCheckText:
     """Test text spell checking."""
@@ -296,6 +331,11 @@ class TestCheckText:
         )
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestLanguageSupport:
     """Test multiple language support."""
@@ -322,6 +362,11 @@ class TestLanguageSupport:
         assert checker.check_word("hola") is True
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error handling."""
@@ -365,6 +410,11 @@ class TestEdgeCases:
         assert len(errors) == 0
 
 
+@pytest.mark.fr_050
+@pytest.mark.fr_051
+@pytest.mark.fr_052
+@pytest.mark.fr_053
+@pytest.mark.fr_054
 @pytest.mark.unit
 def test_type_checking_pass():
     """Test TYPE_CHECKING pass statement (line 35)."""
