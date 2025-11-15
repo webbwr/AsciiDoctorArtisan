@@ -2,6 +2,7 @@
 #
 # Claude Code Detailed Status Line
 # Provides comprehensive context for minimal-verbosity mode
+# Performance optimized: Caches expensive QA checks (5-min TTL)
 #
 
 # Colors for output
@@ -35,11 +36,36 @@ VENV_ACTIVE=$([ -n "$VIRTUAL_ENV" ] && echo "✓" || echo "✗")
 TEST_STATS=$(grep -o "[0-9]* passed" htmlcov/index.html 2>/dev/null | cut -d' ' -f1 || echo "?")
 COVERAGE=$(grep -o "[0-9]*%" htmlcov/index.html 2>/dev/null | head -1 | tr -d '%' || echo "?")
 
-# Type checking status
-MYPY_STATUS=$(mypy src/asciidoc_artisan --strict 2>&1 | grep -q "Success" && echo "✓" || echo "✗")
+# QA Status with caching (5-minute TTL)
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/asciidoc_artisan"
+CACHE_FILE="$CACHE_DIR/qa_status.cache"
+CACHE_TTL=300  # 5 minutes
 
-# Linting status
-RUFF_STATUS=$(ruff check src/asciidoc_artisan 2>&1 | grep -q "All checks passed" && echo "✓" || echo "✗")
+mkdir -p "$CACHE_DIR"
+
+# Check if cache is valid
+CACHE_VALID=0
+if [ -f "$CACHE_FILE" ]; then
+    CACHE_AGE=$(($(date +%s) - $(stat -c %Y "$CACHE_FILE" 2>/dev/null || echo 0)))
+    if [ "$CACHE_AGE" -lt "$CACHE_TTL" ]; then
+        CACHE_VALID=1
+    fi
+fi
+
+if [ "$CACHE_VALID" -eq 1 ]; then
+    # Read from cache
+    source "$CACHE_FILE"
+else
+    # Run expensive checks and cache results
+    MYPY_STATUS=$(mypy src/asciidoc_artisan --strict 2>&1 | grep -q "Success" && echo "✓" || echo "✗")
+    RUFF_STATUS=$(ruff check src/asciidoc_artisan 2>&1 | grep -q "All checks passed" && echo "✓" || echo "✗")
+
+    # Write to cache
+    cat > "$CACHE_FILE" << EOF
+MYPY_STATUS="$MYPY_STATUS"
+RUFF_STATUS="$RUFF_STATUS"
+EOF
+fi
 
 # Architecture optimization status
 if [[ "$CPU_ARCH" == "arm64" ]]; then
