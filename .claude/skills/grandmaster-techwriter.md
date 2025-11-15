@@ -49,7 +49,7 @@ Different documentation types have different readability goals based on their au
 |---------------|--------------|-------------|----------|----------|
 | **User Documentation** | ≤5.0 | 70+ (Easy) | End users, general public | README.md, how-to-use.md, user guides, tutorials |
 | **Developer Documentation** | ≤8.0 | 60+ (Standard) | Software developers | how-to-contribute.md, API docs, architecture guides |
-| **Technical Specifications** | ≤10.0 | 50+ (Fairly Difficult) | Technical experts | SPECIFICATIONS.md, design docs, RFC-style docs |
+| **Technical Specifications** | ≤10.0 | 50+ (Fairly Difficult) | Technical experts | SPECIFICATIONS_HU.md, design docs, RFC-style docs |
 | **QA/Test Documentation** | ≤8.0 | 60+ (Standard) | QA engineers, testers | Test plans, QA audits, coverage reports |
 
 ### Document Type Detection
@@ -59,7 +59,7 @@ The skill automatically detects document type based on:
 1. **File path patterns:**
    - `docs/user/`, `docs/how-to/`, `README.md` → **User Documentation** (Grade ≤5.0)
    - `docs/developer/`, `docs/api/`, `CONTRIBUTING.md` → **Developer Documentation** (Grade ≤8.0)
-   - `docs/architecture/`, `docs/spec/`, `SPECIFICATIONS.md` → **Technical Specifications** (Grade ≤10.0)
+   - `docs/architecture/`, `docs/spec/`, `SPECIFICATIONS_HU.md` → **Technical Specifications** (Grade ≤10.0)
    - `docs/qa/`, `docs/test/`, `TEST_*.md` → **QA Documentation** (Grade ≤8.0)
 
 2. **Content keywords:**
@@ -71,7 +71,7 @@ The skill automatically detects document type based on:
 3. **Filename patterns:**
    - `README.md`, `INSTALL.md`, `QUICKSTART.md` → **User** (Grade ≤5.0)
    - `CONTRIBUTING.md`, `DEVELOPMENT.md`, `API.md` → **Developer** (Grade ≤8.0)
-   - `SPECIFICATIONS.md`, `REQUIREMENTS.md`, `DESIGN.md` → **Technical** (Grade ≤10.0)
+   - `SPECIFICATIONS_HU.md`, `REQUIREMENTS.md`, `DESIGN.md` → **Technical** (Grade ≤10.0)
    - `QA_*.md`, `TEST_*.md`, `COVERAGE.md` → **QA** (Grade ≤8.0)
 
 ### Target Rationale

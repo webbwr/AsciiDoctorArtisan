@@ -8,7 +8,7 @@
 
 ## Overview
 
-All 107 functional requirements from SPECIFICATIONS_V2.md now have corresponding pytest markers. This enables:
+All 107 functional requirements from SPECIFICATIONS_AI.md now have corresponding pytest markers. This enables:
 
 - ✅ Running tests for specific FRs
 - ✅ Counting tests per FR
@@ -190,7 +190,7 @@ pytest -m "fr_007 and not integration" -v
 
 ## Verify FR Requirements
 
-### Check Test Count vs SPECIFICATIONS_V2.md
+### Check Test Count vs SPECIFICATIONS_AI.md
 
 ```bash
 # FR-007 requires minimum 15 tests
@@ -278,9 +278,9 @@ def test_git_commit_workflow():
     pass
 ```
 
-### 5. Keep Markers Aligned with SPECIFICATIONS_V2.md
+### 5. Keep Markers Aligned with SPECIFICATIONS_AI.md
 
-When FR requirements change in SPECIFICATIONS_V2.md, update corresponding test markers and counts.
+When FR requirements change in SPECIFICATIONS_AI.md, update corresponding test markers and counts.
 
 ---
 
@@ -487,4 +487,4 @@ def test_save_file_sanitizes_path():
 
 **Status:** Phase 2 Framework Complete
 **Next:** Begin adding markers to critical FR test files
-**Documentation:** See SPECIFICATIONS_V2.md for FR requirements
+**Documentation:** See SPECIFICATIONS_AI.md for FR requirements

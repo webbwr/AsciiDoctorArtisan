@@ -1,6 +1,6 @@
 # Specification-Driven Coding with Claude Code
 
-**Guide for Using SPECIFICATIONS_V2.md with AI-Assisted Development**
+**Guide for Using SPECIFICATIONS_AI.md with AI-Assisted Development**
 
 ---
 
@@ -18,7 +18,7 @@
 
 ## Introduction
 
-This guide shows you how to use the enhanced `SPECIFICATIONS_V2.md` format to develop features with Claude Code (AI assistant). The specification-driven approach lets you describe what you want, and Claude implements it based on detailed, actionable specifications.
+This guide shows you how to use the enhanced `SPECIFICATIONS_AI.md` format to develop features with Claude Code (AI assistant). The specification-driven approach lets you describe what you want, and Claude implements it based on detailed, actionable specifications.
 
 ### Why Specification-Driven Coding?
 
@@ -33,7 +33,7 @@ AI: *Makes assumptions, may not match your needs*
 **Specification-Driven Approach:**
 ```
 You: "Implement FR-007"
-AI: *Reads FR-007 from SPECIFICATIONS_V2.md*
+AI: *Reads FR-007 from SPECIFICATIONS_AI.md*
 AI: *Sees acceptance criteria, API contract, examples*
 AI: *Implements exactly per specification*
 AI: *Writes tests per test requirements*
@@ -43,7 +43,7 @@ AI: *Writes tests per test requirements*
 
 - Access to Claude Code (claude.ai/code or CLI)
 - AsciiDoc Artisan codebase
-- `SPECIFICATIONS_V2.md` in repository root
+- `SPECIFICATIONS_AI.md` in repository root
 - Basic understanding of the codebase structure
 
 ---
@@ -80,15 +80,15 @@ cd ~/github/AsciiDoctorArtisan
 claude-code
 ```
 
-### Step 2: Reference SPECIFICATIONS_V2.md
+### Step 2: Reference SPECIFICATIONS_AI.md
 
-Claude Code automatically reads `SPECIFICATIONS_V2.md` when you reference it.
+Claude Code automatically reads `SPECIFICATIONS_AI.md` when you reference it.
 
 **Simple Reference:**
 ```
 You: "Implement FR-001"
 
-Claude: *Reads SPECIFICATIONS_V2.md*
+Claude: *Reads SPECIFICATIONS_AI.md*
 Claude: *Finds FR-001: Text Editor*
 Claude: *Implements based on acceptance criteria*
 ```
@@ -241,13 +241,13 @@ Claude will:
 ```
 Implement FR-001: Text Editor
 
-Use the specification in SPECIFICATIONS_V2.md. Follow all acceptance
+Use the specification in SPECIFICATIONS_AI.md. Follow all acceptance
 criteria, implement the API contract, and write the required tests.
 ```
 
 **Claude Response:**
 ```
-I'll implement FR-001: Text Editor based on SPECIFICATIONS_V2.md.
+I'll implement FR-001: Text Editor based on SPECIFICATIONS_AI.md.
 
 Reading specification...
 ✓ Found FR-001 with 9 acceptance criteria
@@ -281,7 +281,7 @@ Check if the current save implementation complies with FR-007 specification.
 ```
 Checking FR-007 compliance...
 
-Reading FR-007: Save Files from SPECIFICATIONS_V2.md
+Reading FR-007: Save Files from SPECIFICATIONS_AI.md
 
 Acceptance Criteria Check:
 ✓ 1. Saves current editor content to file path
@@ -304,7 +304,7 @@ Would you like me to fix the missing error handling?
 
 **You:**
 ```
-Generate tests for FR-007 based on the test requirements in SPECIFICATIONS_V2.md
+Generate tests for FR-007 based on the test requirements in SPECIFICATIONS_AI.md
 ```
 
 **Claude Response:**
@@ -358,7 +358,7 @@ What FRs do I need to implement before FR-018 (Incremental Render)?
 
 **Claude Response:**
 ```
-Checking dependencies for FR-018 in SPECIFICATIONS_V2.md...
+Checking dependencies for FR-018 in SPECIFICATIONS_AI.md...
 
 Dependency Chain:
 1. FR-001: Text Editor (foundational)
@@ -386,7 +386,7 @@ Would you like me to implement FR-018 now?
 
 **Good:**
 ```
-You: "Implement FR-015 per SPECIFICATIONS_V2.md"
+You: "Implement FR-015 per SPECIFICATIONS_AI.md"
 ```
 
 **Better:**
@@ -481,7 +481,7 @@ Claude: "Use QWebEngineView, implement 24hr cache, fallback to CPU..."
 **Template Usage:**
 ```
 You: "Create FR-108 for a markdown export feature using the FR template
-from SPECIFICATIONS_V2.md"
+from SPECIFICATIONS_AI.md"
 
 Claude: [Creates new FR using template structure]
 Claude: [Includes acceptance criteria, API contract, examples, test requirements]
@@ -519,7 +519,7 @@ Claude: [Updates examples]
 ```
 You: "Which FRs are not yet implemented?"
 
-Claude: [Checks FR status in SPECIFICATIONS_V2.md]
+Claude: [Checks FR status in SPECIFICATIONS_AI.md]
 Claude: "All 107 FRs are implemented ✓"
 ```
 
@@ -608,7 +608,7 @@ Checklist:
 
 ```
 You: "Generate user documentation for FR-040 (Chat Panel) based on
-the examples in SPECIFICATIONS_V2.md"
+the examples in SPECIFICATIONS_AI.md"
 
 Claude: [Extracts examples]
 Claude: [Creates user guide with screenshots placeholders]
@@ -620,7 +620,7 @@ Claude: [Creates user guide with screenshots placeholders]
 
 ### Before Starting
 
-- [ ] Read the FR specification in SPECIFICATIONS_V2.md
+- [ ] Read the FR specification in SPECIFICATIONS_AI.md
 - [ ] Check dependencies (implement prerequisites first)
 - [ ] Review acceptance criteria
 - [ ] Read examples to understand expected behavior
@@ -647,7 +647,7 @@ Claude: [Creates user guide with screenshots placeholders]
 ## Resources
 
 ### Documentation
-- `SPECIFICATIONS_V2.md` - Enhanced specification format (use this)
+- `SPECIFICATIONS_AI.md` - Enhanced specification format (use this)
 - `SPECIFICATIONS.md` - Original format (legacy reference)
 - [GitHub: Spec-Driven Development](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
 - [Kiro: Future of Software Development](https://kiro.dev/blog/kiro-and-the-future-of-software-development/)
@@ -665,7 +665,7 @@ Claude: [Creates user guide with screenshots placeholders]
 
 **Implement a feature:**
 ```
-"Implement FR-XXX per SPECIFICATIONS_V2.md"
+"Implement FR-XXX per SPECIFICATIONS_AI.md"
 ```
 
 **Check compliance:**
@@ -694,7 +694,7 @@ Claude: [Creates user guide with screenshots placeholders]
 
 Specification-driven coding with Claude Code means:
 
-1. **Write clear specifications first** (SPECIFICATIONS_V2.md)
+1. **Write clear specifications first** (SPECIFICATIONS_AI.md)
 2. **Reference FRs when implementing** ("Implement FR-XXX")
 3. **Verify against acceptance criteria** (Built into each FR)
 4. **Write tests per requirements** (Test section in each FR)

@@ -117,7 +117,7 @@ python3 scripts/readability_check.py docs/path/to/file.md
 
 - **Main Repository:** [GitHub](https://github.com/webbwr/AsciiDoctorArtisan)
 - **CLAUDE.md:** Project instructions for AI assistants (in repository root)
-- **SPECIFICATIONS.md:** Complete functional requirements (in repository root)
+- **SPECIFICATIONS_HU.md:** Complete functional requirements (in repository root)
 - **ROADMAP.md:** Version roadmap and progress tracking (in repository root)
 
 ---

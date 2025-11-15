@@ -2,8 +2,8 @@
 
 **Quick Reference Guide** | **Version:** 2.0.2 | **Updated:** Nov 15, 2025
 
-> **📌 For AI-Assisted Development:** See [SPECIFICATIONS_V2.md](SPECIFICATIONS_V2.md)
-> This file provides human-readable quick reference. For AI-actionable specifications with acceptance criteria, API contracts, test requirements, and dependency graphs, use **SPECIFICATIONS_V2.md**.
+> **📌 For AI-Assisted Development:** See [SPECIFICATIONS_AI.md](SPECIFICATIONS_AI.md)
+> This file provides human-readable quick reference. For AI-actionable specifications with acceptance criteria, API contracts, test requirements, and dependency graphs, use **SPECIFICATIONS_AI.md**.
 >
 > **Documentation:** See [docs/developer/spec-driven-coding-guide.md](docs/developer/spec-driven-coding-guide.md)
 
@@ -18,7 +18,7 @@
 - ✅ Test counts and quality metrics
 - ❌ Not suitable for AI implementation
 
-**SPECIFICATIONS_V2.md (AI-actionable):**
+**SPECIFICATIONS_AI.md (AI-actionable):**
 - ✅ Detailed acceptance criteria for each FR
 - ✅ Complete API contracts with type hints
 - ✅ Test requirements and coverage targets
@@ -27,7 +27,7 @@
 - ✅ Designed for AI specification-driven development
 
 **Use this file when:** Reviewing features, checking implementation status, quick FR lookup
-**Use SPECIFICATIONS_V2.md when:** Implementing features, writing tests, AI-assisted development
+**Use SPECIFICATIONS_AI.md when:** Implementing features, writing tests, AI-assisted development
 
 ---
 
@@ -43,7 +43,7 @@
 
 **Recent Updates:**
 - Nov 15, 2025 - Code Quality Modernization: Python 3.12+ types (78 files, 600+ updates)
-- Nov 15, 2025 - SPECIFICATIONS_V2.md: AI-actionable specs for all 107 FRs (100% coverage)
+- Nov 15, 2025 - SPECIFICATIONS_AI.md: AI-actionable specs for all 107 FRs (100% coverage)
 - Nov 13, 2025 - Test Suite Repair: All failures fixed, 2,205 passing, 3 skipped
 
 ---

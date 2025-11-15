@@ -3,7 +3,7 @@
 **Phase 1 Audit Report**
 **Date:** November 15, 2025
 **Version:** 2.0.2
-**Purpose:** Map existing tests to SPECIFICATIONS_V2.md requirements
+**Purpose:** Map existing tests to SPECIFICATIONS_AI.md requirements
 
 ---
 
@@ -34,13 +34,13 @@
 - Verify feature test coverage before changes
 
 **For AI Assistants:**
-- Map SPECIFICATIONS_V2.md FRs to actual test files
+- Map SPECIFICATIONS_AI.md FRs to actual test files
 - Generate new tests following existing patterns
 - Verify acceptance criteria have test coverage
 
 **For Project Management:**
 - Audit FR test coverage
-- Track test gaps vs SPECIFICATIONS_V2.md requirements
+- Track test gaps vs SPECIFICATIONS_AI.md requirements
 - Prioritize testing efforts
 
 ---
@@ -444,12 +444,12 @@
 2. **Configure pytest.ini** with all FR markers
 3. **Verify per-FR test counts** using `pytest -m fr_XXX --collect-only`
 4. **Measure per-FR coverage** using `pytest -m fr_XXX --cov`
-5. **Generate compliance report** comparing actual vs SPECIFICATIONS_V2.md requirements
+5. **Generate compliance report** comparing actual vs SPECIFICATIONS_AI.md requirements
 
 ### Phase 3 Actions (Fill Gaps)
 1. Add missing tests identified in Phase 2
 2. Prioritize critical FRs and security tests
-3. Achieve 100% compliance with SPECIFICATIONS_V2.md
+3. Achieve 100% compliance with SPECIFICATIONS_AI.md
 
 ---
 

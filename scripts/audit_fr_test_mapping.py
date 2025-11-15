@@ -3,7 +3,7 @@
 Audit FR-to-Test Mapping
 
 Analyzes existing tests and maps them to functional requirements from
-SPECIFICATIONS_V2.md. Generates FR_TEST_MAPPING.md showing compliance status.
+SPECIFICATIONS_AI.md. Generates FR_TEST_MAPPING.md showing compliance status.
 
 Usage:
     python3 scripts/audit_fr_test_mapping.py
@@ -15,7 +15,7 @@ from pathlib import Path
 from collections import defaultdict
 import re
 
-# FR to component mapping based on SPECIFICATIONS_V2.md and implementation files
+# FR to component mapping based on SPECIFICATIONS_AI.md and implementation files
 FR_COMPONENT_MAP = {
     # Core Editing (FR-001-020)
     "FR-001": ["text_editor", "editor", "main_window"],
