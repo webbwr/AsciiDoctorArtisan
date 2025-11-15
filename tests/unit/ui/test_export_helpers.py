@@ -19,6 +19,11 @@ from asciidoc_artisan.ui.export_helpers import (
 )
 
 
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.unit
 class TestHTMLConverter:
     """Test HTMLConverter class."""
 
@@ -85,6 +90,11 @@ class TestHTMLConverter:
         assert result == ""
 
 
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.unit
 class TestPDFHelper:
     """Test PDFHelper class."""
 
@@ -259,6 +269,11 @@ class TestPDFHelper:
         assert "border-collapse:" in result
 
 
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.unit
 class TestClipboardHelper:
     """Test ClipboardHelper class."""
 

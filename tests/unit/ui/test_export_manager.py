@@ -32,6 +32,12 @@ def main_window(qapp):
     return window
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestExportManagerBasics:
     """Test suite for ExportManager basic functionality."""
@@ -78,6 +84,12 @@ class TestExportManagerBasics:
         assert True
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestExportMethods:
     """Test suite for export method availability."""
@@ -104,6 +116,12 @@ class TestExportMethods:
         assert callable(manager.handle_pandoc_result)
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestExportStateManagement:
     """Test suite for export state management."""
@@ -136,6 +154,12 @@ class TestExportStateManagement:
                 assert True
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestSaveFileAsFormat:
     """Test suite for save_file_as_format method."""
@@ -235,6 +259,12 @@ class TestSaveFileAsFormat:
         assert result is False
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestPandocExport:
     """Test suite for Pandoc export operations."""
@@ -277,6 +307,12 @@ class TestPandocExport:
             mock_handler.assert_called()
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestClipboardOperations:
     """Test suite for clipboard operations."""
@@ -319,6 +355,12 @@ class TestClipboardOperations:
             main_window.status_manager.show_message.assert_called()
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestHTMLExport:
     """Test suite for HTML export."""
@@ -358,6 +400,12 @@ class TestHTMLExport:
             assert result is False
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestSignalEmissions:
     """Test suite for signal emission during exports."""
@@ -497,6 +545,12 @@ class TestSignalEmissions:
                 assert len(signal_received) == 1
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestHelperInitialization:
     """Test suite for helper object initialization."""
@@ -532,6 +586,12 @@ class TestHelperInitialization:
         assert manager.status_manager == main_window.status_manager
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestTemporaryDirectoryManagement:
     """Test suite for temporary directory lifecycle."""
@@ -584,6 +644,12 @@ class TestTemporaryDirectoryManagement:
             assert True
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestPendingExportStateTracking:
     """Test suite for pending export state management."""
@@ -682,6 +748,12 @@ class TestPendingExportStateTracking:
                 assert manager.pending_export_format is None
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestFileExtensionHandling:
     """Test suite for file extension enforcement."""
@@ -739,6 +811,12 @@ class TestFileExtensionHandling:
                 assert saved_path.suffix == ".adoc"
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestPDFEngineFallback:
     """Test suite for PDF engine fallback behavior."""
@@ -842,6 +920,12 @@ class TestPDFEngineFallback:
                 assert result is False
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestClipboardMIMEDataPriority:
     """Test suite for clipboard MIME data handling."""
@@ -977,6 +1061,12 @@ class TestClipboardMIMEDataPriority:
                 assert "asciidoc" in call_args  # Target format
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestPandocResultContextParsing:
     """Test suite for Pandoc result context routing."""
@@ -1039,6 +1129,12 @@ class TestPandocResultContextParsing:
         )
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestSettingsIntegration:
     """Test suite for settings manager integration."""
@@ -1127,6 +1223,12 @@ class TestSettingsIntegration:
             assert "document" in suggested_path
 
 
+
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.fr_023
+@pytest.mark.fr_024
+@pytest.mark.fr_025
 @pytest.mark.unit
 class TestExportErrorHandling:
     """Test suite for export error handling."""
