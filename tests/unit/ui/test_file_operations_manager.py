@@ -76,9 +76,13 @@ def mock_editor(qapp):
     return editor
 
 
+@pytest.mark.fr_007
 @pytest.mark.unit
 class TestFileOperationsManagerBasics:
-    """Test suite for FileOperationsManager basic functionality."""
+    """Test suite for FileOperationsManager basic functionality.
+
+    FR-007: Save Files (Manager initialization)
+    """
 
     def test_import(self):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
@@ -112,9 +116,13 @@ class TestFileOperationsManagerBasics:
         assert manager._pending_file_path is None
 
 
+@pytest.mark.fr_006
 @pytest.mark.unit
 class TestOpenFile:
-    """Test suite for open_file method."""
+    """Test suite for open_file method.
+
+    FR-006: Open Files
+    """
 
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
     def test_open_file_prompts_save_if_unsaved_changes(self, mock_dialog, mock_editor):
@@ -202,9 +210,13 @@ class TestOpenFile:
             mock_native.assert_called_once_with(adoc_file)
 
 
+@pytest.mark.fr_007
 @pytest.mark.unit
 class TestSaveFile:
-    """Test suite for save_file method."""
+    """Test suite for save_file method.
+
+    FR-007: Save Files
+    """
 
     def test_save_file_uses_current_path_when_available(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
@@ -292,9 +304,15 @@ class TestSaveFile:
         assert mock_editor._unsaved_changes is False
 
 
+@pytest.mark.fr_007
+@pytest.mark.fr_008
 @pytest.mark.unit
 class TestSaveAsFormatInternal:
-    """Test suite for save_as_format_internal method."""
+    """Test suite for save_as_format_internal method.
+
+    FR-007: Save Files
+    FR-008: Save As
+    """
 
     def test_save_as_asciidoc_uses_atomic_save(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
@@ -367,9 +385,15 @@ class TestSaveAsFormatInternal:
         mock_editor.request_pandoc_conversion.emit.assert_called()
 
 
+@pytest.mark.fr_006
+@pytest.mark.fr_013
 @pytest.mark.unit
 class TestPDFExtraction:
-    """Test suite for PDF extraction functionality."""
+    """Test suite for PDF extraction functionality.
+
+    FR-006: Open Files
+    FR-013: Import PDF
+    """
 
     def test_pdf_extraction_checks_availability(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
@@ -424,9 +448,18 @@ class TestPDFExtraction:
             mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
 
 
+@pytest.mark.fr_006
+@pytest.mark.fr_012
+@pytest.mark.fr_014
+@pytest.mark.integration
 @pytest.mark.unit
 class TestPandocConversion:
-    """Test suite for Pandoc conversion workflow."""
+    """Test suite for Pandoc conversion workflow.
+
+    FR-006: Open Files
+    FR-012: Import DOCX
+    FR-014: Import Markdown
+    """
 
     def test_pandoc_conversion_checks_availability(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
@@ -469,9 +502,15 @@ class TestPandocConversion:
         mock_editor.request_pandoc_conversion.emit.assert_called_once()
 
 
+@pytest.mark.fr_007
+@pytest.mark.fr_008
 @pytest.mark.unit
 class TestDetermineSaveFormat:
-    """Test suite for _determine_save_format method."""
+    """Test suite for _determine_save_format method.
+
+    FR-007: Save Files
+    FR-008: Save As
+    """
 
     def test_determine_format_from_filter(self, mock_editor):
         from asciidoc_artisan.core import MD_FILTER
@@ -527,9 +566,16 @@ class TestDetermineSaveFormat:
         assert format_type == "adoc"
 
 
+@pytest.mark.fr_006
+@pytest.mark.fr_007
+@pytest.mark.edge_case
 @pytest.mark.unit
 class TestFileOperationsErrorHandling:
-    """Test error handling in file operations (lines 280-284, 368-373, 408-413)."""
+    """Test error handling in file operations (lines 280-284, 368-373, 408-413).
+
+    FR-006: Open Files (error handling)
+    FR-007: Save Files (error handling)
+    """
 
     def test_open_file_generic_exception(self, mock_editor, tmp_path):
         """Test generic exception handling during file open (lines 280-284)."""
@@ -601,9 +647,18 @@ class TestFileOperationsErrorHandling:
             assert "Failed to save AsciiDoc file" in call_args[2]
 
 
+@pytest.mark.fr_007
+@pytest.mark.fr_021
+@pytest.mark.fr_022
+@pytest.mark.edge_case
 @pytest.mark.unit
 class TestFormatConversionErrors:
-    """Test format conversion error handling (lines 419, 431-437, 466, 478-485)."""
+    """Test format conversion error handling (lines 419, 431-437, 466, 478-485).
+
+    FR-007: Save Files (export error handling)
+    FR-021: Export HTML
+    FR-022: Export PDF
+    """
 
     def test_html_export_asciidoc_api_none(self, mock_editor, tmp_path):
         """Test HTML export when asciidoc_api is None (line 419, caught at 432)."""
@@ -687,9 +742,16 @@ class TestFormatConversionErrors:
         assert "Failed to convert AsciiDoc to HTML" in call_args[2]
 
 
+@pytest.mark.fr_007
+@pytest.mark.fr_023
+@pytest.mark.edge_case
 @pytest.mark.unit
 class TestPandocAvailability:
-    """Test Pandoc availability checking (line 442)."""
+    """Test Pandoc availability checking (line 442).
+
+    FR-007: Save Files
+    FR-023: Export DOCX
+    """
 
     def test_save_as_format_pandoc_unavailable(self, mock_editor, tmp_path):
         """Test early return when Pandoc unavailable (line 442)."""
@@ -708,9 +770,17 @@ class TestPandocAvailability:
         mock_editor.ui_state_manager.check_pandoc_availability.assert_called_once()
 
 
+@pytest.mark.fr_007
+@pytest.mark.fr_014
+@pytest.mark.fr_023
 @pytest.mark.unit
 class TestSourceFormatDetection:
-    """Test source format mapping (lines 451-460)."""
+    """Test source format mapping (lines 451-460).
+
+    FR-007: Save Files
+    FR-014: Import Markdown
+    FR-023: Export DOCX
+    """
 
     def test_source_format_markdown(self, mock_editor, tmp_path):
         """Test source format detection for .md files (lines 451-460)."""
@@ -767,9 +837,14 @@ class TestSourceFormatDetection:
             assert call_args[2] == "html"  # source_format argument
 
 
+@pytest.mark.fr_007
+@pytest.mark.edge_case
 @pytest.mark.unit
 class TestTempFileCreation:
-    """Test temp file creation error handling (lines 489-499)."""
+    """Test temp file creation error handling (lines 489-499).
+
+    FR-007: Save Files (temp file handling)
+    """
 
     def test_temp_file_creation_exception(self, mock_editor, tmp_path):
         """Test exception during temp file creation (lines 489-499)."""
@@ -793,9 +868,15 @@ class TestTempFileCreation:
             assert "Failed to create temporary file" in call_args[2]
 
 
+@pytest.mark.fr_007
+@pytest.mark.fr_024
 @pytest.mark.unit
 class TestNonStandardExportFormats:
-    """Test non-PDF/DOCX export signal emission (lines 522-531)."""
+    """Test non-PDF/DOCX export signal emission (lines 522-531).
+
+    FR-007: Save Files
+    FR-024: Export Markdown
+    """
 
     def test_markdown_export_signal_emission(self, mock_editor, tmp_path):
         """Test markdown export emits pandoc signal (lines 522-531)."""
@@ -816,9 +897,14 @@ class TestNonStandardExportFormats:
             assert call_args[1] == "md"  # format_type
 
 
+@pytest.mark.fr_007
+@pytest.mark.edge_case
 @pytest.mark.unit
 class TestNonAsciidocExtensionConversion:
-    """Test non-AsciiDoc extension conversion (lines 352-355)."""
+    """Test non-AsciiDoc extension conversion (lines 352-355).
+
+    FR-007: Save Files (extension handling)
+    """
 
     def test_save_converts_non_adoc_extension(self, mock_editor, tmp_path):
         """Test save converts non-.adoc extensions (lines 352-355)."""

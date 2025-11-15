@@ -10,9 +10,15 @@ import pytest
 from asciidoc_artisan.core import atomic_save_json, atomic_save_text, sanitize_path
 
 
+@pytest.mark.fr_007
+@pytest.mark.fr_069
 @pytest.mark.unit
 class TestFileOperations:
-    """Test file I/O operations for data integrity."""
+    """Test file I/O operations for data integrity.
+
+    FR-007: Save Files
+    FR-069: Atomic Writes
+    """
 
     def test_atomic_save_text_success(self):
         """Test atomic_save_text creates file correctly."""
@@ -120,9 +126,15 @@ class TestFileOperations:
             os.chmod(readonly_dir, 0o755)
 
 
+@pytest.mark.fr_070
+@pytest.mark.security
 @pytest.mark.unit
 class TestPathSanitization:
-    """Test path sanitization security features."""
+    """Test path sanitization security features.
+
+    FR-070: Path Sanitization
+    Security requirement: Prevent directory traversal attacks
+    """
 
     def test_sanitize_path_valid_absolute(self):
         """Test sanitize_path accepts valid absolute paths."""
