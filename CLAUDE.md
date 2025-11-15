@@ -13,7 +13,7 @@ Guide for Claude Code when working with AsciiDoc Artisan.
 **Architecture:**
 - Single-window Qt app: split editor/preview, GPU-accelerated rendering
 - Multi-threaded: UI main thread, Git/Pandoc/Preview on QThread workers
-- Modular: 561-line main_window.py (from 1,719), manager pattern for separation of concerns
+- Modular: 1,798-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
 - Package: `asciidoc_artisan.{core, ui, workers, conversion, git, claude}`
 
 **v2.0 Features:**
@@ -93,7 +93,7 @@ make help                       # All targets
 
 **Docs:**
 - SPECIFICATIONS.md — 84 functional rules (read before changes)
-- src/asciidoc_artisan/ui/main_window.py — Main controller (561 lines)
+- src/asciidoc_artisan/ui/main_window.py — Main controller (1,798 lines)
 
 ## Development Workflow
 
@@ -130,7 +130,7 @@ make help                       # All targets
 ```
 src/asciidoc_artisan/
 ├── core/       # Business logic, settings, file ops, GPU detection, search, spell, security
-├── ui/         # Qt widgets: main_window (561 lines), managers, dialogs
+├── ui/         # Qt widgets: main_window (1,798 lines), managers, dialogs
 ├── workers/    # QThread workers: git, github_cli, pandoc, preview, ollama_chat
 ├── claude/     # Claude AI: client, worker (v1.10+)
 ├── conversion/ # Format conversion utilities
@@ -197,7 +197,7 @@ Entry: `src/main.py`
 
 **Core:**
 - `src/main.py` — Entry (GPU setup + QApplication)
-- `src/asciidoc_artisan/ui/main_window.py` — Controller (561 lines)
+- `src/asciidoc_artisan/ui/main_window.py` — Controller (1,798 lines)
 - `core/{settings,file_operations,gpu_detection,search_engine,spell_checker}.py`
 - `ui/{menu,theme,status,file,git,export}_manager.py` — Managers
 - `ui/preview_handler{,_gpu}.py` — Rendering
