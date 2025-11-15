@@ -1561,6 +1561,636 @@ def open_file(self, file_path=None):
 
 ---
 
+## FR-008: Save As
+
+**Category:** File Operations
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-007 (Save Files), FR-068 (Path Sanitization), FR-069 (Atomic Writes)
+**Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/ui/file_operations_manager.py::save_file_as()`
+
+### Description
+
+Save current document to a new file path, allowing users to create copies or change file location/name. Uses atomic write operations and updates window title with new filename.
+
+### Acceptance Criteria
+
+- [x] Keyboard shortcut Ctrl+Shift+S
+- [x] File picker dialog for destination path
+- [x] Support .adoc extension (default)
+- [x] Support .asciidoc extension
+- [x] Support .txt extension
+- [x] Use atomic write (prevent corruption)
+- [x] Update window title with new filename
+- [x] Update current file path to new location
+- [x] Add new file to recent files list
+- [x] Handle write errors gracefully
+
+### API Contract
+
+```python
+def save_file_as(self) -> bool:
+    """Save current document to new file path.
+
+    Returns:
+        True if saved successfully, False if user cancelled or error
+
+    Side Effects:
+        - Shows file save dialog
+        - Writes content to selected path
+        - Updates window title
+        - Updates current_file_path
+        - Adds to recent files
+    """
+```
+
+### Examples
+
+**Example 1: Save As New Name**
+
+*Input:*
+```
+User presses Ctrl+Shift+S
+User selects /docs/report_v2.adoc
+User clicks Save
+```
+
+*Output:*
+```
+File saved to /docs/report_v2.adoc
+Window title: "AsciiDoc Artisan - report_v2.adoc"
+Current path updated
+Recent files: report_v2.adoc added
+Status: "Saved as report_v2.adoc"
+```
+
+**Example 2: Create Copy**
+
+*Input:*
+```
+Current file: project.adoc
+User: File → Save As
+User selects: project_backup.adoc
+```
+
+*Output:*
+```
+Original file: project.adoc (unchanged)
+New file: project_backup.adoc (created)
+Current document now linked to project_backup.adoc
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 90%+
+- **Test Types:** Unit (5), Integration (3), Error handling (2)
+
+### Implementation Guidance
+
+**Approach:** Show QFileDialog, validate path, use atomic_save_text(), update UI state
+
+**Security:** Validate path with sanitize_path(), prevent overwriting system files
+
+**Performance:** Atomic write <1s for typical files
+
+---
+
+## FR-009: New Document
+
+**Category:** File Operations
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-001 (Text Editor)
+**Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/ui/file_operations_manager.py::new_file()`
+
+### Description
+
+Create a new blank AsciiDoc document. Prompts to save if current document has unsaved changes, then clears editor and resets window state.
+
+### Acceptance Criteria
+
+- [x] Keyboard shortcut Ctrl+N
+- [x] Prompt to save if current document modified
+- [x] Clear editor content
+- [x] Reset window title to "Untitled.adoc"
+- [x] Clear current file path
+- [x] Reset undo/redo stack
+- [x] Don't prompt if current document empty and unchanged
+
+### API Contract
+
+```python
+def new_file(self) -> bool:
+    """Create new blank document.
+
+    Returns:
+        True if new document created, False if user cancelled
+
+    Side Effects:
+        - Prompts to save if unsaved changes
+        - Clears editor content
+        - Resets window title
+        - Clears undo stack
+    """
+```
+
+### Examples
+
+**Example 1: New from Clean State**
+
+*Input:*
+```
+Current: Untitled.adoc (empty, no changes)
+User presses Ctrl+N
+```
+
+*Output:*
+```
+Editor cleared
+Window title: "AsciiDoc Artisan - Untitled.adoc"
+No save prompt (document was empty)
+```
+
+**Example 2: New with Unsaved Changes**
+
+*Input:*
+```
+Current: document.adoc (modified, unsaved)
+User presses Ctrl+N
+```
+
+*Output:*
+```
+Dialog: "Save changes to document.adoc?"
+  - Save: Saves current, then creates new
+  - Don't Save: Discards changes, creates new
+  - Cancel: Returns to document.adoc
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 95%+
+- **Test Types:** Unit (4), Integration (4)
+
+### Implementation Guidance
+
+**Approach:** Check for unsaved changes, prompt if needed, clear editor, reset state
+
+**Security:** No security concerns (in-memory operation)
+
+**Performance:** Instant (<10ms)
+
+---
+
+## FR-010: Recent Files
+
+**Category:** File Operations
+**Priority:** Medium
+**Status:** ✅ Implemented
+**Dependencies:** FR-006 (Open Files), FR-074 (Settings)
+**Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/core/settings.py::recent_files`
+
+### Description
+
+Track recently opened files (max 10) and display in File menu for quick access. List persists across sessions and updates automatically when files are opened.
+
+### Acceptance Criteria
+
+- [x] Track up to 10 most recent files
+- [x] Display in File → Recent Files submenu
+- [x] Most recent file appears first
+- [x] Clicking item opens that file
+- [x] Persist list across app restarts
+- [x] Remove non-existent files from list
+- [x] Show full path in tooltip
+
+### API Contract
+
+```python
+class Settings(BaseModel):
+    """Application settings."""
+
+    recent_files: list[str] = Field(default_factory=list, max_length=10)
+
+def add_recent_file(self, file_path: str) -> None:
+    """Add file to recent files list.
+
+    Args:
+        file_path: Absolute path to file
+    """
+
+def get_recent_files(self) -> list[str]:
+    """Get list of recent files (most recent first)."""
+```
+
+### Examples
+
+**Example 1: Opening Recent File**
+
+*Input:*
+```
+Recent files: [/docs/a.adoc, /docs/b.adoc, /docs/c.adoc]
+User: File → Recent Files → b.adoc
+```
+
+*Output:*
+```
+File /docs/b.adoc opened
+Recent files reordered: [/docs/b.adoc, /docs/a.adoc, /docs/c.adoc]
+```
+
+**Example 2: List Limit**
+
+*Input:*
+```
+Recent files: [file1.adoc, ..., file10.adoc] (10 files)
+User opens file11.adoc
+```
+
+*Output:*
+```
+Recent files: [file11.adoc, file1.adoc, ..., file9.adoc]
+file10.adoc removed (oldest dropped)
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 90%+
+- **Test Types:** Unit (5), Integration (3)
+
+### Implementation Guidance
+
+**Approach:** Maintain list in Settings, update on file open, display in menu
+
+**Security:** Validate paths before adding to list
+
+**Performance:** List operations O(1) for append, menu update <50ms
+
+---
+
+## FR-011: Auto-Save
+
+**Category:** File Operations
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-007 (Save Files), FR-074 (Settings)
+**Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/ui/file_operations_manager.py::auto_save`
+
+### Description
+
+Automatically save current document at regular intervals to prevent data loss. Configurable interval (default 5 minutes), only saves if document has unsaved changes.
+
+### Acceptance Criteria
+
+- [x] Auto-save enabled by default
+- [x] Default interval: 5 minutes (300 seconds)
+- [x] Only save if document modified
+- [x] Only save if file path is known
+- [x] User can enable/disable in settings
+- [x] User can configure interval (1-60 minutes)
+- [x] Show auto-save indicator in status bar
+- [x] Use atomic write operations
+
+### API Contract
+
+```python
+class Settings(BaseModel):
+    """Application settings."""
+
+    auto_save_enabled: bool = True
+    auto_save_interval: int = Field(default=300, ge=60, le=3600)  # seconds
+
+class AutoSaveTimer:
+    """Auto-save timer manager."""
+
+    def __init__(self, interval: int = 300):
+        """Initialize timer with interval in seconds."""
+
+    def start(self) -> None:
+        """Start auto-save timer."""
+
+    def stop(self) -> None:
+        """Stop auto-save timer."""
+
+    def reset(self) -> None:
+        """Reset timer to interval."""
+```
+
+### Examples
+
+**Example 1: Auto-Save Trigger**
+
+*Input:*
+```
+User edits document.adoc
+Time: 5 minutes pass
+Document has unsaved changes
+```
+
+*Output:*
+```
+Auto-save triggered
+File saved atomically
+Status bar: "Auto-saved at 14:32"
+Timer resets
+```
+
+**Example 2: Skip When Unchanged**
+
+*Input:*
+```
+Document: document.adoc
+State: No unsaved changes
+Time: 5 minutes pass
+```
+
+*Output:*
+```
+Auto-save skipped (no changes)
+Timer resets
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 12
+- **Coverage Target:** 95%+
+- **Test Types:** Unit (6), Integration (4), Timer (2)
+
+### Implementation Guidance
+
+**Approach:** QTimer triggers check every interval, save if modified and path exists
+
+**Security:** Use same security as manual save (atomic writes, path validation)
+
+**Performance:** Timer overhead <1ms, save operation same as manual save
+
+---
+
+## FR-012: Import DOCX
+
+**Category:** File Operations
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-006 (Open Files)
+**Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/document_converter.py::docx_to_asciidoc()`
+
+### Description
+
+Import Microsoft Word (.docx) files and convert to AsciiDoc format. Uses python-docx library to extract text, preserving basic formatting (headings, lists, bold, italic).
+
+### Acceptance Criteria
+
+- [x] Support .docx file format
+- [x] Convert headings (Heading 1 → =, Heading 2 → ==, etc.)
+- [x] Convert bold text (*bold*)
+- [x] Convert italic text (_italic_)
+- [x] Convert bullet lists
+- [x] Convert numbered lists
+- [x] Preserve paragraph breaks
+- [x] Handle large files (>10MB)
+- [x] Show progress for long conversions
+
+### API Contract
+
+```python
+def docx_to_asciidoc(docx_path: str | Path) -> str:
+    """Convert DOCX file to AsciiDoc format.
+
+    Args:
+        docx_path: Path to .docx file
+
+    Returns:
+        Converted AsciiDoc text
+
+    Raises:
+        FileNotFoundError: If docx file doesn't exist
+        ValueError: If file is not valid DOCX format
+    """
+```
+
+### Examples
+
+**Example 1: Basic Conversion**
+
+*Input DOCX:*
+```
+Heading 1: Introduction
+This is a paragraph with **bold** and *italic* text.
+• Bullet item 1
+• Bullet item 2
+```
+
+*Output AsciiDoc:*
+```
+= Introduction
+
+This is a paragraph with *bold* and _italic_ text.
+
+* Bullet item 1
+* Bullet item 2
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 85%+
+- **Test Types:** Unit (6), Integration (3), Large file (1)
+
+### Implementation Guidance
+
+**Approach:** Use python-docx to parse, map styles to AsciiDoc syntax
+
+**Security:** Validate DOCX format, limit file size
+
+**Performance:** ~1-5 seconds for typical documents
+
+---
+
+## FR-013: Import PDF
+
+**Category:** File Operations
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-006 (Open Files)
+**Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/document_converter.py::pdf_to_text()`
+
+### Description
+
+Extract text from PDF files using PyMuPDF (3-5x faster than alternatives). Preserves text content but not complex formatting. Optimized for large files.
+
+### Acceptance Criteria
+
+- [x] Support .pdf file format
+- [x] Extract all text content
+- [x] Preserve paragraph breaks
+- [x] Handle multi-page documents
+- [x] Use PyMuPDF for performance
+- [x] Handle large PDFs (100+ pages)
+- [x] Show progress indicator
+- [x] Handle password-protected PDFs (prompt for password)
+
+### API Contract
+
+```python
+def pdf_to_text(pdf_path: str | Path) -> str:
+    """Extract text from PDF file.
+
+    Args:
+        pdf_path: Path to .pdf file
+
+    Returns:
+        Extracted text as string
+
+    Raises:
+        FileNotFoundError: If PDF doesn't exist
+        PermissionError: If PDF is encrypted without password
+    """
+```
+
+### Examples
+
+**Example 1: PDF Text Extraction**
+
+*Input:*
+```
+User: File → Import → PDF
+User selects: report.pdf (10 pages)
+```
+
+*Output:*
+```
+Progress: "Extracting page 1/10..."
+...
+Progress: "Extracting page 10/10..."
+Text loaded into editor
+Window title: "AsciiDoc Artisan - report.adoc"
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 80%+
+- **Test Types:** Unit (4), Integration (3), Large file (1)
+
+### Implementation Guidance
+
+**Approach:** Use PyMuPDF fitz library, extract page by page
+
+**Security:** Validate PDF format, handle malformed files
+
+**Performance:** PyMuPDF is 3-5x faster than alternatives, ~1s per page
+
+---
+
+## FR-014: Import Markdown
+
+**Category:** File Operations
+**Priority:** High
+**Status:** ✅ Implemented
+**Dependencies:** FR-006 (Open Files)
+**Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/workers/pandoc_worker.py`
+
+### Description
+
+Convert Markdown (.md) files to AsciiDoc format using Pandoc. Preserves headings, lists, code blocks, links, and other Markdown syntax.
+
+### Acceptance Criteria
+
+- [x] Support .md file format
+- [x] Convert via Pandoc (background worker)
+- [x] Convert headings (# → =, ## → ==, etc.)
+- [x] Convert code blocks
+- [x] Convert inline code
+- [x] Convert links
+- [x] Convert images
+- [x] Convert tables
+- [x] Handle large files
+- [x] Show conversion progress
+
+### API Contract
+
+```python
+class PandocWorker(QObject):
+    """Background worker for Pandoc conversion."""
+
+    conversion_complete = Signal(str)  # Converted text
+    conversion_failed = Signal(str)    # Error message
+
+    def convert_markdown_to_asciidoc(self, md_path: str) -> None:
+        """Convert Markdown to AsciiDoc.
+
+        Args:
+            md_path: Path to .md file
+
+        Emits:
+            conversion_complete: On success with converted text
+            conversion_failed: On error with error message
+        """
+```
+
+### Examples
+
+**Example 1: Markdown Conversion**
+
+*Input Markdown:*
+```markdown
+# Title
+
+This is a paragraph with `inline code`.
+
+## Section
+
+- Item 1
+- Item 2
+
+```python
+print("code block")
+```
+```
+
+*Output AsciiDoc:*
+```
+= Title
+
+This is a paragraph with `inline code`.
+
+== Section
+
+* Item 1
+* Item 2
+
+[source,python]
+----
+print("code block")
+----
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 85%+
+- **Test Types:** Unit (5), Integration (4), Pandoc (1)
+
+### Implementation Guidance
+
+**Approach:** Use Pandoc worker thread, convert via subprocess
+
+**Security:** Use shell=False, validate paths, timeout protection
+
+**Performance:** 1-3 seconds for typical files, scales with file size
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining 105 FRs, use this template structure:
