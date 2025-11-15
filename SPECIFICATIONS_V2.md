@@ -3433,6 +3433,166 @@ class GitWorker(BaseWorker):
 
 ---
 
+## FR-034: Create Pull Request
+
+**Category:** GitHub CLI | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-026 (Git) | **Version:** 1.6.0
+**Implementation:** `src/asciidoc_artisan/workers/github_cli_worker.py`
+
+### Description
+Create GitHub pull request via gh CLI. Input: title, description, base branch. Validates repo, handles errors, opens PR URL in browser.
+
+### Acceptance Criteria
+- [x] Create PR with title and description | [x] Select base branch (default: main)
+- [x] Validate gh CLI installed | [x] Validate GitHub repo configured
+- [x] Open PR URL in browser after creation | [x] 60-second timeout
+- [x] Background processing (QThread) | [x] Detailed error messages
+
+### API Contract
+```python
+class GitHubCLIWorker(BaseWorker):
+    pr_created = Signal(str)  # PR URL
+    def create_pr(self, title: str, body: str, base: str = "main") -> None:
+        """Create pull request.
+
+        Args:
+            title: PR title (required, non-empty)
+            body: PR description
+            base: Base branch (default: main)
+        """
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Integration (5)
+
+---
+
+## FR-035: List Pull Requests
+
+**Category:** GitHub CLI | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.6.0
+**Implementation:** `src/asciidoc_artisan/workers/github_cli_worker.py`
+
+### Description
+List open pull requests for current repo. Shows PR number, title, author, status. Click to open in browser.
+
+### Acceptance Criteria
+- [x] List open PRs | [x] Display: PR#, title, author, status
+- [x] Filter by state (open/closed/all) | [x] Click PR to open in browser
+- [x] Refresh button | [x] Handle repo with no PRs
+- [x] Error handling for network issues
+
+### API Contract
+```python
+class GitHubCLIWorker(BaseWorker):
+    prs_listed = Signal(list)  # List of PR dicts
+    def list_prs(self, state: str = "open") -> None:
+        """List pull requests.
+
+        Args:
+            state: PR state filter (open/closed/all)
+        """
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-036: Create Issue
+
+**Category:** GitHub CLI | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.6.0
+**Implementation:** `src/asciidoc_artisan/workers/github_cli_worker.py`
+
+### Description
+Create GitHub issue via gh CLI. Input: title, description, labels (optional). Opens issue URL in browser after creation.
+
+### Acceptance Criteria
+- [x] Create issue with title and body | [x] Optional labels
+- [x] Validate gh CLI and repo | [x] Open issue URL in browser
+- [x] 60-second timeout | [x] Background processing
+- [x] Error handling for network/auth failures
+
+### API Contract
+```python
+class GitHubCLIWorker(BaseWorker):
+    issue_created = Signal(str)  # Issue URL
+    def create_issue(self, title: str, body: str, labels: list[str] | None = None) -> None:
+        """Create GitHub issue.
+
+        Args:
+            title: Issue title (required)
+            body: Issue description
+            labels: Optional list of label names
+        """
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-037: List Issues
+
+**Category:** GitHub CLI | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.6.0
+**Implementation:** `src/asciidoc_artisan/workers/github_cli_worker.py`
+
+### Description
+List issues for current repo. Filter by state, labels. Display: issue#, title, author, labels, status.
+
+### Acceptance Criteria
+- [x] List issues (open/closed/all) | [x] Display: issue#, title, author, labels
+- [x] Filter by labels | [x] Click issue to open in browser
+- [x] Refresh button | [x] Sort by created/updated date
+- [x] Handle repo with no issues
+
+### API Contract
+```python
+class GitHubCLIWorker(BaseWorker):
+    issues_listed = Signal(list)  # List of issue dicts
+    def list_issues(self, state: str = "open", labels: list[str] | None = None) -> None:
+        """List GitHub issues.
+
+        Args:
+            state: Issue state (open/closed/all)
+            labels: Filter by labels
+        """
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-038: View Repository
+
+**Category:** GitHub CLI | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** FR-026 | **Version:** 1.6.0
+**Implementation:** `src/asciidoc_artisan/workers/github_cli_worker.py`
+
+### Description
+Open current repository in browser. Uses gh CLI to get repo URL and opens in default browser.
+
+### Acceptance Criteria
+- [x] Get repo URL via gh CLI | [x] Open in default browser
+- [x] Handle non-GitHub repos gracefully | [x] Error notification
+- [x] Keyboard shortcut (Ctrl+Alt+G) | [x] Menu item: Git → GitHub → View Repo
+
+### API Contract
+```python
+class GitHubCLIWorker(BaseWorker):
+    repo_url_ready = Signal(str)  # Repository URL
+    def get_repo_url(self) -> None:
+        """Get GitHub repository URL."""
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 80%+ | **Types:** Unit (5), Integration (3)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
