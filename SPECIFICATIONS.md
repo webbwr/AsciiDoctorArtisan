@@ -1,11 +1,50 @@
 # AsciiDoc Artisan Functional Specifications
 
-**Version:** 2.0.2 | **Status:** Production-Ready | **Updated:** Nov 15, 2025
+**Quick Reference Guide** | **Version:** 2.0.2 | **Updated:** Nov 15, 2025
 
-**Quality:** ✅ 5,479 tests collected, 204/204 passing (100%), 96.4% coverage, mypy --strict (0 errors), 98/100 score
+> **📌 For AI-Assisted Development:** See [SPECIFICATIONS_V2.md](SPECIFICATIONS_V2.md)
+> This file provides human-readable quick reference. For AI-actionable specifications with acceptance criteria, API contracts, test requirements, and dependency graphs, use **SPECIFICATIONS_V2.md**.
+>
+> **Documentation:** See [docs/developer/spec-driven-coding-guide.md](docs/developer/spec-driven-coding-guide.md)
 
-**Recent:** Nov 15, 2025 - Code Quality Modernization: Python 3.12+ types (78 files, 600+ updates)
-**Previous:** Nov 13, 2025 - Test Suite Repair: All failures fixed, 2,205 passing, 3 skipped
+---
+
+## Document Purpose
+
+**SPECIFICATIONS.md (this file):**
+- ✅ Quick reference for humans
+- ✅ Concise FR summaries (1-2 lines each)
+- ✅ Fast overview of all 107 requirements
+- ✅ Test counts and quality metrics
+- ❌ Not suitable for AI implementation
+
+**SPECIFICATIONS_V2.md (AI-actionable):**
+- ✅ Detailed acceptance criteria for each FR
+- ✅ Complete API contracts with type hints
+- ✅ Test requirements and coverage targets
+- ✅ Implementation examples and patterns
+- ✅ Comprehensive dependency graph
+- ✅ Designed for AI specification-driven development
+
+**Use this file when:** Reviewing features, checking implementation status, quick FR lookup
+**Use SPECIFICATIONS_V2.md when:** Implementing features, writing tests, AI-assisted development
+
+---
+
+## Quality Metrics
+
+**Status:** Production-Ready
+
+**Test Suite:**
+- ✅ 5,479 tests collected, 204/204 passing (100%)
+- ✅ 96.4% coverage
+- ✅ mypy --strict (0 errors)
+- ✅ 98/100 quality score
+
+**Recent Updates:**
+- Nov 15, 2025 - Code Quality Modernization: Python 3.12+ types (78 files, 600+ updates)
+- Nov 15, 2025 - SPECIFICATIONS_V2.md: AI-actionable specs for all 107 FRs (100% coverage)
+- Nov 13, 2025 - Test Suite Repair: All failures fixed, 2,205 passing, 3 skipped
 
 ---
 
