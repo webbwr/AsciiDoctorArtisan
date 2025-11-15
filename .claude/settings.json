@@ -1,7 +1,7 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "/Users/rw/AsciiDoctorArtisan/.claude/statusline.sh"
+    "command": "/home/webbp/github/AsciiDoctorArtisan/.claude/statusline.sh"
   },
   "outputStyle": "Concise",
   "systemPromptAdditions": [

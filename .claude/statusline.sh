@@ -41,14 +41,20 @@ MYPY_STATUS=$(mypy src/asciidoc_artisan --strict 2>&1 | grep -q "Success" && ech
 # Linting status
 RUFF_STATUS=$(ruff check src/asciidoc_artisan 2>&1 | grep -q "All checks passed" && echo "✓" || echo "✗")
 
-# macOS optimization status
+# Architecture optimization status
 if [[ "$CPU_ARCH" == "arm64" ]]; then
-    ARCH_INFO="Apple Silicon"
+    ARCH_INFO="ARM64"
+    OPTIMIZED="✓"
+elif [[ "$CPU_ARCH" == "x86_64" ]]; then
+    ARCH_INFO="x86_64"
     OPTIMIZED="✓"
 else
     ARCH_INFO="$CPU_ARCH"
     OPTIMIZED="—"
 fi
+
+# OS name
+OS_NAME=$(uname -s)
 
 # Build status line with all information
 cat << EOF
@@ -56,5 +62,5 @@ ${BOLD}${BLUE}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION}${RESET}
 ${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}
 ${DIM}├─ Env${RESET}: Python ${PYTHON_VERSION} │ venv:${VENV_ACTIVE} │ ${ARCH_INFO} (opt:${OPTIMIZED})
 ${DIM}├─ QA ${RESET}: Tests:${TEST_STATS} (${COVERAGE}%) │ mypy:${MYPY_STATUS} │ ruff:${RUFF_STATUS}
-${DIM}└─ OS ${RESET}: macOS ${OS_VERSION} │ $(date +"%H:%M:%S")
+${DIM}└─ OS ${RESET}: ${OS_NAME} ${OS_VERSION} │ $(date +"%H:%M:%S")
 EOF
