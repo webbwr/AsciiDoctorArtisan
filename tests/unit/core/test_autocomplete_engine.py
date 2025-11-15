@@ -20,6 +20,10 @@ from asciidoc_artisan.core.models import (
 )
 
 
+
+@pytest.mark.fr_085
+@pytest.mark.fr_088
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestAutoCompleteEngine:
     """Test AutoCompleteEngine class."""
@@ -397,6 +401,10 @@ class TestAutoCompleteEngine:
         assert stats["utilization"] == 0
 
 
+
+@pytest.mark.fr_085
+@pytest.mark.fr_088
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestRanking:
     """Test completion ranking algorithm."""
@@ -587,6 +595,10 @@ class TestRanking:
         assert len(ranked) >= 0  # May or may not match depending on implementation
 
 
+
+@pytest.mark.fr_085
+@pytest.mark.fr_088
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestFuzzyMatchScore:
     """Test fuzzy_match_score function."""
@@ -636,6 +648,10 @@ class TestFuzzyMatchScore:
         assert score >= 0.0
 
 
+
+@pytest.mark.fr_085
+@pytest.mark.fr_088
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
@@ -783,6 +799,10 @@ class TestEdgeCases:
         assert ranked[1].text == "testing"
 
 
+
+@pytest.mark.fr_085
+@pytest.mark.fr_088
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestRankItemsFallback:
     """Test _rank_items fallback paths and edge cases."""
@@ -856,6 +876,10 @@ class TestRankItemsFallback:
                 assert item.score < 20.0
 
 
+
+@pytest.mark.fr_085
+@pytest.mark.fr_088
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestRankItemsEdgeCases:
     """Test _rank_items edge cases for complete coverage."""
@@ -950,6 +974,10 @@ class TestRankItemsEdgeCases:
         assert ranked[0].score > 80.0
 
 
+
+@pytest.mark.fr_085
+@pytest.mark.fr_088
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestRapidFuzzFallback:
     """Test fallback behavior when rapidfuzz is not available."""

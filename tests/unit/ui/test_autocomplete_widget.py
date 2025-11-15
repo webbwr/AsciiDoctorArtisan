@@ -54,6 +54,9 @@ def sample_items():
     ]
 
 
+
+@pytest.mark.fr_086
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestInitialization:
     """Test widget initialization."""
@@ -93,6 +96,9 @@ class TestInitialization:
         assert hasattr(widget, "cancelled")
 
 
+
+@pytest.mark.fr_086
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestShowCompletions:
     """Test show_completions method."""
@@ -174,6 +180,9 @@ class TestShowCompletions:
         assert widget.item(0).text() == "New 1"
 
 
+
+@pytest.mark.fr_086
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestKeyboardNavigation:
     """Test keyboard event handling."""
@@ -325,6 +334,9 @@ class TestKeyboardNavigation:
         assert selected_item is None
 
 
+
+@pytest.mark.fr_086
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestMouseSelection:
     """Test mouse click selection."""
@@ -358,6 +370,9 @@ class TestMouseSelection:
             widget.itemClicked.emit(list_item)
 
 
+
+@pytest.mark.fr_086
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestSignals:
     """Test signal emissions."""
@@ -394,6 +409,9 @@ class TestSignals:
             widget.keyPressEvent(event)
 
 
+
+@pytest.mark.fr_086
+@pytest.mark.fr_089
 @pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error handling."""

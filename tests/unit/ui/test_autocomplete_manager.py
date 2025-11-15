@@ -42,6 +42,13 @@ def manager(editor, engine):
     return AutoCompleteManager(editor, engine)
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestAutoCompleteManagerInitialization:
     """Test manager initialization."""
 
@@ -63,6 +70,13 @@ class TestAutoCompleteManagerInitialization:
         assert manager.timer.interval() == 300
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestAutoCompleteEnable:
     """Test enabling/disabling auto-complete."""
 
@@ -89,6 +103,13 @@ class TestAutoCompleteEnable:
         assert manager.widget.isVisible() is False
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestAutoCompleteDelay:
     """Test auto-complete delay configuration."""
 
@@ -104,6 +125,13 @@ class TestAutoCompleteDelay:
         assert manager.auto_delay >= 100
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestAutoCompleteTriggering:
     """Test auto-complete triggering mechanisms."""
 
@@ -138,6 +166,13 @@ class TestAutoCompleteTriggering:
         assert manager.timer.isActive() is False  # Should have fired
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestCompletionInsertion:
     """Test inserting completions into editor."""
 
@@ -184,6 +219,13 @@ class TestCompletionInsertion:
         assert text == "NOTE: " or "NOTE:" in text
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestContextExtraction:
     """Test extracting completion context from editor."""
 
@@ -212,6 +254,13 @@ class TestContextExtraction:
         assert context.word_before_cursor == "Hea"
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestWidgetVisibility:
     """Test completion widget visibility management."""
 
@@ -238,6 +287,13 @@ class TestWidgetVisibility:
         assert manager.widget.isVisible() is False
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestEditorIntegration:
     """Test integration with QPlainTextEdit."""
 
@@ -263,6 +319,13 @@ class TestEditorIntegration:
         assert manager.timer.isActive()
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestPerformance:
     """Test performance of auto-complete manager."""
 
@@ -291,6 +354,13 @@ class TestPerformance:
         assert call_count <= 2  # Allow some leeway
 
 
+@pytest.mark.fr_085
+@pytest.mark.fr_086
+@pytest.mark.fr_087
+@pytest.mark.fr_088
+@pytest.mark.fr_089
+@pytest.mark.fr_090
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error handling."""
 

@@ -18,6 +18,9 @@ from asciidoc_artisan.core.autocomplete_providers import (
 from asciidoc_artisan.core.models import CompletionContext, CompletionKind
 
 
+
+@pytest.mark.fr_087
+@pytest.mark.fr_090
 @pytest.mark.unit
 class TestSyntaxProvider:
     """Test SyntaxProvider class."""
@@ -172,6 +175,9 @@ class TestSyntaxProvider:
         assert all("list" in item.detail.lower() for item in items)
 
 
+
+@pytest.mark.fr_087
+@pytest.mark.fr_090
 @pytest.mark.unit
 class TestAttributeProvider:
     """Test AttributeProvider class."""
@@ -279,6 +285,9 @@ class TestAttributeProvider:
         assert len(items) == 0
 
 
+
+@pytest.mark.fr_087
+@pytest.mark.fr_090
 @pytest.mark.unit
 class TestCrossRefProvider:
     """Test CrossRefProvider class."""
@@ -390,6 +399,9 @@ class TestCrossRefProvider:
         assert len(items) == 0
 
 
+
+@pytest.mark.fr_087
+@pytest.mark.fr_090
 @pytest.mark.unit
 class TestIncludeProvider:
     """Test IncludeProvider class."""
@@ -510,6 +522,9 @@ class TestIncludeProvider:
         assert len(items) == 0
 
 
+
+@pytest.mark.fr_087
+@pytest.mark.fr_090
 @pytest.mark.unit
 class TestSnippetProvider:
     """Test SnippetProvider class."""
