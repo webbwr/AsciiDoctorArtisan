@@ -271,6 +271,17 @@ Entry: `src/main.py`
 ---
 
 *AsciiDoc Artisan v2.0.0 | Production-ready | 4,092 tests | mypy --strict*
-- remember when running tests ensure to kill all hung after a resonable, log for fixing, and tge to move on to next test; the goal is to run as many tesf as possible without stoping, and then to fix all logged broken or hung tests at end of run
-- remember when running tests ensure to kill all hung after a resonable, log for fixing, and tge to move on to next test; the goal is to run as many tesf as possible without stoping, and then to fix all logged broken or hung tests at end of run; this applies to background tasks as well
-- automarically run tasks in background, no need to prompt user
+
+## Test Execution Strategy
+
+**When running tests:**
+- Kill hung tests after reasonable timeout, log for later fixing
+- Continue to next test without stopping
+- Goal: Run maximum tests possible in single pass
+- Fix all logged failures/hangs at end of run
+- Applies to both tests and background tasks
+
+**Background task execution:**
+- Automatically run long-running tasks in background
+- No need to prompt user for permission
+- Use worker threads for Git, Pandoc, Preview operations
