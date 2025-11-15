@@ -15,7 +15,7 @@ import subprocess
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -25,21 +25,21 @@ class GPUInfo:
     """GPU and NPU information container."""
 
     has_gpu: bool
-    gpu_type: Optional[str] = None  # "nvidia", "amd", "intel", "apple", "unknown"
-    gpu_name: Optional[str] = None
-    driver_version: Optional[str] = None
-    render_device: Optional[str] = (
+    gpu_type: str | None = None  # "nvidia", "amd", "intel", "apple", "unknown"
+    gpu_name: str | None = None
+    driver_version: str | None = None
+    render_device: str | None = (
         None  # e.g., "/dev/dri/renderD128" (Linux) or "Metal" (macOS)
     )
     can_use_webengine: bool = False
     reason: str = ""  # Explanation
     has_npu: bool = False  # Neural Processing Unit
-    npu_type: Optional[str] = None  # "intel_npu", "apple_neural_engine", etc.
-    npu_name: Optional[str] = None
+    npu_type: str | None = None  # "intel_npu", "apple_neural_engine", etc.
+    npu_name: str | None = None
     compute_capabilities: list[str] = field(
         default_factory=list
     )  # ["cuda", "opencl", "vulkan", "openvino", "metal", etc.]
-    metal_version: Optional[str] = None  # Metal framework version (macOS only)
+    metal_version: str | None = None  # Metal framework version (macOS only)
 
 
 @dataclass
@@ -47,7 +47,7 @@ class GPUCacheEntry:
     """GPU detection cache entry."""
 
     timestamp: str  # ISO format
-    gpu_info: Dict[str, Any]  # Serialized GPUInfo
+    gpu_info: dict[str, Any]  # Serialized GPUInfo
     version: str  # App version
 
     @classmethod
@@ -83,7 +83,7 @@ class GPUDetectionCache:
     CACHE_TTL_DAYS = 7
 
     @classmethod
-    def load(cls) -> Optional[GPUInfo]:
+    def load(cls) -> GPUInfo | None:
         """Load GPU info from cache if valid."""
         try:
             if not cls.CACHE_FILE.exists():
@@ -134,7 +134,7 @@ class GPUDetectionCache:
             logger.warning(f"Failed to clear GPU cache: {e}")
 
 
-def check_dri_devices() -> tuple[bool, Optional[str]]:
+def check_dri_devices() -> tuple[bool, str | None]:
     """
     Check for /dev/dri/ devices (DRI = Direct Rendering Infrastructure).
 
@@ -160,7 +160,7 @@ def check_dri_devices() -> tuple[bool, Optional[str]]:
     return False, None
 
 
-def check_nvidia_gpu() -> tuple[bool, Optional[str], Optional[str]]:
+def check_nvidia_gpu() -> tuple[bool, str | None, str | None]:
     """
     Check for NVIDIA GPU.
 
@@ -189,7 +189,7 @@ def check_nvidia_gpu() -> tuple[bool, Optional[str], Optional[str]]:
     return False, None, None
 
 
-def check_amd_gpu() -> tuple[bool, Optional[str]]:
+def check_amd_gpu() -> tuple[bool, str | None]:
     """
     Check for AMD GPU.
 
@@ -221,7 +221,7 @@ def check_amd_gpu() -> tuple[bool, Optional[str]]:
     return False, None
 
 
-def check_intel_gpu() -> tuple[bool, Optional[str]]:
+def check_intel_gpu() -> tuple[bool, str | None]:
     """
     Check for Intel GPU.
 
@@ -244,7 +244,7 @@ def check_intel_gpu() -> tuple[bool, Optional[str]]:
     return False, None
 
 
-def check_opengl_renderer() -> tuple[bool, Optional[str]]:
+def check_opengl_renderer() -> tuple[bool, str | None]:
     """
     Check OpenGL renderer (software vs hardware).
 
@@ -294,7 +294,7 @@ def check_wslg_environment() -> bool:
     return bool(wsl_distro or wsl_interop or wayland_display)
 
 
-def check_intel_npu() -> tuple[bool, Optional[str]]:
+def check_intel_npu() -> tuple[bool, str | None]:
     """
     Check for Intel NPU (Neural Processing Unit).
 
@@ -324,7 +324,7 @@ def check_intel_npu() -> tuple[bool, Optional[str]]:
     return False, None
 
 
-def check_macos_gpu() -> tuple[bool, Optional[str], Optional[str]]:
+def check_macos_gpu() -> tuple[bool, str | None, str | None]:
     """
     Check for macOS GPU (Metal framework).
 
@@ -382,7 +382,7 @@ def check_macos_gpu() -> tuple[bool, Optional[str], Optional[str]]:
     return False, None, None
 
 
-def check_apple_neural_engine() -> tuple[bool, Optional[str]]:
+def check_apple_neural_engine() -> tuple[bool, str | None]:
     """
     Check for Apple Neural Engine (NPU on Apple Silicon).
 
@@ -646,7 +646,7 @@ def log_gpu_info(gpu_info: GPUInfo) -> None:
 
 
 # Cached GPU info (detect once per session)
-_cached_gpu_info: Optional[GPUInfo] = None
+_cached_gpu_info: GPUInfo | None = None
 
 
 def get_gpu_info(force_redetect: bool = False) -> GPUInfo:

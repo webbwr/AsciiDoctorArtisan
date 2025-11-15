@@ -61,7 +61,7 @@ import os
 import re
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from asciidoc_artisan.core.models import Template, TemplateVariable
 
@@ -89,7 +89,7 @@ class TemplateEngine:
         """Initialize template engine with built-in variables."""
         self.built_in_vars = self._get_built_in_vars()
 
-    def _get_built_in_vars(self) -> Dict[str, str]:
+    def _get_built_in_vars(self) -> dict[str, str]:
         """
         Get built-in variable values.
 
@@ -113,7 +113,7 @@ class TemplateEngine:
             "app.version": "2.0.0",
         }
 
-    def instantiate(self, template: Template, variables: Dict[str, Any]) -> str:
+    def instantiate(self, template: Template, variables: dict[str, Any]) -> str:
         """
         Render template with variables.
 
@@ -176,7 +176,7 @@ class TemplateEngine:
         return rendered
 
     def _substitute_variables(
-        self, text: str, variables: Dict[str, Any], allow_missing: bool = False
+        self, text: str, variables: dict[str, Any], allow_missing: bool = False
     ) -> str:
         """
         Replace {{var}} and {{var:default}} with values.
@@ -228,7 +228,7 @@ class TemplateEngine:
 
         return re.sub(pattern, replace, text)
 
-    def _process_conditionals(self, text: str, variables: Dict[str, Any]) -> str:
+    def _process_conditionals(self, text: str, variables: dict[str, Any]) -> str:
         """
         Process {{#if var}}...{{/if}} and {{#unless var}}...{{/unless}}.
 
@@ -399,7 +399,7 @@ class TemplateEngine:
 
         # Read file
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
         except FileNotFoundError:
             raise ValueError(f"Template file not found: {file_path}")
@@ -427,7 +427,7 @@ class TemplateEngine:
         if not isinstance(metadata_raw, dict):
             raise ValueError("YAML front matter must be a dictionary")
 
-        metadata: Dict[str, Any] = metadata_raw
+        metadata: dict[str, Any] = metadata_raw
 
         # Extract required fields
         name = metadata.get("name")

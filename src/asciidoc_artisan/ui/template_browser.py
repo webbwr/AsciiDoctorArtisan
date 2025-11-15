@@ -35,8 +35,6 @@ Example:
     ```
 """
 
-from typing import Dict, Optional
-
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QFont, QMouseEvent
 from PySide6.QtWidgets import (
@@ -68,7 +66,7 @@ class TemplateCard(QWidget):
 
     clicked = Signal(Template)
 
-    def __init__(self, template: Template, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, template: Template, parent: QWidget | None = None) -> None:
         """
         Initialize template card.
 
@@ -152,9 +150,7 @@ class TemplateBrowser(QDialog):
         ```
     """
 
-    def __init__(
-        self, manager: TemplateManager, parent: Optional[QWidget] = None
-    ) -> None:
+    def __init__(self, manager: TemplateManager, parent: QWidget | None = None) -> None:
         """
         Initialize template browser.
 
@@ -164,8 +160,8 @@ class TemplateBrowser(QDialog):
         """
         super().__init__(parent)
         self.manager = manager
-        self.selected_template: Optional[Template] = None
-        self.variable_values: Dict[str, str] = {}
+        self.selected_template: Template | None = None
+        self.variable_values: dict[str, str] = {}
 
         self._setup_ui()
         self._load_templates()
@@ -344,7 +340,7 @@ class VariableInputDialog(QDialog):
         ```
     """
 
-    def __init__(self, template: Template, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, template: Template, parent: QWidget | None = None) -> None:
         """
         Initialize variable input dialog.
 
@@ -354,7 +350,7 @@ class VariableInputDialog(QDialog):
         """
         super().__init__(parent)
         self.template = template
-        self.inputs: Dict[str, QLineEdit] = {}
+        self.inputs: dict[str, QLineEdit] = {}
 
         self._setup_ui()
 
@@ -419,7 +415,7 @@ class VariableInputDialog(QDialog):
         # All valid - accept
         self.accept()
 
-    def get_values(self) -> Dict[str, str]:
+    def get_values(self) -> dict[str, str]:
         """
         Get variable values from input fields.
 

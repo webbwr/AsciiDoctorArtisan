@@ -14,7 +14,7 @@ import logging
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Any, Deque, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class RenderPrediction:
         reason: Human-readable reason for prediction (for debugging)
     """
 
-    block_indices: List[int]
+    block_indices: list[int]
     confidence: float
     reason: str
 
@@ -64,15 +64,15 @@ class PredictiveRenderer:
         self.max_predictions = max_predictions
 
         # Edit history tracking
-        self._recent_edits: Deque[int] = deque(maxlen=10)  # Recent block indices
-        self._edit_timestamps: Deque[float] = deque(maxlen=10)
+        self._recent_edits: deque[int] = deque(maxlen=10)  # Recent block indices
+        self._edit_timestamps: deque[float] = deque(maxlen=10)
 
         # Cursor tracking
         self._current_cursor_line: int = 0
         self._last_cursor_update: float = 0.0
 
         # Sequential editing detection
-        self._last_edited_block: Optional[int] = None
+        self._last_edited_block: int | None = None
         self._sequential_edits: int = 0
 
         # Statistics
@@ -111,7 +111,7 @@ class PredictiveRenderer:
         self._last_edited_block = block_index
 
     def predict_next_blocks(  # noqa: C901
-        self, total_blocks: int, current_block_index: Optional[int] = None
+        self, total_blocks: int, current_block_index: int | None = None
     ) -> RenderPrediction:
         """
         Predict which blocks should be pre-rendered next.
@@ -131,8 +131,8 @@ class PredictiveRenderer:
         """
         self._predictions_made += 1
 
-        predictions: Set[int] = set()
-        reasons: List[str] = []
+        predictions: set[int] = set()
+        reasons: list[str] = []
 
         # Heuristic 1: Blocks around cursor position
         if current_block_index is not None:
@@ -198,7 +198,7 @@ class PredictiveRenderer:
         """
         self._predictions_used += 1
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get predictive rendering statistics.
 
@@ -275,7 +275,7 @@ class PredictivePreviewRenderer:
     """
 
     def __init__(
-        self, incremental_renderer: Any, predictor: Optional[PredictiveRenderer] = None
+        self, incremental_renderer: Any, predictor: PredictiveRenderer | None = None
     ) -> None:
         """
         Initialize predictive preview renderer.
@@ -288,7 +288,7 @@ class PredictivePreviewRenderer:
         self.predictor = predictor or PredictiveRenderer()
 
         # Pre-render queue (block indices waiting to be pre-rendered)
-        self._prerender_queue: List[Tuple[int, float]] = []  # (block_idx, priority)
+        self._prerender_queue: list[tuple[int, float]] = []  # (block_idx, priority)
 
         # Enabled flag
         self._enabled = True
@@ -343,7 +343,7 @@ class PredictivePreviewRenderer:
             f"(confidence: {prediction.confidence:.2f}, reason: {prediction.reason})"
         )
 
-    def get_next_prerender_block(self) -> Optional[int]:
+    def get_next_prerender_block(self) -> int | None:
         """
         Get next block index to pre-render.
 
@@ -357,7 +357,7 @@ class PredictivePreviewRenderer:
 
         return None
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get predictive rendering statistics."""
         stats = self.predictor.get_statistics()
         stats["prerender_queue_size"] = len(self._prerender_queue)

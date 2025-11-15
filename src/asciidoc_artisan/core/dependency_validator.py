@@ -18,7 +18,6 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +47,10 @@ class Dependency:
     name: str
     dep_type: DependencyType
     status: DependencyStatus
-    version: Optional[str] = None
-    min_version: Optional[str] = None
-    install_instructions: Optional[str] = None
-    error_message: Optional[str] = None
+    version: str | None = None
+    min_version: str | None = None
+    install_instructions: str | None = None
+    error_message: str | None = None
 
 
 class DependencyValidator:
@@ -59,9 +58,9 @@ class DependencyValidator:
 
     def __init__(self) -> None:
         """Initialize the dependency validator."""
-        self.dependencies: List[Dependency] = []
+        self.dependencies: list[Dependency] = []
 
-    def validate_all(self) -> List[Dependency]:
+    def validate_all(self) -> list[Dependency]:
         """
         Validate all dependencies.
 
@@ -171,8 +170,8 @@ class DependencyValidator:
         self,
         module_name: str,
         dep_type: DependencyType,
-        min_version: Optional[str] = None,
-        install_cmd: Optional[str] = None,
+        min_version: str | None = None,
+        install_cmd: str | None = None,
     ) -> None:
         """
         Check if a Python module is available and meets version requirements.
@@ -236,7 +235,7 @@ class DependencyValidator:
         self,
         binary_name: str,
         dep_type: DependencyType,
-        install_cmd: Optional[str] = None,
+        install_cmd: str | None = None,
     ) -> None:
         """
         Check if a system binary is available in PATH.
@@ -280,7 +279,7 @@ class DependencyValidator:
 
             logger.info(f"○ Optional system binary '{binary_name}' not found in PATH")
 
-    def _get_binary_version(self, binary_name: str) -> Optional[str]:
+    def _get_binary_version(self, binary_name: str) -> str | None:
         """
         Get the version of a system binary.
 
@@ -350,7 +349,7 @@ class DependencyValidator:
             )
             return True
 
-    def get_missing_required(self) -> List[Dependency]:
+    def get_missing_required(self) -> list[Dependency]:
         """
         Get list of missing required dependencies.
 
@@ -364,7 +363,7 @@ class DependencyValidator:
             and dep.status != DependencyStatus.INSTALLED
         ]
 
-    def get_missing_optional(self) -> List[Dependency]:
+    def get_missing_optional(self) -> list[Dependency]:
         """
         Get list of missing optional dependencies.
 

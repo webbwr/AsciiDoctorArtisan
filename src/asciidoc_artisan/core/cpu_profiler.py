@@ -34,9 +34,10 @@ import io
 import logging
 import pstats
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class ProfileResult:
     name: str
     total_time: float
     call_count: int
-    hotspots: List[Dict[str, Any]] = field(default_factory=list)
+    hotspots: list[dict[str, Any]] = field(default_factory=list)
     timestamp: float = field(default_factory=time.time)
 
 
@@ -95,14 +96,14 @@ class CPUProfiler:
         self.enabled = enabled
         self.max_results = max_results
 
-        self._results: Dict[str, List[ProfileResult]] = {}
-        self._profilers: Dict[str, cProfile.Profile] = {}
-        self._active_profiles: Dict[str, float] = {}  # name -> start_time
+        self._results: dict[str, list[ProfileResult]] = {}
+        self._profilers: dict[str, cProfile.Profile] = {}
+        self._active_profiles: dict[str, float] = {}  # name -> start_time
 
         logger.debug(f"CPUProfiler initialized (enabled={enabled})")
 
     @contextmanager
-    def profile(self, name: str) -> Generator[None, None, None]:
+    def profile(self, name: str) -> Generator[None]:
         """
         Context manager for profiling a code block.
 
@@ -163,7 +164,7 @@ class CPUProfiler:
                 f"Profile complete: {name} took {elapsed * 1000:.2f}ms, {len(hotspots)} hotspots detected"
             )
 
-    def _parse_hotspots(self, stats_output: str) -> List[Dict[str, Any]]:
+    def _parse_hotspots(self, stats_output: str) -> list[dict[str, Any]]:
         """
         Parse cProfile stats output to extract hotspots.
 
@@ -207,7 +208,7 @@ class CPUProfiler:
 
         return hotspots[:10]  # Top 10 only
 
-    def get_results(self, name: str) -> List[ProfileResult]:
+    def get_results(self, name: str) -> list[ProfileResult]:
         """
         Get all profile results for an operation.
 
@@ -219,7 +220,7 @@ class CPUProfiler:
         """
         return self._results.get(name, [])
 
-    def get_hotspots(self, name: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def get_hotspots(self, name: str, limit: int = 5) -> list[dict[str, Any]]:
         """
         Get hotspots for an operation (most recent profiling).
 
@@ -238,7 +239,7 @@ class CPUProfiler:
         latest = results[-1]
         return latest.hotspots[:limit]
 
-    def get_statistics(self, name: str) -> Optional[Dict[str, Any]]:
+    def get_statistics(self, name: str) -> dict[str, Any] | None:
         """
         Get aggregated statistics for an operation.
 
@@ -264,7 +265,7 @@ class CPUProfiler:
             "num_profiles": len(results),
         }
 
-    def get_report(self) -> Dict[str, Any]:
+    def get_report(self) -> dict[str, Any]:
         """
         Generate comprehensive profiling report.
 
@@ -311,7 +312,7 @@ class CPUProfiler:
 
 
 # Global profiler instance
-_cpu_profiler: Optional[CPUProfiler] = None
+_cpu_profiler: CPUProfiler | None = None
 
 
 def get_cpu_profiler() -> CPUProfiler:

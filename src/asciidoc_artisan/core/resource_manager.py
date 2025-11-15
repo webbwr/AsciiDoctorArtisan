@@ -23,7 +23,7 @@ import logging
 import os
 import shutil
 import tempfile
-from typing import Any, Optional, Set
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +55,8 @@ class ResourceManager:
 
     def __init__(self) -> None:
         """Initialize ResourceManager."""
-        self._temp_files: Set[str] = set()
-        self._temp_directories: Set[str] = set()
+        self._temp_files: set[str] = set()
+        self._temp_directories: set[str] = set()
         self._cleaned_up = False
 
         # Register cleanup on exit
@@ -80,7 +80,7 @@ class ResourceManager:
         self,
         suffix: str = "",
         prefix: str = "asciidoc_artisan_",
-        dir: Optional[str] = None,
+        dir: str | None = None,
         text: bool = True,
     ) -> str:
         """
@@ -111,7 +111,7 @@ class ResourceManager:
         self,
         suffix: str = "",
         prefix: str = "asciidoc_artisan_",
-        dir: Optional[str] = None,
+        dir: str | None = None,
     ) -> str:
         """
         Create tracked temporary directory.
@@ -282,7 +282,7 @@ class TempFileContext:
         self,
         suffix: str = "",
         prefix: str = "asciidoc_artisan_",
-        dir: Optional[str] = None,
+        dir: str | None = None,
         text: bool = True,
     ):
         """
@@ -298,7 +298,7 @@ class TempFileContext:
         self.prefix = prefix
         self.dir = dir
         self.text = text
-        self.path: Optional[str] = None
+        self.path: str | None = None
         self.rm = ResourceManager.get_instance()
 
     def __enter__(self) -> str:
@@ -336,7 +336,7 @@ class TempDirectoryContext:
         self,
         suffix: str = "",
         prefix: str = "asciidoc_artisan_",
-        dir: Optional[str] = None,
+        dir: str | None = None,
     ):
         """
         Initialize temp directory context.
@@ -349,7 +349,7 @@ class TempDirectoryContext:
         self.suffix = suffix
         self.prefix = prefix
         self.dir = dir
-        self.path: Optional[str] = None
+        self.path: str | None = None
         self.rm = ResourceManager.get_instance()
 
     def __enter__(self) -> str:

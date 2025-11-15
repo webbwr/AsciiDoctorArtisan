@@ -14,7 +14,6 @@ Example:
 """
 
 import logging
-from typing import List, Optional
 
 from PySide6.QtCore import QThread, Signal, Slot
 
@@ -69,8 +68,8 @@ class ClaudeWorker(QThread):
 
         # Operation state
         self._current_message: str = ""
-        self._current_system: Optional[str] = None
-        self._current_history: Optional[List[ClaudeMessage]] = None
+        self._current_system: str | None = None
+        self._current_history: list[ClaudeMessage] | None = None
         self._operation: str = ""  # "send_message" or "test_connection"
 
         logger.debug("Claude worker initialized")
@@ -121,8 +120,8 @@ class ClaudeWorker(QThread):
     def send_message(
         self,
         message: str,
-        system: Optional[str] = None,
-        conversation_history: Optional[List[ClaudeMessage]] = None,
+        system: str | None = None,
+        conversation_history: list[ClaudeMessage] | None = None,
     ) -> None:
         """
         Send a message to Claude (non-blocking).
@@ -190,7 +189,7 @@ class ClaudeWorker(QThread):
         """
         return self.client.is_configured()
 
-    def get_available_models(self) -> List[str]:
+    def get_available_models(self) -> list[str]:
         """
         Get list of available Claude models.
 

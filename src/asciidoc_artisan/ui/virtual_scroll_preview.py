@@ -22,7 +22,7 @@ Design Goals:
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from PySide6.QtWidgets import QWidget
 
@@ -52,7 +52,7 @@ class Viewport:
     # Line height (pixels, average)
     line_height: int
 
-    def get_visible_line_range(self, buffer_lines: int = 10) -> Tuple[int, int]:
+    def get_visible_line_range(self, buffer_lines: int = 10) -> tuple[int, int]:
         """
         Calculate visible line range with buffer.
 
@@ -138,7 +138,7 @@ class VirtualScrollPreview:
         # Only renders visible lines + buffer
     """
 
-    def __init__(self, asciidoc_api: Any, config: Optional[VirtualScrollConfig] = None):
+    def __init__(self, asciidoc_api: Any, config: VirtualScrollConfig | None = None):
         """
         Initialize virtual scroll preview.
 
@@ -153,7 +153,7 @@ class VirtualScrollPreview:
         # Tracking
         self._total_lines = 0
         self._rendered_lines = 0
-        self._actual_line_height: Optional[int] = None
+        self._actual_line_height: int | None = None
 
     def is_enabled(self) -> bool:
         """Check if virtual scrolling is enabled."""
@@ -185,7 +185,7 @@ class VirtualScrollPreview:
         line_count = source_text.count("\n") + 1
         return line_count >= self.config.min_lines_for_virtual
 
-    def render_viewport(self, source_text: str, viewport: Viewport) -> Tuple[str, int]:
+    def render_viewport(self, source_text: str, viewport: Viewport) -> tuple[str, int]:
         """
         Render only visible viewport.
 
@@ -294,7 +294,7 @@ class VirtualScrollPreview:
         self._actual_line_height = measured_height
         logger.debug(f"Updated line height: {measured_height}px")
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get virtual scrolling statistics.
 

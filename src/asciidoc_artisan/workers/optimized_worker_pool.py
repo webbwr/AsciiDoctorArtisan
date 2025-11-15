@@ -22,10 +22,11 @@ Design Goals:
 
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import IntEnum
 from threading import Event, Lock
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any
 
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 
@@ -58,7 +59,7 @@ class TaskMetadata:
     priority: TaskPriority
     created_at: float
     coalescable: bool = False
-    coalesce_key: Optional[str] = None
+    coalesce_key: str | None = None
 
 
 @dataclass(order=True, slots=True)
@@ -151,7 +152,7 @@ class CancelableRunnable(QRunnable):
         """Check if task finished."""
         return self._finished.is_set()
 
-    def wait(self, timeout: Optional[float] = None) -> bool:
+    def wait(self, timeout: float | None = None) -> bool:
         """
         Wait for task to finish.
 
@@ -209,7 +210,7 @@ class OptimizedWorkerPool:
         stats = pool.get_statistics()
     """
 
-    def __init__(self, max_threads: Optional[int] = None):
+    def __init__(self, max_threads: int | None = None):
         """
         Initialize optimized worker pool.
 
@@ -242,9 +243,9 @@ class OptimizedWorkerPool:
         self._thread_pool.setMaxThreadCount(max_threads)
 
         # Task tracking
-        self._active_tasks: Dict[str, CancelableRunnable] = {}
-        self._pending_tasks: Dict[str, PrioritizedTask] = {}
-        self._coalesce_keys: Dict[str, str] = {}  # coalesce_key -> task_id
+        self._active_tasks: dict[str, CancelableRunnable] = {}
+        self._pending_tasks: dict[str, PrioritizedTask] = {}
+        self._coalesce_keys: dict[str, str] = {}  # coalesce_key -> task_id
         self._task_lock = Lock()
 
         # Statistics
@@ -269,8 +270,8 @@ class OptimizedWorkerPool:
         *args: Any,
         priority: TaskPriority = TaskPriority.NORMAL,
         coalescable: bool = False,
-        coalesce_key: Optional[str] = None,
-        task_id: Optional[str] = None,
+        coalesce_key: str | None = None,
+        task_id: str | None = None,
         **kwargs: Any,
     ) -> str:
         """
@@ -417,7 +418,7 @@ class OptimizedWorkerPool:
         with self._task_lock:
             return task_id in self._active_tasks
 
-    def get_statistics(self) -> Dict[str, Union[int, float]]:
+    def get_statistics(self) -> dict[str, int | float]:
         """
         Get worker pool statistics.
 
@@ -425,7 +426,7 @@ class OptimizedWorkerPool:
             Dictionary with stats
         """
         with self._stats_lock:
-            stats: Dict[str, Union[int, float]] = dict(self._stats)
+            stats: dict[str, int | float] = dict(self._stats)
 
         with self._task_lock:
             stats["active_tasks"] = len(self._active_tasks)

@@ -13,7 +13,7 @@ Extracted from main_window.py to improve maintainability and testability.
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import QFileDialog, QInputDialog
@@ -47,7 +47,7 @@ class GitHandler(BaseVCSHandler):
         super().__init__(parent_window, settings_manager, status_manager)
 
         # Git-specific state
-        self.pending_commit_message: Optional[str] = None
+        self.pending_commit_message: str | None = None
 
         # Git status refresh timer (v1.9.0+)
         self.status_timer: QTimer = QTimer()
@@ -330,7 +330,7 @@ class GitHandler(BaseVCSHandler):
         """Get Git-specific busy message."""
         return "Git operation in progress."
 
-    def get_repository_path(self) -> Optional[str]:
+    def get_repository_path(self) -> str | None:
         """
         Get current Git repository path.
 

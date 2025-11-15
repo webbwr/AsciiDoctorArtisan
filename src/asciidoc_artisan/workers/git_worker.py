@@ -19,7 +19,7 @@ Security:
 
 import logging
 import subprocess
-from typing import Any, Dict, List
+from typing import Any
 
 from PySide6.QtCore import Signal, Slot
 
@@ -66,7 +66,7 @@ class GitWorker(BaseWorker):
     detailed_status_ready = Signal(dict)  # v1.9.0+
 
     @Slot(list, str)
-    def run_git_command(self, command: List[str], working_dir: str) -> None:
+    def run_git_command(self, command: list[str], working_dir: str) -> None:
         """
         Execute a Git command in the specified working directory.
 
@@ -209,7 +209,7 @@ class GitWorker(BaseWorker):
                 )
             )
 
-    def _analyze_git_error(self, stderr: str, command: List[str]) -> str:
+    def _analyze_git_error(self, stderr: str, command: list[str]) -> str:
         """
         Analyze Git error messages and provide user-friendly explanations.
 
@@ -543,7 +543,7 @@ class GitWorker(BaseWorker):
 
     def _parse_detailed_status_v2(
         self, stdout: str
-    ) -> tuple[str, List[Dict[str, str]], List[Dict[str, str]], List[Dict[str, str]]]:
+    ) -> tuple[str, list[dict[str, str]], list[dict[str, str]], list[dict[str, str]]]:
         """
         Parse git status --porcelain=v2 output into file lists.
 
@@ -568,9 +568,9 @@ class GitWorker(BaseWorker):
             [{'path': 'file2.txt', 'status': 'A'}]
         """
         branch = "unknown"
-        modified_files: List[Dict[str, str]] = []
-        staged_files: List[Dict[str, str]] = []
-        untracked_files: List[Dict[str, str]] = []
+        modified_files: list[dict[str, str]] = []
+        staged_files: list[dict[str, str]] = []
+        untracked_files: list[dict[str, str]] = []
 
         lines = stdout.strip().split("\n")
 
@@ -611,8 +611,8 @@ class GitWorker(BaseWorker):
         return branch, modified_files, staged_files, untracked_files
 
     def _add_line_counts(  # noqa: C901
-        self, working_dir: str, files: List[Dict[str, Any]], staged: bool
-    ) -> List[Dict[str, Any]]:
+        self, working_dir: str, files: list[dict[str, Any]], staged: bool
+    ) -> list[dict[str, Any]]:
         """
         Add line change counts to file list using git diff --numstat.
 

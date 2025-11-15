@@ -19,7 +19,6 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 """
 
 import logging
-from typing import List, Optional
 
 from PySide6.QtCore import QSize, Signal
 from PySide6.QtWidgets import (
@@ -77,7 +76,7 @@ class ChatBarWidget(QWidget):
     context_mode_changed = Signal(str)
     scan_models_requested = Signal()  # Scan for available models from API
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         """
         Initialize the chat bar widget.
 
@@ -266,7 +265,7 @@ class ChatBarWidget(QWidget):
         }
         return mode_map.get(index, "document")
 
-    def set_models(self, models: List[str]) -> None:
+    def set_models(self, models: list[str]) -> None:
         """
         Set available Ollama models in selector.
 

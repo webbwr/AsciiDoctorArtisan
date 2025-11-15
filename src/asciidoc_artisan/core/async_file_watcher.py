@@ -25,7 +25,6 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from PySide6.QtCore import QObject, Signal
 
@@ -113,12 +112,12 @@ class AsyncFileWatcher(QObject):
         self.min_poll_interval = min_poll_interval
         self.max_poll_interval = max_poll_interval
 
-        self._file_path: Optional[Path] = None
-        self._last_mtime: Optional[float] = None
-        self._last_size: Optional[int] = None
+        self._file_path: Path | None = None
+        self._last_mtime: float | None = None
+        self._last_size: int | None = None
         self._file_exists: bool = False
 
-        self._watch_task: Optional[asyncio.Task[None]] = None
+        self._watch_task: asyncio.Task[None] | None = None
         self._running = False
 
         self._last_notification_time: float = 0.0
@@ -350,6 +349,6 @@ class AsyncFileWatcher(QObject):
         """Check if watcher is running."""
         return self._running
 
-    def get_file_path(self) -> Optional[Path]:
+    def get_file_path(self) -> Path | None:
         """Get current file being watched."""
         return self._file_path

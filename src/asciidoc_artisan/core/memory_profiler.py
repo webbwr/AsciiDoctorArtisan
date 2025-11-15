@@ -25,8 +25,9 @@ Or use as decorator:
 import logging
 import time
 import tracemalloc
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class MemorySnapshot:
     timestamp: float
     current_mb: float
     peak_mb: float
-    top_allocations: List[Tuple[str, int]]  # [(location, size_bytes)]
+    top_allocations: list[tuple[str, int]]  # [(location, size_bytes)]
     description: str = ""
 
     def __str__(self) -> str:
@@ -95,7 +96,7 @@ class MemoryProfiler:
         """
         self.top_n = top_n
         self.is_running = False
-        self.snapshots: List[MemorySnapshot] = []
+        self.snapshots: list[MemorySnapshot] = []
         self.process = None
 
         if PSUTIL_AVAILABLE:
@@ -123,7 +124,7 @@ class MemoryProfiler:
         self.is_running = False
         logger.info("Memory profiler stopped")
 
-    def take_snapshot(self, description: str = "") -> Optional[MemorySnapshot]:
+    def take_snapshot(self, description: str = "") -> MemorySnapshot | None:
         """
         Take memory snapshot.
 
@@ -175,7 +176,7 @@ class MemoryProfiler:
 
         return mem_snapshot
 
-    def get_memory_usage(self) -> Tuple[float, float]:
+    def get_memory_usage(self) -> tuple[float, float]:
         """
         Get current memory usage from OS (via psutil).
 
@@ -289,7 +290,7 @@ class MemoryProfiler:
         """Get number of snapshots taken."""
         return len(self.snapshots)
 
-    def get_latest_snapshot(self) -> Optional[MemorySnapshot]:
+    def get_latest_snapshot(self) -> MemorySnapshot | None:
         """Get the most recent snapshot."""
         if not self.snapshots:
             return None
@@ -297,7 +298,7 @@ class MemoryProfiler:
 
 
 # Global profiler instance
-_global_profiler: Optional[MemoryProfiler] = None
+_global_profiler: MemoryProfiler | None = None
 
 
 def get_profiler() -> MemoryProfiler:

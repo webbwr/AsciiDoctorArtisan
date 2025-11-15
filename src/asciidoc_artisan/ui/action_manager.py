@@ -97,7 +97,6 @@ import logging  # For recording what the program does (debug messages)
 from typing import (  # For type hints without circular imports
     TYPE_CHECKING,
     Any,
-    Optional,
 )
 
 # === QT FRAMEWORK IMPORTS ===
@@ -283,7 +282,7 @@ class ActionManager:
         text: str,
         status_tip: str,
         triggered: Any,
-        shortcut: Optional[Any] = None,
+        shortcut: Any | None = None,
         checkable: bool = False,
         checked: bool = False,
     ) -> QAction:
@@ -393,9 +392,9 @@ class ActionManager:
         self,
         text: str,
         triggered: Any,
-        shortcut: Optional[Any] = None,
-        icon: Optional[Any] = None,
-        tooltip: Optional[str] = None,
+        shortcut: Any | None = None,
+        icon: Any | None = None,
+        tooltip: str | None = None,
         enabled: bool = True,
         checkable: bool = False,
         checked: bool = False,

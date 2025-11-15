@@ -15,7 +15,6 @@ Phase 4 Enhancement (v1.1.0-beta):
 import logging
 import platform
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +84,7 @@ class ResourceMonitor:
 
     def __init__(self) -> None:
         """Initialize the resource monitor."""
-        self.process: Optional["psutil.Process"] = None
+        self.process: psutil.Process | None = None
         if PSUTIL_AVAILABLE:
             try:
                 self.process = psutil.Process()

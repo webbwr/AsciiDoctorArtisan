@@ -17,7 +17,6 @@ import os
 import platform
 import subprocess
 from dataclasses import dataclass
-from typing import Dict, Union
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +201,7 @@ def detect_macos_capabilities() -> MacOSOptimizationInfo:  # noqa: C901
     return info
 
 
-def configure_metal_optimization() -> Dict[str, Union[str, bool]]:
+def configure_metal_optimization() -> dict[str, str | bool]:
     """
     Configure Metal GPU for optimal performance on Apple Silicon.
 
@@ -212,7 +211,7 @@ def configure_metal_optimization() -> Dict[str, Union[str, bool]]:
     - async_compute: Async compute command encoding
     - texture_compression: Use ASTC compression
     """
-    config: Dict[str, Union[str, bool]] = {
+    config: dict[str, str | bool] = {
         "memory_pool_size": "auto",  # Let Metal manage unified memory
         "shader_cache_enabled": True,
         "async_compute": True,
@@ -231,7 +230,7 @@ def configure_metal_optimization() -> Dict[str, Union[str, bool]]:
     return config
 
 
-def optimize_unified_memory_usage() -> Dict[str, Union[int, bool, float]]:
+def optimize_unified_memory_usage() -> dict[str, int | bool | float]:
     """
     Optimize memory usage for Apple Silicon unified memory architecture.
 
@@ -299,7 +298,7 @@ def get_optimal_thread_count() -> int:
     return optimal_threads
 
 
-def enable_apfs_optimizations() -> Dict[str, bool]:
+def enable_apfs_optimizations() -> dict[str, bool]:
     """
     Enable APFS-specific file system optimizations.
 

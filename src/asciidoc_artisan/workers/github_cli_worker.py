@@ -20,7 +20,7 @@ Security:
 import json
 import logging
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PySide6.QtCore import Signal, Slot
 
@@ -60,7 +60,7 @@ class GitHubCLIWorker(BaseWorker):
     github_result_ready = Signal(GitHubResult)
 
     @Slot(str, dict)
-    def dispatch_github_operation(self, operation: str, kwargs: Dict[str, Any]) -> None:
+    def dispatch_github_operation(self, operation: str, kwargs: dict[str, Any]) -> None:
         """
         Dispatch GitHub operation based on operation type.
 
@@ -110,9 +110,9 @@ class GitHubCLIWorker(BaseWorker):
     @Slot(list, str, str)
     def run_gh_command(  # noqa: C901
         self,
-        args: List[str],
-        working_dir: Optional[str] = None,
-        operation: Optional[str] = None,
+        args: list[str],
+        working_dir: str | None = None,
+        operation: str | None = None,
     ) -> None:
         """
         Execute a GitHub CLI command.
@@ -288,7 +288,7 @@ class GitHubCLIWorker(BaseWorker):
         body: str,
         base: str,
         head: str,
-        working_dir: Optional[str] = None,
+        working_dir: str | None = None,
     ) -> None:
         """
         Create a GitHub pull request.
@@ -322,7 +322,7 @@ class GitHubCLIWorker(BaseWorker):
 
     @Slot(str)
     def list_pull_requests(
-        self, state: Optional[str] = None, working_dir: Optional[str] = None
+        self, state: str | None = None, working_dir: str | None = None
     ) -> None:
         """
         List pull requests in the repository.
@@ -348,7 +348,7 @@ class GitHubCLIWorker(BaseWorker):
 
     @Slot(str, str)
     def create_issue(
-        self, title: str, body: str, working_dir: Optional[str] = None
+        self, title: str, body: str, working_dir: str | None = None
     ) -> None:
         """
         Create a GitHub issue.
@@ -375,7 +375,7 @@ class GitHubCLIWorker(BaseWorker):
 
     @Slot(str)
     def list_issues(
-        self, state: Optional[str] = None, working_dir: Optional[str] = None
+        self, state: str | None = None, working_dir: str | None = None
     ) -> None:
         """
         List issues in the repository.
@@ -400,7 +400,7 @@ class GitHubCLIWorker(BaseWorker):
         self.run_gh_command(args, working_dir, operation="issue_list")
 
     @Slot()
-    def get_repo_info(self, working_dir: Optional[str] = None) -> None:
+    def get_repo_info(self, working_dir: str | None = None) -> None:
         """
         Get repository information.
 
@@ -418,7 +418,7 @@ class GitHubCLIWorker(BaseWorker):
         ]
         self.run_gh_command(args, working_dir, operation="repo_info")
 
-    def _parse_gh_error(self, stderr: str, command: List[str]) -> str:
+    def _parse_gh_error(self, stderr: str, command: list[str]) -> str:
         """
         Parse GitHub CLI error messages and provide user-friendly explanations.
 

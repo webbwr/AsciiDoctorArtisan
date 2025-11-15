@@ -12,7 +12,7 @@ Security Features:
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -49,7 +49,7 @@ class APIKeySetupDialog(QDialog):
         ...     print("API key configured successfully")
     """
 
-    def __init__(self, parent: Optional[Any] = None) -> None:
+    def __init__(self, parent: Any | None = None) -> None:
         """Initialize the API Key Setup Dialog.
 
         Args:
@@ -289,7 +289,7 @@ class APIKeySetupDialog(QDialog):
                     self, "Deletion Failed", "Failed to delete API key from keyring."
                 )
 
-    def get_api_key(self) -> Optional[str]:
+    def get_api_key(self) -> str | None:
         """Get the currently stored API key.
 
         Returns:

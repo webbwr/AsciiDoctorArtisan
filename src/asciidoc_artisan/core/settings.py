@@ -15,7 +15,7 @@ Security: API keys are explicitly NOT stored here (FR-061)
 
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .constants import EDITOR_FONT_SIZE
 
@@ -94,12 +94,12 @@ class Settings:
     """
 
     last_directory: str = field(default_factory=lambda: str(Path.home()))
-    last_file: Optional[str] = None
-    git_repo_path: Optional[str] = None
+    last_file: str | None = None
+    git_repo_path: str | None = None
     dark_mode: bool = True
     maximized: bool = True  # Start maximized by default
-    window_geometry: Optional[Dict[str, int]] = None
-    splitter_sizes: Optional[List[int]] = None
+    window_geometry: dict[str, int] | None = None
+    splitter_sizes: list[int] | None = None
     font_size: int = EDITOR_FONT_SIZE
     auto_save_enabled: bool = True
     auto_save_interval: int = 300
@@ -108,21 +108,21 @@ class Settings:
     # AI Backend settings (v1.10.0+)
     ai_backend: str = "ollama"  # "ollama" or "claude"
     ollama_enabled: bool = True  # Enable Ollama by default for chat
-    ollama_model: Optional[str] = "gnokit/improve-grammer"  # Default model for chat
-    claude_model: Optional[str] = (
+    ollama_model: str | None = "gnokit/improve-grammer"  # Default model for chat
+    claude_model: str | None = (
         "claude-sonnet-4-20250514"  # Default Claude model (Claude Sonnet 4)
     )
 
     # Chat settings (v1.7.0, v1.10.0+ backend-agnostic)
     ai_chat_enabled: bool = True  # Enable chat by default
-    chat_history: List[Dict[str, Any]] = field(default_factory=list)
+    chat_history: list[dict[str, Any]] = field(default_factory=list)
     chat_max_history: int = 100
     chat_context_mode: str = "document"
     chat_send_document: bool = True
 
     # Backward compatibility aliases (deprecated, kept for migration)
     ollama_chat_enabled: bool = True  # Deprecated: use ai_chat_enabled
-    ollama_chat_history: List[Dict[str, Any]] = field(
+    ollama_chat_history: list[dict[str, Any]] = field(
         default_factory=list
     )  # Deprecated: use chat_history
     ollama_chat_max_history: int = 100  # Deprecated: use chat_max_history
@@ -140,7 +140,7 @@ class Settings:
     # Spell check settings (v1.8.0)
     spell_check_enabled: bool = True
     spell_check_language: str = "en"
-    spell_check_custom_words: List[str] = field(default_factory=list)
+    spell_check_custom_words: list[str] = field(default_factory=list)
 
     # Auto-complete settings (v2.0.0)
     autocomplete_enabled: bool = True
@@ -158,12 +158,10 @@ class Settings:
 
     # Telemetry settings (v1.8.0)
     telemetry_enabled: bool = False  # Opt-in only (GDPR compliant)
-    telemetry_session_id: Optional[str] = (
-        None  # Anonymous UUID, generated on first enable
-    )
+    telemetry_session_id: str | None = None  # Anonymous UUID, generated on first enable
     telemetry_opt_in_shown: bool = False  # Whether opt-in dialog has been shown
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert settings to dictionary for JSON serialization.
 
@@ -173,7 +171,7 @@ class Settings:
         return asdict(self)
 
     @staticmethod
-    def _migrate_claude_model(model: Optional[str]) -> Optional[str]:
+    def _migrate_claude_model(model: str | None) -> str | None:
         """
         Migrate deprecated Claude 3.5 model names to Claude 4 equivalents.
 
@@ -211,7 +209,7 @@ class Settings:
         return model
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Settings":
+    def from_dict(cls, data: dict[str, Any]) -> "Settings":
         """
         Create Settings instance from dictionary.
 

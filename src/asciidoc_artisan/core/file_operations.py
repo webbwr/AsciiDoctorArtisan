@@ -18,7 +18,7 @@ Security Guarantees:
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from . import json_utils
 
@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 def sanitize_path(
-    path_input: Union[str, Path], allowed_base: Optional[Path] = None
-) -> Optional[Path]:
+    path_input: str | Path, allowed_base: Path | None = None
+) -> Path | None:
     """
     Sanitize file path to prevent directory traversal attacks.
 
@@ -149,7 +149,7 @@ def atomic_save_text(file_path: Path, content: str, encoding: str = "utf-8") -> 
 
 
 def atomic_save_json(
-    file_path: Path, data: Dict[str, Any], encoding: str = "utf-8", indent: int = 2
+    file_path: Path, data: dict[str, Any], encoding: str = "utf-8", indent: int = 2
 ) -> bool:
     """
     Atomically save JSON data to file using temp file + rename pattern.

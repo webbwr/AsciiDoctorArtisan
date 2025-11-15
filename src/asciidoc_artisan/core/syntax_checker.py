@@ -37,7 +37,7 @@ Example:
 """
 
 import re
-from typing import Dict, List, Optional, Protocol
+from typing import Protocol
 
 from asciidoc_artisan.core.models import SyntaxErrorModel
 
@@ -80,9 +80,7 @@ class ValidationContext:
         ```
     """
 
-    def __init__(
-        self, document: str, changed_lines: Optional[List[int]] = None
-    ) -> None:
+    def __init__(self, document: str, changed_lines: list[int] | None = None) -> None:
         """
         Initialize validation context.
 
@@ -95,12 +93,12 @@ class ValidationContext:
         self.changed_lines = changed_lines
 
         # Caches (populated on demand)
-        self._anchors: Optional[List[str]] = None
-        self._attributes: Optional[Dict[str, str]] = None
-        self._includes: Optional[List[str]] = None
+        self._anchors: list[str] | None = None
+        self._attributes: dict[str, str] | None = None
+        self._includes: list[str] | None = None
 
     @property
-    def anchors(self) -> List[str]:
+    def anchors(self) -> list[str]:
         """
         Extract all anchor IDs from document.
 
@@ -120,7 +118,7 @@ class ValidationContext:
         return self._anchors
 
     @property
-    def attributes(self) -> Dict[str, str]:
+    def attributes(self) -> dict[str, str]:
         """
         Extract all document attributes.
 
@@ -136,7 +134,7 @@ class ValidationContext:
         return self._attributes
 
     @property
-    def includes(self) -> List[str]:
+    def includes(self) -> list[str]:
         """
         Extract all include directives.
 
@@ -193,7 +191,7 @@ class ValidationRule(Protocol):
         ```
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """
         Validate document and return errors.
 
@@ -224,7 +222,7 @@ class SyntaxChecker:
 
     def __init__(self) -> None:
         """Initialize syntax checker with built-in rules."""
-        self.rules: List[ValidationRule] = []
+        self.rules: list[ValidationRule] = []
         self._setup_built_in_rules()
 
     def _setup_built_in_rules(self) -> None:
@@ -290,8 +288,8 @@ class SyntaxChecker:
             raise ValueError("Rule not registered")
 
     def validate(
-        self, document: str, changed_lines: Optional[List[int]] = None
-    ) -> List[SyntaxErrorModel]:
+        self, document: str, changed_lines: list[int] | None = None
+    ) -> list[SyntaxErrorModel]:
         """
         Validate document and return all errors.
 
@@ -325,7 +323,7 @@ class SyntaxChecker:
         context = ValidationContext(document, changed_lines)
 
         # Collect errors from all rules
-        all_errors: List[SyntaxErrorModel] = []
+        all_errors: list[SyntaxErrorModel] = []
 
         for rule in self.rules:
             try:
@@ -346,8 +344,8 @@ class SyntaxChecker:
         return all_errors
 
     def validate_incremental(
-        self, document: str, changed_lines: List[int]
-    ) -> List[SyntaxErrorModel]:
+        self, document: str, changed_lines: list[int]
+    ) -> list[SyntaxErrorModel]:
         """
         Validate only changed lines (incremental validation).
 
@@ -394,7 +392,7 @@ class SyntaxChecker:
         """
         return len(self.rules)
 
-    def get_rule_names(self) -> List[str]:
+    def get_rule_names(self) -> list[str]:
         """
         Get names of all registered rules.
 
@@ -414,7 +412,7 @@ class SyntaxChecker:
 # Convenience functions for common validation tasks
 
 
-def extract_anchors(document: str) -> List[str]:
+def extract_anchors(document: str) -> list[str]:
     """
     Extract all anchor IDs from document.
 
@@ -438,7 +436,7 @@ def extract_anchors(document: str) -> List[str]:
     return [m[0] or m[1] for m in matches]
 
 
-def extract_attributes(document: str) -> Dict[str, str]:
+def extract_attributes(document: str) -> dict[str, str]:
     """
     Extract all document attributes.
 
@@ -462,7 +460,7 @@ def extract_attributes(document: str) -> Dict[str, str]:
     return {key.strip(): value.strip() for key, value in matches}
 
 
-def is_inside_code_block(lines: List[str], line_number: int) -> bool:
+def is_inside_code_block(lines: list[str], line_number: int) -> bool:
     """
     Check if line is inside a code block.
 

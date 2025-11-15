@@ -16,7 +16,7 @@ Factory function create_preview_handler() simplifies usage in main_window.py.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QWidget
@@ -110,7 +110,7 @@ class WebEngineHandler(PreviewHandlerBase):
         """
         self.preview.page().runJavaScript(js_code)
 
-    def _get_preview_scroll_percentage(self) -> Optional[float]:
+    def _get_preview_scroll_percentage(self) -> float | None:
         """
         Get scroll percentage from QWebEngineView (requires JavaScript callback).
 
@@ -128,7 +128,7 @@ class WebEngineHandler(PreviewHandlerBase):
         return None
 
 
-def create_preview_widget(parent: Optional[QWidget] = None) -> QWidget:
+def create_preview_widget(parent: QWidget | None = None) -> QWidget:
     """
     Create appropriate preview widget based on GPU availability.
 
@@ -234,7 +234,7 @@ def create_preview_handler(
 PreviewHandler = WebEngineHandler
 
 
-def get_preview_widget_info(preview_widget: QWidget) -> Dict[str, Any]:
+def get_preview_widget_info(preview_widget: QWidget) -> dict[str, Any]:
     """
     Get information about the preview widget.
 

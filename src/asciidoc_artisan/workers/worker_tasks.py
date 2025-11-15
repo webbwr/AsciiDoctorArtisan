@@ -14,7 +14,7 @@ import io
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from PySide6.QtCore import QObject, Signal
 
@@ -60,7 +60,7 @@ class RenderTask(CancelableRunnable):
     """
 
     def __init__(
-        self, text: str, asciidoc_api: Any, task_id: Optional[str] = None
+        self, text: str, asciidoc_api: Any, task_id: str | None = None
     ) -> None:
         """Initialize render task."""
         # Generate unique ID using timestamp if not provided.
@@ -135,7 +135,7 @@ class ConversionTask(CancelableRunnable):
         to_format: str,
         from_format: str,
         is_file: bool = False,
-        task_id: Optional[str] = None,
+        task_id: str | None = None,
     ) -> None:
         """Initialize conversion task."""
         # Generate unique ID using timestamp if not provided.
@@ -206,7 +206,7 @@ class GitTask(CancelableRunnable):
     """
 
     def __init__(
-        self, command: List[str], cwd: Path, task_id: Optional[str] = None
+        self, command: list[str], cwd: Path, task_id: str | None = None
     ) -> None:
         """Initialize git task."""
         # Generate unique ID using timestamp if not provided.

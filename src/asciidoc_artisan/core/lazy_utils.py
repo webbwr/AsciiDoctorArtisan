@@ -22,7 +22,8 @@ Features:
 import functools
 import importlib
 import logging
-from typing import Any, Callable, Generic, Optional, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class lazy_property(Generic[T]):  # noqa: N801
+class lazy_property[T]:  # noqa: N801
     """
     Lazy property decorator.
 
@@ -145,7 +146,7 @@ class LazyImport:
             module_name: Module to import
         """
         self.module_name = module_name
-        self._module: Optional[Any] = None
+        self._module: Any | None = None
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -348,7 +349,7 @@ class cached_property:  # noqa: N801
             func: Function to compute property
         """
         self.func = func
-        self.attrname: Optional[str] = None
+        self.attrname: str | None = None
         functools.update_wrapper(self, func)  # type: ignore[arg-type]
 
     def __set_name__(self, owner: type, name: str) -> None:
@@ -361,7 +362,7 @@ class cached_property:  # noqa: N801
         """
         self.attrname = name
 
-    def __get__(self, obj: Any, owner: Optional[type] = None) -> Any:
+    def __get__(self, obj: Any, owner: type | None = None) -> Any:
         """Get property value."""
         if obj is None:
             return self

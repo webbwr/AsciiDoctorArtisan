@@ -24,8 +24,9 @@ Benefits:
 import asyncio
 import json
 import logging
+from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, Optional, Union
+from typing import Any
 
 try:
     import aiofiles
@@ -38,7 +39,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def sanitize_path(path_input: Union[str, Path]) -> Optional[Path]:
+def sanitize_path(path_input: str | Path) -> Path | None:
     """
     Sanitize file path to prevent directory traversal attacks.
 
@@ -70,7 +71,7 @@ def sanitize_path(path_input: Union[str, Path]) -> Optional[Path]:
 
 async def async_read_text(
     file_path: Path, encoding: str = "utf-8", chunk_size: int = 8192
-) -> Optional[str]:
+) -> str | None:
     """
     Asynchronously read text file.
 
@@ -99,7 +100,7 @@ async def async_read_text(
             return None
 
     try:
-        async with aiofiles.open(file_path, mode="r", encoding=encoding) as f:
+        async with aiofiles.open(file_path, encoding=encoding) as f:
             content: str = await f.read()
             logger.debug(f"Async read successful: {file_path} ({len(content)} chars)")
             return content
@@ -110,7 +111,7 @@ async def async_read_text(
 
 async def async_read_text_chunked(
     file_path: Path, encoding: str = "utf-8", chunk_size: int = 8192
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[str]:
     """
     Asynchronously read text file in chunks (generator).
 
@@ -134,7 +135,7 @@ async def async_read_text_chunked(
         return
 
     try:
-        async with aiofiles.open(file_path, mode="r", encoding=encoding) as f:
+        async with aiofiles.open(file_path, encoding=encoding) as f:
             while True:
                 chunk = await f.read(chunk_size)
                 if not chunk:
@@ -215,7 +216,7 @@ async def async_atomic_save_text(
 
 
 async def async_atomic_save_json(
-    file_path: Path, data: Dict[str, Any], encoding: str = "utf-8", indent: int = 2
+    file_path: Path, data: dict[str, Any], encoding: str = "utf-8", indent: int = 2
 ) -> bool:
     """
     Asynchronously save JSON data with atomic write.
@@ -278,7 +279,7 @@ async def async_atomic_save_json(
 
 async def async_read_json(
     file_path: Path, encoding: str = "utf-8"
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Asynchronously read and parse JSON file.
 
@@ -323,7 +324,7 @@ class AsyncFileContext:
     """
 
     def __init__(
-        self, file_path: Path, mode: str = "r", encoding: Optional[str] = "utf-8"
+        self, file_path: Path, mode: str = "r", encoding: str | None = "utf-8"
     ):
         """
         Initialize async file context.

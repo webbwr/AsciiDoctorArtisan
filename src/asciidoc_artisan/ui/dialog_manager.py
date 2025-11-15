@@ -378,7 +378,7 @@ class DialogManager:
                         # Check if running in WSL
                         is_wsl = False
                         try:
-                            with open("/proc/version", "r") as f:
+                            with open("/proc/version") as f:
                                 is_wsl = "microsoft" in f.read().lower()
                         except (FileNotFoundError, PermissionError, OSError):
                             pass

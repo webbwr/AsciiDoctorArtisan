@@ -11,7 +11,7 @@ Implements specification requirement: Spell Checker (v1.8.0).
 """
 
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import (
@@ -69,7 +69,7 @@ class SpellCheckManager:
 
         # Spell check state
         self.enabled = main_window._settings.spell_check_enabled
-        self.errors: List[SpellError] = []
+        self.errors: list[SpellError] = []
 
         # Debounce timer for spell checking (check 500ms after typing stops)
         self.check_timer = QTimer()
@@ -335,7 +335,7 @@ class SpellCheckManager:
             f"({spell_count} spell check + {len(search_sels)} search)"
         )
 
-    def _find_error_at_position(self, position: int) -> Optional[SpellError]:
+    def _find_error_at_position(self, position: int) -> SpellError | None:
         """
         Find spelling error at given text position.
 

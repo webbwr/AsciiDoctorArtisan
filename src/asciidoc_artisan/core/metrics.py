@@ -24,8 +24,9 @@ Usage:
 import logging
 import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, DefaultDict, Deque, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class OperationMetrics:
     """Metrics for a specific operation type."""
 
     operation_name: str
-    durations: Deque[float] = field(default_factory=lambda: deque(maxlen=1000))
+    durations: deque[float] = field(default_factory=lambda: deque(maxlen=1000))
     count: int = 0
     total_time_ms: float = 0.0
     min_time_ms: float = float("inf")
@@ -72,7 +73,7 @@ class OperationMetrics:
         index = min(index, len(sorted_durations) - 1)
         return sorted_durations[index]
 
-    def get_stats(self) -> Dict[str, float]:
+    def get_stats(self) -> dict[str, float]:
         """Get comprehensive statistics."""
         if self.count == 0:
             return {
@@ -119,7 +120,7 @@ class CacheMetrics:
             return 0.0
         return self.hits / total
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         return {
             "hits": self.hits,
@@ -138,10 +139,10 @@ class MetricsCollector:
 
     def __init__(self) -> None:
         """Initialize metrics collector."""
-        self.operations: DefaultDict[str, OperationMetrics] = defaultdict(
+        self.operations: defaultdict[str, OperationMetrics] = defaultdict(
             lambda: OperationMetrics(operation_name="")
         )
-        self.caches: DefaultDict[str, CacheMetrics] = defaultdict(
+        self.caches: defaultdict[str, CacheMetrics] = defaultdict(
             lambda: CacheMetrics(cache_name="")
         )
         self.enabled = True
@@ -186,36 +187,36 @@ class MetricsCollector:
         else:
             self.caches[cache_name].record_miss()
 
-    def get_operation_stats(self, operation_name: str) -> Optional[Dict[str, float]]:
+    def get_operation_stats(self, operation_name: str) -> dict[str, float] | None:
         """Get statistics for a specific operation."""
         if operation_name not in self.operations:
             return None
         return self.operations[operation_name].get_stats()
 
-    def get_cache_stats(self, cache_name: str) -> Optional[Dict[str, Any]]:
+    def get_cache_stats(self, cache_name: str) -> dict[str, Any] | None:
         """Get statistics for a specific cache."""
         if cache_name not in self.caches:
             return None
         return self.caches[cache_name].get_stats()
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get comprehensive statistics.
 
         Returns:
             Dictionary with all operation and cache statistics
         """
-        stats: Dict[str, Any] = {
+        stats: dict[str, Any] = {
             "uptime_seconds": time.time() - self.start_time,
             "operations": {},
             "caches": {},
         }
 
-        operations_dict: Dict[str, Any] = stats["operations"]
+        operations_dict: dict[str, Any] = stats["operations"]
         for op_name, op_metrics in self.operations.items():
             operations_dict[op_name] = op_metrics.get_stats()
 
-        caches_dict: Dict[str, Any] = stats["caches"]
+        caches_dict: dict[str, Any] = stats["caches"]
         for cache_name, cache_metrics in self.caches.items():
             caches_dict[cache_name] = cache_metrics.get_stats()
 
@@ -290,7 +291,7 @@ class MetricsCollector:
 
 
 # Global singleton instance
-_metrics_collector: Optional[MetricsCollector] = None
+_metrics_collector: MetricsCollector | None = None
 
 
 def get_metrics_collector() -> MetricsCollector:

@@ -25,7 +25,7 @@ Example:
 """
 
 import re
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from asciidoc_artisan.core.models import (
     ErrorSeverity,
@@ -56,7 +56,7 @@ class UnclosedBlockRule:
         "listing": (r"\[listing\]", r"^-{4,}$"),
     }
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate for unclosed blocks."""
         errors = []
         lines = context.lines
@@ -125,7 +125,7 @@ class InvalidAttributeRule:
     Matches: Attribute definitions missing closing colon
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate attribute syntax."""
         errors = []
         lines = context.lines
@@ -175,7 +175,7 @@ class MalformedXRefRule:
     Matches: <<target without closing >>
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate cross-reference syntax."""
         errors = []
         lines = context.lines
@@ -225,7 +225,7 @@ class BrokenXRefRule:
     Matches: <<target>> where target anchor doesn't exist
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate cross-reference targets."""
         errors = []
         lines = context.lines
@@ -287,7 +287,7 @@ class MissingIncludeRule:
     Matches: include::file[] where file doesn't exist
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate include file paths."""
         errors = []
         lines = context.lines
@@ -329,7 +329,7 @@ class UndefinedAttributeRefRule:
     Matches: {attribute} where :attribute: is not defined
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate attribute references."""
         errors = []
         lines = context.lines
@@ -386,7 +386,7 @@ class DuplicateAnchorRule:
     Matches: Multiple anchors with same ID
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate anchor uniqueness."""
         errors = []
         lines = context.lines
@@ -445,7 +445,7 @@ class EmptyHeadingRule:
     Matches: == with no text
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate heading content."""
         errors = []
         lines = context.lines
@@ -481,7 +481,7 @@ class TrailingWhitespaceRule:
     Matches: Lines ending with spaces or tabs
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate for trailing whitespace."""
         errors = []
         lines = context.lines
@@ -529,7 +529,7 @@ class MissingDocumentTitleRule:
     Matches: Documents without = Title
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate document has title."""
         errors = []
         lines = context.lines
@@ -575,7 +575,7 @@ class MissingAuthorVersionRule:
     Matches: Documents without :author: or :version:
     """
 
-    def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
+    def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
         """Validate document has author/version."""
         errors = []
         attrs = context.attributes

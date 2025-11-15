@@ -7,7 +7,6 @@ Implements performance optimizations per specification requirements.
 
 import logging
 from pathlib import Path
-from typing import Tuple
 
 from PySide6.QtCore import QObject, Signal
 
@@ -90,7 +89,7 @@ class LargeFileHandler(QObject):
 
     def load_file_optimized(
         self, file_path: Path, encoding: str = "utf-8"
-    ) -> Tuple[bool, str, str]:
+    ) -> tuple[bool, str, str]:
         """
         Load file with size-appropriate optimizations.
 
@@ -121,10 +120,10 @@ class LargeFileHandler(QObject):
             logger.error(f"Failed to load file {file_path}: {e}")
             return False, "", f"Failed to load file: {e}"
 
-    def _load_small_file(self, file_path: Path, encoding: str) -> Tuple[bool, str, str]:
+    def _load_small_file(self, file_path: Path, encoding: str) -> tuple[bool, str, str]:
         """Load small file normally (< 1MB)."""
         try:
-            with open(file_path, "r", encoding=encoding, errors="replace") as f:
+            with open(file_path, encoding=encoding, errors="replace") as f:
                 content = f.read()
             return True, content, ""
         except Exception as e:
@@ -132,7 +131,7 @@ class LargeFileHandler(QObject):
 
     def _load_medium_file(
         self, file_path: Path, encoding: str, file_size: int
-    ) -> Tuple[bool, str, str]:
+    ) -> tuple[bool, str, str]:
         """Load medium file with progress indicators (1-10MB)."""
         try:
             self.progress_update.emit(0, f"Loading {file_path.name}...")
@@ -142,7 +141,7 @@ class LargeFileHandler(QObject):
             chunks = []
             bytes_read = 0
 
-            with open(file_path, "r", encoding=encoding, errors="replace") as f:
+            with open(file_path, encoding=encoding, errors="replace") as f:
                 while True:
                     chunk = f.read(chunk_size)
                     if not chunk:
@@ -166,7 +165,7 @@ class LargeFileHandler(QObject):
 
     def _load_large_file(
         self, file_path: Path, encoding: str, file_size: int
-    ) -> Tuple[bool, str, str]:
+    ) -> tuple[bool, str, str]:
         """Load large file with chunked reading (> 10MB)."""
         try:
             self.progress_update.emit(0, f"Loading large file: {file_path.name}...")
@@ -176,7 +175,7 @@ class LargeFileHandler(QObject):
             bytes_read = 0
             last_progress = 0
 
-            with open(file_path, "r", encoding=encoding, errors="replace") as f:
+            with open(file_path, encoding=encoding, errors="replace") as f:
                 for line in f:
                     lines.append(line)
                     bytes_read += len(line.encode(encoding))

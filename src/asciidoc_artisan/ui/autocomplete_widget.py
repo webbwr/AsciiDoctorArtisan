@@ -34,8 +34,6 @@ Example:
     ```
 """
 
-from typing import List
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import QListWidget, QListWidgetItem, QWidget
@@ -91,7 +89,7 @@ class AutoCompleteWidget(QListWidget):
             parent: Parent widget (usually the editor)
         """
         super().__init__(parent)
-        self.items: List[CompletionItem] = []
+        self.items: list[CompletionItem] = []
 
         # Configure widget appearance
         self.setWindowFlags(Qt.WindowType.Popup | Qt.WindowType.FramelessWindowHint)
@@ -106,7 +104,7 @@ class AutoCompleteWidget(QListWidget):
         # Hide by default
         self.hide()
 
-    def show_completions(self, items: List[CompletionItem]) -> None:
+    def show_completions(self, items: list[CompletionItem]) -> None:
         """
         Show completion items in popup.
 

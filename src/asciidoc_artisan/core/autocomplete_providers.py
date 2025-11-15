@@ -31,7 +31,6 @@ Example:
 """
 
 from pathlib import Path
-from typing import List
 
 from asciidoc_artisan.core.models import (
     CompletionContext,
@@ -59,7 +58,7 @@ class SyntaxProvider:
         """Initialize syntax provider with completion items."""
         self.completions = self._build_completion_items()
 
-    def get_completions(self, context: CompletionContext) -> List[CompletionItem]:
+    def get_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """
         Return syntax completions for given context.
 
@@ -92,7 +91,7 @@ class SyntaxProvider:
         # Default: return all syntax items
         return self.completions
 
-    def _build_completion_items(self) -> List[CompletionItem]:
+    def _build_completion_items(self) -> list[CompletionItem]:
         """
         Build static list of syntax completions.
 
@@ -285,7 +284,7 @@ class SyntaxProvider:
 
     def _get_heading_completions(
         self, context: CompletionContext
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         """Get heading-specific completions based on level."""
         level = len(context.line) - len(context.line.lstrip("="))
         heading_items = [
@@ -293,11 +292,11 @@ class SyntaxProvider:
         ]
         return heading_items if heading_items else self.completions
 
-    def _get_block_completions(self) -> List[CompletionItem]:
+    def _get_block_completions(self) -> list[CompletionItem]:
         """Get block-specific completions."""
         return [item for item in self.completions if item.text.startswith("[")]
 
-    def _get_list_completions(self) -> List[CompletionItem]:
+    def _get_list_completions(self) -> list[CompletionItem]:
         """Get list-specific completions."""
         return [
             item
@@ -326,7 +325,7 @@ class AttributeProvider:
         self.document = document
         self.built_in_attributes = self._get_built_in_attributes()
 
-    def get_completions(self, context: CompletionContext) -> List[CompletionItem]:
+    def get_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """
         Return attribute completions.
 
@@ -346,7 +345,7 @@ class AttributeProvider:
 
         return []
 
-    def _get_built_in_attributes(self) -> List[CompletionItem]:
+    def _get_built_in_attributes(self) -> list[CompletionItem]:
         """Get built-in AsciiDoc attributes."""
         return [
             CompletionItem(
@@ -386,7 +385,7 @@ class AttributeProvider:
             ),
         ]
 
-    def _get_attribute_references(self) -> List[CompletionItem]:
+    def _get_attribute_references(self) -> list[CompletionItem]:
         """Get attribute references for {attr} syntax."""
         # Extract defined attributes from document
         import re
@@ -426,7 +425,7 @@ class CrossRefProvider:
         self.document = document
         self.anchors = self._extract_anchors()
 
-    def get_completions(self, context: CompletionContext) -> List[CompletionItem]:
+    def get_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """
         Return cross-reference completions.
 
@@ -442,7 +441,7 @@ class CrossRefProvider:
 
         return []
 
-    def _extract_anchors(self) -> List[str]:
+    def _extract_anchors(self) -> list[str]:
         """Extract all anchor IDs from document."""
         import re
 
@@ -452,7 +451,7 @@ class CrossRefProvider:
         # Flatten tuples (each match has 2 groups)
         return [m[0] or m[1] for m in matches]
 
-    def _get_anchor_completions(self) -> List[CompletionItem]:
+    def _get_anchor_completions(self) -> list[CompletionItem]:
         """Get anchor completions for <<>> syntax."""
         items = []
         for anchor in self.anchors:
@@ -491,7 +490,7 @@ class IncludeProvider:
             else self.current_file_path
         )
 
-    def get_completions(self, context: CompletionContext) -> List[CompletionItem]:
+    def get_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """
         Return include path completions.
 
@@ -507,7 +506,7 @@ class IncludeProvider:
 
         return []
 
-    def _get_file_completions(self) -> List[CompletionItem]:
+    def _get_file_completions(self) -> list[CompletionItem]:
         """Get .adoc file completions."""
         items = []
 
@@ -545,7 +544,7 @@ class SnippetProvider:
         """Initialize snippet provider with built-in snippets."""
         self.snippets = self._get_built_in_snippets()
 
-    def get_completions(self, context: CompletionContext) -> List[CompletionItem]:
+    def get_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """
         Return snippet completions.
 
@@ -558,7 +557,7 @@ class SnippetProvider:
         # Snippets are always available (manual trigger or specific keywords)
         return self.snippets
 
-    def _get_built_in_snippets(self) -> List[CompletionItem]:
+    def _get_built_in_snippets(self) -> list[CompletionItem]:
         """Get built-in code snippets."""
         return [
             CompletionItem(

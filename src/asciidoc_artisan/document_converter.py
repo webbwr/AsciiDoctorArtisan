@@ -17,7 +17,6 @@ import subprocess
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -61,13 +60,13 @@ class PandocIntegration:
     )
 
     def __init__(self) -> None:
-        self.pandoc_path: Optional[str] = None
+        self.pandoc_path: str | None = None
         self.pypandoc_available: bool = False
-        self.pandoc_version: Optional[str] = None
-        self.supported_formats: Dict[str, List[str]] = {"input": [], "output": []}
+        self.pandoc_version: str | None = None
+        self.supported_formats: dict[str, list[str]] = {"input": [], "output": []}
         self.check_installation()
 
-    def check_installation(self) -> Tuple[bool, str]:
+    def check_installation(self) -> tuple[bool, str]:
         """
         Check pandoc and pypandoc installation status.
 
@@ -168,7 +167,7 @@ Or download from https://pandoc.org/installing.html""",
             + "\n\nThen: pip install pypandoc"
         )
 
-    def auto_install_pypandoc(self) -> Tuple[bool, str]:
+    def auto_install_pypandoc(self) -> tuple[bool, str]:
         """
         Attempt automatic pypandoc installation via pip.
 
@@ -206,8 +205,8 @@ Or download from https://pandoc.org/installing.html""",
             return False, f"Error installing pypandoc: {e}"
 
     def convert_file(
-        self, input_file: Path, output_format: str, input_format: Optional[str] = None
-    ) -> Tuple[bool, str, str]:
+        self, input_file: Path, output_format: str, input_format: str | None = None
+    ) -> tuple[bool, str, str]:
         """
         Convert file using pandoc with automatic format detection.
 
@@ -281,7 +280,7 @@ Or download from https://pandoc.org/installing.html""",
 pandoc = PandocIntegration()
 
 
-def ensure_pandoc_available() -> Tuple[bool, str]:
+def ensure_pandoc_available() -> tuple[bool, str]:
     """
     Ensure pandoc is available with user-friendly error handling.
 
@@ -325,7 +324,7 @@ class PDFExtractor:
             return False
 
     @staticmethod
-    def extract_text(pdf_path: Path) -> Tuple[bool, str, str]:
+    def extract_text(pdf_path: Path) -> tuple[bool, str, str]:
         """
         Extract text from PDF file using PyMuPDF (3-5x faster than pdfplumber).
 
@@ -534,7 +533,7 @@ class PDFExtractor:
         return "\n".join(lines)
 
     @staticmethod
-    def convert_to_asciidoc(pdf_path: Path) -> Tuple[bool, str, str]:
+    def convert_to_asciidoc(pdf_path: Path) -> tuple[bool, str, str]:
         """
         Extract PDF and convert to AsciiDoc format.
 

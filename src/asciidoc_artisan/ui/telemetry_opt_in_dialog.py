@@ -20,7 +20,7 @@ GDPR Compliance:
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -73,7 +73,7 @@ class TelemetryOptInDialog(QDialog):
         DECLINED = QDialog.DialogCode.Rejected
         REMIND_LATER = QDialog.DialogCode.Rejected + 1
 
-    def __init__(self, parent: Optional[Any] = None) -> None:
+    def __init__(self, parent: Any | None = None) -> None:
         """Initialize the Telemetry Opt-In Dialog.
 
         Args:

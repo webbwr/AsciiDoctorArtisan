@@ -18,7 +18,7 @@ import logging
 import platform
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QPlainTextEdit
@@ -76,7 +76,7 @@ class FileHandler(QObject):
         self.status_manager = status_manager
 
         # File state
-        self.current_file_path: Optional[Path] = None
+        self.current_file_path: Path | None = None
         self.unsaved_changes = False
         self.is_opening_file = False
 
@@ -128,7 +128,7 @@ class FileHandler(QObject):
         logger.info("New file created")
 
     @Slot()
-    def open_file(self, file_path: Optional[str] = None) -> None:
+    def open_file(self, file_path: str | None = None) -> None:
         """
         Open a file.
 
@@ -379,7 +379,7 @@ class FileHandler(QObject):
 
                 logger.info(f"Saved file: {save_path} (async)")
             else:
-                raise IOError(f"Async atomic save failed for {save_path}")
+                raise OSError(f"Async atomic save failed for {save_path}")
 
         except Exception as e:
             logger.error(f"Failed to save file {save_path}: {e}")
@@ -434,7 +434,7 @@ class FileHandler(QObject):
         """Check if there are unsaved changes."""
         return self.unsaved_changes
 
-    def get_current_file_path(self) -> Optional[Path]:
+    def get_current_file_path(self) -> Path | None:
         """Get current file path."""
         return self.current_file_path
 

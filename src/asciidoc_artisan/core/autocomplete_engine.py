@@ -40,7 +40,7 @@ Example:
 """
 
 from functools import lru_cache
-from typing import Any, List, Optional, Protocol
+from typing import Any, Protocol
 
 from asciidoc_artisan.core.models import CompletionContext, CompletionItem
 
@@ -70,7 +70,7 @@ class CompletionProvider(Protocol):
         ```
     """
 
-    def get_completions(self, context: CompletionContext) -> List[CompletionItem]:
+    def get_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """
         Return completion items for given context.
 
@@ -113,9 +113,9 @@ class AutoCompleteEngine:
         Args:
             cache_size: Maximum number of cached results (default: 1000)
         """
-        self.providers: List[CompletionProvider] = []
+        self.providers: list[CompletionProvider] = []
         self._cache_size = cache_size
-        self._cache: dict[str, List[CompletionItem]] = {}
+        self._cache: dict[str, list[CompletionItem]] = {}
 
     def add_provider(self, provider: CompletionProvider) -> None:
         """
@@ -154,7 +154,7 @@ class AutoCompleteEngine:
 
     def get_completions(
         self, context: CompletionContext, max_items: int = 100
-    ) -> List[CompletionItem]:
+    ) -> list[CompletionItem]:
         """
         Get ranked completion items for given context.
 
@@ -196,7 +196,7 @@ class AutoCompleteEngine:
             return self._cache[cache_key][:max_items]
 
         # Query all providers
-        all_items: List[CompletionItem] = []
+        all_items: list[CompletionItem] = []
         for provider in self.providers:
             try:
                 items = provider.get_completions(context)
@@ -219,8 +219,8 @@ class AutoCompleteEngine:
         return ranked_items[:max_items]
 
     def _rank_items(
-        self, items: List[CompletionItem], context: CompletionContext
-    ) -> List[CompletionItem]:
+        self, items: list[CompletionItem], context: CompletionContext
+    ) -> list[CompletionItem]:
         """
         Rank completion items by relevance.
 
@@ -241,11 +241,11 @@ class AutoCompleteEngine:
             Sorted list (highest score first)
         """
         query = context.word_before_cursor.lower()
-        scored_items: List[CompletionItem] = []
+        scored_items: list[CompletionItem] = []
 
         # Try to import rapidfuzz for fuzzy matching
         has_rapidfuzz = False
-        rapidfuzz_fuzz: Optional[Any] = None
+        rapidfuzz_fuzz: Any | None = None
         try:
             from rapidfuzz import fuzz as rapidfuzz_fuzz
 

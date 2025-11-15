@@ -27,7 +27,6 @@ import re
 import subprocess
 import time
 from pathlib import Path
-from typing import Optional, Union
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -92,10 +91,10 @@ class PandocWorker(QObject):
     def __init__(self) -> None:
         """Initialize PandocWorker."""
         super().__init__()
-        self.ollama_model: Optional[str] = None
+        self.ollama_model: str | None = None
         self.ollama_enabled: bool = False
 
-    def set_ollama_config(self, enabled: bool, model: Optional[str]) -> None:
+    def set_ollama_config(self, enabled: bool, model: str | None) -> None:
         """
         Set Ollama configuration for AI conversions.
 
@@ -108,14 +107,14 @@ class PandocWorker(QObject):
 
     def _try_ai_conversion_with_fallback(
         self,
-        source: Union[str, bytes, Path],
+        source: str | bytes | Path,
         to_format: str,
         from_format: str,
         context: str,
-        output_file: Optional[Path],
+        output_file: Path | None,
         start_time: float,
         use_ai_conversion: bool,
-    ) -> tuple[Optional[str], Union[str, bytes, Path], str]:
+    ) -> tuple[str | None, str | bytes | Path, str]:
         """
         Attempt AI conversion with automatic fallback to source.
 
@@ -296,10 +295,10 @@ class PandocWorker(QObject):
 
     def _execute_pandoc_conversion(
         self,
-        source: Union[str, bytes, Path],
+        source: str | bytes | Path,
         to_format: str,
         from_format: str,
-        output_file: Optional[Path],
+        output_file: Path | None,
         extra_args: list[str],
     ) -> str:
         """
@@ -390,11 +389,11 @@ class PandocWorker(QObject):
     @Slot(object, str, str, str, object, bool)
     def run_pandoc_conversion(
         self,
-        source: Union[str, bytes, Path],
+        source: str | bytes | Path,
         to_format: str,
         from_format: str,
         context: str,
-        output_file: Optional[Path] = None,
+        output_file: Path | None = None,
         use_ai_conversion: bool = False,
     ) -> None:
         """
@@ -513,7 +512,7 @@ class PandocWorker(QObject):
 
     def _try_ollama_conversion(
         self, source: str, from_format: str, to_format: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Attempt document conversion using Ollama AI.
 

@@ -16,7 +16,7 @@ Extracted from monolithic main_window.py to improve maintainability.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 
@@ -79,7 +79,7 @@ class PreviewHandler(PreviewHandlerBase):
         preview_value = int(preview_max * percentage)
         preview_scrollbar.setValue(preview_value)
 
-    def _get_preview_scroll_percentage(self) -> Optional[float]:
+    def _get_preview_scroll_percentage(self) -> float | None:
         """
         Get scroll percentage from QTextBrowser scrollbar.
 

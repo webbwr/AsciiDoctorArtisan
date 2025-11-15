@@ -81,7 +81,7 @@ VERSION: 1.5.0 (Base class refactoring)
 import logging  # For recording what the program does
 import time  # For timing render performance
 from abc import abstractmethod  # For creating abstract base classes
-from typing import Any, Dict, Optional  # Type hints
+from typing import Any  # Type hints
 
 # === QT FRAMEWORK IMPORTS ===
 from PySide6.QtCore import (
@@ -193,7 +193,7 @@ class PreviewHandlerBase(QObject):
         # Preview state
         self.sync_scrolling_enabled = True
         self.is_syncing_scroll = False
-        self._css_cache: Optional[str] = None
+        self._css_cache: str | None = None
         self._custom_css: str = ""  # Custom CSS for font settings
 
         # Preview timer (adaptive based on document size)
@@ -202,9 +202,9 @@ class PreviewHandlerBase(QObject):
         self.preview_timer.timeout.connect(self.update_preview)
 
         # Adaptive debouncer (if available)
-        self._adaptive_debouncer: Optional[Any] = None
+        self._adaptive_debouncer: Any | None = None
         self._use_adaptive_debouncing = True
-        self._last_render_start: Optional[float] = None
+        self._last_render_start: float | None = None
 
         if ADAPTIVE_DEBOUNCER_AVAILABLE and AdaptiveDebouncer:
             self._adaptive_debouncer = AdaptiveDebouncer()
@@ -585,7 +585,7 @@ class PreviewHandlerBase(QObject):
             self.is_syncing_scroll = False
 
     @abstractmethod
-    def _get_preview_scroll_percentage(self) -> Optional[float]:
+    def _get_preview_scroll_percentage(self) -> float | None:
         """
         Get current scroll percentage from preview widget.
 
@@ -638,7 +638,7 @@ class PreviewHandlerBase(QObject):
         self._use_adaptive_debouncing = enabled
         logger.info(f"Adaptive debouncing {'enabled' if enabled else 'disabled'}")
 
-    def get_debouncer_stats(self) -> Dict[str, Any]:
+    def get_debouncer_stats(self) -> dict[str, Any]:
         """
         Get adaptive debouncer statistics.
 

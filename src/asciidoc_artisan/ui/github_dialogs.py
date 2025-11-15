@@ -52,7 +52,7 @@ USAGE EXAMPLE:
 """
 
 import logging  # For recording events (validation errors, etc.)
-from typing import Any, Dict, List, Optional  # Type hints for better code quality
+from typing import Any  # Type hints for better code quality
 
 # Qt imports for GUI
 from PySide6.QtCore import Qt, QUrl  # Qt constants and URL class
@@ -204,8 +204,8 @@ class BaseListDialog(QDialog):
 
     def __init__(
         self,
-        parent: Optional[QWidget] = None,
-        data: Optional[List[Dict[str, Any]]] = None,
+        parent: QWidget | None = None,
+        data: list[dict[str, Any]] | None = None,
     ) -> None:
         """Initialize base list dialog."""
         super().__init__(parent)
@@ -217,7 +217,7 @@ class BaseListDialog(QDialog):
         """Get window title. Subclasses must override."""
         raise NotImplementedError
 
-    def _get_filter_states(self) -> List[str]:
+    def _get_filter_states(self) -> list[str]:
         """Get filter state options. Subclasses must override."""
         raise NotImplementedError
 
@@ -339,7 +339,7 @@ class CreatePullRequestDialog(QDialog):
 
     def __init__(
         self,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
         current_branch: str = "",
         base_branch: str = "main",
     ) -> None:
@@ -433,7 +433,7 @@ class CreatePullRequestDialog(QDialog):
         _clear_validation_error(self.head_input)
         self.accept()
 
-    def get_pr_data(self) -> Dict[str, str]:
+    def get_pr_data(self) -> dict[str, str]:
         """
         Get PR data from dialog inputs.
 
@@ -484,8 +484,8 @@ class PullRequestListDialog(BaseListDialog):
 
     def __init__(
         self,
-        parent: Optional[QWidget] = None,
-        pr_data: Optional[List[Dict[str, Any]]] = None,
+        parent: QWidget | None = None,
+        pr_data: list[dict[str, Any]] | None = None,
     ) -> None:
         """Initialize pull request list dialog."""
         self.pr_data = pr_data or []
@@ -495,7 +495,7 @@ class PullRequestListDialog(BaseListDialog):
         """Get window title."""
         return "Pull Requests"
 
-    def _get_filter_states(self) -> List[str]:
+    def _get_filter_states(self) -> list[str]:
         """Get filter state options."""
         return ["Open", "Closed", "Merged", "All"]
 
@@ -569,7 +569,7 @@ class PullRequestListDialog(BaseListDialog):
             url_item = QTableWidgetItem(url)
             self.table.setItem(row, 5, url_item)
 
-    def set_pr_data(self, pr_data: List[Dict[str, Any]]) -> None:
+    def set_pr_data(self, pr_data: list[dict[str, Any]]) -> None:
         """
         Update PR data and refresh table.
 
@@ -602,7 +602,7 @@ class CreateIssueDialog(QDialog):
         ```
     """
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         """Initialize create issue dialog."""
         super().__init__(parent)
         self._init_ui()
@@ -673,7 +673,7 @@ class CreateIssueDialog(QDialog):
 
         self.accept()
 
-    def get_issue_data(self) -> Dict[str, str]:
+    def get_issue_data(self) -> dict[str, str]:
         """
         Get issue data from dialog inputs.
 
@@ -720,8 +720,8 @@ class IssueListDialog(BaseListDialog):
 
     def __init__(
         self,
-        parent: Optional[QWidget] = None,
-        issue_data: Optional[List[Dict[str, Any]]] = None,
+        parent: QWidget | None = None,
+        issue_data: list[dict[str, Any]] | None = None,
     ) -> None:
         """Initialize issue list dialog."""
         self.issue_data = issue_data or []
@@ -731,7 +731,7 @@ class IssueListDialog(BaseListDialog):
         """Get window title."""
         return "Issues"
 
-    def _get_filter_states(self) -> List[str]:
+    def _get_filter_states(self) -> list[str]:
         """Get filter state options."""
         return ["Open", "Closed", "All"]
 
@@ -805,7 +805,7 @@ class IssueListDialog(BaseListDialog):
             url_item = QTableWidgetItem(url)
             self.table.setItem(row, 5, url_item)
 
-    def set_issue_data(self, issue_data: List[Dict[str, Any]]) -> None:
+    def set_issue_data(self, issue_data: list[dict[str, Any]]) -> None:
         """
         Update issue data and refresh table.
 

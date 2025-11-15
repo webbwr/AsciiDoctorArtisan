@@ -18,7 +18,7 @@ and cancellable operations.
 
 import logging
 import os
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Qt, QThread
 
@@ -219,7 +219,7 @@ class WorkerManager:
         self.editor.claude_thread = self.claude_thread
         self.editor.claude_worker = self.claude_worker
 
-    def get_pool_statistics(self) -> Dict[str, Any]:
+    def get_pool_statistics(self) -> dict[str, Any]:
         """
         Get worker pool statistics.
 

@@ -37,7 +37,7 @@ import sys
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 # Fast hashing with xxHash (10x faster than MD5, hot path optimization)
 try:
@@ -199,7 +199,7 @@ class DocumentBlock:
     start_line: int
     end_line: int
     content: str
-    rendered_html: Optional[str] = None
+    rendered_html: str | None = None
     level: int = 0
 
     def compute_id(self) -> str:
@@ -243,7 +243,7 @@ class BlockCache:
         self._hits = 0
         self._misses = 0
 
-    def get(self, block_id: str) -> Optional[str]:
+    def get(self, block_id: str) -> str | None:
         """
         Get rendered HTML from cache (thread-safe).
 
@@ -293,7 +293,7 @@ class BlockCache:
             gc.collect()
             logger.debug("Cache cleared and garbage collected")
 
-    def get_stats(self) -> Dict[str, Union[int, float]]:
+    def get_stats(self) -> dict[str, int | float]:
         """
         Get cache statistics (thread-safe).
 
@@ -368,7 +368,7 @@ class DocumentBlockSplitter:
     HEADING_PATTERN = re.compile(r"^(={1,6})\s+(.+)$", re.MULTILINE)
 
     @staticmethod
-    def split(source_text: str) -> List[DocumentBlock]:
+    def split(source_text: str) -> list[DocumentBlock]:
         """
         Split document into blocks (optimized).
 
@@ -387,7 +387,7 @@ class DocumentBlockSplitter:
             return []
 
         lines = source_text.split("\n")
-        blocks: List[DocumentBlock] = []
+        blocks: list[DocumentBlock] = []
         current_block_start = 0
         current_level = 0
 
@@ -421,7 +421,7 @@ class DocumentBlockSplitter:
 
     @staticmethod
     def _create_block(
-        lines: List[str], start_line: int, end_line: int, level: int
+        lines: list[str], start_line: int, end_line: int, level: int
     ) -> DocumentBlock:
         """Create DocumentBlock from lines."""
         content = "\n".join(lines)
@@ -437,7 +437,7 @@ class DocumentBlockSplitter:
 
     @staticmethod
     def _create_block_from_range(
-        lines: List[str], start_line: int, end_line: int, level: int
+        lines: list[str], start_line: int, end_line: int, level: int
     ) -> DocumentBlock:
         """Create DocumentBlock from line range (optimized)."""
         # Extract content directly from line range
@@ -474,7 +474,7 @@ class IncrementalPreviewRenderer:
         """
         self.asciidoc_api = asciidoc_api
         self.cache = BlockCache(max_size=MAX_CACHE_SIZE)
-        self.previous_blocks: List[DocumentBlock] = []
+        self.previous_blocks: list[DocumentBlock] = []
         self._blocks_lock = threading.Lock()
         self._enabled = True
 
@@ -548,8 +548,8 @@ class IncrementalPreviewRenderer:
         return "\n".join(html_parts)
 
     def _detect_changes(
-        self, previous: List[DocumentBlock], current: List[DocumentBlock]
-    ) -> Tuple[List[DocumentBlock], List[DocumentBlock]]:
+        self, previous: list[DocumentBlock], current: list[DocumentBlock]
+    ) -> tuple[list[DocumentBlock], list[DocumentBlock]]:
         """
         Detect which blocks changed.
 
@@ -621,7 +621,7 @@ class IncrementalPreviewRenderer:
             logger.error(f"Full render failed: {exc}")
             return f"<pre>{html.escape(source_text)}</pre>"
 
-    def get_cache_stats(self) -> Dict[str, Union[int, float]]:
+    def get_cache_stats(self) -> dict[str, int | float]:
         """
         Get cache statistics.
 

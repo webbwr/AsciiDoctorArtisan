@@ -13,7 +13,6 @@ import logging
 import platform
 import subprocess
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +23,8 @@ class GPUInfo:
 
     vendor: str  # 'NVIDIA', 'AMD', 'Intel', 'Apple'
     model: str
-    memory_mb: Optional[int] = None
-    compute_capability: Optional[str] = None
+    memory_mb: int | None = None
+    compute_capability: str | None = None
 
 
 @dataclass
@@ -34,7 +33,7 @@ class NPUInfo:
 
     vendor: str  # 'Intel', 'AMD', 'Qualcomm', 'Apple'
     model: str
-    tops: Optional[int] = None  # Trillion Operations Per Second
+    tops: int | None = None  # Trillion Operations Per Second
 
 
 @dataclass
@@ -43,8 +42,8 @@ class HardwareCapabilities:
 
     has_gpu: bool = False
     has_npu: bool = False
-    gpus: List[GPUInfo] = field(default_factory=list)
-    npu: Optional[NPUInfo] = None
+    gpus: list[GPUInfo] = field(default_factory=list)
+    npu: NPUInfo | None = None
     cpu_cores: int = 0
     system_ram_gb: int = 0
 
@@ -53,7 +52,7 @@ class HardwareDetector:
     """Detect available hardware for acceleration."""
 
     @staticmethod
-    def detect_nvidia_gpu() -> Optional[GPUInfo]:
+    def detect_nvidia_gpu() -> GPUInfo | None:
         """Detect NVIDIA GPU using nvidia-smi."""
         try:
             # Query nvidia-smi for GPU name and total memory in MB.
@@ -94,7 +93,7 @@ class HardwareDetector:
         return None
 
     @staticmethod
-    def detect_amd_gpu() -> Optional[GPUInfo]:
+    def detect_amd_gpu() -> GPUInfo | None:
         """Detect AMD GPU using rocm-smi or lspci."""
         # Try rocm-smi first (ROCm-specific tool for AMD GPUs).
         try:
@@ -135,7 +134,7 @@ class HardwareDetector:
         return None
 
     @staticmethod
-    def detect_intel_gpu() -> Optional[GPUInfo]:
+    def detect_intel_gpu() -> GPUInfo | None:
         """Detect Intel GPU using lspci."""
         try:
             result = subprocess.run(
@@ -157,7 +156,7 @@ class HardwareDetector:
         return None
 
     @staticmethod
-    def detect_npu() -> Optional[NPUInfo]:
+    def detect_npu() -> NPUInfo | None:
         """Detect NPU (Neural Processing Unit)."""
         system = platform.system()
 

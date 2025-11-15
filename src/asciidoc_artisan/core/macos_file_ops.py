@@ -15,7 +15,6 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +176,7 @@ def apfs_fast_directory_size(directory: str) -> int:
         return 0
 
 
-def apfs_create_snapshot(path: str, snapshot_name: Optional[str] = None) -> bool:
+def apfs_create_snapshot(path: str, snapshot_name: str | None = None) -> bool:
     """
     Create APFS snapshot for instant backup.
 
@@ -242,7 +241,7 @@ def apfs_create_snapshot(path: str, snapshot_name: Optional[str] = None) -> bool
     return False
 
 
-def optimize_file_operations_for_macos(file_path: str) -> Dict[str, bool]:
+def optimize_file_operations_for_macos(file_path: str) -> dict[str, bool]:
     """
     Get optimized file operation settings for macOS/APFS.
 

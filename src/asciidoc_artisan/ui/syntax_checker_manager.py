@@ -37,8 +37,6 @@ Example:
     ```
 """
 
-from typing import List, Optional
-
 from PySide6.QtCore import QObject, QTimer, Signal
 from PySide6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PySide6.QtWidgets import QPlainTextEdit, QTextEdit
@@ -109,7 +107,7 @@ class SyntaxCheckerManager(QObject):
         super().__init__()
         self.editor = editor
         self.checker = checker
-        self.errors: List[SyntaxErrorModel] = []
+        self.errors: list[SyntaxErrorModel] = []
 
         # Debounce timer
         self.timer = QTimer()
@@ -320,7 +318,7 @@ class SyntaxCheckerManager(QObject):
         self.editor.setTextCursor(cursor)
         self.editor.ensureCursorVisible()
 
-    def get_error_at_cursor(self) -> Optional[SyntaxErrorModel]:
+    def get_error_at_cursor(self) -> SyntaxErrorModel | None:
         """
         Get error at current cursor position.
 
@@ -348,7 +346,7 @@ class SyntaxCheckerManager(QObject):
 
         return None
 
-    def get_errors(self) -> List[SyntaxErrorModel]:
+    def get_errors(self) -> list[SyntaxErrorModel]:
         """
         Get all current errors.
 

@@ -5,7 +5,7 @@ Provides line numbers alongside the QPlainTextEdit editor widget.
 Implements specification requirement: Line Numbers (Editor Specifications).
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtCore import QRect, QSize, Qt
 from PySide6.QtGui import QColor, QContextMenuEvent, QPainter, QPaintEvent, QResizeEvent
@@ -186,7 +186,7 @@ class LineNumberPlainTextEdit(LineNumberMixin, QPlainTextEdit):
         editor.setPlainText("Line 1\\nLine 2\\nLine 3")
     """
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: QWidget | None = None):
         """
         Initialize editor with line numbers.
 

@@ -41,7 +41,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +69,9 @@ class TelemetryEvent:
     event_type: str
     timestamp: str
     session_id: str
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary for JSON serialization."""
         return asdict(self)
 
@@ -97,8 +97,8 @@ class TelemetryCollector:
     def __init__(
         self,
         enabled: bool = False,
-        session_id: Optional[str] = None,
-        data_dir: Optional[Path] = None,
+        session_id: str | None = None,
+        data_dir: Path | None = None,
     ) -> None:
         """
         Initialize TelemetryCollector.
@@ -136,16 +136,14 @@ class TelemetryCollector:
         self.max_file_size = 10 * 1024 * 1024
 
         # Event buffer (in-memory before flush)
-        self.event_buffer: List[TelemetryEvent] = []
+        self.event_buffer: list[TelemetryEvent] = []
         self.buffer_size = 100  # Flush after 100 events
 
         logger.info(
             f"TelemetryCollector initialized (enabled={enabled}, session_id={self.session_id[:8]}...)"
         )
 
-    def track_event(
-        self, event_type: str, data: Optional[Dict[str, Any]] = None
-    ) -> None:
+    def track_event(self, event_type: str, data: dict[str, Any] | None = None) -> None:
         """
         Track a telemetry event.
 
@@ -183,7 +181,7 @@ class TelemetryCollector:
         self,
         error_type: str,
         error_message: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> None:
         """
         Track an error event.
@@ -278,14 +276,14 @@ class TelemetryCollector:
         except Exception as e:
             logger.error(f"Failed to flush telemetry events: {e}")
 
-    def _load_events(self) -> List[Dict[str, Any]]:
+    def _load_events(self) -> list[dict[str, Any]]:
         """Load existing events from file."""
         if not self.telemetry_file.exists():
             return []
 
         try:
-            with open(self.telemetry_file, "r", encoding="utf-8") as f:
-                data: List[Dict[str, Any]] = json.load(f)
+            with open(self.telemetry_file, encoding="utf-8") as f:
+                data: list[dict[str, Any]] = json.load(f)
                 return data
         except Exception as e:
             logger.error(f"Failed to load telemetry events: {e}")
@@ -297,7 +295,7 @@ class TelemetryCollector:
             return 0
         return self.telemetry_file.stat().st_size
 
-    def _rotate_events(self, events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _rotate_events(self, events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Rotate events by keeping only recent events (30 days).
 
@@ -328,7 +326,7 @@ class TelemetryCollector:
         )
         return recent_events
 
-    def _sanitize_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitize_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Sanitize data to remove personal information.
 
@@ -344,7 +342,7 @@ class TelemetryCollector:
         Returns:
             Sanitized data dictionary
         """
-        sanitized: Dict[str, Any] = {}
+        sanitized: dict[str, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
                 sanitized[key] = self._sanitize_message(value)
@@ -379,7 +377,7 @@ class TelemetryCollector:
 
         return sanitized[:500]  # Limit message length
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get telemetry statistics.
 
@@ -389,7 +387,7 @@ class TelemetryCollector:
         events = self._load_events()
 
         # Count events by type
-        event_counts: Dict[str, int] = {}
+        event_counts: dict[str, int] = {}
         for event in events:
             event_type = event.get("event_type", "unknown")
             event_counts[event_type] = event_counts.get(event_type, 0) + 1

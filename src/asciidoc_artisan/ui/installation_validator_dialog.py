@@ -12,7 +12,6 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
@@ -125,7 +124,7 @@ class ValidationWorker(QThread):
 
     def _check_python_package(  # noqa: C901
         self, package_name: str, min_version: str
-    ) -> Tuple[str, str, str]:
+    ) -> tuple[str, str, str]:
         """
         Check if Python package is installed and meets minimum version.
 
@@ -209,7 +208,7 @@ class ValidationWorker(QThread):
 
     def _check_system_binary(
         self, binary_name: str, required: bool
-    ) -> Tuple[str, str, str]:
+    ) -> tuple[str, str, str]:
         """
         Check if system binary is installed.
 
@@ -427,12 +426,12 @@ class ValidationWorker(QThread):
 class InstallationValidatorDialog(QDialog):
     """Dialog for validating installation and updating dependencies."""
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         """Initialize installation validator dialog."""
         super().__init__(parent)
         self.setWindowTitle("Installation Validator")
         self.setMinimumSize(700, 600)
-        self.worker: Optional[ValidationWorker] = None
+        self.worker: ValidationWorker | None = None
         self.parent_editor = parent  # Store reference to parent for theme access
 
         self._setup_ui()
@@ -577,7 +576,7 @@ class InstallationValidatorDialog(QDialog):
         self.update_btn.setEnabled(True)
 
     def _show_validation_results(
-        self, results: Dict[str, List[Tuple[str, ...]]]
+        self, results: dict[str, list[tuple[str, ...]]]
     ) -> None:
         """
         Display validation results.

@@ -79,7 +79,7 @@ import logging  # For recording what the program does
 import platform  # For detecting Windows/Linux/Mac
 import uuid  # For generating unique IDs (temp files)
 from pathlib import Path  # Modern file path handling (better than strings)
-from typing import TYPE_CHECKING, Optional  # Type hints
+from typing import TYPE_CHECKING  # Type hints
 
 # === QT FRAMEWORK IMPORTS ===
 from PySide6.QtWidgets import QFileDialog  # File open/save dialogs
@@ -172,7 +172,7 @@ class FileOperationsManager:
 
         # Storage for file path during async operations
         # When Pandoc worker finishes, we need to know which file we were working on
-        self._pending_file_path: Optional[Path] = None
+        self._pending_file_path: Path | None = None
 
     def open_file(self) -> None:
         """
@@ -375,7 +375,7 @@ class FileOperationsManager:
             return False
 
     def save_as_format_internal(  # noqa: C901
-        self, file_path: Path, format_type: str, use_ai: Optional[bool] = None
+        self, file_path: Path, format_type: str, use_ai: bool | None = None
     ) -> bool:
         """Internal method to save file in specified format without showing dialog.
 
@@ -430,7 +430,7 @@ class FileOperationsManager:
                     logger.info(f"Successfully saved as HTML: {file_path}")
                     return True
                 else:
-                    raise IOError(f"Atomic save failed for {file_path}")
+                    raise OSError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to save HTML file: {e}")
                 self.editor.status_manager.show_message(

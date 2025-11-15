@@ -26,9 +26,10 @@ Design Goals:
 """
 
 import logging
+from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Generator, List, Optional, TextIO
+from typing import Any, TextIO
 
 from PySide6.QtCore import QObject, Signal
 
@@ -45,8 +46,8 @@ class FileOperationResult:
 
     success: bool
     path: str
-    error: Optional[str] = None
-    data: Optional[str] = None
+    error: str | None = None
+    data: str | None = None
     bytes_processed: int = 0
 
 
@@ -206,7 +207,7 @@ class AsyncFileHandler(QObject):
                 logger.debug(f"Streaming read: {file_path} ({file_size} bytes)")
 
                 # Read in chunks
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     while True:
                         chunk = f.read(chunk_size)
                         if not chunk:
@@ -325,11 +326,11 @@ class FileStreamReader:
         """
         self.file_path = Path(file_path)
         self.chunk_size = chunk_size
-        self._file: Optional[TextIO] = None
+        self._file: TextIO | None = None
 
     def __enter__(self) -> "FileStreamReader":
         """Context manager entry."""
-        self._file = open(self.file_path, "r", encoding="utf-8")
+        self._file = open(self.file_path, encoding="utf-8")
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
@@ -337,7 +338,7 @@ class FileStreamReader:
         if self._file:
             self._file.close()
 
-    def read_chunks(self) -> Generator[str, None, None]:
+    def read_chunks(self) -> Generator[str]:
         """
         Read file in chunks (generator).
 
@@ -387,7 +388,7 @@ class FileStreamWriter:
         """
         self.file_path = Path(file_path)
         self.chunk_size = chunk_size
-        self._file: Optional[TextIO] = None
+        self._file: TextIO | None = None
         self.bytes_written = 0
 
     def __enter__(self) -> "FileStreamWriter":
@@ -452,7 +453,7 @@ class BatchFileOperations:
         """
         self.max_workers = max_workers
 
-    def read_files(self, file_paths: List[str]) -> List[FileOperationResult]:
+    def read_files(self, file_paths: list[str]) -> list[FileOperationResult]:
         """
         Read multiple files in parallel.
 
@@ -488,8 +489,8 @@ class BatchFileOperations:
         return results
 
     def write_files(
-        self, file_data: List[tuple[str, str]]
-    ) -> List[FileOperationResult]:
+        self, file_data: list[tuple[str, str]]
+    ) -> list[FileOperationResult]:
         """
         Write multiple files in parallel.
 

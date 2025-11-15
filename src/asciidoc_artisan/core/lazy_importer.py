@@ -26,8 +26,9 @@ import importlib
 import logging
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ class LazyModule:
         df = pd.DataFrame(...)  # Import happens here
     """
 
-    def __init__(self, module_name: str, package: Optional[str] = None):
+    def __init__(self, module_name: str, package: str | None = None):
         """
         Initialize lazy module.
 
@@ -76,9 +77,9 @@ class LazyModule:
         """
         self._module_name = module_name
         self._package = package
-        self._module: Optional[Any] = None
+        self._module: Any | None = None
         self._import_time: float = 0.0
-        self._first_access: Optional[float] = None
+        self._first_access: float | None = None
 
         # Track lazy import
         _import_tracker.register_lazy_import(module_name)
@@ -147,9 +148,9 @@ class ImportProfiler:
 
     def __init__(self) -> None:
         """Initialize import profiler."""
-        self._original_import: Optional[Callable[..., Any]] = None
-        self._import_times: Dict[str, float] = {}
-        self._import_counts: Dict[str, int] = {}
+        self._original_import: Callable[..., Any] | None = None
+        self._import_times: dict[str, float] = {}
+        self._import_counts: dict[str, int] = {}
 
     def __enter__(self) -> "ImportProfiler":
         """Start profiling imports."""
@@ -261,7 +262,7 @@ class ImportTracker:
             return
 
         self._initialized = True
-        self._imports: Dict[str, ImportStats] = {}
+        self._imports: dict[str, ImportStats] = {}
         self._lazy_modules: set[str] = set()
 
     def register_lazy_import(self, module_name: str) -> None:
@@ -342,7 +343,7 @@ class ImportTracker:
 _import_tracker = ImportTracker()
 
 
-def lazy_import(module_name: str, package: Optional[str] = None) -> LazyModule:
+def lazy_import(module_name: str, package: str | None = None) -> LazyModule:
     """
     Create lazy module.
 
@@ -444,7 +445,7 @@ class ImportOptimizer:
             "flask",
         }
 
-    def analyze_module(self, module_name: str) -> List[str]:
+    def analyze_module(self, module_name: str) -> list[str]:
         """
         Analyze module imports.
 

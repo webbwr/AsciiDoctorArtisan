@@ -21,7 +21,6 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 import logging
 import subprocess
 import time
-from typing import Dict, List, Optional
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -83,11 +82,11 @@ class OllamaChatWorker(QObject):
         super().__init__()
         self._is_processing = False
         self._should_cancel = False
-        self._current_model: Optional[str] = None
+        self._current_model: str | None = None
         self._context_mode: str = "document"
-        self._chat_history: List[ChatMessage] = []
-        self._document_content: Optional[str] = None
-        self._user_message: Optional[str] = None
+        self._chat_history: list[ChatMessage] = []
+        self._document_content: str | None = None
+        self._user_message: str | None = None
 
     @Slot(str, str, str, object, object)
     def send_message(
@@ -95,8 +94,8 @@ class OllamaChatWorker(QObject):
         message: str,
         model: str,
         context_mode: str,
-        history: List[ChatMessage],
-        document_content: Optional[str] = None,
+        history: list[ChatMessage],
+        document_content: str | None = None,
     ) -> None:
         """
         Queue a chat message for processing.
@@ -250,7 +249,7 @@ class OllamaChatWorker(QObject):
         else:  # general
             return "You are a helpful AI assistant. Answer questions clearly and concisely."
 
-    def _build_message_history(self, system_prompt: str) -> List[Dict[str, str]]:
+    def _build_message_history(self, system_prompt: str) -> list[dict[str, str]]:
         """
         Build message list for Ollama API from chat history.
 
@@ -260,7 +259,7 @@ class OllamaChatWorker(QObject):
         Returns:
             List of message dicts with 'role' and 'content' keys
         """
-        messages: List[Dict[str, str]] = []
+        messages: list[dict[str, str]] = []
 
         # Add system prompt
         messages.append({"role": "system", "content": system_prompt})
@@ -275,7 +274,7 @@ class OllamaChatWorker(QObject):
 
         return messages
 
-    def _call_ollama_api(self, messages: List[Dict[str, str]]) -> str:
+    def _call_ollama_api(self, messages: list[dict[str, str]]) -> str:
         """
         Call Ollama API with message history.
 

@@ -15,7 +15,7 @@ The StatusManager provides centralized UI feedback management.
 
 import logging
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
@@ -72,19 +72,19 @@ class StatusManager:
         self.editor = editor
 
         # Widgets will be created later when status bar is ready
-        self.version_label: Optional[QLabel] = None
-        self.word_count_label: Optional[QLabel] = None
-        self.grade_level_label: Optional[QLabel] = None
-        self.git_status_label: Optional[QLabel] = None
-        self.ai_status_label: Optional[QLabel] = None
-        self.cancel_button: Optional[QPushButton] = None
+        self.version_label: QLabel | None = None
+        self.word_count_label: QLabel | None = None
+        self.grade_level_label: QLabel | None = None
+        self.git_status_label: QLabel | None = None
+        self.ai_status_label: QLabel | None = None
+        self.cancel_button: QPushButton | None = None
 
         # Track current operation for cancellation
-        self._current_operation: Optional[str] = None  # 'git', 'pandoc', or 'preview'
+        self._current_operation: str | None = None  # 'git', 'pandoc', or 'preview'
 
         # Git status color tracking for theme changes
-        self._current_git_color: Optional[str] = None
-        self._current_git_text: Optional[str] = None
+        self._current_git_color: str | None = None
+        self._current_git_text: str | None = None
 
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets after status bar is created."""
@@ -233,7 +233,7 @@ class StatusManager:
         else:
             return False
 
-    def extract_document_version(self, text: str) -> Optional[str]:
+    def extract_document_version(self, text: str) -> str | None:
         """Extract document version from AsciiDoc attributes or text.
 
         Looks for:
@@ -398,7 +398,7 @@ class StatusManager:
                 "Reading Grade Level: Not available\n(Document has no content to analyze)"
             )
 
-    def set_ai_model(self, model_name: Optional[str] = None) -> None:
+    def set_ai_model(self, model_name: str | None = None) -> None:
         """Set AI model name in status bar.
 
         Args:

@@ -17,7 +17,7 @@ import logging
 import os
 import platform
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PySide6.QtCore import QRect, QStandardPaths, QTimer
 from PySide6.QtWidgets import QMainWindow, QSplitter
@@ -66,7 +66,7 @@ class SettingsManager:
         self._pending_save_timer.setSingleShot(True)
         self._pending_save_timer.setInterval(100)  # 100ms delay
         self._pending_save_timer.timeout.connect(self._do_deferred_save)
-        self._pending_save_data: Optional[Dict[str, Any]] = None
+        self._pending_save_data: dict[str, Any] | None = None
 
     def get_settings_path(self) -> Path:
         """
@@ -167,7 +167,7 @@ class SettingsManager:
 
         try:
             # Load with fast JSON utils (3-5x faster with orjson)
-            with open(self._settings_path, "r", encoding="utf-8") as f:
+            with open(self._settings_path, encoding="utf-8") as f:
                 data = json_utils.load(f)
 
             settings = Settings.from_dict(data)
@@ -186,7 +186,7 @@ class SettingsManager:
         self,
         settings: Settings,
         window: QMainWindow,
-        current_file_path: Optional[Path] = None,
+        current_file_path: Path | None = None,
     ) -> bool:
         """
         Schedule deferred settings save (non-blocking).
@@ -287,7 +287,7 @@ class SettingsManager:
         self,
         settings: Settings,
         window: QMainWindow,
-        current_file_path: Optional[Path] = None,
+        current_file_path: Path | None = None,
     ) -> bool:
         """
         Save settings immediately (blocking).
@@ -398,7 +398,7 @@ class SettingsManager:
                 window.editor.setFont(font)
                 logger.info(f"Restoring font size: {settings.font_size}")
 
-    def parse_window_geometry(self, settings: Settings) -> Optional[QRect]:
+    def parse_window_geometry(self, settings: Settings) -> QRect | None:
         """
         Parse window geometry from settings into QRect.
 

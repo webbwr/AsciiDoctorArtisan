@@ -12,7 +12,7 @@ Works with GitHandler to share repository path.
 
 import logging
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PySide6.QtCore import QObject, Qt, Signal
 
@@ -61,11 +61,11 @@ class GitHubHandler(BaseVCSHandler, QObject):
         self.git_handler = git_handler
 
         # GitHub-specific state
-        self.current_dialog: Optional[Any] = None
+        self.current_dialog: Any | None = None
 
         # Cached data for list dialogs
-        self.cached_prs: List[Dict[str, Any]] = []
-        self.cached_issues: List[Dict[str, Any]] = []
+        self.cached_prs: list[dict[str, Any]] = []
+        self.cached_issues: list[dict[str, Any]] = []
 
     def initialize(self) -> None:
         """

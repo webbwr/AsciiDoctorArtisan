@@ -20,7 +20,7 @@ import html
 import io
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -103,10 +103,10 @@ class PreviewWorker(QObject):
     def __init__(self) -> None:
         """Initialize PreviewWorker with uninitialized AsciiDoc API."""
         super().__init__()
-        self._asciidoc_api: Optional[Any] = None
-        self._incremental_renderer: Optional[Any] = None
+        self._asciidoc_api: Any | None = None
+        self._incremental_renderer: Any | None = None
         self._use_incremental = True  # Enable incremental rendering by default
-        self._predictive_renderer: Optional[Any] = None  # v1.6.0: Predictive rendering
+        self._predictive_renderer: Any | None = None  # v1.6.0: Predictive rendering
         self._use_predictive = True  # Enable predictive rendering by default
 
     def initialize_asciidoc(self, asciidoc_module_file: str) -> None:

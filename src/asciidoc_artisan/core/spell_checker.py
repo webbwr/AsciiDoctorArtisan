@@ -27,7 +27,7 @@ Example:
 import logging
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Set
+from typing import TYPE_CHECKING
 
 # Lazy import: Only load pyspellchecker when SpellChecker is instantiated
 # This saves ~30-50ms at startup since most users don't enable spell check immediately
@@ -54,7 +54,7 @@ class SpellError:
     word: str
     start: int
     end: int
-    suggestions: List[str]
+    suggestions: list[str]
     line: int
     column: int
 
@@ -88,8 +88,8 @@ class SpellChecker:
         from spellchecker import SpellChecker as PySpellChecker
 
         self._spell = PySpellChecker(language=language)
-        self._custom_dictionary: Set[str] = set()
-        self._ignored_words: Set[str] = set()
+        self._custom_dictionary: set[str] = set()
+        self._ignored_words: set[str] = set()
         self._language = language
 
         # Regex pattern to extract words (alphanumeric + apostrophes)
@@ -129,7 +129,7 @@ class SpellChecker:
         # Check with pyspellchecker
         return word_lower not in self._spell.unknown([word_lower])
 
-    def get_suggestions(self, word: str, max_suggestions: int = 5) -> List[str]:
+    def get_suggestions(self, word: str, max_suggestions: int = 5) -> list[str]:
         """
         Get spelling suggestions for a misspelled word.
 
@@ -215,7 +215,7 @@ class SpellChecker:
             self._ignored_words.add(word.lower())
             logger.debug(f"Ignoring word '{word}' for this session")
 
-    def check_text(self, text: str) -> List[SpellError]:
+    def check_text(self, text: str) -> list[SpellError]:
         """
         Check spelling for all words in text.
 
@@ -236,7 +236,7 @@ class SpellChecker:
         if not text:
             return []
 
-        errors: List[SpellError] = []
+        errors: list[SpellError] = []
         lines = text.splitlines(keepends=True)
         current_offset = 0
 
@@ -277,7 +277,7 @@ class SpellChecker:
         self._ignored_words.clear()
         logger.debug("Ignored words cleared")
 
-    def get_custom_words(self) -> List[str]:
+    def get_custom_words(self) -> list[str]:
         """
         Get all words in the custom dictionary.
 

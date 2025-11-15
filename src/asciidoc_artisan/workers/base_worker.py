@@ -16,7 +16,7 @@ Implements:
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PySide6.QtCore import QObject
 
@@ -91,9 +91,9 @@ class BaseWorker(QObject):
 
     def _build_subprocess_kwargs(
         self,
-        working_dir: Optional[str] = None,
+        working_dir: str | None = None,
         timeout: int = 30,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Build common kwargs for subprocess.run() with security settings.
 
@@ -124,7 +124,7 @@ class BaseWorker(QObject):
     def _execute_subprocess(
         self,
         command: list[str],
-        working_dir: Optional[str] = None,
+        working_dir: str | None = None,
         timeout: int = 30,
     ) -> subprocess.CompletedProcess[str]:
         """

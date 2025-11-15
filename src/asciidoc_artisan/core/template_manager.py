@@ -41,7 +41,7 @@ Example:
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from asciidoc_artisan.core.models import Template
 from asciidoc_artisan.core.template_engine import TemplateEngine
@@ -81,8 +81,8 @@ class TemplateManager:
         self.engine = engine
         self.built_in_dir = self._get_built_in_dir()
         self.custom_dir = self._get_custom_dir()
-        self.templates: Dict[str, Template] = {}
-        self.recent: List[str] = []
+        self.templates: dict[str, Template] = {}
+        self.recent: list[str] = []
         self.max_recent = 10
 
         # Load templates and recent list
@@ -170,7 +170,7 @@ class TemplateManager:
         """
         self._load_templates()
 
-    def get_all_templates(self) -> List[Template]:
+    def get_all_templates(self) -> list[Template]:
         """
         Get all available templates.
 
@@ -186,7 +186,7 @@ class TemplateManager:
         """
         return list(self.templates.values())
 
-    def get_template(self, name: str) -> Optional[Template]:
+    def get_template(self, name: str) -> Template | None:
         """
         Get template by name.
 
@@ -207,7 +207,7 @@ class TemplateManager:
         """
         return self.templates.get(name)
 
-    def get_templates_by_category(self, category: str) -> List[Template]:
+    def get_templates_by_category(self, category: str) -> list[Template]:
         """
         Get templates in specific category.
 
@@ -225,7 +225,7 @@ class TemplateManager:
         """
         return [t for t in self.templates.values() if t.category == category]
 
-    def get_categories(self) -> List[str]:
+    def get_categories(self) -> list[str]:
         """
         Get all template categories.
 
@@ -416,7 +416,7 @@ class TemplateManager:
         # Persist to disk
         self._save_recent()
 
-    def get_recent_templates(self) -> List[Template]:
+    def get_recent_templates(self) -> list[Template]:
         """
         Get recently used templates.
 
@@ -441,7 +441,7 @@ class TemplateManager:
         recent_file = self.custom_dir / "recent.json"
         if recent_file.exists():
             try:
-                with open(recent_file, "r") as f:
+                with open(recent_file) as f:
                     self.recent = json.load(f)
             except Exception:
                 self.recent = []
@@ -510,7 +510,7 @@ class TemplateManager:
             raise ImportError("PyYAML is required for template serialization")
 
         # Build YAML front matter
-        metadata: Dict[str, Any] = {
+        metadata: dict[str, Any] = {
             "name": template.name,
             "category": template.category,
             "description": template.description,

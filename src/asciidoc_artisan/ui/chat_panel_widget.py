@@ -22,7 +22,7 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QTextCursor
@@ -64,7 +64,7 @@ class ChatPanelWidget(QWidget):
     # Signals
     copy_requested = Signal(str)
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         """
         Initialize the chat panel widget.
 
@@ -72,7 +72,7 @@ class ChatPanelWidget(QWidget):
             parent: Parent widget (usually MainWindow)
         """
         super().__init__(parent)
-        self._messages: List[ChatMessage] = []
+        self._messages: list[ChatMessage] = []
         self._auto_scroll = True
         self._dark_mode = False  # Track current theme
         self._setup_ui()
@@ -124,7 +124,7 @@ class ChatPanelWidget(QWidget):
         # Refresh all messages with new theme
         self.refresh_display()
 
-    def _get_colors(self) -> Dict[str, str]:
+    def _get_colors(self) -> dict[str, str]:
         """Get theme-aware colors for message styling."""
         if self._dark_mode:
             return {
@@ -154,7 +154,7 @@ class ChatPanelWidget(QWidget):
         content: str,
         model: str,
         context_mode: str,
-        timestamp: Optional[float] = None,
+        timestamp: float | None = None,
     ) -> None:
         """
         Add a user message to the chat display.
@@ -185,7 +185,7 @@ class ChatPanelWidget(QWidget):
         content: str,
         model: str,
         context_mode: str,
-        timestamp: Optional[float] = None,
+        timestamp: float | None = None,
     ) -> None:
         """
         Add an AI response message to the chat display.
@@ -326,7 +326,7 @@ class ChatPanelWidget(QWidget):
         self._show_empty_state()
         logger.info("Chat history cleared")
 
-    def load_messages(self, messages: List[ChatMessage]) -> None:
+    def load_messages(self, messages: list[ChatMessage]) -> None:
         """
         Load and display a list of chat messages.
 
@@ -356,7 +356,7 @@ class ChatPanelWidget(QWidget):
         for message in self._messages:
             self._render_message(message)
 
-    def get_messages(self) -> List[ChatMessage]:
+    def get_messages(self) -> list[ChatMessage]:
         """
         Get all messages currently in the chat.
 
@@ -365,7 +365,7 @@ class ChatPanelWidget(QWidget):
         """
         return self._messages.copy()
 
-    def get_message_history(self) -> List[Dict[str, Any]]:
+    def get_message_history(self) -> list[dict[str, Any]]:
         """
         Get message history as dictionaries (for settings/JSON serialization).
 

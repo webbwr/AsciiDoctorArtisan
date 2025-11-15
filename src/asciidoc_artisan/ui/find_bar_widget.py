@@ -19,7 +19,6 @@ Example:
 """
 
 import logging
-from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QKeyEvent
@@ -69,7 +68,7 @@ class FindBarWidget(QWidget):
     replace_all_requested = Signal(str)  # (replace_text)
     closed = Signal()
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         """
         Initialize FindBarWidget.
 

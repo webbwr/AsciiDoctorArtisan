@@ -78,7 +78,7 @@ import logging  # For recording program events (debug, info, warning, error)
 import platform  # For detecting OS (Windows, Linux, Mac)
 import tempfile  # For creating temporary files (deleted automatically)
 from pathlib import Path  # Modern way to handle file paths (better than strings)
-from typing import Any, Dict, List, Optional  # Type hints to catch bugs early
+from typing import Any  # Type hints to catch bugs early
 
 # === QT CORE IMPORTS ===
 # Qt's core functionality (not GUI widgets)
@@ -251,17 +251,17 @@ class AsciiDocEditor(QMainWindow):
 
         # === State Variables ===
         # Initialize state tracking before managers
-        self._current_file_path: Optional[Path] = None
-        self._initial_geometry: Optional[QRect] = None
+        self._current_file_path: Path | None = None
+        self._initial_geometry: QRect | None = None
         self._start_maximized = self._settings.maximized
         self._is_opening_file = False
         self._is_processing_git = False
         self._last_git_operation = ""
-        self._pending_commit_message: Optional[str] = None
+        self._pending_commit_message: str | None = None
         self._unsaved_changes = False
         self._sync_scrolling = True
         self._is_syncing_scroll = False
-        self._progress_dialog: Optional[QProgressDialog] = None
+        self._progress_dialog: QProgressDialog | None = None
         self._temp_dir = tempfile.TemporaryDirectory()
 
         # Parse window geometry from settings
@@ -411,7 +411,7 @@ class AsciiDocEditor(QMainWindow):
         # Update AI backend checkmarks based on initial settings
         self._update_ai_backend_checkmarks()
 
-    def _initialize_asciidoc(self) -> Optional[AsciiDoc3API]:
+    def _initialize_asciidoc(self) -> AsciiDoc3API | None:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:
             try:
                 instance = AsciiDoc3API(asciidoc3.__file__)
@@ -1029,7 +1029,7 @@ class AsciiDocEditor(QMainWindow):
             self.status_manager.update_git_status(status)
 
     @Slot(dict)
-    def _handle_detailed_git_status(self, status_data: Dict[str, Any]) -> None:
+    def _handle_detailed_git_status(self, status_data: dict[str, Any]) -> None:
         """Handle detailed Git status update (populates dialog, v1.9.0+)."""
         if hasattr(self, "_git_status_dialog") and self._git_status_dialog.isVisible():
             branch = status_data.get("branch", "unknown")
@@ -1053,7 +1053,7 @@ class AsciiDocEditor(QMainWindow):
         message: str,
         model: str,
         context_mode: str,
-        history: List[Any],
+        history: list[Any],
         document_content: Any,
     ) -> None:
         """
@@ -1432,7 +1432,7 @@ class AsciiDocEditor(QMainWindow):
         self.editor.setTextCursor(cursor)
         self.editor.ensureCursorVisible()
 
-    def _highlight_search_matches(self, matches: List[SearchMatch]) -> None:
+    def _highlight_search_matches(self, matches: list[SearchMatch]) -> None:
         """Highlight all search matches in the editor.
 
         Args:

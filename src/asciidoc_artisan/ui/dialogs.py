@@ -36,7 +36,7 @@ USAGE PATTERN:
 
 import logging  # For debug logging
 import os  # For reading environment variables (API keys)
-from typing import Any, Optional  # For type hints (helps catch bugs)
+from typing import Any  # For type hints (helps catch bugs)
 
 from PySide6.QtCore import Qt  # Qt constants and enums
 
@@ -151,7 +151,7 @@ class PreferencesDialog(QDialog):
         ```
     """
 
-    def __init__(self, settings: Settings, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         """Initialize preferences dialog."""
         super().__init__(parent)
         self.settings = settings
@@ -247,7 +247,7 @@ class OllamaSettingsDialog(QDialog):
         ```
     """
 
-    def __init__(self, settings: Settings, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         """Initialize Ollama settings dialog."""
         super().__init__(parent)
         self.settings = settings
@@ -587,7 +587,7 @@ class SettingsEditorDialog(QDialog):
         self,
         settings: Settings,
         settings_manager: Any,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         """Initialize settings editor dialog."""
         super().__init__(parent)
@@ -803,7 +803,7 @@ class FontSettingsDialog(QDialog):
         ```
     """
 
-    def __init__(self, settings: Settings, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, settings: Settings, parent: QWidget | None = None) -> None:
         """Initialize font settings dialog."""
         super().__init__(parent)
         self.settings = settings

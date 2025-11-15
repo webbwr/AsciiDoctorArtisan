@@ -26,7 +26,7 @@ Design Goals:
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 import psutil
 
@@ -89,7 +89,7 @@ class SystemMonitor:
 
     def __init__(self) -> None:
         """Initialize system monitor."""
-        self._last_metrics: Optional[SystemMetrics] = None
+        self._last_metrics: SystemMetrics | None = None
         self._metrics_cache_duration = 1.0  # Cache for 1 second
 
     def get_metrics(self) -> SystemMetrics:
@@ -171,7 +171,7 @@ class AdaptiveDebouncer:
         timer.start(delay)
     """
 
-    def __init__(self, config: Optional[DebounceConfig] = None):
+    def __init__(self, config: DebounceConfig | None = None):
         """
         Initialize adaptive debouncer.
 
@@ -192,7 +192,7 @@ class AdaptiveDebouncer:
         self._max_history = 100
 
     def calculate_delay(
-        self, document_size: int, last_render_time: Optional[float] = None
+        self, document_size: int, last_render_time: float | None = None
     ) -> int:
         """
         Calculate adaptive delay for preview update.
@@ -326,7 +326,7 @@ class AdaptiveDebouncer:
         if len(self._recent_render_times) > self._max_recent_renders:
             self._recent_render_times.pop(0)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """
         Get debouncer statistics.
 

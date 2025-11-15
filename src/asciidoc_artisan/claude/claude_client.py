@@ -23,7 +23,6 @@ Example:
 
 import logging
 from dataclasses import dataclass
-from typing import List, Optional
 
 from anthropic import Anthropic, APIConnectionError, APIError
 from pydantic import BaseModel, Field
@@ -116,7 +115,7 @@ class ClaudeClient:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.credentials = SecureCredentials()
-        self._client: Optional[Anthropic] = None
+        self._client: Anthropic | None = None
 
         logger.debug(f"Claude client initialized with model={model}")
 
@@ -130,7 +129,7 @@ class ClaudeClient:
         result: bool = self.credentials.has_anthropic_key()
         return result
 
-    def _get_client(self) -> Optional[Anthropic]:
+    def _get_client(self) -> Anthropic | None:
         """
         Get or create Anthropic client instance.
 
@@ -159,8 +158,8 @@ class ClaudeClient:
     def send_message(  # noqa: C901
         self,
         message: str,
-        system: Optional[str] = None,
-        conversation_history: Optional[List[ClaudeMessage]] = None,
+        system: str | None = None,
+        conversation_history: list[ClaudeMessage] | None = None,
     ) -> ClaudeResult:
         """
         Send a message to Claude and get a response.
@@ -298,7 +297,7 @@ class ClaudeClient:
             system="You are a connection test assistant. Reply exactly as requested.",
         )
 
-    def get_available_models(self) -> List[str]:
+    def get_available_models(self) -> list[str]:
         """
         Get list of available Claude models (hardcoded list).
 

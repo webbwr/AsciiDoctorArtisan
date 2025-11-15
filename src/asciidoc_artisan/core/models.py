@@ -15,7 +15,7 @@ These models use Pydantic for runtime validation and type safety (v1.7.0+).
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -63,7 +63,7 @@ class GitResult(BaseModel):
     success: bool = Field(..., description="True if operation succeeded")
     stdout: str = Field(default="", description="Standard output from Git command")
     stderr: str = Field(default="", description="Standard error from Git command")
-    exit_code: Optional[int] = Field(
+    exit_code: int | None = Field(
         default=None, description="Process exit code (-1 for errors/cancelled)"
     )
     user_message: str = Field(..., description="Human-readable status message")
@@ -206,7 +206,7 @@ class GitHubResult(BaseModel):
     """
 
     success: bool = Field(..., description="True if operation succeeded")
-    data: Optional[Dict[str, Any] | list[Dict[str, Any]]] = Field(
+    data: dict[str, Any] | list[dict[str, Any]] | None = Field(
         default=None,
         description="Parsed JSON data from GitHub CLI (dict for single results, list for list operations)",
     )
@@ -399,13 +399,13 @@ class CompletionItem(BaseModel):
     kind: CompletionKind = Field(..., description="Completion type")
     detail: str = Field(default="", description="Short description")
     documentation: str = Field(default="", description="Full documentation (markdown)")
-    insert_text: Optional[str] = Field(
+    insert_text: str | None = Field(
         default=None, description="Text to insert (defaults to text)"
     )
-    sort_text: Optional[str] = Field(
+    sort_text: str | None = Field(
         default=None, description="Custom sort key (defaults to text)"
     )
-    filter_text: Optional[str] = Field(
+    filter_text: str | None = Field(
         default=None, description="Custom filter key (defaults to text)"
     )
     score: float = Field(default=0.0, description="Ranking score (0-100)")
@@ -474,7 +474,7 @@ class CompletionContext(BaseModel):
     line_number: int = Field(..., description="Line number (0-indexed)")
     column: int = Field(..., description="Cursor column (0-indexed)")
     prefix: str = Field(..., description="Text before cursor on current line")
-    trigger_char: Optional[str] = Field(
+    trigger_char: str | None = Field(
         default=None, description="Character that triggered completion"
     )
     manual: bool = Field(
@@ -584,7 +584,7 @@ class QuickFix(BaseModel):
     """
 
     title: str = Field(..., description="Fix description")
-    edits: List[TextEdit] = Field(
+    edits: list[TextEdit] = Field(
         default_factory=list, description="Text edits to apply"
     )
 
@@ -644,7 +644,7 @@ class SyntaxErrorModel(BaseModel):
     line: int = Field(..., description="Line number (0-indexed)")
     column: int = Field(..., description="Column number (0-indexed)")
     length: int = Field(..., description="Error span length")
-    fixes: List[QuickFix] = Field(
+    fixes: list[QuickFix] = Field(
         default_factory=list, description="Quick fix suggestions"
     )
 
@@ -711,7 +711,7 @@ class TemplateVariable(BaseModel):
     name: str = Field(..., description="Variable name")
     description: str = Field(..., description="Help text")
     required: bool = Field(default=False, description="Required variable")
-    default: Optional[str] = Field(default=None, description="Default value")
+    default: str | None = Field(default=None, description="Default value")
     type: str = Field(default="string", description="Variable type")
 
     @field_validator("name", "description")
@@ -777,11 +777,11 @@ class Template(BaseModel):
     description: str = Field(..., description="Short description")
     author: str = Field(default="", description="Template author")
     version: str = Field(default="1.0", description="Template version")
-    variables: List[TemplateVariable] = Field(
+    variables: list[TemplateVariable] = Field(
         default_factory=list, description="Variable definitions"
     )
     content: str = Field(default="", description="Template content")
-    file_path: Optional[str] = Field(default=None, description="Source file path")
+    file_path: str | None = Field(default=None, description="Source file path")
 
     @field_validator("name", "category", "description")
     @classmethod

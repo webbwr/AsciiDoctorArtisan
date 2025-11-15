@@ -25,7 +25,7 @@ Design Goals:
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PySide6.QtCore import QObject, Signal
 
@@ -88,17 +88,15 @@ class QtAsyncFileManager(QObject):
         super().__init__()
 
         # File watcher
-        self._watcher: Optional[AsyncFileWatcher] = None
-        self._watched_file: Optional[Path] = None
+        self._watcher: AsyncFileWatcher | None = None
+        self._watched_file: Path | None = None
 
         # Track running operations
         self._running_operations: set[int] = set()
 
         logger.info("QtAsyncFileManager initialized")
 
-    async def read_file(
-        self, file_path: Path, encoding: str = "utf-8"
-    ) -> Optional[str]:
+    async def read_file(self, file_path: Path, encoding: str = "utf-8") -> str | None:
         """
         Read file asynchronously.
 
@@ -185,7 +183,7 @@ class QtAsyncFileManager(QObject):
 
     async def read_json(
         self, file_path: Path, encoding: str = "utf-8"
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Read and parse JSON file asynchronously.
 
@@ -232,7 +230,7 @@ class QtAsyncFileManager(QObject):
     async def write_json(
         self,
         file_path: Path,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         encoding: str = "utf-8",
         indent: int = 2,
     ) -> bool:
@@ -392,7 +390,7 @@ class QtAsyncFileManager(QObject):
         """Check if currently watching a file."""
         return self._watcher is not None and self._watcher.is_running()
 
-    def get_watched_file(self) -> Optional[Path]:
+    def get_watched_file(self) -> Path | None:
         """Get currently watched file path."""
         return self._watched_file
 

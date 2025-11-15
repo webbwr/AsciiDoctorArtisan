@@ -13,7 +13,7 @@ Extracted from main_window.py to improve maintainability and testability.
 """
 
 import logging
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtWidgets import QPushButton, QSplitter, QStatusBar
 
@@ -47,8 +47,8 @@ class EditorState:
         self.action_manager = main_window.action_manager
 
         # Pane state
-        self.maximized_pane: Optional[str] = None
-        self.saved_splitter_sizes: Optional[list[int]] = None
+        self.maximized_pane: str | None = None
+        self.saved_splitter_sizes: list[int] | None = None
 
         # Sync scrolling state (shared with main window)
         self.sync_scrolling = True

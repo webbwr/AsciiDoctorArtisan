@@ -18,8 +18,7 @@ Security Features (FR-016):
 
 import getpass
 import logging
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 try:
     import keyring
@@ -77,7 +76,7 @@ class SecurityAudit:
             - UTC timestamps for timezone-independent forensics
         """
         try:
-            timestamp = datetime.now(timezone.utc).isoformat()
+            timestamp = datetime.now(UTC).isoformat()
             user = getpass.getuser()
 
             logger.info(
@@ -175,7 +174,7 @@ class SecureCredentials:
             SecurityAudit.log_event("store_key", service, success=False)
             return False
 
-    def get_api_key(self, service: str) -> Optional[str]:
+    def get_api_key(self, service: str) -> str | None:
         """Retrieve an API key from the OS keyring.
 
         Args:
@@ -199,7 +198,7 @@ class SecureCredentials:
 
         try:
             username = f"{service}_key"
-            api_key: Optional[str] = keyring.get_password(self.SERVICE_NAME, username)
+            api_key: str | None = keyring.get_password(self.SERVICE_NAME, username)
 
             if api_key:
                 logger.info(f"Successfully retrieved API key for service: {service}")
@@ -294,7 +293,7 @@ class SecureCredentials:
         """
         return self.store_api_key(self.ANTHROPIC_KEY, api_key)
 
-    def get_anthropic_key(self) -> Optional[str]:
+    def get_anthropic_key(self) -> str | None:
         """Retrieve Anthropic API key.
 
         Returns:

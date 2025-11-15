@@ -15,7 +15,7 @@ Extracted from export_manager.py to follow Single Responsibility Principle.
 import io
 import logging
 import subprocess
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class PDFHelper:
     ]
 
     @staticmethod
-    def check_pdf_engine_available(engine: Optional[str] = None) -> bool:
+    def check_pdf_engine_available(engine: str | None = None) -> bool:
         """
         Check if a PDF engine is available on the system.
 
@@ -245,7 +245,7 @@ class ClipboardHelper:
     """
 
     @staticmethod
-    def parse_format_from_clipboard(clipboard_text: str) -> Optional[str]:
+    def parse_format_from_clipboard(clipboard_text: str) -> str | None:
         """
         Detect format of clipboard content.
 

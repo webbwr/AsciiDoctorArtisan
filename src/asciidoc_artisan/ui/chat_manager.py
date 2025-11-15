@@ -33,7 +33,8 @@ Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
 
 import logging
 import subprocess
-from typing import Any, Callable, List, Optional, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 from PySide6.QtCore import QObject, QTimer, Signal
 
@@ -93,7 +94,7 @@ class ChatManager(QObject):
         chat_bar: Any,  # ChatBarWidget (circular import)
         chat_panel: Any,  # ChatPanelWidget (circular import)
         settings: Settings,
-        parent: Optional[QObject] = None,
+        parent: QObject | None = None,
     ) -> None:
         """
         Initialize the chat manager.
@@ -110,7 +111,7 @@ class ChatManager(QObject):
         self._settings = settings
         self._document_content_provider = None
         self._is_processing = False
-        self._chat_history: List[ChatMessage] = []  # Internal history cache for testing
+        self._chat_history: list[ChatMessage] = []  # Internal history cache for testing
         self._current_backend: str = settings.ai_backend  # "ollama" or "claude"
 
         # Document content debouncing (500ms delay)
@@ -296,7 +297,7 @@ class ChatManager(QObject):
 
     def _load_ollama_models(self) -> None:  # noqa: C901
         """Load available Ollama models."""
-        models: List[str] = []
+        models: list[str] = []
         ollama_available = False
 
         try:
@@ -413,7 +414,7 @@ class ChatManager(QObject):
             return
 
         # Convert dict history to ChatMessage objects
-        messages: List[ChatMessage] = []
+        messages: list[ChatMessage] = []
         for msg_dict in history_dicts:
             try:
                 message = ChatMessage(**msg_dict)

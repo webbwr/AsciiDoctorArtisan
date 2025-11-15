@@ -26,7 +26,7 @@ import bisect
 import logging
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Pattern
+from re import Pattern
 
 logger = logging.getLogger(__name__)
 
@@ -82,8 +82,8 @@ class SearchEngine:
             text: The text to search within
         """
         self._text = text
-        self._lines: Optional[List[str]] = None  # Lazy-loaded line cache
-        self._line_offsets: Optional[List[int]] = None  # Lazy-loaded offset index
+        self._lines: list[str] | None = None  # Lazy-loaded line cache
+        self._line_offsets: list[int] | None = None  # Lazy-loaded offset index
 
     @property
     def text(self) -> str:
@@ -101,7 +101,7 @@ class SearchEngine:
         self._lines = None  # Invalidate line cache
         self._line_offsets = None  # Invalidate offset index
 
-    def _get_lines(self) -> List[str]:
+    def _get_lines(self) -> list[str]:
         """
         Get cached list of lines (lazy-loaded).
 
@@ -112,7 +112,7 @@ class SearchEngine:
             self._lines = self._text.splitlines(keepends=True)
         return self._lines
 
-    def _build_line_offsets(self) -> List[int]:
+    def _build_line_offsets(self) -> list[int]:
         """
         Build line offset index for fast O(log n) line lookup.
 
@@ -212,7 +212,7 @@ class SearchEngine:
         case_sensitive: bool = True,
         whole_word: bool = False,
         use_regex: bool = False,
-    ) -> List[SearchMatch]:
+    ) -> list[SearchMatch]:
         """
         Find all occurrences of search_text in the document.
 
@@ -246,7 +246,7 @@ class SearchEngine:
             logger.error(f"Invalid regex pattern: {search_text} - {e}")
             raise
 
-        matches: List[SearchMatch] = []
+        matches: list[SearchMatch] = []
 
         # Find all matches using regex
         for match in pattern.finditer(self._text):
@@ -281,7 +281,7 @@ class SearchEngine:
         whole_word: bool = False,
         use_regex: bool = False,
         wrap_around: bool = True,
-    ) -> Optional[SearchMatch]:
+    ) -> SearchMatch | None:
         """
         Find next occurrence after start_offset.
 
@@ -347,7 +347,7 @@ class SearchEngine:
         whole_word: bool = False,
         use_regex: bool = False,
         wrap_around: bool = True,
-    ) -> Optional[SearchMatch]:
+    ) -> SearchMatch | None:
         """
         Find previous occurrence before start_offset.
 

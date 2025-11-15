@@ -20,7 +20,7 @@ Features:
 
 import logging
 from collections import OrderedDict
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type
 
 
-class LRUCache(Generic[K, V]):
+class LRUCache[K, V]:
     """
     Least Recently Used (LRU) cache.
 
@@ -79,7 +79,7 @@ class LRUCache(Generic[K, V]):
 
         logger.debug(f"{self.name}: Initialized with max_size={max_size}")
 
-    def get(self, key: K, default: Optional[V] = None) -> Optional[V]:
+    def get(self, key: K, default: V | None = None) -> V | None:
         """
         Get value from cache.
 
@@ -184,7 +184,7 @@ class LRUCache(Generic[K, V]):
         """Get cache items."""
         return self._cache.items()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """
         Get cache statistics.
 
@@ -256,7 +256,7 @@ class SizeAwareLRUCache(LRUCache[K, V]):
     def __init__(
         self,
         max_size: int = 100,
-        max_total_size: Optional[int] = None,
+        max_total_size: int | None = None,
         name: str = "SizeAwareLRUCache",
     ):
         """
@@ -272,7 +272,7 @@ class SizeAwareLRUCache(LRUCache[K, V]):
         self._item_sizes: OrderedDict[K, int] = OrderedDict()
         self._total_size = 0
 
-    def put(self, key: K, value: V, size: Optional[int] = None) -> None:
+    def put(self, key: K, value: V, size: int | None = None) -> None:
         """
         Put value in cache.
 
@@ -338,7 +338,7 @@ class SizeAwareLRUCache(LRUCache[K, V]):
         self._item_sizes.clear()
         self._total_size = 0
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics including size info."""
         stats = super().get_stats()
         stats["total_size"] = self._total_size

@@ -76,7 +76,7 @@ import platform  # For detecting Windows/Linux/Mac
 import tempfile  # For creating temporary files during export
 import uuid  # For generating unique IDs
 from pathlib import Path  # Modern file path handling
-from typing import TYPE_CHECKING, Optional  # Type hints
+from typing import TYPE_CHECKING  # Type hints
 
 # === QT FRAMEWORK IMPORTS ===
 from PySide6.QtCore import QObject, Signal  # Signal/slot support, Qt base class
@@ -185,8 +185,8 @@ class ExportManager(QObject):
         self.clipboard_helper = ClipboardHelper()
 
         # Export state
-        self.pending_export_path: Optional[Path] = None
-        self.pending_export_format: Optional[str] = None
+        self.pending_export_path: Path | None = None
+        self.pending_export_format: str | None = None
 
         # Temporary directory for export operations
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -307,7 +307,7 @@ class ExportManager(QObject):
                 self.export_completed.emit(file_path)
                 return True
             else:
-                raise IOError(f"Atomic save failed for {file_path}")
+                raise OSError(f"Atomic save failed for {file_path}")
         except Exception as e:
             logger.exception(f"Failed to export HTML file: {e}")
             self.status_manager.show_message(
@@ -408,7 +408,7 @@ class ExportManager(QObject):
             html_path = file_path.with_suffix(".html")
 
             if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
-                raise IOError(f"Failed to save HTML file: {html_path}")
+                raise OSError(f"Failed to save HTML file: {html_path}")
 
             self.status_bar.showMessage(f"Exported as HTML (PDF-ready): {html_path}")
             self.status_manager.show_message(
@@ -536,7 +536,7 @@ class ExportManager(QObject):
                         )
                         self.export_completed.emit(self.pending_export_path)
                     else:
-                        raise IOError(f"Failed to save: {self.pending_export_path}")
+                        raise OSError(f"Failed to save: {self.pending_export_path}")
             else:
                 # Other formats
                 if atomic_save_text(self.pending_export_path, result, encoding="utf-8"):
@@ -545,7 +545,7 @@ class ExportManager(QObject):
                     )
                     self.export_completed.emit(self.pending_export_path)
                 else:
-                    raise IOError(f"Failed to save: {self.pending_export_path}")
+                    raise OSError(f"Failed to save: {self.pending_export_path}")
 
             # Update last directory
             self._settings.last_directory = str(self.pending_export_path.parent)

@@ -13,7 +13,7 @@ Implements v1.9.0 Git Status Command feature.
 """
 
 import logging
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
@@ -149,9 +149,9 @@ class GitStatusDialog(QDialog):
     def populate_status(
         self,
         branch: str,
-        modified_files: List[Dict[str, str]],
-        staged_files: List[Dict[str, str]],
-        untracked_files: List[Dict[str, str]],
+        modified_files: list[dict[str, str]],
+        staged_files: list[dict[str, str]],
+        untracked_files: list[dict[str, str]],
     ) -> None:
         """
         Populate dialog with Git status data.
@@ -191,7 +191,7 @@ class GitStatusDialog(QDialog):
         )
 
     def _populate_table(
-        self, table: QTableWidget, files: List[Dict[str, str]], show_lines: bool
+        self, table: QTableWidget, files: list[dict[str, str]], show_lines: bool
     ) -> None:
         """
         Populate a table widget with file data.
