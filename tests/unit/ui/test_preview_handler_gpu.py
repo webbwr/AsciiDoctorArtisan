@@ -33,6 +33,7 @@ def mock_parent_window():
     return None
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestWebEngineHandlerBasics:
     """Test suite for WebEngineHandler basic functionality."""
@@ -71,6 +72,7 @@ class TestWebEngineHandlerBasics:
         # parent_window is None in tests (required for QObject parent)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestHandlePreviewComplete:
     """Test suite for handle_preview_complete method."""
@@ -117,6 +119,7 @@ class TestHandlePreviewComplete:
             mock_signal.emit.assert_called_once_with(html)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestScrollSynchronization:
     """Test suite for scroll synchronization."""
@@ -197,6 +200,7 @@ class TestScrollSynchronization:
         handler.sync_preview_to_editor(500)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestCreatePreviewWidget:
     """Test suite for create_preview_widget factory function."""
@@ -289,6 +293,7 @@ class TestCreatePreviewWidget:
         assert mock_settings.setAttribute.call_count >= 2
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestCreatePreviewHandler:
     """Test suite for create_preview_handler factory function."""
@@ -332,6 +337,7 @@ class TestCreatePreviewHandler:
         assert not isinstance(handler, WebEngineHandler)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestWebEngineAvailability:
     """Test suite for WebEngine availability detection."""
@@ -342,6 +348,7 @@ class TestWebEngineAvailability:
         assert isinstance(WEBENGINE_AVAILABLE, bool)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestHTMLContentVariations:
     """Test suite for different HTML content types."""
@@ -424,6 +431,7 @@ class TestHTMLContentVariations:
         mock_preview.setHtml.assert_called_once()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestMultipleUpdates:
     """Test suite for consecutive preview updates."""
@@ -466,6 +474,7 @@ class TestMultipleUpdates:
         assert mock_preview.setHtml.call_count == 3
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestScrollPositionEdgeCases:
     """Test suite for scroll position boundary conditions."""
@@ -544,6 +553,7 @@ class TestScrollPositionEdgeCases:
         mock_preview.page().runJavaScript.assert_called_once()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestCSSStyleGeneration:
     """Test suite for CSS style generation."""
@@ -586,6 +596,7 @@ class TestCSSStyleGeneration:
         assert "<p>Original <strong>content</strong> here</p>" in styled_html
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestBaseURLHandling:
     """Test suite for base URL configuration."""
@@ -613,6 +624,7 @@ class TestBaseURLHandling:
         assert base_url.scheme() in ["file", ""]
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestSignalEmission:
     """Test suite for signal emission."""
@@ -669,6 +681,7 @@ class TestSignalEmission:
             assert mock_signal.emit.call_count == 5
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestGPUDetectionEdgeCases:
     """Test suite for GPU detection scenarios."""
@@ -728,6 +741,7 @@ class TestGPUDetectionEdgeCases:
         assert isinstance(widget, QTextBrowser)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestWebEngineSettingsConfiguration:
     """Test suite for QWebEngineView settings."""
@@ -783,6 +797,7 @@ class TestWebEngineSettingsConfiguration:
         mock_webengine_cls.assert_called_once()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestHandlerInstanceManagement:
     """Test suite for handler instance lifecycle."""
@@ -833,6 +848,7 @@ class TestHandlerInstanceManagement:
         assert handler2.preview == preview2
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestErrorHandling:
     """Test suite for error conditions."""
@@ -891,6 +907,7 @@ class TestErrorHandling:
             pass
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestFactoryFunctionEdgeCases:
     """Test suite for factory function edge cases."""
@@ -947,6 +964,7 @@ class TestFactoryFunctionEdgeCases:
             assert "WebEngine init failed" in str(e)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestStateManagement:
     """Test suite for handler state management."""
@@ -1024,6 +1042,7 @@ class TestStateManagement:
         assert handler2.is_syncing_scroll == False
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestPerformanceEdgeCases:
     """Test suite for performance-related edge cases."""
@@ -1073,6 +1092,7 @@ class TestPerformanceEdgeCases:
         mock_preview.setHtml.assert_called_once()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestGetPreviewWidgetInfo:
     """Test suite for get_preview_widget_info function."""

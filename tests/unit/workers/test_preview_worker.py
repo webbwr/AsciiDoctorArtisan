@@ -9,6 +9,7 @@ import pytest
 from asciidoc_artisan.workers import PreviewWorker
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestPreviewWorker:
     """Test PreviewWorker for AsciiDoc preview rendering."""
@@ -144,6 +145,7 @@ class TestPreviewWorker:
         assert mock_api_instance.execute.called
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestPreviewFallback:
     """Test preview fallback mode when asciidoc3 unavailable."""
@@ -200,6 +202,7 @@ More content."""
         assert "Line 3" in result
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestIncrementalRendering:
     """Test incremental rendering features."""
@@ -282,6 +285,7 @@ class TestIncrementalRendering:
         assert mock_api_instance.execute.called
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestPredictiveRendering:
     """Test predictive rendering features (v1.6.0)."""
@@ -377,6 +381,7 @@ class TestPredictiveRendering:
         assert stats == {}
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestCacheManagement:
     """Test cache management features."""
@@ -421,6 +426,7 @@ class TestCacheManagement:
         worker.clear_cache()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestMetricsRecording:
     """Test metrics recording during rendering."""

@@ -39,6 +39,7 @@ def mock_parent_window():
     return None
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestPreviewHandlerBasics:
     """Test suite for PreviewHandler basic functionality."""
@@ -77,6 +78,7 @@ class TestPreviewHandlerBasics:
         assert isinstance(handler, PreviewHandlerBase)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestHandlePreviewComplete:
     """Test suite for handle_preview_complete method."""
@@ -150,6 +152,7 @@ class TestHandlePreviewComplete:
                 assert call_args == 0.5
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestScrollSynchronization:
     """Test suite for scroll synchronization methods."""
@@ -295,6 +298,7 @@ class TestScrollSynchronization:
         editor_scrollbar.setValue.assert_not_called()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestScrollPercentageCalculation:
     """Test suite for scroll percentage calculations."""
@@ -348,6 +352,7 @@ class TestScrollPercentageCalculation:
         preview_scrollbar.setValue.assert_called_with(1000)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestClearPreview:
     """Test suite for clear_preview method."""
@@ -377,6 +382,7 @@ class TestClearPreview:
         handler.clear_preview()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestCSSStyling:
     """Test suite for CSS styling and wrapping."""
@@ -476,6 +482,7 @@ class TestCSSStyling:
                     )
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestRenderTiming:
     """Test suite for render timing and performance metrics."""
@@ -552,6 +559,7 @@ class TestRenderTiming:
                 # Should not crash
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestSignalEmissionsEdgeCases:
     """Test suite for signal emission edge cases."""
@@ -624,6 +632,7 @@ class TestSignalEmissionsEdgeCases:
                 assert mock_signal.emit.call_count == 3
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestScrollExtremeValues:
     """Test suite for extreme scroll values."""
@@ -680,6 +689,7 @@ class TestScrollExtremeValues:
                 assert call_value == expected_value
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestWidgetStateManagement:
     """Test suite for widget state management."""
@@ -760,6 +770,7 @@ class TestWidgetStateManagement:
         assert handler.is_syncing_scroll is False
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestErrorHandling:
     """Test suite for error handling."""
@@ -781,6 +792,7 @@ class TestErrorHandling:
                 pass
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestHTMLProcessingEdgeCases:
     """Test suite for HTML processing edge cases."""
@@ -850,6 +862,7 @@ class TestHTMLProcessingEdgeCases:
             mock_set_html.assert_called_once()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestSyncFlagLifecycle:
     """Test suite for sync flag lifecycle management."""
@@ -934,6 +947,7 @@ class TestSyncFlagLifecycle:
         assert handler.is_syncing_scroll is False
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestScrollbarBehaviorDetails:
     """Test suite for scrollbar behavior details."""
@@ -999,6 +1013,7 @@ class TestScrollbarBehaviorDetails:
         preview_scrollbar.setValue.assert_called_once()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestMemoryManagementPreview:
     """Test suite for memory management with preview content."""

@@ -40,6 +40,7 @@ def main_window(mock_workers, qapp):
     qapp.processEvents()
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestMainWindowBasics:
     """Test suite for AsciiDocEditor basic functionality."""
@@ -79,6 +80,7 @@ class TestMainWindowBasics:
         assert window.height() > 0
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestWidgetCreation:
     """Test suite for widget creation."""
@@ -112,6 +114,7 @@ class TestWidgetCreation:
         assert window.status_bar is not None
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestManagerCreation:
     """Test suite for manager initialization."""
@@ -159,6 +162,7 @@ class TestManagerCreation:
         assert window.file_operations_manager is not None
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestStateFlags:
     """Test suite for state flag initialization."""
@@ -196,6 +200,7 @@ class TestStateFlags:
             assert window._sync_scrolling is True
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestTimerSetup:
     """Test suite for timer initialization."""
@@ -222,6 +227,7 @@ class TestTimerSetup:
             assert window._auto_save_timer is not None
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestMethodExistence:
     """Test suite for method existence."""
@@ -260,6 +266,7 @@ class TestMethodExistence:
         assert hasattr(window, "_trigger_git_push")
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestSettingsIntegration:
     """Test suite for settings integration."""
@@ -280,6 +287,7 @@ class TestSettingsIntegration:
         assert window._settings_manager is not None
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestKeyboardShortcuts:
     """Test suite for keyboard shortcut setup."""
@@ -294,6 +302,7 @@ class TestKeyboardShortcuts:
             assert window.action_manager is not None
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestCleanup:
     """Test suite for cleanup and shutdown."""
@@ -340,6 +349,7 @@ class TestCleanup:
 # ============================================================================
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestHandleSearchRequested:
     """Test _handle_search_requested() method (Priority #1)."""
@@ -469,6 +479,7 @@ class TestHandleSearchRequested:
         window.find_bar.update_match_count.assert_called_with(0, 0)
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestHandleReplaceAll:
     """Test _handle_replace_all() method (Priority #2)."""
@@ -610,6 +621,7 @@ class TestHandleReplaceAll:
         window.status_manager.show_status.assert_called()
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestStartPreviewTimer:
     """Test _start_preview_timer() method (Priority #3)."""
@@ -722,6 +734,7 @@ class TestStartPreviewTimer:
         window.status_manager.update_document_metrics.assert_called_once()
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestSetupWorkersAndThreads:
     """Test _setup_workers_and_threads() method (Priority #4)."""
@@ -773,6 +786,7 @@ class TestSetupWorkersAndThreads:
         assert window.github_handler is not None
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestRefreshFromSettings:
     """Test _refresh_from_settings() method (Priority #5)."""
@@ -930,6 +944,7 @@ class TestRefreshFromSettings:
         assert window.height() == 600
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestRouteChatMessageToWorker:
     """Test _route_chat_message_to_worker() method (Priority #6)."""
@@ -1108,6 +1123,7 @@ class TestRouteChatMessageToWorker:
 # ============================================================================
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestNewFromTemplate:
     """Test new_from_template() method (Priority #7)."""
@@ -1172,6 +1188,7 @@ class TestNewFromTemplate:
             assert window.editor.toPlainText() == original_text
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestSaveFile:
     """Test save_file() method (Priority #8)."""
@@ -1209,6 +1226,7 @@ class TestSaveFile:
         assert result is True
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestAutoSave:
     """Test _auto_save() method (Priority #9)."""
@@ -1273,6 +1291,7 @@ class TestAutoSave:
             mock_save.assert_not_called()
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestHandleQuickCommit:
     """Test _handle_quick_commit() method (Priority #10)."""
@@ -1311,6 +1330,7 @@ class TestHandleQuickCommit:
         window.git_handler.quick_commit.assert_not_called()
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestToggleTelemetry:
     """Test toggle_telemetry() method (Priority #11)."""
@@ -1375,6 +1395,7 @@ class TestToggleTelemetry:
         window._settings_manager.save_settings.assert_called_once()
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestCloseEvent:
     """Test closeEvent() method (Priority #12)."""
@@ -1437,6 +1458,7 @@ class TestCloseEvent:
 # ============================================================================
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestInitializeAsciidoc:
     """Test _initialize_asciidoc() method (Priority #13)."""
@@ -1463,6 +1485,7 @@ class TestInitializeAsciidoc:
             assert hasattr(window, "_asciidoc_api")
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestUpdateWindowTitle:
     """Test _update_window_title() method (Priority #14)."""
@@ -1520,6 +1543,7 @@ class TestUpdateWindowTitle:
         assert "Untitled" in window.windowTitle()
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestHandlePreviewError:
     """Test _handle_preview_error() method (Priority #15)."""
@@ -1546,6 +1570,7 @@ class TestHandlePreviewError:
 # ============================================================================
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestFindNextPrevious:
     """Test _handle_find_next() and _handle_find_previous() methods."""
@@ -1616,6 +1641,7 @@ class TestFindNextPrevious:
         assert window.editor.search_selections == []
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestHandleReplace:
     """Test _handle_replace() method."""
@@ -1670,6 +1696,7 @@ class TestHandleReplace:
 # ============================================================================
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestApplyCombinedSelections:
     """Test _apply_combined_selections() method."""
@@ -1696,6 +1723,7 @@ class TestApplyCombinedSelections:
         assert len(call_args) == 2  # Both selections included
 
 
+@pytest.mark.fr_001
 @pytest.mark.unit
 class TestUpdateAIBackendCheckmarks:
     """Test _update_ai_backend_checkmarks() method."""

@@ -12,6 +12,7 @@ import pytest
 from asciidoc_artisan.workers import PreviewWorker
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestInitializeAsciiDocErrors:
     """Test error handling in initialize_asciidoc."""
@@ -90,6 +91,7 @@ class TestInitializeAsciiDocErrors:
         assert worker._predictive_renderer is None
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestSetIncrementalRenderingWithRenderer:
     """Test set_incremental_rendering when renderer exists."""
@@ -117,6 +119,7 @@ class TestSetIncrementalRenderingWithRenderer:
         mock_incremental.enable.assert_called_once_with(False)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestSetPredictiveRenderingWithRenderer:
     """Test set_predictive_rendering when renderer exists."""
@@ -144,6 +147,7 @@ class TestSetPredictiveRenderingWithRenderer:
         mock_predictive.enable.assert_called_once_with(False)
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestRequestPredictionEdgeCases:
     """Test edge cases in request_prediction."""
@@ -202,6 +206,7 @@ class TestRequestPredictionEdgeCases:
         mock_predictive.request_prediction.assert_called_once()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestSchedulePrerender:
     """Test _schedule_prerender internal method."""
@@ -373,6 +378,7 @@ class TestSchedulePrerender:
         worker._schedule_prerender([mock_block])
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestRenderPreviewMetrics:
     """Test metrics recording variations in render_preview."""
@@ -393,6 +399,7 @@ class TestRenderPreviewMetrics:
         mock_metrics.record_operation.assert_not_called()
 
 
+@pytest.mark.fr_015
 @pytest.mark.unit
 class TestImportFallbacks:
     """Test import error fallback behavior."""
