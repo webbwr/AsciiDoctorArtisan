@@ -24,6 +24,7 @@ def dialog(qtbot):
     return widget
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogInitialization:
     """Test dialog initialization."""
@@ -70,6 +71,7 @@ class TestGitStatusDialogInitialization:
         assert dialog.close_button is not None
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogPopulation:
     """Test dialog data population."""
@@ -202,6 +204,7 @@ class TestGitStatusDialogPopulation:
         )  # Column 1 is File
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogSignals:
     """Test dialog signal emissions."""
@@ -219,6 +222,7 @@ class TestGitStatusDialogSignals:
         assert not dialog.isVisible()
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogTabSwitching:
     """Test tab switching behavior."""
@@ -238,6 +242,7 @@ class TestGitStatusDialogTabSwitching:
         assert dialog.tab_widget.currentIndex() == 0  # Modified tab
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogTableFormat:
     """Test table formatting and structure."""
@@ -281,6 +286,7 @@ class TestGitStatusDialogTableFormat:
         )
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogEdgeCases:
     """Test edge cases for dialog population."""
@@ -425,6 +431,7 @@ class TestGitStatusDialogEdgeCases:
         assert dialog.modified_table.item(0, 2).text() == "+99999 -88888"
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogBranchNames:
     """Test different branch name formats."""
@@ -461,6 +468,7 @@ class TestGitStatusDialogBranchNames:
         assert long_branch in dialog.branch_label.text()
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogMultiplePopulations:
     """Test multiple population calls."""
@@ -519,6 +527,7 @@ class TestGitStatusDialogMultiplePopulations:
         assert dialog.staged_table.rowCount() == 1
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogTableInteraction:
     """Test table interaction and selection."""
@@ -572,6 +581,7 @@ class TestGitStatusDialogTableInteraction:
         assert dialog.tab_widget.currentIndex() == 2
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogVisibility:
     """Test dialog visibility and show/hide."""
@@ -599,6 +609,7 @@ class TestGitStatusDialogVisibility:
         assert not dialog.isVisible()
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogWindowProperties:
     """Test dialog window properties."""
@@ -621,6 +632,7 @@ class TestGitStatusDialogWindowProperties:
         assert min_size is not None
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogButtonBehavior:
     """Test button behavior and interactions."""
@@ -642,6 +654,7 @@ class TestGitStatusDialogButtonBehavior:
         assert dialog.close_button.text() != ""
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogStatusMapping:
     """Test status code to text mapping."""
@@ -678,6 +691,7 @@ class TestGitStatusDialogStatusMapping:
         assert dialog.modified_table.rowCount() == 1
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogDataIntegrity:
     """Test data integrity after operations."""
@@ -719,6 +733,7 @@ class TestGitStatusDialogDataIntegrity:
         assert dialog.branch_label.text() == "Branch: feature"
 
 
+@pytest.mark.fr_031
 @pytest.mark.unit
 class TestGitStatusDialogSpecialCases:
     """Test special cases and boundary conditions."""

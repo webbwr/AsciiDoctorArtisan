@@ -499,6 +499,7 @@ class TestGitHandler:
         main_window.request_git_status.emit.assert_not_called()
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestRepositorySelection:
     """Test suite for select_repository() method."""
@@ -630,6 +631,7 @@ class TestRepositorySelection:
         assert call_args[2] == "/home/user/documents"
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestCommitWithUnsavedChanges:
     """Test suite for commit_changes() with unsaved file handling."""
@@ -757,6 +759,7 @@ class TestCommitWithUnsavedChanges:
         assert handler.is_processing is True
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestQuickCommitEdgeCases:
     """Test suite for quick_commit() edge cases."""
@@ -851,6 +854,7 @@ class TestQuickCommitEdgeCases:
         handler._update_ui_state.assert_called()
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestResultHandlingMultiStep:
     """Test suite for multi-step result handling (commit staging)."""
@@ -1046,6 +1050,7 @@ class TestResultHandlingMultiStep:
         assert handler.git_operation_completed.emit.call_args[0][0] is False
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestBranchNameQueryErrors:
     """Test suite for get_current_branch() error handling."""
@@ -1185,6 +1190,7 @@ class TestBranchNameQueryErrors:
         assert "HEAD (detached at abc1234)" == branch
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestStatusRefreshLifecycle:
     """Test suite for status refresh lifecycle management."""
@@ -1283,6 +1289,7 @@ class TestStatusRefreshLifecycle:
         assert handler.status_refresh_enabled is False
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestSignalEmissions:
     """Test suite for git_operation_started and git_operation_completed signals."""
@@ -1428,6 +1435,7 @@ class TestSignalEmissions:
         )
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestInitializeRepoValidation:
     """Test suite for initialize() repository validation."""
@@ -1532,6 +1540,7 @@ class TestInitializeRepoValidation:
         assert handler is not None
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestCheckRepositoryReady:
     """Test suite for _check_repository_ready() validation."""
@@ -1623,6 +1632,7 @@ class TestCheckRepositoryReady:
         assert result is False
 
 
+@pytest.mark.fr_030
 @pytest.mark.unit
 class TestUIStateUpdateCalls:
     """Test suite for _update_ui_state() calls throughout operations."""

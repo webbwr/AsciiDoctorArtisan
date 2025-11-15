@@ -29,6 +29,11 @@ def git_worker():
     return GitWorker()
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.fr_076

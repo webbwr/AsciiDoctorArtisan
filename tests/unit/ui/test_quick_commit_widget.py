@@ -26,6 +26,8 @@ def widget(qtbot):
     return w
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestQuickCommitWidgetInitialization:
     """Test widget initialization."""
 
@@ -60,6 +62,8 @@ class TestQuickCommitWidgetInitialization:
         assert widget.message_input.placeholderText() == "Enter commit message..."
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestQuickCommitWidgetShowAndFocus:
     """Test show_and_focus behavior."""
 
@@ -81,6 +85,8 @@ class TestQuickCommitWidgetShowAndFocus:
         assert widget.message_input.hasFocus()
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestQuickCommitWidgetCommitRequest:
     """Test commit request handling."""
 
@@ -130,6 +136,8 @@ class TestQuickCommitWidgetCommitRequest:
         assert blocker.args[0] == "Fix typo"
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestQuickCommitWidgetCancel:
     """Test cancel behavior."""
 
@@ -167,6 +175,8 @@ class TestQuickCommitWidgetCancel:
         assert not widget.isVisible()
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestQuickCommitWidgetGettersSetter:
     """Test getter and setter methods."""
 
@@ -187,6 +197,8 @@ class TestQuickCommitWidgetGettersSetter:
         assert widget.message_input.text() == ""
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestQuickCommitWidgetKeyboardWorkflow:
     """Test keyboard-driven workflow."""
 
@@ -222,6 +234,8 @@ class TestQuickCommitWidgetKeyboardWorkflow:
         assert not widget.isVisible()
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestQuickCommitWidgetMultipleCommits:
     """Test multiple commit cycles."""
 
@@ -244,6 +258,8 @@ class TestQuickCommitWidgetMultipleCommits:
         assert not widget.isVisible()
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestSignalEmissionEdgeCases:
     """Test signal emission edge cases."""
 
@@ -313,6 +329,8 @@ class TestSignalEmissionEdgeCases:
             assert not widget.isVisible()
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestUIComponentProperties:
     """Test UI component properties and styling."""
 
@@ -357,6 +375,8 @@ class TestUIComponentProperties:
         assert layout.spacing() == 5
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestWidgetStateManagement:
     """Test widget state management."""
 
@@ -415,6 +435,8 @@ class TestWidgetStateManagement:
         assert widget.get_message() == ""  # Cleared
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestSpecialCharactersInMessages:
     """Test special characters in commit messages."""
 
@@ -464,6 +486,8 @@ class TestSpecialCharactersInMessages:
         assert blocker.args[0] == "Before\tAfter"
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestLayoutProperties:
     """Test layout properties and geometry."""
 
@@ -518,6 +542,8 @@ class TestLayoutProperties:
         assert cancel_index > input_index
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestButtonInteractionDetails:
     """Test button interaction details."""
 
@@ -580,6 +606,8 @@ class TestButtonInteractionDetails:
         assert cancel_size.height() == 24
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestFocusManagement:
     """Test focus management."""
 
@@ -625,6 +653,8 @@ class TestFocusManagement:
             widget.ok_button.click()
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestEdgeCaseMessages:
     """Test edge case messages."""
 
@@ -677,6 +707,8 @@ class TestEdgeCaseMessages:
         assert "Test" in message
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestParentChildRelationships:
     """Test parent-child widget relationships."""
 
@@ -703,6 +735,8 @@ class TestParentChildRelationships:
         assert layout.count() == 4  # Label, Input, OK, Cancel
 
 
+@pytest.mark.fr_032
+@pytest.mark.unit
 class TestRapidInteractions:
     """Test rapid user interactions."""
 

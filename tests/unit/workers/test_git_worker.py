@@ -11,6 +11,11 @@ from asciidoc_artisan.core import GitResult
 from asciidoc_artisan.workers import GitWorker
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -138,6 +143,11 @@ class TestGitWorker:
         assert result.success is False
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -182,6 +192,11 @@ class TestGitResult:
         assert result.user_message == user_message
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -426,6 +441,11 @@ class TestGitWorkerStatus:
         assert status.is_dirty is False
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -478,6 +498,11 @@ class TestGitWorkerCancellation:
         assert status is None or status.branch == ""
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -603,6 +628,11 @@ class TestGitWorkerOperationTimeout:
         assert call_kwargs["timeout"] == 30
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -699,6 +729,11 @@ class TestGitWorkerStatusParsingEdgeCases:
         assert status.is_dirty is True
 
 
+@pytest.mark.fr_026
+@pytest.mark.fr_027
+@pytest.mark.fr_028
+@pytest.mark.fr_029
+@pytest.mark.fr_033
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
