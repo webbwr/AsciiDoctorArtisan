@@ -3955,6 +3955,164 @@ class SearchEngine:
 
 ---
 
+## FR-050: Real-Time Spell Check
+
+**Category:** Spell Check | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-001 (Text Editor) | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/core/spell_checker.py`
+
+### Description
+Real-time spell checking with red squiggly underlines. F7 to toggle. Uses pyspellchecker, supports multiple languages. Ignore code blocks and URLs.
+
+### Acceptance Criteria
+- [x] Red squiggly underlines for misspelled words | [x] F7 to toggle on/off
+- [x] Ignore code blocks, URLs, email addresses | [x] Ignore technical terms (e.g., AsciiDoc, Qt)
+- [x] Multi-language support (en, es, fr, de) | [x] Real-time checking as user types
+- [x] Debounce checking (200ms) | [x] Show status in status bar
+
+### API Contract
+```python
+class SpellChecker:
+    def __init__(self, language: str = "en"):
+        """Initialize spell checker."""
+    def check_word(self, word: str) -> bool:
+        """Check if word is spelled correctly."""
+    def get_suggestions(self, word: str, max_suggestions: int = 5) -> list[str]:
+        """Get spelling suggestions."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 90%+ | **Types:** Unit (10), Integration (5)
+
+---
+
+## FR-051: Spell Check Suggestions
+
+**Category:** Spell Check | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-050 | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/ui/spell_check_manager.py`
+
+### Description
+Right-click context menu shows 5 spelling suggestions. Click to replace. "Add to Dictionary" and "Ignore" options.
+
+### Acceptance Criteria
+- [x] Right-click misspelled word shows menu | [x] Show 5 suggestions (max)
+- [x] Click suggestion to replace word | [x] "Add to Dictionary" option
+- [x] "Ignore" option (session-only) | [x] "Ignore All" option
+- [x] Keyboard navigation (arrow keys, Enter)
+
+### API Contract
+```python
+class SpellCheckManager:
+    def show_context_menu(self, word: str, position: QPoint) -> None:
+        """Show spell check context menu."""
+    def replace_word(self, old_word: str, new_word: str) -> None:
+        """Replace misspelled word."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Integration (5)
+
+---
+
+## FR-052: Custom Dictionary
+
+**Category:** Spell Check | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-050 | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/core/spell_checker.py`
+
+### Description
+Custom dictionary for technical terms, names, project-specific words. Save to JSON, load on startup. Add/remove words via UI.
+
+### Acceptance Criteria
+- [x] Add words to custom dictionary | [x] Remove words from dictionary
+- [x] Save to JSON: ~/.config/AsciiDocArtisan/custom_dictionary.json | [x] Load on startup
+- [x] Per-language dictionaries | [x] Case-sensitive option
+- [x] Export/import dictionary | [x] Dictionary editor dialog
+
+### API Contract
+```python
+class SpellChecker:
+    def add_to_dictionary(self, word: str) -> None:
+        """Add word to custom dictionary."""
+    def remove_from_dictionary(self, word: str) -> None:
+        """Remove word from dictionary."""
+    def save_dictionary(self) -> None:
+        """Save custom dictionary to JSON."""
+    def load_dictionary(self) -> None:
+        """Load custom dictionary from JSON."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 90%+ | **Types:** Unit (8), Integration (4)
+
+---
+
+## FR-053: Multi-Language Spell Check
+
+**Category:** Spell Check | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** FR-050 | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/core/spell_checker.py`
+
+### Description
+Support multiple languages: English, Spanish, French, German. Language selector in preferences. Auto-detect language (optional).
+
+### Acceptance Criteria
+- [x] Support en, es, fr, de | [x] Language selector in preferences
+- [x] Switch language without restart | [x] Auto-detect language (optional)
+- [x] Download dictionaries on demand | [x] Show current language in status bar
+
+### API Contract
+```python
+class SpellChecker:
+    def set_language(self, language: str) -> None:
+        """Set spell check language.
+
+        Args:
+            language: ISO 639-1 code (en, es, fr, de)
+        """
+    def detect_language(self, text: str) -> str:
+        """Auto-detect text language."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 80%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-054: Spell Check Performance
+
+**Category:** Spell Check | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-050 | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/core/spell_checker.py`
+
+### Description
+Optimize spell checking for large documents. Incremental checking, word caching, background thread. <100ms for 1K lines.
+
+### Acceptance Criteria
+- [x] Incremental checking (only changed words) | [x] Word cache (LRU, 1000 words)
+- [x] Background thread for large docs (10K+ lines) | [x] Performance <100ms for 1K lines
+- [x] Performance <500ms for 10K lines | [x] Don't block UI during checking
+- [x] Cancel long-running checks | [x] Progress indicator for large docs
+
+### API Contract
+```python
+class SpellChecker:
+    def check_async(
+        self,
+        text: str,
+        callback: Callable[[dict[str, bool]], None]
+    ) -> None:
+        """Async spell check for large documents."""
+    def cancel_check(self) -> None:
+        """Cancel ongoing spell check."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Performance (5)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
