@@ -4634,6 +4634,295 @@ def sanitize_path(path: str | Path, base_dir: Path) -> Path:
 
 ---
 
+## FR-073: Telemetry
+
+**Category:** Analytics | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.7.0
+**Implementation:** `src/asciidoc_artisan/core/telemetry.py`
+
+### Description
+Optional anonymous usage telemetry. Track feature usage, performance metrics, errors. Opt-in only, full transparency. Helps improve UX.
+
+### Acceptance Criteria
+- [x] Opt-in only (disabled by default) | [x] Anonymous (no PII)
+- [x] Track: feature usage, performance, errors | [x] Full transparency (show collected data)
+- [x] Export telemetry to JSON | [x] Settings toggle
+- [x] Local storage only (no remote upload) | [x] Respect user privacy
+
+### API Contract
+```python
+class Telemetry:
+    def track_event(self, event: str, metadata: dict[str, Any] | None = None) -> None:
+        """Track usage event."""
+    def track_performance(self, operation: str, duration_ms: float) -> None:
+        """Track performance metric."""
+    def export_data(self, path: Path) -> None:
+        """Export telemetry data to JSON."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 80%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-074: Settings Persistence
+
+**Category:** Core | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/core/settings.py`
+
+### Description
+Persist user settings to JSON. Load on startup, save on change. Settings: theme, font, Git config, spell check, preferences.
+
+### Acceptance Criteria
+- [x] Save to JSON: ~/.config/AsciiDocArtisan/settings.json | [x] Load on startup
+- [x] Save on setting change (debounced 500ms) | [x] Settings: theme, font, Git, spell, AI
+- [x] Atomic writes (temp + rename) | [x] Schema validation
+- [x] Migration on version change | [x] Reset to defaults option
+
+### API Contract
+```python
+class Settings:
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get setting value."""
+    def set(self, key: str, value: Any) -> None:
+        """Set setting value."""
+    def save(self) -> None:
+        """Save settings to disk."""
+    def load(self) -> None:
+        """Load settings from disk."""
+    def reset_to_defaults(self) -> None:
+        """Reset all settings to default values."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 95%+ | **Types:** Unit (10), Integration (5)
+
+---
+
+## FR-077: User Documentation
+
+**Category:** Documentation | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `docs/`, `README.md`
+
+### Description
+Comprehensive user documentation: installation, features, keyboard shortcuts, troubleshooting. Grade 5.0 readability (Flesch-Kincaid).
+
+### Acceptance Criteria
+- [x] Installation guide | [x] Feature documentation
+- [x] Keyboard shortcuts reference | [x] Troubleshooting guide
+- [x] Screenshots for key features | [x] Grade 5.0 readability
+- [x] Markdown format | [x] Searchable
+
+### Test Requirements
+**Min Tests:** 5 | **Coverage:** N/A | **Types:** Readability (5)
+
+---
+
+## FR-078: Inline Help
+
+**Category:** Documentation | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.3.0
+**Implementation:** `src/asciidoc_artisan/ui/help_panel.py`
+
+### Description
+Inline help panel showing context-sensitive tips. Keyboard shortcut: F1. Help topics: AsciiDoc syntax, Git, features.
+
+### Acceptance Criteria
+- [x] F1 shows help panel | [x] Context-sensitive help topics
+- [x] Search help topics | [x] Quick reference cards
+- [x] AsciiDoc syntax examples | [x] Git workflow help
+- [x] Keyboard shortcuts | [x] Close with Esc
+
+### API Contract
+```python
+class HelpPanel(QDockWidget):
+    def show_topic(self, topic: str) -> None:
+        """Show specific help topic."""
+    def search(self, query: str) -> list[str]:
+        """Search help topics."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 80%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-079: Tooltips
+
+**Category:** UI & UX | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** UI widgets
+
+### Description
+Comprehensive tooltips for all UI elements. Show on hover (500ms delay). Include keyboard shortcuts where applicable.
+
+### Acceptance Criteria
+- [x] Tooltips for all buttons | [x] Tooltips for all menu items
+- [x] Tooltips for status bar segments | [x] Include keyboard shortcuts
+- [x] 500ms hover delay | [x] Clear, concise text
+- [x] Consistent formatting
+
+### Test Requirements
+**Min Tests:** 5 | **Coverage:** N/A | **Types:** Manual (5)
+
+---
+
+## FR-080: Keyboard Shortcuts Reference
+
+**Category:** Documentation | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-060 | **Version:** 1.0.0
+**Implementation:** `docs/KEYBOARD_SHORTCUTS.md`
+
+### Description
+Quick reference card for all keyboard shortcuts. Accessible via Help → Keyboard Shortcuts. Printable format.
+
+### Acceptance Criteria
+- [x] List all shortcuts (50+) | [x] Organized by category
+- [x] Help menu item | [x] Dialog with searchable table
+- [x] Printable format (HTML export) | [x] Show in tooltips
+- [x] Customizable shortcuts (future)
+
+### API Contract
+```python
+class ShortcutsDialog(QDialog):
+    def show_shortcuts(self, category: str | None = None) -> None:
+        """Show keyboard shortcuts dialog."""
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 80%+ | **Types:** Unit (5), Integration (3)
+
+---
+
+## FR-081: About Dialog
+
+**Category:** UI & UX | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/ui/about_dialog.py`
+
+### Description
+About dialog showing version, authors, license, dependencies. Help → About.
+
+### Acceptance Criteria
+- [x] Application version | [x] Authors and contributors
+- [x] License (MIT) | [x] Dependencies list
+- [x] GitHub link | [x] Help → About menu item
+- [x] Close with Esc | [x] Check for updates button
+
+### API Contract
+```python
+class AboutDialog(QDialog):
+    def __init__(self, parent: QWidget):
+        """Initialize about dialog."""
+```
+
+### Test Requirements
+**Min Tests:** 5 | **Coverage:** 75%+ | **Types:** Unit (3), Integration (2)
+
+---
+
+## FR-082: Auto-Update
+
+**Category:** Updates | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.7.0
+**Implementation:** `src/asciidoc_artisan/core/updater.py`
+
+### Description
+Check for updates on startup (opt-in). Notify user of new versions. Link to GitHub releases.
+
+### Acceptance Criteria
+- [x] Check for updates on startup (opt-in) | [x] Query GitHub API (releases)
+- [x] Notify if newer version available | [x] Link to release notes
+- [x] Manual check: Help → Check for Updates | [x] Respect privacy (anonymous check)
+- [x] 5-second timeout | [x] Cache check result (24hr)
+
+### API Contract
+```python
+class Updater:
+    def check_for_updates(self) -> tuple[bool, str]:
+        """Check for updates.
+
+        Returns:
+            (update_available, latest_version)
+        """
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 80%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-083: Backup System
+
+**Category:** Data Safety | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.7.0
+**Implementation:** `src/asciidoc_artisan/core/backup.py`
+
+### Description
+Auto-backup on save (optional). Keep last 10 backups. Backup location: ~/.local/share/AsciiDocArtisan/backups/.
+
+### Acceptance Criteria
+- [x] Auto-backup on save (opt-in) | [x] Keep last 10 backups (FIFO)
+- [x] Backup location: ~/.local/share/AsciiDocArtisan/backups/ | [x] Filename: {original}_backup_{timestamp}.adoc
+- [x] Restore from backup dialog | [x] Manual backup: File → Create Backup
+- [x] Clean old backups (>10) | [x] Atomic copy
+
+### API Contract
+```python
+class BackupManager:
+    def create_backup(self, file_path: Path) -> Path:
+        """Create backup of file."""
+    def restore_backup(self, backup_path: Path, target_path: Path) -> bool:
+        """Restore from backup."""
+    def list_backups(self, file_path: Path) -> list[Path]:
+        """List available backups."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Integration (5)
+
+---
+
+## FR-084: LRU Cache
+
+**Category:** Performance | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-067 | **Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/core/lru_cache.py`
+
+### Description
+Generic LRU cache implementation. Used for block cache, word cache, GPU detection. Configurable size, TTL support.
+
+### Acceptance Criteria
+- [x] Generic LRU implementation | [x] Configurable max size
+- [x] Optional TTL (time-to-live) | [x] Thread-safe
+- [x] Get/put/remove/clear operations | [x] Hit rate tracking
+- [x] Evict oldest on overflow | [x] O(1) get/put performance
+
+### API Contract
+```python
+class LRUCache:
+    def __init__(self, max_size: int, ttl: int | None = None):
+        """Initialize LRU cache.
+
+        Args:
+            max_size: Maximum cache entries
+            ttl: Time-to-live in seconds (None = no expiry)
+        """
+    def get(self, key: str) -> Any | None:
+        """Get value from cache."""
+    def put(self, key: str, value: Any) -> None:
+        """Put value in cache."""
+    def get_hit_rate(self) -> float:
+        """Get cache hit rate (0.0-1.0)."""
+```
+
+### Test Requirements
+**Min Tests:** 20 | **Coverage:** 95%+ | **Types:** Unit (15), Performance (5)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
