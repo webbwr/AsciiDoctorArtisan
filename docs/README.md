@@ -98,13 +98,24 @@ Quality assurance, security audits, and performance analysis reports.
 
 ## Documentation Standards
 
+**Complete Guide:** [DOCUMENTATION_STANDARDS.md](DOCUMENTATION_STANDARDS.md)
+
 All documentation follows these standards:
 
-- **Reading Level:** Grade 5.0 or below (Flesch-Kincaid)
-- **Sentence Length:** 10-15 words average
+- **Reading Level:** Grade 5.0 or below (Flesch-Kincaid) for user docs
+- **Sentence Length:** 10-15 words average (user), 15-20 words (developer)
 - **Formatting:** Markdown with consistent headings and tables
 - **Code Examples:** Use syntax highlighting and clear explanations
 - **Cross-References:** Use relative links between documents
+- **Evergreen Naming:** No dates in filenames (use internal versioning)
+- **File Organization:** Clear categorization (user/developer/testing/reports)
+
+**Key Principles:**
+- Evergreen naming (no date suffixes)
+- Archive planning docs when milestones complete
+- Delete duplicates immediately
+- Quarterly audits for quality
+- Version in content, not filename
 
 Validate readability with:
 ```bash
