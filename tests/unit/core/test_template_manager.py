@@ -31,6 +31,12 @@ def temp_template_dir(tmp_path):
     return template_dir
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestTemplateManagerInitialization:
     """Test manager initialization."""
 
@@ -69,6 +75,12 @@ class TestTemplateManagerInitialization:
         assert "general" in categories
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestGetTemplate:
     """Test retrieving individual templates."""
 
@@ -94,6 +106,12 @@ class TestGetTemplate:
         assert template is None
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestGetTemplatesByCategory:
     """Test retrieving templates by category."""
 
@@ -118,6 +136,12 @@ class TestGetTemplatesByCategory:
         assert len(templates) == 0
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestTemplateVariables:
     """Test template variables."""
 
@@ -156,6 +180,12 @@ class TestTemplateVariables:
         assert author_var.default is not None
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestRecentTemplates:
     """Test recent templates tracking."""
 
@@ -194,6 +224,12 @@ class TestRecentTemplates:
         assert len(names) == len(set(names))
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestGetAllTemplates:
     """Test getting all templates."""
 
@@ -215,6 +251,12 @@ class TestGetAllTemplates:
             assert template.content
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestTemplateContent:
     """Test template content."""
 
@@ -240,6 +282,12 @@ class TestTemplateContent:
             assert var.name  # Verify variable has a name
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestTemplateCategories:
     """Test template category management."""
 
@@ -253,6 +301,12 @@ class TestTemplateCategories:
         assert "book" in categories
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestBuiltInTemplates:
     """Test specific built-in templates."""
 
@@ -288,6 +342,12 @@ class TestBuiltInTemplates:
         assert template.category == "report"
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestTemplateValidation:
     """Test template validation."""
 
@@ -315,6 +375,12 @@ class TestTemplateValidation:
                 # default and required are optional
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestPerformance:
     """Test template loading performance."""
 
@@ -342,6 +408,12 @@ class TestPerformance:
         assert elapsed < 0.01
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases."""
 
@@ -360,6 +432,12 @@ class TestEdgeCases:
         assert len(templates) == 6
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestCRUDOperations:
     """Test create, update, delete operations."""
 
@@ -505,6 +583,12 @@ class TestCRUDOperations:
         assert result is False
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestReloadTemplates:
     """Test reloading templates from disk."""
 
@@ -536,6 +620,12 @@ variables: []
         assert template is not None
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestGetCategories:
     """Test getting all categories."""
 
@@ -554,6 +644,12 @@ class TestGetCategories:
         assert "book" in categories
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestSanitizeFilename:
     """Test filename sanitization."""
 
@@ -578,6 +674,12 @@ class TestSanitizeFilename:
         assert result == "test--multiple---spaces"
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestSerializeTemplate:
     """Test template serialization."""
 
@@ -629,6 +731,12 @@ class TestSerializeTemplate:
         assert "---" in result
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestRecentPersistence:
     """Test saving and loading recent templates."""
 
@@ -687,6 +795,12 @@ class TestRecentPersistence:
         assert data == ["Template A", "Template B"]
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestDeleteTemplateRecentCleanup:
     """Test that deleting templates removes them from recent list."""
 
@@ -719,6 +833,12 @@ class TestDeleteTemplateRecentCleanup:
         assert "Recent Test" not in manager.recent
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestGetBuiltInDir:
     """Test getting built-in template directory."""
 
@@ -733,6 +853,12 @@ class TestGetBuiltInDir:
         assert built_in_dir.parent.name == "asciidoc_artisan"
 
 
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestGetCustomDir:
     """Test getting custom template directory."""
 
@@ -775,6 +901,12 @@ class TestGetCustomDir:
 
 
 @pytest.mark.unit
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestQtImportFallback:
     """Test Qt import fallback path."""
 
@@ -803,6 +935,12 @@ class TestQtImportFallback:
             assert ".config" in str(custom_dir) or "AsciiDocArtisan" in str(custom_dir)
 
 
+@pytest.mark.unit
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
 @pytest.mark.unit
 class TestTemplateLoadingErrors:
     """Test error handling in template loading."""
@@ -861,6 +999,12 @@ class TestTemplateLoadingErrors:
         assert hasattr(manager, "templates")
 
 
+@pytest.mark.unit
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
 @pytest.mark.unit
 class TestCRUDExceptionHandling:
     """Test exception handling in CRUD operations."""
@@ -959,6 +1103,12 @@ class TestCRUDExceptionHandling:
 
 
 @pytest.mark.unit
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestRecentSaveError:
     """Test error handling in recent template persistence."""
 
@@ -982,6 +1132,12 @@ class TestRecentSaveError:
 
 
 @pytest.mark.unit
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
+@pytest.mark.unit
 class TestYamlImportError:
     """Test yaml import error handling."""
 
@@ -1003,6 +1159,12 @@ class TestYamlImportError:
                 manager._serialize_template(template)
 
 
+@pytest.mark.unit
+@pytest.mark.fr_100
+@pytest.mark.fr_101
+@pytest.mark.fr_102
+@pytest.mark.fr_104
+@pytest.mark.fr_105
 @pytest.mark.unit
 class TestSerializeVersion:
     """Test template serialization version handling."""

@@ -14,6 +14,9 @@ from asciidoc_artisan.core.models import Template, TemplateVariable
 from asciidoc_artisan.core.template_engine import TemplateEngine
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestInitialization:
     """Test TemplateEngine initialization."""
@@ -28,6 +31,9 @@ class TestInitialization:
         assert "year" in engine.built_in_vars
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestBuiltInVariables:
     """Test built-in variable generation."""
@@ -75,6 +81,9 @@ class TestBuiltInVariables:
         assert engine.built_in_vars["user.email"] == "test@example.com"
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestVariableSubstitution:
     """Test variable substitution in templates."""
@@ -163,6 +172,9 @@ class TestVariableSubstitution:
         assert len(result.split("Date: ")[1].strip()) == 10
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestConditionals:
     """Test conditional processing."""
@@ -244,6 +256,9 @@ class TestConditionals:
         assert "Inner" in result
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestTruthyEvaluation:
     """Test truthiness evaluation for conditionals."""
@@ -295,6 +310,9 @@ class TestTruthyEvaluation:
         assert engine._is_truthy([]) is False
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestTemplateValidation:
     """Test template validation."""
@@ -352,6 +370,9 @@ class TestTemplateValidation:
         assert len(errors) == 0
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestInstantiation:
     """Test complete template instantiation."""
@@ -399,6 +420,9 @@ class TestInstantiation:
         assert "2025-01-01" in result
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error handling."""
@@ -467,6 +491,9 @@ class TestEdgeCases:
         assert "Content" not in result
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestTemplateEngineErrorHandling:
     """Test suite for template engine error handling."""
@@ -549,6 +576,9 @@ class TestTemplateEngineErrorHandling:
         assert "[ERROR: Cannot read file:" in result
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestTemplateEngineParseErrors:
     """Test suite for parse_template error handling."""
@@ -766,6 +796,9 @@ Content"""
             engine.parse_template(str(template_file))
 
 
+
+@pytest.mark.fr_101
+@pytest.mark.fr_107
 @pytest.mark.unit
 class TestTemplateEngineValidation:
     """Test suite for template validation warnings."""
