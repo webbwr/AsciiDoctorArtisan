@@ -308,7 +308,7 @@ def main() -> None:
     # This ensures non-blocking initialization - worker initializes on background thread
     if hasattr(window, "preview_worker") and window.preview_worker:
         # Connect to worker's ready signal to trigger initial preview
-        def trigger_initial_preview():
+        def trigger_initial_preview() -> None:
             window.update_preview()
             if profiler:
                 profiler.take_snapshot("after_initial_preview")
