@@ -16,6 +16,8 @@ from asciidoc_artisan.workers import GitWorker
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -148,6 +150,8 @@ class TestGitWorker:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -197,6 +201,8 @@ class TestGitResult:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -446,6 +452,8 @@ class TestGitWorkerStatus:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -503,6 +511,8 @@ class TestGitWorkerCancellation:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -633,6 +643,8 @@ class TestGitWorkerOperationTimeout:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -734,6 +746,8 @@ class TestGitWorkerStatusParsingEdgeCases:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit

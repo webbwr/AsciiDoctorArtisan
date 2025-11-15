@@ -10,7 +10,9 @@ import pytest
 from asciidoc_artisan.core import atomic_save_json, atomic_save_text, sanitize_path
 
 
+
 @pytest.mark.fr_007
+@pytest.mark.fr_068
 @pytest.mark.fr_069
 @pytest.mark.unit
 class TestFileOperations:

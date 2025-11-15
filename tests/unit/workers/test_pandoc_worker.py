@@ -29,6 +29,8 @@ def mock_pypandoc():
         sys.modules.pop("pypandoc", None)
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -171,6 +173,8 @@ class TestPandocWorker:
     # AI conversion test removed - using Ollama for local AI features instead
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -208,6 +212,8 @@ code2
         assert "[source,javascript]" in enhanced
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -247,6 +253,8 @@ class TestOllamaIntegration:
         assert worker.ollama_model == "codellama"
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -292,6 +300,8 @@ class TestPDFEngineDetection:
             worker._detect_pdf_engine()
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -330,6 +340,8 @@ class TestPandocArgsBuilding:
         worker._build_pandoc_args("docx", "asciidoc")
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -363,6 +375,8 @@ class TestProgressSignals:
         assert isinstance(progress_messages, list)
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -443,6 +457,8 @@ class TestFormatConversions:
         assert result is not None
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -561,6 +577,8 @@ class TestErrorHandling:
                 sys.modules["pypandoc"] = original
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -721,6 +739,8 @@ class TestOllamaConversion:
             assert result is None  # Import error should return None
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -789,6 +809,8 @@ class TestConversionPromptCreation:
         assert "unknown" in prompt or "UNKNOWN" in prompt
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -894,6 +916,8 @@ class TestAIConversionWithFallback:
         # Note: The actual implementation may call Pandoc for PDF binary generation
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -985,6 +1009,8 @@ class TestPathSourceConversion:
         assert "File saved" in result or str(output_file) in result
 
 
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit

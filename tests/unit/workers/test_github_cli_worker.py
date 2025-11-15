@@ -29,6 +29,8 @@ def github_worker():
 @pytest.mark.fr_036
 @pytest.mark.fr_037
 @pytest.mark.fr_038
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -57,6 +59,8 @@ class TestGitHubCLIWorkerInitialization:
 @pytest.mark.fr_036
 @pytest.mark.fr_037
 @pytest.mark.fr_038
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -234,6 +238,8 @@ class TestGitHubCLIWorkerCommands:
 @pytest.mark.fr_036
 @pytest.mark.fr_037
 @pytest.mark.fr_038
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -340,6 +346,8 @@ class TestGitHubCLIWorkerPullRequests:
 @pytest.mark.fr_036
 @pytest.mark.fr_037
 @pytest.mark.fr_038
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -440,6 +448,8 @@ class TestGitHubCLIWorkerIssues:
 @pytest.mark.fr_036
 @pytest.mark.fr_037
 @pytest.mark.fr_038
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -517,6 +527,8 @@ class TestGitHubCLIWorkerRepository:
 @pytest.mark.fr_036
 @pytest.mark.fr_037
 @pytest.mark.fr_038
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -566,6 +578,8 @@ class TestGitHubCLIWorkerCancellation:
 @pytest.mark.fr_036
 @pytest.mark.fr_037
 @pytest.mark.fr_038
+
+@pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
