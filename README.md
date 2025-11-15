@@ -1,6 +1,6 @@
 # AsciiDoc Artisan
 
-**Version 2.0.0** | November 2025
+**Version 2.0.2** | November 2025
 
 A smart program for writing papers. Very fast. Has smart help.
 
@@ -458,14 +458,20 @@ Need more help?
 
 ## Version
 
-**Current Version**: 2.0.0 (Complete)
+**Current Version**: 2.0.2 (Complete)
+
+**What's New in v2.0.2:**
+- Modern Python code (3.12+ type hints)
+- Better code quality (all checks pass)
+- Faster and cleaner code
+- 5,479 tests total (96.4% coverage)
+- 204 tests passing (100% pass rate)
 
 **What's New in v2.0.0:**
 - Smart writing help (auto-complete)
 - Error checking (finds mistakes)
 - Paper plans (templates)
 - Very fast (0.586 seconds to start)
-- 4,092 tests passing (96.4% coverage)
 
 **What's New in v1.9.0:**
 - Enhanced Git Status Display (real-time updates)

@@ -1,7 +1,7 @@
 # AsciiDoc Artisan Documentation
 
-**Last Updated:** November 6, 2025
-**Version:** 1.9.0
+**Last Updated:** November 15, 2025
+**Version:** 2.0.2
 
 Welcome to the AsciiDoc Artisan documentation hub. This index will help you find the right documentation for your needs.
 
