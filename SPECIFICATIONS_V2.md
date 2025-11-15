@@ -4330,6 +4330,310 @@ class MainWindow(QMainWindow):
 
 ---
 
+## FR-062: Fast Startup
+
+**Category:** Performance | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/main.py`, `src/asciidoc_artisan/ui/main_window.py`
+
+### Description
+Fast application startup (<1s target, 0.586s achieved). Lazy loading, deferred initialization, optimized imports. Measured 0.586s on standard hardware.
+
+### Acceptance Criteria
+- [x] Startup time <1 second | [x] Measured: 0.586s achieved
+- [x] Lazy load non-critical modules | [x] Deferred worker initialization
+- [x] GPU detection cached (24hr) | [x] Optimized import order
+- [x] No blocking operations on startup | [x] Splash screen (optional, <100ms)
+
+### API Contract
+```python
+def main() -> int:
+    """Application entry point with optimized startup."""
+    # Lazy imports, deferred init, fast path to window show
+```
+
+### Test Requirements
+**Min Tests:** 8 | **Coverage:** 80%+ | **Types:** Unit (4), Performance (4)
+
+---
+
+## FR-063: Worker Pool
+
+**Category:** Performance | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/workers/optimized_worker_pool.py`
+
+### Description
+Optimized thread pool for background tasks. Priority queue, task cancellation, dynamic sizing. Prevents UI blocking, efficient resource use.
+
+### Acceptance Criteria
+- [x] Priority queue (high/normal/low) | [x] Task cancellation support
+- [x] Dynamic thread pool sizing | [x] Thread reuse (no repeated creation)
+- [x] Max threads: 8 (configurable) | [x] Task metadata tracking
+- [x] Background tasks don't block UI | [x] Graceful shutdown
+
+### API Contract
+```python
+class OptimizedWorkerPool:
+    def submit_task(self, task: Callable, priority: TaskPriority = TaskPriority.NORMAL) -> str:
+        """Submit task to pool.
+
+        Returns:
+            Task ID for tracking/cancellation
+        """
+    def cancel_task(self, task_id: str) -> bool:
+        """Cancel pending or running task."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 90%+ | **Types:** Unit (9), Integration (4), Concurrency (2)
+
+---
+
+## FR-064: Async I/O
+
+**Category:** Performance | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/workers/*_worker.py`
+
+### Description
+Async file I/O for large documents. Non-blocking reads/writes, progress callbacks. Prevents UI freezing on 10MB+ files.
+
+### Acceptance Criteria
+- [x] Async file read (QThread) | [x] Async file write (QThread)
+- [x] Progress callbacks (% complete) | [x] Cancellable operations
+- [x] Handle 10MB+ files without blocking | [x] Timeout: 60s for large files
+- [x] Error handling and recovery
+
+### API Contract
+```python
+class FileOperationsManager:
+    def read_file_async(self, path: Path, callback: Callable[[str], None]) -> None:
+        """Read file asynchronously."""
+    def write_file_async(self, path: Path, content: str, callback: Callable[[bool], None]) -> None:
+        """Write file asynchronously."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Integration (3), Performance (2)
+
+---
+
+## FR-065: Resource Monitoring
+
+**Category:** Performance | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.7.0
+**Implementation:** `src/asciidoc_artisan/core/resource_monitor.py`
+
+### Description
+Monitor CPU, memory, thread usage. Optional debug panel showing real-time metrics. Helps identify performance bottlenecks.
+
+### Acceptance Criteria
+- [x] Monitor CPU usage | [x] Monitor memory usage (MB)
+- [x] Monitor thread count | [x] Monitor worker pool queue size
+- [x] Debug panel (toggle with F12) | [x] Update interval: 1 second
+- [x] Log warnings if memory >500MB | [x] Export metrics to CSV
+
+### API Contract
+```python
+class ResourceMonitor:
+    def get_cpu_usage(self) -> float:
+        """Get CPU usage percentage."""
+    def get_memory_usage(self) -> int:
+        """Get memory usage in MB."""
+    def get_metrics(self) -> dict[str, Any]:
+        """Get all metrics."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 80%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-066: Memory Optimization
+
+**Category:** Performance | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.5.0
+**Implementation:** Multiple files
+
+### Description
+Memory optimizations: object pooling, weak references, cache limits. Target <200MB for typical documents, <500MB for large docs.
+
+### Acceptance Criteria
+- [x] Memory <200MB for typical docs (<1MB) | [x] Memory <500MB for large docs (10MB+)
+- [x] LRU caches with size limits | [x] Weak references for non-critical data
+- [x] Object pooling for frequently created objects | [x] Explicit cleanup on file close
+- [x] No memory leaks (tested with 100 open/close cycles)
+
+### API Contract
+```python
+# Cache size limits enforced across codebase
+BLOCK_CACHE_MAX_SIZE = 100  # blocks
+GPU_CACHE_TTL = 24 * 3600   # 24 hours
+WORD_CACHE_MAX_SIZE = 1000  # words
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 80%+ | **Types:** Unit (7), Performance (5)
+
+---
+
+## FR-067: Cache Strategy
+
+**Category:** Performance | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/workers/incremental_renderer.py`
+
+### Description
+Multi-level caching: block cache (LRU 100 blocks), GPU detection (24hr), spell check words (LRU 1K). MD5 hashing for invalidation.
+
+### Acceptance Criteria
+- [x] Block cache: LRU, 100 blocks max | [x] GPU detection cache: 24 hours
+- [x] Spell check word cache: LRU, 1000 words | [x] MD5 hashing for cache keys
+- [x] Cache hit rate >80% for typical editing | [x] Cache invalidation on content change
+- [x] Cache persistence optional
+
+### API Contract
+```python
+class BlockCache:
+    def __init__(self, max_size: int = 100):
+        """Initialize LRU cache."""
+    def get(self, key: str) -> str | None:
+        """Get cached value."""
+    def put(self, key: str, value: str) -> None:
+        """Store value in cache."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 90%+ | **Types:** Unit (10), Performance (5)
+
+---
+
+## FR-067a: Incremental Rendering
+
+**Category:** Performance | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-018, FR-067 | **Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/workers/incremental_renderer.py`
+
+### Description
+Incremental preview rendering using block-based cache. Only re-render changed blocks. 10-50x speedup for large docs with small edits.
+
+### Acceptance Criteria
+- [x] Block-based document splitting | [x] MD5 hashing for change detection
+- [x] Re-render only changed blocks | [x] LRU cache (100 blocks)
+- [x] 10-50x speedup for incremental edits | [x] Fallback to full render if >50% changed
+- [x] Performance <100ms for incremental render
+
+### API Contract
+```python
+class IncrementalPreviewRenderer:
+    def render_incremental(self, content: str, previous_content: str | None = None) -> str:
+        """Render only changed blocks."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 90%+ | **Types:** Unit (10), Performance (5)
+
+---
+
+## FR-067b: Predictive Rendering
+
+**Category:** Performance | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** FR-018 | **Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/workers/predictive_renderer.py`
+
+### Description
+Predict which blocks user will edit next based on cursor position and scroll. Pre-render predicted blocks in background.
+
+### Acceptance Criteria
+- [x] Track cursor position and scroll | [x] Predict next 3 blocks to edit
+- [x] Pre-render predicted blocks in background | [x] Cache pre-rendered blocks
+- [x] Fallback to on-demand if prediction wrong | [x] Don't block UI for predictions
+- [x] Improve perceived performance for sequential editing
+
+### API Contract
+```python
+class PredictiveRenderer:
+    def predict_next_blocks(self, cursor_position: int, scroll_position: int) -> list[str]:
+        """Predict next blocks to render."""
+    def prerender_blocks(self, block_ids: list[str]) -> None:
+        """Pre-render blocks in background."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 80%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-067c: Render Prioritization
+
+**Category:** Performance | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-063 | **Version:** 1.5.0
+**Implementation:** `src/asciidoc_artisan/workers/optimized_worker_pool.py`
+
+### Description
+Prioritize render tasks: user edits (high), scroll (normal), background (low). Ensure responsive UI during heavy load.
+
+### Acceptance Criteria
+- [x] 3 priority levels: high, normal, low | [x] User edit triggers: high priority
+- [x] Scroll triggers: normal priority | [x] Background/predictive: low priority
+- [x] High priority tasks preempt low priority | [x] UI remains responsive <100ms
+- [x] Queue visualization in debug panel
+
+### API Contract
+```python
+class TaskPriority(IntEnum):
+    LOW = 1
+    NORMAL = 2
+    HIGH = 3
+
+class OptimizedWorkerPool:
+    def submit_task(self, task: Callable, priority: TaskPriority) -> str:
+        """Submit prioritized task."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Integration (3), Performance (2)
+
+---
+
+## FR-068: Path Sanitization
+
+**Category:** Security | **Priority:** Critical | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/core/security.py`
+
+### Description
+Sanitize file paths to prevent directory traversal attacks. Validate paths before file operations. Reject paths with "..", absolute paths outside allowed dirs.
+
+### Acceptance Criteria
+- [x] Reject "../" directory traversal | [x] Reject absolute paths outside project
+- [x] Normalize paths (resolve symlinks) | [x] Validate before all file operations
+- [x] Whitelist allowed directories | [x] Log rejected paths
+- [x] Raise SecurityError for violations
+
+### API Contract
+```python
+def sanitize_path(path: str | Path, base_dir: Path) -> Path:
+    """Sanitize and validate file path.
+
+    Args:
+        path: User-provided path
+        base_dir: Base directory (must stay within)
+
+    Returns:
+        Sanitized absolute path
+
+    Raises:
+        SecurityError: If path escapes base_dir
+    """
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 100%+ | **Types:** Unit (10), Security (5)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
