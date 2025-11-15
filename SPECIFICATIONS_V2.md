@@ -4923,6 +4923,286 @@ class LRUCache:
 
 ---
 
+## FR-085: Auto-Complete Engine
+
+**Category:** Auto-Complete | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/autocomplete_engine.py`
+
+Context-aware auto-complete for AsciiDoc syntax. Ctrl+Space trigger, fuzzy matching, <50ms for 1K items. Suggests headings, attributes, cross-refs.
+
+**Acceptance:** Context-aware suggestions | Fuzzy matching | <50ms latency | 1K+ completion items
+**API:** `class AutoCompleteEngine: def get_completions(context: str) -> list[Completion]`
+**Tests:** 15 tests, 90%+ coverage
+
+---
+
+## FR-086: Completion Popup
+
+**Category:** Auto-Complete | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Popup widget showing completion suggestions. Arrow keys navigate, Enter accepts, Esc cancels. Shows 10 items max.
+
+**Acceptance:** Popup on Ctrl+Space | Arrow navigation | Enter accepts | Max 10 items | Icon + description
+**API:** `class CompletionPopup(QListWidget): def show_completions(items: list[Completion])`
+**Tests:** 12 tests, 85%+ coverage
+
+---
+
+## FR-087: Syntax-Aware Completions
+
+**Category:** Auto-Complete | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+AsciiDoc syntax completions: headings (=), lists (*), attributes (:), cross-refs (<<>>), blocks (----).
+
+**Acceptance:** Heading levels | List types | Attributes | Cross-refs | Code blocks | Tables
+**API:** `def get_syntax_completions(position: int, text: str) -> list[Completion]`
+**Tests:** 20 tests, 90%+ coverage
+
+---
+
+## FR-088: Fuzzy Matching
+
+**Category:** Auto-Complete | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Fuzzy string matching for completions. Ranks by relevance. Supports abbreviations (e.g., "hdr" matches "header").
+
+**Acceptance:** Fuzzy match algorithm | Relevance ranking | Abbreviation support | <10ms for 1K items
+**API:** `def fuzzy_match(query: str, candidates: list[str]) -> list[tuple[str, float]]`
+**Tests:** 15 tests, 95%+ coverage
+
+---
+
+## FR-089: Completion Cache
+
+**Category:** Auto-Complete | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Cache completion items. Invalidate on document change. LRU cache, 1K items max.
+
+**Acceptance:** LRU cache | 1K items | Invalidate on change | Hit rate >80%
+**API:** `class CompletionCache(LRUCache): def get_completions_cached(context: str)`
+**Tests:** 10 tests, 85%+ coverage
+
+---
+
+## FR-090: Custom Completions
+
+**Category:** Auto-Complete | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+User-defined completion snippets. Load from JSON. Supports placeholders ${1}, ${2}.
+
+**Acceptance:** Load from JSON | Placeholders | Tab navigation | Save custom snippets
+**API:** `class CustomCompletions: def add_snippet(trigger: str, template: str)`
+**Tests:** 10 tests, 80%+ coverage
+
+---
+
+## FR-091: Real-Time Syntax Checking
+
+**Category:** Syntax Checking | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/syntax_checker.py`
+
+Real-time AsciiDoc syntax validation. Highlights errors inline. <100ms for 1K lines. F8 to navigate errors.
+
+**Acceptance:** Real-time validation | Inline highlights | <100ms latency | Error list panel | F8 navigation
+**API:** `class SyntaxChecker: def check_syntax(text: str) -> list[SyntaxError]`
+**Tests:** 20 tests, 95%+ coverage
+
+---
+
+## FR-092: Error Highlighting
+
+**Category:** Syntax Checking | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Color-coded error highlights: red (errors), yellow (warnings), blue (info). Squiggly underlines in editor.
+
+**Acceptance:** 3 severity levels | Color-coded | Squiggly underlines | Tooltips with error details
+**API:** `class ErrorHighlighter: def highlight_errors(errors: list[SyntaxError])`
+**Tests:** 12 tests, 90%+ coverage
+
+---
+
+## FR-093: Error Navigation
+
+**Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Navigate errors with F8 (next), Shift+F8 (previous). Jump to error location, show error message.
+
+**Acceptance:** F8 next error | Shift+F8 previous | Jump to location | Show message | Wrap around
+**API:** `def next_error() -> SyntaxError | None`
+**Tests:** 10 tests, 85%+ coverage
+
+---
+
+## FR-094: Error Panel
+
+**Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Error list panel (bottom). Shows all errors with line numbers. Click to jump. Filter by severity.
+
+**Acceptance:** List all errors | Line numbers | Click to jump | Filter by severity | Refresh button
+**API:** `class ErrorPanel(QDockWidget): def update_errors(errors: list[SyntaxError])`
+**Tests:** 10 tests, 80%+ coverage
+
+---
+
+## FR-095: Syntax Rules
+
+**Category:** Syntax Checking | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+AsciiDoc syntax validation rules: heading structure, attribute syntax, cross-ref validity, block delimiters, list consistency.
+
+**Acceptance:** 20+ validation rules | Heading hierarchy | Attributes | Cross-refs | Blocks | Lists
+**API:** `class ValidationRule: def validate(text: str) -> list[SyntaxError]`
+**Tests:** 25 tests, 95%+ coverage
+
+---
+
+## FR-096: Quick Fixes
+
+**Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Suggest quick fixes for common errors. Click lightbulb icon or Ctrl+. to apply fix.
+
+**Acceptance:** 10+ quick fix types | Lightbulb icon | Ctrl+. shortcut | Apply fix | Undo support
+**API:** `class QuickFix: def get_fixes(error: SyntaxError) -> list[Fix]`
+**Tests:** 15 tests, 85%+ coverage
+
+---
+
+## FR-097: Configurable Rules
+
+**Category:** Syntax Checking | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Enable/disable validation rules. Configure rule severity. Save preferences.
+
+**Acceptance:** Enable/disable rules | Configure severity | Preferences UI | Save to settings
+**API:** `class RuleConfig: def set_rule_enabled(rule: str, enabled: bool)`
+**Tests:** 8 tests, 80%+ coverage
+
+---
+
+## FR-098: Performance Optimization
+
+**Category:** Syntax Checking | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Optimize syntax checking: incremental validation, debouncing (200ms), background thread, cancel on type.
+
+**Acceptance:** Incremental validation | 200ms debounce | Background thread | <100ms for 1K lines
+**API:** `def check_incremental(changes: list[Change]) -> list[SyntaxError]`
+**Tests:** 12 tests, 90%+ coverage
+
+---
+
+## FR-099: Error Recovery
+
+**Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Graceful error recovery. Continue validation after error. Don't block on parse failures.
+
+**Acceptance:** Continue after errors | Don't block | Partial validation | Error boundaries
+**API:** `def validate_with_recovery(text: str) -> ValidationResult`
+**Tests:** 10 tests, 85%+ coverage
+
+---
+
+## FR-100: Template System
+
+**Category:** Templates | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/template_manager.py`
+
+Document templates: Article, Book, Report, Resume, Presentation, Letter. New Document → From Template.
+
+**Acceptance:** 6 built-in templates | Template selector dialog | Variables | Preview | Custom templates
+**API:** `class TemplateManager: def create_from_template(name: str, vars: dict) -> str`
+**Tests:** 15 tests, 90%+ coverage
+
+---
+
+## FR-101: Template Variables
+
+**Category:** Templates | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Template variables with Handlebars syntax: {{title}}, {{author}}, {{date}}. Input dialog on template selection.
+
+**Acceptance:** Handlebars syntax | Variable input dialog | Default values | Validation
+**API:** `def substitute_variables(template: str, vars: dict[str, str]) -> str`
+**Tests:** 12 tests, 90%+ coverage
+
+---
+
+## FR-102: Custom Templates
+
+**Category:** Templates | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+User-defined templates. Save current document as template. Load from ~/.local/share/AsciiDocArtisan/templates/.
+
+**Acceptance:** Save as template | Load custom templates | Template metadata | Edit templates
+**API:** `def save_as_template(name: str, content: str, metadata: dict)`
+**Tests:** 10 tests, 85%+ coverage
+
+---
+
+## FR-103: Template Preview
+
+**Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Preview template before applying. Show rendered output in dialog. Edit variables before apply.
+
+**Acceptance:** Preview dialog | Rendered output | Edit variables | Apply/Cancel
+**API:** `class TemplatePreview(QDialog): def show_preview(template: str)`
+**Tests:** 8 tests, 80%+ coverage
+
+---
+
+## FR-104: Template Metadata
+
+**Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Template metadata: name, description, author, category, tags. Display in template selector.
+
+**Acceptance:** Metadata fields | JSON format | Display in selector | Search/filter
+**API:** `class TemplateMetadata: name: str; description: str; author: str; tags: list[str]`
+**Tests:** 8 tests, 80%+ coverage
+
+---
+
+## FR-105: Template Categories
+
+**Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Organize templates by category: Document, Academic, Business, Personal, Technical, Other.
+
+**Acceptance:** 6 categories | Category filter | Sort by category | Custom categories
+**API:** `enum TemplateCategory: DOCUMENT, ACADEMIC, BUSINESS, PERSONAL, TECHNICAL, OTHER`
+**Tests:** 6 tests, 75%+ coverage
+
+---
+
+## FR-106: Template Sharing
+
+**Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+
+Export templates to .zip. Import templates from .zip. Share templates with others.
+
+**Acceptance:** Export to ZIP | Import from ZIP | Include metadata | Validation
+**API:** `def export_template(name: str, path: Path) -> bool`
+**Tests:** 10 tests, 80%+ coverage
+
+---
+
+## FR-107: Template Engine
+
+**Category:** Templates | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/template_engine.py`
+
+Template rendering engine. Handlebars syntax, conditionals, loops. <200ms for typical template.
+
+**Acceptance:** Handlebars syntax | Conditionals {{#if}} | Loops {{#each}} | Helpers | <200ms render
+**API:** `class TemplateEngine: def render(template: str, context: dict) -> str`
+**Tests:** 20 tests, 95%+ coverage
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
