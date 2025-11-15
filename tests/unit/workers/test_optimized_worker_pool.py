@@ -26,6 +26,8 @@ def app():
     return app
 
 
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestCancelableRunnable:
     """Test CancelableRunnable."""
 
@@ -144,6 +146,8 @@ class TestCancelableRunnable:
         assert runnable.is_finished() is True
 
 
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestOptimizedWorkerPool:
     """Test OptimizedWorkerPool."""
 
@@ -397,6 +401,8 @@ class TestOptimizedWorkerPool:
 
 
 @pytest.mark.performance
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestWorkerPoolPerformance:
     """Test worker pool performance."""
 
@@ -493,6 +499,8 @@ class TestWorkerPoolPerformance:
         print(f"\nCancellation: {stats['canceled']} tasks canceled")
 
 
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestExceptionHandling:
     """Test exception handling in worker pool."""
 
@@ -551,6 +559,8 @@ class TestExceptionHandling:
         assert task_id2 != task_id  # Different task
 
 
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestImportFallback:
     """Test import fallback for macOS optimizer."""
 

@@ -1,3 +1,5 @@
+import pytest
+
 """
 Tests for ResourceManager.
 
@@ -14,6 +16,8 @@ from asciidoc_artisan.core.resource_manager import (
 )
 
 
+@pytest.mark.fr_065
+@pytest.mark.unit
 class TestResourceManager:
     """Test ResourceManager."""
 
@@ -186,6 +190,8 @@ class TestResourceManager:
         assert self.rm._cleaned_up is True
 
 
+@pytest.mark.fr_065
+@pytest.mark.unit
 class TestTempFileContext:
     """Test TempFileContext."""
 
@@ -225,6 +231,8 @@ class TestTempFileContext:
         assert not os.path.exists(temp_path)
 
 
+@pytest.mark.fr_065
+@pytest.mark.unit
 class TestTempDirectoryContext:
     """Test TempDirectoryContext."""
 
@@ -267,6 +275,8 @@ class TestTempDirectoryContext:
         assert not os.path.exists(temp_path)
 
 
+@pytest.mark.fr_065
+@pytest.mark.unit
 class TestResourceManagerEdgeCases:
     """Test edge cases and error handling in ResourceManager."""
 

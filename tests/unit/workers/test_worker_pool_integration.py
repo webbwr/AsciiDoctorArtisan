@@ -19,6 +19,8 @@ from asciidoc_artisan.workers import (
 )
 
 
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestOptimizedWorkerPool:
     """Test the OptimizedWorkerPool class."""
 
@@ -180,6 +182,8 @@ class TestOptimizedWorkerPool:
         assert stats["coalesced"] >= 1
 
 
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestWorkerTasks:
     """Test specific worker task types."""
 
@@ -223,6 +227,8 @@ class TestWorkerTasks:
             assert task.priority == TaskPriority.NORMAL
 
 
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestWorkerManagerIntegration:
     """Test WorkerManager with worker pool."""
 

@@ -1,3 +1,5 @@
+import pytest
+
 """
 Tests for core.resource_monitor module.
 
@@ -13,6 +15,8 @@ from asciidoc_artisan.core.resource_monitor import (
 )
 
 
+@pytest.mark.fr_065
+@pytest.mark.unit
 class TestResourceMetrics:
     """Test suite for ResourceMetrics dataclass."""
 
@@ -35,6 +39,8 @@ class TestResourceMetrics:
         assert metrics.recommended_debounce_ms == 350
 
 
+@pytest.mark.fr_065
+@pytest.mark.unit
 class TestDocumentMetrics:
     """Test suite for DocumentMetrics dataclass."""
 
@@ -58,6 +64,8 @@ class TestDocumentMetrics:
         assert metrics.is_large is True
 
 
+@pytest.mark.fr_065
+@pytest.mark.unit
 class TestResourceMonitor:
     """Test suite for ResourceMonitor class."""
 

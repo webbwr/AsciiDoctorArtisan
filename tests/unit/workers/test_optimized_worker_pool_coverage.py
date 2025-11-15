@@ -18,6 +18,8 @@ from asciidoc_artisan.workers.optimized_worker_pool import OptimizedWorkerPool
 
 @pytest.mark.fr_076
 @pytest.mark.unit
+@pytest.mark.fr_063
+@pytest.mark.performance
 class TestOptimizedWorkerPoolCoverage:
     """Tests to achieve 100% coverage for OptimizedWorkerPool."""
 
