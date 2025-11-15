@@ -16,6 +16,13 @@ from asciidoc_artisan.core.syntax_checker import (
 )
 
 
+
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_095
+@pytest.mark.fr_097
+@pytest.mark.fr_098
+@pytest.mark.fr_099
 @pytest.mark.unit
 class TestValidationContext:
     """Test ValidationContext caching and parsing."""
@@ -143,6 +150,13 @@ class TestValidationContext:
         assert context.should_validate_line(2) is False
 
 
+
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_095
+@pytest.mark.fr_097
+@pytest.mark.fr_098
+@pytest.mark.fr_099
 @pytest.mark.unit
 class TestSyntaxChecker:
     """Test SyntaxChecker validation engine."""
@@ -394,6 +408,13 @@ class TestSyntaxChecker:
         assert "CustomRuleB" in names
 
 
+
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_095
+@pytest.mark.fr_097
+@pytest.mark.fr_098
+@pytest.mark.fr_099
 @pytest.mark.unit
 class TestConvenienceFunctions:
     """Test standalone convenience functions."""
@@ -505,6 +526,13 @@ class TestConvenienceFunctions:
         assert is_inside_code_block(lines, 0) is False
 
 
+
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_095
+@pytest.mark.fr_097
+@pytest.mark.fr_098
+@pytest.mark.fr_099
 @pytest.mark.unit
 class TestCoverageImprovements:
     """Tests to achieve 100% coverage."""

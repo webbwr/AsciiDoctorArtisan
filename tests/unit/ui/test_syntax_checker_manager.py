@@ -34,6 +34,12 @@ def manager(editor, checker):
     return SyntaxCheckerManager(editor, checker)
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestSyntaxCheckerInitialization:
     """Test manager initialization."""
 
@@ -55,6 +61,12 @@ class TestSyntaxCheckerInitialization:
         assert manager.timer.isSingleShot() is True
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestSyntaxCheckingEnable:
     """Test enabling/disabling syntax checking."""
 
@@ -81,6 +93,12 @@ class TestSyntaxCheckingEnable:
         assert len(manager.errors) == 0 or manager.enabled is False
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestErrorDetection:
     """Test error detection functionality."""
 
@@ -111,6 +129,12 @@ class TestErrorDetection:
         assert not manager.timer.isActive()
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestErrorUnderlines:
     """Test error underline visual feedback."""
 
@@ -161,6 +185,12 @@ class TestErrorUnderlines:
         assert len(selections) >= 0
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestErrorNavigation:
     """Test jump-to-error navigation."""
 
@@ -263,6 +293,12 @@ class TestErrorNavigation:
         assert manager.current_error_index == 0
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestErrorSignals:
     """Test error change signals."""
 
@@ -282,6 +318,12 @@ class TestErrorSignals:
             manager.errors_changed.emit(len(manager.errors))
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestRealTimeChecking:
     """Test real-time syntax checking."""
 
@@ -310,6 +352,12 @@ class TestRealTimeChecking:
         # Should have checked only once after debounce
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestGetErrors:
     """Test retrieving error information."""
 
@@ -367,6 +415,12 @@ class TestGetErrors:
         assert errors[0].code == "E001"
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestGetErrorAtCursor:
     """Test getting error at cursor position."""
 
@@ -418,6 +472,12 @@ class TestGetErrorAtCursor:
         assert error is None
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestClearErrors:
     """Test clearing errors."""
 
@@ -452,6 +512,12 @@ class TestClearErrors:
         assert len(manager.errors) == 0
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestValidateNow:
     """Test immediate validation."""
 
@@ -479,6 +545,12 @@ class TestValidateNow:
         assert not manager.timer.isActive()
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestInfoSeverityUnderlines:
     """Test INFO severity underlines are shown with blue color."""
 
@@ -501,6 +573,12 @@ class TestInfoSeverityUnderlines:
         assert len(selections) > 0
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestNavigationEdgeCases:
     """Test navigation edge cases."""
 
@@ -529,6 +607,12 @@ class TestNavigationEdgeCases:
         assert manager.current_error_index == 0
 
 
+@pytest.mark.fr_091
+@pytest.mark.fr_092
+@pytest.mark.fr_093
+@pytest.mark.fr_094
+@pytest.mark.fr_098
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error handling."""
 

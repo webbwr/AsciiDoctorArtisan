@@ -24,6 +24,10 @@ from asciidoc_artisan.core.syntax_validators import (
 )
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestUnclosedBlockRule:
     """Test UnclosedBlockRule (E001)."""
@@ -145,6 +149,10 @@ class TestUnclosedBlockRule:
         assert len(errors) == 0
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestInvalidAttributeRule:
     """Test InvalidAttributeRule (E002)."""
@@ -219,6 +227,10 @@ class TestInvalidAttributeRule:
         assert errors[0].line == 1
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestMalformedXRefRule:
     """Test MalformedXRefRule (E003)."""
@@ -282,6 +294,10 @@ class TestMalformedXRefRule:
         assert errors[0].line == 0
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestBrokenXRefRule:
     """Test BrokenXRefRule (W001)."""
@@ -355,6 +371,10 @@ class TestBrokenXRefRule:
         assert errors[0].line == 1
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestMissingIncludeRule:
     """Test MissingIncludeRule (W002)."""
@@ -397,6 +417,10 @@ class TestMissingIncludeRule:
         assert errors[0].line == 0
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestUndefinedAttributeRefRule:
     """Test UndefinedAttributeRefRule (W003)."""
@@ -469,6 +493,10 @@ class TestUndefinedAttributeRefRule:
         assert errors[0].line == 1
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestDuplicateAnchorRule:
     """Test DuplicateAnchorRule (W004)."""
@@ -554,6 +582,10 @@ class TestDuplicateAnchorRule:
         assert errors[0].line == 1
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestEmptyHeadingRule:
     """Test EmptyHeadingRule (W005)."""
@@ -614,6 +646,10 @@ class TestEmptyHeadingRule:
         assert errors[0].line == 0
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestTrailingWhitespaceRule:
     """Test TrailingWhitespaceRule (W029)."""
@@ -679,6 +715,10 @@ class TestTrailingWhitespaceRule:
         assert errors[0].line == 1
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestMissingDocumentTitleRule:
     """Test MissingDocumentTitleRule (I002)."""
@@ -730,6 +770,10 @@ class TestMissingDocumentTitleRule:
         assert "= Document Title" in fix.edits[0].new_text
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestMissingAuthorVersionRule:
     """Test MissingAuthorVersionRule (I003)."""
@@ -792,6 +836,10 @@ class TestMissingAuthorVersionRule:
         assert ":version:" in fix.edits[0].new_text
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 class TestBuiltInRulesRegistry:
     """Test BUILT_IN_RULES registry."""
@@ -832,6 +880,10 @@ class TestBuiltInRulesRegistry:
             assert isinstance(errors, list)
 
 
+
+@pytest.mark.fr_095
+@pytest.mark.fr_096
+@pytest.mark.fr_097
 @pytest.mark.unit
 def test_type_checking_import():
     """Test TYPE_CHECKING import for ValidationRule (line 39)."""
