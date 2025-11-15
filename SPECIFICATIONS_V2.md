@@ -3785,6 +3785,176 @@ class ChatPanelWidget(QWidget):
 
 ---
 
+## FR-045: Find Bar
+
+**Category:** Find & Replace | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-001 (Text Editor) | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/ui/find_bar_widget.py`
+
+### Description
+VSCode-style find bar at bottom of editor. Case-sensitive, whole word, regex modes. F3/Shift+F3 navigation, Esc to hide. Highlights all matches.
+
+### Acceptance Criteria
+- [x] Find bar at bottom of editor | [x] Case-sensitive toggle
+- [x] Whole word match toggle | [x] Regex mode toggle
+- [x] Highlight all matches (yellow background) | [x] Current match (orange background)
+- [x] Match count display (e.g., "3 of 12") | [x] F3 (next), Shift+F3 (previous)
+- [x] Ctrl+F to show/focus | [x] Esc to hide | [x] Wrap search
+
+### API Contract
+```python
+class FindBarWidget(QWidget):
+    def __init__(self, parent: QWidget, editor: QPlainTextEdit):
+        """Initialize find bar."""
+    def show_and_focus(self) -> None:
+        """Show bar and focus search input."""
+    def find_next(self) -> bool:
+        """Find next match."""
+    def find_previous(self) -> bool:
+        """Find previous match."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 90%+ | **Types:** Unit (9), Integration (6)
+
+---
+
+## FR-046: Replace Functionality
+
+**Category:** Find & Replace | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** FR-045 | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/ui/find_bar_widget.py`
+
+### Description
+Replace current match or all matches. Confirm before replace-all. Undo support. Ctrl+H shortcut.
+
+### Acceptance Criteria
+- [x] Replace input field | [x] Replace button (current match)
+- [x] Replace All button | [x] Confirm dialog for replace-all
+- [x] Undo support (single undo for replace-all) | [x] Ctrl+H to show replace
+- [x] Show replace count (e.g., "12 replacements") | [x] Disable if no matches
+
+### API Contract
+```python
+class FindBarWidget(QWidget):
+    def replace_current(self) -> bool:
+        """Replace current match."""
+    def replace_all(self) -> int:
+        """Replace all matches.
+
+        Returns:
+            Number of replacements made
+        """
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 90%+ | **Types:** Unit (7), Integration (5)
+
+---
+
+## FR-047: Search Engine
+
+**Category:** Find & Replace | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/core/search_engine.py`
+
+### Description
+Core search engine with regex, case-insensitive, whole-word modes. Efficient for large documents (10K+ lines). <50ms for 10K lines.
+
+### Acceptance Criteria
+- [x] Plain text search | [x] Case-insensitive search
+- [x] Whole word matching | [x] Regex pattern matching
+- [x] Find all matches (returns positions) | [x] Performance <50ms for 10K lines
+- [x] Handle invalid regex gracefully | [x] Empty pattern returns empty results
+
+### API Contract
+```python
+class SearchEngine:
+    def find_all(
+        self,
+        text: str,
+        pattern: str,
+        case_sensitive: bool = False,
+        whole_word: bool = False,
+        regex: bool = False
+    ) -> list[tuple[int, int]]:
+        """Find all matches.
+
+        Returns:
+            List of (start_pos, end_pos) tuples
+        """
+```
+
+### Test Requirements
+**Min Tests:** 20 | **Coverage:** 95%+ | **Types:** Unit (15), Performance (3), Edge cases (2)
+
+---
+
+## FR-048: Find & Replace UI Integration
+
+**Category:** Find & Replace | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-045, FR-046 | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/ui/find_bar_widget.py`
+
+### Description
+Integrate find/replace with editor. Highlight matches, scroll to current match, preserve cursor position, keyboard navigation.
+
+### Acceptance Criteria
+- [x] Highlight matches in editor | [x] Scroll to current match (centered)
+- [x] Preserve editor selection after close | [x] Clear highlights on close
+- [x] Incremental search (highlight while typing) | [x] Debounce highlighting (100ms)
+- [x] Status text: "No matches", "X of Y", "Invalid regex"
+
+### API Contract
+```python
+class FindBarWidget(QWidget):
+    def highlight_matches(self, matches: list[tuple[int, int]]) -> None:
+        """Highlight all matches in editor."""
+    def scroll_to_match(self, match_index: int) -> None:
+        """Scroll editor to show match."""
+    def clear_highlights(self) -> None:
+        """Remove all match highlights."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-049: Search Performance Optimization
+
+**Category:** Find & Replace | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** FR-047 | **Version:** 1.8.0
+**Implementation:** `src/asciidoc_artisan/core/search_engine.py`
+
+### Description
+Optimize search for large documents. Incremental search, debouncing, background thread for 50K+ lines. Cancel long-running searches.
+
+### Acceptance Criteria
+- [x] Debounce search input (100ms) | [x] Incremental search (update as typing)
+- [x] Background search for 50K+ lines | [x] Cancel button for long searches
+- [x] Performance <50ms for 10K lines | [x] Performance <500ms for 50K lines
+- [x] Progress indicator for long searches | [x] Don't block UI during search
+
+### API Contract
+```python
+class SearchEngine:
+    def search_async(
+        self,
+        text: str,
+        pattern: str,
+        callback: Callable[[list[tuple[int, int]]], None]
+    ) -> None:
+        """Async search for large documents."""
+    def cancel_search(self) -> None:
+        """Cancel ongoing search."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Performance (5)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
