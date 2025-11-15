@@ -27,6 +27,12 @@ from asciidoc_artisan.ui.github_dialogs import (
 # === VALIDATION HELPER TESTS ===
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestValidationHelpers:
     """Test validation helper functions."""
@@ -126,6 +132,12 @@ class TestValidationHelpers:
 # === CREATE PULL REQUEST DIALOG TESTS ===
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestCreatePullRequestDialog:
     """Test CreatePullRequestDialog for PR creation."""
@@ -446,6 +458,12 @@ class TestCreatePullRequestDialog:
         assert dialog.head_input.isEditable() is True
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestPullRequestListDialog:
     """Test PullRequestListDialog for viewing PRs."""
@@ -852,6 +870,12 @@ class TestPullRequestListDialog:
         assert dialog._get_data_attribute_name() == "pr_data"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestCreateIssueDialog:
     """Test CreateIssueDialog for issue creation."""
@@ -1048,6 +1072,12 @@ class TestCreateIssueDialog:
         assert data["labels"] == "bug, feature"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestIssueListDialog:
     """Test IssueListDialog for viewing issues."""
@@ -1449,6 +1479,12 @@ class TestIssueListDialog:
         assert dialog._get_data_attribute_name() == "issue_data"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestDialogIntegration:
     """Test cross-dialog integration scenarios."""

@@ -18,6 +18,12 @@ def github_worker():
     return GitHubCLIWorker()
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -175,6 +181,12 @@ class TestDispatchGitHubOperation:
         )
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -279,6 +291,12 @@ class TestParseGhError:
         assert len(result) < 250  # Should be truncated
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -472,6 +490,12 @@ class TestRunGhCommandEdgeCases:
         assert result.operation == "unknown"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit

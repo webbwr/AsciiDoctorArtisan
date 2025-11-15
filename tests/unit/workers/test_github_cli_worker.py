@@ -23,6 +23,12 @@ def github_worker():
     # No thread cleanup needed since GitHubCLIWorker is QObject, not QThread
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -45,6 +51,12 @@ class TestGitHubCLIWorkerInitialization:
         assert hasattr(github_worker, "_cancelled")
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -216,6 +228,12 @@ class TestGitHubCLIWorkerCommands:
         assert result.data["output"] == "This is not valid JSON"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -316,6 +334,12 @@ class TestGitHubCLIWorkerPullRequests:
         assert len(result.data) == 3
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -410,6 +434,12 @@ class TestGitHubCLIWorkerIssues:
         assert result.data[0]["state"] == "closed"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -481,6 +511,12 @@ class TestGitHubCLIWorkerRepository:
         assert "remote" in result.error.lower()
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit
@@ -524,6 +560,12 @@ class TestGitHubCLIWorkerCancellation:
         assert not mock_run.called
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_071
 @pytest.mark.security
 @pytest.mark.unit

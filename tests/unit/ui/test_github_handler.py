@@ -95,6 +95,12 @@ def github_handler(
     # No cleanup needed here since we're using Mocks
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerInitialization:
     """Test GitHubHandler initialization."""
@@ -126,6 +132,12 @@ class TestGitHubHandlerInitialization:
         assert hasattr(github_handler, "git_handler")
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerReentrancy:
     """Test reentrancy guards for concurrent operations."""
@@ -177,6 +189,12 @@ class TestGitHubHandlerReentrancy:
         assert github_handler.is_processing is False
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerPullRequests:
     """Test pull request operations."""
@@ -273,6 +291,12 @@ class TestGitHubHandlerPullRequests:
         assert kwargs["working_dir"] == "/test/repo"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerIssues:
     """Test issue operations."""
@@ -349,6 +373,12 @@ class TestGitHubHandlerIssues:
         assert kwargs["working_dir"] == "/test/repo"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerRepository:
     """Test repository operations."""
@@ -395,6 +425,12 @@ class TestGitHubHandlerRepository:
         assert "Test repository" in caplog.text
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerErrorHandling:
     """Test error handling."""
@@ -460,6 +496,12 @@ class TestGitHubHandlerErrorHandling:
         assert github_handler.status_manager.show_message.called
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerSignalSlots:
     """Test signal/slot connections."""
@@ -501,6 +543,12 @@ class TestGitHubHandlerSignalSlots:
         assert github_handler.status_manager.show_message.called
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerStateManagement:
     """Test state management."""
@@ -600,6 +648,12 @@ class TestGitHubHandlerIntegration:
         assert kwargs["title"] == "Test Issue"
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerCleanup:
     """Test cleanup and resource management."""
@@ -641,6 +695,12 @@ class TestGitHubHandlerCleanup:
         assert refcount_before > 0  # Has at least one reference
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerInitializeAutoFetch:
     """Test initialize method auto-fetches repo info (lines 85-88)."""
@@ -704,6 +764,12 @@ class TestGitHubHandlerInitializeAutoFetch:
                 mock_get_repo.assert_not_called()
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerEarlyReturns:
     """Test early returns when not ready (lines 138, 174, 214, 255)."""
@@ -801,6 +867,12 @@ class TestGitHubHandlerEarlyReturns:
             assert not handler.is_processing
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerResultDispatching:
     """Test result handler dispatching (lines 296-303)."""
@@ -931,6 +1003,12 @@ class TestGitHubHandlerResultDispatching:
             mock_handler.assert_called_once_with(result)
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerResultHandlers:
     """Test individual result handler methods (lines 336-365)."""
@@ -1110,6 +1188,12 @@ class TestGitHubHandlerResultHandlers:
             mock_dialog.set_issue_data.assert_called_once_with(issue_data)
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerRepoInfoDialog:
     """Test repository info dialog (lines 404-422)."""
@@ -1203,6 +1287,12 @@ class TestGitHubHandlerRepoInfoDialog:
             mock_msgbox.assert_not_called()
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.unit
 class TestGitHubHandlerHelperMethods:
     """Test helper methods (lines 466, 470)."""

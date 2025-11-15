@@ -20,6 +20,12 @@ def github_worker():
     return GitHubCLIWorker()
 
 
+
+@pytest.mark.fr_034
+@pytest.mark.fr_035
+@pytest.mark.fr_036
+@pytest.mark.fr_037
+@pytest.mark.fr_038
 @pytest.mark.fr_076
 @pytest.mark.unit
 class TestGitHubCLIWorkerCoverage:
