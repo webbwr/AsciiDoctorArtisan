@@ -34,6 +34,7 @@ def mock_parent_window():
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestWebEngineHandlerBasics:
     """Test suite for WebEngineHandler basic functionality."""
@@ -73,6 +74,7 @@ class TestWebEngineHandlerBasics:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestHandlePreviewComplete:
     """Test suite for handle_preview_complete method."""
@@ -120,6 +122,7 @@ class TestHandlePreviewComplete:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestScrollSynchronization:
     """Test suite for scroll synchronization."""
@@ -201,6 +204,7 @@ class TestScrollSynchronization:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestCreatePreviewWidget:
     """Test suite for create_preview_widget factory function."""
@@ -294,6 +298,7 @@ class TestCreatePreviewWidget:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestCreatePreviewHandler:
     """Test suite for create_preview_handler factory function."""
@@ -338,6 +343,7 @@ class TestCreatePreviewHandler:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestWebEngineAvailability:
     """Test suite for WebEngine availability detection."""
@@ -349,6 +355,7 @@ class TestWebEngineAvailability:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestHTMLContentVariations:
     """Test suite for different HTML content types."""
@@ -432,6 +439,7 @@ class TestHTMLContentVariations:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestMultipleUpdates:
     """Test suite for consecutive preview updates."""
@@ -475,6 +483,7 @@ class TestMultipleUpdates:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestScrollPositionEdgeCases:
     """Test suite for scroll position boundary conditions."""
@@ -554,6 +563,7 @@ class TestScrollPositionEdgeCases:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestCSSStyleGeneration:
     """Test suite for CSS style generation."""
@@ -597,6 +607,7 @@ class TestCSSStyleGeneration:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestBaseURLHandling:
     """Test suite for base URL configuration."""
@@ -625,6 +636,7 @@ class TestBaseURLHandling:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestSignalEmission:
     """Test suite for signal emission."""
@@ -682,6 +694,7 @@ class TestSignalEmission:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestGPUDetectionEdgeCases:
     """Test suite for GPU detection scenarios."""
@@ -742,6 +755,7 @@ class TestGPUDetectionEdgeCases:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestWebEngineSettingsConfiguration:
     """Test suite for QWebEngineView settings."""
@@ -798,6 +812,7 @@ class TestWebEngineSettingsConfiguration:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestHandlerInstanceManagement:
     """Test suite for handler instance lifecycle."""
@@ -849,6 +864,7 @@ class TestHandlerInstanceManagement:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestErrorHandling:
     """Test suite for error conditions."""
@@ -908,6 +924,7 @@ class TestErrorHandling:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestFactoryFunctionEdgeCases:
     """Test suite for factory function edge cases."""
@@ -965,6 +982,7 @@ class TestFactoryFunctionEdgeCases:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestStateManagement:
     """Test suite for handler state management."""
@@ -1043,6 +1061,7 @@ class TestStateManagement:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestPerformanceEdgeCases:
     """Test suite for performance-related edge cases."""
@@ -1093,6 +1112,7 @@ class TestPerformanceEdgeCases:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestGetPreviewWidgetInfo:
     """Test suite for get_preview_widget_info function."""

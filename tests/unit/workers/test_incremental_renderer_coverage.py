@@ -16,6 +16,7 @@ from asciidoc_artisan.workers.incremental_renderer import (
 )
 
 
+@pytest.mark.fr_018
 @pytest.mark.fr_076
 @pytest.mark.unit
 class TestIncrementalRendererCoverage:

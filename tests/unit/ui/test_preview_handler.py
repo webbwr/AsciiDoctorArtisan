@@ -40,6 +40,7 @@ def mock_parent_window():
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestPreviewHandlerBasics:
     """Test suite for PreviewHandler basic functionality."""
@@ -79,6 +80,7 @@ class TestPreviewHandlerBasics:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestHandlePreviewComplete:
     """Test suite for handle_preview_complete method."""
@@ -153,6 +155,7 @@ class TestHandlePreviewComplete:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestScrollSynchronization:
     """Test suite for scroll synchronization methods."""
@@ -299,6 +302,7 @@ class TestScrollSynchronization:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestScrollPercentageCalculation:
     """Test suite for scroll percentage calculations."""
@@ -353,6 +357,7 @@ class TestScrollPercentageCalculation:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestClearPreview:
     """Test suite for clear_preview method."""
@@ -383,6 +388,7 @@ class TestClearPreview:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestCSSStyling:
     """Test suite for CSS styling and wrapping."""
@@ -483,6 +489,7 @@ class TestCSSStyling:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestRenderTiming:
     """Test suite for render timing and performance metrics."""
@@ -560,6 +567,7 @@ class TestRenderTiming:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestSignalEmissionsEdgeCases:
     """Test suite for signal emission edge cases."""
@@ -633,6 +641,7 @@ class TestSignalEmissionsEdgeCases:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestScrollExtremeValues:
     """Test suite for extreme scroll values."""
@@ -690,6 +699,7 @@ class TestScrollExtremeValues:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestWidgetStateManagement:
     """Test suite for widget state management."""
@@ -771,6 +781,7 @@ class TestWidgetStateManagement:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestErrorHandling:
     """Test suite for error handling."""
@@ -793,6 +804,7 @@ class TestErrorHandling:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestHTMLProcessingEdgeCases:
     """Test suite for HTML processing edge cases."""
@@ -863,6 +875,7 @@ class TestHTMLProcessingEdgeCases:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestSyncFlagLifecycle:
     """Test suite for sync flag lifecycle management."""
@@ -948,6 +961,7 @@ class TestSyncFlagLifecycle:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestScrollbarBehaviorDetails:
     """Test suite for scrollbar behavior details."""
@@ -1014,6 +1028,7 @@ class TestScrollbarBehaviorDetails:
 
 
 @pytest.mark.fr_015
+@pytest.mark.fr_019
 @pytest.mark.unit
 class TestMemoryManagementPreview:
     """Test suite for memory management with preview content."""

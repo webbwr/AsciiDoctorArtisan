@@ -445,6 +445,7 @@ class TestIncrementalRenderingPerformance:
 # ==============================================================================
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestCountLeadingEquals:
     """Test count_leading_equals() function (lines 315-344) - COMPLETELY UNTESTED."""
@@ -506,6 +507,7 @@ class TestCountLeadingEquals:
         assert count_leading_equals("== \t\t Section") == 2
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestBlockCacheThreadSafety:
     """Test thread safety in BlockCache (lines 224-313)."""
@@ -684,6 +686,7 @@ class TestBlockCacheThreadSafety:
         assert len(errors) == 0
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestRenderBlockErrorHandling:
     """Test error handling in _render_block() (lines 576-599)."""
@@ -758,6 +761,7 @@ class TestRenderBlockErrorHandling:
         assert "Block render failed" in args[0]
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestRenderFullErrorHandling:
     """Test error handling in _render_full() (lines 601-622)."""
@@ -811,6 +815,7 @@ class TestRenderFullErrorHandling:
         assert "Full render failed" in args[0]
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestDetectChanges:
     """Test _detect_changes() edge cases (lines 550-574)."""
@@ -972,6 +977,7 @@ class TestDetectChanges:
 # ==============================================================================
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestCachePutReplacement:
     """Test cache.put() with existing key replacement."""
@@ -1012,6 +1018,7 @@ class TestCachePutReplacement:
         assert cache.get("block4") == "html4"
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestDocumentBlockComputeIdFallback:
     """Test DocumentBlock.compute_id() with xxhash fallback."""
@@ -1043,6 +1050,7 @@ class TestDocumentBlockComputeIdFallback:
         assert block1.compute_id() == block2.compute_id()
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestDocumentBlockSplitterEdgeCases:
     """Test DocumentBlockSplitter edge cases."""
@@ -1134,6 +1142,7 @@ Content at level 6."""
         assert blocks[2].level == 2
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestCacheMissDuringRetrieval:
     """Test cache miss during unchanged block retrieval."""
@@ -1163,6 +1172,7 @@ class TestCacheMissDuringRetrieval:
         assert stats["size"] > 0
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestIncrementalRendererThreadSafety:
     """Test thread safety in IncrementalPreviewRenderer.render()."""
@@ -1201,6 +1211,7 @@ class TestIncrementalRendererThreadSafety:
         assert all(len(html) > 0 for html in results)
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestEnableDisableStateTransitions:
     """Test enable(False) state transitions."""
@@ -1264,6 +1275,7 @@ class TestEnableDisableStateTransitions:
 # ==============================================================================
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestDocumentBlockEdgeCases:
     """Test DocumentBlock edge cases."""
@@ -1308,6 +1320,7 @@ class TestDocumentBlockEdgeCases:
         assert len(block_id) == BLOCK_HASH_LENGTH
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestGetStatsEdgeCases:
     """Test get_stats() edge cases."""
@@ -1353,6 +1366,7 @@ class TestGetStatsEdgeCases:
         assert stats["hit_rate"] == 0.0
 
 
+@pytest.mark.fr_018
 @pytest.mark.unit
 class TestComplexDocumentScenarios:
     """Test complex document scenarios."""

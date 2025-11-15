@@ -1720,6 +1720,7 @@ class TestAppleNeuralEngine:
         assert npu_name is None
 
 
+@pytest.mark.fr_016
 @pytest.mark.unit
 class TestCoverageImprovements:
     """Tests to achieve 100% coverage."""

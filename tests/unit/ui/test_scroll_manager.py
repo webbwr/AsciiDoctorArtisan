@@ -34,6 +34,7 @@ def mock_editor(qapp):
     return editor
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestScrollManagerBasics:
     """Test suite for ScrollManager basic functionality."""
@@ -72,6 +73,7 @@ class TestScrollManagerBasics:
         assert manager._scroll_sync_count == 0
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestSetupSynchronizedScrolling:
     """Test suite for setup_synchronized_scrolling method."""
@@ -102,6 +104,7 @@ class TestSetupSynchronizedScrolling:
         assert call_args is not None
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestSyncEditorToPreview:
     """Test suite for sync_editor_to_preview method."""
@@ -267,6 +270,7 @@ class TestSyncEditorToPreview:
         assert mock_editor._is_syncing_scroll is False
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestScrollCoalescing:
     """Test suite for scroll event coalescing."""
@@ -308,6 +312,7 @@ class TestScrollCoalescing:
         assert manager._last_editor_scroll == 490
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestEdgeCases:
     """Test suite for edge cases."""
@@ -337,6 +342,7 @@ class TestEdgeCases:
         assert manager._last_editor_scroll == 0
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestScrollLoopDetectionBoundaries:
     """Test suite for scroll loop detection boundary conditions."""
@@ -404,6 +410,7 @@ class TestScrollLoopDetectionBoundaries:
         mock_editor.preview.page().runJavaScript.assert_called()
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestJavaScriptCodeGeneration:
     """Test suite for JavaScript code generation with different scroll percentages."""
@@ -466,6 +473,7 @@ class TestJavaScriptCodeGeneration:
         assert "1.0" in call_args or "* 1" in call_args
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestScrollbarMaximumVariations:
     """Test suite for scrollbar maximum value edge cases."""
@@ -510,6 +518,7 @@ class TestScrollbarMaximumVariations:
         assert "1.0" in call_args or "* 1" in call_args
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestQTextBrowserFallback:
     """Test suite for QTextBrowser fallback path."""
@@ -593,6 +602,7 @@ class TestQTextBrowserFallback:
         assert mock_editor._is_syncing_scroll is False
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestSyncingFlagLifecycle:
     """Test suite for _is_syncing_scroll flag lifecycle."""
@@ -655,6 +665,7 @@ class TestSyncingFlagLifecycle:
         assert mock_editor._is_syncing_scroll is False
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestScrollSyncCountBehavior:
     """Test suite for _scroll_sync_count increment/decrement logic."""
@@ -716,6 +727,7 @@ class TestScrollSyncCountBehavior:
         assert manager._scroll_sync_count == initial_count
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestPreviewPageAvailability:
     """Test suite for preview.page() attribute variations."""
@@ -773,6 +785,7 @@ class TestPreviewPageAvailability:
             manager.sync_editor_to_preview(500)
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestRapidScrollEvents:
     """Test suite for rapid consecutive scroll events."""
@@ -848,6 +861,7 @@ class TestRapidScrollEvents:
         # This test documents expected behavior
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestScrollPercentageCalculations:
     """Test suite for scroll percentage calculations at edge values."""
@@ -905,6 +919,7 @@ class TestScrollPercentageCalculations:
         assert "1.0" in call_args or "* 1" in call_args
 
 
+@pytest.mark.fr_017
 @pytest.mark.unit
 class TestSyncPreviewToEditor:
     """Test suite for sync_preview_to_editor stub method."""
