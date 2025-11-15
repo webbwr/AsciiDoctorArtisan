@@ -315,7 +315,7 @@ class ImportTracker:
             "time_saved": total_lazy_time * 1000,  # Time saved at startup
             "registered_lazy": len(self._lazy_modules),
             "not_yet_loaded": len(
-                self._lazy_modules - set(s.module_name for s in lazy_imports)
+                self._lazy_modules - {s.module_name for s in lazy_imports}
             ),
         }
 

@@ -573,7 +573,10 @@ class ChatManager(QObject):
 
         backend_status = f"backend={self._current_backend}"
         if self._current_backend == "ollama":
-            backend_status += f", ollama_enabled={self._settings.ollama_enabled}, ollama_model={self._settings.ollama_model}"
+            backend_status += (
+                f", ollama_enabled={self._settings.ollama_enabled}, "
+                f"ollama_model={self._settings.ollama_model}"
+            )
         elif self._current_backend == "claude":
             from ..core import SecureCredentials
 

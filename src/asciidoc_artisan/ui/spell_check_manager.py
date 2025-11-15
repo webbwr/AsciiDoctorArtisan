@@ -329,8 +329,10 @@ class SpellCheckManager:
         # Apply combined selections
         self.editor.setExtraSelections(combined)
 
+        spell_count = len(getattr(self.editor, "spell_check_selections", []))
         logger.debug(
-            f"Applied combined selections: {len(combined)} total ({len(getattr(self.editor, 'spell_check_selections', []))} spell check + {len(search_sels)} search)"
+            f"Applied combined selections: {len(combined)} total "
+            f"({spell_count} spell check + {len(search_sels)} search)"
         )
 
     def _find_error_at_position(self, position: int) -> Optional[SpellError]:

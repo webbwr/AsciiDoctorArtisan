@@ -396,7 +396,8 @@ class GitHubHandler(BaseVCSHandler, QObject):
             self.status_manager.show_status(status_msg, timeout=0)  # Permanent
             logger.info(f"Status bar updated: {status_msg}")
 
-            # Show full repository information in a dialog (only if user explicitly requested it, not on silent startup fetch)
+            # Show full repository information in a dialog
+            # (only if user explicitly requested it, not on silent startup)
             if (
                 self.last_operation == "repo_info"
                 and self.last_operation != "repo_info_silent"

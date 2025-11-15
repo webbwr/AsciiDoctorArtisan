@@ -131,7 +131,10 @@ h2 { font-size: 1.8em; border-bottom: 1px solid #eee; padding-bottom: 0.2em; }
 h3 { font-size: 1.4em; }
 a { color:#007bff; text-decoration: none; }
 a:hover { text-decoration: underline; }
-code { background:#f8f8f8; color:#333; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; border: 1px solid #e1e4e8; }
+code {
+    background:#f8f8f8; color:#333; padding: 2px 6px;
+    border-radius: 3px; font-size: 0.9em; border: 1px solid #e1e4e8;
+}
 pre { background:#f8f8f8; color:#333; padding: 15px; overflow-x: auto; border-radius: 5px; border: 1px solid #e1e4e8; }
 pre code { background: none; padding: 0; border: none; }
 blockquote { border-left: 4px solid #ddd; margin: 1em 0; padding-left: 1em; color: #666; }

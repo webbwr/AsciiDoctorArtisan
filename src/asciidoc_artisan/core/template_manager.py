@@ -238,7 +238,7 @@ class TemplateManager:
             # Returns: ['article', 'book', 'report', ...]
             ```
         """
-        return sorted(set(t.category for t in self.templates.values()))
+        return sorted({t.category for t in self.templates.values()})
 
     def create_template(self, template: Template, custom: bool = True) -> bool:
         """

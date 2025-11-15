@@ -402,11 +402,15 @@ class DuplicateAnchorRule:
                 anchor_id = match.group(1) or match.group(2)
 
                 if anchor_id in seen_anchors:
+                    first_line = seen_anchors[anchor_id] + 1
                     errors.append(
                         SyntaxErrorModel(
                             code="W004",
                             severity=ErrorSeverity.WARNING,
-                            message=f"Duplicate anchor ID: {anchor_id} (first defined on line {seen_anchors[anchor_id] + 1})",
+                            message=(
+                                f"Duplicate anchor ID: {anchor_id} "
+                                f"(first defined on line {first_line})"
+                            ),
                             line=i,
                             column=match.start(),
                             length=match.end() - match.start(),

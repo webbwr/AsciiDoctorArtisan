@@ -566,7 +566,11 @@ class SnippetProvider:
                 kind=CompletionKind.SNIPPET,
                 detail="Insert table",
                 documentation="Create a basic table",
-                insert_text="|===\n|Header 1 |Header 2 |Header 3\n\n|Cell 1   |Cell 2   |Cell 3\n|Cell 4   |Cell 5   |Cell 6\n|===",
+                insert_text=(
+                    "|===\n|Header 1 |Header 2 |Header 3\n\n"
+                    "|Cell 1   |Cell 2   |Cell 3\n"
+                    "|Cell 4   |Cell 5   |Cell 6\n|==="
+                ),
             ),
             CompletionItem(
                 text="figure",

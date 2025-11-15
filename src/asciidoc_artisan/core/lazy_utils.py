@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class lazy_property(Generic[T]):
+class lazy_property(Generic[T]):  # noqa: N801
     """
     Lazy property decorator.
 
@@ -323,7 +323,7 @@ class LazyInitializer:
         }
 
 
-class cached_property:
+class cached_property:  # noqa: N801
     """
     Cached property (like functools.cached_property but custom).
 

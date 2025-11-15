@@ -58,7 +58,8 @@ class SecurityAudit:
 
     Example:
         >>> SecurityAudit.log_event("store_key", "anthropic", success=True)
-        # Logs: SECURITY_AUDIT: timestamp=2025-10-29T12:34:56.789Z user=webbp action=store_key service=anthropic success=True
+        # Logs: SECURITY_AUDIT: timestamp=2025-10-29T12:34:56.789Z
+        # user=webbp action=store_key service=anthropic success=True
     """
 
     @staticmethod

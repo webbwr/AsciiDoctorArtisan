@@ -337,7 +337,9 @@ class FileOperationsManager:
                 )
 
                 logger.info(
-                    f"Calling _save_as_format_internal with file_path={file_path}, format_type={format_type}, use_ai={use_ai_for_export}"
+                    f"Calling _save_as_format_internal with "
+                    f"file_path={file_path}, format_type={format_type}, "
+                    f"use_ai={use_ai_for_export}"
                 )
                 return self.save_as_format_internal(
                     file_path, format_type, use_ai_for_export
@@ -507,7 +509,9 @@ class FileOperationsManager:
         if format_type in ["pdf", "docx"]:
             # Use Pandoc for PDF and DOCX conversion - pass output file directly
             logger.info(
-                f"Emitting pandoc conversion request for {format_type} - source: {temp_source_file} ({source_format}), output: {file_path}"
+                f"Emitting pandoc conversion request for {format_type} - "
+                f"source: {temp_source_file} ({source_format}), "
+                f"output: {file_path}"
             )
             self.editor.request_pandoc_conversion.emit(
                 temp_source_file,

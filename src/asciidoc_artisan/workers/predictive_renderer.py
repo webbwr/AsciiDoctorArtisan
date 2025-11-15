@@ -178,7 +178,7 @@ class PredictiveRenderer:
                 reasons.append("temporal locality")
 
         # Convert to sorted list (prioritize lower indices)
-        block_indices = sorted(list(predictions))[: self.max_predictions]
+        block_indices = sorted(predictions)[: self.max_predictions]
 
         # Calculate confidence based on heuristics strength
         confidence = min(1.0, len(reasons) * 0.2)

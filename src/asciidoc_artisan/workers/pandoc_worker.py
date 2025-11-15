@@ -645,7 +645,8 @@ Markdown formatting rules:
         else:
             format_instructions = f"Follow standard {to_name} formatting conventions."
 
-        prompt = f"""You are a document format conversion expert. Convert the following {from_name} document to {to_name} format.
+        prompt = f"""You are a document format conversion expert. Convert the \
+following {from_name} document to {to_name} format.
 
 {format_instructions}
 
