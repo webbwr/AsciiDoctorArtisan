@@ -195,7 +195,7 @@ async def _run_async_app(app: Any) -> None:
     await fut
 
 
-def main() -> None:
+def main() -> None:  # noqa: C901
     """
     Main Entry Point - The First Function That Runs.
 

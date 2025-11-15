@@ -263,7 +263,7 @@ class DialogManager:
 
         self.editor.status_manager.show_message("info", "Anthropic Status", status)
 
-    def show_telemetry_status(self) -> None:
+    def show_telemetry_status(self) -> None:  # noqa: C901
         """Show telemetry configuration and data collection status."""
         import logging
         import platform

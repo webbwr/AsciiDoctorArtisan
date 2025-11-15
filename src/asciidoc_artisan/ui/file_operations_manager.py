@@ -374,7 +374,7 @@ class FileOperationsManager:
             )
             return False
 
-    def save_as_format_internal(
+    def save_as_format_internal(  # noqa: C901
         self, file_path: Path, format_type: str, use_ai: Optional[bool] = None
     ) -> bool:
         """Internal method to save file in specified format without showing dialog.
@@ -676,7 +676,7 @@ class FileOperationsManager:
 
     # Helper methods for file saving
 
-    def _determine_save_format(
+    def _determine_save_format(  # noqa: C901
         self, file_path: Path, selected_filter: str
     ) -> tuple[str, Path]:
         """Determine save format and ensure file path has correct extension.

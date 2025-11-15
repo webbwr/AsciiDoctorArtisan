@@ -424,7 +424,7 @@ def check_apple_neural_engine() -> tuple[bool, Optional[str]]:
     return False, None
 
 
-def detect_compute_capabilities() -> list[str]:
+def detect_compute_capabilities() -> list[str]:  # noqa: C901
     """
     Detect available compute capabilities.
 

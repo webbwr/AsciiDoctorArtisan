@@ -173,7 +173,7 @@ class FileHandler(QObject):
         # Load file - launch async operation
         asyncio.ensure_future(self._load_file_async(path))
 
-    async def _load_file_async(self, file_path: Path) -> None:
+    async def _load_file_async(self, file_path: Path) -> None:  # noqa: C901
         """
         Load file content into editor asynchronously.
 

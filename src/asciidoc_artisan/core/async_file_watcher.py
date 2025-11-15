@@ -209,7 +209,7 @@ class AsyncFileWatcher(QObject):
                 self.error.emit(str(e))
                 await asyncio.sleep(self.poll_interval)
 
-    async def _check_file(self) -> None:
+    async def _check_file(self) -> None:  # noqa: C901
         """
         Check file for changes.
 

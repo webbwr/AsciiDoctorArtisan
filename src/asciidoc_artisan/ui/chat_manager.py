@@ -294,7 +294,7 @@ class ChatManager(QObject):
                 f"Error: Unknown AI backend '{self._current_backend}'"
             )
 
-    def _load_ollama_models(self) -> None:
+    def _load_ollama_models(self) -> None:  # noqa: C901
         """Load available Ollama models."""
         models: List[str] = []
         ollama_available = False
@@ -447,7 +447,7 @@ class ChatManager(QObject):
         self._settings.ollama_chat_history = history_dicts
         self.settings_changed.emit()
 
-    def _validate_model(self, model: str) -> bool:
+    def _validate_model(self, model: str) -> bool:  # noqa: C901
         """
         Validate that a model exists for the active backend.
 

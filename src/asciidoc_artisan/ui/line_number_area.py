@@ -31,11 +31,11 @@ class LineNumberArea(QWidget):
         super().__init__(editor)
         self.editor = editor
 
-    def sizeHint(self) -> QSize:
+    def sizeHint(self) -> QSize:  # noqa: N802
         """Return the recommended size for this widget."""
         return QSize(self.editor.line_number_area_width(), 0)
 
-    def paintEvent(self, event: QPaintEvent) -> None:
+    def paintEvent(self, event: QPaintEvent) -> None:  # noqa: N802
         """
         Paint line numbers.
 
@@ -111,7 +111,7 @@ class LineNumberMixin:
         if rect.contains(self.viewport().rect()):
             self.update_line_number_area_width(0)
 
-    def resizeEvent(self, event: QResizeEvent) -> None:
+    def resizeEvent(self, event: QResizeEvent) -> None:  # noqa: N802
         """
         Handle resize events to reposition line number area.
 
@@ -197,7 +197,7 @@ class LineNumberPlainTextEdit(LineNumberMixin, QPlainTextEdit):
         self.setup_line_numbers()
         self.spell_check_manager = None  # Set by main window
 
-    def contextMenuEvent(self, event: QContextMenuEvent) -> None:
+    def contextMenuEvent(self, event: QContextMenuEvent) -> None:  # noqa: N802
         """
         Handle context menu event (right-click).
 

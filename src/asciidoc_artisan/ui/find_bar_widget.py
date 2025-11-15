@@ -290,7 +290,7 @@ class FindBarWidget(QWidget):
         self.replace_all_requested.emit(replace_text)
         logger.debug(f"Replace all requested with: '{replace_text}'")
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802
         """Handle key press events."""
         if event.key() == Qt.Key.Key_Escape:
             self._on_close()

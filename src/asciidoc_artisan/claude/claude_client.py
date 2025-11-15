@@ -156,7 +156,7 @@ class ClaudeClient:
             logger.error(f"Failed to create Anthropic client: {e}")
             return None
 
-    def send_message(
+    def send_message(  # noqa: C901
         self,
         message: str,
         system: Optional[str] = None,

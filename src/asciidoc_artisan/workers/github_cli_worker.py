@@ -108,7 +108,7 @@ class GitHubCLIWorker(BaseWorker):
             self.github_result_ready.emit(result)
 
     @Slot(list, str, str)
-    def run_gh_command(
+    def run_gh_command(  # noqa: C901
         self,
         args: List[str],
         working_dir: Optional[str] = None,

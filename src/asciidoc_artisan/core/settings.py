@@ -252,7 +252,7 @@ class Settings:
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
         return cls(**filtered_data)
 
-    def validate(self) -> "Settings":
+    def validate(self) -> "Settings":  # noqa: C901
         """
         Validate all settings fields and apply corrections.
 

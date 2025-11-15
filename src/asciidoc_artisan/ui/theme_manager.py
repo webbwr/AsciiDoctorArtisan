@@ -211,7 +211,7 @@ class ThemeManager:
         self._cached_dark_css: str | None = None
         self._cached_light_css: str | None = None
 
-    def apply_theme(self) -> None:
+    def apply_theme(self) -> None:  # noqa: C901
         """
         Apply Current Theme - Dark or Light Mode.
 

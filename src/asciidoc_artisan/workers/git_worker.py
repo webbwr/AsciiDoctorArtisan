@@ -320,7 +320,7 @@ class GitWorker(BaseWorker):
             # Emit default status on error
             self.status_ready.emit(GitStatus())
 
-    def _parse_git_status_v2(self, stdout: str) -> GitStatus:
+    def _parse_git_status_v2(self, stdout: str) -> GitStatus:  # noqa: C901
         """
         Parse git status --porcelain=v2 output into GitStatus model.
 
@@ -610,7 +610,7 @@ class GitWorker(BaseWorker):
 
         return branch, modified_files, staged_files, untracked_files
 
-    def _add_line_counts(
+    def _add_line_counts(  # noqa: C901
         self, working_dir: str, files: List[Dict[str, Any]], staged: bool
     ) -> List[Dict[str, Any]]:
         """

@@ -120,7 +120,7 @@ class QuickCommitWidget(QWidget):
         self.cancelled.emit()
         self.hide()
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802
         """
         Handle key press events.
 

@@ -123,7 +123,7 @@ class ValidationWorker(QThread):
 
         self.validation_complete.emit(results)
 
-    def _check_python_package(
+    def _check_python_package(  # noqa: C901
         self, package_name: str, min_version: str
     ) -> Tuple[str, str, str]:
         """

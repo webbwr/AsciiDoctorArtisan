@@ -122,7 +122,7 @@ class TemplateCard(QWidget):
         self.setMinimumSize(200, 120)
         self.setMaximumSize(300, 150)
 
-    def mousePressEvent(self, event: QMouseEvent) -> None:
+    def mousePressEvent(self, event: QMouseEvent) -> None:  # noqa: N802
         """Handle mouse click."""
         self.clicked.emit(self.template)
         super().mousePressEvent(event)

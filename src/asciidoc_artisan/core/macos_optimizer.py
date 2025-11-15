@@ -40,7 +40,7 @@ class MacOSOptimizationInfo:
     gcd_available: bool = False
 
 
-def detect_macos_capabilities() -> MacOSOptimizationInfo:
+def detect_macos_capabilities() -> MacOSOptimizationInfo:  # noqa: C901
     """
     Detect macOS platform capabilities for optimization.
 

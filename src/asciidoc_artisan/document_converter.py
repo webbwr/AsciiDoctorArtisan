@@ -427,7 +427,7 @@ class PDFExtractor:
         return cell
 
     @staticmethod
-    def _format_table_as_asciidoc(table: list[list[str]]) -> str:
+    def _format_table_as_asciidoc(table: list[list[str]]) -> str:  # noqa: C901
         """
         Format extracted table as AsciiDoc table syntax with improved formatting.
 

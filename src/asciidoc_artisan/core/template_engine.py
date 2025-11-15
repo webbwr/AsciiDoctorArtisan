@@ -349,7 +349,7 @@ class TemplateEngine:
             return value.lower() not in ("", "false", "0", "no")
         return bool(value)
 
-    def parse_template(self, file_path: str) -> Template:
+    def parse_template(self, file_path: str) -> Template:  # noqa: C901
         """
         Parse template file with YAML front matter.
 

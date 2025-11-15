@@ -121,7 +121,7 @@ _CONSTANTS_CACHE = {}
 _MODULE_CACHE = {}
 
 
-def __getattr__(name: str) -> Any:
+def __getattr__(name: str) -> Any:  # noqa: C901
     """
     Lazy Import Handler - Load Modules Only When Accessed.
 

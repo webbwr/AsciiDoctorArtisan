@@ -110,7 +110,7 @@ class PredictiveRenderer:
 
         self._last_edited_block = block_index
 
-    def predict_next_blocks(
+    def predict_next_blocks(  # noqa: C901
         self, total_blocks: int, current_block_index: Optional[int] = None
     ) -> RenderPrediction:
         """

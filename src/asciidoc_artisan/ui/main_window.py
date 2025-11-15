@@ -1782,7 +1782,7 @@ class AsciiDocEditor(QMainWindow):
 
         logger.info("Application refreshed from updated settings")
 
-    def closeEvent(self, event: Any) -> None:
+    def closeEvent(self, event: Any) -> None:  # noqa: N802
         """Handle window close event (delegates to EditorState)."""
         import os
 

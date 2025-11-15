@@ -144,7 +144,7 @@ class AutoCompleteWidget(QListWidget):
             self.show()
             self.setFocus()
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802
         """
         Handle keyboard navigation.
 

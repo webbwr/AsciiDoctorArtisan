@@ -297,7 +297,7 @@ class WorkerManager:
         if self.preview_worker and hasattr(self.preview_worker, "cancel"):
             self.preview_worker.cancel()
 
-    def shutdown(self) -> None:
+    def shutdown(self) -> None:  # noqa: C901
         """
         Shutdown all workers and threads gracefully.
 

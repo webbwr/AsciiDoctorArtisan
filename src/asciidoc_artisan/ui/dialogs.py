@@ -406,7 +406,7 @@ class OllamaSettingsDialog(QDialog):
         # Update enabled state of controls
         self._on_enabled_changed()
 
-    def _load_models(self) -> None:
+    def _load_models(self) -> None:  # noqa: C901
         """Load available Ollama models from the service."""
         import logging
 
@@ -690,7 +690,7 @@ class SettingsEditorDialog(QDialog):
         else:
             return str(value)
 
-    def _string_to_value(self, value_str: str, value_type: str) -> Any:
+    def _string_to_value(self, value_str: str, value_type: str) -> Any:  # noqa: C901
         """Convert string back to appropriate type."""
         if value_type == "NoneType":
             return None
