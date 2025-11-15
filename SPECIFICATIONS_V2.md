@@ -4113,6 +4113,223 @@ class SpellChecker:
 
 ---
 
+## FR-055: Theme Support
+
+**Category:** UI & UX | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/ui/theme_manager.py`
+
+### Description
+Light and dark themes for editor and UI. System theme detection, manual override. Theme selector in preferences. Persist theme choice.
+
+### Acceptance Criteria
+- [x] Light theme | [x] Dark theme
+- [x] System theme detection (auto) | [x] Manual theme override
+- [x] Theme selector in preferences | [x] Persist theme in settings
+- [x] Apply theme without restart | [x] Syntax highlighting adapts to theme
+
+### API Contract
+```python
+class ThemeManager:
+    def set_theme(self, theme: str) -> None:
+        """Set application theme.
+
+        Args:
+            theme: One of 'light', 'dark', 'auto'
+        """
+    def get_current_theme(self) -> str:
+        """Get current theme name."""
+    def detect_system_theme(self) -> str:
+        """Detect system theme (light/dark)."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-056: Status Bar
+
+**Category:** UI & UX | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/ui/status_manager.py`
+
+### Description
+Status bar showing: line/col, file size, encoding, Git branch, spell check status. Clickable segments for quick actions.
+
+### Acceptance Criteria
+- [x] Line:Col position | [x] File size (KB/MB)
+- [x] Encoding (UTF-8) | [x] Git branch (if in repo)
+- [x] Spell check status (on/off, language) | [x] Clickable segments
+- [x] Update in real-time | [x] Tooltips for segments
+
+### API Contract
+```python
+class StatusManager:
+    def update_position(self, line: int, col: int) -> None:
+        """Update cursor position display."""
+    def update_file_size(self, size_bytes: int) -> None:
+        """Update file size display."""
+    def update_git_info(self, branch: str, modified: int) -> None:
+        """Update Git status."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 85%+ | **Types:** Unit (7), Integration (5)
+
+---
+
+## FR-057: Document Metrics
+
+**Category:** UI & UX | **Priority:** Low | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.7.0
+**Implementation:** `src/asciidoc_artisan/ui/metrics_dialog.py`
+
+### Description
+Document metrics dialog: word count, character count, line count, reading time, paragraph count. Update in real-time or on-demand.
+
+### Acceptance Criteria
+- [x] Word count | [x] Character count (with/without spaces)
+- [x] Line count | [x] Paragraph count
+- [x] Estimated reading time | [x] Selected text metrics
+- [x] Real-time updates (debounced 500ms) | [x] Keyboard shortcut (Ctrl+Shift+M)
+
+### API Contract
+```python
+class MetricsDialog(QDialog):
+    def __init__(self, parent: QWidget, editor: QPlainTextEdit):
+        """Initialize metrics dialog."""
+    def calculate_metrics(self, text: str) -> dict[str, int]:
+        """Calculate document metrics."""
+```
+
+### Test Requirements
+**Min Tests:** 10 | **Coverage:** 85%+ | **Types:** Unit (6), Integration (4)
+
+---
+
+## FR-058: Menu Structure
+
+**Category:** UI & UX | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/ui/menu_manager.py`
+
+### Description
+Organized menu structure: File, Edit, View, Git, Tools, Help. Standard shortcuts, recent files, export options.
+
+### Acceptance Criteria
+- [x] File menu: New, Open, Save, Save As, Recent Files, Export, Quit
+- [x] Edit menu: Undo, Redo, Cut, Copy, Paste, Find, Replace
+- [x] View menu: Themes, Zoom, Toggle Preview, Toggle Spell Check
+- [x] Git menu: Commit, Pull, Push, Status, GitHub
+- [x] Tools menu: Metrics, Preferences, Ollama Chat
+- [x] Help menu: Documentation, About
+- [x] Standard shortcuts (Ctrl+N, Ctrl+S, etc.)
+
+### API Contract
+```python
+class MenuManager:
+    def create_menus(self) -> None:
+        """Create application menus."""
+    def update_recent_files(self, files: list[str]) -> None:
+        """Update recent files menu."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 80%+ | **Types:** Unit (9), Integration (6)
+
+---
+
+## FR-059: Preferences Dialog
+
+**Category:** UI & UX | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.3.0
+**Implementation:** `src/asciidoc_artisan/ui/preferences_dialog.py`
+
+### Description
+Preferences dialog with tabs: Editor, Appearance, Git, Spell Check, AI. Save/load preferences from JSON.
+
+### Acceptance Criteria
+- [x] Tabbed interface (5 tabs) | [x] Editor: font, tab size, line wrap, auto-save
+- [x] Appearance: theme, font size | [x] Git: author name/email
+- [x] Spell Check: language, custom dictionary | [x] AI: Ollama model, API key
+- [x] Save preferences to JSON | [x] Load on startup
+- [x] Apply changes without restart | [x] Reset to defaults button
+
+### API Contract
+```python
+class PreferencesDialog(QDialog):
+    def __init__(self, parent: QWidget, settings: Settings):
+        """Initialize preferences dialog."""
+    def save_preferences(self) -> None:
+        """Save all preferences to settings."""
+    def load_preferences(self) -> None:
+        """Load preferences from settings."""
+```
+
+### Test Requirements
+**Min Tests:** 15 | **Coverage:** 85%+ | **Types:** Unit (9), Integration (6)
+
+---
+
+## FR-060: Keyboard Shortcuts
+
+**Category:** UI & UX | **Priority:** High | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.0.0
+**Implementation:** `src/asciidoc_artisan/ui/main_window.py`
+
+### Description
+Comprehensive keyboard shortcuts for all actions. Standard shortcuts (Ctrl+S, Ctrl+F) plus custom (F7, F3). Show shortcuts in menus and tooltips.
+
+### Acceptance Criteria
+- [x] File: Ctrl+N (New), Ctrl+O (Open), Ctrl+S (Save)
+- [x] Edit: Ctrl+Z (Undo), Ctrl+Y (Redo), Ctrl+F (Find), Ctrl+H (Replace)
+- [x] Git: Ctrl+G (Quick Commit), Ctrl+Shift+G (Git Status)
+- [x] View: F7 (Spell Check), F11 (Scroll Sync), Ctrl+Shift+M (Metrics)
+- [x] Navigation: F3 (Find Next), Shift+F3 (Find Prev), Ctrl+Return (Ollama)
+- [x] Show shortcuts in menus | [x] Tooltips include shortcuts
+
+### API Contract
+```python
+class MainWindow(QMainWindow):
+    def setup_shortcuts(self) -> None:
+        """Configure keyboard shortcuts."""
+```
+
+### Test Requirements
+**Min Tests:** 20 | **Coverage:** 80%+ | **Types:** Unit (12), Integration (8)
+
+---
+
+## FR-061: Accessibility
+
+**Category:** UI & UX | **Priority:** Medium | **Status:** ✅ Implemented
+**Dependencies:** None | **Version:** 1.9.0
+**Implementation:** `src/asciidoc_artisan/ui/main_window.py`
+
+### Description
+Accessibility features: keyboard navigation, screen reader support, high contrast mode, focus indicators, ARIA labels.
+
+### Acceptance Criteria
+- [x] Full keyboard navigation (Tab, Shift+Tab) | [x] Screen reader labels (accessible names)
+- [x] High contrast theme option | [x] Focus indicators (visible outlines)
+- [x] ARIA labels for UI elements | [x] Alt text for icons
+- [x] Semantic HTML in preview | [x] Minimum contrast ratio 4.5:1
+
+### API Contract
+```python
+class MainWindow(QMainWindow):
+    def setup_accessibility(self) -> None:
+        """Configure accessibility features."""
+    def set_accessible_names(self) -> None:
+        """Set accessible names for widgets."""
+```
+
+### Test Requirements
+**Min Tests:** 12 | **Coverage:** 75%+ | **Types:** Unit (7), Integration (5)
+
+---
+
 ## FR Template (For Remaining FRs)
 
 For the remaining FRs, use this template structure:
