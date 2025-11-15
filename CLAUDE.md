@@ -285,3 +285,15 @@ Entry: `src/main.py`
 - Automatically run long-running tasks in background
 - No need to prompt user for permission
 - Use worker threads for Git, Pandoc, Preview operations
+- Archive Strategy:
+  - Move planning docs to archive/ when milestone complete
+  - Keep only final versions
+  - Delete duplicate content promptly
+- Maintain Evergreen Naming:
+  - Continue using dateless filenames for ongoing reports
+  - Use semantic versioning in content instead of filenames
+  - Keep documentation-review.md, qa-audit.md, etc. pattern
+- Regular Audits:
+  - Review for duplicates
+  - Check for misplaced files
+  - Verify cross-references and versioning
