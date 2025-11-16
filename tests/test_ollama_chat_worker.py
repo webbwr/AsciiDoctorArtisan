@@ -7,7 +7,7 @@ Tests the OllamaChatWorker class which handles background AI chat processing.
 import time
 
 import pytest
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QObject, QThread
 
 from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
@@ -18,10 +18,8 @@ def chat_worker():
     """Create a chat worker for testing."""
     worker = OllamaChatWorker()
     yield worker
-    # Cleanup
-    if worker.isRunning():
-        worker.quit()
-        worker.wait(1000)
+    # Cleanup - OllamaChatWorker is QObject-based, no thread management needed in fixture
+    # Thread lifecycle is managed by the application's worker manager
 
 
 @pytest.fixture
@@ -50,8 +48,9 @@ class TestOllamaChatWorkerInitialization:
 
     def test_worker_creation(self, chat_worker):
         """Test worker can be created."""
-        assert isinstance(chat_worker, QThread)
-        assert not chat_worker.isRunning()
+        assert isinstance(chat_worker, QObject)
+        # OllamaChatWorker uses QObject pattern, not QThread direct inheritance
+        # It's moved to a background thread via moveToThread() in production
 
     def test_initial_state(self, chat_worker):
         """Test initial state is correct."""
