@@ -92,13 +92,14 @@ make help                       # All targets
 - Install: `sudo apt install pandoc wkhtmltopdf gh` (Linux) or `brew install pandoc wkhtmltopdf gh` (Mac)
 
 **Docs:**
-- SPECIFICATIONS.md — 84 functional rules (read before changes)
+- SPECIFICATIONS_AI.md — 107 FRs, AI-actionable (read before changes)
+- SPECIFICATIONS_HU.md — 107 FRs, human quick reference
 - src/asciidoc_artisan/ui/main_window.py — Main controller (1,798 lines)
 
 ## Development Workflow
 
 **Standard process:**
-1. Check SPECIFICATIONS.md for requirements
+1. Check SPECIFICATIONS_AI.md for requirements (or SPECIFICATIONS_HU.md for quick reference)
 2. Make changes (follow patterns, respect reentrancy guards)
 3. `make test` — must pass 100%
 4. `make format` — auto-fix style
@@ -206,7 +207,7 @@ Entry: `src/main.py`
 
 **Config:**
 - `requirements{,-production}.txt`, `pyproject.toml`, `Makefile`
-- `SPECIFICATIONS.md` (84 rules), `.pre-commit-config.yaml`
+- `SPECIFICATIONS_AI.md` (107 FRs), `SPECIFICATIONS_HU.md`, `.pre-commit-config.yaml`
 
 ## Performance
 
@@ -225,8 +226,8 @@ Entry: `src/main.py`
 
 - **Style**: Black (88 chars) + isort + ruff, pre-commit enforced
 - **Types**: mypy --strict, 100% coverage, 0 errors
-- **Tests**: pytest + pytest-qt, 4,092 tests, use `qtbot` for GUI
-- **Docs**: Docstrings for public APIs, update SPECIFICATIONS.md for features
+- **Tests**: pytest + pytest-qt, 5,479 tests, use `qtbot` for GUI
+- **Docs**: Docstrings for public APIs, update SPECIFICATIONS_AI.md for features
 - **Python**: 3.11+ (3.13.9 recommended, <3.14 for PySide6)
 
 ## Troubleshooting
@@ -246,7 +247,8 @@ Entry: `src/main.py`
 ## Documentation
 
 **Essential (read before changes):**
-- SPECIFICATIONS.md — 84 functional rules
+- SPECIFICATIONS_AI.md — 107 FRs, AI-actionable specs with acceptance criteria
+- SPECIFICATIONS_HU.md — 107 FRs, human quick reference
 - README.md — User guide (Grade 5.0)
 - ROADMAP.md — 2026-2027 plan
 
