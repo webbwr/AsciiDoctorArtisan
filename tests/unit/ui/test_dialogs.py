@@ -4,7 +4,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6.QtWidgets import QCheckBox, QComboBox
+from PySide6.QtWidgets import QCheckBox, QComboBox, QWidget
 
 from asciidoc_artisan.core import Settings
 
@@ -1112,7 +1112,7 @@ class TestSettingsEditorDialog:
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_parent = MagicMock()
+        mock_parent = MagicMock(spec=QWidget)
         mock_parent._refresh_from_settings = MagicMock()
 
         dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
@@ -1178,7 +1178,7 @@ class TestOllamaSettingsDialogEventHandlers:
         """Test updating parent status bar when parent has method."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
-        mock_parent = MagicMock()
+        mock_parent = MagicMock(spec=QWidget)
         mock_parent._update_ai_status_bar = MagicMock()
 
         dialog = OllamaSettingsDialog(mock_settings, mock_parent)
@@ -1207,7 +1207,7 @@ class TestOllamaSettingsDialogEventHandlers:
         """Test model changed handler updates parent status bar."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
-        mock_parent = MagicMock()
+        mock_parent = MagicMock(spec=QWidget)
         mock_parent._update_ai_status_bar = MagicMock()
 
         dialog = OllamaSettingsDialog(mock_settings, mock_parent)
@@ -1871,7 +1871,7 @@ class TestSettingsEditorDialogItemChanged:
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_parent = MagicMock()
+        mock_parent = MagicMock(spec=QWidget)
         mock_parent._refresh_from_settings = MagicMock()
         mock_settings.test_val = True
 
@@ -1948,7 +1948,7 @@ class TestSettingsEditorDialogClearAll:
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_parent = MagicMock()
+        mock_parent = MagicMock(spec=QWidget)
         mock_parent._refresh_from_settings = MagicMock()
         mock_question.return_value = QMessageBox.StandardButton.Yes
 

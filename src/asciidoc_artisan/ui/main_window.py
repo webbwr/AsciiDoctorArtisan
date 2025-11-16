@@ -1737,11 +1737,8 @@ class AsciiDocEditor(QMainWindow):
         # Reload settings from the updated settings object
         settings = self._settings
 
-        # Apply theme
-        if settings.dark_mode:
-            self.theme_manager.apply_dark_theme()
-        else:
-            self.theme_manager.apply_light_theme()
+        # Apply theme (theme_manager checks settings.dark_mode internally)
+        self.theme_manager.apply_theme()
 
         # Update font size
         from PySide6.QtGui import QFont
