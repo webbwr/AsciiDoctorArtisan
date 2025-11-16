@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guide for Claude Code when working with AsciiDoc Artisan.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Overview
 
@@ -60,6 +60,18 @@ Guide for Claude Code when working with AsciiDoc Artisan.
 
 5. **❌ Adding logic to main_window.py** → delegate to managers (menu, theme, status, file, git, export)
 
+6. **❌ Unreachable defensive code** → remove or document
+   ```python
+   # EXAMPLE: If inner try-except catches all exceptions, outer handler is unreachable
+   try:
+       try:
+           data = json.loads(text)
+       except json.JSONDecodeError:
+           data = None  # All errors caught here
+   except json.JSONDecodeError:  # ← UNREACHABLE, should be removed
+       pass
+   ```
+
 ## Quick Start
 
 ```bash
@@ -75,6 +87,7 @@ python3 src/main.py             # Normal (keeps docstrings)
 make test                       # All tests + coverage (→ htmlcov/index.html)
 pytest tests/test_file.py -v    # Single file
 pytest tests/test_file.py::test_func  # Single test
+pytest tests/unit/MODULE/ --cov=asciidoc_artisan.MODULE --cov-report=term-missing  # Module coverage
 
 # Quality
 make format                     # Auto-format (black, isort, ruff)
@@ -154,6 +167,48 @@ Entry: `src/main.py`
 - Support: NVIDIA (CUDA/OpenCL/Vulkan), AMD (ROCm/OpenCL/Vulkan), Intel (OpenCL/Vulkan/NPU)
 - Cache: `~/.cache/asciidoc_artisan/gpu_detection.json` (24hr)
 - Debug: `rm ~/.cache/asciidoc_artisan/gpu_detection.json`
+
+## Testing & Coverage
+
+**Test organization:**
+- `tests/unit/` — Unit tests by module (core, ui, workers, claude)
+- Test naming: `test_FILE.py`, `test_FILE_extended.py`, `test_FILE_coverage.py`
+- Coverage files track edge cases and missing lines
+
+**Coverage patterns discovered:**
+
+1. **Qt Threading Limitations** — Some lines unreachable by coverage.py:
+   ```python
+   # coverage.py cannot track execution in QThread.run() or QRunnable
+   # Tests verify functionality but coverage shows <100%
+   # Examples: optimized_worker_pool.py (98%), claude_worker.py (93%)
+   ```
+
+2. **Module-specific coverage:**
+   ```bash
+   # Target specific modules to avoid full suite hangs
+   pytest tests/unit/core/ --cov=asciidoc_artisan.core --cov-report=term-missing
+   pytest tests/unit/workers/ --cov=asciidoc_artisan.workers --cov-report=term-missing
+   ```
+
+3. **Dead code detection:**
+   - If coverage shows uncovered lines, check if code is imported/used
+   - Example: lazy_utils.py (never imported, 0% coverage is expected)
+   - Consider removing or documenting unreachable defensive code
+
+4. **Testing Qt workers:**
+   ```python
+   # Use qtbot for Qt testing
+   def test_worker(qtbot):
+       worker = GitWorker()
+       with qtbot.waitSignal(worker.result_ready, timeout=5000):
+           worker.run_git_command(["status"])
+   ```
+
+**Coverage goals:**
+- Core modules: 99-100% (non-threaded code)
+- Qt workers: 93-98% max (threading limitations)
+- Overall project: >96% statement coverage
 
 ## Feature Details
 
@@ -259,6 +314,7 @@ Entry: `src/main.py`
 - docs/TEST_COVERAGE_SUMMARY.md — Coverage
 - SECURITY.md — Security policy
 - docs/how-to-{contribute,use}.md
+- docs/developer/phase-4c-coverage-plan.md — Coverage improvement tracking
 
 **Claude Code:**
 - `.claude/skills/grandmaster-techwriter.md` — Auto Grade 5.0 tech writing
@@ -273,29 +329,3 @@ Entry: `src/main.py`
 ---
 
 *AsciiDoc Artisan v2.0.2 | Production-ready | 5,479 tests (204/204 passing) | mypy --strict*
-
-## Test Execution Strategy
-
-**When running tests:**
-- Kill hung tests after reasonable timeout, log for later fixing
-- Continue to next test without stopping
-- Goal: Run maximum tests possible in single pass
-- Fix all logged failures/hangs at end of run
-- Applies to both tests and background tasks
-
-**Background task execution:**
-- Automatically run long-running tasks in background
-- No need to prompt user for permission
-- Use worker threads for Git, Pandoc, Preview operations
-- Archive Strategy:
-  - Move planning docs to archive/ when milestone complete
-  - Keep only final versions
-  - Delete duplicate content promptly
-- Maintain Evergreen Naming:
-  - Continue using dateless filenames for ongoing reports
-  - Use semantic versioning in content instead of filenames
-  - Keep documentation-review.md, qa-audit.md, etc. pattern
-- Regular Audits:
-  - Review for duplicates
-  - Check for misplaced files
-  - Verify cross-references and versioning
