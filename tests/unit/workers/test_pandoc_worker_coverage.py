@@ -165,6 +165,34 @@ class TestPandocWorkerCoverage:
             assert source == "Test content"
             assert method == "pandoc"
 
+    def test_ai_conversion_exception_from_try_ollama(self):
+        """Test exception raised directly by _try_ollama_conversion (lines 185-186)."""
+        worker = PandocWorker()
+        worker.ollama_enabled = True
+        worker.ollama_model = "llama2"
+
+        # Mock _try_ollama_conversion to raise an exception
+        # This will trigger the except block at lines 185-186
+        with patch.object(
+            worker,
+            "_try_ollama_conversion",
+            side_effect=RuntimeError("Unexpected error in Ollama conversion"),
+        ):
+            result, source, method = worker._try_ai_conversion_with_fallback(
+                "Test content",
+                "markdown",
+                "asciidoc",
+                "test",
+                None,
+                0.0,
+                use_ai_conversion=True,
+            )
+
+            # Exception should be caught, fallback to Pandoc (lines 185-186)
+            assert result is None
+            assert source == "Test content"
+            assert method == "pandoc"
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
