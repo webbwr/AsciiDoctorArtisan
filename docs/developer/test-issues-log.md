@@ -2,11 +2,11 @@
 
 **Purpose:** Track hung tests and failures for remediation
 
-**Date:** 2025-11-16 (Phase 4C Coverage Session)
+**Date:** 2025-11-16 (Phase 4C/4E Coverage Session)
 
 ## Hung Tests
 
-### Full Test Suite (process 26795d)
+### Full Test Suite (process 26795d - Phase 4C)
 - **Command:** `pytest tests/ -v --tb=short --cov=src/asciidoc_artisan --cov-report=html --cov-report=term-missing`
 - **Status:** Hung at 47% completion
 - **Last Passing Test:** `tests/unit/ui/test_context_modes.py::TestSignalEmissionEdgeCases::test_programmatic_vs_user_change_signals`
@@ -14,6 +14,24 @@
 - **Issue:** UI tests in dialog_manager.py hang indefinitely
 - **Impact:** Prevents full test suite completion with HTML coverage report
 - **Workaround:** Run non-slow tests with `pytest -m "not slow"` (5467/5479 tests, 99.8% pass)
+
+### UI Module Coverage (process 3fd137 - Phase 4E)
+- **Command:** `pytest tests/unit/ui/ --cov=src/asciidoc_artisan/ui --cov-report=term-missing --no-cov-on-fail -q`
+- **Status:** Hung at 21% completion (2919 total tests)
+- **Last Passing Test:** `tests/unit/ui/test_dependency_dialog.py` (31 tests passed)
+- **Hung At:** `tests/unit/ui/test_dialog_manager.py` (10 tests passed, then hung)
+- **Issue:** Same dialog_manager.py hanging pattern as full suite
+- **Impact:** Cannot complete UI module coverage analysis
+- **Workaround:** Test UI files individually, skip dialog_manager.py or identify specific hanging test
+
+### Dialog Manager Test (process 9d4ae9 - Phase 4E)
+- **Command:** `pytest tests/unit/ui/test_dialog_manager.py -v --tb=short`
+- **Status:** Hung at 45% completion (101 total tests in file)
+- **Last Passing Test:** `test_dialog_manager.py::TestDialogManagerStateManagement::test_manager_can_be_recreated` (test #45)
+- **Hung At:** `test_dialog_manager.py::TestTelemetryStatusDialogEnabled::test_show_telemetry_enabled_with_session_id` (test #46)
+- **Issue:** Specific test hangs indefinitely (this is the root cause of all UI test hangs)
+- **Root Cause:** Telemetry status dialog with session ID - likely Qt event loop or modal dialog issue
+- **Workaround:** Skip this test with `@pytest.mark.skip` or fix the underlying issue
 
 ## Successful Test Runs
 
