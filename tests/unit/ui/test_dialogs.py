@@ -1043,12 +1043,9 @@ class TestSettingsEditorDialog:
         result = dialog._string_to_value("test", "str")
         assert result == "test"
 
-    @pytest.mark.skip(
-        reason="Qt event loop hangs - different issue than dialog_manager (GitHub issue #28)"
-    )
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.dialogs.QMessageBox")
     def test_clear_all_settings_with_confirmation_yes(
-        self, mock_question, mock_settings
+        self, mock_qmessagebox, mock_settings
     ):
         """Test clearing all settings when user confirms."""
         from PySide6.QtWidgets import QMessageBox
@@ -1056,7 +1053,9 @@ class TestSettingsEditorDialog:
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_question.return_value = QMessageBox.StandardButton.Yes
+        mock_qmessagebox.question.return_value = QMessageBox.StandardButton.Yes
+        mock_qmessagebox.information.return_value = QMessageBox.StandardButton.Ok
+        mock_qmessagebox.StandardButton = QMessageBox.StandardButton
 
         dialog = SettingsEditorDialog(mock_settings, mock_manager)
         initial_rows = dialog.table.rowCount()
@@ -1066,12 +1065,9 @@ class TestSettingsEditorDialog:
         # Should save settings after clearing
         assert mock_manager.save_settings.called
 
-    @pytest.mark.skip(
-        reason="Qt event loop hangs - different issue than dialog_manager (GitHub issue #28)"
-    )
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.dialogs.QMessageBox")
     def test_clear_all_settings_with_confirmation_no(
-        self, mock_question, mock_settings
+        self, mock_qmessagebox, mock_settings
     ):
         """Test clearing all settings when user cancels."""
         from PySide6.QtWidgets import QMessageBox
@@ -1079,7 +1075,8 @@ class TestSettingsEditorDialog:
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_question.return_value = QMessageBox.StandardButton.No
+        mock_qmessagebox.question.return_value = QMessageBox.StandardButton.No
+        mock_qmessagebox.StandardButton = QMessageBox.StandardButton
 
         dialog = SettingsEditorDialog(mock_settings, mock_manager)
 

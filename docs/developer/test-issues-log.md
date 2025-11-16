@@ -237,6 +237,31 @@
 - **Status:** Partial fix for GitHub issue #28 (4 of 6 hanging tests resolved)
 - **Remaining:** 2 tests in test_dialogs.py still hang (dialogs.py has correct module-level import - different issue)
 
+**✅ ROOT CAUSE #2 FOUND AND FIXED (Nov 16 - SUCCESSFUL):**
+- **Investigation:** Examined test_dialogs.py tests and dialogs.py implementation
+- **Discovery:** Tests used `@patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")` (line 1049, 1072)
+  - Only patched `.question` method
+  - Did NOT patch `.information` method
+- **Root Cause:** `_clear_all_settings()` calls TWO QMessageBox methods (dialogs.py:750-778):
+  1. Line 752: `QMessageBox.question()` - **PATCHED** ✓
+  2. Line 776: `QMessageBox.information()` - **NOT PATCHED** ✗
+  - When mock returns "Yes", enters if block → hits unpatched `.information()` → modal dialog blocks test
+- **Fix:** Changed from patching individual methods to patching entire QMessageBox class
+  - Old: `@patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")`
+  - New: `@patch("asciidoc_artisan.ui.dialogs.QMessageBox")`
+  - Mock both `.question` and `.information` methods
+  - Mock `.StandardButton` to allow tests to use real enum values
+- **Results:** ✅ BOTH SETTINGS TESTS NOW PASS (0.67s total, previously hung indefinitely)
+  - test_clear_all_settings_with_confirmation_yes: 0.413s ✓
+  - test_clear_all_settings_with_confirmation_no: 0.003s ✓
+- **Status:** ✅ COMPLETE FIX for GitHub issue #28 (6 of 6 hanging tests resolved)
+
+**Summary of Both Fixes:**
+- **Fix #1 (dialog_manager.py):** Removed redundant local import that bypassed @patch mock (4 tests fixed)
+- **Fix #2 (test_dialogs.py):** Changed to patch entire QMessageBox class instead of individual methods (2 tests fixed)
+- **Total:** 6 tests fixed, 0 remaining hangs
+- **Lesson:** Always patch at the module level where the class is used, and patch the entire class when multiple methods are called
+
 ### Test Execution Strategy (Updated - Nov 16)
 
 **For Coverage Analysis:**
