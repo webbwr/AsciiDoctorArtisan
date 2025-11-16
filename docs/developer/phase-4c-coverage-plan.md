@@ -51,20 +51,31 @@
    - Status: Tests exist and pass, coverage.py cannot track QThread execution
    - Commit: ab5dcb3
 
+### ✅ Root Module (97% achieved - 1 file)
+8. **document_converter.py** - 95% → **97%** ✓
+   - Location: `src/asciidoc_artisan/document_converter.py`
+   - Tests: `tests/unit/test_document_converter*.py`
+   - Solution: Added 3 tests for PyMuPDF/pypandoc edge cases (lines 198-200, 323-324, 340-341)
+   - Remaining: Lines 293-296 (complex integration), 475 (unreachable defensive code)
+   - Commit: c300b08
+
 ## Progress Summary
 
-**Completed: 6 of 14 files (43%)**
+**Completed: 7 of 14 files (50%)**
 - ✅ 100% coverage: 4 files (gpu_detection, git_worker, github_cli_worker, pandoc_worker)
+- ✅ 97% coverage: 1 file (document_converter - 5 lines: 3 complex, 1 unreachable)
 - ⚠️  Max achievable: 2 files (optimized_worker_pool 98%, claude_worker 93% - Qt threading)
 - ⏭️  Skipped: 1 file (lazy_utils - dead code, not imported)
 
-**Remaining: 7-8 files**
+**Remaining: 7 files**
 - Primarily in UI module (Phase 4E scope, 3-4 week effort per QA audit)
 
 **Impact:**
 - Achieved 100% on 4 non-threaded worker files
+- Improved document_converter 95% → 97%
 - Documented Qt threading limitations (affects 2 files, cannot be improved)
 - Identified 1 dead code file for cleanup
+- Documented 1 file with unreachable defensive code
 
 ## Module Coverage Summary
 
