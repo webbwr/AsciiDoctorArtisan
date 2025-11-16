@@ -1545,8 +1545,8 @@ class TestUpdateWindowTitle:
         # Update title
         window._update_window_title()
 
-        # Verify title includes default filename
-        assert "Untitled" in window.windowTitle()
+        # Verify title includes default filename (lowercase "untitled.adoc")
+        assert "untitled" in window.windowTitle().lower()
 
 
 @pytest.mark.fr_001
