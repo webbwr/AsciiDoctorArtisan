@@ -5,9 +5,9 @@
 **Priority:** Low (current 96.4% is production-ready)
 **Status:** In Progress
 
-## Identified Files (6 of 14)
+## Identified Files (7 of 14)
 
-### Core Module (99% overall)
+### Core Module (99% overall - 2 files)
 1. **gpu_detection.py** - 99% (2 missed statements)
    - Location: `src/asciidoc_artisan/core/gpu_detection.py`
    - Tests: `tests/unit/core/test_gpu_detection.py`
@@ -18,7 +18,7 @@
    - Tests: `tests/unit/core/test_lazy_*.py`
    - Missing: 95 statements, 1 uncovered
 
-### Workers Module (99% overall)
+### Workers Module (99% overall - 4 files)
 3. **git_worker.py** - 98% (4 missed statements)
    - Location: `src/asciidoc_artisan/workers/git_worker.py`
    - Tests: `tests/unit/workers/test_git_worker*.py`
@@ -39,10 +39,27 @@
    - Tests: `tests/unit/workers/test_pandoc_worker*.py`
    - Missing: 188 statements, 2 uncovered
 
+### Claude Module (97% overall - 1 file)
+7. **claude_worker.py** - 93% (5 missed statements)
+   - Location: `src/asciidoc_artisan/claude/claude_worker.py`
+   - Tests: `tests/unit/claude/test_claude_worker*.py`
+   - Missing: 71 statements, 5 uncovered
+
 ## Total Progress
-- **Identified:** 6 files (16 missed statements)
-- **Remaining:** 8 files (~164 statements estimated)
-- **Modules pending:** UI, Claude, Conversion, Git
+- **Identified:** 7 files (21 missed statements)
+- **Remaining:** 7 files (~159 statements estimated)
+- **Modules pending:** UI (main source of Phase 4C files)
+
+## Module Coverage Summary
+
+| Module | Overall Coverage | Files at 100% | Files <100% | Status |
+|--------|------------------|---------------|-------------|--------|
+| Core | 99% (4697 stmts, 3 miss) | 33/35 | 2 | ✅ Analyzed |
+| Workers | 99% (1457 stmts, 13 miss) | 7/11 | 4 | ✅ Analyzed |
+| Claude | 97% (194 stmts, 5 miss) | 1/2 | 1 | ✅ Analyzed |
+| UI | ~90-95% (estimated) | TBD | 7-8 est. | ⏸️ Deferred |
+
+**Note:** UI module coverage analysis deferred due to long test runtime (>5 minutes). The remaining Phase 4C files are primarily in the UI module, which aligns with the QA audit noting Phase 4E (UI Layer 0% → 100%) as a 3-4 week effort.
 
 ## Approach
 
