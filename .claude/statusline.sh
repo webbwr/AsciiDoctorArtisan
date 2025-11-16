@@ -33,8 +33,42 @@ PYTHON_VERSION=$(python3 --version 2>/dev/null | cut -d' ' -f2)
 VENV_ACTIVE=$([ -n "$VIRTUAL_ENV" ] && echo "✓" || echo "✗")
 
 # Test statistics (from last run)
-TEST_STATS=$(grep -o "[0-9]* passed" htmlcov/index.html 2>/dev/null | cut -d' ' -f1 || echo "?")
-COVERAGE=$(grep -o "[0-9]*%" htmlcov/index.html 2>/dev/null | head -1 | tr -d '%' || echo "?")
+# Try multiple sources in order of reliability: status.json > coverage.xml > index.html
+if [ -f htmlcov/status.json ]; then
+    COVERAGE=$(python3 -c "import json; data=json.load(open('htmlcov/status.json')); pct=data.get('totals', {}).get('percent_covered'); print(f'{pct:.1f}' if pct else '?')" 2>/dev/null)
+    [ -z "$COVERAGE" ] && COVERAGE="?"
+elif [ -f coverage.xml ]; then
+    COVERAGE=$(python3 -c "import xml.etree.ElementTree as ET; tree=ET.parse('coverage.xml'); root=tree.getroot(); rate=float(root.attrib.get('line-rate', 0))*100; print(f'{rate:.1f}')" 2>/dev/null)
+    [ -z "$COVERAGE" ] && COVERAGE="?"
+elif [ -f htmlcov/index.html ]; then
+    COVERAGE=$(grep -o "[0-9]*%" htmlcov/index.html 2>/dev/null | head -1 | tr -d '%')
+    [ -z "$COVERAGE" ] && COVERAGE="?"
+else
+    COVERAGE="?"
+fi
+
+# Get test statistics from .pytest_cache (most reliable)
+if [ -f .pytest_cache/v/cache/nodeids ]; then
+    TOTAL_TESTS=$(python3 -c "import json; print(len(json.load(open('.pytest_cache/v/cache/nodeids'))))" 2>/dev/null || echo "?")
+else
+    TOTAL_TESTS="?"
+fi
+
+# Get passed tests from htmlcov/index.html or test logs
+TEST_PASSED=$(grep -o "[0-9]* passed" htmlcov/index.html 2>/dev/null | head -1 | cut -d' ' -f1)
+if [ -z "$TEST_PASSED" ] && [ -f test_run_fast.log ]; then
+    TEST_PASSED=$(grep -o "[0-9]* passed" test_run_fast.log 2>/dev/null | tail -1 | cut -d' ' -f1)
+fi
+if [ -z "$TEST_PASSED" ]; then
+    TEST_PASSED="?"
+fi
+
+# Format as "passed/total"
+if [ "$TOTAL_TESTS" != "?" ] && [ "$TEST_PASSED" != "?" ]; then
+    TEST_STATS="${TEST_PASSED}/${TOTAL_TESTS}"
+else
+    TEST_STATS="${TEST_PASSED}"
+fi
 
 # QA Status with caching (5-minute TTL)
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/asciidoc_artisan"
