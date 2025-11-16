@@ -75,6 +75,7 @@ See SPECIFICATIONS.md for complete feature list.
 import html  # For escaping HTML special characters (< > & " ')
 import io  # For in-memory file-like objects (BytesIO, StringIO)
 import logging  # For recording program events (debug, info, warning, error)
+import os  # For environment variables and file operations
 import platform  # For detecting OS (Windows, Linux, Mac)
 import tempfile  # For creating temporary files (deleted automatically)
 from pathlib import Path  # Modern way to handle file paths (better than strings)
@@ -1781,8 +1782,6 @@ class AsciiDocEditor(QMainWindow):
 
     def closeEvent(self, event: Any) -> None:  # noqa: N802
         """Handle window close event (delegates to EditorState)."""
-        import os
-
         # Skip save prompts in test environment to prevent blocking
         if os.environ.get("PYTEST_CURRENT_TEST"):
             # Still need to shutdown workers in tests to prevent hanging

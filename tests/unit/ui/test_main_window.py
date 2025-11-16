@@ -1432,11 +1432,17 @@ class TestCloseEvent:
             # Clean up environment
             del os.environ["PYTEST_CURRENT_TEST"]
 
-    def test_close_event_delegates_to_editor_state(self, mock_workers, qapp):
+    @patch("asciidoc_artisan.ui.main_window.os.environ.get")
+    def test_close_event_delegates_to_editor_state(
+        self, mock_env_get, mock_workers, qapp
+    ):
         """Test that close event delegates to editor_state in normal mode."""
         from PySide6.QtGui import QCloseEvent
 
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        # Mock os.environ.get to return None (not in pytest mode)
+        mock_env_get.return_value = None
 
         window = AsciiDocEditor()
 
