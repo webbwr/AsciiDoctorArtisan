@@ -5,50 +5,66 @@
 **Priority:** Low (current 96.4% is production-ready)
 **Status:** In Progress
 
-## Identified Files (7 of 14)
+## Completed Files (6 of 14)
 
-### Core Module (99% overall - 2 files)
-1. **gpu_detection.py** - 99% (2 missed statements)
+### ✅ Core Module (100% achieved - 1 file)
+1. **gpu_detection.py** - 99% → **100%** ✓
    - Location: `src/asciidoc_artisan/core/gpu_detection.py`
    - Tests: `tests/unit/core/test_gpu_detection.py`
-   - Missing: 338 statements, 2 uncovered
+   - Solution: Added 2 tests for Metal detection exceptions (lines 486-487)
+   - Commit: ef94f2c
 
-2. **lazy_utils.py** - 99% (1 missed statement)
-   - Location: `src/asciidoc_artisan/core/lazy_utils.py`
-   - Tests: `tests/unit/core/test_lazy_*.py`
-   - Missing: 95 statements, 1 uncovered
+2. **lazy_utils.py** - 99% (1 missed statement) - **SKIPPED: Dead code**
+   - Not imported anywhere in codebase, deferred for cleanup
 
-### Workers Module (99% overall - 4 files)
-3. **git_worker.py** - 98% (4 missed statements)
+### ✅ Workers Module (100% achieved - 2 files, 98% max - 1 file)
+3. **git_worker.py** - 98% → **100%** ✓
    - Location: `src/asciidoc_artisan/workers/git_worker.py`
    - Tests: `tests/unit/workers/test_git_worker*.py`
-   - Missing: 224 statements, 4 uncovered
+   - Solution: Fixed test to call get_detailed_repository_status (lines 579, 650, 666-667)
+   - Commit: d127b55
 
-4. **github_cli_worker.py** - 98% (3 missed statements)
+4. **github_cli_worker.py** - 98% → **100%** ✓
    - Location: `src/asciidoc_artisan/workers/github_cli_worker.py`
    - Tests: `tests/unit/workers/test_github_cli_worker*.py`
-   - Missing: 121 statements, 3 uncovered
+   - Solution: Removed unreachable JSONDecodeError handler (dead code refactor)
+   - Commit: 0d2cefe
 
-5. **optimized_worker_pool.py** - 98% (4 missed statements)
+5. **optimized_worker_pool.py** - 98% → **98% max** ⚠️ Qt threading limitation
    - Location: `src/asciidoc_artisan/workers/optimized_worker_pool.py`
    - Tests: `tests/unit/workers/test_optimized_worker_pool*.py`
-   - Missing: 176 statements, 4 uncovered
+   - Limitation: Lines 123-124, 363-364 in QRunnable (QThreadPool execution)
+   - Status: Tests exist and pass, coverage.py cannot track across thread pool
+   - Commit: ab5dcb3
 
-6. **pandoc_worker.py** - 99% (2 missed statements)
+6. **pandoc_worker.py** - 99% → **100%** ✓
    - Location: `src/asciidoc_artisan/workers/pandoc_worker.py`
    - Tests: `tests/unit/workers/test_pandoc_worker*.py`
-   - Missing: 188 statements, 2 uncovered
+   - Solution: Added test for _try_ollama_conversion exception (lines 185-186)
+   - Commit: c17e36f
 
-### Claude Module (97% overall - 1 file)
-7. **claude_worker.py** - 93% (5 missed statements)
+### ✅ Claude Module (93% max - 1 file)
+7. **claude_worker.py** - 93% → **93% max** ⚠️ Qt threading limitation
    - Location: `src/asciidoc_artisan/claude/claude_worker.py`
    - Tests: `tests/unit/claude/test_claude_worker*.py`
-   - Missing: 71 statements, 5 uncovered
+   - Limitation: Lines 90-95 in QThread.run() method
+   - Status: Tests exist and pass, coverage.py cannot track QThread execution
+   - Commit: ab5dcb3
 
-## Total Progress
-- **Identified:** 7 files (21 missed statements)
-- **Remaining:** 7 files (~159 statements estimated)
-- **Modules pending:** UI (main source of Phase 4C files)
+## Progress Summary
+
+**Completed: 6 of 14 files (43%)**
+- ✅ 100% coverage: 4 files (gpu_detection, git_worker, github_cli_worker, pandoc_worker)
+- ⚠️  Max achievable: 2 files (optimized_worker_pool 98%, claude_worker 93% - Qt threading)
+- ⏭️  Skipped: 1 file (lazy_utils - dead code, not imported)
+
+**Remaining: 7-8 files**
+- Primarily in UI module (Phase 4E scope, 3-4 week effort per QA audit)
+
+**Impact:**
+- Achieved 100% on 4 non-threaded worker files
+- Documented Qt threading limitations (affects 2 files, cannot be improved)
+- Identified 1 dead code file for cleanup
 
 ## Module Coverage Summary
 
@@ -119,11 +135,21 @@ For each file with <100% coverage:
 
 ## Success Criteria
 
-- [ ] All 14 files at 100% coverage
-- [ ] Total project coverage >= 97%
-- [ ] All new tests pass existing quality standards
-- [ ] mypy --strict continues to pass
-- [ ] Test execution time <3 minutes per module
+- [x] Core/Workers/Claude files at max achievable coverage (4 at 100%, 2 at Qt max)
+- [ ] All 14 files at 100% coverage (blocked: 2 Qt threading, ~8 UI module files remain)
+- [ ] Total project coverage >= 97% (current: TBD, run full suite)
+- [x] All new tests pass existing quality standards
+- [x] mypy --strict continues to pass
+- [x] Test execution time <3 minutes per module
+
+**Blockers:**
+- Qt threading: optimized_worker_pool.py, claude_worker.py (98%/93% max)
+- UI module: ~8 files deferred to Phase 4E (3-4 week effort)
+
+**Achievements:**
+- 4 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker
+- All tests pass, mypy clean, fast execution
+- Documented Qt threading limitations and dead code
 
 ## Notes
 
