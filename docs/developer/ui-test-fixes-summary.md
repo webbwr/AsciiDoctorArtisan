@@ -164,22 +164,24 @@ assert "untitled" in window.windowTitle().lower()
 
 **Dialog Initialization Errors (6 tests):**
 - TypeError: PySide6 rejects MagicMock parents
-- Requires test infrastructure refactoring
-- **Status:** Pending documentation
+- Requires test infrastructure refactoring (MockParentWidget pattern)
+- **Status:** ✅ **DOCUMENTED** in dialog-init-failures-analysis.md (421 lines)
+- **Recommended Fix:** Create MockParentWidget test helper (2-3 hours)
 
 **Assertion Failures (3 tests):**
 - test_load_models_success (integration test - skip/mark)
 - test_preview_timer_adaptive_debounce_large_doc (investigate resource_monitor)
 - test_updates_font_size (investigate Qt font system)
-- **Status:** Documented, needs investigation or marking
+- **Status:** ✅ **DOCUMENTED** in assertion-failures-analysis.md, needs investigation or marking
 
 **GPU Tests (3 tests):**
 - Environment-specific (missing libsmime3.so)
-- **Status:** Pending documentation or skip
+- **Status:** ✅ **DOCUMENTED** in gpu-test-failures-analysis.md (355 lines)
+- **Recommended Fix:** Mark with @pytest.mark.requires_gpu skip marker (30 minutes)
 
 **Mock Assertion Failures (1 test):**
 - test_workers_initialized (architectural mismatch)
-- **Status:** Deferred, requires architectural decision
+- **Status:** ✅ **DOCUMENTED** in mock-assertion-analysis.md, deferred pending architectural decision
 
 ---
 
@@ -205,6 +207,7 @@ assert "untitled" in window.windowTitle().lower()
 
 ## Commits Made
 
+**Previous Session (Test Fixes):**
 1. **7680b46** - Theme Manager fix (3/4 tests)
 2. **3fc0ef7** - QLabel import fix (3/3 tests)
 3. **50b6ea2** - Partial prompt_save fix (2/4 tests)
@@ -212,20 +215,42 @@ assert "untitled" in window.windowTitle().lower()
 5. **e9e2137** - workers_initialized documentation
 6. **f0a20cd** - Window title assertion fix (1/1 test)
 
-**Total:** 6 commits, 11 tests fixed directly
+**This Session (Documentation):**
+7. **2490a36** - Dialog init and GPU test failures documentation (863 lines, 2 files)
+
+**Total:** 7 commits, 11 tests fixed + 9 tests documented
 
 ---
 
 ## Next Steps
 
-1. **Document Dialog init issues** (6 tests) - analyze TypeError patterns
-2. **Document or skip GPU tests** (3 tests) - environment-specific
-3. **Investigate remaining assertions** (3 tests) - resource_monitor, Qt font, Ollama
-4. **Run final UI test suite** - verify all fixes together
-5. **Update ui-test-failures-analysis.md** - final status
+1. ✅ **Document Dialog init issues** (6 tests) - COMPLETED → dialog-init-failures-analysis.md
+2. ✅ **Document GPU tests** (3 tests) - COMPLETED → gpu-test-failures-analysis.md
+3. ⏳ **Implement Dialog init fixes** (6 tests) - Create MockParentWidget helper (2-3 hours)
+4. ⏳ **Mark GPU tests** (3 tests) - Add @pytest.mark.requires_gpu skip marker (30 minutes)
+5. ⏳ **Investigate remaining assertions** (3 tests) - Already documented, need investigation/marking
+6. ⏳ **Fix remaining mock assertions** (2 tests) - Continue os.environ.get mocking work
+7. ⏳ **Run final UI test suite** - Verify all fixes together
+8. ⏳ **Update ui-test-failures-analysis.md** - Mark as complete
+
+---
+
+## Documentation Files Created
+
+**This Session:**
+1. `dialog-init-failures-analysis.md` - 421 lines, 6 tests, PySide6 type validation issue
+2. `gpu-test-failures-analysis.md` - 355 lines, 3 tests, environment dependencies
+
+**Previous Session:**
+1. `mock-assertion-analysis.md` - 6 mock assertion failures
+2. `assertion-failures-analysis.md` - 4 assertion failures (1 fixed)
+3. `ui-test-fixes-summary.md` - This comprehensive tracking document
+
+**Total Documentation:** 5 files, ~1,500+ lines of analysis
 
 ---
 
 **Created:** 2025-11-16
-**Last Updated:** 2025-11-16
-**Status:** 79% complete (49/62 tests fixed)
+**Last Updated:** 2025-11-16 (continued session)
+**Status:** 79% fixed (49/62), 21% documented (13/62)
+**Phase:** Documentation complete, ready for implementation
