@@ -27,6 +27,7 @@ Consolidated: November 2, 2025 (Phase 3 Task 3.1)
 """
 
 import json
+import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -1880,3 +1881,40 @@ class TestCoverageImprovements:
 
         # Check that metal_version was logged (line 627)
         assert any("Metal version: Metal 3.1" in record.message for record in caplog.records)
+
+    def test_detect_compute_capabilities_metal_file_not_found(self, mocker):
+        """Test Metal detection when system_profiler not found (line 486)."""
+        # Mock platform.system to return Darwin
+        mocker.patch("platform.system", return_value="Darwin")
+
+        # Mock subprocess.run to raise FileNotFoundError
+        mocker.patch(
+            "subprocess.run",
+            side_effect=FileNotFoundError("system_profiler not found")
+        )
+
+        capabilities = detect_compute_capabilities()
+
+        # Should not crash, exception is caught
+        # Metal should not be in capabilities
+        assert "metal" not in capabilities
+
+    def test_detect_compute_capabilities_metal_timeout(self, mocker):
+        """Test Metal detection when system_profiler times out (line 486)."""
+        # Mock platform.system to return Darwin
+        mocker.patch("platform.system", return_value="Darwin")
+
+        # Mock subprocess.run to raise TimeoutExpired
+        mocker.patch(
+            "subprocess.run",
+            side_effect=subprocess.TimeoutExpired(
+                cmd="system_profiler SPDisplaysDataType",
+                timeout=1
+            )
+        )
+
+        capabilities = detect_compute_capabilities()
+
+        # Should not crash, exception is caught
+        # Metal should not be in capabilities
+        assert "metal" not in capabilities
