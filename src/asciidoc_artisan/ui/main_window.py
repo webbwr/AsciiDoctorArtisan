@@ -196,6 +196,9 @@ from asciidoc_artisan.ui.ui_state_manager import UIStateManager  # Tracks UI sta
 from asciidoc_artisan.ui.worker_manager import (  # Manages background threads
     WorkerManager,
 )
+from asciidoc_artisan.ui.template_browser import (  # Template browsing dialog (v2.0.0)
+    TemplateBrowser,
+)
 
 # === OPTIONAL: AI CLIENT ===
 # Check if AI client library is installed (for smart document conversion)
@@ -790,9 +793,6 @@ class AsciiDocEditor(QMainWindow):
         If user selects a template and provides variable values,
         creates a new document with the instantiated template content.
         """
-        from asciidoc_artisan.core.template_engine import TemplateEngine
-        from asciidoc_artisan.ui.template_browser import TemplateBrowser
-
         # Show template browser dialog
         browser = TemplateBrowser(self.template_manager, self)
 

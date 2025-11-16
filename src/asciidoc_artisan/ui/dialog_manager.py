@@ -15,13 +15,47 @@ main window complexity and improve modularity.
 """
 
 import logging
+import platform
 import subprocess
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from asciidoc_artisan.core.constants import is_pandoc_available
+
+# Optional imports - may not be installed
+try:
+    import anthropic
+except ImportError:
+    anthropic = None  # type: ignore
+
+try:
+    import ollama
+except ImportError:
+    ollama = None  # type: ignore
+
+# Claude client (optional)
+try:
+    from asciidoc_artisan.claude import ClaudeClient
+except ImportError:
+    ClaudeClient = None  # type: ignore
+
+# Application dialogs
+# Note: Previously imported locally to avoid circular imports, but moved to module
+# level to support @patch decorators in tests. Circular imports are handled via
+# lazy initialization in the dialogs themselves.
+from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+from asciidoc_artisan.ui.dialogs import (
+    FontSettingsDialog,
+    OllamaSettingsDialog,
+    SettingsEditorDialog,
+)
+from asciidoc_artisan.ui.installation_validator_dialog import (
+    InstallationValidatorDialog,
+)
 
 if TYPE_CHECKING:
     from .main_window import AsciiDocEditor
@@ -45,10 +79,6 @@ class DialogManager:
 
     def show_installation_validator(self) -> None:
         """Show installation validator dialog."""
-        from asciidoc_artisan.ui.installation_validator_dialog import (
-            InstallationValidatorDialog,
-        )
-
         dialog = InstallationValidatorDialog(self.editor)
         dialog.exec()
 
@@ -149,8 +179,9 @@ class DialogManager:
             status += "⚠️ No model selected\n\n"
 
         try:
-            # Try to import Python client library.
-            import ollama
+            # Check if Python client library is available.
+            if ollama is None:
+                raise ImportError("ollama library not installed")
 
             # Check if service is running.
             try:
@@ -198,16 +229,17 @@ class DialogManager:
 
     def show_anthropic_status(self) -> None:
         """Show Anthropic API key and service status."""
-        import anthropic
-
         from asciidoc_artisan.core import SecureCredentials
 
         status = "Anthropic Status:\n\n"
 
         # Show SDK version
         try:
-            sdk_version = anthropic.__version__
-            status += f"SDK Version: {sdk_version}\n\n"
+            if anthropic:
+                sdk_version = anthropic.__version__
+                status += f"SDK Version: {sdk_version}\n\n"
+            else:
+                status += "SDK: Not installed\n\n"
         except AttributeError:
             status += "SDK Version: Unknown\n\n"
 
@@ -245,7 +277,8 @@ class DialogManager:
         # Test connection
         status += "\nTesting connection...\n"
         try:
-            from asciidoc_artisan.claude import ClaudeClient
+            if ClaudeClient is None:
+                raise ImportError("Claude client not available")
 
             client = ClaudeClient()
             result = client.test_connection()
@@ -265,14 +298,6 @@ class DialogManager:
 
     def show_telemetry_status(self) -> None:  # noqa: C901
         """Show telemetry configuration and data collection status."""
-        import logging
-        import platform
-        import subprocess
-        from pathlib import Path
-
-        from PySide6.QtWidgets import QFileDialog
-
-        logger = logging.getLogger(__name__)
 
         status = "Telemetry Status:\n\n"
 
@@ -545,8 +570,6 @@ class DialogManager:
 
     def show_ollama_settings(self) -> None:
         """Show Ollama AI settings dialog with model selection."""
-        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
-
         # Show dialog and wait for user response.
         dialog = OllamaSettingsDialog(self.editor._settings, self.editor)
         if dialog.exec():
@@ -576,16 +599,12 @@ class DialogManager:
 
     def show_anthropic_settings(self) -> None:
         """Show Anthropic API key configuration dialog."""
-        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
-
         # Show API key configuration dialog.
         dialog = APIKeySetupDialog(self.editor)
         dialog.exec()  # Modal dialog - wait for user to close it
 
     def show_app_settings(self) -> None:
         """Show application settings editor dialog."""
-        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
-
         dialog = SettingsEditorDialog(
             self.editor._settings, self.editor._settings_manager, self.editor
         )
@@ -597,8 +616,6 @@ class DialogManager:
 
     def show_font_settings(self) -> None:
         """Show font settings dialog."""
-        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
-
         dialog = FontSettingsDialog(self.editor._settings, self.editor)
         if dialog.exec():
             # Get updated settings
@@ -622,8 +639,6 @@ class DialogManager:
 
     def _apply_font_settings(self) -> None:
         """Apply font settings to editor, preview, and chat panes."""
-        from PySide6.QtGui import QFont
-
         settings = self.editor._settings
 
         # Set font for editor widget.
