@@ -52,6 +52,16 @@
 - **Impact:** test_dialogs.py runs fine in isolation but hangs when run after test_dialog_manager.py
 - **Conclusion:** UI module has test interaction/pollution issues, not just individual test hangs
 
+### Parallel UI Test Suite (process 05a401 - pytest-xdist)
+- **Command:** `pytest tests/unit/ui/ -n auto --cov=src/asciidoc_artisan/ui --cov-report=html --cov-report=term -q`
+- **Status:** Hung at ~96% completion (2919 total tests, 10 parallel workers)
+- **Progress:** Made it to ~2800/2919 tests, then hung during HTML coverage report generation
+- **Hung At:** Likely during coverage combine or HTML generation phase
+- **Issue:** **pytest-xdist also hangs** - parallel execution did NOT resolve Qt threading issues
+- **Root Cause:** Qt threading issues affect both sequential AND parallel test execution
+- **Impact:** Short-term workaround (pytest-xdist) is NOT viable
+- **Conclusion:** Deeper Qt/pytest integration problem requiring fundamental fixture/cleanup changes
+
 ## Successful Test Runs
 
 ### Non-Slow Tests (process 8c0959)
@@ -129,13 +139,16 @@
    done
    ```
 
-2. **Parallel Execution** (Isolates modules):
+2. ~~**Parallel Execution** (Isolates modules)~~ **DOES NOT WORK:**
    ```bash
    pip install pytest-xdist
    pytest tests/unit/ui/ -n auto --cov=src/asciidoc_artisan/ui
    ```
+   **Update:** pytest-xdist also hangs at ~96% (during coverage combine/HTML generation)
+   - Not a viable workaround
+   - Confirms deeper Qt threading integration issues
 
-3. **Skip Full UI Suite** (Document limitation):
+3. **Skip Full UI Suite** (Document limitation - CURRENT APPROACH):
    - Add note to test-coverage.md: "UI tests must run individually or in parallel"
    - Update CI/CD to use pytest-xdist for UI tests
 
@@ -170,24 +183,34 @@
 
 ### Recommended Next Steps
 
-**Phase 4E Coverage Improvement:**
-1. Install pytest-xdist: `pip install pytest-xdist`
-2. Run UI coverage in parallel: `pytest tests/unit/ui/ -n auto --cov=src/asciidoc_artisan/ui --cov-report=html`
-3. Analyze coverage.xml for missing lines (skip hanging test investigation for now)
-4. Add coverage tests for identified gaps
-5. Document maximum achievable coverage with Qt threading limitations
+**Phase 4E Coverage Improvement (BLOCKED):**
+~~1. Install pytest-xdist: `pip install pytest-xdist`~~
+~~2. Run UI coverage in parallel: `pytest tests/unit/ui/ -n auto --cov=src/asciidoc_artisan/ui --cov-report=html`~~
+**STATUS:** pytest-xdist approach FAILED - also hangs at ~96%
 
-**Test Infrastructure Fixes (Separate task):**
+**Current Options:**
+1. **Per-file coverage** (slow but works):
+   ```bash
+   for file in tests/unit/ui/test_*.py; do
+     pytest "$file" --cov=src/asciidoc_artisan/ui --cov-append --timeout=60
+   done
+   pytest --cov-report=html --cov-report=term
+   ```
+2. **Skip UI coverage improvement** until test infrastructure is fixed
+3. **Document limitation** in test-coverage.md
+
+**Test Infrastructure Fixes (CRITICAL - Must fix before Phase 4E):**
 1. Create issue: "Fix Qt modal dialog test pollution in UI test suite"
 2. Investigate Qt cleanup patterns in pytest-qt documentation
 3. Implement global QMessageBox mocking in conftest.py
 4. Add autouse cleanup fixtures for Qt state
 5. Remove skipped test markers once fixed
+6. **Priority:** HIGH - blocks Phase 4E completion
 
-### Test Execution Strategy (Updated)
+### Test Execution Strategy (Updated - Nov 16)
 
 **For Coverage Analysis:**
-- ✓ Parallel: `pytest tests/unit/ui/ -n auto --cov=src/asciidoc_artisan/ui`
+- ✗ Parallel: `pytest tests/unit/ui/ -n auto` - **HANGS at ~96%**
 - ✓ Individual files: `pytest tests/unit/ui/test_FILE.py --cov=src/asciidoc_artisan/ui/FILE.py`
 - ✗ Full suite: Hangs at 21% (test pollution blocker)
 
