@@ -93,11 +93,13 @@ class TestOllamaChatWorkerMessageSending:
         assert chat_worker._document_content == doc_content
 
     def test_send_message_starts_worker(self, chat_worker):
-        """Test sending message starts the worker thread."""
+        """Test sending message queues work for processing."""
         chat_worker.send_message("Hello", "gnokit/improve-grammer", "general", [])
 
-        # Worker should start
-        assert chat_worker.isRunning() or not chat_worker.isFinished()
+        # Message should be queued for processing
+        # Note: Actual processing happens on background thread managed by application
+        assert chat_worker._user_message == "Hello"
+        assert chat_worker._current_model == "gnokit/improve-grammer"
 
 
 class TestOllamaChatWorkerCancellation:
