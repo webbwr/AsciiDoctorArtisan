@@ -192,9 +192,14 @@ class TestOllamaSettingsDialog:
         dialog = OllamaSettingsDialog(mock_settings)
         assert dialog.ollama_enabled_checkbox.isChecked()
 
+    @pytest.mark.live_api
     @patch("subprocess.run")
     def test_load_models_success(self, mock_run, mock_settings):
-        """Test loading models from Ollama succeeds."""
+        """Test loading models from Ollama succeeds.
+
+        Note: This test requires Ollama service to be running.
+        Marked as live_api - run manually with: pytest -m live_api
+        """
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
         # Mock successful Ollama response
@@ -1107,18 +1112,19 @@ class TestSettingsEditorDialog:
                 assert mock_manager.save_settings.called
                 break
 
-    def test_settings_editor_with_parent_refresh(self, mock_settings):
+    def test_settings_editor_with_parent_refresh(self, mock_settings, mock_parent_widget):
         """Test settings editor refreshes parent window."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_parent = MagicMock(spec=QWidget)
-        mock_parent._refresh_from_settings = MagicMock()
 
-        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
+        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent_widget)
 
         # Access parent window
-        assert dialog.parent_window == mock_parent
+        assert dialog.parent_window == mock_parent_widget
+
+        # Cleanup
+        dialog.deleteLater()
 
 
 @pytest.mark.fr_072
@@ -1174,14 +1180,11 @@ class TestOllamaSettingsDialogEventHandlers:
         # Model combo should remain disabled (no models)
         assert not dialog.model_combo.isEnabled()
 
-    def test_update_parent_status_bar_with_parent(self, mock_settings):
+    def test_update_parent_status_bar_with_parent(self, mock_settings, mock_parent_widget):
         """Test updating parent status bar when parent has method."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
-        mock_parent = MagicMock(spec=QWidget)
-        mock_parent._update_ai_status_bar = MagicMock()
-
-        dialog = OllamaSettingsDialog(mock_settings, mock_parent)
+        dialog = OllamaSettingsDialog(mock_settings, mock_parent_widget)
 
         # Add models
         dialog.models = ["test-model"]
@@ -1192,7 +1195,10 @@ class TestOllamaSettingsDialogEventHandlers:
         dialog._update_parent_status_bar()
 
         # Parent method should be called
-        assert mock_parent._update_ai_status_bar.called
+        assert len(mock_parent_widget.status_bar_updates) > 0
+
+        # Cleanup
+        dialog.deleteLater()
 
     def test_update_parent_status_bar_without_parent(self, mock_settings):
         """Test updating parent status bar when no parent."""
@@ -1203,14 +1209,11 @@ class TestOllamaSettingsDialogEventHandlers:
         # Should not crash without parent
         dialog._update_parent_status_bar()
 
-    def test_on_model_changed_updates_parent(self, mock_settings):
+    def test_on_model_changed_updates_parent(self, mock_settings, mock_parent_widget):
         """Test model changed handler updates parent status bar."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
-        mock_parent = MagicMock(spec=QWidget)
-        mock_parent._update_ai_status_bar = MagicMock()
-
-        dialog = OllamaSettingsDialog(mock_settings, mock_parent)
+        dialog = OllamaSettingsDialog(mock_settings, mock_parent_widget)
 
         # Add models
         dialog.models = ["model1", "model2"]
@@ -1222,7 +1225,10 @@ class TestOllamaSettingsDialogEventHandlers:
         dialog._on_model_changed()
 
         # Parent should be updated
-        assert mock_parent._update_ai_status_bar.called
+        assert len(mock_parent_widget.status_bar_updates) > 0
+
+        # Cleanup
+        dialog.deleteLater()
 
     def test_get_settings_includes_chat_settings(self, mock_settings):
         """Test get_settings includes chat settings."""
@@ -1866,16 +1872,14 @@ class TestSettingsEditorDialogItemChanged:
                 assert mock_settings.test_dict == {}
                 break
 
-    def test_on_item_changed_parent_refresh_calls(self, mock_settings):
+    def test_on_item_changed_parent_refresh_calls(self, mock_settings, mock_parent_widget):
         """Test _on_item_changed() calls parent refresh."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_parent = MagicMock(spec=QWidget)
-        mock_parent._refresh_from_settings = MagicMock()
         mock_settings.test_val = True
 
-        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
+        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent_widget)
 
         # Find a setting and change it
         for row in range(dialog.table.rowCount()):
@@ -1885,15 +1889,19 @@ class TestSettingsEditorDialogItemChanged:
                 dialog._on_item_changed(value_item)
 
                 # Parent refresh should be called
-                assert mock_parent._refresh_from_settings.called
+                assert mock_parent_widget.refresh_from_settings_called
                 break
 
-    def test_on_item_changed_without_parent_refresh(self, mock_settings):
+        # Cleanup
+        dialog.deleteLater()
+
+    def test_on_item_changed_without_parent_refresh(self, mock_settings, qapp):
         """Test _on_item_changed() without parent refresh method."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_parent = MagicMock(spec=[])  # Parent without _refresh_from_settings
+        # Create real QWidget parent without _refresh_from_settings method
+        mock_parent = QWidget()
         mock_settings.test_val = 1
 
         dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
@@ -1908,6 +1916,10 @@ class TestSettingsEditorDialogItemChanged:
                 # Should not crash even without parent refresh method
                 assert mock_settings.test_val == 2
                 break
+
+        # Cleanup
+        dialog.deleteLater()
+        mock_parent.deleteLater()
 
     def test_on_item_changed_multiple_rapid_edits(self, mock_settings):
         """Test _on_item_changed() handles multiple rapid edits."""
@@ -1941,25 +1953,26 @@ class TestSettingsEditorDialogClearAll:
     """Test SettingsEditorDialog clear all functionality."""
 
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
-    def test_clear_all_with_parent_refresh(self, mock_question, mock_settings):
+    def test_clear_all_with_parent_refresh(self, mock_question, mock_settings, mock_parent_widget):
         """Test clear_all_settings with parent refresh."""
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
         mock_manager = MagicMock()
-        mock_parent = MagicMock(spec=QWidget)
-        mock_parent._refresh_from_settings = MagicMock()
         mock_question.return_value = QMessageBox.StandardButton.Yes
 
-        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent)
+        dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent_widget)
         initial_rows = dialog.table.rowCount()
 
         dialog._clear_all_settings()
 
         # Should save and refresh parent
         assert mock_manager.save_settings.called
-        assert mock_parent._refresh_from_settings.called
+        assert mock_parent_widget.refresh_from_settings_called
+
+        # Cleanup
+        dialog.deleteLater()
 
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.information")

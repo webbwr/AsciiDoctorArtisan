@@ -12,7 +12,7 @@ This file addresses GitHub issue #28: Qt modal dialog test pollution.
 """
 
 import pytest
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
 from unittest.mock import patch, MagicMock
 
 
@@ -39,6 +39,62 @@ def cleanup_qt_modal_dialogs(qtbot):
 
         # Process pending events to ensure cleanup completes
         app.processEvents()
+
+
+class MockParentWidget(QWidget):
+    """
+    Mock parent widget for dialog tests.
+
+    Provides a real QWidget that can be used as a dialog parent,
+    solving the PySide6 type validation issue where MagicMock
+    instances are rejected by Qt's C++ bindings.
+
+    Tracks method calls for verification in tests.
+
+    Attributes:
+        refresh_from_settings_called: Whether _refresh_from_settings was called
+        status_bar_updates: List of status bar messages
+        model_changes: List of model changes
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.refresh_from_settings_called = False
+        self.status_bar_updates = []
+        self.model_changes = []
+
+    def _refresh_from_settings(self):
+        """Mock implementation of refresh_from_settings."""
+        self.refresh_from_settings_called = True
+
+    def _update_ai_status_bar(self, message: str = ""):
+        """Mock implementation of update_status_bar."""
+        self.status_bar_updates.append(message)
+
+    def on_model_changed(self, model: str):
+        """Mock implementation of model change handler."""
+        self.model_changes.append(model)
+
+
+@pytest.fixture
+def mock_parent_widget(qtbot):
+    """
+    Provides a mock parent widget for dialog tests.
+
+    Returns a real QWidget instance with trackable methods,
+    avoiding PySide6's C++ type validation issues with mocks.
+
+    Automatically cleaned up after test completion.
+
+    Usage:
+        def test_dialog_with_parent(mock_parent_widget):
+            dialog = SomeDialog(parent=mock_parent_widget)
+            dialog.accept()
+            assert mock_parent_widget.refresh_from_settings_called
+    """
+    parent = MockParentWidget()
+    yield parent
+    parent.deleteLater()
 
 
 @pytest.fixture(autouse=True)

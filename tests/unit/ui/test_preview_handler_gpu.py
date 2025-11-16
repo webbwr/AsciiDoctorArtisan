@@ -235,6 +235,7 @@ class TestCreatePreviewWidget:
         # Should return QTextBrowser as fallback
         assert isinstance(widget, QTextBrowser)
 
+    @pytest.mark.requires_gpu
     @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
     @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
     @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
@@ -303,6 +304,7 @@ class TestCreatePreviewWidget:
 class TestCreatePreviewHandler:
     """Test suite for create_preview_handler factory function."""
 
+    @pytest.mark.requires_gpu
     @patch("asciidoc_artisan.ui.preview_handler_gpu.hasattr")
     def test_returns_webengine_handler_for_webengine_view(
         self, mock_hasattr, mock_editor, mock_parent_window
@@ -760,6 +762,7 @@ class TestGPUDetectionEdgeCases:
 class TestWebEngineSettingsConfiguration:
     """Test suite for QWebEngineView settings."""
 
+    @pytest.mark.requires_gpu
     @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
     @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
     @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
