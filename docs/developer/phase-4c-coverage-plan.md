@@ -62,10 +62,10 @@
 ## Progress Summary
 
 **Completed: 7 of 14 files (50%)**
-- ✅ 100% coverage: 4 files (gpu_detection, git_worker, github_cli_worker, pandoc_worker)
-- ✅ 97% coverage: 1 file (document_converter - 5 lines: 3 complex, 1 unreachable)
-- ⚠️  Max achievable: 2 files (optimized_worker_pool 98%, claude_worker 93% - Qt threading)
-- ⏭️  Skipped: 1 file (lazy_utils - dead code, not imported)
+- ✅ 4 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker
+- ✅ 1 file at 97%: document_converter (5 lines: 3 complex, 1 unreachable)
+- ⚠️ 2 files at Qt max: optimized_worker_pool (98%), claude_worker (93%) - threading limitations
+- 📝 1 dead code: lazy_utils (never imported, documented for cleanup)
 
 **Remaining: 7 files**
 - Primarily in UI module (Phase 4E scope, 3-4 week effort per QA audit)
