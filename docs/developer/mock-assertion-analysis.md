@@ -64,15 +64,20 @@ def test_prompt_save_user_clicks_save(self, mock_msgbox_cls, mock_main_window, m
 
 **Error:** `assert hasattr(window, "github_cli_worker")` - returns False
 
-**Root Cause:** Main window doesn't have `github_cli_worker` attribute
+**Root Cause:** Workers refactored - architectural mismatch between test expectations and implementation
 
-**Possible Causes:**
-1. Worker initialization conditional on GitHub CLI being available
-2. Worker created in different location (worker_manager?)
-3. Attribute name changed
-4. Worker creation deferred until first use
+**Investigation Results (Commit 7faa3c1):**
+- Workers managed by `worker_manager` (main_window.py:312)
+- Test expects: `window.{git,pandoc,preview,github_cli,ollama_chat}_worker`
+- Actual: Workers in `window.worker_manager.setup_workers_and_threads()`
+- No direct worker attributes found on window or worker_manager
 
-**Next Step:** Check main_window.py worker initialization to see actual attribute names
+**Fix Options:**
+1. Update test to check `worker_manager` existence (minimal fix)
+2. Add property accessors: `@property def github_cli_worker() -> Worker`
+3. Refactor test to match new architecture
+
+**Status:** Deferred - requires architectural decision or test refactoring
 
 ---
 
