@@ -256,18 +256,6 @@ class GitHubCLIWorker(BaseWorker):
                     operation=operation,
                 )
             )
-        except json.JSONDecodeError as e:
-            error_msg = f"Failed to parse GitHub CLI JSON output: {e}"
-            logger.error(error_msg)
-            self.github_result_ready.emit(
-                GitHubResult(
-                    success=False,
-                    data=None,
-                    error=error_msg,
-                    user_message="GitHub CLI returned invalid JSON",
-                    operation=operation,
-                )
-            )
         except Exception as e:
             error_msg = f"Unexpected error running GitHub CLI command: {e}"
             logger.exception("Unexpected GitHub CLI error")

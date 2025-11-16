@@ -3,7 +3,9 @@ Extended tests for github_cli_worker to achieve 100% coverage.
 
 Tests for missing lines:
 - Line 174: Logger info when working_dir is provided
-- Lines 260-262: JSONDecodeError exception handler
+
+Note: Removed unreachable JSONDecodeError handler (formerly lines 260-262)
+for 100% coverage. Inner try-except already handles all JSON parsing errors.
 """
 
 import tempfile
@@ -65,11 +67,9 @@ class TestGitHubCLIWorkerCoverage:
         assert call_kwargs["cwd"] == tmpdir
 
 
-# NOTE: Lines 260-262 (outer JSONDecodeError handler) appear to be unreachable dead code.
-# The inner try-except at lines 200-206 catches all JSONDecodeError exceptions from
-# json.loads(stdout), preventing the outer handler from ever being triggered.
-# This defensive code may have been added for future-proofing or as legacy code.
-# Coverage: 98% is excellent for this module (only 3 unreachable lines out of 121).
+# Phase 4C: Removed unreachable JSONDecodeError handler (formerly lines 260-262).
+# The inner try-except at lines 200-206 already catches all JSONDecodeError exceptions,
+# making the outer handler dead code. Removed for 100% coverage.
 
 
 if __name__ == "__main__":
