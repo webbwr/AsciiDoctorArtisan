@@ -15,6 +15,7 @@ main window complexity and improve modularity.
 """
 
 import logging
+import os
 import platform
 import subprocess
 from pathlib import Path
@@ -706,8 +707,6 @@ class DialogManager:
         Returns:
             True if should proceed with action, False if cancelled
         """
-        import os
-
         # Auto-continue in tests to prevent blocking.
         if os.environ.get("PYTEST_CURRENT_TEST"):
             return True
