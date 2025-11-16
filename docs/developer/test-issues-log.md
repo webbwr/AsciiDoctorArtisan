@@ -200,12 +200,22 @@
 3. **Document limitation** in test-coverage.md
 
 **Test Infrastructure Fixes (CRITICAL - Must fix before Phase 4E):**
-1. Create issue: "Fix Qt modal dialog test pollution in UI test suite"
-2. Investigate Qt cleanup patterns in pytest-qt documentation
-3. Implement global QMessageBox mocking in conftest.py
-4. Add autouse cleanup fixtures for Qt state
-5. Remove skipped test markers once fixed
+1. ✓ Create issue: "Fix Qt modal dialog test pollution in UI test suite" (GitHub #28)
+2. ✓ Investigate Qt cleanup patterns in pytest-qt documentation
+3. ✗ Implement global QMessageBox mocking in conftest.py - **ATTEMPTED, DID NOT WORK**
+4. ✗ Add autouse cleanup fixtures for Qt state - **ATTEMPTED, DID NOT WORK**
+5. Remove skipped test markers once fixed - **BLOCKED by root cause**
 6. **Priority:** HIGH - blocks Phase 4E completion
+
+**Fixture Cleanup Attempt (Nov 16 - UNSUCCESSFUL):**
+- Created `tests/unit/ui/conftest.py` with comprehensive Qt cleanup fixtures
+- Added autouse fixtures: `cleanup_qt_modal_dialogs`, `cleanup_qt_event_loop`, `reset_qt_application_state`
+- Added optional fixtures: `mock_qmessagebox`, `isolated_event_loop`, `fast_ui_test_settings`
+- **Result:** Tests still hang during execution (not between tests)
+- **Finding:** Fixtures clean up AFTER tests complete, but these tests never complete
+- **Root Cause:** Tests hang DURING execution when QMessageBox mocking fails
+- **Conclusion:** Need to investigate WHY @patch decorators don't prevent modal dialogs
+- **Next Step:** Investigate application code paths - modal dialogs may be created before mocks are applied
 
 ### Test Execution Strategy (Updated - Nov 16)
 

@@ -720,11 +720,12 @@ class TestDialogManagerStateManagement:
 
 
 @pytest.mark.unit
-@pytest.mark.skip(reason="All tests hang indefinitely - Qt event loop issue with telemetry dialogs (Phase 4E blocker)")
+@pytest.mark.skip(
+    reason="Qt event loop hangs - fixture cleanup doesn't fix in-test blocking (GitHub issue #28)"
+)
 class TestTelemetryStatusDialogEnabled:
     """Test telemetry status dialog when enabled."""
 
-    @pytest.mark.skip(reason="Hangs indefinitely - Qt event loop issue with telemetry dialog (Phase 4E blocker)")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
     def test_show_telemetry_enabled_with_session_id(
         self, mock_msgbox_cls, mock_main_window
