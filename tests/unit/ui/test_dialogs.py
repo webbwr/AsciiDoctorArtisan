@@ -1044,7 +1044,7 @@ class TestSettingsEditorDialog:
         assert result == "test"
 
     @pytest.mark.skip(
-        reason="Qt event loop hangs - fixture cleanup doesn't fix in-test blocking (GitHub issue #28)"
+        reason="Qt event loop hangs - different issue than dialog_manager (GitHub issue #28)"
     )
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
     def test_clear_all_settings_with_confirmation_yes(
@@ -1067,7 +1067,7 @@ class TestSettingsEditorDialog:
         assert mock_manager.save_settings.called
 
     @pytest.mark.skip(
-        reason="Qt event loop hangs - fixture cleanup doesn't fix in-test blocking (GitHub issue #28)"
+        reason="Qt event loop hangs - different issue than dialog_manager (GitHub issue #28)"
     )
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
     def test_clear_all_settings_with_confirmation_no(

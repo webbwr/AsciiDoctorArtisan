@@ -56,10 +56,6 @@ def cleanup_qt_event_loop(qtbot):
     if app:
         app.processEvents()
 
-        # Flush event queue
-        while app.hasPendingEvents():
-            app.processEvents()
-
 
 @pytest.fixture
 def mock_qmessagebox():

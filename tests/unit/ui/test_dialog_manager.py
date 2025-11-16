@@ -720,9 +720,6 @@ class TestDialogManagerStateManagement:
 
 
 @pytest.mark.unit
-@pytest.mark.skip(
-    reason="Qt event loop hangs - fixture cleanup doesn't fix in-test blocking (GitHub issue #28)"
-)
 class TestTelemetryStatusDialogEnabled:
     """Test telemetry status dialog when enabled."""
 

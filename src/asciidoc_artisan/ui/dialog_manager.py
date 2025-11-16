@@ -270,7 +270,7 @@ class DialogManager:
         import subprocess
         from pathlib import Path
 
-        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        from PySide6.QtWidgets import QFileDialog
 
         logger = logging.getLogger(__name__)
 
