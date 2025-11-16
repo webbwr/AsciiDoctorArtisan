@@ -217,6 +217,26 @@
 - **Conclusion:** Need to investigate WHY @patch decorators don't prevent modal dialogs
 - **Next Step:** Investigate application code paths - modal dialogs may be created before mocks are applied
 
+**✅ ROOT CAUSE FOUND AND FIXED (Nov 16 - SUCCESSFUL):**
+- **Investigation:** Traced import paths in `dialog_manager.py:show_telemetry_status()`
+- **Discovery:** Method had redundant local import on line 273:
+  ```python
+  from PySide6.QtWidgets import QFileDialog, QMessageBox  # PROBLEM!
+  ```
+- **Root Cause:** QMessageBox was already imported at module level (line 22)
+  - Local import created fresh reference directly from PySide6
+  - Bypassed `@patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")` decorator
+  - Real QMessageBox.question() executed instead of mock → modal dialog blocked test
+- **Fix:** Removed `QMessageBox` from local import (commit 2c6b173)
+  - Now uses module-level import which is correctly mocked
+- **Results:** ✅ ALL 4 TELEMETRY TESTS NOW PASS (0.62s total, previously hung indefinitely)
+  - test_show_telemetry_enabled_with_session_id: 0.469s ✓
+  - test_show_telemetry_enabled_without_session_id: 0.005s ✓
+  - test_show_telemetry_enabled_with_storage_location: 0.005s ✓
+  - test_show_telemetry_disabled: 0.004s ✓
+- **Status:** Partial fix for GitHub issue #28 (4 of 6 hanging tests resolved)
+- **Remaining:** 2 tests in test_dialogs.py still hang (dialogs.py has correct module-level import - different issue)
+
 ### Test Execution Strategy (Updated - Nov 16)
 
 **For Coverage Analysis:**
