@@ -4,7 +4,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6.QtWidgets import QCheckBox, QComboBox, QWidget
+from PySide6.QtWidgets import QCheckBox, QComboBox, QLabel, QWidget
 
 from asciidoc_artisan.core import Settings
 
