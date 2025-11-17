@@ -319,6 +319,51 @@ class TestTemplateBrowserOkClick:
         assert accept_called is True
         assert browser.variable_values == {}
 
+    def test_ok_click_template_with_variables(self, qtbot, mock_manager, sample_template, monkeypatch):
+        """Test OK click with template that has variables."""
+        browser = TemplateBrowser(mock_manager)
+        qtbot.addWidget(browser)
+
+        # Select template WITH variables
+        browser.selected_template = sample_template
+
+        # Mock VariableInputDialog to simulate user accepting with values
+        mock_dialog_instance = MagicMock()
+        mock_dialog_instance.exec.return_value = True
+        mock_dialog_instance.get_values.return_value = {
+            "title": "Test Title",
+            "author": "Test Author"
+        }
+
+        def mock_dialog_constructor(template, parent):
+            return mock_dialog_instance
+
+        monkeypatch.setattr(
+            "asciidoc_artisan.ui.template_browser.VariableInputDialog",
+            mock_dialog_constructor
+        )
+
+        # Mock accept to verify it's called
+        accept_called = False
+
+        def mock_accept():
+            nonlocal accept_called
+            accept_called = True
+
+        browser.accept = mock_accept
+
+        browser._on_ok_clicked()
+
+        # Verify dialog was created and exec() was called
+        assert mock_dialog_instance.exec.called
+        # Verify accept was called
+        assert accept_called is True
+        # Verify variable values were retrieved from dialog
+        assert browser.variable_values == {
+            "title": "Test Title",
+            "author": "Test Author"
+        }
+
 
 @pytest.mark.fr_100
 @pytest.mark.fr_101

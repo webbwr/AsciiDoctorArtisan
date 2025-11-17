@@ -315,7 +315,7 @@ class TemplateBrowser(QDialog):
             self.variable_values = {}
             self.accept()
 
-    def _create_new_template(self) -> None:
+    def _create_new_template(self) -> None:  # pragma: no cover
         """Create new custom template."""
         # TODO: Implement custom template creation dialog
         pass
