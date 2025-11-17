@@ -1308,3 +1308,110 @@ class TestExportErrorHandling:
         # Should not raise, just log error
         manager._handle_export_result("Content", "Exporting to MD")
         assert True
+
+
+@pytest.mark.unit
+class TestExportManagerCoverageEdgeCases:
+    """Test suite for export_manager edge cases to achieve 100% coverage."""
+
+    def test_html_export_atomic_save_failure(self, main_window, tmp_path):
+        """Test HTML export when atomic_save_text returns False (line 310)."""
+        from asciidoc_artisan.ui.export_manager import ExportManager
+
+        manager = ExportManager(main_window)
+        export_file = tmp_path / "test.html"
+
+        # Mock atomic_save_text to return False
+        with patch(
+            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False
+        ):
+            signal_received = []
+            manager.export_failed.connect(lambda msg: signal_received.append(msg))
+
+            result = manager._export_html(export_file, "= Test\n\nContent")
+
+            assert result is False
+            assert len(signal_received) == 1
+            assert "Atomic save failed" in signal_received[0]
+
+    def test_handle_export_result_file_saved_to(self, main_window, tmp_path):
+        """Test _handle_export_result with 'File saved to:' message (lines 518-521)."""
+        from asciidoc_artisan.ui.export_manager import ExportManager
+
+        manager = ExportManager(main_window)
+        export_file = tmp_path / "test.md"
+        manager.pending_export_path = export_file
+        manager.pending_export_format = "md"
+
+        signal_received = []
+        manager.export_completed.connect(lambda path: signal_received.append(str(path)))
+
+        manager._handle_export_result(
+            f"File saved to: {export_file}", "Exporting to MD"
+        )
+
+        assert len(signal_received) == 1
+        assert str(export_file) in signal_received[0]
+
+    def test_handle_pdf_export_file_exists(self, main_window, tmp_path):
+        """Test PDF export when file already exists (lines 524-528)."""
+        from asciidoc_artisan.ui.export_manager import ExportManager
+
+        manager = ExportManager(main_window)
+        export_file = tmp_path / "test.pdf"
+        export_file.write_text("PDF content")  # Create file
+
+        manager.pending_export_path = export_file
+        manager.pending_export_format = "pdf"
+
+        signal_received = []
+        manager.export_completed.connect(lambda path: signal_received.append(str(path)))
+
+        manager._handle_export_result("PDF content", "Exporting to PDF")
+
+        assert len(signal_received) == 1
+        assert str(export_file) in signal_received[0]
+
+    def test_handle_pdf_export_atomic_save_success(self, main_window, tmp_path):
+        """Test PDF export when file doesn't exist and atomic_save succeeds (lines 534-537)."""
+        from asciidoc_artisan.ui.export_manager import ExportManager
+
+        manager = ExportManager(main_window)
+        export_file = tmp_path / "test.pdf"
+
+        manager.pending_export_path = export_file
+        manager.pending_export_format = "pdf"
+
+        # Mock atomic_save_text to return True
+        with patch(
+            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
+        ):
+            signal_received = []
+            manager.export_completed.connect(lambda path: signal_received.append(str(path)))
+
+            manager._handle_export_result("PDF content", "Exporting to PDF")
+
+            assert len(signal_received) == 1
+            assert str(export_file) in signal_received[0]
+
+    def test_handle_pdf_export_atomic_save_failure(self, main_window, tmp_path):
+        """Test PDF export when file doesn't exist and atomic_save fails (lines 539)."""
+        from asciidoc_artisan.ui.export_manager import ExportManager
+
+        manager = ExportManager(main_window)
+        export_file = tmp_path / "test.pdf"
+
+        manager.pending_export_path = export_file
+        manager.pending_export_format = "pdf"
+
+        # Mock atomic_save_text to return False
+        with patch(
+            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False
+        ):
+            signal_received = []
+            manager.export_failed.connect(lambda msg: signal_received.append(msg))
+
+            manager._handle_export_result("PDF content", "Exporting to PDF")
+
+            assert len(signal_received) == 1
+            assert "Failed to save" in signal_received[0]
