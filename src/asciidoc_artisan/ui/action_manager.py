@@ -109,7 +109,7 @@ from PySide6.QtGui import (
 # === TYPE CHECKING (Avoid Circular Imports) ===
 # This is a trick to avoid importing main_window at runtime (would cause circular import)
 # We only need the type for type hints, not the actual class
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 # === LOGGING SETUP ===
