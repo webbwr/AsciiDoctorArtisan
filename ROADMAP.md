@@ -78,10 +78,11 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 - 4B: Core (async/resource/lazy) - ~30 tests, 1 day [COMPLETE at 99%]
 - 4C: Polish (14 files, 90-99% coverage) - ~180 statements, 4-6 hours [COMPLETE]
 - 4D: document_converter - 48 tests, 4 hours [COMPLETE at 100%]
-- 4E: UI layer (0% → 100%) - ~690 tests, 3-4 weeks, HIGH complexity [~90-95% current, DEFERRED]
+- 4E: UI layer (90-95% → 99-100%) - ~150-200 tests, 2-6 weeks, HIGH complexity [IN PROGRESS: Session 1 complete]
 
 **Completed Phases:** 4A, 4B, 4C, 4D (Nov 17, 2025)
-**Remaining:** Phase 4E (UI layer), 3-4 weeks effort, +2-3% coverage to 99.5% max
+**In Progress:** Phase 4E (UI layer, started Nov 17, 2025) - Session 1: action_manager 100%, 18 quick wins remaining
+**Estimated:** 2-6 weeks, ~150-200 tests, +2-3% coverage to 99.5% max
 
 **Rationale:** v2.0.0 feature development > incremental coverage. Current 96.4% with 99.89% pass rate (5,480/5,486) is production-ready.
 
@@ -89,7 +90,9 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 
 **Update Nov 16, 2025:** UI test fixes completed (v2.0.3). Test suite now 5,486 tests with 99.89% pass rate (5,480 passing, 6 deferred/environmental).
 
-**Update Nov 17, 2025:** Phase 4D completed. document_converter.py: 97% → 100% coverage (+2 tests, removed 1 unreachable code). Phase 4A-4D complete.
+**Update Nov 17, 2025 (AM):** Phase 4D completed. document_converter.py: 97% → 100% coverage (+2 tests, removed 1 unreachable code). Phase 4A-4D complete.
+
+**Update Nov 17, 2025 (PM):** Phase 4E started. Session 1: Analyzed 42 UI files, created detailed plan, fixed action_manager.py → 100%. Identified 19 quick wins, 3 hung test files (root cause of test suite hangs). Revised estimate: 2-6 weeks, ~150-200 tests (down from 690).
 
 **Coverage Analysis (Nov 16, 2025):** True 100% coverage is impossible due to Qt threading limitations. Maximum achievable: ~99.5%.
 
