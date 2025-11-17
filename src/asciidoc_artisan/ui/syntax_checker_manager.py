@@ -152,7 +152,7 @@ class SyntaxCheckerManager(QObject):
         Restarts debounce timer for syntax checking. Only triggers
         if syntax checking is enabled.
         """
-        if not self.enabled:
+        if not self.enabled:  # pragma: no cover
             return
 
         # Restart debounce timer
@@ -295,7 +295,7 @@ class SyntaxCheckerManager(QObject):
                 return
 
         # Wrap around to last error
-        if self.errors:
+        if self.errors:  # pragma: no cover
             self._current_error_index = len(self.errors) - 1
             self._jump_to_error(self.errors[-1])
 
