@@ -303,7 +303,7 @@ def test_memory_baseline(profiler):
 def test_small_document_generation(profiler):
     """Test performance of generating small document."""
     with profiler.measure("generate_small_doc"):
-        doc = generate_test_document(100)
+        generate_test_document(100)
 
     time_ms = profiler.get_metric("generate_small_doc", "time_ms")
     assert time_ms < 100, f"Small doc generation took {time_ms}ms (expected < 100ms)"
@@ -313,7 +313,7 @@ def test_small_document_generation(profiler):
 def test_medium_document_generation(profiler):
     """Test performance of generating medium document."""
     with profiler.measure("generate_medium_doc"):
-        doc = generate_test_document(1000)
+        generate_test_document(1000)
 
     time_ms = profiler.get_metric("generate_medium_doc", "time_ms")
     assert time_ms < 1000, f"Medium doc generation took {time_ms}ms (expected < 1000ms)"
@@ -323,7 +323,7 @@ def test_medium_document_generation(profiler):
 def test_large_document_generation(profiler):
     """Test performance of generating large document."""
     with profiler.measure("generate_large_doc"):
-        doc = generate_test_document(10000)
+        generate_test_document(10000)
 
     time_ms = profiler.get_metric("generate_large_doc", "time_ms")
     assert time_ms < 5000, f"Large doc generation took {time_ms}ms (expected < 5000ms)"

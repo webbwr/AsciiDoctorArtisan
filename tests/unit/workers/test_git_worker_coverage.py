@@ -33,7 +33,6 @@ def git_worker():
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security

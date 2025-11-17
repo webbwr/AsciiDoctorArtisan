@@ -38,7 +38,7 @@ def benchmark_pymupdf():
         iterations = 100
         start = time.perf_counter()
         for _ in range(iterations):
-            text = page.get_text()
+            page.get_text()
         end = time.perf_counter()
 
         avg_time = (end - start) / iterations * 1000
@@ -71,7 +71,7 @@ def benchmark_numba():
 
         start = time.perf_counter()
         for _ in range(iterations):
-            cleaned = DocumentConverter._clean_cell(test_cell)
+            DocumentConverter._clean_cell(test_cell)
         end = time.perf_counter()
 
         avg_time = (end - start) / iterations * 1000000  # microseconds
@@ -87,7 +87,7 @@ def benchmark_numba():
         start = time.perf_counter()
         for _ in range(iterations):
             for line in test_lines:
-                level = count_leading_equals(line)
+                count_leading_equals(line)
         end = time.perf_counter()
 
         avg_time = (end - start) / iterations * 1000

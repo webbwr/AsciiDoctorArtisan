@@ -1380,10 +1380,7 @@ class TestMacOSGPUDetection:
         mock_sysctl.returncode = 0
         mock_sysctl.stdout = "Intel Core i7"  # Not Apple Silicon
 
-        mocker.patch(
-            "subprocess.run",
-            side_effect=[mock_result, mock_sysctl]
-        )
+        mocker.patch("subprocess.run", side_effect=[mock_result, mock_sysctl])
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
 
@@ -1398,10 +1395,7 @@ class TestMacOSGPUDetection:
         mock_sysctl.returncode = 0
         mock_sysctl.stdout = "Apple M2 Max"
 
-        mocker.patch(
-            "subprocess.run",
-            side_effect=[FileNotFoundError, mock_sysctl]
-        )
+        mocker.patch("subprocess.run", side_effect=[FileNotFoundError, mock_sysctl])
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
 
@@ -1420,7 +1414,7 @@ class TestMacOSGPUDetection:
 
         mocker.patch(
             "subprocess.run",
-            side_effect=[subprocess.TimeoutExpired("system_profiler", 2), mock_sysctl]
+            side_effect=[subprocess.TimeoutExpired("system_profiler", 2), mock_sysctl],
         )
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
@@ -1440,10 +1434,7 @@ class TestMacOSGPUDetection:
         mock_sysctl.returncode = 0
         mock_sysctl.stdout = "Apple M1"
 
-        mocker.patch(
-            "subprocess.run",
-            side_effect=[mock_profiler, mock_sysctl]
-        )
+        mocker.patch("subprocess.run", side_effect=[mock_profiler, mock_sysctl])
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
 
@@ -1460,10 +1451,7 @@ class TestMacOSGPUDetection:
         mock_sysctl.returncode = 0
         mock_sysctl.stdout = "Apple M3 Pro"
 
-        mocker.patch(
-            "subprocess.run",
-            side_effect=[mock_profiler, mock_sysctl]
-        )
+        mocker.patch("subprocess.run", side_effect=[mock_profiler, mock_sysctl])
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
 
@@ -1479,8 +1467,8 @@ class TestMacOSGPUDetection:
             "subprocess.run",
             side_effect=[
                 subprocess.TimeoutExpired("system_profiler", 2),
-                FileNotFoundError
-            ]
+                FileNotFoundError,
+            ],
         )
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
@@ -1498,10 +1486,7 @@ class TestMacOSGPUDetection:
 
         mocker.patch(
             "subprocess.run",
-            side_effect=[
-                mock_profiler,
-                subprocess.TimeoutExpired("sysctl", 1)
-            ]
+            side_effect=[mock_profiler, subprocess.TimeoutExpired("sysctl", 1)],
         )
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
@@ -1519,10 +1504,7 @@ class TestMacOSGPUDetection:
         mock_sysctl.returncode = 0
         mock_sysctl.stdout = "Intel Core i9"
 
-        mocker.patch(
-            "subprocess.run",
-            side_effect=[mock_profiler, mock_sysctl]
-        )
+        mocker.patch("subprocess.run", side_effect=[mock_profiler, mock_sysctl])
 
         has_gpu, gpu_name, metal_version = check_macos_gpu()
 
@@ -1685,8 +1667,7 @@ class TestAppleNeuralEngine:
         import subprocess
 
         mocker.patch(
-            "subprocess.run",
-            side_effect=subprocess.TimeoutExpired("sysctl", 1)
+            "subprocess.run", side_effect=subprocess.TimeoutExpired("sysctl", 1)
         )
 
         has_npu, npu_name = check_apple_neural_engine()
@@ -1809,9 +1790,7 @@ class TestCoverageImprovements:
             "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load",
             return_value=None,
         )
-        mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.save"
-        )
+        mocker.patch("asciidoc_artisan.core.gpu_detection.GPUDetectionCache.save")
 
         gpu_info = detect_gpu()
 
@@ -1848,9 +1827,7 @@ class TestCoverageImprovements:
             "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load",
             return_value=None,
         )
-        mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.save"
-        )
+        mocker.patch("asciidoc_artisan.core.gpu_detection.GPUDetectionCache.save")
 
         gpu_info = detect_gpu()
 
@@ -1880,7 +1857,9 @@ class TestCoverageImprovements:
         log_gpu_info(gpu_info)
 
         # Check that metal_version was logged (line 627)
-        assert any("Metal version: Metal 3.1" in record.message for record in caplog.records)
+        assert any(
+            "Metal version: Metal 3.1" in record.message for record in caplog.records
+        )
 
     def test_detect_compute_capabilities_metal_file_not_found(self, mocker):
         """Test Metal detection when system_profiler not found (line 486)."""
@@ -1889,8 +1868,7 @@ class TestCoverageImprovements:
 
         # Mock subprocess.run to raise FileNotFoundError
         mocker.patch(
-            "subprocess.run",
-            side_effect=FileNotFoundError("system_profiler not found")
+            "subprocess.run", side_effect=FileNotFoundError("system_profiler not found")
         )
 
         capabilities = detect_compute_capabilities()
@@ -1908,9 +1886,8 @@ class TestCoverageImprovements:
         mocker.patch(
             "subprocess.run",
             side_effect=subprocess.TimeoutExpired(
-                cmd="system_profiler SPDisplaysDataType",
-                timeout=1
-            )
+                cmd="system_profiler SPDisplaysDataType", timeout=1
+            ),
         )
 
         capabilities = detect_compute_capabilities()

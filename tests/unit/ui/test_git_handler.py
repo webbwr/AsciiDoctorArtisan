@@ -1557,7 +1557,7 @@ class TestCheckRepositoryReady:
         settings.git_repo_path = None
 
         handler = GitHandler(main_window, settings_manager, status_manager)
-        result = handler._check_repository_ready()
+        handler._check_repository_ready()
 
         # Should show message
         status_manager.show_message.assert_called_once()

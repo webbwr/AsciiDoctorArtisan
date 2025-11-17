@@ -191,14 +191,14 @@ from asciidoc_artisan.ui.status_manager import StatusManager  # Status bar updat
 from asciidoc_artisan.ui.syntax_checker_manager import (
     SyntaxCheckerManager,
 )  # Syntax checking (v2.0.0)
+from asciidoc_artisan.ui.template_browser import (  # Template browsing dialog (v2.0.0)
+    TemplateBrowser,
+)
 from asciidoc_artisan.ui.theme_manager import ThemeManager  # Dark/light mode switcher
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager  # Sets up UI widgets
 from asciidoc_artisan.ui.ui_state_manager import UIStateManager  # Tracks UI state
 from asciidoc_artisan.ui.worker_manager import (  # Manages background threads
     WorkerManager,
-)
-from asciidoc_artisan.ui.template_browser import (  # Template browsing dialog (v2.0.0)
-    TemplateBrowser,
 )
 
 # === OPTIONAL: AI CLIENT ===

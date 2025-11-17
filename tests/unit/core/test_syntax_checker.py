@@ -16,7 +16,6 @@ from asciidoc_artisan.core.syntax_checker import (
 )
 
 
-
 @pytest.mark.fr_091
 @pytest.mark.fr_092
 @pytest.mark.fr_095
@@ -148,7 +147,6 @@ class TestValidationContext:
         assert context.should_validate_line(0) is False
         assert context.should_validate_line(1) is True
         assert context.should_validate_line(2) is False
-
 
 
 @pytest.mark.fr_091
@@ -408,7 +406,6 @@ class TestSyntaxChecker:
         assert "CustomRuleB" in names
 
 
-
 @pytest.mark.fr_091
 @pytest.mark.fr_092
 @pytest.mark.fr_095
@@ -524,7 +521,6 @@ class TestConvenienceFunctions:
         lines = []
 
         assert is_inside_code_block(lines, 0) is False
-
 
 
 @pytest.mark.fr_091

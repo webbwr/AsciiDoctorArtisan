@@ -14,7 +14,6 @@ from asciidoc_artisan.core.models import Template, TemplateVariable
 from asciidoc_artisan.core.template_engine import TemplateEngine
 
 
-
 @pytest.mark.fr_101
 @pytest.mark.fr_107
 @pytest.mark.unit
@@ -29,7 +28,6 @@ class TestInitialization:
         assert isinstance(engine.built_in_vars, dict)
         assert "today" in engine.built_in_vars
         assert "year" in engine.built_in_vars
-
 
 
 @pytest.mark.fr_101
@@ -79,7 +77,6 @@ class TestBuiltInVariables:
 
         assert "user.email" in engine.built_in_vars
         assert engine.built_in_vars["user.email"] == "test@example.com"
-
 
 
 @pytest.mark.fr_101
@@ -172,7 +169,6 @@ class TestVariableSubstitution:
         assert len(result.split("Date: ")[1].strip()) == 10
 
 
-
 @pytest.mark.fr_101
 @pytest.mark.fr_107
 @pytest.mark.unit
@@ -256,7 +252,6 @@ class TestConditionals:
         assert "Inner" in result
 
 
-
 @pytest.mark.fr_101
 @pytest.mark.fr_107
 @pytest.mark.unit
@@ -310,7 +305,6 @@ class TestTruthyEvaluation:
         assert engine._is_truthy([]) is False
 
 
-
 @pytest.mark.fr_101
 @pytest.mark.fr_107
 @pytest.mark.unit
@@ -336,11 +330,11 @@ class TestTemplateValidation:
 
     def test_validate_template_missing_name(self):
         """Test Pydantic prevents empty name at model level."""
-        engine = TemplateEngine()
+        TemplateEngine()
 
         # Pydantic validation should prevent empty name
         with pytest.raises(Exception):  # ValidationError
-            template = Template(
+            Template(
                 name="",
                 category="article",
                 description="Test",
@@ -368,7 +362,6 @@ class TestTemplateValidation:
 
         # Should have no errors for valid template
         assert len(errors) == 0
-
 
 
 @pytest.mark.fr_101
@@ -418,7 +411,6 @@ class TestInstantiation:
         assert "Title" in result
         assert "Author" in result
         assert "2025-01-01" in result
-
 
 
 @pytest.mark.fr_101
@@ -489,7 +481,6 @@ class TestEdgeCases:
 
         # Undefined variable should be falsy
         assert "Content" not in result
-
 
 
 @pytest.mark.fr_101
@@ -574,7 +565,6 @@ class TestTemplateEngineErrorHandling:
         result = engine.instantiate(template, {})
 
         assert "[ERROR: Cannot read file:" in result
-
 
 
 @pytest.mark.fr_101
@@ -794,7 +784,6 @@ Content"""
 
         with pytest.raises(ValueError, match="Variable must have a name"):
             engine.parse_template(str(template_file))
-
 
 
 @pytest.mark.fr_101

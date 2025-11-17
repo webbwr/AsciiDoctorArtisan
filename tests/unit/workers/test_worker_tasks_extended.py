@@ -185,7 +185,9 @@ class TestConversionTaskExecution:
         assert not mock_convert_text.called
 
     @patch("pypandoc.convert_text")
-    def test_conversion_task_cancellation_after_import_line_160(self, mock_convert_text):
+    def test_conversion_task_cancellation_after_import_line_160(
+        self, mock_convert_text
+    ):
         """Test ConversionTask returns cancelled result if cancelled after import (line 160)."""
         task = ConversionTask("Test", "asciidoc", "markdown")
 
@@ -209,7 +211,9 @@ class TestConversionTaskExecution:
         assert cancel_count[0] >= 2
 
     @patch("pypandoc.convert_text")
-    def test_conversion_task_cancellation_after_convert_line_174(self, mock_convert_text):
+    def test_conversion_task_cancellation_after_convert_line_174(
+        self, mock_convert_text
+    ):
         """Test ConversionTask returns cancelled result if cancelled after convert (line 174)."""
         mock_convert_text.return_value = "Converted"
         task = ConversionTask("Test", "asciidoc", "markdown")

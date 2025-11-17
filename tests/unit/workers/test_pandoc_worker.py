@@ -29,7 +29,6 @@ def mock_pypandoc():
         sys.modules.pop("pypandoc", None)
 
 
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -173,7 +172,6 @@ class TestPandocWorker:
     # AI conversion test removed - using Ollama for local AI features instead
 
 
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -210,7 +208,6 @@ code2
 
         assert "[source,python]" in enhanced
         assert "[source,javascript]" in enhanced
-
 
 
 @pytest.mark.fr_070
@@ -251,7 +248,6 @@ class TestOllamaIntegration:
 
         worker.set_ollama_config(enabled=True, model="codellama")
         assert worker.ollama_model == "codellama"
-
 
 
 @pytest.mark.fr_070
@@ -300,7 +296,6 @@ class TestPDFEngineDetection:
             worker._detect_pdf_engine()
 
 
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -340,7 +335,6 @@ class TestPandocArgsBuilding:
         worker._build_pandoc_args("docx", "asciidoc")
 
 
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -373,7 +367,6 @@ class TestProgressSignals:
         # (actual implementation may vary, so just check signal works)
         # If no progress messages, that's OK too (implementation detail)
         assert isinstance(progress_messages, list)
-
 
 
 @pytest.mark.fr_070
@@ -455,7 +448,6 @@ class TestFormatConversions:
         )
 
         assert result is not None
-
 
 
 @pytest.mark.fr_070
@@ -575,7 +567,6 @@ class TestErrorHandling:
             # Restore pypandoc if it was there
             if original is not None:
                 sys.modules["pypandoc"] = original
-
 
 
 @pytest.mark.fr_070
@@ -739,7 +730,6 @@ class TestOllamaConversion:
             assert result is None  # Import error should return None
 
 
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -807,7 +797,6 @@ class TestConversionPromptCreation:
         # Should still work with generic instructions
         assert "Test" in prompt
         assert "unknown" in prompt or "UNKNOWN" in prompt
-
 
 
 @pytest.mark.fr_070
@@ -916,7 +905,6 @@ class TestAIConversionWithFallback:
         # Note: The actual implementation may call Pandoc for PDF binary generation
 
 
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -979,7 +967,9 @@ class TestPathSourceConversion:
         assert result is not None
 
     @patch.object(PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf")
-    def test_path_source_to_binary_output(self, mock_pdf_engine, mock_pypandoc, tmp_path):
+    def test_path_source_to_binary_output(
+        self, mock_pdf_engine, mock_pypandoc, tmp_path
+    ):
         """Test conversion from Path source to binary file output."""
         test_file = tmp_path / "test.adoc"
         test_file.write_text("= Test Document")
@@ -1007,7 +997,6 @@ class TestPathSourceConversion:
 
         assert result is not None
         assert "File saved" in result or str(output_file) in result
-
 
 
 @pytest.mark.fr_070

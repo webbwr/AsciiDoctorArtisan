@@ -771,7 +771,7 @@ class TestMaximizationPersistence:
         mock_editor_state.restore_panes()
         second_state = mock_editor_state.maximized_pane
 
-        assert first_state == second_state == None
+        assert first_state == second_state is None
 
 
 @pytest.mark.unit

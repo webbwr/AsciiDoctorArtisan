@@ -515,7 +515,7 @@ class TestExceptionHandling:
             raise ValueError("Test exception")
 
         # Should not crash - exception should be caught and logged
-        task_id = pool.submit(failing_task)
+        pool.submit(failing_task)
         pool.wait_for_done(1000)
 
         # Verify task ran (raised exception)
@@ -570,18 +570,19 @@ class TestImportFallback:
         from importlib import reload
 
         # Save original module
-        original_macos = sys.modules.get('asciidoc_artisan.core.macos_optimizer')
+        original_macos = sys.modules.get("asciidoc_artisan.core.macos_optimizer")
 
         try:
             # Remove module to simulate import failure
-            if 'asciidoc_artisan.core.macos_optimizer' in sys.modules:
-                del sys.modules['asciidoc_artisan.core.macos_optimizer']
+            if "asciidoc_artisan.core.macos_optimizer" in sys.modules:
+                del sys.modules["asciidoc_artisan.core.macos_optimizer"]
 
             import builtins
+
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
-                if 'macos_optimizer' in name:
+                if "macos_optimizer" in name:
                     raise ImportError("Mocked macos_optimizer import failure")
                 return original_import(name, *args, **kwargs)
 
@@ -589,6 +590,7 @@ class TestImportFallback:
 
             # Reload to trigger import fallback
             import asciidoc_artisan.workers.optimized_worker_pool as owp
+
             reload(owp)
 
             # Create pool without specifying max_threads to trigger auto-detection
@@ -597,11 +599,12 @@ class TestImportFallback:
             # Should fall back to multiprocessing.cpu_count()
             assert pool.max_threads > 0
             import multiprocessing
+
             assert pool.max_threads == multiprocessing.cpu_count()
 
         finally:
             # Restore original state
             builtins.__import__ = original_import
             if original_macos is not None:
-                sys.modules['asciidoc_artisan.core.macos_optimizer'] = original_macos
+                sys.modules["asciidoc_artisan.core.macos_optimizer"] = original_macos
             reload(owp)

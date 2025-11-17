@@ -8,7 +8,6 @@ fast directory size calculation, and snapshot creation.
 import os
 import subprocess
 import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -97,7 +96,12 @@ class TestApfsCloneFile:
 
         assert result is True
         mock_run.assert_called_once()
-        assert mock_run.call_args[0][0] == ["cp", "-c", "/tmp/source.txt", "/tmp/dest.txt"]
+        assert mock_run.call_args[0][0] == [
+            "cp",
+            "-c",
+            "/tmp/source.txt",
+            "/tmp/dest.txt",
+        ]
 
     @patch("asciidoc_artisan.core.macos_file_ops.shutil.copy2")
     @patch("asciidoc_artisan.core.macos_file_ops.subprocess.run")

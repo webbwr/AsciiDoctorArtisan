@@ -494,7 +494,7 @@ class TestSettingsPersistence:
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
 
         original_ai_state = mock_settings.ai_conversion_enabled
-        dialog = PreferencesDialog(mock_settings)
+        PreferencesDialog(mock_settings)
 
         # Original settings should not be modified
         assert mock_settings.ai_conversion_enabled == original_ai_state
@@ -515,7 +515,7 @@ class TestSettingsPersistence:
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
         original_state = mock_settings.ollama_enabled
-        dialog = OllamaSettingsDialog(mock_settings)
+        OllamaSettingsDialog(mock_settings)
 
         # Original settings should not be modified
         assert mock_settings.ollama_enabled == original_state
@@ -834,9 +834,7 @@ class TestSettingsEditorDialog:
         dialog = SettingsEditorDialog(mock_settings, mock_manager)
 
         # Check header labels
-        headers = [
-            dialog.table.horizontalHeaderItem(i).text() for i in range(3)
-        ]
+        headers = [dialog.table.horizontalHeaderItem(i).text() for i in range(3)]
         assert "Setting" in headers
         assert "Value" in headers
         assert "Type" in headers
@@ -1063,7 +1061,7 @@ class TestSettingsEditorDialog:
         mock_qmessagebox.StandardButton = QMessageBox.StandardButton
 
         dialog = SettingsEditorDialog(mock_settings, mock_manager)
-        initial_rows = dialog.table.rowCount()
+        dialog.table.rowCount()
 
         dialog._clear_all_settings()
 
@@ -1092,7 +1090,6 @@ class TestSettingsEditorDialog:
 
     def test_on_item_changed_updates_settings(self, mock_settings):
         """Test item changed handler updates settings."""
-        from PySide6.QtWidgets import QTableWidgetItem
 
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
@@ -1112,7 +1109,9 @@ class TestSettingsEditorDialog:
                 assert mock_manager.save_settings.called
                 break
 
-    def test_settings_editor_with_parent_refresh(self, mock_settings, mock_parent_widget):
+    def test_settings_editor_with_parent_refresh(
+        self, mock_settings, mock_parent_widget
+    ):
         """Test settings editor refreshes parent window."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
@@ -1180,7 +1179,9 @@ class TestOllamaSettingsDialogEventHandlers:
         # Model combo should remain disabled (no models)
         assert not dialog.model_combo.isEnabled()
 
-    def test_update_parent_status_bar_with_parent(self, mock_settings, mock_parent_widget):
+    def test_update_parent_status_bar_with_parent(
+        self, mock_settings, mock_parent_widget
+    ):
         """Test updating parent status bar when parent has method."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
@@ -1752,7 +1753,6 @@ class TestSettingsEditorDialogItemChanged:
 
     def test_on_item_changed_bool_value(self, mock_settings):
         """Test _on_item_changed() updates bool values."""
-        from PySide6.QtWidgets import QTableWidgetItem
 
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
@@ -1775,7 +1775,6 @@ class TestSettingsEditorDialogItemChanged:
 
     def test_on_item_changed_int_value(self, mock_settings):
         """Test _on_item_changed() updates int values."""
-        from PySide6.QtWidgets import QTableWidgetItem
 
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
@@ -1872,7 +1871,9 @@ class TestSettingsEditorDialogItemChanged:
                 assert mock_settings.test_dict == {}
                 break
 
-    def test_on_item_changed_parent_refresh_calls(self, mock_settings, mock_parent_widget):
+    def test_on_item_changed_parent_refresh_calls(
+        self, mock_settings, mock_parent_widget
+    ):
         """Test _on_item_changed() calls parent refresh."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
@@ -1953,7 +1954,9 @@ class TestSettingsEditorDialogClearAll:
     """Test SettingsEditorDialog clear all functionality."""
 
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
-    def test_clear_all_with_parent_refresh(self, mock_question, mock_settings, mock_parent_widget):
+    def test_clear_all_with_parent_refresh(
+        self, mock_question, mock_settings, mock_parent_widget
+    ):
         """Test clear_all_settings with parent refresh."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -1963,7 +1966,7 @@ class TestSettingsEditorDialogClearAll:
         mock_question.return_value = QMessageBox.StandardButton.Yes
 
         dialog = SettingsEditorDialog(mock_settings, mock_manager, mock_parent_widget)
-        initial_rows = dialog.table.rowCount()
+        dialog.table.rowCount()
 
         dialog._clear_all_settings()
 

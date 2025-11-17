@@ -110,7 +110,7 @@ def profile_application_init():
     app.setOrganizationName("AsciiDoc Artisan")
 
     # Create main window (but don't show it)
-    window = AsciiDocEditor()
+    AsciiDocEditor()
 
     end_time = time.perf_counter()
 
@@ -219,7 +219,7 @@ def main():
     # Run profiling tests
     import_results = profile_imports()
     init_results = profile_application_init()
-    component_results = profile_component_creation()
+    profile_component_creation()
 
     # Summary
     print("\n" + "=" * 80)

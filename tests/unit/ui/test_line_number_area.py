@@ -784,7 +784,6 @@ class TestWidgetLifecycle:
 
         editor = TestEditor()
         editor.setup_line_numbers()
-        first_area = editor.line_number_area
 
         # Call again
         editor.setup_line_numbers()

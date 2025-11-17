@@ -22,7 +22,6 @@ def github_worker():
     return GitHubCLIWorker()
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036

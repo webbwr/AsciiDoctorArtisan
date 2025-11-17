@@ -163,9 +163,7 @@ class TestChatBarWidgetContextModes:
         # Find index of "syntax" mode
         for i in range(chat_bar._context_selector.count()):
             if "syntax" in chat_bar._context_selector.itemText(i).lower():
-                with qtbot.waitSignal(
-                    chat_bar.context_mode_changed, timeout=1000
-                ) as blocker:
+                with qtbot.waitSignal(chat_bar.context_mode_changed, timeout=1000):
                     chat_bar._context_selector.setCurrentIndex(i)
                 break
 

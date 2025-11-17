@@ -1792,7 +1792,9 @@ class TestPromptSaveBeforeAction:
 
     @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_file_fails(self, mock_msgbox_cls, mock_env_get, mock_main_window):
+    def test_prompt_save_file_fails(
+        self, mock_msgbox_cls, mock_env_get, mock_main_window
+    ):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager

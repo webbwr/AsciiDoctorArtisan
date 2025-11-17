@@ -235,11 +235,11 @@ class TestGitResult:
     def test_git_result_type_annotations(self):
         """Test that GitResult fields have correct type annotations."""
         fields = GitResult.model_fields
-        assert fields["success"].annotation == bool
-        assert fields["stdout"].annotation == str
-        assert fields["stderr"].annotation == str
+        assert fields["success"].annotation == bool  # noqa: E721
+        assert fields["stdout"].annotation == str  # noqa: E721
+        assert fields["stderr"].annotation == str  # noqa: E721
         # exit_code is Optional[int]
-        assert fields["user_message"].annotation == str
+        assert fields["user_message"].annotation == str  # noqa: E721
 
     def test_git_result_default_values(self):
         """Test GitResult with default values for optional fields."""
@@ -631,7 +631,9 @@ class TestCompletionItem:
         """Test CompletionItem sets default values in post_init (lines 431-436)."""
         from asciidoc_artisan.core.models import CompletionItem, CompletionKind
 
-        item = CompletionItem(text="= Heading", kind=CompletionKind.SYNTAX, detail="Desc")
+        item = CompletionItem(
+            text="= Heading", kind=CompletionKind.SYNTAX, detail="Desc"
+        )
 
         # Defaults should be set to text value
         assert item.insert_text == "= Heading"
@@ -670,7 +672,9 @@ class TestCompletionContext:
         )
 
         assert context.line == "= Heading"
-        assert context.prefix == "="  # Trailing whitespace stripped by str_strip_whitespace
+        assert (
+            context.prefix == "="
+        )  # Trailing whitespace stripped by str_strip_whitespace
         assert context.line_number == 0
         assert context.column == 2
 

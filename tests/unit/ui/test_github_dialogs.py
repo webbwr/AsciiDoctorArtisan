@@ -27,7 +27,6 @@ from asciidoc_artisan.ui.github_dialogs import (
 # === VALIDATION HELPER TESTS ===
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -130,7 +129,6 @@ class TestValidationHelpers:
 
 
 # === CREATE PULL REQUEST DIALOG TESTS ===
-
 
 
 @pytest.mark.fr_034
@@ -456,7 +454,6 @@ class TestCreatePullRequestDialog:
         qtbot.addWidget(dialog)
 
         assert dialog.head_input.isEditable() is True
-
 
 
 @pytest.mark.fr_034
@@ -870,7 +867,6 @@ class TestPullRequestListDialog:
         assert dialog._get_data_attribute_name() == "pr_data"
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -1070,7 +1066,6 @@ class TestCreateIssueDialog:
         assert data["title"] == "Test Issue"
         assert data["body"] == "Test body"
         assert data["labels"] == "bug, feature"
-
 
 
 @pytest.mark.fr_034
@@ -1477,7 +1472,6 @@ class TestIssueListDialog:
         qtbot.addWidget(dialog)
 
         assert dialog._get_data_attribute_name() == "issue_data"
-
 
 
 @pytest.mark.fr_034

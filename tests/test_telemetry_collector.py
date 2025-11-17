@@ -101,7 +101,7 @@ class TestTelemetryCollectorInitialization:
     def test_data_directory_created(self, temp_data_dir):
         """Test data directory is created if it doesn't exist."""
         test_dir = temp_data_dir / "new_dir"
-        collector = TelemetryCollector(enabled=True, data_dir=test_dir)
+        TelemetryCollector(enabled=True, data_dir=test_dir)
         assert test_dir.exists()
         assert test_dir.is_dir()
 
@@ -378,7 +378,6 @@ class TestTelemetryCollectorDestruction:
         collector_enabled.track_event("final_event")
 
         # Delete collector (calls __del__)
-        telemetry_file = collector_enabled.telemetry_file
         del collector_enabled
 
         # File should exist with flushed event

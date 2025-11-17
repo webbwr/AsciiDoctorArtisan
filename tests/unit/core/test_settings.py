@@ -9,7 +9,6 @@ import pytest
 from asciidoc_artisan.core import Settings
 
 
-
 @pytest.mark.fr_004
 @pytest.mark.fr_074
 @pytest.mark.fr_010
@@ -108,7 +107,6 @@ class TestSettings:
         assert restored.ai_conversion_enabled == original.ai_conversion_enabled
 
 
-
 @pytest.mark.fr_004
 @pytest.mark.fr_074
 @pytest.mark.fr_010
@@ -193,7 +191,6 @@ class TestSettingsMigration:
         data = {"claude_model": "custom-model-name"}
         settings = Settings.from_dict(data)
         assert settings.claude_model == "custom-model-name"
-
 
 
 @pytest.mark.fr_004

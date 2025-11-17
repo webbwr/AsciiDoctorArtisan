@@ -1,5 +1,3 @@
-import pytest
-
 """
 Tests for LRU cache implementations.
 

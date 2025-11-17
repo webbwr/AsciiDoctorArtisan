@@ -152,7 +152,7 @@ def profile_file_operations():
     print("PROFILING FILE I/O OPERATIONS")
     print("=" * 80)
 
-    process = psutil.Process()
+    psutil.Process()
     results = []
 
     test_sizes = [
@@ -184,7 +184,7 @@ def profile_file_operations():
             # Measure LOAD
             start_time = time.perf_counter()
             with open(file_path, "r", encoding="utf-8") as f:
-                loaded_content = f.read()
+                f.read()
             load_time = (time.perf_counter() - start_time) * 1000
 
             results.append(
@@ -247,7 +247,7 @@ def profile_memory_usage():
             outfile = io.StringIO()
 
             asciidoc_api.execute(infile, outfile, backend="html5")
-            html = outfile.getvalue()
+            outfile.getvalue()
 
             current_memory = process.memory_info().rss / 1024 / 1024
             delta = current_memory - last_memory

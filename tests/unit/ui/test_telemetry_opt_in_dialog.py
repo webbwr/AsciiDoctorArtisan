@@ -208,7 +208,9 @@ class TestUIComponents:
         dialog = TelemetryOptInDialog()
 
         labels = dialog.findChildren(QLabel)
-        privacy_note = [l for l in labels if "Privacy is important" in l.text()]
+        privacy_note = [
+            label for label in labels if "Privacy is important" in label.text()
+        ]
 
         assert len(privacy_note) == 1
         assert "Settings" in privacy_note[0].text()

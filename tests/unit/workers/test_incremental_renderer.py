@@ -826,7 +826,9 @@ class TestDetectChanges:
         renderer = IncrementalPreviewRenderer(api)
 
         current = [
-            DocumentBlock(id="block1", start_line=0, end_line=1, content="Test", level=0)
+            DocumentBlock(
+                id="block1", start_line=0, end_line=1, content="Test", level=0
+            )
         ]
 
         changed, unchanged = renderer._detect_changes([], current)
@@ -1041,7 +1043,9 @@ class TestDocumentBlockComputeIdFallback:
         """Test MD5 fallback produces consistent IDs."""
         content = "= Title\n\nTest content"
 
-        block1 = DocumentBlock(id="", start_line=0, end_line=2, content=content, level=1)
+        block1 = DocumentBlock(
+            id="", start_line=0, end_line=2, content=content, level=1
+        )
         block2 = DocumentBlock(
             id="", start_line=10, end_line=12, content=content, level=1
         )

@@ -48,7 +48,7 @@ def measure_startup():
 
     # Measure main window creation
     window_start = time.perf_counter()
-    window = AsciiDocEditor()
+    AsciiDocEditor()
     window_time = (time.perf_counter() - window_start) * 1000
 
     # Total time

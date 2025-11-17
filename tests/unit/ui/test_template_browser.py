@@ -76,7 +76,6 @@ def mock_manager(sample_templates):
     return manager
 
 
-
 @pytest.mark.fr_100
 @pytest.mark.fr_101
 @pytest.mark.fr_102
@@ -109,7 +108,6 @@ class TestTemplateCardInitialization:
 
         assert card.maximumWidth() == 300
         assert card.maximumHeight() == 150
-
 
 
 @pytest.mark.fr_100
@@ -153,7 +151,6 @@ class TestTemplateCardSignals:
         assert clicked_template == sample_template
 
 
-
 @pytest.mark.fr_100
 @pytest.mark.fr_101
 @pytest.mark.fr_102
@@ -188,7 +185,6 @@ class TestTemplateBrowserInitialization:
 
         # Should have "All" + manager categories
         assert browser.category_combo.count() >= 3  # All + 2 categories
-
 
 
 @pytest.mark.fr_100
@@ -233,7 +229,6 @@ class TestTemplateBrowserFilteri:
         assert browser.search_edit.text() == "article"
 
 
-
 @pytest.mark.fr_100
 @pytest.mark.fr_101
 @pytest.mark.fr_102
@@ -272,7 +267,6 @@ class TestTemplateBrowserSelection:
 
         # Now enabled
         assert browser.ok_btn.isEnabled() is True
-
 
 
 @pytest.mark.fr_100
@@ -326,7 +320,6 @@ class TestTemplateBrowserOkClick:
         assert browser.variable_values == {}
 
 
-
 @pytest.mark.fr_100
 @pytest.mark.fr_101
 @pytest.mark.fr_102
@@ -368,7 +361,6 @@ class TestVariableInputDialogInitialization:
 
         # Author has default "Anonymous"
         assert dialog.inputs["author"].text() == "Anonymous"
-
 
 
 @pytest.mark.fr_100
@@ -438,7 +430,6 @@ class TestVariableInputDialogValidation:
         assert "red" in dialog.inputs["title"].styleSheet().lower()
 
 
-
 @pytest.mark.fr_100
 @pytest.mark.fr_101
 @pytest.mark.fr_102
@@ -472,7 +463,6 @@ class TestVariableInputDialogGetValues:
         values = dialog.get_values()
 
         assert values["title"] == "Title with spaces"
-
 
 
 @pytest.mark.fr_100

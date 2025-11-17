@@ -266,7 +266,9 @@ class TestChatManagerDocumentContext:
 
     def test_set_document_content_provider(self, chat_manager):
         """Test setting document content provider."""
-        provider = lambda: "Document content here"
+
+        def provider():
+            return "Document content here"
 
         chat_manager.set_document_content_provider(provider)
 
@@ -275,7 +277,9 @@ class TestChatManagerDocumentContext:
     def test_get_document_context_calls_provider(self, chat_manager):
         """Test getting document context calls provider."""
         test_content = "= My Document\nContent here"
-        provider = lambda: test_content
+
+        def provider():
+            return test_content
 
         chat_manager.set_document_content_provider(provider)
         content = chat_manager._get_document_context()
@@ -284,7 +288,10 @@ class TestChatManagerDocumentContext:
 
     def test_document_context_debouncing(self, chat_manager):
         """Test document context updates are debounced."""
-        provider = lambda: "Content"
+
+        def provider():
+            return "Content"
+
         chat_manager.set_document_content_provider(provider)
 
         # Timer should be configured for debouncing

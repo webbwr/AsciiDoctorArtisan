@@ -276,7 +276,7 @@ def test_profile_memory_decorator_auto_start():
     def dummy():
         return "done"
 
-    result = dummy()
+    dummy()
 
     # Profiler should have auto-started
     assert profiler.is_running
@@ -580,7 +580,7 @@ def test_get_memory_usage_exception():
     """Test get_memory_usage() exception handling (lines 195-197)."""
     from unittest.mock import MagicMock, patch
 
-    profiler = MemoryProfiler()
+    MemoryProfiler()
 
     # Ensure process is set (not None)
     with patch("asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE", True):

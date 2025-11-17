@@ -7,7 +7,6 @@ directory validation, and subprocess execution.
 
 import subprocess
 import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -49,6 +48,7 @@ class TestCancellation:
     def test_cancel_logs_message(self, caplog):
         """Test cancel() logs cancellation request."""
         import logging
+
         caplog.set_level(logging.INFO)
 
         worker = BaseWorker()
@@ -279,6 +279,7 @@ class TestExecuteSubprocess:
     def test_execute_subprocess_logs_command(self, mock_run, caplog):
         """Test subprocess execution logs command."""
         import logging
+
         caplog.set_level(logging.INFO)
 
         worker = BaseWorker()
@@ -294,6 +295,7 @@ class TestExecuteSubprocess:
     def test_execute_subprocess_logs_working_dir(self, mock_run, caplog):
         """Test subprocess execution logs working directory."""
         import logging
+
         caplog.set_level(logging.INFO)
 
         worker = BaseWorker()

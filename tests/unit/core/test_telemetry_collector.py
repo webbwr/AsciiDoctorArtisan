@@ -1,5 +1,3 @@
-import pytest
-
 """
 Tests for core.telemetry_collector module.
 
@@ -19,6 +17,8 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
+
+import pytest
 
 from asciidoc_artisan.core.telemetry_collector import (
     EVENT_DIALOG_OPEN,

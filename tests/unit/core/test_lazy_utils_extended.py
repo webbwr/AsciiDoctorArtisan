@@ -56,7 +56,6 @@ class TestLazyPropertyAdvanced:
         assert call_count["count"] == 1  # No additional call
 
         # Third access - still cached
-        result3 = obj.expensive_resource
         assert call_count["count"] == 1
 
     def test_lazy_property_thread_safe_access(self):

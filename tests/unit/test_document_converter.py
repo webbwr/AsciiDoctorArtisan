@@ -17,7 +17,6 @@ from asciidoc_artisan.document_converter import (
 )
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -60,7 +59,6 @@ class TestPandocIntegrationInitialization:
         integration = PandocIntegration()
 
         assert integration.pandoc_path == "/usr/bin/pandoc"
-
 
 
 @pytest.mark.fr_012
@@ -107,7 +105,6 @@ class TestCheckInstallation:
         integration = PandocIntegration()
         # Should handle timeout gracefully (version will be None)
         assert integration.pandoc_version is None
-
 
 
 @pytest.mark.fr_012
@@ -159,7 +156,6 @@ class TestGetSupportedFormats:
         assert len(integration.supported_formats["output"]) == 0
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -187,7 +183,6 @@ class TestStaticMethods:
         # Test unknown format
         info_unknown = PandocIntegration.get_format_info("unknown_format")
         assert "unknown" in info_unknown.lower() or "not found" in info_unknown.lower()
-
 
 
 @pytest.mark.fr_012
@@ -232,12 +227,10 @@ class TestIsFormatSupported:
         assert integration.is_format_supported("docx", "output") is False
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
 @pytest.mark.unit
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -267,17 +260,14 @@ class TestEnsurePandocAvailable:
         assert "not found" in message.lower()
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
 @pytest.mark.unit
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
 @pytest.mark.unit
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -326,12 +316,10 @@ class TestPDFExtractorHelpers:
         assert isinstance(result, str)
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
 @pytest.mark.unit
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -361,7 +349,6 @@ class TestEdgeCases:
         assert "Word" in PandocIntegration.FORMAT_DESCRIPTIONS["docx"]
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -385,7 +372,6 @@ class TestPypandocImportError:
 
             assert success is False
             assert "pypandoc not installed" in message
-
 
 
 @pytest.mark.fr_012
@@ -484,7 +470,6 @@ class TestAutoInstallPypandoc:
         assert any(word in message.lower() for word in ["error", "timeout", "failed"])
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -576,7 +561,6 @@ class TestConvertFile:
         assert isinstance(success, bool)
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -618,7 +602,6 @@ class TestPDFExtractorExtraction:
         assert isinstance(success, bool)
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -645,7 +628,6 @@ class TestGetSupportedFormatsException:
         assert isinstance(integration.supported_formats, dict)
 
 
-
 @pytest.mark.fr_012
 @pytest.mark.fr_013
 @pytest.mark.fr_014
@@ -670,7 +652,6 @@ class TestAutoInstallPypandocEdgeCases:
 
         assert success is False
         assert any(word in message.lower() for word in ["failed", "install"])
-
 
 
 @pytest.mark.fr_012
@@ -730,7 +711,6 @@ class TestPDFExtractionEdgeCases:
         if success:
             # Should include page separators for multi-page docs
             assert "Page" in text
-
 
 
 @pytest.mark.fr_012
@@ -809,7 +789,6 @@ class TestTableFormattingEdgeCases:
 
         # Should normalize row lengths
         assert "|===" in result
-
 
 
 @pytest.mark.fr_012

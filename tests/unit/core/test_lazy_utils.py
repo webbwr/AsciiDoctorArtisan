@@ -374,7 +374,7 @@ class TestLazyLoadingPerformance:
 
         # Measure eager loading
         start = time.time()
-        eager = EagerApp()
+        EagerApp()
         eager_time = time.time() - start
 
         # Measure lazy loading (just creation)
@@ -394,9 +394,9 @@ class TestLazyLoadingPerformance:
         """Test lazy import reduces startup overhead."""
         # Lazy import (creation only)
         start = time.time()
-        lazy_os = LazyImport("os")
-        lazy_sys = LazyImport("sys")
-        lazy_pathlib = LazyImport("pathlib")
+        LazyImport("os")
+        LazyImport("sys")
+        LazyImport("pathlib")
         lazy_time = time.time() - start
 
         # Lazy creation should be extremely fast (< 50 microseconds)

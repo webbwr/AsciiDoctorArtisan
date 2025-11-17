@@ -32,7 +32,6 @@ def main_window(qapp):
     return window
 
 
-
 @pytest.mark.fr_021
 @pytest.mark.fr_022
 @pytest.mark.fr_023
@@ -78,11 +77,9 @@ class TestExportManagerBasics:
         from asciidoc_artisan.ui.export_manager import ExportManager
 
         manager = ExportManager(main_window)
-        temp_dir = manager.temp_dir
         manager.cleanup()
         # Cleanup should complete without error
         assert True
-
 
 
 @pytest.mark.fr_021
@@ -114,7 +111,6 @@ class TestExportMethods:
         manager = ExportManager(main_window)
         assert hasattr(manager, "handle_pandoc_result")
         assert callable(manager.handle_pandoc_result)
-
 
 
 @pytest.mark.fr_021
@@ -152,7 +148,6 @@ class TestExportStateManagement:
                 manager.save_file_as_format("md")
                 # Export initiated successfully
                 assert True
-
 
 
 @pytest.mark.fr_021
@@ -259,7 +254,6 @@ class TestSaveFileAsFormat:
         assert result is False
 
 
-
 @pytest.mark.fr_021
 @pytest.mark.fr_022
 @pytest.mark.fr_023
@@ -305,7 +299,6 @@ class TestPandocExport:
         with patch.object(manager, "_handle_export_result") as mock_handler:
             manager.handle_pandoc_result("Converted content", "Exporting to MD")
             mock_handler.assert_called()
-
 
 
 @pytest.mark.fr_021
@@ -355,7 +348,6 @@ class TestClipboardOperations:
             main_window.status_manager.show_message.assert_called()
 
 
-
 @pytest.mark.fr_021
 @pytest.mark.fr_022
 @pytest.mark.fr_023
@@ -398,7 +390,6 @@ class TestHTMLExport:
         ):
             result = manager._export_html(export_file, content)
             assert result is False
-
 
 
 @pytest.mark.fr_021
@@ -545,7 +536,6 @@ class TestSignalEmissions:
                 assert len(signal_received) == 1
 
 
-
 @pytest.mark.fr_021
 @pytest.mark.fr_022
 @pytest.mark.fr_023
@@ -586,7 +576,6 @@ class TestHelperInitialization:
         assert manager.status_manager == main_window.status_manager
 
 
-
 @pytest.mark.fr_021
 @pytest.mark.fr_022
 @pytest.mark.fr_023
@@ -607,7 +596,6 @@ class TestTemporaryDirectoryManagement:
         from asciidoc_artisan.ui.export_manager import ExportManager
 
         manager = ExportManager(main_window)
-        temp_dir = manager.temp_dir
         manager.cleanup()
         # Cleanup should be called without error
         assert True
@@ -642,7 +630,6 @@ class TestTemporaryDirectoryManagement:
             # Should not raise
             manager.cleanup()
             assert True
-
 
 
 @pytest.mark.fr_021
@@ -748,7 +735,6 @@ class TestPendingExportStateTracking:
                 assert manager.pending_export_format is None
 
 
-
 @pytest.mark.fr_021
 @pytest.mark.fr_022
 @pytest.mark.fr_023
@@ -809,7 +795,6 @@ class TestFileExtensionHandling:
                 # Check that file path has correct extension
                 saved_path = mock_save.call_args[0][0]
                 assert saved_path.suffix == ".adoc"
-
 
 
 @pytest.mark.fr_021
@@ -918,7 +903,6 @@ class TestPDFEngineFallback:
             ):
                 result = manager._export_pdf_fallback(export_file, "<html>")
                 assert result is False
-
 
 
 @pytest.mark.fr_021
@@ -1061,7 +1045,6 @@ class TestClipboardMIMEDataPriority:
                 assert "asciidoc" in call_args  # Target format
 
 
-
 @pytest.mark.fr_021
 @pytest.mark.fr_022
 @pytest.mark.fr_023
@@ -1127,7 +1110,6 @@ class TestPandocResultContextParsing:
         main_window.status_bar.showMessage.assert_called_with(
             "Pasted converted content"
         )
-
 
 
 @pytest.mark.fr_021
@@ -1221,7 +1203,6 @@ class TestSettingsIntegration:
             # Should suggest "document.md"
             suggested_path = str(mock_dialog.call_args[0][2])
             assert "document" in suggested_path
-
 
 
 @pytest.mark.fr_021

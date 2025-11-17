@@ -95,7 +95,6 @@ def github_handler(
     # No cleanup needed here since we're using Mocks
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -130,7 +129,6 @@ class TestGitHubHandlerInitialization:
         assert hasattr(github_handler, "status_manager")
         assert hasattr(github_handler, "settings_manager")
         assert hasattr(github_handler, "git_handler")
-
 
 
 @pytest.mark.fr_034
@@ -187,7 +185,6 @@ class TestGitHubHandlerReentrancy:
 
         # Flag should be reset
         assert github_handler.is_processing is False
-
 
 
 @pytest.mark.fr_034
@@ -291,7 +288,6 @@ class TestGitHubHandlerPullRequests:
         assert kwargs["working_dir"] == "/test/repo"
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -373,7 +369,6 @@ class TestGitHubHandlerIssues:
         assert kwargs["working_dir"] == "/test/repo"
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -423,7 +418,6 @@ class TestGitHubHandlerRepository:
         # Verify logging occurred
         assert "Repository: test/repo" in caplog.text
         assert "Test repository" in caplog.text
-
 
 
 @pytest.mark.fr_034
@@ -496,7 +490,6 @@ class TestGitHubHandlerErrorHandling:
         assert github_handler.status_manager.show_message.called
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -541,7 +534,6 @@ class TestGitHubHandlerSignalSlots:
 
         # Verify status message was shown
         assert github_handler.status_manager.show_message.called
-
 
 
 @pytest.mark.fr_034
@@ -648,7 +640,6 @@ class TestGitHubHandlerIntegration:
         assert kwargs["title"] == "Test Issue"
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -693,7 +684,6 @@ class TestGitHubHandlerCleanup:
         # Handler should be deletable (no circular references or resource locks)
         # This is tested implicitly by pytest fixture cleanup
         assert refcount_before > 0  # Has at least one reference
-
 
 
 @pytest.mark.fr_034
@@ -762,7 +752,6 @@ class TestGitHubHandlerInitializeAutoFetch:
 
                 # Should NOT call get_repo_info
                 mock_get_repo.assert_not_called()
-
 
 
 @pytest.mark.fr_034
@@ -865,7 +854,6 @@ class TestGitHubHandlerEarlyReturns:
             handler.get_repo_info()
 
             assert not handler.is_processing
-
 
 
 @pytest.mark.fr_034
@@ -1001,7 +989,6 @@ class TestGitHubHandlerResultDispatching:
             handler.handle_github_result(result)
 
             mock_handler.assert_called_once_with(result)
-
 
 
 @pytest.mark.fr_034
@@ -1188,7 +1175,6 @@ class TestGitHubHandlerResultHandlers:
             mock_dialog.set_issue_data.assert_called_once_with(issue_data)
 
 
-
 @pytest.mark.fr_034
 @pytest.mark.fr_035
 @pytest.mark.fr_036
@@ -1285,7 +1271,6 @@ class TestGitHubHandlerRepoInfoDialog:
 
             # Verify QMessageBox NOT created
             mock_msgbox.assert_not_called()
-
 
 
 @pytest.mark.fr_034

@@ -602,6 +602,7 @@ class TestEdgeCases:
 
         # Should have logged an error for missing REQUIRED module
         assert any(
-            "REQUIRED" in record.message and "nonexistent_required_module_xyz123" in record.message
+            "REQUIRED" in record.message
+            and "nonexistent_required_module_xyz123" in record.message
             for record in caplog.records
         )

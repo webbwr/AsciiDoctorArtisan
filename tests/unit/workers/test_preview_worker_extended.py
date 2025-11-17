@@ -411,22 +411,23 @@ class TestImportFallbacks:
         from importlib import reload
 
         # Save original state
-        original_asciidoc3 = sys.modules.get('asciidoc3')
-        original_api = sys.modules.get('asciidoc3.asciidoc3api')
+        original_asciidoc3 = sys.modules.get("asciidoc3")
+        original_api = sys.modules.get("asciidoc3.asciidoc3api")
 
         try:
             # Remove modules to simulate import failure
-            if 'asciidoc3' in sys.modules:
-                del sys.modules['asciidoc3']
-            if 'asciidoc3.asciidoc3api' in sys.modules:
-                del sys.modules['asciidoc3.asciidoc3api']
+            if "asciidoc3" in sys.modules:
+                del sys.modules["asciidoc3"]
+            if "asciidoc3.asciidoc3api" in sys.modules:
+                del sys.modules["asciidoc3.asciidoc3api"]
 
             # Mock the import to fail
             import builtins
+
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
-                if 'asciidoc3' in name:
+                if "asciidoc3" in name:
                     raise ImportError("Mocked asciidoc3 import failure")
                 return original_import(name, *args, **kwargs)
 
@@ -434,6 +435,7 @@ class TestImportFallbacks:
 
             # Reload preview_worker to trigger import error path
             import asciidoc_artisan.workers.preview_worker as pw
+
             reload(pw)
 
             # Verify fallback values are set
@@ -445,9 +447,9 @@ class TestImportFallbacks:
             # Restore original state
             builtins.__import__ = original_import
             if original_asciidoc3 is not None:
-                sys.modules['asciidoc3'] = original_asciidoc3
+                sys.modules["asciidoc3"] = original_asciidoc3
             if original_api is not None:
-                sys.modules['asciidoc3.asciidoc3api'] = original_api
+                sys.modules["asciidoc3.asciidoc3api"] = original_api
             reload(pw)
 
     def test_incremental_renderer_import_fallback(self):
@@ -456,24 +458,28 @@ class TestImportFallbacks:
         from importlib import reload
 
         # Save original state
-        original_incremental = sys.modules.get('asciidoc_artisan.workers.incremental_renderer')
+        original_incremental = sys.modules.get(
+            "asciidoc_artisan.workers.incremental_renderer"
+        )
 
         try:
             # Remove module to simulate import failure
-            if 'asciidoc_artisan.workers.incremental_renderer' in sys.modules:
-                del sys.modules['asciidoc_artisan.workers.incremental_renderer']
+            if "asciidoc_artisan.workers.incremental_renderer" in sys.modules:
+                del sys.modules["asciidoc_artisan.workers.incremental_renderer"]
 
             import builtins
+
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
-                if 'incremental_renderer' in name:
+                if "incremental_renderer" in name:
                     raise ImportError("Mocked incremental_renderer import failure")
                 return original_import(name, *args, **kwargs)
 
             builtins.__import__ = mock_import
 
             import asciidoc_artisan.workers.preview_worker as pw
+
             reload(pw)
 
             assert pw.INCREMENTAL_RENDERER_AVAILABLE is False
@@ -482,7 +488,9 @@ class TestImportFallbacks:
         finally:
             builtins.__import__ = original_import
             if original_incremental is not None:
-                sys.modules['asciidoc_artisan.workers.incremental_renderer'] = original_incremental
+                sys.modules["asciidoc_artisan.workers.incremental_renderer"] = (
+                    original_incremental
+                )
             reload(pw)
 
     def test_predictive_renderer_import_fallback(self):
@@ -490,23 +498,27 @@ class TestImportFallbacks:
         import sys
         from importlib import reload
 
-        original_predictive = sys.modules.get('asciidoc_artisan.workers.predictive_renderer')
+        original_predictive = sys.modules.get(
+            "asciidoc_artisan.workers.predictive_renderer"
+        )
 
         try:
-            if 'asciidoc_artisan.workers.predictive_renderer' in sys.modules:
-                del sys.modules['asciidoc_artisan.workers.predictive_renderer']
+            if "asciidoc_artisan.workers.predictive_renderer" in sys.modules:
+                del sys.modules["asciidoc_artisan.workers.predictive_renderer"]
 
             import builtins
+
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
-                if 'predictive_renderer' in name:
+                if "predictive_renderer" in name:
                     raise ImportError("Mocked predictive_renderer import failure")
                 return original_import(name, *args, **kwargs)
 
             builtins.__import__ = mock_import
 
             import asciidoc_artisan.workers.preview_worker as pw
+
             reload(pw)
 
             assert pw.PREDICTIVE_RENDERER_AVAILABLE is False
@@ -516,7 +528,9 @@ class TestImportFallbacks:
         finally:
             builtins.__import__ = original_import
             if original_predictive is not None:
-                sys.modules['asciidoc_artisan.workers.predictive_renderer'] = original_predictive
+                sys.modules["asciidoc_artisan.workers.predictive_renderer"] = (
+                    original_predictive
+                )
             reload(pw)
 
     def test_metrics_import_fallback(self):
@@ -524,23 +538,27 @@ class TestImportFallbacks:
         import sys
         from importlib import reload
 
-        original_metrics = sys.modules.get('asciidoc_artisan.core.metrics')
+        original_metrics = sys.modules.get("asciidoc_artisan.core.metrics")
 
         try:
-            if 'asciidoc_artisan.core.metrics' in sys.modules:
-                del sys.modules['asciidoc_artisan.core.metrics']
+            if "asciidoc_artisan.core.metrics" in sys.modules:
+                del sys.modules["asciidoc_artisan.core.metrics"]
 
             import builtins
+
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
-                if name == 'asciidoc_artisan.core.metrics' or 'metrics' in str(kwargs.get('fromlist', [])):
+                if name == "asciidoc_artisan.core.metrics" or "metrics" in str(
+                    kwargs.get("fromlist", [])
+                ):
                     raise ImportError("Mocked metrics import failure")
                 return original_import(name, *args, **kwargs)
 
             builtins.__import__ = mock_import
 
             import asciidoc_artisan.workers.preview_worker as pw
+
             reload(pw)
 
             assert pw.METRICS_AVAILABLE is False
@@ -549,5 +567,5 @@ class TestImportFallbacks:
         finally:
             builtins.__import__ = original_import
             if original_metrics is not None:
-                sys.modules['asciidoc_artisan.core.metrics'] = original_metrics
+                sys.modules["asciidoc_artisan.core.metrics"] = original_metrics
             reload(pw)

@@ -307,7 +307,9 @@ class TestKeyboardShortcuts:
 class TestCleanup:
     """Test suite for cleanup and shutdown."""
 
-    @pytest.mark.skip(reason="Complex async worker cleanup - better tested in integration tests")
+    @pytest.mark.skip(
+        reason="Complex async worker cleanup - better tested in integration tests"
+    )
     def test_closeEvent_stops_workers(self, mock_workers, qapp):
         from PySide6.QtGui import QCloseEvent
 
@@ -502,7 +504,9 @@ class TestHandleReplaceAll:
         window.status_manager.show_status = Mock()
 
         # Mock QMessageBox.question to return Yes
-        with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
+        with patch.object(
+            QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes
+        ):
             window._handle_replace_all("baz")
 
         # Verify text was replaced
@@ -526,7 +530,9 @@ class TestHandleReplaceAll:
         window.find_bar.is_case_sensitive = Mock(return_value=False)
 
         # Mock QMessageBox.question to return No
-        with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.No):
+        with patch.object(
+            QMessageBox, "question", return_value=QMessageBox.StandardButton.No
+        ):
             window._handle_replace_all("baz")
 
         # Verify text was NOT replaced
@@ -591,7 +597,9 @@ class TestHandleReplaceAll:
         window.status_manager.show_status = Mock()
 
         # Mock QMessageBox.question to return Yes
-        with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
+        with patch.object(
+            QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes
+        ):
             window._handle_replace_all("x")
 
         # Cursor should still be valid (not past end of text)
@@ -841,10 +849,8 @@ class TestRefreshFromSettings:
 
     def test_updates_font_size(self, mock_workers, qapp):
         """Test that font size setting triggers setFont call."""
-        from unittest.mock import patch, MagicMock
-        from PySide6.QtGui import QFont
-        from asciidoc_artisan.ui.main_window import AsciiDocEditor
         from asciidoc_artisan.core import EDITOR_FONT_FAMILY
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
         window = AsciiDocEditor()
 
@@ -936,7 +942,7 @@ class TestRefreshFromSettings:
             "x": 100,
             "y": 100,
             "width": 800,
-            "height": 600
+            "height": 600,
         }
 
         # Mock other methods
@@ -978,7 +984,9 @@ class TestRouteChatMessageToWorker:
         history = []
         document_content = None
 
-        window._route_chat_message_to_worker(message, model, context_mode, history, document_content)
+        window._route_chat_message_to_worker(
+            message, model, context_mode, history, document_content
+        )
 
         # Verify routed to Ollama
         window.ollama_chat_worker.send_message.assert_called_once_with(
@@ -1004,7 +1012,9 @@ class TestRouteChatMessageToWorker:
         history = []
         document_content = None
 
-        window._route_chat_message_to_worker(message, model, context_mode, history, document_content)
+        window._route_chat_message_to_worker(
+            message, model, context_mode, history, document_content
+        )
 
         # Verify routed to Claude
         window.claude_worker.send_message.assert_called()
@@ -1028,7 +1038,9 @@ class TestRouteChatMessageToWorker:
         history = []
         document_content = "= My Document\n\nThis is content."
 
-        window._route_chat_message_to_worker(message, model, context_mode, history, document_content)
+        window._route_chat_message_to_worker(
+            message, model, context_mode, history, document_content
+        )
 
         # Verify Claude was called with document content in message
         call_args = window.claude_worker.send_message.call_args
@@ -1048,13 +1060,28 @@ class TestRouteChatMessageToWorker:
 
         # Create mock chat history
         from asciidoc_artisan.core.models import ChatMessage
+
         history = [
-            ChatMessage(role="user", content="hello", timestamp=0, model="test", context_mode="general"),
-            ChatMessage(role="assistant", content="hi there", timestamp=1, model="test", context_mode="general"),
+            ChatMessage(
+                role="user",
+                content="hello",
+                timestamp=0,
+                model="test",
+                context_mode="general",
+            ),
+            ChatMessage(
+                role="assistant",
+                content="hi there",
+                timestamp=1,
+                model="test",
+                context_mode="general",
+            ),
         ]
 
         # Route message
-        window._route_chat_message_to_worker("test", "claude-sonnet-4", "general", history, None)
+        window._route_chat_message_to_worker(
+            "test", "claude-sonnet-4", "general", history, None
+        )
 
         # Verify Claude was called with conversation history
         call_args = window.claude_worker.send_message.call_args
@@ -1255,7 +1282,9 @@ class TestAutoSave:
         window.editor.setPlainText("test content")
 
         # Mock atomic_save_text
-        with patch("asciidoc_artisan.ui.main_window.atomic_save_text", return_value=True) as mock_save:
+        with patch(
+            "asciidoc_artisan.ui.main_window.atomic_save_text", return_value=True
+        ) as mock_save:
             # Call auto-save
             window._auto_save()
 
@@ -1491,10 +1520,13 @@ class TestInitializeAsciidoc:
 
     def test_handles_asciidoc_initialization_failure(self, mock_workers, qapp):
         """Test handles AsciiDoc API initialization failure."""
-        from asciidoc_artisan.ui.main_window import AsciiDocEditor, AsciiDoc3API
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
         # Mock AsciiDoc3API to raise exception
-        with patch("asciidoc_artisan.ui.main_window.AsciiDoc3API", side_effect=Exception("Init error")):
+        with patch(
+            "asciidoc_artisan.ui.main_window.AsciiDoc3API",
+            side_effect=Exception("Init error"),
+        ):
             window = AsciiDocEditor()
 
             # Should handle error gracefully

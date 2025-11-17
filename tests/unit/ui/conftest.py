@@ -11,9 +11,10 @@ Key Fixtures:
 This file addresses GitHub issue #28: Qt modal dialog test pollution.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
-from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture(autouse=True)

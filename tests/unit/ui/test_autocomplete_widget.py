@@ -54,7 +54,6 @@ def sample_items():
     ]
 
 
-
 @pytest.mark.fr_086
 @pytest.mark.fr_089
 @pytest.mark.unit
@@ -79,7 +78,9 @@ class TestInitialization:
 
     def test_widget_scroll_policy(self, widget):
         """Test horizontal scrollbar is always off."""
-        assert widget.horizontalScrollBarPolicy() == Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        assert (
+            widget.horizontalScrollBarPolicy() == Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
 
     def test_widget_size_constraints(self, widget):
         """Test widget size constraints."""
@@ -94,7 +95,6 @@ class TestInitialization:
         """Test widget defines required signals."""
         assert hasattr(widget, "item_selected")
         assert hasattr(widget, "cancelled")
-
 
 
 @pytest.mark.fr_086
@@ -178,7 +178,6 @@ class TestShowCompletions:
 
         assert widget.count() == 2
         assert widget.item(0).text() == "New 1"
-
 
 
 @pytest.mark.fr_086
@@ -310,9 +309,11 @@ class TestKeyboardNavigation:
 
     def test_enter_with_no_current_item(self, widget, qtbot):
         """Test Enter key when no item is selected."""
-        widget.show_completions([
-            CompletionItem(text="Test", kind=CompletionKind.SYNTAX),
-        ])
+        widget.show_completions(
+            [
+                CompletionItem(text="Test", kind=CompletionKind.SYNTAX),
+            ]
+        )
         widget.setCurrentRow(-1)  # Deselect
 
         selected_item = None
@@ -332,7 +333,6 @@ class TestKeyboardNavigation:
 
         # Should not emit signal when no current item
         assert selected_item is None
-
 
 
 @pytest.mark.fr_086
@@ -368,7 +368,6 @@ class TestMouseSelection:
         with qtbot.waitSignal(widget.item_selected, timeout=1000):
             list_item = widget.item(0)
             widget.itemClicked.emit(list_item)
-
 
 
 @pytest.mark.fr_086
@@ -407,7 +406,6 @@ class TestSignals:
                 Qt.KeyboardModifier.NoModifier,
             )
             widget.keyPressEvent(event)
-
 
 
 @pytest.mark.fr_086

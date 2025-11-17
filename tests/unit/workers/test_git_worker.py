@@ -16,7 +16,6 @@ from asciidoc_artisan.workers import GitWorker
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -150,7 +149,6 @@ class TestGitWorker:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -201,7 +199,6 @@ class TestGitResult:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -452,7 +449,6 @@ class TestGitWorkerStatus:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -511,7 +507,6 @@ class TestGitWorkerCancellation:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -643,7 +638,6 @@ class TestGitWorkerOperationTimeout:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -746,7 +740,6 @@ class TestGitWorkerStatusParsingEdgeCases:
 @pytest.mark.fr_028
 @pytest.mark.fr_029
 @pytest.mark.fr_033
-
 @pytest.mark.fr_070
 @pytest.mark.fr_071
 @pytest.mark.security
@@ -904,9 +897,7 @@ class TestGitWorkerExceptionHandling:
         worker = GitWorker()
         # Invalid integers in branch.ab line
         output = (
-            "# branch.oid abc123\n"
-            "# branch.head main\n"
-            "# branch.ab +abc -def\n"
+            "# branch.oid abc123\n" "# branch.head main\n" "# branch.ab +abc -def\n"
         )
 
         # Should handle ValueError gracefully
@@ -1060,9 +1051,7 @@ class TestGitWorkerExceptionHandling:
         import subprocess
 
         # Mock subprocess to raise TimeoutExpired
-        mock_run.side_effect = subprocess.TimeoutExpired(
-            cmd=["git", "diff"], timeout=3
-        )
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd=["git", "diff"], timeout=3)
 
         worker = GitWorker()
         files = [{"path": "file1.txt", "status": "M"}]

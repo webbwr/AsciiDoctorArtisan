@@ -34,7 +34,7 @@ class TestGPUDetection:
 
     def test_nvidia_gpu_detection_not_found(self, mocker):
         """Test no NVIDIA GPU when nvidia-smi not found."""
-        mock_run = mocker.patch(
+        mocker.patch(
             "subprocess.run", side_effect=FileNotFoundError("nvidia-smi not found")
         )
 
@@ -67,7 +67,7 @@ class TestGPUDetection:
 
     def test_amd_gpu_detection_not_found(self, mocker):
         """Test no AMD GPU when rocm-smi not found."""
-        mock_run = mocker.patch(
+        mocker.patch(
             "subprocess.run", side_effect=FileNotFoundError("rocm-smi not found")
         )
 
@@ -396,7 +396,7 @@ class TestCPUInfo:
     def test_get_cpu_info_success(self, mocker):
         """Test getting CPU cores and RAM."""
         # Mock psutil.cpu_count(logical=False) to return 8 physical cores
-        mock_cpu_count = mocker.patch("psutil.cpu_count", return_value=8)
+        mocker.patch("psutil.cpu_count", return_value=8)
         mock_virtual_memory = mocker.patch("psutil.virtual_memory")
         mock_virtual_memory.return_value = MagicMock(
             total=16 * 1024 * 1024 * 1024

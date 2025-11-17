@@ -360,7 +360,6 @@ def test_render_time_tracking(handler):
     handler.update_preview()
     assert handler._last_render_start is not None
 
-    start_time = handler._last_render_start
     time.sleep(0.01)
 
     handler.handle_preview_complete("<p>Done</p>")
@@ -649,7 +648,7 @@ def test_predictive_rendering_on_text_change(editor, preview, mock_window, qtbot
     """
     from unittest.mock import MagicMock
 
-    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+    FullConcretePreviewHandler(editor, preview, mock_window)
 
     # Create mock preview worker with request_prediction
     mock_worker = MagicMock()
@@ -685,7 +684,7 @@ def test_cursor_position_tracking(editor, preview, mock_window, qtbot):
     """
     from unittest.mock import MagicMock
 
-    handler = FullConcretePreviewHandler(editor, preview, mock_window)
+    FullConcretePreviewHandler(editor, preview, mock_window)
 
     # Create mock preview worker with update_cursor_position
     mock_worker = MagicMock()

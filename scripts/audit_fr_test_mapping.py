@@ -9,11 +9,11 @@ Usage:
     python3 scripts/audit_fr_test_mapping.py
 """
 
+import re
 import subprocess
 import sys
-from pathlib import Path
 from collections import defaultdict
-import re
+from pathlib import Path
 
 # FR to component mapping based on SPECIFICATIONS_AI.md and implementation files
 FR_COMPONENT_MAP = {

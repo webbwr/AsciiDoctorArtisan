@@ -1,5 +1,3 @@
-import pytest
-
 """
 Tests for ResourceManager.
 
@@ -8,6 +6,8 @@ Tests temp file/directory tracking and cleanup.
 
 import os
 import tempfile
+
+import pytest
 
 from asciidoc_artisan.core.resource_manager import (
     ResourceManager,

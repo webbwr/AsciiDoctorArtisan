@@ -24,7 +24,6 @@ from asciidoc_artisan.core.syntax_validators import (
 )
 
 
-
 @pytest.mark.fr_095
 @pytest.mark.fr_096
 @pytest.mark.fr_097
@@ -149,7 +148,6 @@ class TestUnclosedBlockRule:
         assert len(errors) == 0
 
 
-
 @pytest.mark.fr_095
 @pytest.mark.fr_096
 @pytest.mark.fr_097
@@ -227,7 +225,6 @@ class TestInvalidAttributeRule:
         assert errors[0].line == 1
 
 
-
 @pytest.mark.fr_095
 @pytest.mark.fr_096
 @pytest.mark.fr_097
@@ -292,7 +289,6 @@ class TestMalformedXRefRule:
 
         assert len(errors) == 1
         assert errors[0].line == 0
-
 
 
 @pytest.mark.fr_095
@@ -371,7 +367,6 @@ class TestBrokenXRefRule:
         assert errors[0].line == 1
 
 
-
 @pytest.mark.fr_095
 @pytest.mark.fr_096
 @pytest.mark.fr_097
@@ -415,7 +410,6 @@ class TestMissingIncludeRule:
 
         assert len(errors) == 1
         assert errors[0].line == 0
-
 
 
 @pytest.mark.fr_095
@@ -491,7 +485,6 @@ class TestUndefinedAttributeRefRule:
 
         assert len(errors) == 1
         assert errors[0].line == 1
-
 
 
 @pytest.mark.fr_095
@@ -582,7 +575,6 @@ class TestDuplicateAnchorRule:
         assert errors[0].line == 1
 
 
-
 @pytest.mark.fr_095
 @pytest.mark.fr_096
 @pytest.mark.fr_097
@@ -644,7 +636,6 @@ class TestEmptyHeadingRule:
 
         assert len(errors) == 1
         assert errors[0].line == 0
-
 
 
 @pytest.mark.fr_095
@@ -715,7 +706,6 @@ class TestTrailingWhitespaceRule:
         assert errors[0].line == 1
 
 
-
 @pytest.mark.fr_095
 @pytest.mark.fr_096
 @pytest.mark.fr_097
@@ -768,7 +758,6 @@ class TestMissingDocumentTitleRule:
         fix = errors[0].fixes[0]
         assert "title" in fix.title.lower()
         assert "= Document Title" in fix.edits[0].new_text
-
 
 
 @pytest.mark.fr_095
@@ -836,7 +825,6 @@ class TestMissingAuthorVersionRule:
         assert ":version:" in fix.edits[0].new_text
 
 
-
 @pytest.mark.fr_095
 @pytest.mark.fr_096
 @pytest.mark.fr_097
@@ -878,7 +866,6 @@ class TestBuiltInRulesRegistry:
         for rule in BUILT_IN_RULES:
             errors = rule.validate(context)
             assert isinstance(errors, list)
-
 
 
 @pytest.mark.fr_095

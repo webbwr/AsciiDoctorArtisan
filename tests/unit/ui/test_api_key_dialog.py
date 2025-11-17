@@ -123,7 +123,10 @@ class TestAPIKeyStatusUpdates:
         dialog = APIKeySetupDialog()
 
         # Status should show "✓ Key is configured"
-        assert "✓" in dialog.anthropic_status.text() and "configured" in dialog.anthropic_status.text().lower()
+        assert (
+            "✓" in dialog.anthropic_status.text()
+            and "configured" in dialog.anthropic_status.text().lower()
+        )
 
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
     def test_status_shows_not_set_when_no_key(self, mock_creds_class, qapp):
@@ -767,7 +770,9 @@ class TestAPIKeyDialogSaveValidation:
 
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.warning")
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
-    def test_save_with_invalid_format_shows_warning(self, mock_creds_class, mock_msgbox, qapp):
+    def test_save_with_invalid_format_shows_warning(
+        self, mock_creds_class, mock_msgbox, qapp
+    ):
         """Test saving invalid format key shows warning."""
         from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
 
@@ -789,7 +794,9 @@ class TestAPIKeyDialogSaveValidation:
 
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.critical")
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
-    def test_save_when_keyring_unavailable_shows_error(self, mock_creds_class, mock_msgbox, qapp):
+    def test_save_when_keyring_unavailable_shows_error(
+        self, mock_creds_class, mock_msgbox, qapp
+    ):
         """Test saving when keyring unavailable shows error."""
         from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
 
@@ -811,7 +818,9 @@ class TestAPIKeyDialogSaveValidation:
 
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.critical")
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
-    def test_save_when_storage_fails_shows_error(self, mock_creds_class, mock_msgbox, qapp):
+    def test_save_when_storage_fails_shows_error(
+        self, mock_creds_class, mock_msgbox, qapp
+    ):
         """Test saving when storage fails shows error."""
         from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
 
@@ -830,7 +839,11 @@ class TestAPIKeyDialogSaveValidation:
         # Verify error shown
         mock_msgbox.assert_called_once()
         args = mock_msgbox.call_args[0]
-        assert "Storage Failed" in args[1] or "Failed to store" in args[2] or "failed" in args[2].lower()
+        assert (
+            "Storage Failed" in args[1]
+            or "Failed to store" in args[2]
+            or "failed" in args[2].lower()
+        )
 
 
 @pytest.mark.unit
@@ -861,7 +874,9 @@ class TestAPIKeyDialogClearFunctionality:
     @patch("os.environ.get")
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.question")
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
-    def test_clear_with_user_cancels(self, mock_creds_class, mock_msgbox, mock_env_get, qapp):
+    def test_clear_with_user_cancels(
+        self, mock_creds_class, mock_msgbox, mock_env_get, qapp
+    ):
         """Test clearing when user cancels confirmation."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -889,7 +904,9 @@ class TestAPIKeyDialogClearFunctionality:
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.information")
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.question")
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
-    def test_clear_with_user_confirms_success(self, mock_creds_class, mock_question, mock_info, mock_env_get, qapp):
+    def test_clear_with_user_confirms_success(
+        self, mock_creds_class, mock_question, mock_info, mock_env_get, qapp
+    ):
         """Test clearing when user confirms and deletion succeeds."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -920,7 +937,9 @@ class TestAPIKeyDialogClearFunctionality:
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.warning")
     @patch("asciidoc_artisan.ui.api_key_dialog.QMessageBox.question")
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
-    def test_clear_with_user_confirms_failure(self, mock_creds_class, mock_question, mock_warning, mock_env_get, qapp):
+    def test_clear_with_user_confirms_failure(
+        self, mock_creds_class, mock_question, mock_warning, mock_env_get, qapp
+    ):
         """Test clearing when user confirms but deletion fails."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -955,7 +974,9 @@ class TestAPIKeyDialogGetKey:
     """Test suite for get_api_key method."""
 
     @patch("asciidoc_artisan.ui.api_key_dialog.SecureCredentials")
-    def test_get_api_key_when_keyring_unavailable_returns_none(self, mock_creds_class, qapp):
+    def test_get_api_key_when_keyring_unavailable_returns_none(
+        self, mock_creds_class, qapp
+    ):
         """Test get_api_key returns None when keyring unavailable."""
         from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
 

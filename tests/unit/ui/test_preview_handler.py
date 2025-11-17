@@ -794,7 +794,7 @@ class TestErrorHandling:
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
 
-        with patch.object(mock_preview, "setHtml") as mock_set_html:
+        with patch.object(mock_preview, "setHtml"):
             # Should handle None without crashing
             try:
                 handler.handle_preview_complete(None)

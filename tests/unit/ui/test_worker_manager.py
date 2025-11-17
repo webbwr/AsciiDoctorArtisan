@@ -497,7 +497,7 @@ class TestWorkerInitializationEdgeCases:
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
 
-        manager = WorkerManager(mock_editor, use_worker_pool=True, max_pool_threads=0)
+        WorkerManager(mock_editor, use_worker_pool=True, max_pool_threads=0)
 
         # Passes value through to pool (pool enforces minimum)
         mock_pool_class.assert_called_once_with(max_threads=0)
@@ -510,7 +510,7 @@ class TestWorkerInitializationEdgeCases:
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
 
-        manager = WorkerManager(mock_editor, use_worker_pool=True, max_pool_threads=-5)
+        WorkerManager(mock_editor, use_worker_pool=True, max_pool_threads=-5)
 
         # Passes value through to pool (pool enforces minimum)
         mock_pool_class.assert_called_once_with(max_threads=-5)
@@ -523,9 +523,7 @@ class TestWorkerInitializationEdgeCases:
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
 
-        manager = WorkerManager(
-            mock_editor, use_worker_pool=True, max_pool_threads=1000
-        )
+        WorkerManager(mock_editor, use_worker_pool=True, max_pool_threads=1000)
 
         mock_pool_class.assert_called_once_with(max_threads=1000)
 
@@ -870,7 +868,7 @@ class TestErrorHandling:
 
         # Should handle gracefully
         try:
-            stats = manager.get_pool_statistics()
+            manager.get_pool_statistics()
         except RuntimeError:
             pass  # Expected behavior
 
@@ -1150,7 +1148,7 @@ class TestWorkerRecoveryScenarios:
 
         # First call fails
         try:
-            stats1 = manager.get_pool_statistics()
+            manager.get_pool_statistics()
         except RuntimeError:
             pass
 

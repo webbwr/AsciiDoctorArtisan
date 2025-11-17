@@ -18,7 +18,6 @@ from asciidoc_artisan.core.autocomplete_providers import (
 from asciidoc_artisan.core.models import CompletionContext, CompletionKind
 
 
-
 @pytest.mark.fr_087
 @pytest.mark.fr_090
 @pytest.mark.unit
@@ -175,7 +174,6 @@ class TestSyntaxProvider:
         assert all("list" in item.detail.lower() for item in items)
 
 
-
 @pytest.mark.fr_087
 @pytest.mark.fr_090
 @pytest.mark.unit
@@ -283,7 +281,6 @@ class TestAttributeProvider:
         items = provider._get_attribute_references()
 
         assert len(items) == 0
-
 
 
 @pytest.mark.fr_087
@@ -397,7 +394,6 @@ class TestCrossRefProvider:
         items = provider._get_anchor_completions()
 
         assert len(items) == 0
-
 
 
 @pytest.mark.fr_087
@@ -520,7 +516,6 @@ class TestIncludeProvider:
         # Should return empty list after exception
         assert isinstance(items, list)
         assert len(items) == 0
-
 
 
 @pytest.mark.fr_087

@@ -1454,9 +1454,7 @@ class TestContextMenuWithMockedExec:
         with patch.object(
             main_window.editor, "cursorForPosition", return_value=mock_cursor
         ):
-            with patch(
-                "asciidoc_artisan.ui.spell_check_manager.QMenu"
-            ) as MockQMenu:
+            with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
                 mock_menu = Mock()
                 MockQMenu.return_value = mock_menu
 
@@ -1492,9 +1490,7 @@ class TestContextMenuWithMockedExec:
 
         # Create error with no suggestions
         manager.errors = [
-            SpellError(
-                word="xyzabc", start=0, end=6, suggestions=[], line=1, column=0
-            )
+            SpellError(word="xyzabc", start=0, end=6, suggestions=[], line=1, column=0)
         ]
 
         # Create mock event
@@ -1510,9 +1506,7 @@ class TestContextMenuWithMockedExec:
         with patch.object(
             main_window.editor, "cursorForPosition", return_value=mock_cursor
         ):
-            with patch(
-                "asciidoc_artisan.ui.spell_check_manager.QMenu"
-            ) as MockQMenu:
+            with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
                 mock_menu = Mock()
                 MockQMenu.return_value = mock_menu
 
@@ -1623,9 +1617,7 @@ class TestContextMenuWithMockedExec:
         with patch.object(
             main_window.editor, "cursorForPosition", return_value=mock_cursor
         ):
-            with patch(
-                "asciidoc_artisan.ui.spell_check_manager.QMenu"
-            ) as MockQMenu:
+            with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
                 with patch(
                     "asciidoc_artisan.ui.spell_check_manager.QAction"
                 ) as MockQAction:
@@ -1635,9 +1627,7 @@ class TestContextMenuWithMockedExec:
                     manager.show_context_menu(event)
 
                     # Verify QAction was called with "Add to Dictionary"
-                    action_calls = [
-                        str(call) for call in MockQAction.call_args_list
-                    ]
+                    action_calls = [str(call) for call in MockQAction.call_args_list]
                     assert any(
                         "Add 'testword' to Dictionary" in str(call)
                         for call in action_calls
@@ -1679,9 +1669,7 @@ class TestContextMenuWithMockedExec:
         with patch.object(
             main_window.editor, "cursorForPosition", return_value=mock_cursor
         ):
-            with patch(
-                "asciidoc_artisan.ui.spell_check_manager.QMenu"
-            ) as MockQMenu:
+            with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
                 with patch(
                     "asciidoc_artisan.ui.spell_check_manager.QAction"
                 ) as MockQAction:
@@ -1691,9 +1679,7 @@ class TestContextMenuWithMockedExec:
                     manager.show_context_menu(event)
 
                     # Verify QAction was called with "Ignore"
-                    action_calls = [
-                        str(call) for call in MockQAction.call_args_list
-                    ]
+                    action_calls = [str(call) for call in MockQAction.call_args_list]
                     assert any(
                         "Ignore 'ignoreword'" in str(call) for call in action_calls
                     )

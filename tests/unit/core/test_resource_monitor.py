@@ -1,5 +1,3 @@
-import pytest
-
 """
 Tests for core.resource_monitor module.
 
@@ -7,6 +5,8 @@ Tests resource monitoring, document metrics, and adaptive debouncing.
 """
 
 from unittest.mock import Mock, patch
+
+import pytest
 
 from asciidoc_artisan.core.resource_monitor import (
     DocumentMetrics,

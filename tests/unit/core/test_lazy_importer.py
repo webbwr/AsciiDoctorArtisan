@@ -193,7 +193,7 @@ class TestImportTracker:
 
         tracker.register_lazy_import("test_module")
 
-        stats = tracker.get_statistics()
+        tracker.get_statistics()
         assert "test_module" in tracker._lazy_modules
 
     def test_record_import(self):
@@ -420,9 +420,9 @@ class TestLazyImportPerformance:
 
         # Lazy import (creation only)
         start = time.time()
-        lazy_json = LazyModule("json")
-        lazy_urllib = LazyModule("urllib")
-        lazy_xml = LazyModule("xml")
+        LazyModule("json")
+        LazyModule("urllib")
+        LazyModule("xml")
         lazy_create_time = time.time() - start
 
         # Lazy creation should be faster or equal (on fast systems, both are very quick)

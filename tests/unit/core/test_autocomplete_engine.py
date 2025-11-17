@@ -20,7 +20,6 @@ from asciidoc_artisan.core.models import (
 )
 
 
-
 @pytest.mark.fr_085
 @pytest.mark.fr_088
 @pytest.mark.fr_089
@@ -401,7 +400,6 @@ class TestAutoCompleteEngine:
         assert stats["utilization"] == 0
 
 
-
 @pytest.mark.fr_085
 @pytest.mark.fr_088
 @pytest.mark.fr_089
@@ -595,7 +593,6 @@ class TestRanking:
         assert len(ranked) >= 0  # May or may not match depending on implementation
 
 
-
 @pytest.mark.fr_085
 @pytest.mark.fr_088
 @pytest.mark.fr_089
@@ -646,7 +643,6 @@ class TestFuzzyMatchScore:
         score = fuzzy_match_score("test", "")
 
         assert score >= 0.0
-
 
 
 @pytest.mark.fr_085
@@ -799,7 +795,6 @@ class TestEdgeCases:
         assert ranked[1].text == "testing"
 
 
-
 @pytest.mark.fr_085
 @pytest.mark.fr_088
 @pytest.mark.fr_089
@@ -874,7 +869,6 @@ class TestRankItemsFallback:
             # All scores should be very low (< 20, which is fuzzy * 0.6)
             for item in ranked:
                 assert item.score < 20.0
-
 
 
 @pytest.mark.fr_085
@@ -972,7 +966,6 @@ class TestRankItemsEdgeCases:
         # Should match despite case difference (prefix match)
         assert len(ranked) == 1
         assert ranked[0].score > 80.0
-
 
 
 @pytest.mark.fr_085

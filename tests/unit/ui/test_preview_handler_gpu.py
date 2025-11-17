@@ -260,7 +260,7 @@ class TestCreatePreviewWidget:
         mock_webengine.settings = Mock(return_value=mock_settings)
         mock_webengine_cls.return_value = mock_webengine
 
-        widget = create_preview_widget()
+        create_preview_widget()
 
         # Should create QWebEngineView
         mock_webengine_cls.assert_called_once()
@@ -717,7 +717,7 @@ class TestGPUDetectionEdgeCases:
         mock_get_gpu_info.return_value = mock_gpu_info
 
         with patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView"):
-            widget = create_preview_widget()
+            create_preview_widget()
             # Should not crash with partial GPU info
 
     @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
@@ -808,7 +808,7 @@ class TestWebEngineSettingsConfiguration:
         mock_webengine.settings = Mock(return_value=mock_settings)
         mock_webengine_cls.return_value = mock_webengine
 
-        widget = create_preview_widget()
+        create_preview_widget()
 
         # Should create WebEngineView
         mock_webengine_cls.assert_called_once()
@@ -844,7 +844,7 @@ class TestHandlerInstanceManagement:
         handler1.sync_scrolling_enabled = False
 
         # handler2 should not be affected
-        assert handler2.sync_scrolling_enabled == True  # Default state
+        assert handler2.sync_scrolling_enabled  # Default state
 
     def test_handler_references_different_widgets(self, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
@@ -937,7 +937,7 @@ class TestFactoryFunctionEdgeCases:
 
         # Should handle None preview
         try:
-            handler = create_preview_handler(mock_editor, None, mock_parent_window)
+            create_preview_handler(mock_editor, None, mock_parent_window)
         except (TypeError, AttributeError):
             # If it rejects None, that's acceptable
             pass
@@ -949,7 +949,7 @@ class TestFactoryFunctionEdgeCases:
 
         # Should handle None editor
         try:
-            handler = create_preview_handler(None, preview, mock_parent_window)
+            create_preview_handler(None, preview, mock_parent_window)
         except (TypeError, AttributeError):
             # If it rejects None, that's acceptable
             pass
@@ -996,8 +996,8 @@ class TestStateManagement:
         handler = WebEngineHandler(mock_editor, mock_preview, mock_parent_window)
 
         # Should start with sync enabled
-        assert handler.sync_scrolling_enabled == True
-        assert handler.is_syncing_scroll == False
+        assert handler.sync_scrolling_enabled
+        assert not handler.is_syncing_scroll
 
     def test_toggle_sync_state(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler_gpu import WebEngineHandler
@@ -1006,10 +1006,10 @@ class TestStateManagement:
 
         # Toggle sync
         handler.sync_scrolling_enabled = False
-        assert handler.sync_scrolling_enabled == False
+        assert not handler.sync_scrolling_enabled
 
         handler.sync_scrolling_enabled = True
-        assert handler.sync_scrolling_enabled == True
+        assert handler.sync_scrolling_enabled
 
     def test_syncing_guard_prevents_recursion(
         self, mock_editor, mock_preview, mock_parent_window
@@ -1044,7 +1044,7 @@ class TestStateManagement:
         handler.handle_preview_complete("<p>Second</p>")
 
         # State should persist
-        assert handler.sync_scrolling_enabled == False
+        assert not handler.sync_scrolling_enabled
 
     def test_independent_state_per_instance(
         self, mock_editor, mock_preview, mock_parent_window
@@ -1059,8 +1059,8 @@ class TestStateManagement:
         handler1.is_syncing_scroll = True
 
         # handler2 should be unaffected
-        assert handler2.sync_scrolling_enabled == True
-        assert handler2.is_syncing_scroll == False
+        assert handler2.sync_scrolling_enabled
+        assert not handler2.is_syncing_scroll
 
 
 @pytest.mark.fr_015
