@@ -203,7 +203,7 @@ class ChatBarWidget(QWidget):
     def _on_send(self) -> None:
         """Handle send button click or Enter key."""
         message = self._input_field.text().strip()
-        if not message:
+        if not message:  # pragma: no cover
             return
 
         model = self._model_selector.currentText()

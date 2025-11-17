@@ -17,7 +17,7 @@ Implements:
 import logging
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from asciidoc_artisan.ui.main_window import AsciiDocEditor
     from asciidoc_artisan.ui.settings_manager import SettingsManager
     from asciidoc_artisan.ui.status_manager import StatusManager
