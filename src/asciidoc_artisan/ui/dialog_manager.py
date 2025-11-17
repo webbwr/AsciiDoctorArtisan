@@ -31,18 +31,18 @@ from asciidoc_artisan.core.constants import is_pandoc_available
 try:
     import anthropic
 except ImportError:
-    anthropic = None  # type: ignore
+    anthropic = None
 
 try:
     import ollama
 except ImportError:
-    ollama = None  # type: ignore
+    ollama = None
 
 # Claude client (optional)
 try:
     from asciidoc_artisan.claude import ClaudeClient
 except ImportError:
-    ClaudeClient = None  # type: ignore
+    ClaudeClient = None
 
 # Application dialogs
 # Note: Previously imported locally to avoid circular imports, but moved to module
