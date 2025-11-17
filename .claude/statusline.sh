@@ -54,11 +54,28 @@ else
     TOTAL_TESTS="?"
 fi
 
-# Get passed tests from htmlcov/index.html or test logs
-TEST_PASSED=$(grep -o "[0-9]* passed" htmlcov/index.html 2>/dev/null | head -1 | cut -d' ' -f1)
-if [ -z "$TEST_PASSED" ] && [ -f test_run_fast.log ]; then
+# Get passed tests from multiple sources (in order of preference)
+TEST_PASSED=""
+
+# 1. Try test_run_fast.log (most recent full run)
+if [ -f test_run_fast.log ]; then
     TEST_PASSED=$(grep -o "[0-9]* passed" test_run_fast.log 2>/dev/null | tail -1 | cut -d' ' -f1)
 fi
+
+# 2. Try .pytest_cache/v/cache/lastfailed (calculate passed = total - failed)
+if [ -z "$TEST_PASSED" ] && [ -f .pytest_cache/v/cache/lastfailed ]; then
+    FAILED_COUNT=$(python3 -c "import json; print(len(json.load(open('.pytest_cache/v/cache/lastfailed'))))" 2>/dev/null || echo "")
+    if [ -n "$FAILED_COUNT" ] && [ "$TOTAL_TESTS" != "?" ]; then
+        TEST_PASSED=$((TOTAL_TESTS - FAILED_COUNT))
+    fi
+fi
+
+# 3. Try htmlcov/index.html (old coverage report)
+if [ -z "$TEST_PASSED" ]; then
+    TEST_PASSED=$(grep -o "[0-9]* passed" htmlcov/index.html 2>/dev/null | head -1 | cut -d' ' -f1)
+fi
+
+# 4. Default to unknown
 if [ -z "$TEST_PASSED" ]; then
     TEST_PASSED="?"
 fi

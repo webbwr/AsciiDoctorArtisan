@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **AsciiDoc Artisan** — Cross-platform desktop AsciiDoc editor with live preview (PySide6/Qt)
 
-**Version:** 2.0.2 (Nov 15, 2025) | **Status:** Production-ready | **Startup:** 0.586s
+**Version:** 2.0.3 (Nov 16, 2025) | **Status:** Production-ready | **Startup:** 0.586s
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
 
@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,479 tests (204/204 passing, 100% pass), mypy --strict (0 errors), 88-char line limit
+**Quality:** 5,486 tests (5,480 passing, 99.89% pass), mypy --strict (0 errors), 88-char line limit
 
 ## Critical Patterns — Read First!
 
