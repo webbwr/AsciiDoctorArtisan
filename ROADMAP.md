@@ -73,20 +73,23 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 
 ### Deferred Work (v2.1+)
 
-**Test Coverage Phases 4A-4E** (deferred, 96.4% → 99.5% maximum achievable):
+**Test Coverage Phases 4A-4E** (96.4% → 99.5% maximum achievable):
 - 4A: Workers (pandoc/git/incremental) - ~60 tests, 1-2 days [COMPLETE at Qt threading max]
 - 4B: Core (async/resource/lazy) - ~30 tests, 1 day [COMPLETE at 99%]
 - 4C: Polish (14 files, 90-99% coverage) - ~180 statements, 4-6 hours [COMPLETE]
-- 4D: document_converter - ~25 tests, 1 day [97%, 5 lines remaining]
-- 4E: UI layer (0% → 100%) - ~690 tests, 3-4 weeks, HIGH complexity [~90-95% current]
+- 4D: document_converter - 48 tests, 4 hours [COMPLETE at 100%]
+- 4E: UI layer (0% → 100%) - ~690 tests, 3-4 weeks, HIGH complexity [~90-95% current, DEFERRED]
 
-**Total Deferred:** ~100 tests remaining (document_converter + UI), 3-4 weeks, +3% coverage to 99.5% max
+**Completed Phases:** 4A, 4B, 4C, 4D (Nov 17, 2025)
+**Remaining:** Phase 4E (UI layer), 3-4 weeks effort, +2-3% coverage to 99.5% max
 
 **Rationale:** v2.0.0 feature development > incremental coverage. Current 96.4% with 99.89% pass rate (5,480/5,486) is production-ready.
 
 **Update Nov 13, 2025:** Test suite stabilized at 2,208 tests with 99.86% pass rate after v2.0.1 repairs.
 
 **Update Nov 16, 2025:** UI test fixes completed (v2.0.3). Test suite now 5,486 tests with 99.89% pass rate (5,480 passing, 6 deferred/environmental).
+
+**Update Nov 17, 2025:** Phase 4D completed. document_converter.py: 97% → 100% coverage (+2 tests, removed 1 unreachable code). Phase 4A-4D complete.
 
 **Coverage Analysis (Nov 16, 2025):** True 100% coverage is impossible due to Qt threading limitations. Maximum achievable: ~99.5%.
 
@@ -115,8 +118,8 @@ True 100% coverage is **impossible** due to:
 | Core | 99% | 99% | ✅ At max | 1 line dead code (lazy_utils) |
 | Workers | 99% | 99% | ✅ At max | 4 lines Qt threading limit |
 | Claude | 93% | 93% | ✅ At max | Qt threading limit |
-| Document Converter | 97% | 99% | ⚠️ Improvable | 5 lines (3 complex, 1 unreachable) |
-| UI | ~90-95% | 100% | 🔄 Opportunity | Main improvement area |
+| Document Converter | 100% | 100% | ✅ Complete | 48 tests, all lines covered |
+| UI | ~90-95% | 100% | 🔄 Opportunity | Main improvement area (Phase 4E) |
 
 **Coverage Targets:**
 - **v2.0.4 (short-term):** 97-98% overall (6-8 hours effort, UI quick wins)
