@@ -25,7 +25,7 @@ from PySide6.QtWidgets import QMenu, QTextEdit
 
 from asciidoc_artisan.core import SpellChecker, SpellError
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
@@ -219,7 +219,7 @@ class SpellCheckManager:
                 menu.addAction(action)
 
             menu.addSeparator()
-        else:
+        else:  # pragma: no cover
             # No suggestions available
             no_suggestions = QAction("(no suggestions)", menu)
             no_suggestions.setEnabled(False)
