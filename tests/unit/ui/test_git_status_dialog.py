@@ -815,3 +815,36 @@ class TestGitStatusDialogSpecialCases:
             assert True  # If we got here without exception, test passes
         except KeyError:
             assert False, "Dialog should handle missing keys gracefully"
+
+    def test_clear_status(self, dialog):
+        """Test clearing all status data."""
+        # First populate with some data
+        modified = [
+            {
+                "path": "file1.txt",
+                "status": "M",
+                "lines_added": "5",
+                "lines_deleted": "2",
+            }
+        ]
+        staged = [{"path": "file2.txt", "status": "A"}]
+        untracked = [{"path": "file3.txt"}]
+
+        dialog.populate_status("main", modified, staged, untracked)
+
+        # Verify data was populated
+        assert dialog.modified_table.rowCount() == 1
+        assert dialog.staged_table.rowCount() == 1
+        assert dialog.untracked_table.rowCount() == 1
+
+        # Clear status
+        dialog.clear_status()
+
+        # Verify all data cleared
+        assert dialog.branch_label.text() == "Branch: --"
+        assert dialog.modified_table.rowCount() == 0
+        assert dialog.staged_table.rowCount() == 0
+        assert dialog.untracked_table.rowCount() == 0
+        assert "Modified (0)" in dialog.tab_widget.tabText(0)
+        assert "Staged (0)" in dialog.tab_widget.tabText(1)
+        assert "Untracked (0)" in dialog.tab_widget.tabText(2)
