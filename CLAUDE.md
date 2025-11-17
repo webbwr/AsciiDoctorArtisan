@@ -210,6 +210,38 @@ Entry: `src/main.py`
 - Qt workers: 93-98% max (threading limitations)
 - Overall project: >96% statement coverage
 
+**Test markers and patterns:**
+
+1. **Environment-Specific Tests**
+   ```python
+   @pytest.mark.requires_gpu  # 3 tests - Qt WebEngine + GPU
+   @pytest.mark.live_api      # 1 test - Requires Ollama service
+   ```
+   - Skip in CI: `pytest -m "not requires_gpu and not live_api"`
+   - Run separately: `pytest -m requires_gpu` or `pytest -m live_api`
+
+2. **MockParentWidget Pattern** (PySide6 Dialog Tests)
+   ```python
+   # Problem: PySide6 C++ rejects MagicMock parents
+   # Solution: Use real QWidget with trackable methods
+   from tests.unit.ui.conftest import MockParentWidget
+
+   def test_dialog_with_parent(mock_parent_widget):
+       dialog = SomeDialog(parent=mock_parent_widget)
+       dialog.accept()
+       assert mock_parent_widget.refresh_from_settings_called
+   ```
+   - Located: `tests/unit/ui/conftest.py`
+   - Fixture: `mock_parent_widget` (auto-cleanup)
+   - Tracks: `refresh_from_settings_called`, `status_bar_updates[]`, `model_changes[]`
+
+3. **Investigation Skips**
+   ```python
+   @pytest.mark.skip(reason="Clear investigation notes here")
+   ```
+   - Use for test environment issues with documented investigation path
+   - Examples: resource_monitor, Qt font system edge cases
+
 ## Feature Details
 
 **Ollama AI** (v1.2+) — Local AI for document work
