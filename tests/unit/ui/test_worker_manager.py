@@ -435,13 +435,16 @@ class TestShutdown:
             "github_thread",
             "pandoc_thread",
             "preview_thread",
+            "ollama_chat_thread",
+            "claude_thread",
         ]
 
         for thread_name in threads:
             thread = Mock()
             thread.isRunning.return_value = True
             thread.quit = Mock()
-            thread.wait = Mock()
+            thread.wait = Mock(return_value=True)  # Simulate clean exit
+            thread.deleteLater = Mock()
             setattr(manager, thread_name, thread)
             thread_mocks[thread_name] = thread
 
@@ -451,6 +454,7 @@ class TestShutdown:
         for thread_name, thread in thread_mocks.items():
             thread.quit.assert_called_once()
             thread.wait.assert_called_once_with(3000)
+            thread.deleteLater.assert_called_once()
 
     def test_shutdown_skips_stopped_threads(self, mock_editor):
         """Test shutdown skips threads that are not running."""
@@ -465,6 +469,42 @@ class TestShutdown:
 
         # Should not call quit on stopped thread (check saved mock)
         mock_thread.quit.assert_not_called()
+
+    def test_shutdown_force_terminate_hanging_threads(self, mock_editor):
+        """Test shutdown force-terminates threads that don't exit cleanly.
+
+        Tests lines 367-376, 379-388:
+        - Ollama/Claude thread force termination when wait() returns False
+        """
+        manager = WorkerManager(mock_editor, use_worker_pool=False)
+
+        # Mock ollama thread that hangs
+        ollama_thread = Mock()
+        ollama_thread.isRunning.return_value = True
+        ollama_thread.quit = Mock()
+        ollama_thread.wait = Mock(return_value=False)  # Doesn't exit cleanly
+        ollama_thread.terminate = Mock()
+        ollama_thread.deleteLater = Mock()
+        manager.ollama_chat_thread = ollama_thread
+
+        # Mock claude thread that hangs
+        claude_thread = Mock()
+        claude_thread.isRunning.return_value = True
+        claude_thread.quit = Mock()
+        claude_thread.wait = Mock(side_effect=[False, True])  # First call fails, second succeeds
+        claude_thread.terminate = Mock()
+        claude_thread.deleteLater = Mock()
+        manager.claude_thread = claude_thread
+
+        manager.shutdown()
+
+        # Verify terminate was called on both
+        ollama_thread.terminate.assert_called_once()
+        claude_thread.terminate.assert_called_once()
+
+        # Verify wait was called twice (once for quit, once after terminate)
+        assert ollama_thread.wait.call_count == 2
+        assert claude_thread.wait.call_count == 2
 
     def test_shutdown_handles_none_threads(self, mock_editor):
         """Test shutdown handles None threads gracefully."""
