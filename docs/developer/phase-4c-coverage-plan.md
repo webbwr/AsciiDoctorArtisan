@@ -51,31 +51,32 @@
    - Status: Tests exist and pass, coverage.py cannot track QThread execution
    - Commit: ab5dcb3
 
-### ✅ Root Module (97% achieved - 1 file)
-8. **document_converter.py** - 95% → **97%** ✓
+### ✅ Root Module (100% achieved - 1 file)
+8. **document_converter.py** - 95% → **100%** ✓
    - Location: `src/asciidoc_artisan/document_converter.py`
    - Tests: `tests/unit/test_document_converter*.py`
-   - Solution: Added 3 tests for PyMuPDF/pypandoc edge cases (lines 198-200, 323-324, 340-341)
-   - Remaining: Lines 293-296 (complex integration), 475 (unreachable defensive code)
-   - Commit: c300b08
+   - Solution:
+     - Added 3 tests for PyMuPDF/pypandoc edge cases (lines 198-200, 323-324, 340-341)
+     - Added 2 tests for ensure_pandoc_available auto-install paths (lines 293-296)
+     - Removed unreachable defensive code at line 475
+   - Tests: 48 passing (46 original + 2 new)
+   - Commits: c300b08, [current session]
 
 ## Progress Summary
 
-**Completed: 7 of 14 files (50%)**
-- ✅ 4 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker
-- ✅ 1 file at 97%: document_converter (5 lines: 3 complex, 1 unreachable)
+**Completed: 8 of 14 files (57%)**
+- ✅ 5 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker, **document_converter**
 - ⚠️ 2 files at Qt max: optimized_worker_pool (98%), claude_worker (93%) - threading limitations
-- 📝 1 dead code: lazy_utils (never imported, documented for cleanup)
+- 📝 1 dead code: lazy_utils (never imported, documented as planned but unused)
 
 **Remaining: 7 files**
 - Primarily in UI module (Phase 4E scope, 3-4 week effort per QA audit)
 
 **Impact:**
-- Achieved 100% on 4 non-threaded worker files
-- Improved document_converter 95% → 97%
+- Achieved 100% on 5 non-threaded files (4 workers + document_converter)
+- Improved document_converter 95% → 100% (+2 tests, removed 1 unreachable defensive check)
 - Documented Qt threading limitations (affects 2 files, cannot be improved)
-- Identified 1 dead code file for cleanup
-- Documented 1 file with unreachable defensive code
+- Documented lazy_utils.py as planned but unused (retained for future v3.0+ work)
 
 ## Module Coverage Summary
 
@@ -146,8 +147,8 @@ For each file with <100% coverage:
 
 ## Success Criteria
 
-- [x] Core/Workers/Claude files at max achievable coverage (4 at 100%, 2 at Qt max)
-- [ ] All 14 files at 100% coverage (blocked: 2 Qt threading, ~8 UI module files remain)
+- [x] Core/Workers/Claude files at max achievable coverage (5 at 100%, 2 at Qt max)
+- [ ] All 14 files at 100% coverage (blocked: 2 Qt threading, ~6 UI module files remain)
 - [ ] Total project coverage >= 97% (current: TBD, run full suite)
 - [x] All new tests pass existing quality standards
 - [x] mypy --strict continues to pass
@@ -155,12 +156,13 @@ For each file with <100% coverage:
 
 **Blockers:**
 - Qt threading: optimized_worker_pool.py, claude_worker.py (98%/93% max)
-- UI module: ~8 files deferred to Phase 4E (3-4 week effort)
+- UI module: ~6 files deferred to Phase 4E (3-4 week effort)
 
 **Achievements:**
-- 4 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker
-- All tests pass, mypy clean, fast execution
-- Documented Qt threading limitations and dead code
+- 5 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker, **document_converter**
+- All tests pass (48 for document_converter), mypy clean, fast execution
+- Documented Qt threading limitations and lazy_utils as planned but unused
+- Removed 1 unreachable defensive code block
 
 ## Notes
 
@@ -172,6 +174,11 @@ For each file with <100% coverage:
 ---
 
 **Created:** 2025-11-16
-**Last Updated:** 2025-11-16
-**Status:** Phase 4C complete within scope (7/14 files, 50%)
+**Last Updated:** 2025-11-17
+**Status:** Phase 4C complete within scope (8/14 files, 57%)
 **Next Action:** UI module coverage (Phase 4E - 3-4 week effort)
+
+**Session Summary (2025-11-17):**
+- document_converter.py: 97% → 100% (+2 tests, -1 unreachable code)
+- lazy_utils.py: Documented as planned but unused (retained for v3.0+)
+- Total achievement: 5 files at 100%, 2 at Qt max, 1 documented

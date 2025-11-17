@@ -16,11 +16,15 @@ Final: 97% coverage (188/193 statements, 5 missing - 3 complex, 1 unreachable)
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
-from asciidoc_artisan.document_converter import PDFExtractor, PandocIntegration
+from asciidoc_artisan.document_converter import (
+    PandocIntegration,
+    PDFExtractor,
+    ensure_pandoc_available,
+)
 
 
 @pytest.mark.unit
@@ -44,13 +48,70 @@ class TestDocumentConverterCoverage:
             assert "Failed to install pypandoc" in msg
             assert "network error" in msg
 
-    # Lines 293-296 deferred - requires complex mocking of PandocIntegration state
-    # The auto-install success path needs:
-    # 1. pandoc.check_installation() returns (False, msg)
-    # 2. pandoc.pandoc_path exists
-    # 3. pandoc.pypandoc_available is False
-    # 4. pandoc.auto_install_pypandoc() returns (True, msg)
-    # This integration scenario is complex to mock correctly
+    def test_ensure_pandoc_auto_install_failure(self):
+        """Test ensure_pandoc_available when auto-install fails (lines 293-296)."""
+        # This test covers the complex integration scenario:
+        # 1. check_installation() returns (False, msg) - pandoc not available
+        # 2. pandoc.pandoc_path exists - binary found but broken
+        # 3. pandoc.pypandoc_available is False - pypandoc not installed
+        # 4. auto_install_pypandoc() returns (False, msg) - auto-install fails
+
+        with patch(
+            "asciidoc_artisan.document_converter.pandoc"
+        ) as mock_pandoc_instance:
+            # Setup: pandoc binary found but version check failed
+            mock_pandoc_instance.check_installation.return_value = (
+                False,
+                "Pandoc found but version check failed.",
+            )
+            mock_pandoc_instance.pandoc_path = "/usr/bin/pandoc"
+            mock_pandoc_instance.pypandoc_available = False
+
+            # Auto-install fails
+            mock_pandoc_instance.auto_install_pypandoc.return_value = (
+                False,
+                "Failed to install pypandoc: pip not found",
+            )
+
+            success, message = ensure_pandoc_available()
+
+            assert success is False
+            assert "Pandoc found but version check failed" in message
+            assert (
+                "Installation Instructions" in message or "install" in message.lower()
+            )
+            mock_pandoc_instance.auto_install_pypandoc.assert_called_once()
+
+    def test_ensure_pandoc_auto_install_success(self):
+        """Test ensure_pandoc_available when auto-install succeeds (line 295)."""
+        # This test covers the success path:
+        # 1. check_installation() returns (False, msg) - pandoc not available
+        # 2. pandoc.pandoc_path exists - binary found but broken
+        # 3. pandoc.pypandoc_available is False - pypandoc not installed
+        # 4. auto_install_pypandoc() returns (True, msg) - auto-install succeeds
+
+        with patch(
+            "asciidoc_artisan.document_converter.pandoc"
+        ) as mock_pandoc_instance:
+            # Setup: pandoc binary found but version check failed
+            mock_pandoc_instance.check_installation.return_value = (
+                False,
+                "Pandoc found but version check failed.",
+            )
+            mock_pandoc_instance.pandoc_path = "/usr/bin/pandoc"
+            mock_pandoc_instance.pypandoc_available = False
+
+            # Auto-install succeeds
+            mock_pandoc_instance.auto_install_pypandoc.return_value = (
+                True,
+                "Successfully installed pypandoc",
+            )
+
+            success, message = ensure_pandoc_available()
+
+            assert success is True
+            assert "Successfully installed pypandoc" in message
+            mock_pandoc_instance.auto_install_pypandoc.assert_called_once()
 
     def test_pdf_extractor_is_available_import_error(self):
         """Test PDFExtractor.is_available when PyMuPDF not installed (lines 323-324)."""

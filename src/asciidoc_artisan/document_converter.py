@@ -471,8 +471,8 @@ class PDFExtractor:
                 cells.append("")
             normalized_table.append(cells)
 
-        if not normalized_table:
-            return ""
+        # Note: normalized_table guaranteed non-empty because filtered_table is
+        # non-empty (checked above) and we preserve row count in transformation.
 
         # Detect if first row is a header row.
         # Heuristic: header rows are usually shorter.

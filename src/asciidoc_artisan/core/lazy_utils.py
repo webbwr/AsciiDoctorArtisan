@@ -1,6 +1,8 @@
 """
 Lazy Loading Utilities - Defer expensive initializations.
 
+**STATUS: Planned feature, not currently used in production code.**
+
 This module provides utilities for lazy loading and deferred initialization:
 - Lazy property decorator
 - Lazy import utilities
@@ -17,6 +19,10 @@ Features:
 - Cached lazy properties
 - Thread-safe lazy initialization
 - Import deferral
+
+Note: This module was developed for future lazy loading features but is not
+currently imported anywhere in the codebase. Tests exist and pass (100% coverage).
+The module is retained for potential future use in v3.0+ optimization work.
 """
 
 import functools

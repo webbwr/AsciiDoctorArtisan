@@ -7,7 +7,7 @@ Tests the OllamaChatWorker class which handles background AI chat processing.
 import time
 
 import pytest
-from PySide6.QtCore import QObject, QThread
+from PySide6.QtCore import QObject
 
 from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
@@ -66,8 +66,11 @@ class TestOllamaChatWorkerInitialization:
 class TestOllamaChatWorkerMessageSending:
     """Test message sending functionality."""
 
-    def test_send_message_queues_correctly(self, chat_worker):
+    def test_send_message_queues_correctly(self, chat_worker, mocker):
         """Test message is queued correctly."""
+        # Mock _process_chat to prevent actual Ollama API call
+        mock_process = mocker.patch.object(chat_worker, "_process_chat")
+
         message = "How do I make a table?"
         model = "gnokit/improve-grammer"
         context_mode = "syntax"
@@ -79,9 +82,13 @@ class TestOllamaChatWorkerMessageSending:
         assert chat_worker._current_model == model
         assert chat_worker._context_mode == context_mode
         assert chat_worker._chat_history == history
+        mock_process.assert_called_once()
 
-    def test_send_message_with_document_content(self, chat_worker):
+    def test_send_message_with_document_content(self, chat_worker, mocker):
         """Test message sending with document context."""
+        # Mock _process_chat to prevent actual Ollama API call
+        mocker.patch.object(chat_worker, "_process_chat")
+
         message = "Explain this document"
         model = "gnokit/improve-grammer"
         context_mode = "document"
@@ -92,8 +99,11 @@ class TestOllamaChatWorkerMessageSending:
 
         assert chat_worker._document_content == doc_content
 
-    def test_send_message_starts_worker(self, chat_worker):
+    def test_send_message_starts_worker(self, chat_worker, mocker):
         """Test sending message queues work for processing."""
+        # Mock _process_chat to prevent actual Ollama API call
+        mocker.patch.object(chat_worker, "_process_chat")
+
         chat_worker.send_message("Hello", "gnokit/improve-grammer", "general", [])
 
         # Message should be queued for processing
