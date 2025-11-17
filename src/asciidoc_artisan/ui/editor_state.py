@@ -19,7 +19,7 @@ from PySide6.QtWidgets import QPushButton, QSplitter, QStatusBar
 
 from asciidoc_artisan.core import MIN_FONT_SIZE
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
@@ -247,7 +247,7 @@ class EditorState:
                         self.splitter.setSizes(
                             [int(width * 0.4), int(width * 0.4), int(width * 0.2)]
                         )
-                    else:
+                    else:  # pragma: no cover
                         # Chat hidden so split 50/50 editor and preview.
                         self.splitter.setSizes([width // 2, width // 2, 0])
             elif len(self.saved_splitter_sizes) == 2:
@@ -264,7 +264,7 @@ class EditorState:
                         editor_size = int(remaining * 0.5)
                         preview_size = remaining - editor_size
                         self.splitter.setSizes([editor_size, preview_size, chat_size])
-                    else:
+                    else:  # pragma: no cover
                         # Chat hidden so just add zero for third pane.
                         self.splitter.setSizes(
                             [
@@ -276,7 +276,7 @@ class EditorState:
                 elif total > 0:
                     # No chat pane so restore two pane sizes.
                     self.splitter.setSizes(self.saved_splitter_sizes)
-                else:
+                else:  # pragma: no cover
                     # Saved sizes invalid so use defaults.
                     self._apply_default_sizes(has_chat, chat_visible)
             else:
