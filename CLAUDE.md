@@ -361,3 +361,4 @@ Entry: `src/main.py`
 ---
 
 *AsciiDoc Artisan v2.0.2 | Production-ready | 5,479 tests (204/204 passing) | mypy --strict*
+- use sudo -A instead of sudo
