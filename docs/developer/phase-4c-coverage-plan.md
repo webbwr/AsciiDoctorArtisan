@@ -14,9 +14,12 @@
    - Solution: Added 2 tests for Metal detection exceptions (lines 486-487)
    - Commit: ef94f2c
 
-2. **lazy_utils.py** - 99% (1 missed statement) - **MOVED TO CURRENT SCOPE**
-   - Status: Not imported anywhere in codebase, will be removed or tested in this work
-   - Previously deferred to v3.0+, now in scope for Phase 4C completion
+2. **lazy_utils.py** - ~~99%~~ → **REMOVED** ✓
+   - Location: `src/asciidoc_artisan/core/lazy_utils.py` (390 lines)
+   - Tests removed: `tests/unit/core/test_lazy_utils*.py` (861 lines)
+   - Rationale: Unused planned feature (YAGNI) - only imported in test files
+   - Impact: -1,251 lines of code (-390 src, -861 tests)
+   - Commit: [current session]
 
 ### ✅ Workers Module (100% achieved - 2 files, 98% max - 1 file)
 3. **git_worker.py** - 98% → **100%** ✓
@@ -68,7 +71,7 @@
 **Phase 4C Completed: 8 of 14 files (57%)**
 - ✅ 5 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker, **document_converter**
 - ⚠️ 2 files at Qt max: optimized_worker_pool (98%), claude_worker (93%) - threading limitations
-- 📝 1 dead code: lazy_utils (never imported, documented as planned but unused)
+- 🗑️ 1 file removed: **lazy_utils** (unused code, YAGNI - reduced codebase by 1,251 lines)
 
 **Phase 4E (UI Module) - In Progress**
 - Original scope: ~32 UI files with <100% coverage (estimated 495+ missed statements)
