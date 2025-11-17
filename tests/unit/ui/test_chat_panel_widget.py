@@ -498,6 +498,22 @@ class TestMessageHistory:
         # Original should be unchanged
         assert len(widget._messages) == 1
 
+    def test_get_message_history(self, qapp):
+        """Test get_message_history returns dictionaries."""
+        widget = ChatPanelWidget()
+        widget.add_user_message("Q1", "model", "syntax")
+        widget.add_ai_message("A1", "model", "syntax")
+
+        history = widget.get_message_history()
+
+        assert len(history) == 2
+        assert isinstance(history[0], dict)
+        assert isinstance(history[1], dict)
+        assert history[0]["content"] == "Q1"
+        assert history[1]["content"] == "A1"
+        assert history[0]["role"] == "user"
+        assert history[1]["role"] == "assistant"
+
     def test_get_message_count(self, qapp):
         """Test getting message count."""
         widget = ChatPanelWidget()

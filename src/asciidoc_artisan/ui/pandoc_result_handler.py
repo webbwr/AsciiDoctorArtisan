@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QTimer, Slot
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)

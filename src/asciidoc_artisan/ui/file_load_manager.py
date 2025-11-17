@@ -19,7 +19,7 @@ from PySide6.QtWidgets import QProgressDialog
 
 from asciidoc_artisan.core import LARGE_FILE_THRESHOLD_BYTES, MSG_LOADING_LARGE_FILE
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
