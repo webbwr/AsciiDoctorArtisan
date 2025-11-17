@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Functional Specifications
 
-**Quick Reference Guide** | **Version:** 2.0.2 | **Updated:** Nov 15, 2025
+**Quick Reference Guide** | **Version:** 2.0.3 | **Updated:** Nov 16, 2025
 
 > **📌 For AI-Assisted Development:** See [SPECIFICATIONS_AI.md](SPECIFICATIONS_AI.md)
 > This file provides human-readable quick reference. For AI-actionable specifications with acceptance criteria, API contracts, test requirements, and dependency graphs, use **SPECIFICATIONS_AI.md**.
@@ -36,12 +36,13 @@
 **Status:** Production-Ready
 
 **Test Suite:**
-- ✅ 5,479 tests collected, 204/204 passing (100%)
+- ✅ 5,486 tests collected, 5,480 passing (99.89%)
 - ✅ 96.4% coverage
 - ✅ mypy --strict (0 errors)
 - ✅ 98/100 quality score
 
 **Recent Updates:**
+- Nov 16, 2025 - UI Test Fixes: 60/62 resolved (97%), MockParentWidget pattern, test markers
 - Nov 15, 2025 - Code Quality Modernization: Python 3.12+ types (78 files, 600+ updates)
 - Nov 15, 2025 - SPECIFICATIONS_AI.md: AI-actionable specs for all 107 FRs (100% coverage)
 - Nov 13, 2025 - Test Suite Repair: All failures fixed, 2,205 passing, 3 skipped

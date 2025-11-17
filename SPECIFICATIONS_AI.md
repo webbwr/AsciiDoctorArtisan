@@ -4,9 +4,9 @@
 ---
 specification:
   name: "AsciiDoc Artisan Functional Requirements"
-  version: "2.0.2"
+  version: "2.0.3"
   status: "Production-Ready"
-  last_updated: "2025-11-15"
+  last_updated: "2025-11-16"
   format_version: "2.0-ai-actionable"
 
 metadata:
@@ -17,9 +17,9 @@ metadata:
 
 quality_metrics:
   test_coverage: 96.4
-  tests_collected: 5479
-  tests_passing: 204
-  test_pass_rate: 100.0
+  tests_collected: 5486
+  tests_passing: 5480
+  test_pass_rate: 99.89
   type_coverage: 100.0
   mypy_strict_errors: 0
 
