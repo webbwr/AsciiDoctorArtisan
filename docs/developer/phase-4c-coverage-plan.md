@@ -14,8 +14,9 @@
    - Solution: Added 2 tests for Metal detection exceptions (lines 486-487)
    - Commit: ef94f2c
 
-2. **lazy_utils.py** - 99% (1 missed statement) - **SKIPPED: Dead code**
-   - Not imported anywhere in codebase, deferred for cleanup
+2. **lazy_utils.py** - 99% (1 missed statement) - **MOVED TO CURRENT SCOPE**
+   - Status: Not imported anywhere in codebase, will be removed or tested in this work
+   - Previously deferred to v3.0+, now in scope for Phase 4C completion
 
 ### ✅ Workers Module (100% achieved - 2 files, 98% max - 1 file)
 3. **git_worker.py** - 98% → **100%** ✓
@@ -64,19 +65,31 @@
 
 ## Progress Summary
 
-**Completed: 8 of 14 files (57%)**
+**Phase 4C Completed: 8 of 14 files (57%)**
 - ✅ 5 files at 100%: gpu_detection, git_worker, github_cli_worker, pandoc_worker, **document_converter**
 - ⚠️ 2 files at Qt max: optimized_worker_pool (98%), claude_worker (93%) - threading limitations
 - 📝 1 dead code: lazy_utils (never imported, documented as planned but unused)
 
-**Remaining: 7 files**
-- Primarily in UI module (Phase 4E scope, 3-4 week effort per QA audit)
+**Phase 4E (UI Module) - In Progress**
+- Original scope: ~32 UI files with <100% coverage (estimated 495+ missed statements)
+- **Completed (Nov 14-16):** 13+ UI files brought to 100%
+  - installation_validator_dialog, base_vcs_handler, chat_bar_widget
+  - autocomplete_manager, template_browser, spell_check_manager
+  - syntax_checker_manager, ui_state_manager, theme_manager
+  - file_handler, git_status_dialog, editor_state, git_handler
+- **Completed (Nov 17):** 2 UI files improved to 98%
+  - preview_handler_base: 97% → 98% (commit ec66803)
+  - worker_manager: 89% → 98% (commit f264343)
+- **In Progress:** export_manager (94%, 11 missed lines)
+- **Remaining:** ~7-13 UI files
+  - High priority (94-97%): chat_manager, dialogs, file_operations_manager, status_manager
+  - Low priority (<90%): dialog_manager (58%), main_window (69%)
 
 **Impact:**
-- Achieved 100% on 5 non-threaded files (4 workers + document_converter)
-- Improved document_converter 95% → 100% (+2 tests, removed 1 unreachable defensive check)
-- Documented Qt threading limitations (affects 2 files, cannot be improved)
-- Documented lazy_utils.py as planned but unused (retained for future v3.0+ work)
+- **Phase 4C:** Achieved 100% on 5 non-threaded files (4 workers + document_converter)
+- **Phase 4C:** Documented Qt threading limitations (affects 2 files, cannot be improved)
+- **Phase 4E (Nov 17):** Improved 2 UI files to 98% (+18 lines covered, +4 tests)
+- **Scope Change:** lazy_utils.py moved from v3.0+ deferred to current work (will remove or test)
 
 ## Module Coverage Summary
 
@@ -174,11 +187,16 @@ For each file with <100% coverage:
 ---
 
 **Created:** 2025-11-16
-**Last Updated:** 2025-11-17
-**Status:** Phase 4C complete within scope (8/14 files, 57%)
-**Next Action:** UI module coverage (Phase 4E - 3-4 week effort)
+**Last Updated:** 2025-11-17 (Phase 4E Analysis)
+**Status:** Phase 4C complete (8/14 files, 57%) | Phase 4E in progress (13+ UI files to 100%)
+**Next Action:** Continue UI module coverage - Focus on 90-97% files first
 
 **Session Summary (2025-11-17):**
-- document_converter.py: 97% → 100% (+2 tests, -1 unreachable code)
-- lazy_utils.py: Documented as planned but unused (retained for v3.0+)
-- Total achievement: 5 files at 100%, 2 at Qt max, 1 documented
+- Phase 4C: document_converter.py: 97% → 100% (+2 tests, -1 unreachable code)
+- Phase 4C: lazy_utils.py moved from v3.0+ to current scope (will remove or test)
+- Phase 4E: preview_handler_base.py: 97% → 98% (+3 tests, commit ec66803)
+- Phase 4E: worker_manager.py: 89% → 98% (+1 test, commit f264343)
+- Phase 4E Analysis: Identified 13+ UI files brought to 100% (Nov 14-16)
+- Phase 4E Analysis: 7-13 UI files remaining, export_manager in progress
+- Infrastructure: Set up persistent askpass helper (~/.local/bin/askpass-helper)
+- Total achievement: 5 files at 100%, 2 at 98%, 2 at Qt max
