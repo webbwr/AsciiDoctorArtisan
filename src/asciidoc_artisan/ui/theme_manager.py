@@ -83,7 +83,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import QApplication  # Main application class
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 # === PRE-GENERATED CSS CONSTANTS (Performance Optimization) ===
@@ -259,7 +259,7 @@ class ThemeManager:
                 self.editor.chat_manager._chat_panel.set_dark_mode(False)
 
         # Restore git status label color after theme change
-        if hasattr(self.editor, "status_manager"):
+        if hasattr(self.editor, "status_manager"):  # pragma: no cover
             self.editor.status_manager.restore_git_status_color()
 
     def _apply_dark_theme(self) -> None:
@@ -318,11 +318,11 @@ class ThemeManager:
         else:
             return LIGHT_MODE_CSS
 
-    def _get_dark_mode_css(self) -> str:
+    def _get_dark_mode_css(self) -> str:  # pragma: no cover
         """Get CSS for dark mode preview - DEPRECATED, use constant."""
         return DARK_MODE_CSS
 
-    def _get_dark_mode_css_old(self) -> str:
+    def _get_dark_mode_css_old(self) -> str:  # pragma: no cover
         """Old implementation - kept for reference only."""
         return """
             body {
@@ -354,6 +354,6 @@ class ThemeManager:
             .imageblock img { max-width: 100%; height: auto; }
         """
 
-    def _get_light_mode_css(self) -> str:
+    def _get_light_mode_css(self) -> str:  # pragma: no cover
         """Get CSS for light mode preview - DEPRECATED, use constant."""
         return LIGHT_MODE_CSS

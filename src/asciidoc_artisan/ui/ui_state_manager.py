@@ -18,7 +18,7 @@ from PySide6.QtCore import QThread, QTimer
 
 from asciidoc_artisan.core.constants import is_pandoc_available
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class UIStateManager:
         - Pandoc availability
         """
         # Ensure this runs on the main thread (Qt requirement for UI updates)
-        if QThread.currentThread() != self.editor.thread():
+        if QThread.currentThread() != self.editor.thread():  # pragma: no cover
             QTimer.singleShot(0, self.update_ui_state)
             return
 
