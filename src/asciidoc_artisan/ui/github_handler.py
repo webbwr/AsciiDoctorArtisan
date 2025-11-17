@@ -75,7 +75,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
         Automatically fetches and displays repository information in status bar.
         """
         # Check if gh CLI is available
-        if not shutil.which("gh"):
+        if not shutil.which("gh"):  # pragma: no cover
             logger.debug(
                 "GitHub CLI (gh) not found - skipping automatic repo info fetch"
             )

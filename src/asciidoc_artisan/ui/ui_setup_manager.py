@@ -34,7 +34,7 @@ from asciidoc_artisan.core import (
 from asciidoc_artisan.ui.find_bar_widget import FindBarWidget
 from asciidoc_artisan.ui.line_number_area import LineNumberPlainTextEdit
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 import logging

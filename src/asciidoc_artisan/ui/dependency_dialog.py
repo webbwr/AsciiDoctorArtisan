@@ -316,7 +316,7 @@ def show_dependency_summary_message(
         msg_box.setDefaultButton(QMessageBox.StandardButton.Abort)
 
         result = msg_box.exec()
-        if result == QMessageBox.StandardButton.Abort:
+        if result == QMessageBox.StandardButton.Abort:  # pragma: no cover
             import sys
 
             sys.exit(1)

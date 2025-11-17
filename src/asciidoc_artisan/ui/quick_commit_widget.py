@@ -22,7 +22,7 @@ from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QWidg
 
 logger = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 

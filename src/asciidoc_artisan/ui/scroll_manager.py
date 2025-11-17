@@ -14,7 +14,7 @@ main window complexity and improve modularity.
 import logging
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .main_window import AsciiDocEditor
 
 logger = logging.getLogger(__name__)
