@@ -2,7 +2,7 @@
 
 **Status:** ✅ SUBSTANTIALLY COMPLETE (19/23 files verified, 83%)
 **Started:** November 18, 2025
-**Updated:** November 18, 2025 (Session 2 - Test Fixes & Completion)
+**Updated:** November 18, 2025 (Session 3 - Coverage Improvements)
 **Scope:** 23 remaining UI files (43 total - 19 from Phase 4E - 1 __init__)
 
 ---
@@ -12,11 +12,16 @@
 Phase 4F verification is substantially complete with **19 of 23 files verified** (83% complete).
 
 **Key Results:**
-- **Total Verified:** 19 files, 3,576 statements, 1,213 tests
-- **Overall Coverage:** 95% (178 missing lines across all files)
+- **Total Verified:** 19 files, 3,576 statements, 1,233 tests (+20 from session 3)
+- **Overall Coverage:** 96% (↑ from 95%, 155 missing lines, ↓ from 178)
 - **100% Coverage:** 9 files (Batch 4 + virtual_scroll_preview + 2 from Batch 2/3)
-- **98-99% Coverage:** 7 files (Batch 2/3)
-- **71-98% Coverage:** 3 files (Batch 1: main_window, settings_manager, status_manager, worker_manager)
+- **97-99% Coverage:** 9 files (↑ from 7, includes improved settings_manager & status_manager)
+- **71-98% Coverage:** 1 file (main_window baseline)
+
+**Session 3 Improvements:**
+- settings_manager: 91% → 97% (+12 tests, -8 missing lines)
+- status_manager: 93% → 99% (+8 tests, -15 missing lines)
+- Total: +20 tests, -23 missing lines, +1% overall coverage
 
 **Remaining:** 4 files (1 hung test, 1 N/A, 2 incomplete)
 
@@ -29,17 +34,28 @@ Phase 4F verification is substantially complete with **19 of 23 files verified**
 | File | Statements | Tests | Coverage | Missing | Status |
 |------|-----------|-------|----------|---------|--------|
 | main_window | 771 | 97 | 71% | 224 | ⚠️ Needs work (baseline) |
-| settings_manager | 139 | 28 | 91% | 12 | ⚠️ Needs work |
-| status_manager | 242 | 44 | 93% | 18 | ⚠️ Needs work |
+| settings_manager | 139 | 40 | 97% | 4 | ✅ Excellent (↑ from 91%) |
+| status_manager | 242 | 52 | 99% | 3 | ✅ Excellent (↑ from 93%) |
 | worker_manager | 190 | 49 | 98% | 4 | ✅ Excellent |
 
-**Batch 1 Total:** 1,342 statements, 218 tests, 88% avg coverage, 258 missing lines
+**Batch 1 Total:** 1,342 statements, 238 tests (+20), 91% avg coverage (↑ from 88%), 235 missing lines (↓ from 258)
 
-**main_window Test Fixes (Commit f24d1d4):**
-- Fixed `TestRefreshFromSettings::test_updates_window_geometry` - Changed to tolerance-based assertions (±5px)
-- Fixed `TestNewFromTemplate::test_creates_new_document_from_template` - Added `mock_template.variables=[]`
-- Result: 97 passed, 1 skipped, 0 failed ✅
-- Coverage: 71% baseline established (224 missing lines documented for future improvement)
+**Batch 1 Improvements:**
+- **main_window Test Fixes (Commit f24d1d4):**
+  - Fixed `TestRefreshFromSettings::test_updates_window_geometry` - Tolerance-based assertions (±5px)
+  - Fixed `TestNewFromTemplate::test_creates_new_document_from_template` - Added `mock_template.variables=[]`
+  - Result: 97 passed, 1 skipped, 0 failed ✅
+  - Coverage: 71% baseline established (224 missing lines documented for future improvement)
+
+- **settings_manager Improvements (Commit 419679e + 17501d6):**
+  - Added 12 new tests for edge cases (deferred save, window geometry, splitter sizes)
+  - Coverage: 91% → 97% (↓ 12 → 4 missing lines)
+  - Tests: 28 → 40 (+12)
+
+- **status_manager Improvements (Commit e89ed04):**
+  - Added 8 new tests for grade level branching and edge cases
+  - Coverage: 93% → 99% (↓ 18 → 3 missing lines)
+  - Tests: 44 → 52 (+8)
 
 ### Still Incomplete
 
