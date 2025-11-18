@@ -44,11 +44,11 @@ def app_window(qtbot, test_settings, tmp_path):
         yield window
 
         # Cleanup: Stop timers before closing to prevent "C++ object deleted" errors
-        if hasattr(window, 'spell_check_manager') and window.spell_check_manager:
-            if hasattr(window.spell_check_manager, 'check_timer'):
+        if hasattr(window, "spell_check_manager") and window.spell_check_manager:
+            if hasattr(window.spell_check_manager, "check_timer"):
                 window.spell_check_manager.check_timer.stop()
-        if hasattr(window, 'syntax_checker_manager') and window.syntax_checker_manager:
-            if hasattr(window.syntax_checker_manager, 'check_timer'):
+        if hasattr(window, "syntax_checker_manager") and window.syntax_checker_manager:
+            if hasattr(window.syntax_checker_manager, "check_timer"):
                 window.syntax_checker_manager.check_timer.stop()
 
         # Wait for Qt to process cleanup events

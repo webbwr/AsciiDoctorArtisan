@@ -1,6 +1,6 @@
 # AsciiDoc Artisan
 
-**Version 2.0.4** | November 18, 2025
+**Version 2.0.5** | November 18, 2025
 
 A smart program for writing papers. Very fast. Has smart help.
 
@@ -11,6 +11,7 @@ This program does many things:
 - Helps you write (smart hints)
 - Checks for mistakes (finds errors)
 - Makes papers from plans (templates)
+- Makes your own templates (custom plans)
 - Finds and changes words
 - Saves your work with Git
 - Works with GitHub
@@ -461,7 +462,13 @@ Need more help?
 
 ## Version
 
-**Current Version**: 2.0.4 (November 18, 2025)
+**Current Version**: 2.0.5 (November 18, 2025)
+
+**What's New in v2.0.5:**
+- Make your own templates (custom plans with forms)
+- Better scroll sync (preview moves with your text)
+- Faster error checking (5-10% speed boost)
+- All code checks pass (no errors)
 
 **What's New in v2.0.4:**
 - Documentation consolidation and cleanup
