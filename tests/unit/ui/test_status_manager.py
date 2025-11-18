@@ -701,3 +701,167 @@ class TestStatusManagerCoverageEdgeCases:
 
         # Should return early without error
         manager.restore_git_status_color()
+
+
+class TestGradeLevelBranching:
+    """Test suite for Flesch-Kincaid grade level difficulty branching.
+
+    These tests verify coverage of lines 361-372 in status_manager.py.
+    Calibrated texts produce specific grade levels to trigger each branch.
+    """
+
+    def test_middle_school_grade_level(self, main_window):
+        """Test middle school grade level branch (lines 361-363: grade 5.01-8.00)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager.initialize_widgets()
+
+        # Calibrated text for Middle School range (5.01-8.00)
+        # Grade: 5.31
+        text = (
+            "Students learn about science in school. "
+            "They study plants and animals. "
+            "Teachers show them how things work. "
+            "Sometimes they do experiments. "
+            "This helps them understand nature better."
+        )
+
+        main_window.editor.setPlainText(text)
+        manager.update_document_metrics()
+
+        # Verify tooltip contains middle school indicators
+        tooltip = manager.grade_level_label.toolTip()
+        assert "Middle School" in tooltip
+        assert "Accessible to general readers" in tooltip
+
+    def test_high_school_grade_level(self, main_window):
+        """Test high school grade level branch (lines 364-366: grade 8.01-12.00)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager.initialize_widgets()
+
+        # Calibrated text for High School range (8.01-12.00)
+        # Grade: 11.24
+        text = (
+            "People learn many subjects during their school years. "
+            "Teachers present information about history and science. "
+            "Students practice writing essays to improve communication. "
+            "Reading books helps develop critical thinking abilities."
+        )
+
+        main_window.editor.setPlainText(text)
+        manager.update_document_metrics()
+
+        # Verify tooltip contains high school indicators
+        tooltip = manager.grade_level_label.toolTip()
+        assert "High School" in tooltip
+        assert "Suitable for educated readers" in tooltip
+
+    def test_college_grade_level(self, main_window):
+        """Test college grade level branch (lines 367-369: grade 12.01-16.00)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager.initialize_widgets()
+
+        # Calibrated text for College range (12.01-16.00)
+        # Grade: 15.01
+        text = (
+            "College students develop critical thinking skills through coursework. "
+            "They learn to analyze complex problems systematically. "
+            "Research projects help students gain practical experience. "
+            "Writing assignments improve communication abilities."
+        )
+
+        main_window.editor.setPlainText(text)
+        manager.update_document_metrics()
+
+        # Verify tooltip contains college indicators
+        tooltip = manager.grade_level_label.toolTip()
+        assert "College" in tooltip
+        assert "Technical or academic content" in tooltip
+
+    def test_graduate_grade_level(self, main_window):
+        """Test graduate grade level branch (lines 370-372: grade 16.01+)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager.initialize_widgets()
+
+        # Calibrated text for Graduate range (16.01+)
+        # Grade: 34.16
+        text = (
+            "Phenomenological investigations systematically deconstruct conventional "
+            "epistemological paradigms through meticulous examination of underlying "
+            "presuppositions. The hermeneutical circularities inherent in poststructuralist "
+            "discourse necessitate comprehensive methodological frameworks that incorporate "
+            "interdisciplinary perspectives. Deconstructive approaches interrogate hegemonic "
+            "metanarratives by problematizing foundational assumptions regarding knowledge "
+            "production."
+        )
+
+        main_window.editor.setPlainText(text)
+        manager.update_document_metrics()
+
+        # Verify tooltip contains graduate indicators
+        tooltip = manager.grade_level_label.toolTip()
+        assert "Graduate" in tooltip
+        assert "Complex academic content" in tooltip
+
+
+class TestAdditionalCoverage:
+    """Test suite for remaining uncovered lines in status_manager.py."""
+
+    def test_prompt_save_before_action_no_changes(self, main_window):
+        """Test early return when no unsaved changes (line 209)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        main_window._unsaved_changes = False
+
+        # Should return True immediately without prompting
+        result = manager.prompt_save_before_action("Test Action")
+        assert result is True
+
+    def test_calculate_grade_level_empty_text(self, main_window):
+        """Test calculate_grade_level returns 0.0 for empty text (line 295)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+
+        # Empty text should return 0.0
+        grade = manager.calculate_grade_level("")
+        assert grade == 0.0
+
+    def test_update_status_labels_no_version(self, main_window):
+        """Test version label else branch when version is None (lines 331-332)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager.initialize_widgets()
+
+        # Text without version attribute
+        text = "This is a document without version information."
+        main_window.editor.setPlainText(text)
+
+        manager.update_document_metrics()
+
+        # Version label should show "None" (line 332 triggered)
+        assert manager.version_label.text() == "None"
+
+    def test_update_status_labels_no_content(self, main_window):
+        """Test grade level label else branch when no content (lines 382-383)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager.initialize_widgets()
+
+        # Empty editor content
+        main_window.editor.setPlainText("")
+
+        manager.update_document_metrics()
+
+        # Grade level label should show "--" (line 383 triggered)
+        assert "Grade: --" == manager.grade_level_label.text()
