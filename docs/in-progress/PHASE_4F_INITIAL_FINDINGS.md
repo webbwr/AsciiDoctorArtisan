@@ -18,11 +18,11 @@ Phase 4F verification is substantially complete with **17 of 23 files verified**
 - **98-99% Coverage:** 6 files (Batch 2/3)
 - **91-93% Coverage:** 3 files (Batch 1: settings_manager, status_manager, worker_manager)
 
-**Remaining:** 6 files (2 hanging tests, 2 in progress, 1 N/A, 1 GPU test)
+**Remaining:** 6 files (1 still running, 2 test failures blocking coverage, 1 N/A, 2 not yet tested)
 
 ---
 
-## Batch 1: Core UI Components - PARTIAL (3/5)
+## Batch 1: Core UI Components - PARTIAL (3/5 + 2 with test failures)
 
 ### Completed Files
 
@@ -34,10 +34,16 @@ Phase 4F verification is substantially complete with **17 of 23 files verified**
 
 **Batch 1 Total:** 571 statements, 121 tests, 94% avg coverage, 34 missing lines
 
-### Hanging/Broken Tests
+### Test Failures (No Coverage Report)
 
-- **dialog_manager**: Test suite hanging (101 tests, incomplete)
-- **main_window**: Test suite hanging (97 tests, 2 known failures)
+- **main_window**: 97 tests (2 failed, 95 passed, 1 skipped) - **NO COVERAGE REPORT**
+  - `TestRefreshFromSettings::test_updates_window_geometry` - Window x() returned 98 instead of 100
+  - `TestNewFromTemplate::test_creates_new_document_from_template` - Mock object iteration error
+  - Note: `--no-cov-on-fail` flag prevented coverage report generation
+
+### Still Incomplete
+
+- **dialog_manager**: Test suite still running (101 tests, incomplete)
 
 ---
 
@@ -128,22 +134,22 @@ Phase 4F verification is substantially complete with **17 of 23 files verified**
 
 ## Remaining Work - 6 Files
 
-**Hanging Tests (Requires Investigation):**
-1. dialog_manager - 101 tests, hangs
-2. main_window - 97 tests, 2 failures + hangs
-3. dialogs - Utility module test hangs
+**Test Failures (Coverage Blocked):**
+1. **main_window** - 97 tests (2 failed, 95 passed, 1 skipped)
+   - `TestRefreshFromSettings::test_updates_window_geometry` - Window x() returned 98 instead of 100 (off-by-2 pixel issue)
+   - `TestNewFromTemplate::test_creates_new_document_from_template` - TypeError: 'Mock' object is not iterable
+   - **Action:** Fix tests, then run with coverage to get baseline
 
-**Skipped/N/A:**
-4. preview_handler_gpu - GPU test (requires_gpu marker)
-5. menu_manager - No test file exists
-6. virtual_scroll_preview - Not attempted
+**Still Running (Incomplete):**
+2. **dialog_manager** - 101 tests, still executing (may have completed but file truncated)
+3. **dialogs** - 196 tests, 1 failure detected, incomplete output
 
-**Hanging Test Details:**
-- test_dialog_manager.py (101 tests) - Reason unknown
-- test_main_window.py (97 tests) - Known failures:
-  * `TestRefreshFromSettings::test_updates_window_geometry`
-  * `TestNewFromTemplate::test_creates_new_document_from_template`
-- test_dialogs.py - Reason unknown
+**Not Yet Tested:**
+4. **preview_handler_gpu** - GPU test (requires_gpu marker, skipped in standard runs)
+5. **virtual_scroll_preview** - Not attempted yet
+
+**N/A:**
+6. **menu_manager** - No test file exists
 
 ---
 
@@ -168,12 +174,16 @@ Phase 4F verification is substantially complete with **17 of 23 files verified**
 
 **Priority 1: Document & Commit**
 1. ✅ Update Phase 4F findings with all batch results
-2. Commit and push documentation
+2. ✅ Document test failures discovered
+3. Commit and push documentation
 
-**Priority 2: Hanging Tests (Future Session)**
-1. Run dialog_manager with verbose output, no coverage
-2. Investigate main_window test failures individually
-3. Increase timeout for dialogs test
+**Priority 2: Fix Test Failures (Next Session)**
+1. Fix main_window test failures:
+   - `test_updates_window_geometry` - Off-by-2 pixel issue (window manager specific?)
+   - `test_creates_new_document_from_template` - Mock object not iterable
+2. Re-run main_window with coverage after fixes
+3. Investigate dialog_manager completion status
+4. Investigate dialogs test failure
 
 **Priority 3: Coverage Gaps (Future Session)**
 1. settings_manager: 12 missing lines → 98%+
