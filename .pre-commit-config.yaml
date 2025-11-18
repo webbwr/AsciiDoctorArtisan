@@ -30,6 +30,18 @@ repos:
       - id: check-toml
       - id: mixed-line-ending
 
+  # Local repository maintenance hooks
+  - repo: local
+    hooks:
+      # Clean build artifacts before push
+      - id: make-clean
+        name: Clean build artifacts (make clean)
+        entry: make clean
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+
   # Documentation readability check (Grade 5.0 standard)
   # TODO: Implement readability_check.py script
   # - repo: local

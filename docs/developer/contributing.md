@@ -12,6 +12,7 @@ A guide for people who want to help make AsciiDoc Artisan better.
 4. [Making Changes](#making-changes)
 5. [Testing Your Changes](#testing-your-changes)
 6. [Sending Your Changes](#sending-your-changes)
+7. [Repository Cleanup](#repository-cleanup)
 
 ## Project Setup
 
@@ -370,6 +371,61 @@ class Settings:
 if self._settings.show_word_count:
     self.update_word_count()
 ```
+
+## Repository Cleanup
+
+Keep the code clean and organized.
+
+### Before You Commit
+
+Clean up old build files:
+
+```bash
+make clean
+```
+
+This removes:
+- Old Python cache (`__pycache__/`, `*.pyc`)
+- Test files (`.pytest_cache`, `.coverage`)
+- Build files (`build/`, `dist/`, `*.egg-info`)
+- Type check cache (`.mypy_cache`, `.ruff_cache`)
+
+### Automatic Cleanup
+
+Pre-commit hooks clean before push:
+
+```bash
+# Install hooks (one time)
+pre-commit install --hook-type pre-push
+
+# Now cleanup runs before each git push
+```
+
+The hook runs `make clean` for you!
+
+### What to Clean
+
+**Clean these**:
+- Build artifacts (`build/`, `dist/`)
+- Python bytecode (`*.pyc`, `__pycache__/`)
+- Test cache (`.pytest_cache`, `htmlcov/`)
+- Type caches (`.mypy_cache`, `.ruff_cache`)
+
+**Keep these**:
+- Source code (`src/`, `tests/`)
+- Configuration (`.editorconfig`, `.pre-commit-config.yaml`)
+- Virtual environment (`venv/`)
+
+### Editor Config
+
+The `.editorconfig` file helps all editors use same style:
+
+- **Spaces**: Use spaces, not tabs (except Makefiles)
+- **Python**: 4 spaces per indent
+- **YAML/JSON**: 2 spaces per indent
+- **Line endings**: Unix style (LF)
+
+Most editors read this file. No setup needed!
 
 ## Getting Help
 
