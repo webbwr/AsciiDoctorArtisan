@@ -1528,3 +1528,62 @@ class TestTrimHistory:
         assert len(manager._chat_history) == 100
         # Should keep most recent
         assert manager._chat_history[-1].content == "Q149"
+
+
+class TestChatManagerCoverageEdgeCases:
+    """Additional tests to achieve 97%+ coverage for chat_manager."""
+
+    def test_load_chat_history_invalid_message_skipped(
+        self, mock_chat_bar, mock_chat_panel, mock_settings
+    ):
+        """Test load_chat_history skips invalid messages (lines 422-424)."""
+        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
+
+        # Mock settings with mixed valid/invalid history
+        mock_settings.chat_history = [
+            {
+                "role": "user",
+                "content": "Valid message",
+                "timestamp": 123.0,
+                "model": "model1",
+                "context_mode": "syntax",
+            },
+            {"role": "invalid"},  # Missing required fields
+            {
+                "role": "assistant",
+                "content": "Also valid",
+                "timestamp": 124.0,
+                "model": "model1",
+                "context_mode": "syntax",
+            },
+        ]
+
+        manager._load_chat_history()
+
+        # Should load only valid messages (skip invalid one)
+        mock_chat_panel.load_messages.assert_called_once()
+        messages = mock_chat_panel.load_messages.call_args[0][0]
+        assert len(messages) == 2
+
+    def test_validate_model_ollama_list_output_parsing(
+        self, mock_chat_bar, mock_chat_panel, mock_settings
+    ):
+        """Test validate_model parses ollama list output (lines 493-503)."""
+        mock_settings.chat_backend = "ollama"
+        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
+
+        # Mock subprocess with model list
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = Mock(
+                returncode=0,
+                stdout="NAME    ID    SIZE\nllama2  abc   3.8GB\nmistral def   4.1GB\n",
+                stderr="",
+            )
+
+            # Test existing model
+            result = manager._validate_model("llama2")
+            assert result is True
+
+            # Test non-existent model
+            result = manager._validate_model("nonexistent")
+            assert result is False
