@@ -311,11 +311,14 @@ Entry: `src/main.py`
 
 ## Standards
 
-- **Style**: Black (88 chars) + isort + ruff, pre-commit enforced
-- **Types**: mypy --strict, 100% coverage, 0 errors
-- **Tests**: pytest + pytest-qt, 5,479 tests, use `qtbot` for GUI
+- **Style**: Ruff-format (88 chars) + isort + ruff, pre-commit enforced
+  - **Note**: Black removed in v2.0.4 due to ruff/black formatting conflict
+  - Ruff provides Black-compatible formatting but faster (Rust-based)
+  - Pre-commit hooks enforce consistent formatting automatically
+- **Types**: mypy --strict, 100% coverage, 0 errors, target py311
+- **Tests**: pytest + pytest-qt, 5,498 tests, use `qtbot` for GUI
 - **Docs**: Docstrings for public APIs, update SPECIFICATIONS_AI.md for features
-- **Python**: 3.11+ (3.13.9 recommended, <3.14 for PySide6)
+- **Python**: 3.11+ (3.12.3 current, <3.14 for PySide6)
 
 ## Troubleshooting
 
