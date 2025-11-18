@@ -25,14 +25,16 @@ Phase 4F verification is substantially complete with **19 of 23 files verified**
 
 **Remaining:** 4 files (1 with test failures, 1 N/A, 2 special cases)
 
-**Session 3 Investigation (dialog_manager):**
-- **Status:** Not hung, has 3 test failures
-- **Failures:**
-  1. `TestApplyFontSettings::test_apply_font_settings_without_chat_panel` - Mock/QFont type error
-  2. `TestPromptSaveBeforeAction::test_prompt_save_user_clicks_save` - save_file not called
-  3. `TestPromptSaveBeforeAction::test_prompt_save_with_different_actions` - assertion failure
-- **Root Cause:** Full test suite appears to hang but actually has failures
-- **Action Needed:** Fix test failures in next session
+**Session 3 Investigation & Fixes (dialog_manager):**
+- **Status:** Not hung, has 3 test failures (1 fixed, 2 remaining)
+- **Failures Fixed:**
+  1. ✅ `TestApplyFontSettings::test_apply_font_settings_without_chat_panel` - Fixed by providing actual string/int values for QFont constructor
+- **Remaining Failures:**
+  2. ❌ `TestPromptSaveBeforeAction::test_prompt_save_user_clicks_save` - save_file not called despite mocks
+  3. ❌ `TestPromptSaveBeforeAction::test_prompt_save_with_different_actions` - returns False instead of True
+- **Root Cause:** Full test suite appears to hang but actually has failures. Remaining issues involve pytest environment interfering with QMessageBox.question mocking
+- **Improvement:** Changed mocking approach from `@patch` to `@patch.dict("os.environ", {}, clear=True)` for better isolation
+- **Action Needed:** Investigate alternative mocking strategies or test approaches for remaining 2 failures
 
 ---
 
@@ -227,7 +229,7 @@ Phase 4F verification is substantially complete with **19 of 23 files verified**
 **Coverage Improvements:**
 - settings_manager: 91% → 97% (+12 tests, -8 missing lines)
 - status_manager: 93% → 99% (+8 tests, -15 missing lines)
-- Overall Phase 4F: 95% → 96% coverage (+1%)
+- Overall Phase 4F: 95% → 96% coverage (+1%, +20 tests, -23 missing lines)
 
 **Investigation Results:**
 - Verified all Batch 2/3/4 files are at 98-100% coverage (excellent)
@@ -236,21 +238,62 @@ Phase 4F verification is substantially complete with **19 of 23 files verified**
 - file_operations_manager: 98% (5 missing - edge cases)
 - preview_handler_base: 98% (4 missing - ImportError handling)
 
-**dialog_manager Investigation:**
+**dialog_manager Investigation & Fixes:**
 - Previously reported as "hung" - actually has 3 test failures
-- Failures cause pytest to appear hung when run as full suite
+- Fixed 1/3 test failures (test_apply_font_settings_without_chat_panel)
+- Improved mocking approach: @patch → @patch.dict for environment isolation
+- Remaining 2/3 failures: QMessageBox mocking conflicts with pytest environment
 - Individual test classes run successfully
-- Action: Fix 3 failing tests in next session
+- Action: Further investigation needed for remaining test failures
 
 **Commits:**
 - e89ed04: status_manager 93% → 99%
-- 419679e + 17501d6: settings_manager 91% → 97%
-- 6d4a79d: Documentation update
+- 419679e: settings_manager initial improvement to 97%
+- 17501d6: settings_manager edge case tests
+- 6d4a79d: Documentation update (session 3 initial)
+- 3283941: Documentation update (session 3 completion)
+- c3e56c6: dialog_manager partial fixes (1/3)
 
-**Conclusion:** Phase 4F is 96% complete with excellent coverage across all files. Remaining work focused on main_window (71% baseline) and fixing dialog_manager test failures.
+**Conclusion:** Phase 4F is 96% complete with excellent coverage across all files. Remaining work focused on main_window (71% baseline) and resolving 2 dialog_manager test failures.
 
 ---
 
-**Generated:** November 18, 2025 | **Updated:** November 18, 2025 (Session 3)
+## Technical Notes & Patterns
+
+**Test Patterns Developed:**
+
+1. **Grade Level Calibration (status_manager):**
+   - Calibrated texts for F-K grade ranges: Middle School (5.01-8.00), High School (8.01-12.00), College (12.01-16.00), Graduate (16.01+)
+   - Tests verify tooltip content and grade calculations
+
+2. **Edge Case Testing (settings_manager):**
+   - Deferred save with file paths (lines 304-305)
+   - Window geometry None for maximized windows (line 235)
+   - Splitter size mismatch warnings (line 381)
+
+3. **Environment Isolation (dialog_manager):**
+   - `@patch.dict("os.environ", {}, clear=True)` for pytest environment isolation
+   - Provides actual string/int values for Qt constructors (not Mock objects)
+
+4. **MockParentWidget Pattern:**
+   - Real QWidget with trackable methods for PySide6 compatibility
+   - Used throughout UI tests for dialog parent mocking
+
+**Coverage Limitations Identified:**
+
+1. **TYPE_CHECKING Blocks:** Runtime unreachable (imports for type hints only)
+2. **ImportError Handlers:** Require missing dependencies to test
+3. **Qt Threading:** coverage.py cannot track QThread.run() internals
+4. **Defensive Code:** Some error handlers unreachable through public API
+
+**Missing Lines Breakdown:**
+- TYPE_CHECKING imports: ~10 lines across files
+- ImportError handlers: ~15 lines across files
+- Edge case error handling: ~130 lines (settings_manager, status_manager, etc.)
+- main_window complexity: 224 lines (71% baseline, requires dedicated effort)
+
+---
+
+**Generated:** November 18, 2025 | **Updated:** November 18, 2025 (Session 3 - Final)
 **Status:** 96% Coverage, 19/23 files verified
-**Next:** Fix dialog_manager test failures, investigate main_window coverage gaps
+**Next:** Fix dialog_manager test failures (2 remaining), improve main_window coverage (71% → 85%)
