@@ -152,9 +152,7 @@ class AutoCompleteEngine:
         else:
             raise ValueError("Provider not registered")
 
-    def get_completions(
-        self, context: CompletionContext, max_items: int = 100
-    ) -> list[CompletionItem]:
+    def get_completions(self, context: CompletionContext, max_items: int = 100) -> list[CompletionItem]:
         """
         Get ranked completion items for given context.
 
@@ -205,9 +203,7 @@ class AutoCompleteEngine:
                 # Log provider failure but don't crash
                 import logging
 
-                logging.error(
-                    f"Provider {provider.__class__.__name__} failed: {e}", exc_info=True
-                )
+                logging.error(f"Provider {provider.__class__.__name__} failed: {e}", exc_info=True)
 
         # Rank and filter
         ranked_items = self._rank_items(all_items, context)
@@ -218,9 +214,7 @@ class AutoCompleteEngine:
 
         return ranked_items[:max_items]
 
-    def _rank_items(
-        self, items: list[CompletionItem], context: CompletionContext
-    ) -> list[CompletionItem]:
+    def _rank_items(self, items: list[CompletionItem], context: CompletionContext) -> list[CompletionItem]:
         """
         Rank completion items by relevance.
 
@@ -355,9 +349,7 @@ class AutoCompleteEngine:
         return {
             "size": size,
             "max_size": self._cache_size,
-            "utilization": (
-                int((size / self._cache_size) * 100) if self._cache_size > 0 else 0
-            ),
+            "utilization": (int((size / self._cache_size) * 100) if self._cache_size > 0 else 0),
         }
 
 

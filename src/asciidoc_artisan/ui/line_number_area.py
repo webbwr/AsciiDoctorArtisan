@@ -104,9 +104,7 @@ class LineNumberMixin:
         if dy:
             self.line_number_area.scroll(0, dy)
         else:
-            self.line_number_area.update(
-                0, rect.y(), self.line_number_area.width(), rect.height()
-            )
+            self.line_number_area.update(0, rect.y(), self.line_number_area.width(), rect.height())
 
         if rect.contains(self.viewport().rect()):
             self.update_line_number_area_width(0)
@@ -121,9 +119,7 @@ class LineNumberMixin:
         super().resizeEvent(event)
 
         cr = self.contentsRect()
-        self.line_number_area.setGeometry(
-            QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height())
-        )
+        self.line_number_area.setGeometry(QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height()))
 
     def line_number_area_paint_event(self, event: QPaintEvent) -> None:
         """
@@ -150,9 +146,7 @@ class LineNumberMixin:
         # Paint line numbers
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
-        top = int(
-            self.blockBoundingGeometry(block).translated(self.contentOffset()).top()
-        )
+        top = int(self.blockBoundingGeometry(block).translated(self.contentOffset()).top())
         bottom = top + int(self.blockBoundingRect(block).height())
 
         while block.isValid() and top <= event.rect().bottom():

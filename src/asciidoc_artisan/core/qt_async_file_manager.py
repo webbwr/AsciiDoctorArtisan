@@ -137,9 +137,7 @@ class QtAsyncFileManager(QObject):
         finally:
             self._running_operations.discard(operation_id)
 
-    async def write_file(
-        self, file_path: Path, content: str, encoding: str = "utf-8"
-    ) -> bool:
+    async def write_file(self, file_path: Path, content: str, encoding: str = "utf-8") -> bool:
         """
         Write file asynchronously with atomic save.
 
@@ -181,9 +179,7 @@ class QtAsyncFileManager(QObject):
         finally:
             self._running_operations.discard(operation_id)
 
-    async def read_json(
-        self, file_path: Path, encoding: str = "utf-8"
-    ) -> dict[str, Any] | None:
+    async def read_json(self, file_path: Path, encoding: str = "utf-8") -> dict[str, Any] | None:
         """
         Read and parse JSON file asynchronously.
 
@@ -318,9 +314,7 @@ class QtAsyncFileManager(QObject):
         finally:
             self._running_operations.discard(operation_id)
 
-    def watch_file(
-        self, file_path: Path, poll_interval: float = 1.0, debounce_period: float = 0.5
-    ) -> None:
+    def watch_file(self, file_path: Path, poll_interval: float = 1.0, debounce_period: float = 0.5) -> None:
         """
         Start watching file for external changes.
 
@@ -406,9 +400,7 @@ class QtAsyncFileManager(QObject):
 
         # Wait for running operations to complete
         if self._running_operations:
-            logger.info(
-                f"Waiting for {len(self._running_operations)} operations to complete..."
-            )
+            logger.info(f"Waiting for {len(self._running_operations)} operations to complete...")
             # Give operations a chance to complete
             await asyncio.sleep(0.5)
 

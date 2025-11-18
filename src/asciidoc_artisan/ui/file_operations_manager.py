@@ -227,15 +227,11 @@ class FileOperationsManager:
         # === STEP 1: CHECK REENTRANCY GUARD ===
         # Don't start new operation if one is already running
         if self._is_processing_pandoc:
-            self.editor.status_manager.show_message(
-                "warning", "Busy", "Already processing a file conversion."
-            )
+            self.editor.status_manager.show_message("warning", "Busy", "Already processing a file conversion.")
             return
 
         if self.editor._unsaved_changes:
-            if not self.editor.status_manager.prompt_save_before_action(
-                "opening a new file"
-            ):
+            if not self.editor.status_manager.prompt_save_before_action("opening a new file"):
                 return
 
         file_path_str, _ = QFileDialog.getOpenFileName(
@@ -244,9 +240,7 @@ class FileOperationsManager:
             self.editor._settings.last_directory,
             SUPPORTED_OPEN_FILTER,
             options=(
-                QFileDialog.Option.DontUseNativeDialog
-                if platform.system() != "Windows"
-                else QFileDialog.Option(0)
+                QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
             ),
         )
 
@@ -279,9 +273,7 @@ class FileOperationsManager:
 
         except Exception as e:
             logger.exception(f"Failed to open file: {file_path}")
-            self.editor.status_manager.show_message(
-                "critical", "Error", f"Failed to open file:\n{e}"
-            )
+            self.editor.status_manager.show_message("critical", "Error", f"Failed to open file:\n{e}")
 
     def save_file(self, save_as: bool = False) -> bool:
         """
@@ -297,11 +289,7 @@ class FileOperationsManager:
             True if saved successfully, False otherwise
         """
         if save_as or not self.editor._current_file_path:
-            suggested_name = (
-                self.editor._current_file_path.name
-                if self.editor._current_file_path
-                else DEFAULT_FILENAME
-            )
+            suggested_name = self.editor._current_file_path.name if self.editor._current_file_path else DEFAULT_FILENAME
             suggested_path = Path(self.editor._settings.last_directory) / suggested_name
 
             file_path_str, selected_filter = QFileDialog.getSaveFileName(
@@ -310,9 +298,7 @@ class FileOperationsManager:
                 str(suggested_path),
                 SUPPORTED_SAVE_FILTER,
                 options=(
-                    QFileDialog.Option.DontUseNativeDialog
-                    if platform.system() != "Windows"
-                    else QFileDialog.Option(0)
+                    QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
                 ),
             )
 
@@ -320,30 +306,20 @@ class FileOperationsManager:
                 return False
 
             file_path = Path(file_path_str)
-            logger.info(
-                f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}"
-            )
+            logger.info(f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}")
 
-            format_type, file_path = self._determine_save_format(
-                file_path, selected_filter
-            )
+            format_type, file_path = self._determine_save_format(file_path, selected_filter)
 
             if format_type != "adoc":
                 # Use settings preference for AI conversion (defaults to Pandoc)
-                use_ai_for_export = (
-                    self.editor._settings_manager.get_ai_conversion_preference(
-                        self.editor._settings
-                    )
-                )
+                use_ai_for_export = self.editor._settings_manager.get_ai_conversion_preference(self.editor._settings)
 
                 logger.info(
                     f"Calling _save_as_format_internal with "
                     f"file_path={file_path}, format_type={format_type}, "
                     f"use_ai={use_ai_for_export}"
                 )
-                return self.save_as_format_internal(
-                    file_path, format_type, use_ai_for_export
-                )
+                return self.save_as_format_internal(file_path, format_type, use_ai_for_export)
 
         else:
             # We only reach here if _current_file_path is not None
@@ -352,9 +328,7 @@ class FileOperationsManager:
 
             if file_path.suffix.lower() not in [".adoc", ".asciidoc"]:
                 file_path = file_path.with_suffix(".adoc")
-                logger.info(
-                    f"Converting save format from {self.editor._current_file_path.suffix} to .adoc"
-                )
+                logger.info(f"Converting save format from {self.editor._current_file_path.suffix} to .adoc")
 
         content = self.editor.editor.toPlainText()
 
@@ -392,9 +366,7 @@ class FileOperationsManager:
         )
 
         if use_ai is None:
-            use_ai = self.editor._settings_manager.get_ai_conversion_preference(
-                self.editor._settings
-            )
+            use_ai = self.editor._settings_manager.get_ai_conversion_preference(self.editor._settings)
 
         content = self.editor.editor.toPlainText()
 
@@ -433,14 +405,10 @@ class FileOperationsManager:
                     raise OSError(f"Atomic save failed for {file_path}")
             except Exception as e:
                 logger.exception(f"Failed to save HTML file: {e}")
-                self.editor.status_manager.show_message(
-                    "critical", "Save Error", f"Failed to save HTML file:\n{e}"
-                )
+                self.editor.status_manager.show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
                 return False
 
-        if not self.editor.ui_state_manager.check_pandoc_availability(
-            f"Save as {format_type.upper()}"
-        ):
+        if not self.editor.ui_state_manager.check_pandoc_availability(f"Save as {format_type.upper()}"):
             return False
 
         self.editor.status_bar.showMessage(f"Saving as {format_type.upper()}...")
@@ -472,9 +440,7 @@ class FileOperationsManager:
                 self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
                 html_content = outfile.getvalue()
 
-                temp_source_file = (
-                    Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
-                )
+                temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
                 temp_source_file.write_text(html_content, encoding="utf-8")
                 source_format = "html"
             except Exception as e:
@@ -489,9 +455,7 @@ class FileOperationsManager:
             # For non-AsciiDoc sources, save content to temp file for Pandoc
             ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
             temp_ext = ext_map.get(source_format, ".txt")
-            temp_source_file = (
-                Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
-            )
+            temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
             try:
                 temp_source_file.write_text(content, encoding="utf-8")
             except Exception as e:
@@ -567,9 +531,7 @@ class FileOperationsManager:
             )
             return
 
-        self.editor.status_bar.showMessage(
-            f"Extracting text from PDF: {file_path.name}..."
-        )
+        self.editor.status_bar.showMessage(f"Extracting text from PDF: {file_path.name}...")
 
         success, asciidoc_text, error_msg = pdf_extractor.convert_to_asciidoc(file_path)
 
@@ -584,9 +546,7 @@ class FileOperationsManager:
 
         # Load extracted content into editor
         self.editor.file_load_manager.load_content_into_editor(asciidoc_text, file_path)
-        self.editor.status_bar.showMessage(
-            f"PDF imported successfully: {file_path.name}", 5000
-        )
+        self.editor.status_bar.showMessage(f"PDF imported successfully: {file_path.name}", 5000)
 
     def _open_with_pandoc_conversion(self, file_path: Path, suffix: str) -> None:
         """Open file with Pandoc format conversion.
@@ -595,9 +555,7 @@ class FileOperationsManager:
             file_path: Path to file to import
             suffix: File extension (e.g., '.docx', '.md')
         """
-        if not self.editor.ui_state_manager.check_pandoc_availability(
-            f"Opening {suffix.upper()[1:]}"
-        ):
+        if not self.editor.ui_state_manager.check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
             return
 
         format_map = {
@@ -615,23 +573,17 @@ class FileOperationsManager:
         input_format, file_type = format_map.get(suffix, ("markdown", "text"))
 
         # Use settings preference for AI conversion (defaults to Pandoc)
-        use_ai_for_import = self.editor._settings_manager.get_ai_conversion_preference(
-            self.editor._settings
-        )
+        use_ai_for_import = self.editor._settings_manager.get_ai_conversion_preference(self.editor._settings)
 
         self._is_processing_pandoc = True
         self._pending_file_path = file_path
         self.editor._update_ui_state()
 
-        self.editor.editor.setPlainText(
-            f"// Converting {file_path.name} to AsciiDoc...\n// Please wait..."
-        )
+        self.editor.editor.setPlainText(f"// Converting {file_path.name} to AsciiDoc...\n// Please wait...")
         self.editor.preview.setHtml(
             "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
         )
-        self.editor.status_bar.showMessage(
-            f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc..."
-        )
+        self.editor.status_bar.showMessage(f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc...")
 
         file_content: str | bytes
         if file_type == "binary":
@@ -664,9 +616,7 @@ class FileOperationsManager:
 
         if category in ["medium", "large"]:
             logger.info(f"Loading {category} file with optimizations")
-            success, content, error = (
-                self.editor.large_file_handler.load_file_optimized(file_path)
-            )
+            success, content, error = self.editor.large_file_handler.load_file_optimized(file_path)
             if not success:
                 raise Exception(error)
         else:

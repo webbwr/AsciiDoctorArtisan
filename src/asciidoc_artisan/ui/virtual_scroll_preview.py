@@ -301,9 +301,7 @@ class VirtualScrollPreview:
         Returns:
             Dictionary with stats
         """
-        render_ratio = (
-            self._rendered_lines / self._total_lines if self._total_lines > 0 else 0
-        )
+        render_ratio = self._rendered_lines / self._total_lines if self._total_lines > 0 else 0
 
         return {
             "enabled": self._enabled,
@@ -323,9 +321,7 @@ class ViewportCalculator:
     """
 
     @staticmethod
-    def calculate_from_widget(
-        widget: QWidget, document_height: int, line_height: int = 20
-    ) -> Viewport:
+    def calculate_from_widget(widget: QWidget, document_height: int, line_height: int = 20) -> Viewport:
         """
         Calculate viewport from Qt widget.
 

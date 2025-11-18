@@ -112,9 +112,7 @@ class SystemMonitor:
             cpu_percent = psutil.cpu_percent(interval=0)  # Non-blocking (uses cache)
             memory_percent = psutil.virtual_memory().percent
 
-            metrics = SystemMetrics(
-                cpu_percent=cpu_percent, memory_percent=memory_percent, timestamp=now
-            )
+            metrics = SystemMetrics(cpu_percent=cpu_percent, memory_percent=memory_percent, timestamp=now)
 
             self._last_metrics = metrics
             return metrics
@@ -191,9 +189,7 @@ class AdaptiveDebouncer:
         self._delay_history: list[int] = []
         self._max_history = 100
 
-    def calculate_delay(
-        self, document_size: int, last_render_time: float | None = None
-    ) -> int:
+    def calculate_delay(self, document_size: int, last_render_time: float | None = None) -> int:
         """
         Calculate adaptive delay for preview update.
 
@@ -273,11 +269,7 @@ class AdaptiveDebouncer:
         self._keystroke_times = [t for t in self._keystroke_times if now - t < 2.0]
 
         # Fast typing = more than 2 keystrokes in last 0.5s
-        recent = [
-            t
-            for t in self._keystroke_times
-            if now - t < self.config.fast_typing_interval
-        ]
+        recent = [t for t in self._keystroke_times if now - t < self.config.fast_typing_interval]
 
         if len(recent) >= 3:
             # User typing fast - increase delay
@@ -291,9 +283,7 @@ class AdaptiveDebouncer:
             return 1.0
 
         # Average recent render times
-        avg_render_time = sum(self._recent_render_times) / len(
-            self._recent_render_times
-        )
+        avg_render_time = sum(self._recent_render_times) / len(self._recent_render_times)
 
         # If renders are slow, increase delay
         if avg_render_time > self.config.slow_render_threshold:
@@ -348,9 +338,7 @@ class AdaptiveDebouncer:
             "total_adjustments": len(self._delay_history),
             "current_cpu": self.system_monitor.get_metrics().cpu_percent,
             "avg_render_time": (
-                sum(self._recent_render_times) / len(self._recent_render_times)
-                if self._recent_render_times
-                else 0
+                sum(self._recent_render_times) / len(self._recent_render_times) if self._recent_render_times else 0
             ),
         }
 

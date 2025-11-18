@@ -87,9 +87,7 @@ class LargeFileHandler(QObject):
         """
         return file_size > PREVIEW_DISABLE_THRESHOLD
 
-    def load_file_optimized(
-        self, file_path: Path, encoding: str = "utf-8"
-    ) -> tuple[bool, str, str]:
+    def load_file_optimized(self, file_path: Path, encoding: str = "utf-8") -> tuple[bool, str, str]:
         """
         Load file with size-appropriate optimizations.
 
@@ -105,9 +103,7 @@ class LargeFileHandler(QObject):
             self._last_file_size = file_size
             category = self.get_file_size_category(file_path)
 
-            logger.info(
-                f"Loading {category} file: {file_path.name} ({file_size / 1024:.1f} KB)"
-            )
+            logger.info(f"Loading {category} file: {file_path.name} ({file_size / 1024:.1f} KB)")
 
             if category == "small":
                 return self._load_small_file(file_path, encoding)
@@ -129,9 +125,7 @@ class LargeFileHandler(QObject):
         except Exception as e:
             return False, "", str(e)
 
-    def _load_medium_file(
-        self, file_path: Path, encoding: str, file_size: int
-    ) -> tuple[bool, str, str]:
+    def _load_medium_file(self, file_path: Path, encoding: str, file_size: int) -> tuple[bool, str, str]:
         """Load medium file with progress indicators (1-10MB)."""
         try:
             self.progress_update.emit(0, f"Loading {file_path.name}...")
@@ -163,9 +157,7 @@ class LargeFileHandler(QObject):
             self.progress_update.emit(0, "Load failed")
             return False, "", str(e)
 
-    def _load_large_file(
-        self, file_path: Path, encoding: str, file_size: int
-    ) -> tuple[bool, str, str]:
+    def _load_large_file(self, file_path: Path, encoding: str, file_size: int) -> tuple[bool, str, str]:
         """Load large file with chunked reading (> 10MB)."""
         try:
             self.progress_update.emit(0, f"Loading large file: {file_path.name}...")
@@ -189,9 +181,7 @@ class LargeFileHandler(QObject):
             content = "".join(lines)
             self.progress_update.emit(100, "Large file loaded")
 
-            logger.info(
-                f"Loaded large file: {len(content)} characters, {len(lines)} lines"
-            )
+            logger.info(f"Loaded large file: {len(content)} characters, {len(lines)} lines")
 
             return True, content, ""
 

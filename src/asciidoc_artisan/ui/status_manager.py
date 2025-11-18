@@ -109,23 +109,17 @@ class StatusManager:
         # Word count: wider for larger numbers
         self.word_count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.word_count_label.setMinimumWidth(100)
-        self.word_count_label.setToolTip(
-            "Document word count (excludes code blocks and comments)"
-        )
+        self.word_count_label.setToolTip("Document word count (excludes code blocks and comments)")
 
         # Version: narrower, often short
         self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.version_label.setMinimumWidth(60)
-        self.version_label.setToolTip(
-            "Document version (extracted from :version: or :revnumber: attributes)"
-        )
+        self.version_label.setToolTip("Document version (extracted from :version: or :revnumber: attributes)")
 
         # Grade level: medium width
         self.grade_level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.grade_level_label.setMinimumWidth(90)
-        self.grade_level_label.setToolTip(
-            "Reading grade level (Flesch-Kincaid readability score)"
-        )
+        self.grade_level_label.setToolTip("Reading grade level (Flesch-Kincaid readability score)")
 
         # Git status: brief branch indicator
         self.git_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -186,9 +180,7 @@ class StatusManager:
             message: Status message to display
             timeout: Duration in milliseconds (0 = permanent)
         """
-        logger.info(
-            f"[STATUS_BAR] Attempting to show: '{message}' (timeout={timeout}ms)"
-        )
+        logger.info(f"[STATUS_BAR] Attempting to show: '{message}' (timeout={timeout}ms)")
         if not hasattr(self.editor, "status_bar") or self.editor.status_bar is None:
             logger.error("[STATUS_BAR] ERROR: status_bar not found or is None!")
             return
@@ -220,9 +212,7 @@ class StatusManager:
             self.editor,
             "Unsaved Changes",
             f"You have unsaved changes. Save before {action}?",
-            QMessageBox.StandardButton.Save
-            | QMessageBox.StandardButton.Discard
-            | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Save,
         )
 
@@ -317,11 +307,7 @@ class StatusManager:
 
         # Flesch-Kincaid Grade Level formula
         # 0.39 * (total words / total sentences) + 11.8 * (total syllables / total words) - 15.59
-        grade = (
-            0.39 * (num_words / num_sentences)
-            + 11.8 * (num_syllables / num_words)
-            - 15.59
-        )
+        grade = 0.39 * (num_words / num_sentences) + 11.8 * (num_syllables / num_words) - 15.59
 
         return round(max(0.0, grade), 2)
 
@@ -461,9 +447,7 @@ class StatusManager:
         self.hide_cancel_button()
 
         # Show feedback
-        self.editor.status_bar.showMessage(
-            f"Cancelled {self._current_operation} operation", 3000
-        )
+        self.editor.status_bar.showMessage(f"Cancelled {self._current_operation} operation", 3000)
 
     def update_git_status(self, status: GitStatus) -> None:
         """
@@ -482,9 +466,7 @@ class StatusManager:
 
         # Build brief status text
         branch = status.branch
-        total_changes = (
-            status.modified_count + status.staged_count + status.untracked_count
-        )
+        total_changes = status.modified_count + status.staged_count + status.untracked_count
 
         if status.has_conflicts:
             # Red for conflicts
@@ -546,17 +528,11 @@ class StatusManager:
         Theme changes can override inline stylesheets with global palette.
         This method re-applies the git status color from stored state.
         """
-        if (
-            not self.git_status_label
-            or not self._current_git_color
-            or not self._current_git_text
-        ):
+        if not self.git_status_label or not self._current_git_color or not self._current_git_text:
             return
 
         # Re-apply stored color and text
         self.git_status_label.setStyleSheet(f"color: {self._current_git_color};")
         self.git_status_label.setText(self._current_git_text)
 
-        logger.debug(
-            f"Git status color restored: {self._current_git_text} ({self._current_git_color})"
-        )
+        logger.debug(f"Git status color restored: {self._current_git_text} ({self._current_git_color})")

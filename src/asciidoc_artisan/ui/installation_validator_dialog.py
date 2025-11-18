@@ -62,9 +62,7 @@ class ValidationWorker(QThread):
             if self.action == "validate":
                 self.validation_complete.emit(
                     {
-                        "python_packages": [
-                            ("ERROR", "✗", "error", f"Validation failed: {str(e)}")
-                        ],
+                        "python_packages": [("ERROR", "✗", "error", f"Validation failed: {str(e)}")],
                         "system_binaries": [],
                         "optional_tools": [],
                     }
@@ -81,13 +79,9 @@ class ValidationWorker(QThread):
         # Check Python version
         py_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         if sys.version_info >= (3, 14):
-            results["python_packages"].append(
-                ("Python", "✓", py_version, "Version OK")
-            )  # pragma: no cover
+            results["python_packages"].append(("Python", "✓", py_version, "Version OK"))  # pragma: no cover
         else:
-            results["python_packages"].append(
-                ("Python", "✗", py_version, "Requires Python 3.14+")
-            )
+            results["python_packages"].append(("Python", "✗", py_version, "Requires Python 3.14+"))
 
         # Check required Python packages
         required_packages = [
@@ -103,9 +97,7 @@ class ValidationWorker(QThread):
         ]
 
         for package_name, min_version in required_packages:
-            status, version, message = self._check_python_package(
-                package_name, min_version
-            )
+            status, version, message = self._check_python_package(package_name, min_version)
             results["python_packages"].append((package_name, status, version, message))
 
         # Check system binaries
@@ -156,9 +148,7 @@ class ValidationWorker(QThread):
             elif package_name == "pymupdf":
                 import fitz
 
-                version = getattr(
-                    fitz, "__version__", getattr(fitz, "version", "unknown")
-                )
+                version = getattr(fitz, "__version__", getattr(fitz, "version", "unknown"))
             elif package_name == "keyring":
                 import keyring
 
@@ -208,9 +198,7 @@ class ValidationWorker(QThread):
         except Exception as e:
             return ("✗", "error", f"Check failed: {str(e)[:50]}")
 
-    def _check_system_binary(
-        self, binary_name: str, required: bool
-    ) -> tuple[str, str, str]:
+    def _check_system_binary(self, binary_name: str, required: bool) -> tuple[str, str, str]:
         """
         Check if system binary is installed.
 
@@ -272,17 +260,13 @@ class ValidationWorker(QThread):
             requirements_file = project_root / "requirements.txt"
 
             if not requirements_file.exists():
-                self.update_complete.emit(
-                    False, f"requirements.txt not found at {requirements_file}"
-                )
+                self.update_complete.emit(False, f"requirements.txt not found at {requirements_file}")
                 return
 
             self.update_progress.emit(f"Found requirements: {requirements_file}")
 
             # Run pip install --upgrade
-            self.update_progress.emit(
-                "Running pip install --upgrade -r requirements.txt..."
-            )
+            self.update_progress.emit("Running pip install --upgrade -r requirements.txt...")
 
             result = subprocess.run(
                 [
@@ -313,9 +297,7 @@ class ValidationWorker(QThread):
                 self.update_complete.emit(False, f"Update failed:\n\n{error_msg}")
 
         except subprocess.TimeoutExpired:
-            self.update_complete.emit(
-                False, "Update timed out after 5 minutes.\n\nPlease try again."
-            )
+            self.update_complete.emit(False, "Update timed out after 5 minutes.\n\nPlease try again.")
         except Exception as e:
             self.update_complete.emit(False, f"Update failed:\n\n{str(e)}")
 
@@ -342,14 +324,10 @@ class ValidationWorker(QThread):
             return "unknown"
         except metadata.PackageNotFoundError:
             # Package not found in metadata
-            logger.debug(
-                f"Package {package_name} not found in metadata"
-            )  # pragma: no cover
+            logger.debug(f"Package {package_name} not found in metadata")  # pragma: no cover
             return "unknown"  # pragma: no cover
         except Exception as e:
-            logger.warning(
-                f"Error getting version for {package_name} from metadata: {e}"
-            )
+            logger.warning(f"Error getting version for {package_name} from metadata: {e}")
             return "unknown"
 
     def _get_version_from_pip(self, package_name: str) -> str:
@@ -377,9 +355,7 @@ class ValidationWorker(QThread):
                 for line in result.stdout.split("\n"):
                     if line.startswith("Version:"):
                         version = line.split(":", 1)[1].strip()
-                        logger.info(
-                            f"Found version {version} for {package_name} via pip"
-                        )
+                        logger.info(f"Found version {version} for {package_name} via pip")
                         return version
 
             return "unknown"
@@ -532,9 +508,7 @@ class InstallationValidatorDialog(QDialog):
         self.setStyleSheet(f"background-color: {dialog_bg}; color: {text_color};")
 
         # Apply to header
-        self.header.setStyleSheet(
-            f"font-size: 16px; font-weight: bold; padding: 10px; color: {text_color};"
-        )
+        self.header.setStyleSheet(f"font-size: 16px; font-weight: bold; padding: 10px; color: {text_color};")
 
         # Apply to description
         self.description.setStyleSheet(f"padding: 5px 10px; color: {desc_color};")
@@ -545,17 +519,13 @@ class InstallationValidatorDialog(QDialog):
         )
 
         # Apply to buttons
-        self.validate_btn.setStyleSheet(
-            f"background-color: {button_bg}; color: {button_text}; padding: 8px;"
-        )
+        self.validate_btn.setStyleSheet(f"background-color: {button_bg}; color: {button_text}; padding: 8px;")
 
         self.update_btn.setStyleSheet(
             f"background-color: {update_btn_bg}; color: {update_btn_text}; font-weight: bold; padding: 8px;"
         )
 
-        self.close_btn.setStyleSheet(
-            f"background-color: {button_bg}; color: {button_text}; padding: 8px;"
-        )
+        self.close_btn.setStyleSheet(f"background-color: {button_bg}; color: {button_text}; padding: 8px;")
 
     def _start_validation(self) -> None:
         """Start validation in background thread."""
@@ -579,9 +549,7 @@ class InstallationValidatorDialog(QDialog):
         self.validate_btn.setEnabled(True)
         self.update_btn.setEnabled(True)
 
-    def _show_validation_results(
-        self, results: dict[str, list[tuple[str, ...]]]
-    ) -> None:
+    def _show_validation_results(self, results: dict[str, list[tuple[str, ...]]]) -> None:
         """
         Display validation results.
 
@@ -628,15 +596,11 @@ class InstallationValidatorDialog(QDialog):
 
         output.append("")
         output.append("=" * 70)
-        output.append(
-            "Legend: ✓=OK, ⚠=Warning, ✗=Missing/Error, ○=Optional not installed"
-        )
+        output.append("Legend: ✓=OK, ⚠=Warning, ✗=Missing/Error, ○=Optional not installed")
         output.append("=" * 70)
 
         result_text = "\n".join(output)
-        logger.info(
-            f"Setting text with {len(result_text)} characters, {len(output)} lines"
-        )
+        logger.info(f"Setting text with {len(result_text)} characters, {len(output)} lines")
         self.results_text.setPlainText(result_text)
         logger.info("Text set successfully")
 

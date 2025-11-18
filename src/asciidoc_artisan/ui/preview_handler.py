@@ -41,9 +41,7 @@ class PreviewHandler(PreviewHandlerBase):
     - sync_preview_to_editor() - Sync scroll via scrollbar
     """
 
-    def __init__(
-        self, editor: QPlainTextEdit, preview: QTextBrowser, parent_window: Any
-    ) -> None:
+    def __init__(self, editor: QPlainTextEdit, preview: QTextBrowser, parent_window: Any) -> None:
         """
         Initialize TextBrowser PreviewHandler.
 

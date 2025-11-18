@@ -33,9 +33,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
     # Signals
     github_operation_started = Signal(str)  # Emitted when operation starts
-    github_operation_completed = Signal(
-        bool, str
-    )  # Emitted when operation completes (success, message)
+    github_operation_completed = Signal(bool, str)  # Emitted when operation completes (success, message)
 
     def __init__(
         self,
@@ -76,9 +74,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
         """
         # Check if gh CLI is available
         if not shutil.which("gh"):  # pragma: no cover
-            logger.debug(
-                "GitHub CLI (gh) not found - skipping automatic repo info fetch"
-            )
+            logger.debug("GitHub CLI (gh) not found - skipping automatic repo info fetch")
             return
 
         # Check if Git repository is set
@@ -109,9 +105,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
         self._update_ui_state()
 
         # Show status
-        self.status_manager.show_message(
-            "info", "Creating Pull Request", f"Creating PR: {pr_data['title']}..."
-        )
+        self.status_manager.show_message("info", "Creating Pull Request", f"Creating PR: {pr_data['title']}...")
 
         # Emit signal to worker (via main window)
         repo_path = self.git_handler.get_repository_path()
@@ -138,9 +132,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
             return
 
         # Create and show dialog with cached data (will update when worker responds)
-        self.current_dialog = PullRequestListDialog(
-            self.window, pr_data=self.cached_prs
-        )
+        self.current_dialog = PullRequestListDialog(self.window, pr_data=self.cached_prs)
 
         # Start operation to fetch fresh data
         self.is_processing = True
@@ -149,16 +141,12 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
         # Show status
         if not self.cached_prs:
-            self.status_manager.show_message(
-                "info", "Loading Pull Requests", "Fetching pull requests..."
-            )
+            self.status_manager.show_message("info", "Loading Pull Requests", "Fetching pull requests...")
 
         # Emit signal to worker
         repo_path = self.git_handler.get_repository_path()
         if hasattr(self.window, "request_github_command"):
-            self.window.request_github_command.emit(
-                "list_pull_requests", {"state": "open", "working_dir": repo_path}
-            )
+            self.window.request_github_command.emit("list_pull_requests", {"state": "open", "working_dir": repo_path})
 
         # Emit our signal
         self.github_operation_started.emit("pr_list")
@@ -187,9 +175,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
         self._update_ui_state()
 
         # Show status
-        self.status_manager.show_message(
-            "info", "Creating Issue", f"Creating issue: {issue_data['title']}..."
-        )
+        self.status_manager.show_message("info", "Creating Issue", f"Creating issue: {issue_data['title']}...")
 
         # Emit signal to worker
         repo_path = self.git_handler.get_repository_path()
@@ -214,9 +200,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
             return
 
         # Create and show dialog with cached data
-        self.current_dialog = IssueListDialog(
-            self.window, issue_data=self.cached_issues
-        )
+        self.current_dialog = IssueListDialog(self.window, issue_data=self.cached_issues)
 
         # Start operation to fetch fresh data
         self.is_processing = True
@@ -225,16 +209,12 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
         # Show status
         if not self.cached_issues:
-            self.status_manager.show_message(
-                "info", "Loading Issues", "Fetching issues..."
-            )
+            self.status_manager.show_message("info", "Loading Issues", "Fetching issues...")
 
         # Emit signal to worker
         repo_path = self.git_handler.get_repository_path()
         if hasattr(self.window, "request_github_command"):
-            self.window.request_github_command.emit(
-                "list_issues", {"state": "open", "working_dir": repo_path}
-            )
+            self.window.request_github_command.emit("list_issues", {"state": "open", "working_dir": repo_path})
 
         # Emit our signal
         self.github_operation_started.emit("issue_list")
@@ -261,16 +241,12 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
         # Show status in status bar only if not silent
         if not silent:
-            self.status_manager.show_status(
-                "Fetching repository information...", timeout=5000
-            )
+            self.status_manager.show_status("Fetching repository information...", timeout=5000)
 
         # Emit signal to worker
         repo_path = self.git_handler.get_repository_path()
         if hasattr(self.window, "request_github_command"):
-            self.window.request_github_command.emit(
-                "get_repo_info", {"working_dir": repo_path}
-            )
+            self.window.request_github_command.emit("get_repo_info", {"working_dir": repo_path})
 
         # Emit our signal
         self.github_operation_started.emit("repo_info")
@@ -305,17 +281,13 @@ class GitHubHandler(BaseVCSHandler, QObject):
             # Show success message (skip dialog for repo_info - already shown in status bar)
             if result.operation != "repo_info":
                 self.status_manager.show_message("info", "Success", result.user_message)
-            logger.info(
-                f"GitHub {self.last_operation} succeeded: {result.user_message}"
-            )
+            logger.info(f"GitHub {self.last_operation} succeeded: {result.user_message}")
 
             # Emit our signal
             self.github_operation_completed.emit(True, result.user_message)
         else:
             # Show error message
-            self.status_manager.show_message(
-                "critical", "GitHub Error", result.user_message
-            )
+            self.status_manager.show_message("critical", "GitHub Error", result.user_message)
             logger.error(f"GitHub {self.last_operation} failed: {result.user_message}")
 
             # Emit our signal
@@ -338,9 +310,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
             self.cached_prs = result.data if isinstance(result.data, list) else []
 
             # Update dialog if it's open
-            if self.current_dialog and isinstance(
-                self.current_dialog, PullRequestListDialog
-            ):
+            if self.current_dialog and isinstance(self.current_dialog, PullRequestListDialog):
                 self.current_dialog.set_pr_data(self.cached_prs)
 
             logger.info(f"Loaded {len(self.cached_prs)} pull requests")
@@ -377,11 +347,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
             # Get default branch name from nested object
             default_branch_ref = result.data.get("defaultBranchRef", {})
-            default_branch = (
-                default_branch_ref.get("name", "Unknown")
-                if default_branch_ref
-                else "Unknown"
-            )
+            default_branch = default_branch_ref.get("name", "Unknown") if default_branch_ref else "Unknown"
 
             # Log detailed information
             logger.info(f"Repository: {repo_name}")
@@ -398,10 +364,7 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
             # Show full repository information in a dialog
             # (only if user explicitly requested it, not on silent startup)
-            if (
-                self.last_operation == "repo_info"
-                and self.last_operation != "repo_info_silent"
-            ):
+            if self.last_operation == "repo_info" and self.last_operation != "repo_info_silent":
                 from PySide6.QtWidgets import QMessageBox
 
                 info_text = f"""<b>Repository:</b> {repo_name}<br><br>

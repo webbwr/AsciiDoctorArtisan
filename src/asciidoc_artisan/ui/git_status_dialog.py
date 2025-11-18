@@ -190,9 +190,7 @@ class GitStatusDialog(QDialog):
             f"{len(staged_files)} staged, {len(untracked_files)} untracked"
         )
 
-    def _populate_table(
-        self, table: QTableWidget, files: list[dict[str, str]], show_lines: bool
-    ) -> None:
+    def _populate_table(self, table: QTableWidget, files: list[dict[str, str]], show_lines: bool) -> None:
         """
         Populate a table widget with file data.
 

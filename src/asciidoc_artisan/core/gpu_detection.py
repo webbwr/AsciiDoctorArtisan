@@ -28,9 +28,7 @@ class GPUInfo:
     gpu_type: str | None = None  # "nvidia", "amd", "intel", "apple", "unknown"
     gpu_name: str | None = None
     driver_version: str | None = None
-    render_device: str | None = (
-        None  # e.g., "/dev/dri/renderD128" (Linux) or "Metal" (macOS)
-    )
+    render_device: str | None = None  # e.g., "/dev/dri/renderD128" (Linux) or "Metal" (macOS)
     can_use_webengine: bool = False
     reason: str = ""  # Explanation
     has_npu: bool = False  # Neural Processing Unit
@@ -435,9 +433,7 @@ def detect_compute_capabilities() -> list[str]:  # noqa: C901
 
     # Check CUDA (NVIDIA GPU compute).
     try:
-        result = subprocess.run(
-            ["nvidia-smi"], capture_output=True, text=True, timeout=1
-        )
+        result = subprocess.run(["nvidia-smi"], capture_output=True, text=True, timeout=1)
         if result.returncode == 0:
             capabilities.append("cuda")
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -455,9 +451,7 @@ def detect_compute_capabilities() -> list[str]:  # noqa: C901
 
     # Check Vulkan (modern graphics and compute API).
     try:
-        result = subprocess.run(
-            ["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=1
-        )
+        result = subprocess.run(["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=1)
         if result.returncode == 0:
             capabilities.append("vulkan")
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -716,14 +710,10 @@ def main() -> None:
                 print(f"NPU: {info.npu_name}")
         else:
             print(f"Unknown command: {command}")
-            print(
-                "Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]"
-            )
+            print("Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]")
     else:
         print("GPU Detection Cache Manager")
-        print(
-            "Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]"
-        )
+        print("Usage: python -m asciidoc_artisan.core.gpu_detection [clear|show|detect]")
         print("")
         print("Commands:")
         print("  clear  - Clear GPU cache")

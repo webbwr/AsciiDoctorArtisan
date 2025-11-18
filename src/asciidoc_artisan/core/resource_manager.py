@@ -242,9 +242,7 @@ class ResourceManager:
             if self.cleanup_directory(path):
                 dirs_cleaned += 1
 
-        logger.info(
-            f"ResourceManager cleanup complete: {files_cleaned} files, {dirs_cleaned} directories"
-        )
+        logger.info(f"ResourceManager cleanup complete: {files_cleaned} files, {dirs_cleaned} directories")
 
         self._cleaned_up = True
 
@@ -308,9 +306,7 @@ class TempFileContext:
         Returns:
             Path to temp file
         """
-        self.path = self.rm.create_temp_file(
-            suffix=self.suffix, prefix=self.prefix, dir=self.dir, text=self.text
-        )
+        self.path = self.rm.create_temp_file(suffix=self.suffix, prefix=self.prefix, dir=self.dir, text=self.text)
         return self.path
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
@@ -359,9 +355,7 @@ class TempDirectoryContext:
         Returns:
             Path to temp directory
         """
-        self.path = self.rm.create_temp_directory(
-            suffix=self.suffix, prefix=self.prefix, dir=self.dir
-        )
+        self.path = self.rm.create_temp_directory(suffix=self.suffix, prefix=self.prefix, dir=self.dir)
         return self.path
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:

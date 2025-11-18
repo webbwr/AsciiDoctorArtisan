@@ -154,9 +154,7 @@ class ChatBarWidget(QWidget):
 
         # Send button with standard media play icon
         self._send_button = QPushButton()
-        self._send_button.setIcon(
-            self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
-        )
+        self._send_button.setIcon(self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
         self._send_button.setIconSize(QSize(24, 24))  # Set larger icon size
         self._send_button.setToolTip("Send message (or press Enter)")
         self._send_button.setMaximumWidth(40)

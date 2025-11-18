@@ -174,9 +174,7 @@ class PreviewHandlerBase(QObject):
     preview_updated = Signal(str)  # Emits HTML when preview updates
     preview_error = Signal(str)  # Emits error message when render fails
 
-    def __init__(
-        self, editor: QPlainTextEdit, preview: QWidget, parent_window: QObject
-    ):
+    def __init__(self, editor: QPlainTextEdit, preview: QWidget, parent_window: QObject):
         """
         Initialize PreviewHandlerBase.
 
@@ -361,9 +359,7 @@ class PreviewHandlerBase(QObject):
         """
         # Check dark mode for error display
         dark_mode = False
-        if hasattr(self.window, "_settings") and hasattr(
-            self.window._settings, "dark_mode"
-        ):
+        if hasattr(self.window, "_settings") and hasattr(self.window._settings, "dark_mode"):
             dark_mode = self.window._settings.dark_mode
 
         if dark_mode:

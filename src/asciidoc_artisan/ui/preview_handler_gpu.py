@@ -59,9 +59,7 @@ class WebEngineHandler(PreviewHandlerBase):
     - sync_preview_to_editor() - Sync scroll via JavaScript callback
     """
 
-    def __init__(
-        self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window: Any
-    ) -> None:
+    def __init__(self, editor: QPlainTextEdit, preview: QWebEngineView, parent_window: Any) -> None:
         """
         Initialize WebEngine PreviewHandler.
 
@@ -74,9 +72,7 @@ class WebEngineHandler(PreviewHandlerBase):
 
         # Verify widget type
         if not hasattr(preview, "page"):
-            raise TypeError(
-                f"WebEngineHandler requires QWebEngineView, got {type(preview).__name__}"
-            )
+            raise TypeError(f"WebEngineHandler requires QWebEngineView, got {type(preview).__name__}")
 
         logger.info("PreviewHandler initialized with QWebEngineView (GPU-accelerated)")
 
@@ -150,9 +146,7 @@ def create_preview_widget(parent: QWidget | None = None) -> QWidget:
     gpu_info = get_gpu_info()
 
     if gpu_info.can_use_webengine and gpu_info.has_gpu:
-        logger.info(
-            f"GPU detected ({gpu_info.gpu_name}), attempting QWebEngineView with acceleration"
-        )
+        logger.info(f"GPU detected ({gpu_info.gpu_name}), attempting QWebEngineView with acceleration")
 
         try:
             # Create QWebEngineView with GPU acceleration
@@ -164,9 +158,7 @@ def create_preview_widget(parent: QWidget | None = None) -> QWidget:
             settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
             settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
             settings.setAttribute(QWebEngineSettings.PluginsEnabled, False)
-            settings.setAttribute(
-                QWebEngineSettings.LocalContentCanAccessRemoteUrls, False
-            )
+            settings.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, False)
 
             # Log GPU info
             logger.info(f"  GPU Type: {gpu_info.gpu_type}")
@@ -182,21 +174,15 @@ def create_preview_widget(parent: QWidget | None = None) -> QWidget:
 
         except Exception as e:
             # QWebEngineView initialization failed - fall back to QTextBrowser
-            logger.warning(
-                f"QWebEngineView initialization failed: {e}. Falling back to QTextBrowser."
-            )
-            logger.info(
-                "Using QTextBrowser (software rendering) - GPU acceleration unavailable"
-            )
+            logger.warning(f"QWebEngineView initialization failed: {e}. Falling back to QTextBrowser.")
+            logger.info("Using QTextBrowser (software rendering) - GPU acceleration unavailable")
             return QTextBrowser(parent)
     else:
         logger.info(f"Using QTextBrowser: {gpu_info.reason}")
         return QTextBrowser(parent)
 
 
-def create_preview_handler(
-    editor: QPlainTextEdit, preview: QWidget, parent_window: Any
-) -> PreviewHandlerBase:
+def create_preview_handler(editor: QPlainTextEdit, preview: QWidget, parent_window: Any) -> PreviewHandlerBase:
     """
     Create appropriate preview handler for the given widget.
 
@@ -265,9 +251,7 @@ def get_preview_widget_info(preview_widget: QWidget) -> dict[str, Any]:
 
     if is_webengine and WEBENGINE_AVAILABLE:
         settings = preview_widget.settings()
-        info["accelerated_2d_canvas"] = settings.testAttribute(
-            QWebEngineSettings.Accelerated2dCanvasEnabled
-        )
+        info["accelerated_2d_canvas"] = settings.testAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled)
         info["webgl_enabled"] = settings.testAttribute(QWebEngineSettings.WebGLEnabled)
 
     # Add GPU info

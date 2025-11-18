@@ -53,9 +53,7 @@ class MemorySnapshot:
 
     def __str__(self) -> str:
         desc = f" ({self.description})" if self.description else ""
-        return (
-            f"Memory{desc}: {self.current_mb:.1f}MB current, {self.peak_mb:.1f}MB peak"
-        )
+        return f"Memory{desc}: {self.current_mb:.1f}MB current, {self.peak_mb:.1f}MB peak"
 
 
 class MemoryProfiler:
@@ -268,9 +266,7 @@ class MemoryProfiler:
             "peak_mb": max(peak_mbs),
             "min_mb": min(current_mbs),
             "avg_mb": sum(current_mbs) / len(current_mbs),
-            "total_growth_mb": (
-                current_mbs[-1] - current_mbs[0] if len(current_mbs) > 1 else 0
-            ),
+            "total_growth_mb": (current_mbs[-1] - current_mbs[0] if len(current_mbs) > 1 else 0),
         }
 
         # Add psutil stats if available

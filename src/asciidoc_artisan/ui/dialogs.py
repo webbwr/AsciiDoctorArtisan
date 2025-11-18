@@ -179,9 +179,7 @@ class PreferencesDialog(QDialog):
         api_key_status = self._get_api_key_status()
         status_label = QLabel(f"API Key Status: {api_key_status}")
         status_label.setStyleSheet(
-            "QLabel { color: green; }"
-            if api_key_status == "✓ Configured"
-            else "QLabel { color: red; }"
+            "QLabel { color: green; }" if api_key_status == "✓ Configured" else "QLabel { color: red; }"
         )
         ai_layout.addWidget(status_label)
 
@@ -268,9 +266,7 @@ class OllamaSettingsDialog(QDialog):
 
         # Enable/Disable Toggle
         self.ollama_enabled_checkbox = QCheckBox("Enable Ollama AI integration")
-        self.ollama_enabled_checkbox.setChecked(
-            getattr(self.settings, "ollama_enabled", False)
-        )
+        self.ollama_enabled_checkbox.setChecked(getattr(self.settings, "ollama_enabled", False))
         self.ollama_enabled_checkbox.setToolTip(
             "Use local Ollama AI for document conversions\nRuns on your computer - no cloud services required"
         )
@@ -314,12 +310,8 @@ class OllamaSettingsDialog(QDialog):
 
         # Enable/Disable Chat Toggle
         self.chat_enabled_checkbox = QCheckBox("Enable AI chat interface")
-        self.chat_enabled_checkbox.setChecked(
-            getattr(self.settings, "ollama_chat_enabled", False)
-        )
-        self.chat_enabled_checkbox.setToolTip(
-            "Show chat bar and panel for interactive conversations with AI"
-        )
+        self.chat_enabled_checkbox.setChecked(getattr(self.settings, "ollama_chat_enabled", False))
+        self.chat_enabled_checkbox.setToolTip("Show chat bar and panel for interactive conversations with AI")
         chat_layout.addWidget(self.chat_enabled_checkbox)
 
         # Max History Setting
@@ -329,9 +321,7 @@ class OllamaSettingsDialog(QDialog):
 
         self.max_history_spin = QSpinBox()
         self.max_history_spin.setRange(10, 500)
-        self.max_history_spin.setValue(
-            getattr(self.settings, "ollama_chat_max_history", 100)
-        )
+        self.max_history_spin.setValue(getattr(self.settings, "ollama_chat_max_history", 100))
         self.max_history_spin.setToolTip(
             "Maximum number of messages to store in chat history\nOlder messages are automatically removed"
         )
@@ -374,12 +364,8 @@ class OllamaSettingsDialog(QDialog):
         chat_layout.addLayout(mode_layout)
 
         # Send Document Content Toggle
-        self.send_document_checkbox = QCheckBox(
-            "Include document content in context-aware modes"
-        )
-        self.send_document_checkbox.setChecked(
-            getattr(self.settings, "ollama_chat_send_document", True)
-        )
+        self.send_document_checkbox = QCheckBox("Include document content in context-aware modes")
+        self.send_document_checkbox.setChecked(getattr(self.settings, "ollama_chat_send_document", True))
         self.send_document_checkbox.setToolTip(
             "For 'Document Q&A' and 'Editing Suggestions' modes:\n"
             "Send current document content to AI for better context\n"
@@ -424,26 +410,16 @@ class OllamaSettingsDialog(QDialog):
                     models_data = response.get("models", [])
                     logger.info(f"Using dict API - found {len(models_data)} models")
                 elif hasattr(response, "models"):
-                    models_data = (
-                        response.models
-                        if isinstance(response.models, list)
-                        else list(response.models)
-                    )
-                    logger.info(
-                        f"Using new API with .models attribute - found {len(models_data)} models"
-                    )
+                    models_data = response.models if isinstance(response.models, list) else list(response.models)
+                    logger.info(f"Using new API with .models attribute - found {len(models_data)} models")
                 else:
                     # Assume response is the models list directly
                     models_data = response if isinstance(response, list) else []
-                    logger.info(
-                        f"Using direct list API - found {len(models_data)} models"
-                    )
+                    logger.info(f"Using direct list API - found {len(models_data)} models")
 
                 if not models_data:
                     self.status_label.setText("⚠️ No models installed")
-                    self.status_label.setStyleSheet(
-                        "QLabel { color: orange; font-size: 10pt; }"
-                    )
+                    self.status_label.setStyleSheet("QLabel { color: orange; font-size: 10pt; }")
                     self.model_combo.addItem("No models available")
                     self.model_combo.setEnabled(False)
                     return
@@ -471,21 +447,13 @@ class OllamaSettingsDialog(QDialog):
                     index = self.models.index(saved_model)
                     self.model_combo.setCurrentIndex(index)
 
-                self.status_label.setText(
-                    f"✅ Ollama service running - {len(self.models)} model(s) available"
-                )
-                self.status_label.setStyleSheet(
-                    "QLabel { color: green; font-size: 10pt; }"
-                )
+                self.status_label.setText(f"✅ Ollama service running - {len(self.models)} model(s) available")
+                self.status_label.setStyleSheet("QLabel { color: green; font-size: 10pt; }")
 
             except Exception as e:
-                logger.error(
-                    f"Ollama service error: {type(e).__name__}: {e}", exc_info=True
-                )
+                logger.error(f"Ollama service error: {type(e).__name__}: {e}", exc_info=True)
                 self.status_label.setText(f"❌ Ollama service not running: {str(e)}")
-                self.status_label.setStyleSheet(
-                    "QLabel { color: red; font-size: 10pt; }"
-                )
+                self.status_label.setStyleSheet("QLabel { color: red; font-size: 10pt; }")
                 self.model_combo.addItem("Service not available")
                 self.model_combo.setEnabled(False)
 
@@ -541,9 +509,7 @@ class OllamaSettingsDialog(QDialog):
         # === Store Chat Settings (v1.7.0) ===
         self.settings.ollama_chat_enabled = self.chat_enabled_checkbox.isChecked()
         self.settings.ollama_chat_max_history = self.max_history_spin.value()
-        self.settings.ollama_chat_send_document = (
-            self.send_document_checkbox.isChecked()
-        )
+        self.settings.ollama_chat_send_document = self.send_document_checkbox.isChecked()
 
         # Map context mode combo index to setting value
         mode_value_map = {
@@ -552,9 +518,7 @@ class OllamaSettingsDialog(QDialog):
             2: "general",
             3: "editing",
         }
-        self.settings.ollama_chat_context_mode = mode_value_map.get(
-            self.context_mode_combo.currentIndex(), "document"
-        )
+        self.settings.ollama_chat_context_mode = mode_value_map.get(self.context_mode_combo.currentIndex(), "document")
 
         return self.settings
 
@@ -609,9 +573,7 @@ class SettingsEditorDialog(QDialog):
         header_label.setStyleSheet("QLabel { font-size: 14pt; font-weight: bold; }")
         layout.addWidget(header_label)
 
-        info_label = QLabel(
-            "Changes are saved automatically. Click 'Clear All' to reset to defaults."
-        )
+        info_label = QLabel("Changes are saved automatically. Click 'Clear All' to reset to defaults.")
         info_label.setWordWrap(True)
         info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
         layout.addWidget(info_label)
@@ -768,14 +730,10 @@ class SettingsEditorDialog(QDialog):
             self._load_settings()
 
             # Refresh parent window if available
-            if self.parent_window and hasattr(
-                self.parent_window, "_refresh_from_settings"
-            ):
+            if self.parent_window and hasattr(self.parent_window, "_refresh_from_settings"):
                 self.parent_window._refresh_from_settings()
 
-            QMessageBox.information(
-                self, "Settings Cleared", "All settings have been reset to defaults."
-            )
+            QMessageBox.information(self, "Settings Cleared", "All settings have been reset to defaults.")
 
 
 class FontSettingsDialog(QDialog):
@@ -821,9 +779,7 @@ class FontSettingsDialog(QDialog):
         header_label.setStyleSheet("QLabel { font-size: 14pt; font-weight: bold; }")
         layout.addWidget(header_label)
 
-        info_label = QLabel(
-            "Set font family and size for editor, preview, and chat panes."
-        )
+        info_label = QLabel("Set font family and size for editor, preview, and chat panes.")
         info_label.setWordWrap(True)
         info_label.setStyleSheet("QLabel { color: gray; font-size: 10pt; }")
         layout.addWidget(info_label)

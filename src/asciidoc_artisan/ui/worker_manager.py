@@ -105,17 +105,11 @@ class WorkerManager:
         self.git_worker = GitWorker()
         self.git_worker.moveToThread(self.git_thread)
         self.editor.request_git_command.connect(self.git_worker.run_git_command)
-        self.editor.request_git_status.connect(
-            self.git_worker.get_repository_status
-        )  # v1.9.0+
-        self.editor.request_detailed_git_status.connect(
-            self.git_worker.get_detailed_repository_status
-        )  # v1.9.0+
+        self.editor.request_git_status.connect(self.git_worker.get_repository_status)  # v1.9.0+
+        self.editor.request_detailed_git_status.connect(self.git_worker.get_detailed_repository_status)  # v1.9.0+
         self.git_worker.command_complete.connect(self.editor._handle_git_result)
         self.git_worker.status_ready.connect(self.editor._handle_git_status)  # v1.9.0+
-        self.git_worker.detailed_status_ready.connect(
-            self.editor._handle_detailed_git_status
-        )  # v1.9.0+
+        self.git_worker.detailed_status_ready.connect(self.editor._handle_detailed_git_status)  # v1.9.0+
         self.git_thread.finished.connect(self.git_worker.deleteLater)
         self.git_thread.start()
 
@@ -123,12 +117,8 @@ class WorkerManager:
         self.github_thread = QThread(self.editor)
         self.github_worker = GitHubCLIWorker()
         self.github_worker.moveToThread(self.github_thread)
-        self.editor.request_github_command.connect(
-            self.github_worker.dispatch_github_operation
-        )
-        self.github_worker.github_result_ready.connect(
-            self.editor._handle_github_result
-        )
+        self.editor.request_github_command.connect(self.github_worker.dispatch_github_operation)
+        self.github_worker.github_result_ready.connect(self.editor._handle_github_result)
         self.github_thread.finished.connect(self.github_worker.deleteLater)
         self.github_thread.start()
 
@@ -143,9 +133,7 @@ class WorkerManager:
             getattr(self.editor._settings, "ollama_model", None),
         )
 
-        self.editor.request_pandoc_conversion.connect(
-            self.pandoc_worker.run_pandoc_conversion
-        )
+        self.editor.request_pandoc_conversion.connect(self.pandoc_worker.run_pandoc_conversion)
         self.pandoc_worker.conversion_complete.connect(
             self.editor.pandoc_result_handler.handle_pandoc_result,
             Qt.ConnectionType.QueuedConnection,  # Force main thread execution
@@ -164,18 +152,14 @@ class WorkerManager:
 
         # Connect signals BEFORE starting thread
         self.editor.request_preview_render.connect(self.preview_worker.render_preview)
-        self.preview_worker.render_complete.connect(
-            self.editor._handle_preview_complete
-        )
+        self.preview_worker.render_complete.connect(self.editor._handle_preview_complete)
         self.preview_worker.render_error.connect(self.editor._handle_preview_error)
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
 
         # Initialize AsciiDoc API on worker thread after thread starts
         if ASCIIDOC3_AVAILABLE and asciidoc3:
             # Use lambda to defer initialization until thread is running
-            self.preview_thread.started.connect(
-                lambda: self.preview_worker.initialize_asciidoc(asciidoc3.__file__)
-            )
+            self.preview_thread.started.connect(lambda: self.preview_worker.initialize_asciidoc(asciidoc3.__file__))
 
         self.preview_thread.start()
 
@@ -201,9 +185,7 @@ class WorkerManager:
         self.claude_thread.finished.connect(self.claude_worker.deleteLater)
         self.claude_thread.start()
 
-        logger.info(
-            "All worker threads started (Git, GitHub, Pandoc, Preview, Ollama, Claude)"
-        )
+        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview, Ollama, Claude)")
 
         # Store references on main window for backward compatibility
         self.editor.git_thread = self.git_thread
@@ -331,9 +313,7 @@ class WorkerManager:
             if self.github_thread.isRunning():
                 self.github_thread.quit()
                 if not self.github_thread.wait(3000):
-                    logger.warning(
-                        "GitHub thread did not exit cleanly, force terminating"
-                    )
+                    logger.warning("GitHub thread did not exit cleanly, force terminating")
                     self.github_thread.terminate()
                     self.github_thread.wait(1000)
             self.github_thread.deleteLater()
@@ -343,9 +323,7 @@ class WorkerManager:
             if self.pandoc_thread.isRunning():
                 self.pandoc_thread.quit()
                 if not self.pandoc_thread.wait(3000):
-                    logger.warning(
-                        "Pandoc thread did not exit cleanly, force terminating"
-                    )
+                    logger.warning("Pandoc thread did not exit cleanly, force terminating")
                     self.pandoc_thread.terminate()
                     self.pandoc_thread.wait(1000)
             self.pandoc_thread.deleteLater()
@@ -355,9 +333,7 @@ class WorkerManager:
             if self.preview_thread.isRunning():
                 self.preview_thread.quit()
                 if not self.preview_thread.wait(3000):
-                    logger.warning(
-                        "Preview thread did not exit cleanly, force terminating"
-                    )
+                    logger.warning("Preview thread did not exit cleanly, force terminating")
                     self.preview_thread.terminate()
                     self.preview_thread.wait(1000)
             self.preview_thread.deleteLater()
@@ -367,9 +343,7 @@ class WorkerManager:
             if self.ollama_chat_thread.isRunning():
                 self.ollama_chat_thread.quit()
                 if not self.ollama_chat_thread.wait(3000):
-                    logger.warning(
-                        "Ollama chat thread did not exit cleanly, force terminating"
-                    )
+                    logger.warning("Ollama chat thread did not exit cleanly, force terminating")
                     self.ollama_chat_thread.terminate()
                     self.ollama_chat_thread.wait(1000)
             self.ollama_chat_thread.deleteLater()
@@ -379,9 +353,7 @@ class WorkerManager:
             if self.claude_thread.isRunning():
                 self.claude_thread.quit()
                 if not self.claude_thread.wait(3000):
-                    logger.warning(
-                        "Claude thread did not exit cleanly, force terminating"
-                    )
+                    logger.warning("Claude thread did not exit cleanly, force terminating")
                     self.claude_thread.terminate()
                     self.claude_thread.wait(1000)
             self.claude_thread.deleteLater()

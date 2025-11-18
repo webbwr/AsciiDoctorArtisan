@@ -253,9 +253,7 @@ class PredictiveRenderer:
             # More recent edits get higher scores
             recent_list = list(self._recent_edits)
             if block_index in recent_list:
-                recency_index = (
-                    len(recent_list) - 1 - recent_list[::-1].index(block_index)
-                )
+                recency_index = len(recent_list) - 1 - recent_list[::-1].index(block_index)
                 recency_score = 0.3 * (1.0 - recency_index / len(recent_list))
                 score += recency_score
 
@@ -274,9 +272,7 @@ class PredictivePreviewRenderer:
     Manages pre-rendering queue and coordinates with main rendering pipeline.
     """
 
-    def __init__(
-        self, incremental_renderer: Any, predictor: PredictiveRenderer | None = None
-    ) -> None:
+    def __init__(self, incremental_renderer: Any, predictor: PredictiveRenderer | None = None) -> None:
         """
         Initialize predictive preview renderer.
 

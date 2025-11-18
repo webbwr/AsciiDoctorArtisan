@@ -92,9 +92,7 @@ def _setup_gpu_acceleration() -> None:
             # Log comprehensive optimization status
             log_optimization_status()
 
-            logger.info(
-                "macOS Metal GPU acceleration configured with Apple Silicon optimizations"
-            )
+            logger.info("macOS Metal GPU acceleration configured with Apple Silicon optimizations")
         except ImportError:
             logger.info("macOS detected - using native Metal GPU acceleration")
     else:
@@ -278,9 +276,7 @@ def main() -> None:  # noqa: C901
     # This happens after window is shown so user has visual feedback
     missing_optional = validator.get_missing_optional()
     if len(missing_optional) > 0:
-        logger.info(
-            f"Showing dependency information: {len(missing_optional)} optional dependencies missing"
-        )
+        logger.info(f"Showing dependency information: {len(missing_optional)} optional dependencies missing")
         from asciidoc_artisan.ui.dependency_dialog import (
             show_dependency_summary_message,
         )

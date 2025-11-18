@@ -217,9 +217,7 @@ class ExportManager(QObject):
         }
 
         if format_type not in format_filters:
-            self.status_manager.show_message(
-                "warning", "Export Error", f"Unsupported format: {format_type}"
-            )
+            self.status_manager.show_message("warning", "Export Error", f"Unsupported format: {format_type}")
             return False
 
         file_filter, suggested_ext = format_filters[format_type]
@@ -239,9 +237,7 @@ class ExportManager(QObject):
             str(suggested_path),
             file_filter,
             options=(
-                QFileDialog.Option.DontUseNativeDialog
-                if platform.system() != "Windows"
-                else QFileDialog.Option(0)
+                QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
             ),
         )
 
@@ -257,9 +253,7 @@ class ExportManager(QObject):
         content = self.editor.toPlainText()
 
         # Use settings preference for AI conversion (defaults to Pandoc)
-        use_ai_for_export = self.settings_manager.get_ai_conversion_preference(
-            self._settings
-        )
+        use_ai_for_export = self.settings_manager.get_ai_conversion_preference(self._settings)
 
         # Handle direct AsciiDoc save
         if format_type == "adoc":
@@ -281,9 +275,7 @@ class ExportManager(QObject):
             return self._export_html(file_path, content)
 
         # Handle Pandoc-based exports (asynchronous)
-        return self._export_via_pandoc(
-            file_path, format_type, content, use_ai_for_export
-        )
+        return self._export_via_pandoc(file_path, format_type, content, use_ai_for_export)
 
     def _export_html(self, file_path: Path, content: str) -> bool:
         """
@@ -310,15 +302,11 @@ class ExportManager(QObject):
                 raise OSError(f"Atomic save failed for {file_path}")
         except Exception as e:
             logger.exception(f"Failed to export HTML file: {e}")
-            self.status_manager.show_message(
-                "critical", "Export Error", f"Failed to export HTML file:\n{e}"
-            )
+            self.status_manager.show_message("critical", "Export Error", f"Failed to export HTML file:\n{e}")
             self.export_failed.emit(str(e))
             return False
 
-    def _export_via_pandoc(
-        self, file_path: Path, format_type: str, content: str, use_ai: bool
-    ) -> bool:
+    def _export_via_pandoc(self, file_path: Path, format_type: str, content: str, use_ai: bool) -> bool:
         """
         Export via Pandoc (asynchronous).
 
@@ -351,9 +339,7 @@ class ExportManager(QObject):
         try:
             temp_html.write_text(html_content, encoding="utf-8")
         except Exception as e:
-            self.status_manager.show_message(
-                "critical", "Export Error", f"Failed to create temporary file:\n{e}"
-            )
+            self.status_manager.show_message("critical", "Export Error", f"Failed to create temporary file:\n{e}")
             self.export_failed.emit(str(e))
             return False
 
@@ -459,9 +445,7 @@ class ExportManager(QObject):
             source_text = mime_data.text()
 
         if not source_text:
-            self.status_manager.show_message(
-                "info", "Empty Clipboard", "No text or HTML found in clipboard."
-            )
+            self.status_manager.show_message("info", "Empty Clipboard", "No text or HTML found in clipboard.")
             return
 
         # Update UI state
@@ -495,9 +479,7 @@ class ExportManager(QObject):
             return
 
         # Handle export operations
-        if "Exporting to" in context and (
-            "File saved to:" in result or self.pending_export_path
-        ):
+        if "Exporting to" in context and ("File saved to:" in result or self.pending_export_path):
             self._handle_export_result(result, context)
 
     def _handle_export_result(self, result: str, context: str) -> None:
@@ -515,22 +497,16 @@ class ExportManager(QObject):
         try:
             if "File saved to:" in result:
                 # Direct file save
-                self.status_bar.showMessage(
-                    f"Exported successfully: {result.split(': ', 1)[1]}"
-                )
+                self.status_bar.showMessage(f"Exported successfully: {result.split(': ', 1)[1]}")
                 self.export_completed.emit(self.pending_export_path)
             elif self.pending_export_format == "pdf":
                 # PDF export
                 if self.pending_export_path.exists():
-                    self.status_bar.showMessage(
-                        f"Exported to PDF: {self.pending_export_path}"
-                    )
+                    self.status_bar.showMessage(f"Exported to PDF: {self.pending_export_path}")
                     self.export_completed.emit(self.pending_export_path)
                 else:
                     # Save result to file
-                    if atomic_save_text(
-                        self.pending_export_path, result, encoding="utf-8"
-                    ):
+                    if atomic_save_text(self.pending_export_path, result, encoding="utf-8"):
                         self.status_bar.showMessage(
                             f"Exported to {self.pending_export_format.upper()}: {self.pending_export_path}"
                         )
@@ -549,14 +525,10 @@ class ExportManager(QObject):
 
             # Update last directory
             self._settings.last_directory = str(self.pending_export_path.parent)
-            logger.info(
-                f"Export completed: {self.pending_export_format} -> {self.pending_export_path}"
-            )
+            logger.info(f"Export completed: {self.pending_export_format} -> {self.pending_export_path}")
         except Exception as e:
             logger.exception(f"Failed to handle export result: {e}")
-            self.status_manager.show_message(
-                "critical", "Export Error", f"Failed to save exported file:\n{e}"
-            )
+            self.status_manager.show_message("critical", "Export Error", f"Failed to save exported file:\n{e}")
             self.export_failed.emit(str(e))
         finally:
             self.pending_export_path = None

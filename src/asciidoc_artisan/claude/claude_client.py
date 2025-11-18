@@ -204,9 +204,7 @@ class ClaudeClient:
             messages.append({"role": "user", "content": message.strip()})
 
             # Make API request
-            logger.debug(
-                f"Sending message to Claude (model={self.model}, messages={len(messages)})"
-            )
+            logger.debug(f"Sending message to Claude (model={self.model}, messages={len(messages)})")
 
             # Build kwargs, only add system if provided
             kwargs = {
@@ -229,14 +227,10 @@ class ClaudeClient:
                     content = first_block.text
 
             tokens_used = (
-                response.usage.input_tokens + response.usage.output_tokens
-                if hasattr(response, "usage")
-                else 0
+                response.usage.input_tokens + response.usage.output_tokens if hasattr(response, "usage") else 0
             )
 
-            logger.info(
-                f"Claude response received: {len(content)} chars, {tokens_used} tokens"
-            )
+            logger.info(f"Claude response received: {len(content)} chars, {tokens_used} tokens")
 
             return ClaudeResult(
                 success=True,
@@ -259,15 +253,10 @@ class ClaudeClient:
 
             # Provide user-friendly error messages
             if "invalid_api_key" in error_msg.lower():
-                error_msg = (
-                    "Invalid API key. Please update your key in Tools → API Key Setup."
-                )
+                error_msg = "Invalid API key. Please update your key in Tools → API Key Setup."
             elif "rate_limit" in error_msg.lower():
                 error_msg = "Rate limit exceeded. Please wait a moment and try again."
-            elif (
-                "insufficient_quota" in error_msg.lower()
-                or "credit balance is too low" in error_msg.lower()
-            ):
+            elif "insufficient_quota" in error_msg.lower() or "credit balance is too low" in error_msg.lower():
                 error_msg = "Insufficient API credits. Please add credits at console.anthropic.com/settings/billing"
             elif "overloaded" in error_msg.lower():
                 error_msg = "Claude API is temporarily overloaded. Please try again in a moment."
@@ -350,9 +339,7 @@ class ClaudeClient:
 
             # Extract model IDs
             if "data" in models_data:
-                model_ids = [
-                    model.get("id", "unknown") for model in models_data["data"]
-                ]
+                model_ids = [model.get("id", "unknown") for model in models_data["data"]]
                 formatted_output = f"Available Models ({len(model_ids)}):\n\n"
                 for model_id in model_ids:
                     formatted_output += f"• {model_id}\n"

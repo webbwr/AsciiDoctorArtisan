@@ -139,12 +139,8 @@ class MetricsCollector:
 
     def __init__(self) -> None:
         """Initialize metrics collector."""
-        self.operations: defaultdict[str, OperationMetrics] = defaultdict(
-            lambda: OperationMetrics(operation_name="")
-        )
-        self.caches: defaultdict[str, CacheMetrics] = defaultdict(
-            lambda: CacheMetrics(cache_name="")
-        )
+        self.operations: defaultdict[str, OperationMetrics] = defaultdict(lambda: OperationMetrics(operation_name=""))
+        self.caches: defaultdict[str, CacheMetrics] = defaultdict(lambda: CacheMetrics(cache_name=""))
         self.enabled = True
         self.start_time = time.time()
 
@@ -162,9 +158,7 @@ class MetricsCollector:
             return
 
         if operation_name not in self.operations:
-            self.operations[operation_name] = OperationMetrics(
-                operation_name=operation_name
-            )
+            self.operations[operation_name] = OperationMetrics(operation_name=operation_name)
 
         self.operations[operation_name].record(duration_ms)
 

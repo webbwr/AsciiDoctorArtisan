@@ -61,30 +61,19 @@ class UIStateManager:
         # Export actions - disabled during Pandoc processing
         export_enabled = not is_processing_pandoc
         self.editor.action_manager.save_as_adoc_act.setEnabled(export_enabled)
-        self.editor.action_manager.save_as_md_act.setEnabled(
-            export_enabled and is_pandoc_available()
-        )
-        self.editor.action_manager.save_as_docx_act.setEnabled(
-            export_enabled and is_pandoc_available()
-        )
+        self.editor.action_manager.save_as_md_act.setEnabled(export_enabled and is_pandoc_available())
+        self.editor.action_manager.save_as_docx_act.setEnabled(export_enabled and is_pandoc_available())
         self.editor.action_manager.save_as_html_act.setEnabled(export_enabled)
-        self.editor.action_manager.save_as_pdf_act.setEnabled(
-            export_enabled and is_pandoc_available()
-        )
+        self.editor.action_manager.save_as_pdf_act.setEnabled(export_enabled and is_pandoc_available())
 
         # Git actions - disabled during Git processing or if no repo
-        git_ready = (
-            bool(self.editor._settings.git_repo_path)
-            and not self.editor._is_processing_git
-        )
+        git_ready = bool(self.editor._settings.git_repo_path) and not self.editor._is_processing_git
         self.editor.action_manager.git_commit_act.setEnabled(git_ready)
         self.editor.action_manager.git_pull_act.setEnabled(git_ready)
         self.editor.action_manager.git_push_act.setEnabled(git_ready)
 
         # Convert and paste - requires Pandoc and not processing
-        self.editor.action_manager.convert_paste_act.setEnabled(
-            is_pandoc_available() and not is_processing_pandoc
-        )
+        self.editor.action_manager.convert_paste_act.setEnabled(is_pandoc_available() and not is_processing_pandoc)
 
         # Update AI status bar
         self.update_ai_status_bar()

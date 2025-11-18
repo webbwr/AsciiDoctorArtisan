@@ -117,9 +117,7 @@ class SecureCredentials:
     def __init__(self) -> None:
         """Initialize SecureCredentials and verify keyring availability."""
         if not KEYRING_AVAILABLE:
-            logger.warning(
-                "keyring library not available. Install with: pip install keyring"
-            )
+            logger.warning("keyring library not available. Install with: pip install keyring")
 
     @staticmethod
     def is_available() -> bool:

@@ -51,9 +51,7 @@ logger = logging.getLogger(__name__)
 
 # Cache settings - Optimized for memory efficiency
 MAX_CACHE_SIZE = 200  # Max blocks in cache (reduced from 500 for lower memory usage)
-BLOCK_HASH_LENGTH = (
-    12  # Hash length for block IDs (reduced from 16, still unique enough)
-)
+BLOCK_HASH_LENGTH = 12  # Hash length for block IDs (reduced from 16, still unique enough)
 
 # String interning for common tokens - Reduces memory usage (Phase 1 + Phase 2)
 # Phase 1: Basic AsciiDoc syntax tokens
@@ -420,9 +418,7 @@ class DocumentBlockSplitter:
         return blocks
 
     @staticmethod
-    def _create_block(
-        lines: list[str], start_line: int, end_line: int, level: int
-    ) -> DocumentBlock:
+    def _create_block(lines: list[str], start_line: int, end_line: int, level: int) -> DocumentBlock:
         """Create DocumentBlock from lines."""
         content = "\n".join(lines)
         block = DocumentBlock(
@@ -436,9 +432,7 @@ class DocumentBlockSplitter:
         return block
 
     @staticmethod
-    def _create_block_from_range(
-        lines: list[str], start_line: int, end_line: int, level: int
-    ) -> DocumentBlock:
+    def _create_block_from_range(lines: list[str], start_line: int, end_line: int, level: int) -> DocumentBlock:
         """Create DocumentBlock from line range (optimized)."""
         # Extract content directly from line range
         content = "\n".join(lines[start_line : end_line + 1])
@@ -514,13 +508,9 @@ class IncrementalPreviewRenderer:
         current_blocks = DocumentBlockSplitter.split(source_text)
 
         # Detect changes
-        changed_blocks, unchanged_blocks = self._detect_changes(
-            self.previous_blocks, current_blocks
-        )
+        changed_blocks, unchanged_blocks = self._detect_changes(self.previous_blocks, current_blocks)
 
-        logger.debug(
-            f"Incremental render: {len(changed_blocks)} changed, {len(unchanged_blocks)} cached"
-        )
+        logger.debug(f"Incremental render: {len(changed_blocks)} changed, {len(unchanged_blocks)} cached")
 
         # Render changed blocks
         for block in changed_blocks:
@@ -542,9 +532,7 @@ class IncrementalPreviewRenderer:
             self.previous_blocks = current_blocks
 
         # Assemble final HTML
-        html_parts = [
-            block.rendered_html for block in current_blocks if block.rendered_html
-        ]
+        html_parts = [block.rendered_html for block in current_blocks if block.rendered_html]
         return "\n".join(html_parts)
 
     def _detect_changes(

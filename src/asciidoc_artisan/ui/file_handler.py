@@ -49,9 +49,7 @@ class FileHandler(QObject):
     file_opened = Signal(Path)  # Emitted when file is opened
     file_saved = Signal(Path)  # Emitted when file is saved
     file_modified = Signal(bool)  # Emitted when unsaved changes state changes
-    file_changed_externally = Signal(
-        Path
-    )  # Emitted when file modified externally (v1.7.0)
+    file_changed_externally = Signal(Path)  # Emitted when file modified externally (v1.7.0)
 
     def __init__(
         self,
@@ -89,9 +87,7 @@ class FileHandler(QObject):
         self.async_manager.read_complete.connect(self._on_async_read_complete)
         self.async_manager.write_complete.connect(self._on_async_write_complete)
         self.async_manager.operation_failed.connect(self._on_async_operation_failed)
-        self.async_manager.file_changed_externally.connect(
-            self._on_file_changed_externally
-        )
+        self.async_manager.file_changed_externally.connect(self._on_file_changed_externally)
 
         # Connect editor changes to track modifications
         self.editor.textChanged.connect(self._on_text_changed)
@@ -143,9 +139,7 @@ class FileHandler(QObject):
         # Show file dialog if no path provided
         if not file_path:
             settings = self.settings_manager.load_settings()
-            last_dir = (
-                settings.last_directory if hasattr(settings, "last_directory") else ""
-            )
+            last_dir = settings.last_directory if hasattr(settings, "last_directory") else ""
 
             file_path_str, _ = QFileDialog.getOpenFileName(
                 self.window,
@@ -153,9 +147,7 @@ class FileHandler(QObject):
                 last_dir,
                 SUPPORTED_OPEN_FILTER,
                 options=(
-                    QFileDialog.Option.DontUseNativeDialog
-                    if platform.system() != "Windows"
-                    else QFileDialog.Option(0)
+                    QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
                 ),
             )
             if not file_path_str:  # pragma: no cover
@@ -165,9 +157,7 @@ class FileHandler(QObject):
         # Validate path
         path = Path(file_path)
         if not path.exists():
-            self.status_manager.show_message(
-                "critical", "Error", f"File not found:\n{path}"
-            )
+            self.status_manager.show_message("critical", "Error", f"File not found:\n{path}")
             return
 
         # Load file - launch async operation
@@ -196,20 +186,14 @@ class FileHandler(QObject):
                     f"Maximum allowed: {MAX_FILE_SIZE_MB}MB\n\n"
                     f"Large files may cause the application to freeze or crash."
                 )
-                self.status_manager.show_message(
-                    "critical", "File Too Large", error_msg
-                )
+                self.status_manager.show_message("critical", "File Too Large", error_msg)
                 self.is_opening_file = False
-                logger.warning(
-                    f"Rejected file {file_path.name}: {file_size_mb:.1f}MB > {MAX_FILE_SIZE_MB}MB"
-                )
+                logger.warning(f"Rejected file {file_path.name}: {file_size_mb:.1f}MB > {MAX_FILE_SIZE_MB}MB")
                 return
 
             # Log file size for monitoring
             if file_size_mb > 10:
-                logger.info(
-                    f"Opening large file: {file_path.name} ({file_size_mb:.1f}MB)"
-                )
+                logger.info(f"Opening large file: {file_path.name} ({file_size_mb:.1f}MB)")
 
         except Exception as e:
             logger.error(f"Failed to check file size for {file_path}: {e}")
@@ -280,9 +264,7 @@ class FileHandler(QObject):
 
         except Exception as e:
             logger.error(f"Failed to open file {file_path}: {e}")
-            self.status_manager.show_message(
-                "critical", "Error", f"Failed to open file:\n{e}"
-            )
+            self.status_manager.show_message("critical", "Error", f"Failed to open file:\n{e}")
         finally:
             self.is_opening_file = False
 
@@ -303,9 +285,7 @@ class FileHandler(QObject):
         # Determine save path
         if save_as or not self.current_file_path:
             settings = self.settings_manager.load_settings()
-            last_dir = (
-                settings.last_directory if hasattr(settings, "last_directory") else ""
-            )
+            last_dir = settings.last_directory if hasattr(settings, "last_directory") else ""
 
             file_path_str, _ = QFileDialog.getSaveFileName(
                 self.window,
@@ -313,9 +293,7 @@ class FileHandler(QObject):
                 last_dir,
                 SUPPORTED_SAVE_FILTER,
                 options=(
-                    QFileDialog.Option.DontUseNativeDialog
-                    if platform.system() != "Windows"
-                    else QFileDialog.Option(0)
+                    QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
                 ),
             )
             if not file_path_str:
@@ -346,9 +324,7 @@ class FileHandler(QObject):
 
         try:
             # Save file asynchronously (v1.7.0)
-            success = await self.async_manager.write_file(
-                save_path, content, encoding="utf-8"
-            )
+            success = await self.async_manager.write_file(save_path, content, encoding="utf-8")
 
             if success:
                 # Update state
@@ -383,9 +359,7 @@ class FileHandler(QObject):
 
         except Exception as e:
             logger.error(f"Failed to save file {save_path}: {e}")
-            self.status_manager.show_message(
-                "critical", "Save Error", f"Failed to save file:\n{e}"
-            )
+            self.status_manager.show_message("critical", "Save Error", f"Failed to save file:\n{e}")
 
     @Slot()
     def auto_save(self) -> None:
@@ -417,9 +391,7 @@ class FileHandler(QObject):
             self.window,
             "Unsaved Changes",
             f"You have unsaved changes. Save before {action}?",
-            QMessageBox.StandardButton.Save
-            | QMessageBox.StandardButton.Discard
-            | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Save,
         )
 
@@ -470,9 +442,7 @@ class FileHandler(QObject):
         """
         logger.debug(f"Async write complete: {file_path}")
 
-    def _on_async_operation_failed(
-        self, operation: str, file_path: Path, error: str
-    ) -> None:
+    def _on_async_operation_failed(self, operation: str, file_path: Path, error: str) -> None:
         """
         Handle async operation failure signal.
 
@@ -502,6 +472,4 @@ class FileHandler(QObject):
 
         # Show message to user
         if hasattr(self.window, "status_bar"):
-            self.window.status_bar.showMessage(
-                f"File modified externally: {file_path.name}", 5000
-            )
+            self.window.status_bar.showMessage(f"File modified externally: {file_path.name}", 5000)

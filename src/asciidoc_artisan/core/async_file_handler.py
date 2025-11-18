@@ -127,9 +127,7 @@ class AsyncFileHandler(QObject):
                 content = path.read_text(encoding="utf-8")
                 size = len(content)
 
-                result = FileOperationResult(
-                    success=True, path=file_path, data=content, bytes_processed=size
-                )
+                result = FileOperationResult(success=True, path=file_path, data=content, bytes_processed=size)
 
                 self.read_complete.emit(result)
                 logger.debug(f"Read complete: {size} bytes from {file_path}")
@@ -165,9 +163,7 @@ class AsyncFileHandler(QObject):
                 path.write_text(content, encoding="utf-8")
                 size = len(content)
 
-                result = FileOperationResult(
-                    success=True, path=file_path, bytes_processed=size
-                )
+                result = FileOperationResult(success=True, path=file_path, bytes_processed=size)
 
                 self.write_complete.emit(result)
                 logger.debug(f"Write complete: {size} bytes to {file_path}")
@@ -238,9 +234,7 @@ class AsyncFileHandler(QObject):
 
         self._executor.submit(stream_task)
 
-    def write_file_streaming(
-        self, file_path: str, content: str, chunk_size: int = 8192
-    ) -> None:
+    def write_file_streaming(self, file_path: str, content: str, chunk_size: int = 8192) -> None:
         """
         Write large file in chunks (streaming).
 
@@ -278,9 +272,7 @@ class AsyncFileHandler(QObject):
                         # Emit progress
                         self.progress.emit("write", bytes_written, total_size)
 
-                result = FileOperationResult(
-                    success=True, path=file_path, bytes_processed=bytes_written
-                )
+                result = FileOperationResult(success=True, path=file_path, bytes_processed=bytes_written)
 
                 self.write_complete.emit(result)
                 logger.debug(f"Streaming write complete: {bytes_written} bytes")
@@ -469,9 +461,7 @@ class BatchFileOperations:
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all tasks
-            future_to_path = {
-                executor.submit(self._read_one, path): path for path in file_paths
-            }
+            future_to_path = {executor.submit(self._read_one, path): path for path in file_paths}
 
             # Collect results as they complete
             for future in as_completed(future_to_path):
@@ -481,16 +471,12 @@ class BatchFileOperations:
                     results.append(result)
                 except Exception as exc:
                     logger.error(f"Batch read failed for {path}: {exc}")
-                    results.append(
-                        FileOperationResult(success=False, path=path, error=str(exc))
-                    )
+                    results.append(FileOperationResult(success=False, path=path, error=str(exc)))
 
         logger.info(f"Batch read complete: {len(results)} files")
         return results
 
-    def write_files(
-        self, file_data: list[tuple[str, str]]
-    ) -> list[FileOperationResult]:
+    def write_files(self, file_data: list[tuple[str, str]]) -> list[FileOperationResult]:
         """
         Write multiple files in parallel.
 
@@ -506,10 +492,7 @@ class BatchFileOperations:
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all tasks
-            future_to_path = {
-                executor.submit(self._write_one, path, content): path
-                for path, content in file_data
-            }
+            future_to_path = {executor.submit(self._write_one, path, content): path for path, content in file_data}
 
             # Collect results as they complete
             for future in as_completed(future_to_path):
@@ -519,9 +502,7 @@ class BatchFileOperations:
                     results.append(result)
                 except Exception as exc:
                     logger.error(f"Batch write failed for {path}: {exc}")
-                    results.append(
-                        FileOperationResult(success=False, path=path, error=str(exc))
-                    )
+                    results.append(FileOperationResult(success=False, path=path, error=str(exc)))
 
         logger.info(f"Batch write complete: {len(results)} files")
         return results
@@ -532,9 +513,7 @@ class BatchFileOperations:
         try:
             file_path = Path(path)
             content = file_path.read_text(encoding="utf-8")
-            return FileOperationResult(
-                success=True, path=path, data=content, bytes_processed=len(content)
-            )
+            return FileOperationResult(success=True, path=path, data=content, bytes_processed=len(content))
         except Exception as exc:
             return FileOperationResult(success=False, path=path, error=str(exc))
 
@@ -545,8 +524,6 @@ class BatchFileOperations:
             file_path = Path(path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(content, encoding="utf-8")
-            return FileOperationResult(
-                success=True, path=path, bytes_processed=len(content)
-            )
+            return FileOperationResult(success=True, path=path, bytes_processed=len(content))
         except Exception as exc:
             return FileOperationResult(success=False, path=path, error=str(exc))

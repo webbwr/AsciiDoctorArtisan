@@ -261,15 +261,11 @@ class BaseListDialog(QDialog):
         # Table widget
         self.table = QTableWidget()
         self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(
-            ["Number", "Title", "Author", "Status", "Created", "URL"]
-        )
+        self.table.setHorizontalHeaderLabels(["Number", "Title", "Author", "Status", "Created", "URL"])
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.doubleClicked.connect(self._row_double_clicked)
-        self.table.setToolTip(
-            f"Double-click to open {self._get_tooltip_prefix()[:-1]} in browser"
-        )
+        self.table.setToolTip(f"Double-click to open {self._get_tooltip_prefix()[:-1]} in browser")
 
         # Configure column widths
         header = self.table.horizontalHeader()
@@ -368,9 +364,7 @@ class CreatePullRequestDialog(QDialog):
 
         # Base branch field
         self.base_input = QLineEdit(self.base_branch)
-        self.base_input.setToolTip(
-            "Target branch for merging (usually 'main' or 'master')"
-        )
+        self.base_input.setToolTip("Target branch for merging (usually 'main' or 'master')")
         form_layout.addRow("Base branch:", self.base_input)
 
         # Head branch field (current branch)
@@ -399,9 +393,7 @@ class CreatePullRequestDialog(QDialog):
 
         # Draft PR checkbox
         self.draft_checkbox = QCheckBox("Create as draft PR")
-        self.draft_checkbox.setToolTip(
-            "Draft PRs can't be merged until marked as ready for review"
-        )
+        self.draft_checkbox.setToolTip("Draft PRs can't be merged until marked as ready for review")
         layout.addWidget(self.draft_checkbox)
 
         # Required field note
@@ -528,9 +520,7 @@ class PullRequestListDialog(BaseListDialog):
         # Filter by selected state
         state_filter = self.state_filter.currentText().lower()
         filtered_prs = [
-            pr
-            for pr in self.pr_data
-            if state_filter == "all" or pr.get("state", "").lower() == state_filter
+            pr for pr in self.pr_data if state_filter == "all" or pr.get("state", "").lower() == state_filter
         ]
 
         self.table.setRowCount(len(filtered_prs))
@@ -546,11 +536,7 @@ class PullRequestListDialog(BaseListDialog):
 
             # Author
             author = pr.get("author", {})
-            author_name = (
-                author.get("login", "Unknown")
-                if isinstance(author, dict)
-                else str(author)
-            )
+            author_name = author.get("login", "Unknown") if isinstance(author, dict) else str(author)
             author_item = QTableWidgetItem(author_name)
             self.table.setItem(row, 2, author_item)
 
@@ -782,11 +768,7 @@ class IssueListDialog(BaseListDialog):
 
             # Author
             author = issue.get("author", {})
-            author_name = (
-                author.get("login", "Unknown")
-                if isinstance(author, dict)
-                else str(author)
-            )
+            author_name = author.get("login", "Unknown") if isinstance(author, dict) else str(author)
             author_item = QTableWidgetItem(author_name)
             self.table.setItem(row, 2, author_item)
 

@@ -339,9 +339,7 @@ def log_optimization_status() -> None:
     if info.is_apple_silicon:
         logger.info(f"✓ Apple Silicon: {info.chip_name}")
         logger.info(f"  Unified Memory: {info.unified_memory_gb} GB")
-        logger.info(
-            f"  CPU Cores: {info.performance_cores} Performance + {info.efficiency_cores} Efficiency"
-        )
+        logger.info(f"  CPU Cores: {info.performance_cores} Performance + {info.efficiency_cores} Efficiency")
         logger.info(f"  GPU Cores: {info.gpu_cores}")
         logger.info(f"  Neural Engine: {info.neural_engine_cores} cores")
         logger.info(f"  Metal: {info.metal_feature_set or 'Supported'}")

@@ -94,9 +94,7 @@ class TelemetryOptInDialog(QDialog):
         layout.setSpacing(15)
 
         # Header
-        header = QLabel(
-            "<h2>Help Improve AsciiDoc Artisan</h2><p>We would like your help to improve this app.</p>"
-        )
+        header = QLabel("<h2>Help Improve AsciiDoc Artisan</h2><p>We would like your help to improve this app.</p>")
         header.setWordWrap(True)
         layout.addWidget(header)
 

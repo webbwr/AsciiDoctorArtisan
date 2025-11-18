@@ -148,16 +148,12 @@ class PreviewWorker(QObject):
 
                 # Initialize incremental renderer if available
                 if INCREMENTAL_RENDERER_AVAILABLE and IncrementalPreviewRenderer:  # type: ignore[truthy-function]
-                    self._incremental_renderer = IncrementalPreviewRenderer(
-                        self._asciidoc_api
-                    )
+                    self._incremental_renderer = IncrementalPreviewRenderer(self._asciidoc_api)
                     logger.debug("PreviewWorker: Incremental renderer initialized")
 
                     # Initialize predictive renderer if available (v1.6.0)
                     if PREDICTIVE_RENDERER_AVAILABLE and PredictivePreviewRenderer:  # type: ignore[truthy-function]
-                        self._predictive_renderer = PredictivePreviewRenderer(
-                            self._incremental_renderer
-                        )
+                        self._predictive_renderer = PredictivePreviewRenderer(self._incremental_renderer)
                         logger.debug("PreviewWorker: Predictive renderer initialized")
 
                 logger.debug("PreviewWorker: AsciiDoc API initialized")
@@ -165,9 +161,7 @@ class PreviewWorker(QObject):
                 # Emit ready signal to indicate worker is fully initialized
                 self.ready.emit()
             except Exception as exc:
-                logger.error(
-                    f"PreviewWorker: AsciiDoc API initialization failed: {exc}"
-                )
+                logger.error(f"PreviewWorker: AsciiDoc API initialization failed: {exc}")
                 # Emit ready signal even on error so app doesn't hang waiting
                 self.ready.emit()
 
@@ -213,9 +207,7 @@ class PreviewWorker(QObject):
             # Use incremental renderer if available and enabled
             # Lowered threshold from 1000 to 300 for 3-5x speedup on more documents
             if (
-                self._use_incremental
-                and self._incremental_renderer is not None
-                and len(source_text) > 300
+                self._use_incremental and self._incremental_renderer is not None and len(source_text) > 300
             ):  # Aggressive threshold for maximum performance
                 render_type = "incremental"
                 html_body = self._incremental_renderer.render(source_text)
@@ -238,9 +230,7 @@ class PreviewWorker(QObject):
 
         except Exception as exc:
             # Render error as HTML for display in preview pane
-            error_html = (
-                f"<div style='color:red'>Render Error: {html.escape(str(exc))}</div>"
-            )
+            error_html = f"<div style='color:red'>Render Error: {html.escape(str(exc))}</div>"
             logger.error(f"PreviewWorker: Rendering failed: {exc}")
             self.render_error.emit(error_html)
 
@@ -311,13 +301,9 @@ class PreviewWorker(QObject):
                     break
 
             # Request prediction
-            self._predictive_renderer.request_prediction(
-                total_blocks=len(blocks), current_block=current_block_index
-            )
+            self._predictive_renderer.request_prediction(total_blocks=len(blocks), current_block=current_block_index)
 
-            logger.debug(
-                f"Prediction requested: {len(blocks)} blocks, cursor at block {current_block_index}"
-            )
+            logger.debug(f"Prediction requested: {len(blocks)} blocks, cursor at block {current_block_index}")
 
             # Schedule pre-rendering during debounce period
             self._schedule_prerender(blocks)
@@ -374,9 +360,7 @@ class PreviewWorker(QObject):
                 )
 
             if prerendered_count > 0:
-                logger.debug(
-                    f"Pre-rendering complete: {prerendered_count} blocks cached"
-                )
+                logger.debug(f"Pre-rendering complete: {prerendered_count} blocks cached")
 
         except Exception as exc:
             logger.debug(f"Pre-render failed: {exc}")

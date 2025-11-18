@@ -140,9 +140,7 @@ class DialogManager:
             message += "  • pdf (via PDF engine)\n"
             message += "\nNote: Pandoc supports 40+ formats total.\n"
             message += "See https://pandoc.org for complete list."
-            self.editor.status_manager.show_message(
-                "info", "Supported Formats", message
-            )
+            self.editor.status_manager.show_message("info", "Supported Formats", message)
         else:
             self.editor.status_manager.show_message(
                 "warning",
@@ -373,9 +371,7 @@ class DialogManager:
 
         # Add "Open File" button if telemetry file exists
         if telemetry_file and telemetry_file.exists():
-            open_file_button = msg_box.addButton(
-                "Open File", QMessageBox.ButtonRole.ActionRole
-            )
+            open_file_button = msg_box.addButton("Open File", QMessageBox.ButtonRole.ActionRole)
 
             def open_file() -> None:
                 """Open telemetry file in default application."""
@@ -430,9 +426,7 @@ class DialogManager:
                                 )
                                 logger.info("WSL notepad.exe command succeeded")
                             except Exception as wsl_error:
-                                logger.warning(
-                                    f"WSL notepad failed: {wsl_error}, falling back to less"
-                                )
+                                logger.warning(f"WSL notepad failed: {wsl_error}, falling back to less")
                                 # Fall back to less (simple viewer)
                                 subprocess.run(
                                     [
@@ -465,9 +459,7 @@ class DialogManager:
                                 )
 
                     # File opened successfully - no status message needed
-                    logger.info(
-                        f"Successfully opened telemetry file: {telemetry_file.name}"
-                    )
+                    logger.info(f"Successfully opened telemetry file: {telemetry_file.name}")
                 except subprocess.CalledProcessError as e:
                     error_msg = f"Failed to open file: {e}\nStderr: {e.stderr}"
                     logger.error(error_msg)
@@ -477,20 +469,14 @@ class DialogManager:
                         f"Could not open telemetry file:\n{telemetry_file}\n\nError: {e.stderr or str(e)}",
                     )
                 except Exception as e:
-                    error_msg = (
-                        f"Unexpected error opening file: {type(e).__name__}: {e}"
-                    )
+                    error_msg = f"Unexpected error opening file: {type(e).__name__}: {e}"
                     logger.error(error_msg, exc_info=True)
-                    QMessageBox.warning(
-                        self.editor, "Open File Failed", f"Unexpected error:\n{str(e)}"
-                    )
+                    QMessageBox.warning(self.editor, "Open File Failed", f"Unexpected error:\n{str(e)}")
 
             open_file_button.clicked.connect(open_file)
 
         # Add "Change Directory" button
-        change_dir_button = msg_box.addButton(
-            "Change Directory", QMessageBox.ButtonRole.ActionRole
-        )
+        change_dir_button = msg_box.addButton("Change Directory", QMessageBox.ButtonRole.ActionRole)
 
         def change_directory() -> None:
             """Allow user to select a new telemetry directory."""
@@ -539,9 +525,7 @@ class DialogManager:
 
                 # Update telemetry collector
                 self.editor.telemetry_collector.data_dir = new_dir_path
-                self.editor.telemetry_collector.telemetry_file = (
-                    new_dir_path / "telemetry.json"
-                )
+                self.editor.telemetry_collector.telemetry_file = new_dir_path / "telemetry.json"
 
                 logger.info("Telemetry directory changed successfully")
 
@@ -606,9 +590,7 @@ class DialogManager:
 
     def show_app_settings(self) -> None:
         """Show application settings editor dialog."""
-        dialog = SettingsEditorDialog(
-            self.editor._settings, self.editor._settings_manager, self.editor
-        )
+        dialog = SettingsEditorDialog(self.editor._settings, self.editor._settings_manager, self.editor)
         if dialog.exec():
             # Settings are saved automatically in the dialog
             # Just refresh the UI from the updated settings
@@ -645,9 +627,7 @@ class DialogManager:
         # Set font for editor widget.
         editor_font = QFont(settings.editor_font_family, settings.editor_font_size)
         self.editor.editor.setFont(editor_font)
-        logger.debug(
-            f"Applied editor font: {settings.editor_font_family} {settings.editor_font_size}pt"
-        )
+        logger.debug(f"Applied editor font: {settings.editor_font_family} {settings.editor_font_size}pt")
 
         # Set font for preview via CSS injection.
         preview_css = f"""
@@ -659,22 +639,15 @@ class DialogManager:
         if hasattr(self.editor, "preview_handler") and self.editor.preview_handler:
             # Inject CSS into preview widget.
             self.editor.preview_handler.set_custom_css(preview_css)
-            logger.debug(
-                f"Applied preview font: {settings.preview_font_family} {settings.preview_font_size}pt"
-            )
+            logger.debug(f"Applied preview font: {settings.preview_font_family} {settings.preview_font_size}pt")
 
         # Set font for chat panel if AI is enabled.
         if hasattr(self.editor, "chat_manager") and self.editor.chat_manager:
             chat_font = QFont(settings.chat_font_family, settings.chat_font_size)
             # Check if chat panel exists before setting font.
-            if (
-                hasattr(self.editor.chat_manager, "chat_panel")
-                and self.editor.chat_manager.chat_panel
-            ):
+            if hasattr(self.editor.chat_manager, "chat_panel") and self.editor.chat_manager.chat_panel:
                 self.editor.chat_manager.chat_panel.setFont(chat_font)
-                logger.debug(
-                    f"Applied chat font: {settings.chat_font_family} {settings.chat_font_size}pt"
-                )
+                logger.debug(f"Applied chat font: {settings.chat_font_family} {settings.chat_font_size}pt")
 
     def show_message(self, level: str, title: str, text: str) -> None:
         """
@@ -720,9 +693,7 @@ class DialogManager:
             self.editor,
             "Unsaved Changes",
             f"Save changes before {action}?",
-            QMessageBox.StandardButton.Save
-            | QMessageBox.StandardButton.Discard
-            | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
         )
 
         if reply == QMessageBox.StandardButton.Save:

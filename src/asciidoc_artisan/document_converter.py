@@ -130,9 +130,7 @@ class PandocIntegration:
                 )
                 if result.returncode == 0:
                     # Parse format list from stdout.
-                    self.supported_formats[direction] = result.stdout.strip().split(
-                        "\n"
-                    )
+                    self.supported_formats[direction] = result.stdout.strip().split("\n")
             except Exception as e:
                 # Not fatal if we cannot list formats.
                 logger.error(f"Error getting {direction} formats: {e}")
@@ -161,11 +159,7 @@ Arch: sudo pacman -S pandoc
 Or download from https://pandoc.org/installing.html""",
         }
 
-        return (
-            base
-            + instructions.get(system, instructions["Linux"])
-            + "\n\nThen: pip install pypandoc"
-        )
+        return base + instructions.get(system, instructions["Linux"]) + "\n\nThen: pip install pypandoc"
 
     def auto_install_pypandoc(self) -> tuple[bool, str]:
         """
@@ -226,13 +220,9 @@ Or download from https://pandoc.org/installing.html""",
 
             # Detect format from file extension if not specified.
             if not input_format:
-                input_format = self.EXTENSION_MAP.get(
-                    input_file.suffix.lower(), "markdown"
-                )
+                input_format = self.EXTENSION_MAP.get(input_file.suffix.lower(), "markdown")
 
-            logger.info(
-                f"Converting {input_file.name}: {input_format} → {output_format}"
-            )
+            logger.info(f"Converting {input_file.name}: {input_format} → {output_format}")
 
             # DOCX files must be read as binary.
             content = (
@@ -299,9 +289,7 @@ def ensure_pandoc_available() -> tuple[bool, str]:
         )
 
     return is_available, (
-        status
-        if is_available
-        else status + "\n\n" + PandocIntegration.get_installation_instructions()
+        status if is_available else status + "\n\n" + PandocIntegration.get_installation_instructions()
     )
 
 
@@ -362,9 +350,7 @@ class PDFExtractor:
                 if text:
                     # Add separator between pages for clarity.
                     if total_pages > 1:
-                        extracted_text.append(
-                            f"\n// Page {page_num + 1} of {total_pages}\n"
-                        )
+                        extracted_text.append(f"\n// Page {page_num + 1} of {total_pages}\n")
                     extracted_text.append(text)
 
                     # Note: PyMuPDF does not extract tables separately.
@@ -382,9 +368,7 @@ class PDFExtractor:
                 )
 
             full_text = "\n".join(extracted_text)
-            logger.info(
-                f"Successfully extracted {len(full_text)} characters from PDF (PyMuPDF)"
-            )
+            logger.info(f"Successfully extracted {len(full_text)} characters from PDF (PyMuPDF)")
 
             return True, full_text, ""
 

@@ -90,9 +90,7 @@ class SettingsManager:
             else:
                 config_dir = Path.home() / "AppData" / "Roaming" / APP_NAME
         else:
-            config_dir_str = QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.AppConfigLocation
-            )
+            config_dir_str = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppConfigLocation)
             if config_dir_str:
                 config_dir = Path(config_dir_str)
             else:
@@ -124,9 +122,7 @@ class SettingsManager:
             - All other fields: None or False
         """
         if platform.system() == "Windows":
-            docs_path = QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.DocumentsLocation
-            )
+            docs_path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DocumentsLocation)
             last_dir = docs_path or str(Path.home() / "Documents")
         else:
             last_dir = str(Path.home())
@@ -337,18 +333,14 @@ class SettingsManager:
 
         # Immediate save (blocking)
         settings_dict = settings.to_dict()
-        if atomic_save_json(
-            self._settings_path, settings_dict, encoding="utf-8", indent=2
-        ):
+        if atomic_save_json(self._settings_path, settings_dict, encoding="utf-8", indent=2):
             logger.info("Settings saved successfully (immediate)")
             return True
         else:
             logger.error(f"Failed to save settings: {self._settings_path}")
             return False
 
-    def restore_ui_settings(
-        self, window: QMainWindow, splitter: QSplitter, settings: Settings
-    ) -> None:
+    def restore_ui_settings(self, window: QMainWindow, splitter: QSplitter, settings: Settings) -> None:
         """
         Restore UI state from settings.
 
@@ -386,9 +378,7 @@ class SettingsManager:
                 else:
                     logger.info(f"Ignoring maximized splitter sizes: {sizes}")
             else:
-                logger.warning(
-                    f"Splitter size mismatch: saved={len(sizes)}, actual={num_panes}"
-                )
+                logger.warning(f"Splitter size mismatch: saved={len(sizes)}, actual={num_panes}")
 
         # Restore font size
         if settings.font_size and settings.font_size != EDITOR_FONT_SIZE:

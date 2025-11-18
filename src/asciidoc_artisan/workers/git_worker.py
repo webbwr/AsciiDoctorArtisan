@@ -183,9 +183,7 @@ class GitWorker(BaseWorker):
                 )
             )
         except FileNotFoundError:
-            error_msg = (
-                "Git command not found. Ensure Git is installed and in system PATH."
-            )
+            error_msg = "Git command not found. Ensure Git is installed and in system PATH."
             logger.error(error_msg)
             self.command_complete.emit(
                 GitResult(
@@ -227,9 +225,7 @@ class GitWorker(BaseWorker):
         stderr_lower = stderr.lower()
 
         if "authentication failed" in stderr_lower:
-            return (
-                "Git Authentication Failed. Check credentials (SSH key/token/helper)."
-            )
+            return "Git Authentication Failed. Check credentials (SSH key/token/helper)."
         elif "not a git repository" in stderr_lower:
             return "Directory is not a Git repository."
         elif "resolve host" in stderr_lower:
@@ -504,21 +500,15 @@ class GitWorker(BaseWorker):
                 return
 
             # Parse file lists from porcelain v2 output
-            branch, modified_files, staged_files, untracked_files = (
-                self._parse_detailed_status_v2(status_result.stdout)
-            )
+            branch, modified_files, staged_files, untracked_files = self._parse_detailed_status_v2(status_result.stdout)
 
             # Get line counts for modified files (working tree changes)
             if modified_files:
-                modified_files = self._add_line_counts(
-                    working_dir, modified_files, staged=False
-                )
+                modified_files = self._add_line_counts(working_dir, modified_files, staged=False)
 
             # Get line counts for staged files (index changes)
             if staged_files:
-                staged_files = self._add_line_counts(
-                    working_dir, staged_files, staged=True
-                )
+                staged_files = self._add_line_counts(working_dir, staged_files, staged=True)
 
             # Emit detailed status
             detailed_status = {

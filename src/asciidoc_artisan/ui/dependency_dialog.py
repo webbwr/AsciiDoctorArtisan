@@ -37,9 +37,7 @@ logger = logging.getLogger(__name__)
 class DependencyValidationDialog(QDialog):
     """Dialog for displaying dependency validation results."""
 
-    def __init__(
-        self, dependencies: list[Dependency], parent: QWidget | None = None
-    ) -> None:
+    def __init__(self, dependencies: list[Dependency], parent: QWidget | None = None) -> None:
         """
         Initialize the dependency validation dialog.
 
@@ -56,8 +54,7 @@ class DependencyValidationDialog(QDialog):
     def _has_critical_issues(self) -> bool:
         """Check if there are critical dependency issues."""
         return any(
-            dep.dep_type == DependencyType.REQUIRED
-            and dep.status != DependencyStatus.INSTALLED
+            dep.dep_type == DependencyType.REQUIRED and dep.status != DependencyStatus.INSTALLED
             for dep in self.dependencies
         )
 
@@ -91,23 +88,19 @@ class DependencyValidationDialog(QDialog):
     def _create_header(self) -> QLabel:
         """Create the header label with summary."""
         total = len(self.dependencies)
-        installed = len(
-            [d for d in self.dependencies if d.status == DependencyStatus.INSTALLED]
-        )
+        installed = len([d for d in self.dependencies if d.status == DependencyStatus.INSTALLED])
         missing_required = len(
             [
                 d
                 for d in self.dependencies
-                if d.dep_type == DependencyType.REQUIRED
-                and d.status != DependencyStatus.INSTALLED
+                if d.dep_type == DependencyType.REQUIRED and d.status != DependencyStatus.INSTALLED
             ]
         )
         missing_optional = len(
             [
                 d
                 for d in self.dependencies
-                if d.dep_type == DependencyType.OPTIONAL
-                and d.status != DependencyStatus.INSTALLED
+                if d.dep_type == DependencyType.OPTIONAL and d.status != DependencyStatus.INSTALLED
             ]
         )
 
@@ -127,9 +120,7 @@ class DependencyValidationDialog(QDialog):
                 f"{missing_optional} optional features are unavailable.</p>"
             )
 
-        header_text += (
-            f"<p><b>Summary:</b> {installed}/{total} dependencies installed</p>"
-        )
+        header_text += f"<p><b>Summary:</b> {installed}/{total} dependencies installed</p>"
 
         header_label.setText(header_text)
         header_label.setTextFormat(Qt.TextFormat.RichText)
@@ -144,12 +135,8 @@ class DependencyValidationDialog(QDialog):
         html = "<html><body style='font-family: monospace;'>"
 
         # Group by type
-        required_deps = [
-            d for d in self.dependencies if d.dep_type == DependencyType.REQUIRED
-        ]
-        optional_deps = [
-            d for d in self.dependencies if d.dep_type == DependencyType.OPTIONAL
-        ]
+        required_deps = [d for d in self.dependencies if d.dep_type == DependencyType.REQUIRED]
+        optional_deps = [d for d in self.dependencies if d.dep_type == DependencyType.OPTIONAL]
 
         # Required dependencies
         if required_deps:
@@ -243,9 +230,7 @@ class DependencyValidationDialog(QDialog):
         return footer_layout
 
 
-def show_dependency_validation(
-    dependencies: list[Dependency], parent: QWidget | None = None
-) -> bool:
+def show_dependency_validation(dependencies: list[Dependency], parent: QWidget | None = None) -> bool:
     """
     Show dependency validation results in a dialog.
 
@@ -270,9 +255,7 @@ def show_dependency_validation(
         return True
 
 
-def show_dependency_summary_message(
-    dependencies: list[Dependency], parent: QWidget | None = None
-) -> None:
+def show_dependency_summary_message(dependencies: list[Dependency], parent: QWidget | None = None) -> None:
     """
     Show a brief summary message box for dependency validation.
 
@@ -281,16 +264,10 @@ def show_dependency_summary_message(
         parent: Parent widget (optional)
     """
     missing_required = [
-        d
-        for d in dependencies
-        if d.dep_type == DependencyType.REQUIRED
-        and d.status != DependencyStatus.INSTALLED
+        d for d in dependencies if d.dep_type == DependencyType.REQUIRED and d.status != DependencyStatus.INSTALLED
     ]
     missing_optional = [
-        d
-        for d in dependencies
-        if d.dep_type == DependencyType.OPTIONAL
-        and d.status != DependencyStatus.INSTALLED
+        d for d in dependencies if d.dep_type == DependencyType.OPTIONAL and d.status != DependencyStatus.INSTALLED
     ]
 
     if missing_required:
@@ -310,9 +287,7 @@ def show_dependency_summary_message(
                 details += f"\n  {dep.install_instructions.split(chr(10))[0]}"
 
         msg_box.setDetailedText(details)
-        msg_box.setStandardButtons(
-            QMessageBox.StandardButton.Ignore | QMessageBox.StandardButton.Abort
-        )
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Ignore | QMessageBox.StandardButton.Abort)
         msg_box.setDefaultButton(QMessageBox.StandardButton.Abort)
 
         result = msg_box.exec()
@@ -323,6 +298,4 @@ def show_dependency_summary_message(
 
     elif missing_optional and len(missing_optional) > 0:
         # Warning: Some optional features unavailable
-        logger.info(
-            f"{len(missing_optional)} optional dependencies missing - some features will be unavailable"
-        )
+        logger.info(f"{len(missing_optional)} optional dependencies missing - some features will be unavailable")

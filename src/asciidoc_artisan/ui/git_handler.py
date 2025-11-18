@@ -29,13 +29,9 @@ class GitHandler(BaseVCSHandler):
 
     # Signals
     git_operation_started = Signal(str)  # Emitted when Git operation starts
-    git_operation_completed = Signal(
-        bool, str
-    )  # Emitted when operation completes (success, message)
+    git_operation_completed = Signal(bool, str)  # Emitted when operation completes (success, message)
 
-    def __init__(
-        self, parent_window: Any, settings_manager: Any, status_manager: Any
-    ) -> None:
+    def __init__(self, parent_window: Any, settings_manager: Any, status_manager: Any) -> None:
         """
         Initialize GitHandler.
 
@@ -88,11 +84,7 @@ class GitHandler(BaseVCSHandler):
     def select_repository(self) -> None:
         """Select a Git repository via file dialog."""
         settings = self.settings_manager.load_settings()
-        start_dir = (
-            settings.git_repo_path
-            if hasattr(settings, "git_repo_path")
-            else settings.last_directory
-        )
+        start_dir = settings.git_repo_path if hasattr(settings, "git_repo_path") else settings.last_directory
 
         dir_path = QFileDialog.getExistingDirectory(
             self.window,
@@ -139,9 +131,7 @@ class GitHandler(BaseVCSHandler):
                     return
 
         # Get commit message from user
-        message, ok = QInputDialog.getMultiLineText(
-            self.window, "Commit Message", "Enter commit message:", ""
-        )
+        message, ok = QInputDialog.getMultiLineText(self.window, "Commit Message", "Enter commit message:", "")
 
         if not ok or not message.strip():
             return
@@ -236,9 +226,7 @@ class GitHandler(BaseVCSHandler):
         if not message or not message.strip():  # pragma: no cover
             logger.warning("Quick commit cancelled: empty message")
             if hasattr(self.window, "status_manager"):
-                self.window.status_manager.show_status(
-                    "Commit cancelled: empty message", 2000
-                )
+                self.window.status_manager.show_status("Commit cancelled: empty message", 2000)
             return
 
         # Start commit operation
@@ -274,9 +262,7 @@ class GitHandler(BaseVCSHandler):
         if self.last_operation == "commit" and result.success:
             # Stage was successful, now do the actual commit
             settings = self.settings_manager.load_settings()
-            repo_path = (
-                settings.git_repo_path if hasattr(settings, "git_repo_path") else ""
-            )
+            repo_path = settings.git_repo_path if hasattr(settings, "git_repo_path") else ""
 
             if hasattr(self.window, "request_git_command"):
                 self.window.request_git_command.emit(
@@ -296,9 +282,7 @@ class GitHandler(BaseVCSHandler):
             self.status_manager.show_message("info", "Success", result.user_message)
             logger.info(f"Git {self.last_operation} succeeded: {result.user_message}")
         else:
-            self.status_manager.show_message(
-                "critical", "Git Error", result.user_message
-            )
+            self.status_manager.show_message("critical", "Git Error", result.user_message)
             logger.error(f"Git {self.last_operation} failed: {result.user_message}")
 
         # Emit our signal
@@ -319,9 +303,7 @@ class GitHandler(BaseVCSHandler):
 
         # Check if repository is set
         if not hasattr(settings, "git_repo_path") or not settings.git_repo_path:
-            self.status_manager.show_message(
-                "info", "No Repository", "Please set a Git repository first."
-            )
+            self.status_manager.show_message("info", "No Repository", "Please set a Git repository first.")
             return False
 
         return True

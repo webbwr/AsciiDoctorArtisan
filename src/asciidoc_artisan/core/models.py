@@ -63,9 +63,7 @@ class GitResult(BaseModel):
     success: bool = Field(..., description="True if operation succeeded")
     stdout: str = Field(default="", description="Standard output from Git command")
     stderr: str = Field(default="", description="Standard error from Git command")
-    exit_code: int | None = Field(
-        default=None, description="Process exit code (-1 for errors/cancelled)"
-    )
+    exit_code: int | None = Field(default=None, description="Process exit code (-1 for errors/cancelled)")
     user_message: str = Field(..., description="Human-readable status message")
 
     @field_validator("user_message")
@@ -139,9 +137,7 @@ class GitStatus(BaseModel):
     has_conflicts: bool = Field(default=False, description="Whether conflicts exist")
     ahead_count: int = Field(default=0, description="Commits ahead of remote")
     behind_count: int = Field(default=0, description="Commits behind remote")
-    is_dirty: bool = Field(
-        default=False, description="Whether working tree has uncommitted changes"
-    )
+    is_dirty: bool = Field(default=False, description="Whether working tree has uncommitted changes")
 
     @field_validator(
         "modified_count",
@@ -244,9 +240,7 @@ class GitHubResult(BaseModel):
             "unknown",
         }
         if v not in allowed_operations:
-            raise ValueError(
-                f"Unknown operation: {v}. Must be one of {allowed_operations}"
-            )
+            raise ValueError(f"Unknown operation: {v}. Must be one of {allowed_operations}")
         return v
 
     model_config = {
@@ -303,12 +297,8 @@ class ChatMessage(BaseModel):
     role: str = Field(..., description='Message sender: "user" or "assistant"')
     content: str = Field(..., description="Message text content")
     timestamp: float = Field(..., description="Unix timestamp when message was created")
-    model: str = Field(
-        ..., description="Ollama model name (e.g., gnokit/improve-grammer)"
-    )
-    context_mode: str = Field(
-        ..., description='Context mode: "document", "syntax", "general", or "editing"'
-    )
+    model: str = Field(..., description="Ollama model name (e.g., gnokit/improve-grammer)")
+    context_mode: str = Field(..., description='Context mode: "document", "syntax", "general", or "editing"')
 
     @field_validator("role")
     @classmethod
@@ -399,15 +389,9 @@ class CompletionItem(BaseModel):
     kind: CompletionKind = Field(..., description="Completion type")
     detail: str = Field(default="", description="Short description")
     documentation: str = Field(default="", description="Full documentation (markdown)")
-    insert_text: str | None = Field(
-        default=None, description="Text to insert (defaults to text)"
-    )
-    sort_text: str | None = Field(
-        default=None, description="Custom sort key (defaults to text)"
-    )
-    filter_text: str | None = Field(
-        default=None, description="Custom filter key (defaults to text)"
-    )
+    insert_text: str | None = Field(default=None, description="Text to insert (defaults to text)")
+    sort_text: str | None = Field(default=None, description="Custom sort key (defaults to text)")
+    filter_text: str | None = Field(default=None, description="Custom filter key (defaults to text)")
     score: float = Field(default=0.0, description="Ranking score (0-100)")
 
     @field_validator("text", "detail")
@@ -474,12 +458,8 @@ class CompletionContext(BaseModel):
     line_number: int = Field(..., description="Line number (0-indexed)")
     column: int = Field(..., description="Cursor column (0-indexed)")
     prefix: str = Field(..., description="Text before cursor on current line")
-    trigger_char: str | None = Field(
-        default=None, description="Character that triggered completion"
-    )
-    manual: bool = Field(
-        default=False, description="Manually triggered with Ctrl+Space"
-    )
+    trigger_char: str | None = Field(default=None, description="Character that triggered completion")
+    manual: bool = Field(default=False, description="Manually triggered with Ctrl+Space")
 
     @field_validator("line_number", "column")
     @classmethod
@@ -584,9 +564,7 @@ class QuickFix(BaseModel):
     """
 
     title: str = Field(..., description="Fix description")
-    edits: list[TextEdit] = Field(
-        default_factory=list, description="Text edits to apply"
-    )
+    edits: list[TextEdit] = Field(default_factory=list, description="Text edits to apply")
 
     @field_validator("title")
     @classmethod
@@ -644,9 +622,7 @@ class SyntaxErrorModel(BaseModel):
     line: int = Field(..., description="Line number (0-indexed)")
     column: int = Field(..., description="Column number (0-indexed)")
     length: int = Field(..., description="Error span length")
-    fixes: list[QuickFix] = Field(
-        default_factory=list, description="Quick fix suggestions"
-    )
+    fixes: list[QuickFix] = Field(default_factory=list, description="Quick fix suggestions")
 
     @field_validator("code")
     @classmethod
@@ -777,9 +753,7 @@ class Template(BaseModel):
     description: str = Field(..., description="Short description")
     author: str = Field(default="", description="Template author")
     version: str = Field(default="1.0", description="Template version")
-    variables: list[TemplateVariable] = Field(
-        default_factory=list, description="Variable definitions"
-    )
+    variables: list[TemplateVariable] = Field(default_factory=list, description="Variable definitions")
     content: str = Field(default="", description="Template content")
     file_path: str | None = Field(default=None, description="Source file path")
 

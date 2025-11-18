@@ -246,9 +246,7 @@ class SyntaxChecker:
             # If syntax_validators not available, continue with empty rules
             import logging
 
-            logging.warning(
-                "syntax_validators module not found, no built-in rules loaded"
-            )
+            logging.warning("syntax_validators module not found, no built-in rules loaded")
 
     def add_rule(self, rule: ValidationRule) -> None:
         """
@@ -287,9 +285,7 @@ class SyntaxChecker:
         else:
             raise ValueError("Rule not registered")
 
-    def validate(
-        self, document: str, changed_lines: list[int] | None = None
-    ) -> list[SyntaxErrorModel]:
+    def validate(self, document: str, changed_lines: list[int] | None = None) -> list[SyntaxErrorModel]:
         """
         Validate document and return all errors.
 
@@ -343,9 +339,7 @@ class SyntaxChecker:
 
         return all_errors
 
-    def validate_incremental(
-        self, document: str, changed_lines: list[int]
-    ) -> list[SyntaxErrorModel]:
+    def validate_incremental(self, document: str, changed_lines: list[int]) -> list[SyntaxErrorModel]:
         """
         Validate only changed lines (incremental validation).
 

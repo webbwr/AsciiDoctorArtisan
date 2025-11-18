@@ -25,9 +25,7 @@ from . import json_utils
 logger = logging.getLogger(__name__)
 
 
-def sanitize_path(
-    path_input: str | Path, allowed_base: Path | None = None
-) -> Path | None:
+def sanitize_path(path_input: str | Path, allowed_base: Path | None = None) -> Path | None:
     """
     Sanitize file path to prevent directory traversal attacks.
 
@@ -66,9 +64,7 @@ def sanitize_path(
         # Previously, resolve() eliminated '..' before we could detect it
         path_obj = Path(path_input)
         if ".." in path_obj.parts:
-            logger.warning(
-                f"Path sanitization blocked suspicious path (contains '..'): {path_input}"
-            )
+            logger.warning(f"Path sanitization blocked suspicious path (contains '..'): {path_input}")
             return None
 
         # Now resolve to absolute path (eliminate symlinks, relative components)
@@ -148,9 +144,7 @@ def atomic_save_text(file_path: Path, content: str, encoding: str = "utf-8") -> 
         return False
 
 
-def atomic_save_json(
-    file_path: Path, data: dict[str, Any], encoding: str = "utf-8", indent: int = 2
-) -> bool:
+def atomic_save_json(file_path: Path, data: dict[str, Any], encoding: str = "utf-8", indent: int = 2) -> bool:
     """
     Atomically save JSON data to file using temp file + rename pattern.
 

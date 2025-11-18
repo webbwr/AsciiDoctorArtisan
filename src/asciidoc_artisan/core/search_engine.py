@@ -239,9 +239,7 @@ class SearchEngine:
             raise ValueError("Search text cannot be empty")
 
         try:
-            pattern = self._create_pattern(
-                search_text, case_sensitive, whole_word, use_regex
-            )
+            pattern = self._create_pattern(search_text, case_sensitive, whole_word, use_regex)
         except re.error as e:
             logger.error(f"Invalid regex pattern: {search_text} - {e}")
             raise
@@ -309,9 +307,7 @@ class SearchEngine:
             raise ValueError("Search text cannot be empty")
 
         try:
-            pattern = self._create_pattern(
-                search_text, case_sensitive, whole_word, use_regex
-            )
+            pattern = self._create_pattern(search_text, case_sensitive, whole_word, use_regex)
         except re.error as e:
             logger.error(f"Invalid regex pattern: {search_text} - {e}")
             raise
@@ -366,9 +362,7 @@ class SearchEngine:
             raise ValueError("Search text cannot be empty")
 
         try:
-            pattern = self._create_pattern(
-                search_text, case_sensitive, whole_word, use_regex
-            )
+            pattern = self._create_pattern(search_text, case_sensitive, whole_word, use_regex)
         except re.error as e:
             logger.error(f"Invalid regex pattern: {search_text} - {e}")
             raise
@@ -436,9 +430,7 @@ class SearchEngine:
             raise ValueError("Search text cannot be empty")
 
         try:
-            pattern = self._create_pattern(
-                search_text, case_sensitive, whole_word, use_regex
-            )
+            pattern = self._create_pattern(search_text, case_sensitive, whole_word, use_regex)
         except re.error as e:
             logger.error(f"Invalid regex pattern: {search_text} - {e}")
             raise
@@ -446,8 +438,6 @@ class SearchEngine:
         # Use regex sub to replace all occurrences
         new_text, count = pattern.subn(replace_text, self._text)
 
-        logger.info(
-            f"Replaced {count} occurrences of '{search_text}' with '{replace_text}'"
-        )
+        logger.info(f"Replaced {count} occurrences of '{search_text}' with '{replace_text}'")
 
         return (new_text, count)

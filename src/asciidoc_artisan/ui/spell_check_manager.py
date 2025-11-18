@@ -83,9 +83,7 @@ class SpellCheckManager:
         if self.enabled:
             self._perform_spell_check()
 
-        logger.info(
-            f"SpellCheckManager initialized (enabled={self.enabled}, language={language})"
-        )
+        logger.info(f"SpellCheckManager initialized (enabled={self.enabled}, language={language})")
 
     def toggle_spell_check(self) -> None:
         """Toggle spell checking on/off (F7)."""
@@ -98,9 +96,7 @@ class SpellCheckManager:
         if self.enabled:
             # Perform immediate spell check
             self._perform_spell_check()
-            self.main_window.status_manager.show_message(
-                "info", "Spell Check", "Spell check enabled"
-            )
+            self.main_window.status_manager.show_message("info", "Spell Check", "Spell check enabled")
             logger.info("Spell check enabled")
         else:
             # Stop any pending spell check
@@ -108,9 +104,7 @@ class SpellCheckManager:
             # Clear all highlights
             self._clear_highlights()
             self.errors = []
-            self.main_window.status_manager.show_message(
-                "info", "Spell Check", "Spell check disabled"
-            )
+            self.main_window.status_manager.show_message("info", "Spell Check", "Spell check disabled")
             logger.info("Spell check disabled")
 
     def _update_menu_text(self) -> None:
@@ -208,11 +202,7 @@ class SpellCheckManager:
         if suggestions:
             for suggestion in suggestions:
                 action = QAction(suggestion, menu)
-                action.triggered.connect(
-                    lambda checked=False, s=suggestion, c=cursor: self._replace_word(
-                        c, s
-                    )
-                )
+                action.triggered.connect(lambda checked=False, s=suggestion, c=cursor: self._replace_word(c, s))
                 font = action.font()
                 font.setBold(True)
                 action.setFont(font)
@@ -271,9 +261,7 @@ class SpellCheckManager:
         logger.info(f"Spell check complete: {len(self.errors)} errors found")
         if self.errors:
             for error in self.errors[:5]:  # Log first 5 errors
-                logger.debug(
-                    f"  Error: '{error.word}' at position {error.start}-{error.end}"
-                )
+                logger.debug(f"  Error: '{error.word}' at position {error.start}-{error.end}")
 
     def _update_highlights(self) -> None:
         """Update red squiggly underlines for all spelling errors."""

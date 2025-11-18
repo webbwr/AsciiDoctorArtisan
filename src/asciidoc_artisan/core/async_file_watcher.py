@@ -263,9 +263,9 @@ class AsyncFileWatcher(QObject):
                 current_size = stat.st_size
 
                 # Check if modified (mtime or size changed)
-                if (
-                    self._last_mtime is not None and current_mtime != self._last_mtime
-                ) or (self._last_size is not None and current_size != self._last_size):
+                if (self._last_mtime is not None and current_mtime != self._last_mtime) or (
+                    self._last_size is not None and current_size != self._last_size
+                ):
                     if self._should_notify(current_time):
                         logger.info(f"File modified: {self._file_path}")
                         self.file_modified.emit(self._file_path)
@@ -319,9 +319,7 @@ class AsyncFileWatcher(QObject):
             self._last_change_time = current_time
 
             # Faster polling for active files (min 0.1s)
-            self.poll_interval = max(
-                self.min_poll_interval, self.base_poll_interval / 2
-            )
+            self.poll_interval = max(self.min_poll_interval, self.base_poll_interval / 2)
 
             logger.debug(
                 f"Active file detected (streak={self._activity_streak}), poll interval: {self.poll_interval:.2f}s"
@@ -336,9 +334,7 @@ class AsyncFileWatcher(QObject):
 
                 # Exponential backoff: 1.0s → 2.0s → 4.0s → 5.0s (capped)
                 backoff_multiplier = min(2**self._idle_count, 5)
-                self.poll_interval = min(
-                    self.base_poll_interval * backoff_multiplier, self.max_poll_interval
-                )
+                self.poll_interval = min(self.base_poll_interval * backoff_multiplier, self.max_poll_interval)
 
                 if self._idle_count <= 3:  # Only log first few backoffs
                     logger.debug(

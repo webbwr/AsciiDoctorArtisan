@@ -147,9 +147,7 @@ class PandocWorker(QObject):
 
             # Try Ollama conversion
             try:
-                ollama_result = self._try_ollama_conversion(
-                    source_content, from_format, to_format
-                )
+                ollama_result = self._try_ollama_conversion(source_content, from_format, to_format)
 
                 if ollama_result:
                     # Ollama conversion succeeded
@@ -160,9 +158,7 @@ class PandocWorker(QObject):
                     if output_file and to_format in ["pdf", "docx"]:
                         # For binary formats, save the text and convert with Pandoc
                         # (Ollama can't directly create PDF/DOCX binaries)
-                        logger.info(
-                            f"Ollama produced {to_format} markup, using Pandoc for binary output"
-                        )
+                        logger.info(f"Ollama produced {to_format} markup, using Pandoc for binary output")
                         # Continue to Pandoc with Ollama's result as source
                         return None, ollama_result, "ollama_pandoc"
                     else:
@@ -171,16 +167,12 @@ class PandocWorker(QObject):
                         if METRICS_AVAILABLE:
                             duration_ms = (time.perf_counter() - start_time) * 1000
                             metrics = get_metrics_collector()
-                            metrics.record_operation(
-                                f"conversion_{conversion_method}", duration_ms
-                            )
+                            metrics.record_operation(f"conversion_{conversion_method}", duration_ms)
 
                         return ollama_result, source, conversion_method
 
                 else:
-                    logger.warning(
-                        "Ollama conversion returned no result, falling back to Pandoc"
-                    )
+                    logger.warning("Ollama conversion returned no result, falling back to Pandoc")
 
             except Exception as e:
                 logger.warning(f"Ollama conversion failed, falling back to Pandoc: {e}")
@@ -233,9 +225,7 @@ class PandocWorker(QObject):
                 continue
 
         # No PDF engine available - this should not happen in production
-        logger.error(
-            "No PDF engine found. Install wkhtmltopdf, weasyprint, or pdflatex."
-        )
+        logger.error("No PDF engine found. Install wkhtmltopdf, weasyprint, or pdflatex.")
         raise RuntimeError(
             "PDF conversion requires a PDF engine. Install wkhtmltopdf: sudo apt-get install wkhtmltopdf"
         )
@@ -351,9 +341,7 @@ class PandocWorker(QObject):
                 # Binary content (like DOCX) - save to temp file and use convert_file
                 import tempfile
 
-                with tempfile.NamedTemporaryFile(
-                    delete=False, suffix=f".{from_format}"
-                ) as tmp:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{from_format}") as tmp:
                     tmp.write(source)
                     tmp_path = tmp.name
                 try:
@@ -452,9 +440,7 @@ class PandocWorker(QObject):
             extra_args = self._build_pandoc_args(from_format, to_format)
 
             # Execute Pandoc conversion
-            result_text = self._execute_pandoc_conversion(
-                source, to_format, from_format, output_file, extra_args
-            )
+            result_text = self._execute_pandoc_conversion(source, to_format, from_format, output_file, extra_args)
 
             # Record metrics
             if METRICS_AVAILABLE:
@@ -510,9 +496,7 @@ class PandocWorker(QObject):
 
         return text
 
-    def _try_ollama_conversion(
-        self, source: str, from_format: str, to_format: str
-    ) -> str | None:
+    def _try_ollama_conversion(self, source: str, from_format: str, to_format: str) -> str | None:
         """
         Attempt document conversion using Ollama AI.
 
@@ -534,9 +518,7 @@ class PandocWorker(QObject):
         try:
             import ollama
 
-            logger.info(
-                f"Attempting Ollama AI conversion: {from_format} -> {to_format} using {self.ollama_model}"
-            )
+            logger.info(f"Attempting Ollama AI conversion: {from_format} -> {to_format} using {self.ollama_model}")
             self.progress_update.emit(f"Converting with AI ({self.ollama_model})...")
 
             # Create conversion prompt
@@ -552,10 +534,7 @@ class PandocWorker(QObject):
                 )
             except Exception as timeout_err:
                 # Catch any timeout or connection errors
-                if (
-                    "timeout" in str(timeout_err).lower()
-                    or "timed out" in str(timeout_err).lower()
-                ):
+                if "timeout" in str(timeout_err).lower() or "timed out" in str(timeout_err).lower():
                     logger.warning(f"Ollama API call timed out: {timeout_err}")
                     return None
                 raise  # Re-raise if not a timeout error
@@ -571,9 +550,7 @@ class PandocWorker(QObject):
                 logger.warning("Ollama conversion produced insufficient output")
                 return None
 
-            logger.info(
-                f"Ollama conversion successful ({len(converted_text)} characters)"
-            )
+            logger.info(f"Ollama conversion successful ({len(converted_text)} characters)")
             return converted_text  # type: ignore[no-any-return]  # ollama returns Any
 
         except ImportError:
@@ -583,9 +560,7 @@ class PandocWorker(QObject):
             logger.error(f"Ollama conversion failed: {e}")
             return None
 
-    def _create_conversion_prompt(
-        self, source: str, from_format: str, to_format: str
-    ) -> str:
+    def _create_conversion_prompt(self, source: str, from_format: str, to_format: str) -> str:
         """
         Create a prompt for Ollama to convert between document formats.
 

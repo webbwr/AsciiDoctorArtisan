@@ -282,14 +282,10 @@ class SyntaxProvider:
             ),
         ]
 
-    def _get_heading_completions(
-        self, context: CompletionContext
-    ) -> list[CompletionItem]:
+    def _get_heading_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """Get heading-specific completions based on level."""
         level = len(context.line) - len(context.line.lstrip("="))
-        heading_items = [
-            item for item in self.completions if item.text.startswith("=" * level + " ")
-        ]
+        heading_items = [item for item in self.completions if item.text.startswith("=" * level + " ")]
         return heading_items if heading_items else self.completions
 
     def _get_block_completions(self) -> list[CompletionItem]:
@@ -299,9 +295,7 @@ class SyntaxProvider:
     def _get_list_completions(self) -> list[CompletionItem]:
         """Get list-specific completions."""
         return [
-            item
-            for item in self.completions
-            if item.text.startswith(("*", "-", ".")) and "list" in item.detail.lower()
+            item for item in self.completions if item.text.startswith(("*", "-", ".")) and "list" in item.detail.lower()
         ]
 
 
@@ -481,14 +475,8 @@ class IncludeProvider:
         Args:
             current_file_path: Path to current document (for relative paths)
         """
-        self.current_file_path = (
-            Path(current_file_path) if current_file_path else Path.cwd()
-        )
-        self.base_dir = (
-            self.current_file_path.parent
-            if self.current_file_path.is_file()
-            else self.current_file_path
-        )
+        self.current_file_path = Path(current_file_path) if current_file_path else Path.cwd()
+        self.base_dir = self.current_file_path.parent if self.current_file_path.is_file() else self.current_file_path
 
     def get_completions(self, context: CompletionContext) -> list[CompletionItem]:
         """

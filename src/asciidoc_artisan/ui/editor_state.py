@@ -68,23 +68,17 @@ class EditorState:
         self.editor.setFont(font)
 
         # Preview zoom only works with GPU widget.
-        if hasattr(self.preview, "zoomFactor") and hasattr(
-            self.preview, "setZoomFactor"
-        ):
+        if hasattr(self.preview, "zoomFactor") and hasattr(self.preview, "setZoomFactor"):
             current_zoom = self.preview.zoomFactor()
             # Scale delta to zoom factor range.
             zoom_delta = 0.1 * delta
             # Clamp zoom between 25% and 500%.
             new_zoom = max(0.25, min(5.0, current_zoom + zoom_delta))
             self.preview.setZoomFactor(new_zoom)
-            logger.debug(
-                f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}"
-            )
+            logger.debug(f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}")
         else:
             # Software renderer cannot zoom.
-            logger.debug(
-                f"Zoom changed: {delta}, new size: {new_size} (preview zoom not supported)"
-            )
+            logger.debug(f"Zoom changed: {delta}, new size: {new_size} (preview zoom not supported)")
 
     def toggle_dark_mode(self) -> None:
         """Toggle dark mode on/off - syncs View menu checkbox."""
@@ -151,26 +145,16 @@ class EditorState:
         # Detect if chat pane is part of the layout.
         has_chat = len(self.splitter.sizes()) == 3
         # Check if chat is both present and visible.
-        chat_visible = (
-            has_chat
-            and hasattr(self.window, "chat_container")
-            and self.window.chat_container.isVisible()
-        )
+        chat_visible = has_chat and hasattr(self.window, "chat_container") and self.window.chat_container.isVisible()
 
         if pane == "editor":
             # Maximize editor and hide preview.
             if has_chat:
                 if chat_visible:
                     # Preserve chat size from saved state.
-                    chat_size = (
-                        self.saved_splitter_sizes[2]
-                        if self.saved_splitter_sizes
-                        else 200
-                    )
+                    chat_size = self.saved_splitter_sizes[2] if self.saved_splitter_sizes else 200
                     # Give all space to editor except chat.
-                    self.splitter.setSizes(
-                        [self.splitter.width() - chat_size, 0, chat_size]
-                    )
+                    self.splitter.setSizes([self.splitter.width() - chat_size, 0, chat_size])
                 else:
                     # Chat exists but hidden so collapse both preview and chat.
                     self.splitter.setSizes([self.splitter.width(), 0, 0])
@@ -192,15 +176,9 @@ class EditorState:
             if has_chat:
                 if chat_visible:
                     # Preserve chat size from saved state.
-                    chat_size = (
-                        self.saved_splitter_sizes[2]
-                        if self.saved_splitter_sizes
-                        else 200
-                    )
+                    chat_size = self.saved_splitter_sizes[2] if self.saved_splitter_sizes else 200
                     # Give all space to preview except chat.
-                    self.splitter.setSizes(
-                        [0, self.splitter.width() - chat_size, chat_size]
-                    )
+                    self.splitter.setSizes([0, self.splitter.width() - chat_size, chat_size])
                 else:
                     # Chat exists but hidden so collapse both editor and chat.
                     self.splitter.setSizes([0, self.splitter.width(), 0])
@@ -225,11 +203,7 @@ class EditorState:
         """Restore panes to their previous sizes, preserving chat visibility."""
         # Detect current layout configuration.
         has_chat = len(self.splitter.sizes()) == 3
-        chat_visible = (
-            has_chat
-            and hasattr(self.window, "chat_container")
-            and self.window.chat_container.isVisible()
-        )
+        chat_visible = has_chat and hasattr(self.window, "chat_container") and self.window.chat_container.isVisible()
 
         if self.saved_splitter_sizes:
             # Try to restore to sizes before maximize.
@@ -244,9 +218,7 @@ class EditorState:
                     width = self.splitter.width()
                     if chat_visible:
                         # Split: 40% editor, 40% preview, 20% chat.
-                        self.splitter.setSizes(
-                            [int(width * 0.4), int(width * 0.4), int(width * 0.2)]
-                        )
+                        self.splitter.setSizes([int(width * 0.4), int(width * 0.4), int(width * 0.2)])
                     else:  # pragma: no cover
                         # Chat hidden so split 50/50 editor and preview.
                         self.splitter.setSizes([width // 2, width // 2, 0])
@@ -304,9 +276,7 @@ class EditorState:
         if has_chat:
             if chat_visible:
                 # Three pane: 40% editor, 40% preview, 20% chat.
-                self.splitter.setSizes(
-                    [int(width * 0.4), int(width * 0.4), int(width * 0.2)]
-                )
+                self.splitter.setSizes([int(width * 0.4), int(width * 0.4), int(width * 0.2)])
             else:
                 # Three pane but chat hidden: 50/50 with zero for chat.
                 self.splitter.setSizes([width // 2, width // 2, 0])

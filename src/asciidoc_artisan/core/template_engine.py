@@ -156,9 +156,7 @@ class TemplateEngine:
         for var_def in template.variables:
             if var_def.name not in all_vars and var_def.default:
                 # Resolve default value (may contain built-in vars)
-                default_value = self._substitute_variables(
-                    var_def.default, all_vars, allow_missing=True
-                )
+                default_value = self._substitute_variables(var_def.default, all_vars, allow_missing=True)
                 all_vars[var_def.name] = default_value
 
         # Render template
@@ -175,9 +173,7 @@ class TemplateEngine:
 
         return rendered
 
-    def _substitute_variables(
-        self, text: str, variables: dict[str, Any], allow_missing: bool = False
-    ) -> str:
+    def _substitute_variables(self, text: str, variables: dict[str, Any], allow_missing: bool = False) -> str:
         """
         Replace {{var}} and {{var:default}} with values.
 
@@ -393,9 +389,7 @@ class TemplateEngine:
         try:
             import yaml
         except ImportError:
-            raise ImportError(
-                "PyYAML is required for template parsing. Install with: pip install pyyaml"
-            )
+            raise ImportError("PyYAML is required for template parsing. Install with: pip install pyyaml")
 
         # Read file
         try:
@@ -434,14 +428,8 @@ class TemplateEngine:
         category = metadata.get("category")
         description = metadata.get("description")
 
-        if (
-            not isinstance(name, str)
-            or not isinstance(category, str)
-            or not isinstance(description, str)
-        ):
-            raise ValueError(
-                "Template must have name, category, and description as strings"
-            )
+        if not isinstance(name, str) or not isinstance(category, str) or not isinstance(description, str):
+            raise ValueError("Template must have name, category, and description as strings")
 
         if not all([name, category, description]):
             raise ValueError("Template must have name, category, and description")
@@ -521,23 +509,17 @@ class TemplateEngine:
                 continue
 
             if var_name not in defined_vars:
-                warnings.append(
-                    f"Variable '{var_name}' used in template but not defined"
-                )
+                warnings.append(f"Variable '{var_name}' used in template but not defined")
 
         # Check for malformed conditionals
         if_count = len(re.findall(r"\{\{#if\s+\w+\}\}", template.content))
         endif_count = len(re.findall(r"\{\{/if\}\}", template.content))
         if if_count != endif_count:
-            warnings.append(
-                f"Mismatched {{{{#if}}}} tags: {if_count} opening, {endif_count} closing"
-            )
+            warnings.append(f"Mismatched {{{{#if}}}} tags: {if_count} opening, {endif_count} closing")
 
         unless_count = len(re.findall(r"\{\{#unless\s+\w+\}\}", template.content))
         endunless_count = len(re.findall(r"\{\{/unless\}\}", template.content))
         if unless_count != endunless_count:
-            warnings.append(
-                f"Mismatched {{{{#unless}}}} tags: {unless_count} opening, {endunless_count} closing"
-            )
+            warnings.append(f"Mismatched {{{{#unless}}}} tags: {unless_count} opening, {endunless_count} closing")
 
         return warnings

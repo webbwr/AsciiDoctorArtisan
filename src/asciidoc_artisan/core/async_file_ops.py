@@ -69,9 +69,7 @@ def sanitize_path(path_input: str | Path) -> Path | None:
         return None
 
 
-async def async_read_text(
-    file_path: Path, encoding: str = "utf-8", chunk_size: int = 8192
-) -> str | None:
+async def async_read_text(file_path: Path, encoding: str = "utf-8", chunk_size: int = 8192) -> str | None:
     """
     Asynchronously read text file.
 
@@ -147,9 +145,7 @@ async def async_read_text_chunked(
         logger.error(f"Async chunked read failed for {file_path}: {e}")
 
 
-async def async_atomic_save_text(
-    file_path: Path, content: str, encoding: str = "utf-8"
-) -> bool:
+async def async_atomic_save_text(file_path: Path, content: str, encoding: str = "utf-8") -> bool:
     """
     Asynchronously save text with atomic write (temp file + rename).
 
@@ -277,9 +273,7 @@ async def async_atomic_save_json(
         return False
 
 
-async def async_read_json(
-    file_path: Path, encoding: str = "utf-8"
-) -> dict[str, Any] | None:
+async def async_read_json(file_path: Path, encoding: str = "utf-8") -> dict[str, Any] | None:
     """
     Asynchronously read and parse JSON file.
 
@@ -323,9 +317,7 @@ class AsyncFileContext:
         ...     await f.write("Hello, async world!")
     """
 
-    def __init__(
-        self, file_path: Path, mode: str = "r", encoding: str | None = "utf-8"
-    ):
+    def __init__(self, file_path: Path, mode: str = "r", encoding: str | None = "utf-8"):
         """
         Initialize async file context.
 

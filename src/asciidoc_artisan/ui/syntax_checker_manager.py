@@ -206,9 +206,7 @@ class SyntaxCheckerManager(QObject):
 
             # Set format
             selection.format.setUnderlineColor(color)
-            selection.format.setUnderlineStyle(
-                QTextCharFormat.UnderlineStyle.WaveUnderline
-            )
+            selection.format.setUnderlineStyle(QTextCharFormat.UnderlineStyle.WaveUnderline)
 
             # Set cursor position
             cursor = self.editor.textCursor()
@@ -339,9 +337,7 @@ class SyntaxCheckerManager(QObject):
 
         # Find error at cursor position
         for error in self.errors:
-            if error.line == line and error.column <= column < (
-                error.column + error.length
-            ):
+            if error.line == line and error.column <= column < (error.column + error.length):
                 return error
 
         return None

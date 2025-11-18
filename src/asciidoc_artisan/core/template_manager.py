@@ -111,9 +111,7 @@ class TemplateManager:
         try:
             from PySide6.QtCore import QStandardPaths
 
-            config_dir = QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.AppDataLocation
-            )
+            config_dir = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
         except ImportError:
             # Fallback if Qt not available
             config_dir = str(Path.home() / ".config" / "AsciiDocArtisan")

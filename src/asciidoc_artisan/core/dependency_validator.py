@@ -210,9 +210,7 @@ class DependencyValidator:
                 )
             )
 
-            logger.debug(
-                f"✓ Python module '{module_name}' found (version: {version or 'unknown'})"
-            )
+            logger.debug(f"✓ Python module '{module_name}' found (version: {version or 'unknown'})")
 
         except ImportError as e:
             self.dependencies.append(
@@ -262,9 +260,7 @@ class DependencyValidator:
                 )
             )
 
-            logger.debug(
-                f"✓ System binary '{binary_name}' found at {binary_path} (version: {version or 'unknown'})"
-            )
+            logger.debug(f"✓ System binary '{binary_name}' found at {binary_path} (version: {version or 'unknown'})")
 
         else:
             self.dependencies.append(
@@ -344,9 +340,7 @@ class DependencyValidator:
 
         except (ValueError, AttributeError):
             # If we can't parse, assume version is OK
-            logger.debug(
-                f"Could not compare versions: current={current}, minimum={minimum}"
-            )
+            logger.debug(f"Could not compare versions: current={current}, minimum={minimum}")
             return True
 
     def get_missing_required(self) -> list[Dependency]:
@@ -359,8 +353,7 @@ class DependencyValidator:
         return [
             dep
             for dep in self.dependencies
-            if dep.dep_type == DependencyType.REQUIRED
-            and dep.status != DependencyStatus.INSTALLED
+            if dep.dep_type == DependencyType.REQUIRED and dep.status != DependencyStatus.INSTALLED
         ]
 
     def get_missing_optional(self) -> list[Dependency]:
@@ -373,8 +366,7 @@ class DependencyValidator:
         return [
             dep
             for dep in self.dependencies
-            if dep.dep_type == DependencyType.OPTIONAL
-            and dep.status != DependencyStatus.INSTALLED
+            if dep.dep_type == DependencyType.OPTIONAL and dep.status != DependencyStatus.INSTALLED
         ]
 
     def has_critical_issues(self) -> bool:
@@ -394,9 +386,7 @@ class DependencyValidator:
             Formatted summary string
         """
         total = len(self.dependencies)
-        installed = len(
-            [d for d in self.dependencies if d.status == DependencyStatus.INSTALLED]
-        )
+        installed = len([d for d in self.dependencies if d.status == DependencyStatus.INSTALLED])
         missing_required = len(self.get_missing_required())
         missing_optional = len(self.get_missing_optional())
 

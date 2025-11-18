@@ -89,20 +89,14 @@ class LazyModule:
         if self._module is None:
             start = time.time()
             try:
-                self._module = importlib.import_module(
-                    self._module_name, package=self._package
-                )
+                self._module = importlib.import_module(self._module_name, package=self._package)
                 self._import_time = time.time() - start
                 self._first_access = time.time()
 
                 # Track actual import
-                _import_tracker.record_import(
-                    self._module_name, self._import_time, deferred=True
-                )
+                _import_tracker.record_import(self._module_name, self._import_time, deferred=True)
 
-                logger.debug(
-                    f"Lazy loaded {self._module_name} in {self._import_time * 1000:.2f}ms"
-                )
+                logger.debug(f"Lazy loaded {self._module_name} in {self._import_time * 1000:.2f}ms")
             except Exception as exc:
                 logger.error(f"Failed to lazy load {self._module_name}: {exc}")
                 raise
@@ -194,9 +188,7 @@ class ImportProfiler:
             return {"total_imports": 0, "total_time": 0, "slowest": [], "fastest": []}
 
         # Sort by time
-        sorted_imports = sorted(
-            self._import_times.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_imports = sorted(self._import_times.items(), key=lambda x: x[1], reverse=True)
 
         total_time = sum(self._import_times.values())
         total_imports = len(self._import_times)
@@ -204,12 +196,8 @@ class ImportProfiler:
         return {
             "total_imports": total_imports,
             "total_time": total_time * 1000,  # Convert to ms
-            "slowest": [
-                (name, time_ms * 1000) for name, time_ms in sorted_imports[:10]
-            ],
-            "fastest": [
-                (name, time_ms * 1000) for name, time_ms in sorted_imports[-10:]
-            ],
+            "slowest": [(name, time_ms * 1000) for name, time_ms in sorted_imports[:10]],
+            "fastest": [(name, time_ms * 1000) for name, time_ms in sorted_imports[-10:]],
             "all_imports": {
                 name: {"time_ms": time_ms * 1000, "count": self._import_counts[name]}
                 for name, time_ms in self._import_times.items()
@@ -274,9 +262,7 @@ class ImportTracker:
         """
         self._lazy_modules.add(module_name)
 
-    def record_import(
-        self, module_name: str, import_time: float, deferred: bool = False
-    ) -> None:
+    def record_import(self, module_name: str, import_time: float, deferred: bool = False) -> None:
         """
         Record import.
 
@@ -315,9 +301,7 @@ class ImportTracker:
             "total_lazy_time": total_lazy_time * 1000,
             "time_saved": total_lazy_time * 1000,  # Time saved at startup
             "registered_lazy": len(self._lazy_modules),
-            "not_yet_loaded": len(
-                self._lazy_modules - {s.module_name for s in lazy_imports}
-            ),
+            "not_yet_loaded": len(self._lazy_modules - {s.module_name for s in lazy_imports}),
         }
 
     def print_report(self) -> None:
@@ -467,12 +451,8 @@ class ImportOptimizer:
                 for name, obj in module.__dict__.items():
                     if hasattr(obj, "__module__"):
                         obj_module = obj.__module__
-                        if obj_module and any(
-                            heavy in obj_module for heavy in self._heavy_modules
-                        ):
-                            suggestions.append(
-                                f"Consider lazy loading '{obj_module}' (used in '{name}')"
-                            )
+                        if obj_module and any(heavy in obj_module for heavy in self._heavy_modules):
+                            suggestions.append(f"Consider lazy loading '{obj_module}' (used in '{name}')")
 
         except Exception as exc:
             logger.warning(f"Failed to analyze {module_name}: {exc}")

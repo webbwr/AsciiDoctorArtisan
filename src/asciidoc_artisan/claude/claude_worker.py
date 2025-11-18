@@ -62,9 +62,7 @@ class ClaudeWorker(QThread):
         """
         super().__init__()
 
-        self.client = ClaudeClient(
-            model=model, max_tokens=max_tokens, temperature=temperature
-        )
+        self.client = ClaudeClient(model=model, max_tokens=max_tokens, temperature=temperature)
 
         # Operation state
         self._current_message: str = ""

@@ -78,9 +78,7 @@ class HardwareDetector:
                         # Convert to int to handle both "8192" and "8192.0" formats.
                         memory_mb = int(float(parts[1].strip()))
                         logger.info(f"Detected NVIDIA GPU: {model} ({memory_mb}MB)")
-                        return GPUInfo(
-                            vendor="NVIDIA", model=model, memory_mb=memory_mb
-                        )
+                        return GPUInfo(vendor="NVIDIA", model=model, memory_mb=memory_mb)
         except (
             FileNotFoundError,  # nvidia-smi not installed.
             PermissionError,  # No access to nvidia-smi binary.
@@ -115,9 +113,7 @@ class HardwareDetector:
 
         # Try lspci as fallback (works on all Linux systems).
         try:
-            result = subprocess.run(
-                ["lspci"], capture_output=True, text=True, timeout=5
-            )
+            result = subprocess.run(["lspci"], capture_output=True, text=True, timeout=5)
 
             if result.returncode == 0:
                 # Scan PCI devices for AMD graphics cards.
@@ -137,9 +133,7 @@ class HardwareDetector:
     def detect_intel_gpu() -> GPUInfo | None:
         """Detect Intel GPU using lspci."""
         try:
-            result = subprocess.run(
-                ["lspci"], capture_output=True, text=True, timeout=5
-            )
+            result = subprocess.run(["lspci"], capture_output=True, text=True, timeout=5)
 
             if result.returncode == 0:
                 # Scan PCI devices for Intel integrated graphics.
@@ -163,9 +157,7 @@ class HardwareDetector:
         # Intel NPU detection (Core Ultra CPUs with AI Boost).
         if system == "Windows" or system == "Linux":
             try:
-                result = subprocess.run(
-                    ["lscpu"], capture_output=True, text=True, timeout=5
-                )
+                result = subprocess.run(["lscpu"], capture_output=True, text=True, timeout=5)
 
                 if result.returncode == 0:
                     # Search CPU info for NPU indicators.
@@ -181,11 +173,7 @@ class HardwareDetector:
                         )
 
                     # AMD Ryzen AI has built-in NPU (7040/8040 series).
-                    if (
-                        "ryzen ai" in cpu_info
-                        or "7040" in cpu_info
-                        or "8040" in cpu_info
-                    ):
+                    if "ryzen ai" in cpu_info or "7040" in cpu_info or "8040" in cpu_info:
                         logger.info("Detected AMD NPU (Ryzen AI)")
                         return NPUInfo(
                             vendor="AMD",
@@ -278,9 +266,7 @@ class HardwareDetector:
             system_ram_gb=ram_gb,
         )
 
-        logger.info(
-            f"Hardware detection complete: {len(gpus)} GPU(s), NPU: {npu is not None}"
-        )
+        logger.info(f"Hardware detection complete: {len(gpus)} GPU(s), NPU: {npu is not None}")
         return caps
 
 
@@ -301,9 +287,7 @@ def print_hardware_report() -> None:
         for i, gpu in enumerate(caps.gpus, 1):
             print(f"  {i}. {gpu.vendor} - {gpu.model}")
             if gpu.memory_mb:
-                print(
-                    f"     Memory: {gpu.memory_mb} MB ({gpu.memory_mb / 1024:.1f} GB)"
-                )
+                print(f"     Memory: {gpu.memory_mb} MB ({gpu.memory_mb / 1024:.1f} GB)")
     else:
         print("\nGPU: None detected")
 

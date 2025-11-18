@@ -270,9 +270,7 @@ class AsciiDocEditor(QMainWindow):
 
         # Parse window geometry from settings
         if not self._start_maximized:
-            self._initial_geometry = self._settings_manager.parse_window_geometry(
-                self._settings
-            )
+            self._initial_geometry = self._settings_manager.parse_window_geometry(self._settings)
 
         # Restore last file if exists
         if self._settings.last_file and Path(self._settings.last_file).is_file():
@@ -295,15 +293,11 @@ class AsciiDocEditor(QMainWindow):
 
         # === Resource Monitoring ===
         self.resource_monitor = ResourceMonitor()
-        logger.info(
-            f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})"
-        )
+        logger.info(f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})")
 
         # Large file handling
         self.large_file_handler = LargeFileHandler()
-        self.large_file_handler.progress_update.connect(
-            self.file_load_manager.on_file_load_progress
-        )
+        self.large_file_handler.progress_update.connect(self.file_load_manager.on_file_load_progress)
 
         # === Menu & Actions ===
         # MenuManager removed - replaced by ActionManager (see _setup_actions_and_menus)
@@ -333,9 +327,7 @@ class AsciiDocEditor(QMainWindow):
         self.ui_setup.setup_ui()
 
         # === File Operations ===
-        self.file_handler = FileHandler(
-            self.editor, self, self._settings_manager, self.status_manager
-        )
+        self.file_handler = FileHandler(self.editor, self, self._settings_manager, self.status_manager)
         self.file_handler.start_auto_save(AUTO_SAVE_INTERVAL_MS)
 
         # === Preview System ===
@@ -347,9 +339,7 @@ class AsciiDocEditor(QMainWindow):
         self.git_handler.initialize()  # Load repository from settings
 
         # === GitHub Integration ===
-        self.github_handler = GitHubHandler(
-            self, self._settings_manager, self.status_manager, self.git_handler
-        )
+        self.github_handler = GitHubHandler(self, self._settings_manager, self.status_manager, self.git_handler)
 
         # === Spell Check System (v1.8.0) ===
         # SpellCheckManager must be initialized BEFORE ActionManager (actions reference it)
@@ -390,9 +380,7 @@ class AsciiDocEditor(QMainWindow):
 
         # === Chat System (v1.7.0) ===
         # ChatManager must be initialized AFTER UISetupManager creates chat_bar and chat_panel
-        self.chat_manager = ChatManager(
-            self.chat_bar, self.chat_panel, self._settings, parent=self
-        )
+        self.chat_manager = ChatManager(self.chat_bar, self.chat_panel, self._settings, parent=self)
 
         # === Find & Search System (v1.8.0) ===
         # SearchEngine must be initialized AFTER UISetupManager creates find_bar
@@ -464,9 +452,7 @@ class AsciiDocEditor(QMainWindow):
         self.find_bar.replace_all_requested.connect(self._handle_replace_all)
 
         # Update search engine text when editor content changes
-        self.editor.textChanged.connect(
-            lambda: self.search_engine.set_text(self.editor.toPlainText())
-        )
+        self.editor.textChanged.connect(lambda: self.search_engine.set_text(self.editor.toPlainText()))
 
         logger.info("Find & Replace system initialized")
 
@@ -478,9 +464,7 @@ class AsciiDocEditor(QMainWindow):
         """
         # Connect quick commit widget signals
         self.quick_commit_widget.commit_requested.connect(self._handle_quick_commit)
-        self.quick_commit_widget.cancelled.connect(
-            lambda: logger.debug("Quick commit cancelled")
-        )
+        self.quick_commit_widget.cancelled.connect(lambda: logger.debug("Quick commit cancelled"))
 
         logger.info("Quick Commit system initialized")
 
@@ -513,17 +497,13 @@ class AsciiDocEditor(QMainWindow):
                 self._settings_manager.save_settings(self._settings, self)
 
             # Initialize collector
-            self.telemetry_collector = TelemetryCollector(
-                enabled=True, session_id=self._settings.telemetry_session_id
-            )
+            self.telemetry_collector = TelemetryCollector(enabled=True, session_id=self._settings.telemetry_session_id)
 
             # Track startup
             startup_time = time.time() - getattr(self, "_app_start_time", time.time())
             self.telemetry_collector.track_startup(startup_time)
 
-            logger.info(
-                f"TelemetryCollector initialized (session: {self._settings.telemetry_session_id[:8]}...)"
-            )
+            logger.info(f"TelemetryCollector initialized (session: {self._settings.telemetry_session_id[:8]}...)")
         else:
             # Telemetry disabled - create inactive collector
             self.telemetry_collector = TelemetryCollector(enabled=False)
@@ -547,9 +527,7 @@ class AsciiDocEditor(QMainWindow):
             self._settings_manager.save_settings(self._settings, self)
 
             # Initialize collector
-            self.telemetry_collector = TelemetryCollector(
-                enabled=True, session_id=self._settings.telemetry_session_id
-            )
+            self.telemetry_collector = TelemetryCollector(enabled=True, session_id=self._settings.telemetry_session_id)
 
             logger.info("User accepted telemetry (first launch)")
 
@@ -588,9 +566,7 @@ class AsciiDocEditor(QMainWindow):
                 self._settings.telemetry_session_id = str(uuid.uuid4())
 
             # Reinitialize collector with new enabled state
-            self.telemetry_collector = TelemetryCollector(
-                enabled=True, session_id=self._settings.telemetry_session_id
-            )
+            self.telemetry_collector = TelemetryCollector(enabled=True, session_id=self._settings.telemetry_session_id)
             self.status_manager.show_message("info", "Telemetry", "Telemetry enabled")
             logger.info("Telemetry enabled by user")
         else:
@@ -604,9 +580,7 @@ class AsciiDocEditor(QMainWindow):
 
     def _update_telemetry_menu_text(self) -> None:
         """Update the toggle telemetry menu item text to show current state with checkmark."""
-        if hasattr(self, "action_manager") and hasattr(
-            self.action_manager, "toggle_telemetry_act"
-        ):
+        if hasattr(self, "action_manager") and hasattr(self.action_manager, "toggle_telemetry_act"):
             text = "✓ &Telemetry" if self._settings.telemetry_enabled else "&Telemetry"
             self.action_manager.toggle_telemetry_act.setText(text)
 
@@ -647,9 +621,7 @@ class AsciiDocEditor(QMainWindow):
         self.syntax_checker_manager = SyntaxCheckerManager(self.editor, checker)
 
         # Load settings
-        self.syntax_checker_manager.enabled = (
-            self._settings.syntax_check_realtime_enabled
-        )
+        self.syntax_checker_manager.enabled = self._settings.syntax_check_realtime_enabled
         self.syntax_checker_manager.check_delay = self._settings.syntax_check_delay
 
         logger.info("SyntaxCheckerManager initialized")
@@ -698,30 +670,18 @@ class AsciiDocEditor(QMainWindow):
 
         # === Chat System Signal Connections (v1.7.0, v1.10.0) ===
         # Connect ChatManager to both workers via router
-        self.chat_manager.message_sent_to_worker.connect(
-            self._route_chat_message_to_worker
-        )
+        self.chat_manager.message_sent_to_worker.connect(self._route_chat_message_to_worker)
         self.chat_manager.status_message.connect(self.status_manager.show_status)
-        self.chat_manager.settings_changed.connect(
-            lambda: self._settings_manager.save_settings(self._settings, self)
-        )
+        self.chat_manager.settings_changed.connect(lambda: self._settings_manager.save_settings(self._settings, self))
 
         # Connect OllamaChatWorker responses back to ChatManager
-        self.ollama_chat_worker.chat_response_ready.connect(
-            self.chat_manager.handle_response_ready
-        )
-        self.ollama_chat_worker.chat_response_chunk.connect(
-            self.chat_manager.handle_response_chunk
-        )
+        self.ollama_chat_worker.chat_response_ready.connect(self.chat_manager.handle_response_ready)
+        self.ollama_chat_worker.chat_response_chunk.connect(self.chat_manager.handle_response_chunk)
         self.ollama_chat_worker.chat_error.connect(self.chat_manager.handle_error)
-        self.ollama_chat_worker.operation_cancelled.connect(
-            self.chat_manager.handle_operation_cancelled
-        )
+        self.ollama_chat_worker.operation_cancelled.connect(self.chat_manager.handle_operation_cancelled)
 
         # Connect ClaudeWorker responses back to ChatManager (via adapters)
-        self.claude_worker.response_ready.connect(
-            self._adapt_claude_response_to_chat_message
-        )
+        self.claude_worker.response_ready.connect(self._adapt_claude_response_to_chat_message)
         self.claude_worker.error_occurred.connect(self.chat_manager.handle_error)
 
         # Connect chat bar cancel button to worker cancellation
@@ -729,9 +689,7 @@ class AsciiDocEditor(QMainWindow):
         # Note: ClaudeWorker doesn't support cancellation yet
 
         # Initialize chat manager (loads history, sets visibility)
-        self.chat_manager.set_document_content_provider(
-            lambda: self.editor.toPlainText()
-        )
+        self.chat_manager.set_document_content_provider(lambda: self.editor.toPlainText())
         self.chat_manager.initialize()
 
         # Initialize GitHub handler (fetches repo info if Git repository is set)
@@ -760,9 +718,7 @@ class AsciiDocEditor(QMainWindow):
         # Update timer interval if it has changed
         if self._preview_timer.interval() != debounce_ms:
             self._preview_timer.setInterval(debounce_ms)
-            logger.debug(
-                f"Adaptive debounce: {debounce_ms}ms for {len(text)} chars, {text.count(chr(10)) + 1} lines"
-            )
+            logger.debug(f"Adaptive debounce: {debounce_ms}ms for {len(text)} chars, {text.count(chr(10)) + 1} lines")
 
         self._preview_timer.start()
 
@@ -942,9 +898,7 @@ class AsciiDocEditor(QMainWindow):
             self._git_status_dialog = GitStatusDialog(self)
 
             # Connect dialog signals
-            self._git_status_dialog.refresh_requested.connect(
-                self._refresh_git_status_dialog
-            )
+            self._git_status_dialog.refresh_requested.connect(self._refresh_git_status_dialog)
             # Note: Stage/Unstage buttons not implemented yet - future enhancement
 
         # Request detailed status from worker
@@ -1072,9 +1026,7 @@ class AsciiDocEditor(QMainWindow):
 
         if backend == "ollama":
             # Route to Ollama worker
-            self.ollama_chat_worker.send_message(
-                message, model, context_mode, history, document_content
-            )
+            self.ollama_chat_worker.send_message(message, model, context_mode, history, document_content)
         elif backend == "claude":
             # Route to Claude worker with context-appropriate system prompt
             system_prompt = self._build_claude_system_prompt(context_mode, model)
@@ -1085,9 +1037,7 @@ class AsciiDocEditor(QMainWindow):
             claude_history = []
             for msg in history:
                 if hasattr(msg, "role") and hasattr(msg, "content"):
-                    claude_history.append(
-                        ClaudeMessage(role=msg.role, content=msg.content)
-                    )
+                    claude_history.append(ClaudeMessage(role=msg.role, content=msg.content))
 
             # Build full message with document context if needed
             full_message = message
@@ -1165,9 +1115,7 @@ class AsciiDocEditor(QMainWindow):
 
         # Pass to ChatManager
         self.chat_manager.handle_response_ready(chat_message)
-        logger.info(
-            f"Claude response adapted and forwarded to ChatManager ({claude_result.tokens_used} tokens used)"
-        )
+        logger.info(f"Claude response adapted and forwarded to ChatManager ({claude_result.tokens_used} tokens used)")
 
     @Slot(str, str)
     def _handle_pandoc_result(self, result: str, context: str) -> None:
@@ -1199,9 +1147,7 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             # Find all matches
-            matches = self.search_engine.find_all(
-                search_text, case_sensitive=case_sensitive
-            )
+            matches = self.search_engine.find_all(search_text, case_sensitive=case_sensitive)
 
             # Update match count in find bar
             if matches:
@@ -1258,9 +1204,7 @@ class AsciiDocEditor(QMainWindow):
             if match:
                 self._select_match(match)
                 # Update counter
-                matches = self.search_engine.find_all(
-                    search_text, case_sensitive=self.find_bar.is_case_sensitive()
-                )
+                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
                 match_index = matches.index(match) if match in matches else 0
                 self.find_bar.update_match_count(match_index + 1, len(matches))
 
@@ -1289,9 +1233,7 @@ class AsciiDocEditor(QMainWindow):
             if match:
                 self._select_match(match)
                 # Update counter
-                matches = self.search_engine.find_all(
-                    search_text, case_sensitive=self.find_bar.is_case_sensitive()
-                )
+                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
                 match_index = matches.index(match) if match in matches else 0
                 self.find_bar.update_match_count(match_index + 1, len(matches))
 
@@ -1370,9 +1312,7 @@ class AsciiDocEditor(QMainWindow):
 
         try:
             # Count matches first
-            matches = self.search_engine.find_all(
-                search_text, case_sensitive=self.find_bar.is_case_sensitive()
-            )
+            matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
             match_count = len(matches)
 
             if match_count == 0:
@@ -1411,9 +1351,7 @@ class AsciiDocEditor(QMainWindow):
                 self.find_bar.update_match_count(0, 0)
                 self.status_manager.show_status(f"Replaced {count} occurrence(s)", 3000)
 
-                logger.info(
-                    f"Replaced all: {count} occurrences of '{search_text}' with '{replace_text}'"
-                )
+                logger.info(f"Replaced all: {count} occurrences of '{search_text}' with '{replace_text}'")
 
         except Exception as e:
             logger.error(f"Replace all error: {e}")
@@ -1506,9 +1444,7 @@ class AsciiDocEditor(QMainWindow):
         self.action_manager.ollama_status_act.setText(ollama_text)
         self.action_manager.anthropic_status_act.setText(claude_text)
 
-        logger.debug(
-            f"Updated AI backend checkmarks: ollama={is_ollama}, claude={is_claude}"
-        )
+        logger.debug(f"Updated AI backend checkmarks: ollama={is_ollama}, claude={is_claude}")
 
     def _check_pandoc_availability(self, context: str) -> bool:
         """Check if Pandoc is available (delegates to UIStateManager)."""
@@ -1613,9 +1549,7 @@ class AsciiDocEditor(QMainWindow):
         layout.addWidget(help_label)
 
         # Buttons
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
@@ -1694,9 +1628,7 @@ class AsciiDocEditor(QMainWindow):
         layout.addWidget(help_label)
 
         # Buttons
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
@@ -1757,9 +1689,7 @@ class AsciiDocEditor(QMainWindow):
 
         # Update PandocWorker with new Ollama configuration
         if hasattr(self, "pandoc_worker"):
-            self.pandoc_worker.set_ollama_config(
-                settings.ollama_enabled, settings.ollama_model
-            )
+            self.pandoc_worker.set_ollama_config(settings.ollama_enabled, settings.ollama_model)
 
         # Update ChatManager with new settings
         if hasattr(self, "chat_manager"):

@@ -264,10 +264,7 @@ class ClipboardHelper:
             return "html"
 
         # Markdown detection
-        if any(
-            marker in clipboard_text
-            for marker in ["# ", "## ", "**", "```", "[](", "* ", "- "]
-        ):
+        if any(marker in clipboard_text for marker in ["# ", "## ", "**", "```", "[](", "* ", "- "]):
             return "markdown"
 
         # Default: treat as plain text

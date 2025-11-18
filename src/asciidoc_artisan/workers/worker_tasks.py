@@ -59,9 +59,7 @@ class RenderTask(CancelableRunnable):
         task_id: Optional task ID (auto-generated if not provided)
     """
 
-    def __init__(
-        self, text: str, asciidoc_api: Any, task_id: str | None = None
-    ) -> None:
+    def __init__(self, text: str, asciidoc_api: Any, task_id: str | None = None) -> None:
         """Initialize render task."""
         # Generate unique ID using timestamp if not provided.
         if task_id is None:
@@ -161,13 +159,9 @@ class ConversionTask(CancelableRunnable):
 
                 # Use file or text method based on source type.
                 if is_file:
-                    result = pypandoc.convert_file(
-                        source, to_format, format=from_format
-                    )
+                    result = pypandoc.convert_file(source, to_format, format=from_format)
                 else:
-                    result = pypandoc.convert_text(
-                        source, to_format, format=from_format
-                    )
+                    result = pypandoc.convert_text(source, to_format, format=from_format)
 
                 # Final check before returning result.
                 if self.is_canceled():
@@ -205,9 +199,7 @@ class GitTask(CancelableRunnable):
         task_id: Optional task ID
     """
 
-    def __init__(
-        self, command: list[str], cwd: Path, task_id: str | None = None
-    ) -> None:
+    def __init__(self, command: list[str], cwd: Path, task_id: str | None = None) -> None:
         """Initialize git task."""
         # Generate unique ID using timestamp if not provided.
         if task_id is None:
@@ -257,11 +249,7 @@ class GitTask(CancelableRunnable):
                     stdout=result.stdout,
                     stderr=result.stderr,
                     exit_code=result.returncode,
-                    user_message=(
-                        "Git operation completed"
-                        if result.returncode == 0
-                        else "Git operation failed"
-                    ),
+                    user_message=("Git operation completed" if result.returncode == 0 else "Git operation failed"),
                 )
 
             except subprocess.TimeoutExpired:

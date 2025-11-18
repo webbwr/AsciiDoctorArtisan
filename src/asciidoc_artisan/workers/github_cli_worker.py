@@ -215,9 +215,7 @@ class GitHubCLIWorker(BaseWorker):
             else:
                 # Parse error message to give user-friendly feedback.
                 user_message = self._parse_gh_error(stderr, args)
-                logger.error(
-                    f"GitHub CLI command failed (code {exit_code}): {user_message}"
-                )
+                logger.error(f"GitHub CLI command failed (code {exit_code}): {user_message}")
                 result = GitHubResult(
                     success=False,
                     data=None,
@@ -245,7 +243,9 @@ class GitHubCLIWorker(BaseWorker):
                 )
             )
         except FileNotFoundError:
-            error_msg = "GitHub CLI (gh) not found. Ensure gh is installed and in system PATH. Install: https://cli.github.com/"
+            error_msg = (
+                "GitHub CLI (gh) not found. Ensure gh is installed and in system PATH. Install: https://cli.github.com/"
+            )
             logger.error(error_msg)
             self.github_result_ready.emit(
                 GitHubResult(
@@ -309,9 +309,7 @@ class GitHubCLIWorker(BaseWorker):
         self.run_gh_command(args, working_dir, operation="pr_create")
 
     @Slot(str)
-    def list_pull_requests(
-        self, state: str | None = None, working_dir: str | None = None
-    ) -> None:
+    def list_pull_requests(self, state: str | None = None, working_dir: str | None = None) -> None:
         """
         List pull requests in the repository.
 
@@ -335,9 +333,7 @@ class GitHubCLIWorker(BaseWorker):
         self.run_gh_command(args, working_dir, operation="pr_list")
 
     @Slot(str, str)
-    def create_issue(
-        self, title: str, body: str, working_dir: str | None = None
-    ) -> None:
+    def create_issue(self, title: str, body: str, working_dir: str | None = None) -> None:
         """
         Create a GitHub issue.
 
@@ -362,9 +358,7 @@ class GitHubCLIWorker(BaseWorker):
         self.run_gh_command(args, working_dir, operation="issue_create")
 
     @Slot(str)
-    def list_issues(
-        self, state: str | None = None, working_dir: str | None = None
-    ) -> None:
+    def list_issues(self, state: str | None = None, working_dir: str | None = None) -> None:
         """
         List issues in the repository.
 
@@ -425,13 +419,8 @@ class GitHubCLIWorker(BaseWorker):
 
         if "not logged into" in stderr_lower or "not authenticated" in stderr_lower:
             return "Not authenticated. Run 'gh auth login' in terminal."
-        elif (
-            "no default remote" in stderr_lower
-            or "not a git repository" in stderr_lower
-        ):
-            return (
-                "No GitHub remote found. Add remote with 'git remote add origin <url>'."
-            )
+        elif "no default remote" in stderr_lower or "not a git repository" in stderr_lower:
+            return "No GitHub remote found. Add remote with 'git remote add origin <url>'."
         elif "rate limit" in stderr_lower:
             return "GitHub API rate limit exceeded. Try again in 1 hour."
         elif "permission denied" in stderr_lower or "forbidden" in stderr_lower:

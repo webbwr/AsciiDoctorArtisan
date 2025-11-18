@@ -116,15 +116,11 @@ class APIKeySetupDialog(QDialog):
         )
         help_label.setWordWrap(True)
         help_label.setOpenExternalLinks(True)
-        help_label.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextBrowserInteraction
-        )
+        help_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         layout.addWidget(help_label)
 
         # Buttons
-        button_box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         button_box.accepted.connect(self._save_and_accept)
         button_box.rejected.connect(self.reject)
 
@@ -138,19 +134,13 @@ class APIKeySetupDialog(QDialog):
     def _update_status_label(self) -> None:
         """Update the status label showing whether a key is stored."""
         if not SecureCredentials.is_available():
-            self.anthropic_status.setText(
-                "<span style='color: orange;'>⚠ Keyring not available</span>"
-            )
+            self.anthropic_status.setText("<span style='color: orange;'>⚠ Keyring not available</span>")
             return
 
         if self.credentials.has_anthropic_key():
-            self.anthropic_status.setText(
-                "<span style='color: green;'>✓ Key is configured</span>"
-            )
+            self.anthropic_status.setText("<span style='color: green;'>✓ Key is configured</span>")
         else:
-            self.anthropic_status.setText(
-                "<span style='color: gray;'>No key stored</span>"
-            )
+            self.anthropic_status.setText("<span style='color: gray;'>No key stored</span>")
 
     def _on_key_changed(self, text: str) -> None:
         """Handle API key input changes.
@@ -245,15 +235,11 @@ class APIKeySetupDialog(QDialog):
     def _clear_stored_key(self) -> None:
         """Clear the stored API key."""
         if not SecureCredentials.is_available():
-            QMessageBox.warning(
-                self, "Keyring Unavailable", "System keyring is not available."
-            )
+            QMessageBox.warning(self, "Keyring Unavailable", "System keyring is not available.")
             return
 
         if not self.credentials.has_anthropic_key():
-            QMessageBox.information(
-                self, "No Key Stored", "No API key is currently stored."
-            )
+            QMessageBox.information(self, "No Key Stored", "No API key is currently stored.")
             return
 
         import os
@@ -277,17 +263,13 @@ class APIKeySetupDialog(QDialog):
         if reply == QMessageBox.StandardButton.Yes:
             # Delete key from OS keyring.
             if self.credentials.delete_anthropic_key():
-                QMessageBox.information(
-                    self, "Key Deleted", "API key has been removed from keyring."
-                )
+                QMessageBox.information(self, "Key Deleted", "API key has been removed from keyring.")
                 # Update status label to reflect removal.
                 self._update_status_label()
                 logger.info("Anthropic API key deleted by user")
             else:
                 # Deletion failed - check system logs for reason.
-                QMessageBox.warning(
-                    self, "Deletion Failed", "Failed to delete API key from keyring."
-                )
+                QMessageBox.warning(self, "Deletion Failed", "Failed to delete API key from keyring.")
 
     def get_api_key(self) -> str | None:
         """Get the currently stored API key.

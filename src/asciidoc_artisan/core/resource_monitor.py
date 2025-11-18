@@ -106,9 +106,7 @@ class ResourceMonitor:
         char_count = len(text)
 
         # Classify as large if it exceeds either threshold
-        is_large = (
-            size_bytes > self.LARGE_DOC_BYTES or line_count > self.LARGE_DOC_LINES
-        )
+        is_large = size_bytes > self.LARGE_DOC_BYTES or line_count > self.LARGE_DOC_LINES
 
         return DocumentMetrics(
             size_bytes=size_bytes,
@@ -140,31 +138,19 @@ class ResourceMonitor:
             return self.INSTANT_DEBOUNCE_MS
 
         # Small document - ultra-fast response
-        if (
-            doc_metrics.size_bytes < self.SMALL_DOC_BYTES
-            and doc_metrics.line_count < self.SMALL_DOC_LINES
-        ):
+        if doc_metrics.size_bytes < self.SMALL_DOC_BYTES and doc_metrics.line_count < self.SMALL_DOC_LINES:
             return self.MIN_DEBOUNCE_MS
 
         # Medium document
-        if (
-            doc_metrics.size_bytes < self.MEDIUM_DOC_BYTES
-            and doc_metrics.line_count < self.MEDIUM_DOC_LINES
-        ):
+        if doc_metrics.size_bytes < self.MEDIUM_DOC_BYTES and doc_metrics.line_count < self.MEDIUM_DOC_LINES:
             return self.NORMAL_DEBOUNCE_MS
 
         # Large document
-        if (
-            doc_metrics.size_bytes < self.LARGE_DOC_BYTES
-            and doc_metrics.line_count < self.LARGE_DOC_LINES
-        ):
+        if doc_metrics.size_bytes < self.LARGE_DOC_BYTES and doc_metrics.line_count < self.LARGE_DOC_LINES:
             return self.MEDIUM_DEBOUNCE_MS
 
         # Very large document - use longest debounce
-        if (
-            doc_metrics.size_bytes >= self.LARGE_DOC_BYTES * 2
-            or doc_metrics.line_count >= self.LARGE_DOC_LINES * 2
-        ):
+        if doc_metrics.size_bytes >= self.LARGE_DOC_BYTES * 2 or doc_metrics.line_count >= self.LARGE_DOC_LINES * 2:
             return self.HUGE_DEBOUNCE_MS
 
         # Default for large documents

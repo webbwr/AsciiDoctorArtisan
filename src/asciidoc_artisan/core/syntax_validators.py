@@ -242,9 +242,7 @@ class BrokenXRefRule:
 
                 if target and target not in anchors:
                     # Suggest similar anchors (simple substring matching)
-                    suggestions = [a for a in anchors if target.lower() in a.lower()][
-                        :3
-                    ]
+                    suggestions = [a for a in anchors if target.lower() in a.lower()][:3]
 
                     fixes = []
                     for suggestion in suggestions:
@@ -407,10 +405,7 @@ class DuplicateAnchorRule:
                         SyntaxErrorModel(
                             code="W004",
                             severity=ErrorSeverity.WARNING,
-                            message=(
-                                f"Duplicate anchor ID: {anchor_id} "
-                                f"(first defined on line {first_line})"
-                            ),
+                            message=(f"Duplicate anchor ID: {anchor_id} (first defined on line {first_line})"),
                             line=i,
                             column=match.start(),
                             length=match.end() - match.start(),

@@ -77,7 +77,7 @@ asciidoc-artisan = "adp_windows:main"
 
 [tool.black]
 line-length = 88
-target-version = ['py314']
+target-version = ['py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -112,7 +112,7 @@ skip_glob = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py314"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -134,7 +134,7 @@ ignore = [
 "__init__.py" = ["F401"]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.11"
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false

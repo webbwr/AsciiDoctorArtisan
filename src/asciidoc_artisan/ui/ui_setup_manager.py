@@ -93,9 +93,7 @@ class UISetupManager:
         # Configure splitter stretch factors - all panes user-resizable
         self.editor.splitter.setStretchFactor(0, 2)  # Editor (2/5 when chat visible)
         self.editor.splitter.setStretchFactor(1, 2)  # Preview (2/5 when chat visible)
-        self.editor.splitter.setStretchFactor(
-            2, 1
-        )  # Chat (1/5 when visible, user-resizable)
+        self.editor.splitter.setStretchFactor(2, 1)  # Chat (1/5 when visible, user-resizable)
 
         # Set default proportional splits
         # Will be overridden by saved settings if they exist
@@ -145,9 +143,7 @@ class UISetupManager:
         editor_layout.setSpacing(0)
 
         # Create toolbar
-        editor_toolbar = self._create_toolbar(
-            "Editor", "#4ade80", "editor", EDITOR_HIGHLIGHT_COLOR_ADD
-        )
+        editor_toolbar = self._create_toolbar("Editor", "#4ade80", "editor", EDITOR_HIGHLIGHT_COLOR_ADD)
         editor_layout.addWidget(editor_toolbar)
 
         # Create text editor
@@ -167,20 +163,12 @@ class UISetupManager:
         self.editor.editor_redo_btn.clicked.connect(self.editor.editor.redo)
 
         # Update button states when undo/redo availability changes
-        self.editor.editor.document().undoAvailable.connect(
-            self.editor.editor_undo_btn.setEnabled
-        )
-        self.editor.editor.document().redoAvailable.connect(
-            self.editor.editor_redo_btn.setEnabled
-        )
+        self.editor.editor.document().undoAvailable.connect(self.editor.editor_undo_btn.setEnabled)
+        self.editor.editor.document().redoAvailable.connect(self.editor.editor_redo_btn.setEnabled)
 
         # Set initial button states
-        self.editor.editor_undo_btn.setEnabled(
-            self.editor.editor.document().isUndoAvailable()
-        )
-        self.editor.editor_redo_btn.setEnabled(
-            self.editor.editor.document().isRedoAvailable()
-        )
+        self.editor.editor_undo_btn.setEnabled(self.editor.editor.document().isUndoAvailable())
+        self.editor.editor_redo_btn.setEnabled(self.editor.editor.document().isRedoAvailable())
 
         return editor_container
 
@@ -196,9 +184,7 @@ class UISetupManager:
         preview_layout.setSpacing(0)
 
         # Create toolbar
-        preview_toolbar = self._create_toolbar(
-            "Preview", "#4a9eff", "preview", PREVIEW_HIGHLIGHT_COLOR_ADD
-        )
+        preview_toolbar = self._create_toolbar("Preview", "#4a9eff", "preview", PREVIEW_HIGHLIGHT_COLOR_ADD)
         preview_layout.addWidget(preview_toolbar)
 
         # Create preview widget with automatic GPU detection
@@ -231,9 +217,7 @@ class UISetupManager:
         chat_container.setMaximumWidth(600)
 
         # Create toolbar
-        chat_toolbar = self._create_toolbar(
-            "AI Chat", "#ff9800", "chat", "rgba(255, 152, 0, 0.2)"
-        )
+        chat_toolbar = self._create_toolbar("AI Chat", "#ff9800", "chat", "rgba(255, 152, 0, 0.2)")
         chat_layout.addWidget(chat_toolbar)
 
         # Create chat panel (message display)
@@ -257,9 +241,7 @@ class UISetupManager:
 
         return chat_container
 
-    def _create_toolbar(
-        self, label_text: str, color: str, pane_name: str, highlight_color: str
-    ) -> QWidget:
+    def _create_toolbar(self, label_text: str, color: str, pane_name: str, highlight_color: str) -> QWidget:
         """Create a toolbar with label and maximize button.
 
         Args:
@@ -428,10 +410,7 @@ class UISetupManager:
         window_width = self.editor.width()
 
         # Check if chat is visible
-        chat_visible = (
-            hasattr(self.editor, "chat_container")
-            and self.editor.chat_container.isVisible()
-        )
+        chat_visible = hasattr(self.editor, "chat_container") and self.editor.chat_container.isVisible()
 
         if chat_visible:
             # Proportional: 2/5 editor, 2/5 preview, 1/5 chat
@@ -439,9 +418,7 @@ class UISetupManager:
             preview_width = int(window_width * 0.4)
             chat_width = int(window_width * 0.2)
             self.editor.splitter.setSizes([editor_width, preview_width, chat_width])
-            logger.info(
-                f"Default sizes (with chat): {editor_width}, {preview_width}, {chat_width}"
-            )
+            logger.info(f"Default sizes (with chat): {editor_width}, {preview_width}, {chat_width}")
         else:
             # Without chat: 1/2 editor, 1/2 preview, 0 chat
             editor_width = int(window_width * 0.5)

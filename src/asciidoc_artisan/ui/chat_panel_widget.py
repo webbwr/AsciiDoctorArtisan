@@ -243,9 +243,7 @@ class ChatPanelWidget(QWidget):
             "syntax": "📝 Syntax",  # AsciiDoc syntax help
             "general": "💬 Chat",  # General conversation
             "editing": "✏️ Edit",  # Editing suggestions
-        }.get(
-            message.context_mode, message.context_mode
-        )  # Fallback: use raw name if unknown
+        }.get(message.context_mode, message.context_mode)  # Fallback: use raw name if unknown
 
         colors = self._get_colors()
 
@@ -425,9 +423,7 @@ class ChatPanelWidget(QWidget):
         lines = ["Chat History Export", "=" * 50, ""]
 
         for message in self._messages:
-            time_str = time.strftime(
-                "%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp)
-            )
+            time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
             role = "You" if message.role == "user" else f"AI ({message.model})"
             lines.append(f"[{time_str}] {role} ({message.context_mode}):")
             lines.append(message.content)

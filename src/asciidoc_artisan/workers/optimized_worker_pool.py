@@ -85,9 +85,7 @@ class CancelableRunnable(QRunnable):
     Checks cancellation flag before and during execution.
     """
 
-    def __init__(
-        self, func: Callable[..., Any], task_id: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def __init__(self, func: Callable[..., Any], task_id: str, *args: Any, **kwargs: Any) -> None:
         """
         Initialize cancelable runnable.
 
@@ -228,9 +226,7 @@ class OptimizedWorkerPool:
                 )
 
                 max_threads = get_optimal_thread_count()
-                logger.info(
-                    f"Auto-detected optimal thread count: {max_threads} (Apple Silicon optimized)"
-                )
+                logger.info(f"Auto-detected optimal thread count: {max_threads} (Apple Silicon optimized)")
             except ImportError:
                 # Fallback to CPU count
                 import multiprocessing

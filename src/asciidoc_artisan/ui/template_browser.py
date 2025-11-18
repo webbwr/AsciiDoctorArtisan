@@ -259,11 +259,7 @@ class TemplateBrowser(QDialog):
 
         # Filter by search text
         if search_text:
-            templates = [
-                t
-                for t in templates
-                if search_text in t.name.lower() or search_text in t.description.lower()
-            ]
+            templates = [t for t in templates if search_text in t.name.lower() or search_text in t.description.lower()]
 
         # Display templates in grid
         row = 0

@@ -81,9 +81,7 @@ class BaseVCSHandler:
 
         # Check if already processing
         if self.is_processing:
-            self.status_manager.show_message(
-                "warning", "Busy", self._get_busy_message()
-            )
+            self.status_manager.show_message("warning", "Busy", self._get_busy_message())
             return False
 
         return True
@@ -141,8 +139,6 @@ class BaseVCSHandler:
         Args:
             success: Whether operation succeeded
         """
-        logger.info(
-            f"{self.__class__.__name__}: Completed {self.last_operation} (success={success})"
-        )
+        logger.info(f"{self.__class__.__name__}: Completed {self.last_operation} (success={success})")
         self.is_processing = False
         self._update_ui_state()

@@ -36,9 +36,7 @@ class PandocResultHandler:
         """Initialize the PandocResultHandler with a reference to the main editor."""
         self.editor = editor
 
-    def _handle_file_load_request(
-        self, result: str, pending_path: Path, context: str
-    ) -> None:
+    def _handle_file_load_request(self, result: str, pending_path: Path, context: str) -> None:
         """Handle file load request in main thread.
 
         Args:
@@ -92,9 +90,7 @@ class PandocResultHandler:
 
         if export_path and "Exporting to" in context:
             if "PDF" in context and (
-                "pdflatex" in error
-                or "pdf-engine" in error
-                or "No such file or directory" in error
+                "pdflatex" in error or "pdf-engine" in error or "No such file or directory" in error
             ):
                 error_msg = (
                     f"Failed to export to PDF:\n\n"
@@ -106,24 +102,16 @@ class PandocResultHandler:
                     f"Technical details:\n{error}"
                 )
             else:
-                error_msg = (
-                    f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
-                )
+                error_msg = f"Failed to export to {export_path.suffix[1:].upper()}:\n{error}"
 
-            self.editor.status_manager.show_message(
-                "critical", "Export Error", error_msg
-            )
+            self.editor.status_manager.show_message("critical", "Export Error", error_msg)
             return
 
         self.editor.editor.clear()
-        self.editor.preview.setHtml(
-            "<h3>Conversion Failed</h3><p>Unable to convert the document.</p>"
-        )
+        self.editor.preview.setHtml("<h3>Conversion Failed</h3><p>Unable to convert the document.</p>")
 
         error_msg = f"{context} failed:\n\n{error}"
         if file_path:
             error_msg += f"\n\nFile: {file_path}"
 
-        self.editor.status_manager.show_message(
-            "critical", "Conversion Error", error_msg
-        )
+        self.editor.status_manager.show_message("critical", "Conversion Error", error_msg)

@@ -147,9 +147,7 @@ class CPUProfiler:
             hotspots = self._parse_hotspots(stream.getvalue())
 
             # Store result
-            result = ProfileResult(
-                name=name, total_time=elapsed, call_count=1, hotspots=hotspots
-            )
+            result = ProfileResult(name=name, total_time=elapsed, call_count=1, hotspots=hotspots)
 
             if name not in self._results:
                 self._results[name] = []
@@ -160,9 +158,7 @@ class CPUProfiler:
             if len(self._results[name]) > self.max_results:
                 self._results[name] = self._results[name][-self.max_results :]
 
-            logger.debug(
-                f"Profile complete: {name} took {elapsed * 1000:.2f}ms, {len(hotspots)} hotspots detected"
-            )
+            logger.debug(f"Profile complete: {name} took {elapsed * 1000:.2f}ms, {len(hotspots)} hotspots detected")
 
     def _parse_hotspots(self, stats_output: str) -> list[dict[str, Any]]:
         """

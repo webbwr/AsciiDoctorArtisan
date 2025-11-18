@@ -76,9 +76,7 @@ class FileLoadManager:
                 ".org",
                 ".textile",
             ]:
-                self.editor.status_bar.showMessage(
-                    f"Converted and opened: {file_path} → AsciiDoc"
-                )
+                self.editor.status_bar.showMessage(f"Converted and opened: {file_path} → AsciiDoc")
             else:
                 self.editor.status_bar.showMessage(f"Opened: {file_path}")
 
@@ -100,13 +98,9 @@ class FileLoadManager:
         # Create progress dialog on first progress update
         if percentage > 0 and percentage < 100:
             if self.editor._progress_dialog is None:
-                self.editor._progress_dialog = QProgressDialog(
-                    "Loading file...", "Cancel", 0, 100, self.editor
-                )
+                self.editor._progress_dialog = QProgressDialog("Loading file...", "Cancel", 0, 100, self.editor)
                 self.editor._progress_dialog.setWindowTitle("Loading")
-                self.editor._progress_dialog.setWindowModality(
-                    Qt.WindowModality.WindowModal
-                )
+                self.editor._progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
                 self.editor._progress_dialog.setMinimumDuration(500)  # Show after 500ms
                 self.editor._progress_dialog.setCancelButton(None)  # No cancel button
                 self.editor._progress_dialog.setAutoClose(True)

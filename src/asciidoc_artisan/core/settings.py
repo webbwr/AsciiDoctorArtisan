@@ -109,9 +109,7 @@ class Settings:
     ai_backend: str = "ollama"  # "ollama" or "claude"
     ollama_enabled: bool = True  # Enable Ollama by default for chat
     ollama_model: str | None = "gnokit/improve-grammer"  # Default model for chat
-    claude_model: str | None = (
-        "claude-sonnet-4-20250514"  # Default Claude model (Claude Sonnet 4)
-    )
+    claude_model: str | None = "claude-sonnet-4-20250514"  # Default Claude model (Claude Sonnet 4)
 
     # Chat settings (v1.7.0, v1.10.0+ backend-agnostic)
     ai_chat_enabled: bool = True  # Enable chat by default
@@ -122,9 +120,7 @@ class Settings:
 
     # Backward compatibility aliases (deprecated, kept for migration)
     ollama_chat_enabled: bool = True  # Deprecated: use ai_chat_enabled
-    ollama_chat_history: list[dict[str, Any]] = field(
-        default_factory=list
-    )  # Deprecated: use chat_history
+    ollama_chat_history: list[dict[str, Any]] = field(default_factory=list)  # Deprecated: use chat_history
     ollama_chat_max_history: int = 100  # Deprecated: use chat_max_history
     ollama_chat_context_mode: str = "document"  # Deprecated: use chat_context_mode
     ollama_chat_send_document: bool = True  # Deprecated: use chat_send_document
@@ -313,16 +309,12 @@ class Settings:
             self.last_directory = str(Path.home())
 
         # Validate last_file (optional string)
-        if self.last_file is not None and (
-            not isinstance(self.last_file, str) or not self.last_file
-        ):
+        if self.last_file is not None and (not isinstance(self.last_file, str) or not self.last_file):
             issues.append(f"Invalid last_file: {self.last_file}")
             self.last_file = None
 
         # Validate git_repo_path (optional string)
-        if self.git_repo_path is not None and (
-            not isinstance(self.git_repo_path, str) or not self.git_repo_path
-        ):
+        if self.git_repo_path is not None and (not isinstance(self.git_repo_path, str) or not self.git_repo_path):
             issues.append(f"Invalid git_repo_path: {self.git_repo_path}")
             self.git_repo_path = None
 
@@ -339,29 +331,19 @@ class Settings:
         # Validate window_geometry (optional dict)
         if self.window_geometry is not None:
             if not isinstance(self.window_geometry, dict):
-                issues.append(
-                    f"Invalid window_geometry type: {type(self.window_geometry)}"
-                )
+                issues.append(f"Invalid window_geometry type: {type(self.window_geometry)}")
                 self.window_geometry = None
-            elif not all(
-                key in self.window_geometry for key in ["x", "y", "width", "height"]
-            ):
-                issues.append(
-                    f"Missing window_geometry keys: {self.window_geometry.keys()}"
-                )
+            elif not all(key in self.window_geometry for key in ["x", "y", "width", "height"]):
+                issues.append(f"Missing window_geometry keys: {self.window_geometry.keys()}")
                 self.window_geometry = None
 
         # Validate splitter_sizes (optional list of 2-3 ints)
         if self.splitter_sizes is not None:
             if not isinstance(self.splitter_sizes, list):
-                issues.append(
-                    f"Invalid splitter_sizes type: {type(self.splitter_sizes)}"
-                )
+                issues.append(f"Invalid splitter_sizes type: {type(self.splitter_sizes)}")
                 self.splitter_sizes = None
             elif not (2 <= len(self.splitter_sizes) <= 3):
-                issues.append(
-                    f"Invalid splitter_sizes length: {len(self.splitter_sizes)}"
-                )
+                issues.append(f"Invalid splitter_sizes length: {len(self.splitter_sizes)}")
                 self.splitter_sizes = None
             elif not all(isinstance(s, int) and s >= 0 for s in self.splitter_sizes):
                 issues.append(f"Invalid splitter_sizes values: {self.splitter_sizes}")
@@ -378,9 +360,7 @@ class Settings:
             self.auto_save_enabled = True
 
         # Validate auto_save_interval (int 30-3600)
-        if not isinstance(self.auto_save_interval, int) or not (
-            30 <= self.auto_save_interval <= 3600
-        ):
+        if not isinstance(self.auto_save_interval, int) or not (30 <= self.auto_save_interval <= 3600):
             issues.append(f"Invalid auto_save_interval: {self.auto_save_interval}")
             self.auto_save_interval = 300
 
@@ -398,16 +378,12 @@ class Settings:
             self.ollama_enabled = True
 
         # Validate ollama_model (optional string)
-        if self.ollama_model is not None and (
-            not isinstance(self.ollama_model, str) or not self.ollama_model
-        ):
+        if self.ollama_model is not None and (not isinstance(self.ollama_model, str) or not self.ollama_model):
             issues.append(f"Invalid ollama_model: {self.ollama_model}")
             self.ollama_model = None
 
         # Validate claude_model (optional string)
-        if self.claude_model is not None and (
-            not isinstance(self.claude_model, str) or not self.claude_model
-        ):
+        if self.claude_model is not None and (not isinstance(self.claude_model, str) or not self.claude_model):
             issues.append(f"Invalid claude_model: {self.claude_model}")
             self.claude_model = None
 
@@ -422,18 +398,13 @@ class Settings:
             self.chat_history = []
 
         # Validate chat_max_history (int 10-1000)
-        if not isinstance(self.chat_max_history, int) or not (
-            10 <= self.chat_max_history <= 1000
-        ):
+        if not isinstance(self.chat_max_history, int) or not (10 <= self.chat_max_history <= 1000):
             issues.append(f"Invalid chat_max_history: {self.chat_max_history}")
             self.chat_max_history = 100
 
         # Validate chat_context_mode (string)
         valid_modes = ["document", "syntax", "general", "editing"]
-        if (
-            not isinstance(self.chat_context_mode, str)
-            or self.chat_context_mode not in valid_modes
-        ):
+        if not isinstance(self.chat_context_mode, str) or self.chat_context_mode not in valid_modes:
             issues.append(f"Invalid chat_context_mode: {self.chat_context_mode}")
             self.chat_context_mode = "document"
 
@@ -447,22 +418,15 @@ class Settings:
             issues.append(f"Invalid editor_font_family: {self.editor_font_family}")
             self.editor_font_family = "Courier New"
 
-        if not isinstance(self.editor_font_size, int) or not (
-            8 <= self.editor_font_size <= 72
-        ):
+        if not isinstance(self.editor_font_size, int) or not (8 <= self.editor_font_size <= 72):
             issues.append(f"Invalid editor_font_size: {self.editor_font_size}")
             self.editor_font_size = 12
 
-        if (
-            not isinstance(self.preview_font_family, str)
-            or not self.preview_font_family
-        ):
+        if not isinstance(self.preview_font_family, str) or not self.preview_font_family:
             issues.append(f"Invalid preview_font_family: {self.preview_font_family}")
             self.preview_font_family = "Arial"
 
-        if not isinstance(self.preview_font_size, int) or not (
-            8 <= self.preview_font_size <= 72
-        ):
+        if not isinstance(self.preview_font_size, int) or not (8 <= self.preview_font_size <= 72):
             issues.append(f"Invalid preview_font_size: {self.preview_font_size}")
             self.preview_font_size = 12
 
@@ -470,9 +434,7 @@ class Settings:
             issues.append(f"Invalid chat_font_family: {self.chat_font_family}")
             self.chat_font_family = "Arial"
 
-        if not isinstance(self.chat_font_size, int) or not (
-            8 <= self.chat_font_size <= 72
-        ):
+        if not isinstance(self.chat_font_size, int) or not (8 <= self.chat_font_size <= 72):
             issues.append(f"Invalid chat_font_size: {self.chat_font_size}")
             self.chat_font_size = 11
 
@@ -481,75 +443,50 @@ class Settings:
             issues.append(f"Invalid spell_check_enabled: {self.spell_check_enabled}")
             self.spell_check_enabled = True
 
-        if (
-            not isinstance(self.spell_check_language, str)
-            or not self.spell_check_language
-        ):
+        if not isinstance(self.spell_check_language, str) or not self.spell_check_language:
             issues.append(f"Invalid spell_check_language: {self.spell_check_language}")
             self.spell_check_language = "en"
 
         if not isinstance(self.spell_check_custom_words, list):
-            issues.append(
-                f"Invalid spell_check_custom_words type: {type(self.spell_check_custom_words)}"
-            )
+            issues.append(f"Invalid spell_check_custom_words type: {type(self.spell_check_custom_words)}")
             self.spell_check_custom_words = []
         elif not all(isinstance(w, str) for w in self.spell_check_custom_words):
             issues.append("spell_check_custom_words contains non-string values")
-            self.spell_check_custom_words = [
-                w for w in self.spell_check_custom_words if isinstance(w, str)
-            ]
+            self.spell_check_custom_words = [w for w in self.spell_check_custom_words if isinstance(w, str)]
 
         # Validate auto-complete settings (v2.0.0)
         if not isinstance(self.autocomplete_enabled, bool):
             issues.append(f"Invalid autocomplete_enabled: {self.autocomplete_enabled}")
             self.autocomplete_enabled = True
 
-        if not isinstance(self.autocomplete_delay, int) or not (
-            100 <= self.autocomplete_delay <= 5000
-        ):
+        if not isinstance(self.autocomplete_delay, int) or not (100 <= self.autocomplete_delay <= 5000):
             issues.append(f"Invalid autocomplete_delay: {self.autocomplete_delay}")
             self.autocomplete_delay = 300
 
-        if not isinstance(self.autocomplete_min_chars, int) or not (
-            1 <= self.autocomplete_min_chars <= 10
-        ):
-            issues.append(
-                f"Invalid autocomplete_min_chars: {self.autocomplete_min_chars}"
-            )
+        if not isinstance(self.autocomplete_min_chars, int) or not (1 <= self.autocomplete_min_chars <= 10):
+            issues.append(f"Invalid autocomplete_min_chars: {self.autocomplete_min_chars}")
             self.autocomplete_min_chars = 2
 
         # Validate syntax checking settings (v2.0.0)
         if not isinstance(self.syntax_check_realtime_enabled, bool):
-            issues.append(
-                f"Invalid syntax_check_realtime_enabled: {self.syntax_check_realtime_enabled}"
-            )
+            issues.append(f"Invalid syntax_check_realtime_enabled: {self.syntax_check_realtime_enabled}")
             self.syntax_check_realtime_enabled = True
 
-        if not isinstance(self.syntax_check_delay, int) or not (
-            100 <= self.syntax_check_delay <= 10000
-        ):
+        if not isinstance(self.syntax_check_delay, int) or not (100 <= self.syntax_check_delay <= 10000):
             issues.append(f"Invalid syntax_check_delay: {self.syntax_check_delay}")
             self.syntax_check_delay = 500
 
         if not isinstance(self.syntax_check_show_underlines, bool):
-            issues.append(
-                f"Invalid syntax_check_show_underlines: {self.syntax_check_show_underlines}"
-            )
+            issues.append(f"Invalid syntax_check_show_underlines: {self.syntax_check_show_underlines}")
             self.syntax_check_show_underlines = True
 
         # Validate template settings (v2.0.0)
         if not isinstance(self.template_last_category, str):
-            issues.append(
-                f"Invalid template_last_category: {self.template_last_category}"
-            )
+            issues.append(f"Invalid template_last_category: {self.template_last_category}")
             self.template_last_category = "All"
 
-        if not isinstance(self.template_recent_limit, int) or not (
-            1 <= self.template_recent_limit <= 50
-        ):
-            issues.append(
-                f"Invalid template_recent_limit: {self.template_recent_limit}"
-            )
+        if not isinstance(self.template_recent_limit, int) or not (1 <= self.template_recent_limit <= 50):
+            issues.append(f"Invalid template_recent_limit: {self.template_recent_limit}")
             self.template_recent_limit = 10
 
         # Validate telemetry settings
@@ -558,16 +495,13 @@ class Settings:
             self.telemetry_enabled = False
 
         if self.telemetry_session_id is not None and (
-            not isinstance(self.telemetry_session_id, str)
-            or not self.telemetry_session_id
+            not isinstance(self.telemetry_session_id, str) or not self.telemetry_session_id
         ):
             issues.append(f"Invalid telemetry_session_id: {self.telemetry_session_id}")
             self.telemetry_session_id = None
 
         if not isinstance(self.telemetry_opt_in_shown, bool):
-            issues.append(
-                f"Invalid telemetry_opt_in_shown: {self.telemetry_opt_in_shown}"
-            )
+            issues.append(f"Invalid telemetry_opt_in_shown: {self.telemetry_opt_in_shown}")
             self.telemetry_opt_in_shown = False
 
         # Log all issues

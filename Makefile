@@ -84,12 +84,12 @@ test-perf:
 
 lint:
 	$(RUFF) check $(SRC_DIR)
-	$(BLACK) --check $(SRC_DIR)
+	$(RUFF) format --check $(SRC_DIR)
 	$(ISORT) --check-only $(SRC_DIR)
 	$(MYPY) $(SRC_DIR) || true
 
 format:
-	$(BLACK) $(SRC_DIR)
+	$(RUFF) format $(SRC_DIR)
 	$(ISORT) $(SRC_DIR)
 	$(RUFF) check --fix $(SRC_DIR)
 
