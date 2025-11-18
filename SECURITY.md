@@ -6,10 +6,10 @@ We fix security bugs in these versions:
 
 | Version | Supported |
 | ------- | --------- |
+| 2.0.x   | ✓ Yes     |
 | 1.9.x   | ✓ Yes     |
 | 1.8.x   | ✓ Yes     |
-| 1.7.x   | ✓ Yes     |
-| < 1.7   | ✗ No      |
+| < 1.8   | ✗ No      |
 
 ## Report a Bug
 
@@ -72,6 +72,11 @@ The program uses these tools. All are open source and safe.
 - PySide6 creates the windows
 
 ## Recent Security Fixes
+
+**v2.0.5 (November 2025):**
+- Code quality improvements and defensive code audit
+- Comprehensive security testing (5,481 tests passing)
+- All subprocess calls use secure list form (no shell injection)
 
 **v1.7.4 (October 2025):**
 - Fixed path traversal bug (Issue #8)

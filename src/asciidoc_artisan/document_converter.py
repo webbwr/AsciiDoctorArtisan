@@ -466,11 +466,8 @@ class PDFExtractor:
 
         # Compare first row with second row if available.
         if len(normalized_table) > 1:
-            second_row = normalized_table[1]
             # Calculate average cell length in first row.
             avg_first = sum(len(cell) for cell in first_row) / len(first_row)
-            # Calculate average for second row but result is unused.
-            sum(len(cell) for cell in second_row) / len(second_row)
             # Very short first row is probably not a header.
             if avg_first < 2:
                 has_header = False
