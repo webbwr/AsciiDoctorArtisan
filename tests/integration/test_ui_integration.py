@@ -32,19 +32,13 @@ class TestAsciiDocEditorUI:
 
         with (
             patch("asciidoc_artisan.claude.claude_client.Anthropic") as _mock_anthropic,
-            patch(
-                "asciidoc_artisan.claude.claude_client.SecureCredentials"
-            ) as mock_creds,
-            patch(
-                "PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir
-            ),
+            patch("asciidoc_artisan.claude.claude_client.SecureCredentials") as mock_creds,
+            patch("PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir),
             patch("PySide6.QtCore.QTimer.singleShot"),  # Prevent telemetry dialog timer
         ):
             # Setup mocks to prevent Claude API calls
             mock_creds_instance = Mock()
-            mock_creds_instance.get_anthropic_key.return_value = (
-                None  # No key = no API calls
-            )
+            mock_creds_instance.get_anthropic_key.return_value = None  # No key = no API calls
             mock_creds_instance.has_anthropic_key.return_value = False
             mock_creds.return_value = mock_creds_instance
 
@@ -54,9 +48,7 @@ class TestAsciiDocEditorUI:
             def mock_prompt(*args, **kwargs):
                 return True  # Always proceed without showing dialog
 
-            monkeypatch.setattr(
-                window.status_manager, "prompt_save_before_action", mock_prompt
-            )
+            monkeypatch.setattr(window.status_manager, "prompt_save_before_action", mock_prompt)
 
             qtbot.addWidget(window)
             window.show()  # Show window for visibility tests
@@ -129,9 +121,7 @@ class TestAsciiDocEditorUI:
         # Should mark as unsaved
         assert editor._unsaved_changes is True
 
-    @pytest.mark.skip(
-        reason="Hangs - async/Qt event loop deadlock, needs investigation"
-    )
+    @pytest.mark.skip(reason="Hangs - async/Qt event loop deadlock, needs investigation")
     @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_save_file_creates_file_async(self, editor, qtbot):
@@ -216,12 +206,8 @@ class TestEditorDialogs:
 
         with (
             patch("asciidoc_artisan.claude.claude_client.Anthropic") as _mock_anthropic,
-            patch(
-                "asciidoc_artisan.claude.claude_client.SecureCredentials"
-            ) as mock_creds,
-            patch(
-                "PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir
-            ),
+            patch("asciidoc_artisan.claude.claude_client.SecureCredentials") as mock_creds,
+            patch("PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir),
             patch("PySide6.QtCore.QTimer.singleShot"),
         ):
             mock_creds_instance = Mock()
@@ -282,12 +268,8 @@ class TestEditorActions:
 
         with (
             patch("asciidoc_artisan.claude.claude_client.Anthropic") as _mock_anthropic,
-            patch(
-                "asciidoc_artisan.claude.claude_client.SecureCredentials"
-            ) as mock_creds,
-            patch(
-                "PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir
-            ),
+            patch("asciidoc_artisan.claude.claude_client.SecureCredentials") as mock_creds,
+            patch("PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir),
             patch("PySide6.QtCore.QTimer.singleShot"),
         ):
             mock_creds_instance = Mock()
@@ -372,12 +354,8 @@ class TestSplitterBehavior:
 
         with (
             patch("asciidoc_artisan.claude.claude_client.Anthropic") as _mock_anthropic,
-            patch(
-                "asciidoc_artisan.claude.claude_client.SecureCredentials"
-            ) as mock_creds,
-            patch(
-                "PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir
-            ),
+            patch("asciidoc_artisan.claude.claude_client.SecureCredentials") as mock_creds,
+            patch("PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir),
             patch("PySide6.QtCore.QTimer.singleShot"),
         ):
             mock_creds_instance = Mock()
@@ -464,12 +442,8 @@ class TestPreviewUpdate:
 
         with (
             patch("asciidoc_artisan.claude.claude_client.Anthropic") as _mock_anthropic,
-            patch(
-                "asciidoc_artisan.claude.claude_client.SecureCredentials"
-            ) as mock_creds,
-            patch(
-                "PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir
-            ),
+            patch("asciidoc_artisan.claude.claude_client.SecureCredentials") as mock_creds,
+            patch("PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir),
             patch("PySide6.QtCore.QTimer.singleShot"),
         ):
             mock_creds_instance = Mock()
@@ -541,12 +515,8 @@ class TestWorkerThreads:
 
         with (
             patch("asciidoc_artisan.claude.claude_client.Anthropic") as _mock_anthropic,
-            patch(
-                "asciidoc_artisan.claude.claude_client.SecureCredentials"
-            ) as mock_creds,
-            patch(
-                "PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir
-            ),
+            patch("asciidoc_artisan.claude.claude_client.SecureCredentials") as mock_creds,
+            patch("PySide6.QtCore.QStandardPaths.writableLocation", return_value=temp_dir),
             patch("PySide6.QtCore.QTimer.singleShot"),
         ):
             mock_creds_instance = Mock()

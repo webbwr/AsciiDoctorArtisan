@@ -29,9 +29,7 @@ def collector_disabled(temp_data_dir):
 @pytest.fixture
 def collector_enabled(temp_data_dir):
     """Create an enabled telemetry collector for testing."""
-    return TelemetryCollector(
-        enabled=True, session_id="test-session-123", data_dir=temp_data_dir
-    )
+    return TelemetryCollector(enabled=True, session_id="test-session-123", data_dir=temp_data_dir)
 
 
 class TestTelemetryEventDataClass:
@@ -93,9 +91,7 @@ class TestTelemetryCollectorInitialization:
     def test_custom_session_id(self, temp_data_dir):
         """Test custom session ID is used."""
         custom_id = "custom-session-456"
-        collector = TelemetryCollector(
-            enabled=True, session_id=custom_id, data_dir=temp_data_dir
-        )
+        collector = TelemetryCollector(enabled=True, session_id=custom_id, data_dir=temp_data_dir)
         assert collector.session_id == custom_id
 
     def test_data_directory_created(self, temp_data_dir):
@@ -144,9 +140,7 @@ class TestTelemetryCollectorEventTracking:
 
     def test_track_error(self, collector_enabled):
         """Test error event tracking."""
-        collector_enabled.track_error(
-            "ValueError", "Invalid parameter", {"function": "save_file"}
-        )
+        collector_enabled.track_error("ValueError", "Invalid parameter", {"function": "save_file"})
 
         assert len(collector_enabled.event_buffer) == 1
         event = collector_enabled.event_buffer[0]
@@ -240,9 +234,7 @@ class TestTelemetryCollectorDataSanitization:
 
     def test_sanitize_file_paths(self, collector_enabled):
         """Test file paths are sanitized."""
-        collector_enabled.track_event(
-            "file_open", {"path": "/home/user/documents/file.txt"}
-        )
+        collector_enabled.track_event("file_open", {"path": "/home/user/documents/file.txt"})
 
         event = collector_enabled.event_buffer[0]
         assert event.data["path"] == "<path redacted>"
@@ -256,9 +248,7 @@ class TestTelemetryCollectorDataSanitization:
 
     def test_preserve_safe_data(self, collector_enabled):
         """Test safe data is preserved."""
-        collector_enabled.track_event(
-            "menu_click", {"menu": "File", "action": "Open", "count": 5}
-        )
+        collector_enabled.track_event("menu_click", {"menu": "File", "action": "Open", "count": 5})
 
         event = collector_enabled.event_buffer[0]
         assert event.data["menu"] == "File"
@@ -283,9 +273,7 @@ class TestTelemetryCollectorFileRotation:
 
         # Add many events to exceed size limit
         for i in range(100):
-            collector_enabled.track_event(
-                "large_event", {"data": "x" * 100, "index": i}
-            )
+            collector_enabled.track_event("large_event", {"data": "x" * 100, "index": i})
             collector_enabled.flush()
 
         # File should exist but be rotated (smaller than if all events kept)

@@ -114,10 +114,7 @@ class TestGitHubCLIWorkerCommands:
         # Verify
         assert result is not None
         assert result.success is False
-        assert (
-            "not authenticated" in result.error
-            or "not authenticated" in result.user_message.lower()
-        )
+        assert "not authenticated" in result.error or "not authenticated" in result.user_message.lower()
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_gh_command_timeout(self, mock_run, github_worker):
@@ -139,10 +136,7 @@ class TestGitHubCLIWorkerCommands:
         # Verify timeout handled gracefully
         assert result is not None
         assert result.success is False
-        assert (
-            "timeout" in result.user_message.lower()
-            or "timed out" in result.user_message.lower()
-        )
+        assert "timeout" in result.user_message.lower() or "timed out" in result.user_message.lower()
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_gh_not_installed(self, mock_run, github_worker):
@@ -164,10 +158,7 @@ class TestGitHubCLIWorkerCommands:
         # Verify
         assert result is not None
         assert result.success is False
-        assert (
-            "not found" in result.user_message.lower()
-            or "not installed" in result.user_message.lower()
-        )
+        assert "not found" in result.user_message.lower() or "not installed" in result.user_message.lower()
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_json_parsing_success(self, mock_run, github_worker):
@@ -188,9 +179,7 @@ class TestGitHubCLIWorkerCommands:
         github_worker.github_result_ready.connect(capture_result)
 
         # Execute
-        github_worker.run_gh_command(
-            ["gh", "pr", "view", "42", "--json", "number,title,state"]
-        )
+        github_worker.run_gh_command(["gh", "pr", "view", "42", "--json", "number,title,state"])
 
         # Verify
         assert result is not None
@@ -259,9 +248,7 @@ class TestGitHubCLIWorkerPullRequests:
         github_worker.github_result_ready.connect(capture_result)
 
         # Execute
-        github_worker.create_pull_request(
-            title="Test PR", body="Test description", base="main", head="feature-branch"
-        )
+        github_worker.create_pull_request(title="Test PR", body="Test description", base="main", head="feature-branch")
 
         # Verify
         assert result is not None
@@ -410,9 +397,7 @@ class TestGitHubCLIWorkerIssues:
         """Test listing closed issues."""
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout=json.dumps(
-                [{"number": 13, "title": "Fixed issue", "state": "closed"}]
-            ),
+            stdout=json.dumps([{"number": 13, "title": "Fixed issue", "state": "closed"}]),
             stderr="",
         )
 

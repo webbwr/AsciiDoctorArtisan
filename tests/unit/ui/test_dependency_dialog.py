@@ -389,9 +389,7 @@ class TestShowDependencyValidation:
         # Should return True immediately for non-critical
         assert result is True
 
-    def test_show_validation_with_critical_shows_modal(
-        self, qtbot, critical_missing_deps, monkeypatch
-    ):
+    def test_show_validation_with_critical_shows_modal(self, qtbot, critical_missing_deps, monkeypatch):
         """Test shows modal dialog when critical issues exist."""
         dialog_exec_called = False
 
@@ -411,9 +409,7 @@ class TestShowDependencyValidation:
 class TestShowDependencySummaryMessage:
     """Test show_dependency_summary_message helper function."""
 
-    def test_summary_missing_required_shows_critical_box(
-        self, qtbot, critical_missing_deps, monkeypatch
-    ):
+    def test_summary_missing_required_shows_critical_box(self, qtbot, critical_missing_deps, monkeypatch):
         """Test shows critical message box for missing required deps."""
         message_box_shown = False
 
@@ -428,9 +424,7 @@ class TestShowDependencySummaryMessage:
 
         assert message_box_shown is True
 
-    def test_summary_optional_missing_logs_info(
-        self, qtbot, optional_missing_deps, monkeypatch
-    ):
+    def test_summary_optional_missing_logs_info(self, qtbot, optional_missing_deps, monkeypatch):
         """Test logs info for missing optional dependencies."""
         # Should not show message box, just log
         message_box_shown = False
@@ -447,9 +441,7 @@ class TestShowDependencySummaryMessage:
         # Should not show message box for optional-only
         assert message_box_shown is False
 
-    def test_summary_all_installed_no_message(
-        self, qtbot, all_installed_deps, monkeypatch
-    ):
+    def test_summary_all_installed_no_message(self, qtbot, all_installed_deps, monkeypatch):
         """Test no message when all dependencies installed."""
         message_box_shown = False
 
@@ -480,9 +472,7 @@ class TestEdgeCases:
 
     def test_single_dependency(self, qtbot):
         """Test dialog with single dependency."""
-        deps = [
-            Dependency("only_one", DependencyType.REQUIRED, DependencyStatus.INSTALLED)
-        ]
+        deps = [Dependency("only_one", DependencyType.REQUIRED, DependencyStatus.INSTALLED)]
         dialog = DependencyValidationDialog(deps)
         qtbot.addWidget(dialog)
 

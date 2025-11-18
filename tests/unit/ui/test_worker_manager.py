@@ -73,9 +73,7 @@ class TestWorkerManagerInitialization:
         assert manager.claude_worker is None
 
     @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
-    def test_initialization_with_pool_default_threads(
-        self, mock_pool_class, mock_editor
-    ):
+    def test_initialization_with_pool_default_threads(self, mock_pool_class, mock_editor):
         """Test WorkerManager initializes worker pool with default thread count."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
@@ -92,9 +90,7 @@ class TestWorkerManagerInitialization:
         assert call_args[1]["max_threads"] >= 4
 
     @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
-    def test_initialization_with_pool_custom_threads(
-        self, mock_pool_class, mock_editor
-    ):
+    def test_initialization_with_pool_custom_threads(self, mock_pool_class, mock_editor):
         """Test WorkerManager initializes pool with custom thread count."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
@@ -543,9 +539,7 @@ class TestWorkerInitializationEdgeCases:
         mock_pool_class.assert_called_once_with(max_threads=0)
 
     @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
-    def test_pool_initialization_with_negative_threads(
-        self, mock_pool_class, mock_editor
-    ):
+    def test_pool_initialization_with_negative_threads(self, mock_pool_class, mock_editor):
         """Test pool initialization with negative threads passes value through."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool
@@ -556,9 +550,7 @@ class TestWorkerInitializationEdgeCases:
         mock_pool_class.assert_called_once_with(max_threads=-5)
 
     @patch("asciidoc_artisan.ui.worker_manager.OptimizedWorkerPool")
-    def test_pool_initialization_with_very_large_threads(
-        self, mock_pool_class, mock_editor
-    ):
+    def test_pool_initialization_with_very_large_threads(self, mock_pool_class, mock_editor):
         """Test pool initialization with very large thread count."""
         mock_pool = Mock()
         mock_pool_class.return_value = mock_pool

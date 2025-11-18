@@ -74,9 +74,7 @@ class TestResultCodes:
 
     def test_remind_later_result_code(self):
         """Test REMIND_LATER result code."""
-        assert (
-            TelemetryOptInDialog.Result.REMIND_LATER == QDialog.DialogCode.Rejected + 1
-        )
+        assert TelemetryOptInDialog.Result.REMIND_LATER == QDialog.DialogCode.Rejected + 1
 
 
 class TestUIComponents:
@@ -91,9 +89,7 @@ class TestUIComponents:
         assert len(labels) > 0
 
         # Check header text contains title
-        header_found = any(
-            "Help Improve AsciiDoc Artisan" in label.text() for label in labels
-        )
+        header_found = any("Help Improve AsciiDoc Artisan" in label.text() for label in labels)
         assert header_found
 
     def test_has_explanation_text_browser(self, qapp):
@@ -208,9 +204,7 @@ class TestUIComponents:
         dialog = TelemetryOptInDialog()
 
         labels = dialog.findChildren(QLabel)
-        privacy_note = [
-            label for label in labels if "Privacy is important" in label.text()
-        ]
+        privacy_note = [label for label in labels if "Privacy is important" in label.text()]
 
         assert len(privacy_note) == 1
         assert "Settings" in privacy_note[0].text()

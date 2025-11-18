@@ -584,9 +584,7 @@ def test_get_memory_usage_exception():
 
     # Ensure process is set (not None)
     with patch("asciidoc_artisan.core.memory_profiler.PSUTIL_AVAILABLE", True):
-        with patch(
-            "asciidoc_artisan.core.memory_profiler.psutil.Process"
-        ) as mock_process_class:
+        with patch("asciidoc_artisan.core.memory_profiler.psutil.Process") as mock_process_class:
             # Create a mock process that raises exception
             mock_process = MagicMock()
             mock_process.memory_info.side_effect = Exception("Memory access error")

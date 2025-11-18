@@ -58,9 +58,7 @@ def mock_editor(qapp):
     editor.ui_state_manager.check_pandoc_availability = Mock(return_value=True)
 
     editor.large_file_handler = Mock()
-    editor.large_file_handler.load_file_optimized = Mock(
-        return_value=(True, "= Test\n\nContent", None)
-    )
+    editor.large_file_handler.load_file_optimized = Mock(return_value=(True, "= Test\n\nContent", None))
 
     # Preview widget
     editor.preview = Mock()
@@ -180,9 +178,7 @@ class TestOpenFile:
             mock_pdf.assert_called_once_with(pdf_file)
 
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
-    def test_open_docx_calls_pandoc_conversion(
-        self, mock_dialog, mock_editor, tmp_path
-    ):
+    def test_open_docx_calls_pandoc_conversion(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
         manager = FileOperationsManager(mock_editor)
@@ -237,9 +233,7 @@ class TestSaveFile:
         assert mock_editor._unsaved_changes is False
 
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
-    def test_save_file_shows_dialog_when_save_as(
-        self, mock_dialog, mock_editor, tmp_path
-    ):
+    def test_save_file_shows_dialog_when_save_as(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
         manager = FileOperationsManager(mock_editor)
@@ -271,9 +265,7 @@ class TestSaveFile:
         assert result is False
 
     @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
-    def test_save_file_delegates_to_export_for_non_adoc(
-        self, mock_dialog, mock_editor, tmp_path
-    ):
+    def test_save_file_delegates_to_export_for_non_adoc(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
         manager = FileOperationsManager(mock_editor)
@@ -520,9 +512,7 @@ class TestDetermineSaveFormat:
 
         file_path = Path("/tmp/test")
         # Use actual MD_FILTER constant from core
-        format_type, corrected_path = manager._determine_save_format(
-            file_path, MD_FILTER
-        )
+        format_type, corrected_path = manager._determine_save_format(file_path, MD_FILTER)
 
         # Should detect format from filter
         assert format_type == "md"
@@ -546,9 +536,7 @@ class TestDetermineSaveFormat:
         manager = FileOperationsManager(mock_editor)
 
         file_path = Path("/tmp/test")
-        format_type, corrected_path = manager._determine_save_format(
-            file_path, "HTML Files (*.html *.htm)"
-        )
+        format_type, corrected_path = manager._determine_save_format(file_path, "HTML Files (*.html *.htm)")
 
         # Should add extension if missing
         assert format_type == "html"
@@ -855,9 +843,7 @@ class TestTempFileCreation:
         target_file = tmp_path / "output.pdf"
 
         # Mock Path.write_text to raise an exception
-        with patch(
-            "pathlib.Path.write_text", side_effect=Exception("Permission denied")
-        ):
+        with patch("pathlib.Path.write_text", side_effect=Exception("Permission denied")):
             result = manager.save_as_format_internal(target_file, "pdf")
 
             # Should return False and show error message
@@ -1005,9 +991,7 @@ class TestFileOperationsCoverageEdgeCases:
             assert "PDF Extraction Failed" in args[1]
             assert "Encryption error" in args[2]
 
-    def test_open_non_adoc_pandoc_unavailable_returns_early(
-        self, mock_editor, tmp_path
-    ):
+    def test_open_non_adoc_pandoc_unavailable_returns_early(self, mock_editor, tmp_path):
         """Test opening non-adoc file returns early if Pandoc unavailable (line 601)."""
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -1015,9 +999,7 @@ class TestFileOperationsCoverageEdgeCases:
         file_path = tmp_path / "test.docx"
 
         # Mock check_pandoc_availability to return False
-        mock_editor.ui_state_manager.check_pandoc_availability = Mock(
-            return_value=False
-        )
+        mock_editor.ui_state_manager.check_pandoc_availability = Mock(return_value=False)
 
         manager._open_with_pandoc_conversion(file_path, ".docx")
 
@@ -1033,9 +1015,7 @@ class TestFileOperationsCoverageEdgeCases:
         file_path.write_text("= Test\n\nContent", encoding="utf-8")
 
         # Mock large file handler to return error
-        mock_editor.large_file_handler.load_file_optimized = Mock(
-            return_value=(False, None, "Memory error")
-        )
+        mock_editor.large_file_handler.load_file_optimized = Mock(return_value=(False, None, "Memory error"))
 
         # Mock get_file_size_category to return "large"
         with patch(
@@ -1063,9 +1043,7 @@ class TestFileOperationsCoverageEdgeCases:
 
             # Should load content into editor
             mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
-            loaded_content = (
-                mock_editor.file_load_manager.load_content_into_editor.call_args[0][0]
-            )
+            loaded_content = mock_editor.file_load_manager.load_content_into_editor.call_args[0][0]
             assert loaded_content == content
 
     def test_determine_format_from_docx_filter(self, mock_editor, tmp_path):
@@ -1075,9 +1053,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "Microsoft Word 365 Documents (*.docx)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "Microsoft Word 365 Documents (*.docx)")
 
         assert format_type == "docx"
         assert result_path.suffix == ".docx"
@@ -1089,9 +1065,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "Adobe Acrobat PDF Files (*.pdf)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "Adobe Acrobat PDF Files (*.pdf)")
 
         assert format_type == "pdf"
         assert result_path.suffix == ".pdf"
@@ -1103,9 +1077,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test.md"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "AsciiDoc Files (*.adoc)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "AsciiDoc Files (*.adoc)")
 
         assert format_type == "md"
 
@@ -1116,9 +1088,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test.docx"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "AsciiDoc Files (*.adoc)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "AsciiDoc Files (*.adoc)")
 
         assert format_type == "docx"
 
@@ -1129,9 +1099,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test.html"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "AsciiDoc Files (*.adoc)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "AsciiDoc Files (*.adoc)")
 
         assert format_type == "html"
 
@@ -1142,9 +1110,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test.pdf"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "AsciiDoc Files (*.adoc)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "AsciiDoc Files (*.adoc)")
 
         assert format_type == "pdf"
 
@@ -1155,9 +1121,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "Microsoft Word 365 Documents (*.docx)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "Microsoft Word 365 Documents (*.docx)")
 
         assert format_type == "docx"
         assert result_path.suffix == ".docx"
@@ -1169,9 +1133,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "Adobe Acrobat PDF Files (*.pdf)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "Adobe Acrobat PDF Files (*.pdf)")
 
         assert format_type == "pdf"
         assert result_path.suffix == ".pdf"
@@ -1183,9 +1145,7 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test"
 
-        format_type, result_path = manager._determine_save_format(
-            file_path, "AsciiDoc Files (*.adoc)"
-        )
+        format_type, result_path = manager._determine_save_format(file_path, "AsciiDoc Files (*.adoc)")
 
         assert format_type == "adoc"
         assert result_path.suffix == ".adoc"

@@ -53,13 +53,9 @@ def profile_imports():
             t1 = time.perf_counter()
             m1 = process.memory_info().rss / 1024 / 1024
 
-            results.append(
-                {"module": name, "time_ms": (t1 - t0) * 1000, "memory_mb": m1 - m0}
-            )
+            results.append({"module": name, "time_ms": (t1 - t0) * 1000, "memory_mb": m1 - m0})
         except Exception as e:
-            results.append(
-                {"module": name, "time_ms": 0, "memory_mb": 0, "error": str(e)}
-            )
+            results.append({"module": name, "time_ms": 0, "memory_mb": 0, "error": str(e)})
 
     total_time = time.perf_counter() - start_time
     total_memory = process.memory_info().rss / 1024 / 1024 - start_memory
@@ -188,9 +184,7 @@ def profile_component_creation():
             time_ms = (t1 - t0) * 1000
             memory_mb = m1 - m0
 
-            results.append(
-                {"component": name, "time_ms": time_ms, "memory_mb": memory_mb}
-            )
+            results.append({"component": name, "time_ms": time_ms, "memory_mb": memory_mb})
 
             print(f"{name:<30} {time_ms:>12.2f} {memory_mb:>12.2f}")
 

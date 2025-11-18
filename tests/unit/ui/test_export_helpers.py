@@ -190,9 +190,7 @@ class TestPDFHelper:
 
     def test_add_print_css_to_html_with_head_tag(self):
         """Test adding CSS when HTML has </head> tag."""
-        html_content = (
-            "<html><head><title>Test</title></head><body>Content</body></html>"
-        )
+        html_content = "<html><head><title>Test</title></head><body>Content</body></html>"
 
         result = PDFHelper.add_print_css_to_html(html_content)
 

@@ -21,9 +21,7 @@ from typing import Dict, List, Optional
 class AuditLogEntry:
     """Represents a single audit log entry."""
 
-    def __init__(
-        self, timestamp: str, user: str, action: str, service: str, success: bool
-    ):
+    def __init__(self, timestamp: str, user: str, action: str, service: str, success: bool):
         self.timestamp = timestamp
         self.user = user
         self.action = action
@@ -190,9 +188,7 @@ class SecurityAuditAnalyzer:
 
             print("  Recent Failures (last 10):")
             for entry in failures[-10:]:
-                print(
-                    f"    {entry.timestamp} | {entry.user:15} | {entry.action:20} | {entry.service}"
-                )
+                print(f"    {entry.timestamp} | {entry.user:15} | {entry.action:20} | {entry.service}")
         else:
             print("FAILURES")
             print("-" * 80)

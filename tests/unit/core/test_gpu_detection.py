@@ -192,26 +192,20 @@ class TestGPUCacheEntry:
     def test_cache_entry_is_valid_expired(self):
         """Test that old cache entry is invalid."""
         old_timestamp = (datetime.now() - timedelta(days=10)).isoformat()
-        entry = GPUCacheEntry(
-            timestamp=old_timestamp, gpu_info={"has_gpu": False}, version="1.4.0"
-        )
+        entry = GPUCacheEntry(timestamp=old_timestamp, gpu_info={"has_gpu": False}, version="1.4.0")
 
         assert entry.is_valid(ttl_days=7) is False
 
     def test_cache_entry_is_valid_invalid_timestamp(self):
         """Test cache entry with invalid timestamp."""
-        entry = GPUCacheEntry(
-            timestamp="invalid-timestamp", gpu_info={"has_gpu": False}, version="1.5.0"
-        )
+        entry = GPUCacheEntry(timestamp="invalid-timestamp", gpu_info={"has_gpu": False}, version="1.5.0")
 
         assert entry.is_valid(ttl_days=7) is False
 
     def test_cache_entry_custom_ttl(self):
         """Test cache entry validation with custom TTL."""
         timestamp = (datetime.now() - timedelta(days=5)).isoformat()
-        entry = GPUCacheEntry(
-            timestamp=timestamp, gpu_info={"has_gpu": True}, version="1.5.0"
-        )
+        entry = GPUCacheEntry(timestamp=timestamp, gpu_info={"has_gpu": True}, version="1.5.0")
 
         # Valid with 7 day TTL
         assert entry.is_valid(ttl_days=7) is True
@@ -254,9 +248,7 @@ class TestGPUDetectionCache:
 
     def test_load_no_cache_file(self, tmp_path):
         """Test loading when cache file doesn't exist."""
-        with patch.object(
-            GPUDetectionCache, "CACHE_FILE", tmp_path / "nonexistent.json"
-        ):
+        with patch.object(GPUDetectionCache, "CACHE_FILE", tmp_path / "nonexistent.json"):
             result = GPUDetectionCache.load()
             assert result is None
 
@@ -315,9 +307,7 @@ class TestGPUDetectionCache:
         cache_file = tmp_path / "gpu_cache.json"
         cache_file.parent.mkdir(parents=True, exist_ok=True)
 
-        gpu_info = GPUInfo(
-            has_gpu=True, gpu_type="intel", compute_capabilities=["opencl"]
-        )
+        gpu_info = GPUInfo(has_gpu=True, gpu_type="intel", compute_capabilities=["opencl"])
 
         with patch.object(GPUDetectionCache, "CACHE_FILE", cache_file):
             GPUDetectionCache.save(gpu_info, version="1.5.0")
@@ -570,9 +560,7 @@ class TestCheckNvidiaGPU:
     def test_nvidia_gpu_detected(self, mocker):
         """Test NVIDIA GPU detected via nvidia-smi."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="NVIDIA GeForce RTX 4060, 535.104.05\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="NVIDIA GeForce RTX 4060, 535.104.05\n")
 
         has_nvidia, gpu_name, driver_version = check_nvidia_gpu()
         assert has_nvidia is True
@@ -614,9 +602,7 @@ class TestCheckAMDGPU:
     def test_amd_gpu_detected_card_series(self, mocker):
         """Test AMD GPU detected via rocm-smi (Card series)."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Card series: AMD Radeon RX 6800\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Card series: AMD Radeon RX 6800\n")
 
         has_amd, gpu_name = check_amd_gpu()
         assert has_amd is True
@@ -625,9 +611,7 @@ class TestCheckAMDGPU:
     def test_amd_gpu_detected_card_model(self, mocker):
         """Test AMD GPU detected via rocm-smi (Card model)."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Card model: AMD Radeon Pro W6800\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Card model: AMD Radeon Pro W6800\n")
 
         has_amd, gpu_name = check_amd_gpu()
         assert has_amd is True
@@ -658,9 +642,7 @@ class TestCheckIntelGPU:
     def test_intel_gpu_detected(self, mocker):
         """Test Intel GPU detected via clinfo."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Device Name: Intel(R) UHD Graphics 620\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Device Name: Intel(R) UHD Graphics 620\n")
 
         has_intel, gpu_name = check_intel_gpu()
         assert has_intel is True
@@ -679,9 +661,7 @@ class TestCheckIntelGPU:
     def test_clinfo_no_intel_device(self, mocker):
         """Test clinfo output but no Intel device."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Device Name: Some Other GPU\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Device Name: Some Other GPU\n")
 
         has_intel, gpu_name = check_intel_gpu()
         assert has_intel is False
@@ -693,9 +673,7 @@ class TestCheckOpenGLRenderer:
     def test_hardware_renderer(self, mocker):
         """Test hardware OpenGL renderer."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="OpenGL renderer string: NVIDIA GeForce RTX 4060\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="OpenGL renderer string: NVIDIA GeForce RTX 4060\n")
 
         is_hardware, renderer = check_opengl_renderer()
         assert is_hardware is True
@@ -704,9 +682,7 @@ class TestCheckOpenGLRenderer:
     def test_software_renderer_llvmpipe(self, mocker):
         """Test software renderer (llvmpipe)."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="OpenGL renderer string: llvmpipe (LLVM 12.0.0)\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="OpenGL renderer string: llvmpipe (LLVM 12.0.0)\n")
 
         is_hardware, renderer = check_opengl_renderer()
         assert is_hardware is False
@@ -715,9 +691,7 @@ class TestCheckOpenGLRenderer:
     def test_software_renderer_generic(self, mocker):
         """Test software renderer (generic software)."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="OpenGL renderer string: Software Rasterizer\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="OpenGL renderer string: Software Rasterizer\n")
 
         is_hardware, renderer = check_opengl_renderer()
         assert is_hardware is False
@@ -763,9 +737,7 @@ class TestCheckIntelNPU:
     def test_intel_npu_via_clinfo(self, mocker):
         """Test Intel NPU detected via clinfo."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Device Name: Intel(R) NPU Accelerator\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Device Name: Intel(R) NPU Accelerator\n")
 
         has_npu, npu_name = check_intel_npu()
         assert has_npu is True
@@ -879,9 +851,7 @@ class TestDetectGPU:
     def test_detect_gpu_no_dri(self, mocker):
         """Test GPU detection when /dev/dri not found."""
         # Mock platform to test Linux code path
-        mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux"
-        )
+        mocker.patch("asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux")
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_dri_devices",
             return_value=(False, None),
@@ -895,9 +865,7 @@ class TestDetectGPU:
     def test_detect_gpu_software_renderer(self, mocker):
         """Test GPU detection with software renderer."""
         # Mock platform to test Linux code path
-        mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux"
-        )
+        mocker.patch("asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux")
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_dri_devices",
             return_value=(True, "/dev/dri/renderD128"),
@@ -1007,9 +975,7 @@ class TestDetectGPU:
         - Unknown GPU type
         """
         # Mock platform to test Linux code path
-        mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux"
-        )
+        mocker.patch("asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux")
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_dri_devices",
             return_value=(True, render_device),
@@ -1022,9 +988,7 @@ class TestDetectGPU:
             "asciidoc_artisan.core.gpu_detection.check_nvidia_gpu",
             return_value=nvidia_return,
         )
-        mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.check_amd_gpu", return_value=amd_return
-        )
+        mocker.patch("asciidoc_artisan.core.gpu_detection.check_amd_gpu", return_value=amd_return)
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_intel_gpu",
             return_value=intel_return,
@@ -1147,9 +1111,7 @@ class TestGetGPUInfo:
         gpu_mod._cached_gpu_info = None
 
         cached_info = GPUInfo(has_gpu=True, gpu_type="amd")
-        mock_load = mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load"
-        )
+        mock_load = mocker.patch("asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load")
         mock_load.return_value = cached_info
 
         mock_detect = mocker.patch("asciidoc_artisan.core.gpu_detection.detect_gpu")
@@ -1193,9 +1155,7 @@ class TestMainCLI:
     def test_main_clear_command(self, mocker, capsys):
         """Test main() with 'clear' command."""
         mocker.patch.object(sys, "argv", ["gpu_detection.py", "clear"])
-        mock_clear = mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.clear"
-        )
+        mock_clear = mocker.patch("asciidoc_artisan.core.gpu_detection.GPUDetectionCache.clear")
 
         from asciidoc_artisan.core.gpu_detection import main
 
@@ -1208,9 +1168,7 @@ class TestMainCLI:
     def test_main_show_command_with_cache(self, mocker, capsys):
         """Test main() with 'show' command (cache exists)."""
         mocker.patch.object(sys, "argv", ["gpu_detection.py", "show"])
-        mock_load = mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load"
-        )
+        mock_load = mocker.patch("asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load")
         mock_load.return_value = GPUInfo(
             has_gpu=True,
             gpu_type="nvidia",
@@ -1232,9 +1190,7 @@ class TestMainCLI:
     def test_main_show_command_no_cache(self, mocker, capsys):
         """Test main() with 'show' command (no cache)."""
         mocker.patch.object(sys, "argv", ["gpu_detection.py", "show"])
-        mock_load = mocker.patch(
-            "asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load"
-        )
+        mock_load = mocker.patch("asciidoc_artisan.core.gpu_detection.GPUDetectionCache.load")
         mock_load.return_value = None
 
         from asciidoc_artisan.core.gpu_detection import main
@@ -1666,9 +1622,7 @@ class TestAppleNeuralEngine:
         """Test when sysctl command times out."""
         import subprocess
 
-        mocker.patch(
-            "subprocess.run", side_effect=subprocess.TimeoutExpired("sysctl", 1)
-        )
+        mocker.patch("subprocess.run", side_effect=subprocess.TimeoutExpired("sysctl", 1))
 
         has_npu, npu_name = check_apple_neural_engine()
 
@@ -1857,9 +1811,7 @@ class TestCoverageImprovements:
         log_gpu_info(gpu_info)
 
         # Check that metal_version was logged (line 627)
-        assert any(
-            "Metal version: Metal 3.1" in record.message for record in caplog.records
-        )
+        assert any("Metal version: Metal 3.1" in record.message for record in caplog.records)
 
     def test_detect_compute_capabilities_metal_file_not_found(self, mocker):
         """Test Metal detection when system_profiler not found (line 486)."""
@@ -1867,9 +1819,7 @@ class TestCoverageImprovements:
         mocker.patch("platform.system", return_value="Darwin")
 
         # Mock subprocess.run to raise FileNotFoundError
-        mocker.patch(
-            "subprocess.run", side_effect=FileNotFoundError("system_profiler not found")
-        )
+        mocker.patch("subprocess.run", side_effect=FileNotFoundError("system_profiler not found"))
 
         capabilities = detect_compute_capabilities()
 
@@ -1885,9 +1835,7 @@ class TestCoverageImprovements:
         # Mock subprocess.run to raise TimeoutExpired
         mocker.patch(
             "subprocess.run",
-            side_effect=subprocess.TimeoutExpired(
-                cmd="system_profiler SPDisplaysDataType", timeout=1
-            ),
+            side_effect=subprocess.TimeoutExpired(cmd="system_profiler SPDisplaysDataType", timeout=1),
         )
 
         capabilities = detect_compute_capabilities()

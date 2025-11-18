@@ -74,9 +74,7 @@ class TestGitWorkerExtendedErrorAnalysis:
 
     def test_analyze_untracked_files_error(self, worker):
         """Test untracked files would be overwritten error."""
-        stderr = (
-            "error: The following untracked working tree files would be overwritten"
-        )
+        stderr = "error: The following untracked working tree files would be overwritten"
         result = worker._analyze_git_error(stderr, ["git", "checkout"])
 
         assert "Git command failed" in result
@@ -105,9 +103,7 @@ class TestGitWorkerNetworkErrors:
 
         with patch("subprocess.run") as mock_run:
             # Simulate connection timeout
-            mock_run.side_effect = subprocess.TimeoutExpired(
-                cmd=["git", "fetch"], timeout=30
-            )
+            mock_run.side_effect = subprocess.TimeoutExpired(cmd=["git", "fetch"], timeout=30)
 
             with qtbot.waitSignal(worker.command_complete, timeout=5000) as blocker:
                 worker.run_git_command(["git", "fetch"], str(test_repo))

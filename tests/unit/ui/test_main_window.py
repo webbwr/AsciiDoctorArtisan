@@ -12,12 +12,8 @@ def mock_workers():
         patch("asciidoc_artisan.workers.git_worker.GitWorker") as mock_git,
         patch("asciidoc_artisan.workers.pandoc_worker.PandocWorker") as mock_pandoc,
         patch("asciidoc_artisan.workers.preview_worker.PreviewWorker") as mock_preview,
-        patch(
-            "asciidoc_artisan.workers.github_cli_worker.GitHubCLIWorker"
-        ) as mock_github,
-        patch(
-            "asciidoc_artisan.workers.ollama_chat_worker.OllamaChatWorker"
-        ) as mock_ollama,
+        patch("asciidoc_artisan.workers.github_cli_worker.GitHubCLIWorker") as mock_github,
+        patch("asciidoc_artisan.workers.ollama_chat_worker.OllamaChatWorker") as mock_ollama,
     ):
         yield {
             "git": mock_git,
@@ -307,18 +303,14 @@ class TestKeyboardShortcuts:
 class TestCleanup:
     """Test suite for cleanup and shutdown."""
 
-    @pytest.mark.skip(
-        reason="Complex async worker cleanup - better tested in integration tests"
-    )
+    @pytest.mark.skip(reason="Complex async worker cleanup - better tested in integration tests")
     def test_closeEvent_stops_workers(self, mock_workers, qapp):
         from PySide6.QtGui import QCloseEvent
 
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
         # Patch setup_workers_and_threads to prevent worker initialization
-        with patch(
-            "asciidoc_artisan.ui.worker_manager.WorkerManager.setup_workers_and_threads"
-        ):
+        with patch("asciidoc_artisan.ui.worker_manager.WorkerManager.setup_workers_and_threads"):
             window = AsciiDocEditor()
 
             try:
@@ -504,9 +496,7 @@ class TestHandleReplaceAll:
         window.status_manager.show_status = Mock()
 
         # Mock QMessageBox.question to return Yes
-        with patch.object(
-            QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes
-        ):
+        with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
             window._handle_replace_all("baz")
 
         # Verify text was replaced
@@ -530,9 +520,7 @@ class TestHandleReplaceAll:
         window.find_bar.is_case_sensitive = Mock(return_value=False)
 
         # Mock QMessageBox.question to return No
-        with patch.object(
-            QMessageBox, "question", return_value=QMessageBox.StandardButton.No
-        ):
+        with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.No):
             window._handle_replace_all("baz")
 
         # Verify text was NOT replaced
@@ -597,9 +585,7 @@ class TestHandleReplaceAll:
         window.status_manager.show_status = Mock()
 
         # Mock QMessageBox.question to return Yes
-        with patch.object(
-            QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes
-        ):
+        with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
             window._handle_replace_all("x")
 
         # Cursor should still be valid (not past end of text)
@@ -984,9 +970,7 @@ class TestRouteChatMessageToWorker:
         history = []
         document_content = None
 
-        window._route_chat_message_to_worker(
-            message, model, context_mode, history, document_content
-        )
+        window._route_chat_message_to_worker(message, model, context_mode, history, document_content)
 
         # Verify routed to Ollama
         window.ollama_chat_worker.send_message.assert_called_once_with(
@@ -1012,9 +996,7 @@ class TestRouteChatMessageToWorker:
         history = []
         document_content = None
 
-        window._route_chat_message_to_worker(
-            message, model, context_mode, history, document_content
-        )
+        window._route_chat_message_to_worker(message, model, context_mode, history, document_content)
 
         # Verify routed to Claude
         window.claude_worker.send_message.assert_called()
@@ -1038,9 +1020,7 @@ class TestRouteChatMessageToWorker:
         history = []
         document_content = "= My Document\n\nThis is content."
 
-        window._route_chat_message_to_worker(
-            message, model, context_mode, history, document_content
-        )
+        window._route_chat_message_to_worker(message, model, context_mode, history, document_content)
 
         # Verify Claude was called with document content in message
         call_args = window.claude_worker.send_message.call_args
@@ -1079,9 +1059,7 @@ class TestRouteChatMessageToWorker:
         ]
 
         # Route message
-        window._route_chat_message_to_worker(
-            "test", "claude-sonnet-4", "general", history, None
-        )
+        window._route_chat_message_to_worker("test", "claude-sonnet-4", "general", history, None)
 
         # Verify Claude was called with conversation history
         call_args = window.claude_worker.send_message.call_args
@@ -1282,9 +1260,7 @@ class TestAutoSave:
         window.editor.setPlainText("test content")
 
         # Mock atomic_save_text
-        with patch(
-            "asciidoc_artisan.ui.main_window.atomic_save_text", return_value=True
-        ) as mock_save:
+        with patch("asciidoc_artisan.ui.main_window.atomic_save_text", return_value=True) as mock_save:
             # Call auto-save
             window._auto_save()
 
@@ -1472,9 +1448,7 @@ class TestCloseEvent:
             del os.environ["PYTEST_CURRENT_TEST"]
 
     @patch("asciidoc_artisan.ui.main_window.os.environ.get")
-    def test_close_event_delegates_to_editor_state(
-        self, mock_env_get, mock_workers, qapp
-    ):
+    def test_close_event_delegates_to_editor_state(self, mock_env_get, mock_workers, qapp):
         """Test that close event delegates to editor_state in normal mode."""
         from PySide6.QtGui import QCloseEvent
 

@@ -178,9 +178,7 @@ class TestConversionTask:
 
     def test_conversion_task_creation_with_custom_id(self):
         """Test ConversionTask accepts custom ID."""
-        task = ConversionTask(
-            "Test", "asciidoc", "markdown", task_id="custom_convert_123"
-        )
+        task = ConversionTask("Test", "asciidoc", "markdown", task_id="custom_convert_123")
 
         assert task.task_id == "custom_convert_123"
 
@@ -286,9 +284,7 @@ class TestGitTask:
     @patch("subprocess.run")
     def test_git_task_successful_execution(self, mock_run, tmp_path):
         """Test GitTask executes git command successfully."""
-        mock_run.return_value = Mock(
-            returncode=0, stdout="On branch main", stderr="", args=["git", "status"]
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="On branch main", stderr="", args=["git", "status"])
 
         task = GitTask(["git", "status"], tmp_path)
 
@@ -335,9 +331,7 @@ class TestGitTask:
     @patch("subprocess.run")
     def test_git_task_cancellation_after_subprocess(self, mock_run, tmp_path):
         """Test GitTask checks cancellation after subprocess."""
-        mock_run.return_value = Mock(
-            returncode=0, stdout="Success", stderr="", args=["git", "status"]
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="Success", stderr="", args=["git", "status"])
 
         task = GitTask(["git", "status"], tmp_path)
 
@@ -376,9 +370,7 @@ class TestGitTask:
     @patch("subprocess.run")
     def test_git_task_started_signal(self, mock_run, tmp_path):
         """Test GitTask emits started signal."""
-        mock_run.return_value = Mock(
-            returncode=0, stdout="Success", stderr="", args=["git", "status"]
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="Success", stderr="", args=["git", "status"])
 
         task = GitTask(["git", "status"], tmp_path)
 
@@ -397,9 +389,7 @@ class TestGitTask:
     @patch("subprocess.run")
     def test_git_task_security_no_shell(self, mock_run, tmp_path):
         """Test GitTask uses shell=False for security."""
-        mock_run.return_value = Mock(
-            returncode=0, stdout="", stderr="", args=["git", "status"]
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="", stderr="", args=["git", "status"])
 
         task = GitTask(["git", "status"], tmp_path)
         task.run()
@@ -459,9 +449,7 @@ class TestTaskIntegration:
     @patch("subprocess.run")
     def test_multiple_git_tasks_different_ids(self, mock_run, tmp_path):
         """Test multiple GitTasks get different IDs."""
-        mock_run.return_value = Mock(
-            returncode=0, stdout="", stderr="", args=["git", "status"]
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="", stderr="", args=["git", "status"])
 
         task1 = GitTask(["git", "status"], tmp_path)
         task2 = GitTask(["git", "log"], tmp_path)
@@ -531,9 +519,7 @@ class TestRenderTaskInternalExecution:
         task.signals.error.connect(lambda msg: error_emitted.append(msg))
 
         # Mock super().run() to raise exception (this is what would trigger the except block)
-        with patch.object(
-            CancelableRunnable, "run", side_effect=RuntimeError("Super run error")
-        ):
+        with patch.object(CancelableRunnable, "run", side_effect=RuntimeError("Super run error")):
             task.run()
 
         # Error signal should be emitted
@@ -591,9 +577,7 @@ class TestConversionTaskInternalExecution:
         mock_pandoc.convert_file = Mock(return_value="Converted file")
 
         with patch.dict(sys.modules, {"pypandoc": mock_pandoc}):
-            task = ConversionTask(
-                "/tmp/test.adoc", "markdown", "asciidoc", is_file=True
-            )
+            task = ConversionTask("/tmp/test.adoc", "markdown", "asciidoc", is_file=True)
             success, result, error = task.func()
 
             assert success is True
@@ -628,9 +612,7 @@ class TestConversionTaskInternalExecution:
         task.signals.error.connect(lambda msg: error_emitted.append(msg))
 
         # Mock super().run() to raise exception (this is what would trigger the except block)
-        with patch.object(
-            CancelableRunnable, "run", side_effect=RuntimeError("Super run error")
-        ):
+        with patch.object(CancelableRunnable, "run", side_effect=RuntimeError("Super run error")):
             task.run()
 
         # Error signal should be emitted
@@ -671,9 +653,7 @@ class TestGitTaskInternalExecution:
         task.signals.error.connect(lambda msg: error_emitted.append(msg))
 
         # Mock super().run() to raise exception (this is what would trigger the except block)
-        with patch.object(
-            CancelableRunnable, "run", side_effect=RuntimeError("Super run error")
-        ):
+        with patch.object(CancelableRunnable, "run", side_effect=RuntimeError("Super run error")):
             task.run()
 
         # Error signal should be emitted

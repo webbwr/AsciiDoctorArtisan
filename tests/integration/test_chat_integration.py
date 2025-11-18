@@ -27,9 +27,7 @@ def main_window(qtbot, test_settings):
     ):
         # Setup mocks to prevent API calls
         mock_creds_instance = Mock()
-        mock_creds_instance.get_anthropic_key.return_value = (
-            None  # No key = no API calls
-        )
+        mock_creds_instance.get_anthropic_key.return_value = None  # No key = no API calls
         mock_creds.return_value = mock_creds_instance
 
         window = AsciiDocEditor()
@@ -62,9 +60,7 @@ class TestChatIntegration:
         assert main_window.ollama_chat_worker is not None
         assert main_window.ollama_chat_thread is not None
 
-    @pytest.mark.skip(
-        reason="Chat visibility default behavior changed - needs investigation"
-    )
+    @pytest.mark.skip(reason="Chat visibility default behavior changed - needs investigation")
     def test_chat_visibility_control(self, main_window):
         """Test that chat container visibility can be controlled."""
         # Chat is visible by default (v1.9.0+ always shows chat container)
@@ -92,9 +88,7 @@ class TestChatIntegration:
         """Test that signals are properly connected."""
         # Test ChatManager -> OllamaChatWorker connection
         # Signal signature: message, model, mode, history, doc_content
-        with qtbot.waitSignal(
-            main_window.chat_manager.message_sent_to_worker, timeout=100
-        ) as blocker:
+        with qtbot.waitSignal(main_window.chat_manager.message_sent_to_worker, timeout=100) as blocker:
             # This should emit message_sent_to_worker with correct signature
             main_window.chat_manager.message_sent_to_worker.emit(
                 "Test message",  # message
@@ -150,9 +144,7 @@ class TestChatIntegration:
     def test_status_message_connection(self, main_window, qtbot):
         """Test that chat manager status messages are connected."""
         # ChatManager status messages should connect to StatusManager
-        with qtbot.waitSignal(
-            main_window.chat_manager.status_message, timeout=100
-        ) as blocker:
+        with qtbot.waitSignal(main_window.chat_manager.status_message, timeout=100) as blocker:
             main_window.chat_manager.status_message.emit("Test status")
 
         assert blocker.signal_triggered
@@ -193,17 +185,13 @@ class TestChatWorkerIntegration:
 
     def test_worker_cancel_connection(self, main_window, qtbot):
         """Test that cancel button connects to worker."""
-        with qtbot.waitSignal(
-            main_window.chat_bar.cancel_requested, timeout=100
-        ) as blocker:
+        with qtbot.waitSignal(main_window.chat_bar.cancel_requested, timeout=100) as blocker:
             # Simulate cancel button click
             main_window.chat_bar.cancel_requested.emit()
 
         assert blocker.signal_triggered
 
-    @pytest.mark.skip(
-        reason="Crashes with forked marker on macOS - needs investigation"
-    )
+    @pytest.mark.skip(reason="Crashes with forked marker on macOS - needs investigation")
     def test_worker_response_connection(self, main_window, qtbot):
         """Test that worker responses connect to chat manager.
 
@@ -216,9 +204,7 @@ class TestChatWorkerIntegration:
 
         # Worker should emit signals that ChatManager receives
         # Signal signature changed: now expects ChatMessage object only
-        with qtbot.waitSignal(
-            main_window.ollama_chat_worker.chat_response_ready, timeout=100
-        ) as blocker:
+        with qtbot.waitSignal(main_window.ollama_chat_worker.chat_response_ready, timeout=100) as blocker:
             # Create test ChatMessage with all required fields
             test_message = ChatMessage(
                 role="assistant",

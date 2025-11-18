@@ -33,9 +33,7 @@ class TestClaudeWorker:
 
     def test_claude_worker_custom_params(self):
         """Test ClaudeWorker with custom parameters."""
-        worker = ClaudeWorker(
-            model="claude-haiku-4-5", max_tokens=2048, temperature=0.7
-        )
+        worker = ClaudeWorker(model="claude-haiku-4-5", max_tokens=2048, temperature=0.7)
 
         assert worker.client.model == "claude-haiku-4-5"
         assert worker.client.max_tokens == 2048
@@ -106,9 +104,7 @@ class TestClaudeWorker:
         worker = ClaudeWorker()
 
         with patch.object(worker, "start"):
-            worker.send_message(
-                "Test message", system="System prompt", conversation_history=[]
-            )
+            worker.send_message("Test message", system="System prompt", conversation_history=[])
 
             assert worker._operation == "send_message"
             assert worker._current_message == "Test message"
@@ -232,9 +228,7 @@ class TestClaudeWorker:
         worker = ClaudeWorker()
 
         # Patch _execute_send_message to raise exception
-        with patch.object(
-            worker, "_execute_send_message", side_effect=Exception("Test error")
-        ):
+        with patch.object(worker, "_execute_send_message", side_effect=Exception("Test error")):
             worker._operation = "send_message"
 
             with qtbot.waitSignal(worker.error_occurred, timeout=5000) as blocker:
@@ -264,9 +258,7 @@ class TestClaudeWorker:
             ClaudeMessage(role="assistant", content="First response"),
         ]
 
-        with patch.object(
-            worker.client, "send_message", return_value=mock_result
-        ) as mock_send:
+        with patch.object(worker.client, "send_message", return_value=mock_result) as mock_send:
             with qtbot.waitSignal(worker.response_ready, timeout=5000) as blocker:
                 worker.send_message("Second message", conversation_history=history)
 

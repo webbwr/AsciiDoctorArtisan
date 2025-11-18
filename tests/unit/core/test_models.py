@@ -264,10 +264,7 @@ class TestGitResult:
         json_str = result.model_dump_json()
         assert isinstance(json_str, str)
         assert '"success":true' in json_str or '"success": true' in json_str
-        assert (
-            '"user_message":"Success"' in json_str
-            or '"user_message": "Success"' in json_str
-        )
+        assert '"user_message":"Success"' in json_str or '"user_message": "Success"' in json_str
 
 
 class TestGitHubResult:
@@ -614,26 +611,20 @@ class TestCompletionItem:
         from asciidoc_artisan.core.models import CompletionItem, CompletionKind
 
         with pytest.raises(ValueError, match="score must be between 0 and 100"):
-            CompletionItem(
-                text="Test", kind=CompletionKind.SYNTAX, detail="Detail", score=-1.0
-            )
+            CompletionItem(text="Test", kind=CompletionKind.SYNTAX, detail="Detail", score=-1.0)
 
     def test_completion_item_validation_score_too_high(self):
         """Test CompletionItem validates score above 100 (lines 425-427)."""
         from asciidoc_artisan.core.models import CompletionItem, CompletionKind
 
         with pytest.raises(ValueError, match="score must be between 0 and 100"):
-            CompletionItem(
-                text="Test", kind=CompletionKind.SYNTAX, detail="Detail", score=101.0
-            )
+            CompletionItem(text="Test", kind=CompletionKind.SYNTAX, detail="Detail", score=101.0)
 
     def test_completion_item_post_init_defaults(self):
         """Test CompletionItem sets default values in post_init (lines 431-436)."""
         from asciidoc_artisan.core.models import CompletionItem, CompletionKind
 
-        item = CompletionItem(
-            text="= Heading", kind=CompletionKind.SYNTAX, detail="Desc"
-        )
+        item = CompletionItem(text="= Heading", kind=CompletionKind.SYNTAX, detail="Desc")
 
         # Defaults should be set to text value
         assert item.insert_text == "= Heading"
@@ -667,14 +658,10 @@ class TestCompletionContext:
         """Test creating a CompletionContext."""
         from asciidoc_artisan.core.models import CompletionContext
 
-        context = CompletionContext(
-            line="= Heading", prefix="= ", line_number=0, column=2
-        )
+        context = CompletionContext(line="= Heading", prefix="= ", line_number=0, column=2)
 
         assert context.line == "= Heading"
-        assert (
-            context.prefix == "="
-        )  # Trailing whitespace stripped by str_strip_whitespace
+        assert context.prefix == "="  # Trailing whitespace stripped by str_strip_whitespace
         assert context.line_number == 0
         assert context.column == 2
 
@@ -696,9 +683,7 @@ class TestCompletionContext:
         """Test CompletionContext.word_before_cursor property (lines 495-496)."""
         from asciidoc_artisan.core.models import CompletionContext
 
-        context = CompletionContext(
-            line="= This is heading", prefix="= This is ", line_number=0, column=10
-        )
+        context = CompletionContext(line="= This is heading", prefix="= This is ", line_number=0, column=10)
 
         assert context.word_before_cursor == "is"
 
@@ -719,9 +704,7 @@ class TestTextEdit:
         """Test creating a TextEdit."""
         from asciidoc_artisan.core.models import TextEdit
 
-        edit = TextEdit(
-            start_line=0, start_column=0, end_line=0, end_column=5, new_text="= Heading"
-        )
+        edit = TextEdit(start_line=0, start_column=0, end_line=0, end_column=5, new_text="= Heading")
 
         assert edit.start_line == 0
         assert edit.start_column == 0
@@ -734,9 +717,7 @@ class TestTextEdit:
         from asciidoc_artisan.core.models import TextEdit
 
         with pytest.raises(ValueError, match="Position must be non-negative"):
-            TextEdit(
-                start_line=-1, start_column=0, end_line=0, end_column=0, new_text="Test"
-            )
+            TextEdit(start_line=-1, start_column=0, end_line=0, end_column=0, new_text="Test")
 
 
 @pytest.mark.unit
@@ -872,9 +853,7 @@ class TestTemplateVariable:
         """Test creating a TemplateVariable."""
         from asciidoc_artisan.core.models import TemplateVariable
 
-        var = TemplateVariable(
-            name="title", description="Document title", required=True, type="string"
-        )
+        var = TemplateVariable(name="title", description="Document title", required=True, type="string")
 
         assert var.name == "title"
         assert var.description == "Document title"
@@ -911,9 +890,7 @@ class TestTemplate:
         """Test creating a Template."""
         from asciidoc_artisan.core.models import Template
 
-        template = Template(
-            name="Article", category="Document", description="Standard article template"
-        )
+        template = Template(name="Article", category="Document", description="Standard article template")
 
         assert template.name == "Article"
         assert template.category == "Document"

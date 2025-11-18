@@ -278,9 +278,7 @@ class TestWidgetVisibility:
         manager.widget.show()
         assert manager.widget.isVisible()
 
-        item = CompletionItem(
-            text="test", description="Test item", kind=CompletionKind.SYNTAX
-        )
+        item = CompletionItem(text="test", description="Test item", kind=CompletionKind.SYNTAX)
 
         manager._insert_completion(item)
         # Widget should hide after insertion

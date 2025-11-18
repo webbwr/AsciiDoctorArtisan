@@ -470,7 +470,4 @@ class TestCoverageImprovements:
             assert result == 0
 
             # Should have logged the error (lines 176-177)
-            assert any(
-                "Directory size calculation failed" in record.message
-                for record in caplog.records
-            )
+            assert any("Directory size calculation failed" in record.message for record in caplog.records)

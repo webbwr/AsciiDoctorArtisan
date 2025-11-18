@@ -111,11 +111,7 @@ class TestAutoCompleteEngine:
 
         class MockProvider:
             def get_completions(self, context):
-                return [
-                    CompletionItem(
-                        text="test", kind=CompletionKind.SYNTAX, detail="Test item"
-                    )
-                ]
+                return [CompletionItem(text="test", kind=CompletionKind.SYNTAX, detail="Test item")]
 
         provider = MockProvider()
         engine.add_provider(provider)
@@ -196,11 +192,7 @@ class TestAutoCompleteEngine:
             def get_completions(self, context):
                 nonlocal call_count
                 call_count += 1
-                return [
-                    CompletionItem(
-                        text="test", kind=CompletionKind.SYNTAX, detail="Test"
-                    )
-                ]
+                return [CompletionItem(text="test", kind=CompletionKind.SYNTAX, detail="Test")]
 
         engine.add_provider(MockProvider())
 
@@ -230,10 +222,7 @@ class TestAutoCompleteEngine:
         class MockProvider:
             def get_completions(self, context):
                 return [
-                    CompletionItem(
-                        text=f"item_{i}", kind=CompletionKind.SYNTAX, detail=f"Item {i}"
-                    )
-                    for i in range(20)
+                    CompletionItem(text=f"item_{i}", kind=CompletionKind.SYNTAX, detail=f"Item {i}") for i in range(20)
                 ]
 
         engine.add_provider(MockProvider())
@@ -262,11 +251,7 @@ class TestAutoCompleteEngine:
 
         class WorkingProvider:
             def get_completions(self, context):
-                return [
-                    CompletionItem(
-                        text="working", kind=CompletionKind.SYNTAX, detail="Works"
-                    )
-                ]
+                return [CompletionItem(text="working", kind=CompletionKind.SYNTAX, detail="Works")]
 
         engine.add_provider(BrokenProvider())
         engine.add_provider(WorkingProvider())
@@ -292,11 +277,7 @@ class TestAutoCompleteEngine:
 
         class MockProvider:
             def get_completions(self, context):
-                return [
-                    CompletionItem(
-                        text="test", kind=CompletionKind.SYNTAX, detail="Test"
-                    )
-                ]
+                return [CompletionItem(text="test", kind=CompletionKind.SYNTAX, detail="Test")]
 
         engine.add_provider(MockProvider())
 
@@ -334,11 +315,7 @@ class TestAutoCompleteEngine:
 
         class MockProvider:
             def get_completions(self, context):
-                return [
-                    CompletionItem(
-                        text="test", kind=CompletionKind.SYNTAX, detail="Test"
-                    )
-                ]
+                return [CompletionItem(text="test", kind=CompletionKind.SYNTAX, detail="Test")]
 
         engine.add_provider(MockProvider())
 
@@ -367,11 +344,7 @@ class TestAutoCompleteEngine:
 
         class MockProvider:
             def get_completions(self, context):
-                return [
-                    CompletionItem(
-                        text="test", kind=CompletionKind.SYNTAX, detail="Test"
-                    )
-                ]
+                return [CompletionItem(text="test", kind=CompletionKind.SYNTAX, detail="Test")]
 
         engine.add_provider(MockProvider())
 
@@ -432,9 +405,7 @@ class TestRanking:
         """Test prefix match gets high score (80-90)."""
         engine = AutoCompleteEngine()
 
-        items = [
-            CompletionItem(text="testing", kind=CompletionKind.SYNTAX, detail="Test")
-        ]
+        items = [CompletionItem(text="testing", kind=CompletionKind.SYNTAX, detail="Test")]
 
         context = CompletionContext(
             line="test",
@@ -455,9 +426,7 @@ class TestRanking:
         """Test substring match gets medium score."""
         engine = AutoCompleteEngine()
 
-        items = [
-            CompletionItem(text="latest", kind=CompletionKind.SYNTAX, detail="Test")
-        ]
+        items = [CompletionItem(text="latest", kind=CompletionKind.SYNTAX, detail="Test")]
 
         context = CompletionContext(
             line="test",
@@ -736,15 +705,9 @@ class TestEdgeCases:
         engine = AutoCompleteEngine()
 
         items = [
-            CompletionItem(
-                text="test", sort_text="z", kind=CompletionKind.SYNTAX, detail="Z"
-            ),
-            CompletionItem(
-                text="test", sort_text="a", kind=CompletionKind.SYNTAX, detail="A"
-            ),
-            CompletionItem(
-                text="test", sort_text="b", kind=CompletionKind.SYNTAX, detail="B"
-            ),
+            CompletionItem(text="test", sort_text="z", kind=CompletionKind.SYNTAX, detail="Z"),
+            CompletionItem(text="test", sort_text="a", kind=CompletionKind.SYNTAX, detail="A"),
+            CompletionItem(text="test", sort_text="b", kind=CompletionKind.SYNTAX, detail="B"),
         ]
 
         context = CompletionContext(
@@ -770,12 +733,8 @@ class TestEdgeCases:
         engine = AutoCompleteEngine()
 
         items = [
-            CompletionItem(
-                text="testing", sort_text="b", kind=CompletionKind.SYNTAX, detail="Test"
-            ),
-            CompletionItem(
-                text="test", sort_text="a", kind=CompletionKind.SYNTAX, detail="Test"
-            ),
+            CompletionItem(text="testing", sort_text="b", kind=CompletionKind.SYNTAX, detail="Test"),
+            CompletionItem(text="test", sort_text="a", kind=CompletionKind.SYNTAX, detail="Test"),
         ]
 
         context = CompletionContext(

@@ -126,9 +126,7 @@ class TestDebouncerBenchmarks:
         """Benchmark delay calculation with render time tracking."""
         debouncer = AdaptiveDebouncer()
 
-        result = benchmark(
-            debouncer.calculate_delay, document_size=50_000, last_render_time=0.3
-        )
+        result = benchmark(debouncer.calculate_delay, document_size=50_000, last_render_time=0.3)
         assert result >= 0
 
 

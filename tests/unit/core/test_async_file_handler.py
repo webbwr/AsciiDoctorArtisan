@@ -317,11 +317,7 @@ class TestBatchFileOperations:
 
         # Check content
         contents = [r.data for r in results]
-        assert (
-            "Content 1" in contents[0]
-            or "Content 1" in contents[1]
-            or "Content 1" in contents[2]
-        )
+        assert "Content 1" in contents[0] or "Content 1" in contents[1] or "Content 1" in contents[2]
 
     def test_batch_write(self, temp_dir):
         """Test writing multiple files in batch."""
@@ -359,9 +355,7 @@ class TestBatchFileOperations:
         file1.write_text("Real content")
 
         batch = BatchFileOperations()
-        results = batch.read_files(
-            [str(file1), "/nonexistent1.txt", "/nonexistent2.txt"]
-        )
+        results = batch.read_files([str(file1), "/nonexistent1.txt", "/nonexistent2.txt"])
 
         # Should have 3 results
         assert len(results) == 3
@@ -438,9 +432,7 @@ class TestAsyncPerformance:
         import time
 
         # Prepare data for 20 files
-        file_data = [
-            (str(Path(temp_dir) / f"out_{i}.txt"), f"Data {i}" * 100) for i in range(20)
-        ]
+        file_data = [(str(Path(temp_dir) / f"out_{i}.txt"), f"Data {i}" * 100) for i in range(20)]
 
         # Batch write
         batch = BatchFileOperations(max_workers=4)

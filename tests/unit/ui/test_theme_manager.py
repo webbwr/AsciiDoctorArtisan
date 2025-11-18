@@ -37,9 +37,7 @@ class TestThemeManager:
         manager = ThemeManager(main_window)
         # Should have dark and light themes
         if hasattr(manager, "themes") or hasattr(manager, "available_themes"):
-            themes = getattr(
-                manager, "themes", getattr(manager, "available_themes", [])
-            )
+            themes = getattr(manager, "themes", getattr(manager, "available_themes", []))
             assert len(themes) >= 2
 
     def test_apply_theme(self, main_window):
@@ -265,9 +263,7 @@ class TestThemeManager:
             "light_mode",
         ],
     )
-    def test_theme_css_content(
-        self, css_constant, expected_bg, expected_text, expected_code_bg, min_length
-    ):
+    def test_theme_css_content(self, css_constant, expected_bg, expected_text, expected_code_bg, min_length):
         """Test theme CSS contains expected colors and is properly formatted."""
         from asciidoc_artisan.ui import theme_manager
 
@@ -275,9 +271,7 @@ class TestThemeManager:
 
         # Verify it's a string with substantial content
         assert isinstance(css, str)
-        assert (
-            len(css) > min_length
-        ), f"{css_constant} should have at least {min_length} characters"
+        assert len(css) > min_length, f"{css_constant} should have at least {min_length} characters"
 
         # Verify expected colors are present
         assert expected_bg in css, f"Expected {expected_bg} in {css_constant}"
@@ -290,11 +284,7 @@ class TestThemeManager:
 
         # Should style body, code blocks, links, etc.
         assert "body {" in DARK_MODE_CSS or "body{" in DARK_MODE_CSS
-        assert (
-            "pre {" in DARK_MODE_CSS
-            or "pre{" in DARK_MODE_CSS
-            or "code {" in DARK_MODE_CSS
-        )
+        assert "pre {" in DARK_MODE_CSS or "pre{" in DARK_MODE_CSS or "code {" in DARK_MODE_CSS
 
     def test_light_mode_css_contains_all_required_styles(self):
         """Test light mode CSS contains all required style sections."""
@@ -302,11 +292,7 @@ class TestThemeManager:
 
         # Should style body, code blocks, links, etc.
         assert "body {" in LIGHT_MODE_CSS or "body{" in LIGHT_MODE_CSS
-        assert (
-            "pre {" in LIGHT_MODE_CSS
-            or "pre{" in LIGHT_MODE_CSS
-            or "code {" in LIGHT_MODE_CSS
-        )
+        assert "pre {" in LIGHT_MODE_CSS or "pre{" in LIGHT_MODE_CSS or "code {" in LIGHT_MODE_CSS
 
     def test_css_constants_are_different(self):
         """Test dark and light mode CSS are different strings."""
@@ -595,11 +581,7 @@ class TestThemeManager:
         palette = qapp.palette()
         text_color = palette.color(palette.ColorRole.WindowText)
         # Light text should have high RGB values
-        assert (
-            text_color.red() > 150
-            or text_color.green() > 150
-            or text_color.blue() > 150
-        )
+        assert text_color.red() > 150 or text_color.green() > 150 or text_color.blue() > 150
 
     def test_light_mode_does_not_crash(self, main_window, qapp):
         """Test light mode palette application does not crash."""

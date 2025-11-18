@@ -223,9 +223,7 @@ def test_handle_preview_complete_wraps_with_css(handler):
         (True, "#e0e0e0", "#1a1a1a", "dark_mode"),
     ],
 )
-def test_css_generation(
-    handler, mock_window, dark_mode, expected_text_color, expected_bg_color, test_id
-):
+def test_css_generation(handler, mock_window, dark_mode, expected_text_color, expected_bg_color, test_id):
     """Test CSS generation for different themes.
 
     Parametrized test covering:
@@ -841,7 +839,6 @@ def test_import_error_fallback():
     # Mock import failure
     with patch.dict(sys.modules, {"asciidoc_artisan.core.adaptive_debouncer": None}):
         # Force reimport to trigger ImportError path
-        import importlib
 
         # Note: This tests the module-level import behavior
         # In real code, if import fails, ADAPTIVE_DEBOUNCER_AVAILABLE is False

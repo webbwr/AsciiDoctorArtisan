@@ -263,9 +263,7 @@ class TestProfileResult:
 
     def test_profile_result_creation(self):
         """Test creating ProfileResult."""
-        result = ProfileResult(
-            name="test_op", total_time=1.5, call_count=10, hotspots=[]
-        )
+        result = ProfileResult(name="test_op", total_time=1.5, call_count=10, hotspots=[])
 
         assert result.name == "test_op"
         assert result.total_time == 1.5
@@ -280,9 +278,7 @@ class TestProfileResult:
             {"function": "bar", "cumtime": 0.5, "ncalls": 3},
         ]
 
-        result = ProfileResult(
-            name="op", total_time=2.0, call_count=1, hotspots=hotspots
-        )
+        result = ProfileResult(name="op", total_time=2.0, call_count=1, hotspots=hotspots)
 
         assert len(result.hotspots) == 2
         assert result.hotspots[0]["function"] == "foo"

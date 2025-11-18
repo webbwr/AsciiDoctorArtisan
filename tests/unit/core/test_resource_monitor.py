@@ -46,9 +46,7 @@ class TestDocumentMetrics:
 
     def test_document_metrics_small(self):
         """Test DocumentMetrics for small document."""
-        metrics = DocumentMetrics(
-            size_bytes=5000, line_count=50, char_count=5000, is_large=False
-        )
+        metrics = DocumentMetrics(size_bytes=5000, line_count=50, char_count=5000, is_large=False)
 
         assert metrics.size_bytes == 5000
         assert metrics.line_count == 50
@@ -56,9 +54,7 @@ class TestDocumentMetrics:
 
     def test_document_metrics_large(self):
         """Test DocumentMetrics for large document."""
-        metrics = DocumentMetrics(
-            size_bytes=600000, line_count=6000, char_count=600000, is_large=True
-        )
+        metrics = DocumentMetrics(size_bytes=600000, line_count=6000, char_count=600000, is_large=True)
 
         assert metrics.size_bytes == 600000
         assert metrics.is_large is True
@@ -344,9 +340,7 @@ Line 5"""
 
         # Save original psutil if it exists
         original_psutil = sys.modules.get("psutil")
-        original_resource_monitor = sys.modules.get(
-            "asciidoc_artisan.core.resource_monitor"
-        )
+        original_resource_monitor = sys.modules.get("asciidoc_artisan.core.resource_monitor")
 
         try:
             # Remove psutil from sys.modules to simulate it not being installed
@@ -388,9 +382,7 @@ Line 5"""
 
                 # Always restore the original resource_monitor module
                 if original_resource_monitor is not None:
-                    sys.modules["asciidoc_artisan.core.resource_monitor"] = (
-                        original_resource_monitor
-                    )
+                    sys.modules["asciidoc_artisan.core.resource_monitor"] = original_resource_monitor
                 else:
                     # If it wasn't loaded before, make sure it's available now
                     import asciidoc_artisan.core.resource_monitor as rm

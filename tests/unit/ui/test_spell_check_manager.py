@@ -364,11 +364,7 @@ class TestHighlights:
         manager = SpellCheckManager(main_window)
 
         # Create mock error
-        manager.errors = [
-            SpellError(
-                word="helo", start=0, end=4, suggestions=["hello"], line=1, column=0
-            )
-        ]
+        manager.errors = [SpellError(word="helo", start=0, end=4, suggestions=["hello"], line=1, column=0)]
 
         # Update highlights
         manager._update_highlights()
@@ -385,9 +381,7 @@ class TestHighlights:
         manager = SpellCheckManager(main_window)
 
         # Add some errors and highlights
-        manager.errors = [
-            SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)
-        ]
+        manager.errors = [SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)]
         manager._update_highlights()
 
         # Clear highlights
@@ -404,11 +398,7 @@ class TestHighlights:
         manager = SpellCheckManager(main_window)
 
         # Add error at position 10-14
-        manager.errors = [
-            SpellError(
-                word="erro", start=10, end=14, suggestions=["error"], line=1, column=10
-            )
-        ]
+        manager.errors = [SpellError(word="erro", start=10, end=14, suggestions=["error"], line=1, column=10)]
 
         # Find error at position 12 (inside word)
         error = manager._find_error_at_position(12)
@@ -429,9 +419,7 @@ class TestHighlights:
 class TestContextMenu:
     """Test context menu functionality."""
 
-    @pytest.mark.skip(
-        reason="QMenu.exec() blocks in test environment - requires manual testing"
-    )
+    @pytest.mark.skip(reason="QMenu.exec() blocks in test environment - requires manual testing")
     def test_show_context_menu_with_suggestions(self, main_window):
         """Test context menu shows suggestions for misspelled word."""
         from PySide6.QtCore import QPoint
@@ -452,9 +440,7 @@ class TestContextMenu:
         event.globalPos.return_value = QPoint(100, 100)
 
         # Mock cursor to select "Helo"
-        with patch.object(
-            main_window.editor, "cursorForPosition"
-        ) as mock_cursor_for_pos:
+        with patch.object(main_window.editor, "cursorForPosition") as mock_cursor_for_pos:
             mock_cursor = Mock()
             mock_cursor.selectedText.return_value = "Helo"
             mock_cursor.selectionStart.return_value = 0
@@ -664,9 +650,7 @@ class TestMultipleLanguageSwitching:
         manager.enabled = True
 
         # Add some errors
-        manager.errors = [
-            SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)
-        ]
+        manager.errors = [SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)]
 
         with patch.object(manager, "_perform_spell_check") as mock_check:
             manager.set_language("es")
@@ -859,9 +843,7 @@ class TestHighlightRenderingEdgeCases:
 class TestContextMenuEdgeCases:
     """Test context menu edge cases."""
 
-    @pytest.mark.skip(
-        reason="QMenu.exec() blocks in test environment - requires manual testing"
-    )
+    @pytest.mark.skip(reason="QMenu.exec() blocks in test environment - requires manual testing")
     def test_context_menu_with_no_suggestions(self, main_window):
         """Test context menu when word has no suggestions."""
         from PySide6.QtCore import QPoint
@@ -879,9 +861,7 @@ class TestContextMenuEdgeCases:
         event.globalPos.return_value = QPoint(100, 100)
 
         # Should not crash even with no suggestions
-        with patch.object(
-            main_window.editor, "cursorForPosition"
-        ) as mock_cursor_for_pos:
+        with patch.object(main_window.editor, "cursorForPosition") as mock_cursor_for_pos:
             mock_cursor = Mock()
             mock_cursor.selectedText.return_value = "xyzabc"
             mock_cursor.selectionStart.return_value = 0
@@ -889,9 +869,7 @@ class TestContextMenuEdgeCases:
 
             manager.show_context_menu(event)
 
-    @pytest.mark.skip(
-        reason="QMenu.exec() blocks in test environment - requires manual testing"
-    )
+    @pytest.mark.skip(reason="QMenu.exec() blocks in test environment - requires manual testing")
     def test_context_menu_at_document_start(self, main_window):
         """Test context menu at start of document."""
         from PySide6.QtCore import QPoint
@@ -1029,11 +1007,7 @@ class TestErrorRecovery:
         manager = SpellCheckManager(main_window)
 
         # Error beyond document length
-        manager.errors = [
-            SpellError(
-                word="test", start=1000, end=1004, suggestions=[], line=1, column=1000
-            )
-        ]
+        manager.errors = [SpellError(word="test", start=1000, end=1004, suggestions=[], line=1, column=1000)]
 
         # Should handle gracefully
         try:
@@ -1083,9 +1057,7 @@ class TestPerformanceScenarios:
         from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
 
         # Add 100 custom words
-        main_window._settings.spell_check_custom_words = [
-            f"custom{i}" for i in range(100)
-        ]
+        main_window._settings.spell_check_custom_words = [f"custom{i}" for i in range(100)]
 
         manager = SpellCheckManager(main_window)
 
@@ -1323,9 +1295,7 @@ class TestConcurrentOperations:
         manager.enabled = True
 
         # Add errors
-        manager.errors = [
-            SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)
-        ]
+        manager.errors = [SpellError(word="test", start=0, end=4, suggestions=[], line=1, column=0)]
         manager._update_highlights()
 
         # Clear during check
@@ -1355,9 +1325,7 @@ class TestMenuTextUpdate:
         manager._update_menu_text()
 
         # Should call setText with checkmark
-        main_window.action_manager.toggle_spell_check_act.setText.assert_called_with(
-            "✓ &Spell Check"
-        )
+        main_window.action_manager.toggle_spell_check_act.setText.assert_called_with("✓ &Spell Check")
 
     def test_update_menu_text_without_checkmark_disabled(self, main_window):
         """Test menu text without checkmark when spell check disabled."""
@@ -1370,9 +1338,7 @@ class TestMenuTextUpdate:
         manager._update_menu_text()
 
         # Should call setText without checkmark
-        main_window.action_manager.toggle_spell_check_act.setText.assert_called_with(
-            "&Spell Check"
-        )
+        main_window.action_manager.toggle_spell_check_act.setText.assert_called_with("&Spell Check")
 
     def test_update_menu_text_without_action_manager(self, main_window):
         """Test menu text update handles missing action_manager gracefully."""
@@ -1412,9 +1378,7 @@ class TestMenuTextUpdate:
 class TestContextMenuWithMockedExec:
     """Test context menu functionality with mocked QMenu.exec()."""
 
-    @pytest.mark.skip(
-        reason="QAction requires QObject parent, mocking breaks type validation"
-    )
+    @pytest.mark.skip(reason="QAction requires QObject parent, mocking breaks type validation")
     def test_show_context_menu_with_suggestions_mocked(self, main_window):
         """Test context menu creates suggestions with mocked exec()."""
         from PySide6.QtCore import QPoint
@@ -1451,9 +1415,7 @@ class TestContextMenuWithMockedExec:
         mock_cursor.selectedText.return_value = "Helo"
         mock_cursor.selectionStart.return_value = 0
 
-        with patch.object(
-            main_window.editor, "cursorForPosition", return_value=mock_cursor
-        ):
+        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
             with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
                 mock_menu = Mock()
                 MockQMenu.return_value = mock_menu
@@ -1471,9 +1433,7 @@ class TestContextMenuWithMockedExec:
                 # Verify exec was called
                 mock_menu.exec.assert_called_once()
 
-    @pytest.mark.skip(
-        reason="QAction requires QObject parent, mocking breaks type validation"
-    )
+    @pytest.mark.skip(reason="QAction requires QObject parent, mocking breaks type validation")
     def test_show_context_menu_no_suggestions_mocked(self, main_window):
         """Test context menu with no suggestions shows '(no suggestions)'."""
         from PySide6.QtCore import QPoint
@@ -1489,9 +1449,7 @@ class TestContextMenuWithMockedExec:
         main_window.editor.setPlainText("xyzabc test")
 
         # Create error with no suggestions
-        manager.errors = [
-            SpellError(word="xyzabc", start=0, end=6, suggestions=[], line=1, column=0)
-        ]
+        manager.errors = [SpellError(word="xyzabc", start=0, end=6, suggestions=[], line=1, column=0)]
 
         # Create mock event
         event = Mock(spec=QContextMenuEvent)
@@ -1503,9 +1461,7 @@ class TestContextMenuWithMockedExec:
         mock_cursor.selectedText.return_value = "xyzabc"
         mock_cursor.selectionStart.return_value = 0
 
-        with patch.object(
-            main_window.editor, "cursorForPosition", return_value=mock_cursor
-        ):
+        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
             with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
                 mock_menu = Mock()
                 MockQMenu.return_value = mock_menu
@@ -1539,9 +1495,7 @@ class TestContextMenuWithMockedExec:
         mock_cursor = Mock()
         mock_cursor.selectedText.return_value = ""
 
-        with patch.object(
-            main_window.editor, "cursorForPosition", return_value=mock_cursor
-        ):
+        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
             with patch.object(manager, "_show_default_context_menu") as mock_default:
                 manager.show_context_menu(event)
 
@@ -1572,9 +1526,7 @@ class TestContextMenuWithMockedExec:
         mock_cursor.selectedText.return_value = "hello"
         mock_cursor.selectionStart.return_value = 0
 
-        with patch.object(
-            main_window.editor, "cursorForPosition", return_value=mock_cursor
-        ):
+        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
             with patch.object(manager, "_show_default_context_menu") as mock_default:
                 manager.show_context_menu(event)
 
@@ -1614,13 +1566,9 @@ class TestContextMenuWithMockedExec:
         mock_cursor.selectedText.return_value = "testword"
         mock_cursor.selectionStart.return_value = 0
 
-        with patch.object(
-            main_window.editor, "cursorForPosition", return_value=mock_cursor
-        ):
+        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
             with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
-                with patch(
-                    "asciidoc_artisan.ui.spell_check_manager.QAction"
-                ) as MockQAction:
+                with patch("asciidoc_artisan.ui.spell_check_manager.QAction") as MockQAction:
                     mock_menu = Mock()
                     MockQMenu.return_value = mock_menu
 
@@ -1628,10 +1576,7 @@ class TestContextMenuWithMockedExec:
 
                     # Verify QAction was called with "Add to Dictionary"
                     action_calls = [str(call) for call in MockQAction.call_args_list]
-                    assert any(
-                        "Add 'testword' to Dictionary" in str(call)
-                        for call in action_calls
-                    )
+                    assert any("Add 'testword' to Dictionary" in str(call) for call in action_calls)
 
     def test_context_menu_ignore_action(self, main_window):
         """Test context menu 'Ignore' action is created."""
@@ -1666,13 +1611,9 @@ class TestContextMenuWithMockedExec:
         mock_cursor.selectedText.return_value = "ignoreword"
         mock_cursor.selectionStart.return_value = 0
 
-        with patch.object(
-            main_window.editor, "cursorForPosition", return_value=mock_cursor
-        ):
+        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
             with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
-                with patch(
-                    "asciidoc_artisan.ui.spell_check_manager.QAction"
-                ) as MockQAction:
+                with patch("asciidoc_artisan.ui.spell_check_manager.QAction") as MockQAction:
                     mock_menu = Mock()
                     MockQMenu.return_value = mock_menu
 
@@ -1680,9 +1621,7 @@ class TestContextMenuWithMockedExec:
 
                     # Verify QAction was called with "Ignore"
                     action_calls = [str(call) for call in MockQAction.call_args_list]
-                    assert any(
-                        "Ignore 'ignoreword'" in str(call) for call in action_calls
-                    )
+                    assert any("Ignore 'ignoreword'" in str(call) for call in action_calls)
 
 
 @pytest.mark.fr_050
@@ -1878,9 +1817,7 @@ class TestDefaultContextMenu:
 
         # Mock createStandardContextMenu
         mock_menu = Mock()
-        with patch.object(
-            main_window.editor, "createStandardContextMenu", return_value=mock_menu
-        ):
+        with patch.object(main_window.editor, "createStandardContextMenu", return_value=mock_menu):
             manager._show_default_context_menu(event)
 
             # Verify createStandardContextMenu was called

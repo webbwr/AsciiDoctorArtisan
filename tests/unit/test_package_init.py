@@ -128,9 +128,7 @@ class TestInvalidAttributeHandling:
         """Test that accessing invalid attribute raises AttributeError."""
         import asciidoc_artisan
 
-        with pytest.raises(
-            AttributeError, match="module.*has no attribute 'INVALID_ATTR'"
-        ):
+        with pytest.raises(AttributeError, match="module.*has no attribute 'INVALID_ATTR'"):
             _ = getattr(asciidoc_artisan, "INVALID_ATTR")
 
     def test_invalid_attribute_message_format(self):

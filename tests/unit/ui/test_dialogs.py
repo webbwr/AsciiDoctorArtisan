@@ -531,10 +531,7 @@ class TestSettingsPersistence:
         dialog1.ai_enabled_checkbox.setChecked(True)
 
         # Other dialog should have original state
-        assert (
-            dialog2.ai_enabled_checkbox.isChecked()
-            == mock_settings.ai_conversion_enabled
-        )
+        assert dialog2.ai_enabled_checkbox.isChecked() == mock_settings.ai_conversion_enabled
 
 
 @pytest.mark.fr_072
@@ -1047,9 +1044,7 @@ class TestSettingsEditorDialog:
         assert result == "test"
 
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox")
-    def test_clear_all_settings_with_confirmation_yes(
-        self, mock_qmessagebox, mock_settings
-    ):
+    def test_clear_all_settings_with_confirmation_yes(self, mock_qmessagebox, mock_settings):
         """Test clearing all settings when user confirms."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -1069,9 +1064,7 @@ class TestSettingsEditorDialog:
         assert mock_manager.save_settings.called
 
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox")
-    def test_clear_all_settings_with_confirmation_no(
-        self, mock_qmessagebox, mock_settings
-    ):
+    def test_clear_all_settings_with_confirmation_no(self, mock_qmessagebox, mock_settings):
         """Test clearing all settings when user cancels."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -1109,9 +1102,7 @@ class TestSettingsEditorDialog:
                 assert mock_manager.save_settings.called
                 break
 
-    def test_settings_editor_with_parent_refresh(
-        self, mock_settings, mock_parent_widget
-    ):
+    def test_settings_editor_with_parent_refresh(self, mock_settings, mock_parent_widget):
         """Test settings editor refreshes parent window."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
@@ -1179,9 +1170,7 @@ class TestOllamaSettingsDialogEventHandlers:
         # Model combo should remain disabled (no models)
         assert not dialog.model_combo.isEnabled()
 
-    def test_update_parent_status_bar_with_parent(
-        self, mock_settings, mock_parent_widget
-    ):
+    def test_update_parent_status_bar_with_parent(self, mock_settings, mock_parent_widget):
         """Test updating parent status bar when parent has method."""
         from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
 
@@ -1483,10 +1472,7 @@ class TestFontSettingsDialog:
         dialog = FontSettingsDialog(mock_settings)
 
         # Get all font names from editor combo
-        fonts = [
-            dialog.editor_font_combo.itemText(i)
-            for i in range(dialog.editor_font_combo.count())
-        ]
+        fonts = [dialog.editor_font_combo.itemText(i) for i in range(dialog.editor_font_combo.count())]
 
         # Should contain at least one monospace font
         monospace_fonts = ["Courier New", "Consolas", "Monaco", "Menlo"]
@@ -1871,9 +1857,7 @@ class TestSettingsEditorDialogItemChanged:
                 assert mock_settings.test_dict == {}
                 break
 
-    def test_on_item_changed_parent_refresh_calls(
-        self, mock_settings, mock_parent_widget
-    ):
+    def test_on_item_changed_parent_refresh_calls(self, mock_settings, mock_parent_widget):
         """Test _on_item_changed() calls parent refresh."""
         from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
 
@@ -1954,9 +1938,7 @@ class TestSettingsEditorDialogClearAll:
     """Test SettingsEditorDialog clear all functionality."""
 
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
-    def test_clear_all_with_parent_refresh(
-        self, mock_question, mock_settings, mock_parent_widget
-    ):
+    def test_clear_all_with_parent_refresh(self, mock_question, mock_settings, mock_parent_widget):
         """Test clear_all_settings with parent refresh."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -1979,9 +1961,7 @@ class TestSettingsEditorDialogClearAll:
 
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.information")
-    def test_clear_all_shows_success_message(
-        self, mock_info, mock_question, mock_settings
-    ):
+    def test_clear_all_shows_success_message(self, mock_info, mock_question, mock_settings):
         """Test clear_all_settings shows success message."""
         from PySide6.QtWidgets import QMessageBox
 
@@ -2055,10 +2035,7 @@ class TestFontSettingsDialogPopulateFontList:
         dialog = FontSettingsDialog(mock_settings)
 
         # Get all fonts from editor combo
-        all_fonts = [
-            dialog.editor_font_combo.itemText(i)
-            for i in range(dialog.editor_font_combo.count())
-        ]
+        all_fonts = [dialog.editor_font_combo.itemText(i) for i in range(dialog.editor_font_combo.count())]
 
         # Should contain monospace fonts
         monospace_fonts = ["Courier New", "Consolas", "Monaco", "Menlo"]
@@ -2079,10 +2056,7 @@ class TestFontSettingsDialogPopulateFontList:
         dialog = FontSettingsDialog(mock_settings)
 
         # Get all fonts
-        all_fonts = [
-            dialog.editor_font_combo.itemText(i)
-            for i in range(dialog.editor_font_combo.count())
-        ]
+        all_fonts = [dialog.editor_font_combo.itemText(i) for i in range(dialog.editor_font_combo.count())]
 
         # Should be sorted
         assert all_fonts == sorted(all_fonts)
@@ -2094,10 +2068,7 @@ class TestFontSettingsDialogPopulateFontList:
         dialog = FontSettingsDialog(mock_settings)
 
         # Get all fonts
-        all_fonts = [
-            dialog.editor_font_combo.itemText(i)
-            for i in range(dialog.editor_font_combo.count())
-        ]
+        all_fonts = [dialog.editor_font_combo.itemText(i) for i in range(dialog.editor_font_combo.count())]
 
         # Should have no duplicates
         assert len(all_fonts) == len(set(all_fonts))
@@ -2108,10 +2079,7 @@ class TestFontSettingsDialogPopulateFontList:
 
         dialog = FontSettingsDialog(mock_settings)
 
-        all_fonts = [
-            dialog.editor_font_combo.itemText(i)
-            for i in range(dialog.editor_font_combo.count())
-        ]
+        all_fonts = [dialog.editor_font_combo.itemText(i) for i in range(dialog.editor_font_combo.count())]
 
         # Should have at least some of these common monospace fonts
         expected_monospace = [
@@ -2388,9 +2356,7 @@ class TestOllamaDialogLoadModelsEdgeCases:
             import ollama
 
             with patch.object(ollama, "list") as mock_list:
-                mock_list.return_value = {
-                    "models": [{"name": "test-model"}, {"model": "alt-model"}]
-                }
+                mock_list.return_value = {"models": [{"name": "test-model"}, {"model": "alt-model"}]}
 
                 dialog = OllamaSettingsDialog(mock_settings)
 

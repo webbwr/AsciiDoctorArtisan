@@ -176,9 +176,7 @@ class TestCreatePullRequestDialog:
             ("Test PR Title", "main", "feature-branch", True, "valid_input"),
         ],
     )
-    def test_dialog_validation(
-        self, qtbot, title, base, head, expected_accepted, test_id
-    ):
+    def test_dialog_validation(self, qtbot, title, base, head, expected_accepted, test_id):
         """Test dialog validation with various inputs.
 
         Parametrized test covering:
@@ -279,9 +277,7 @@ class TestCreatePullRequestDialog:
 
     def test_dialog_initialization_with_both_branches(self, qtbot):
         """Test dialog initializes with both branch parameters."""
-        dialog = CreatePullRequestDialog(
-            current_branch="feature-xyz", base_branch="staging"
-        )
+        dialog = CreatePullRequestDialog(current_branch="feature-xyz", base_branch="staging")
         qtbot.addWidget(dialog)
 
         assert dialog.current_branch == "feature-xyz"
@@ -413,9 +409,7 @@ class TestCreatePullRequestDialog:
         dialog._validate_and_accept()
 
         assert dialog.result() != QDialog.Accepted
-        mock_logger.warning.assert_called_with(
-            "Base and head branches cannot be the same"
-        )
+        mock_logger.warning.assert_called_with("Base and head branches cannot be the same")
 
     def test_validation_same_branches_shows_error(self, qtbot):
         """Test validation shows error styling when base == head."""
@@ -611,9 +605,7 @@ class TestPullRequestListDialog:
         dialog = PullRequestListDialog()
         qtbot.addWidget(dialog)
 
-        states = [
-            dialog.state_filter.itemText(i) for i in range(dialog.state_filter.count())
-        ]
+        states = [dialog.state_filter.itemText(i) for i in range(dialog.state_filter.count())]
         assert "Open" in states
         assert "Closed" in states
         assert "Merged" in states
@@ -1219,9 +1211,7 @@ class TestIssueListDialog:
         dialog = IssueListDialog()
         qtbot.addWidget(dialog)
 
-        states = [
-            dialog.state_filter.itemText(i) for i in range(dialog.state_filter.count())
-        ]
+        states = [dialog.state_filter.itemText(i) for i in range(dialog.state_filter.count())]
         assert "Open" in states
         assert "Closed" in states
         assert "All" in states

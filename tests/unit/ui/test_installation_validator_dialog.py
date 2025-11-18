@@ -36,9 +36,7 @@ def qapp():
 def dialog(qapp, qtbot):
     """Create installation validator dialog for testing."""
     # Mock the worker to prevent actual validation on init
-    with patch(
-        "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"
-    ):
+    with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"):
         dlg = InstallationValidatorDialog()
         qtbot.addWidget(dlg)
         yield dlg
@@ -103,9 +101,7 @@ class TestValidationWorker:
         with patch("subprocess.run") as mock_run:
             # Mock 'which' failure
             mock_run.return_value = Mock(returncode=1, stdout="", stderr="")
-            status, version, message = worker._check_system_binary(
-                "nonexistent_binary", True
-            )
+            status, version, message = worker._check_system_binary("nonexistent_binary", True)
 
             assert status == "✗"
             assert version == "not installed"
@@ -118,9 +114,7 @@ class TestValidationWorker:
         with patch("subprocess.run") as mock_run:
             # Mock 'which' failure
             mock_run.return_value = Mock(returncode=1, stdout="", stderr="")
-            status, version, message = worker._check_system_binary(
-                "optional_binary", False
-            )
+            status, version, message = worker._check_system_binary("optional_binary", False)
 
             assert status == "○"
             assert version == "not installed"
@@ -177,9 +171,7 @@ class TestInstallationValidatorDialog:
         dialog.update_btn.setEnabled(True)
 
         # Mock ValidationWorker to prevent actual validation
-        with patch(
-            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker"
-        ) as MockWorker:
+        with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker") as MockWorker:
             mock_worker = MockWorker.return_value
             mock_worker.isRunning.return_value = False
 
@@ -202,9 +194,7 @@ class TestInstallationValidatorDialog:
 
             mock_question.return_value = QMessageBox.StandardButton.Yes
 
-            with patch(
-                "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker"
-            ) as MockWorker:
+            with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker") as MockWorker:
                 mock_worker = MockWorker.return_value
                 mock_worker.isRunning.return_value = False
 
@@ -273,9 +263,7 @@ class TestInstallationValidatorDialog:
     def test_start_validation_disables_buttons(self, dialog):
         """Test that starting validation disables buttons."""
         # Mock ValidationWorker to prevent actual validation
-        with patch(
-            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker"
-        ) as MockWorker:
+        with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker") as MockWorker:
             mock_worker = MockWorker.return_value
             mock_worker.isRunning.return_value = False
 
@@ -311,9 +299,7 @@ class TestInstallationValidatorDialog:
             # Worker should not be started if user cancels
             assert dialog.worker is None or not dialog.worker.isRunning()
 
-    @pytest.mark.skip(
-        reason="QMessageBox local import makes mocking complex - covered by integration tests"
-    )
+    @pytest.mark.skip(reason="QMessageBox local import makes mocking complex - covered by integration tests")
     def test_start_update_confirmed(self, dialog, qapp, qtbot):
         """Test starting update after confirmation."""
         # Reset worker to simulate fresh state and enable buttons
@@ -329,9 +315,7 @@ class TestInstallationValidatorDialog:
             mock_question.return_value = QMessageBox.StandardButton.Yes
 
             # Mock ValidationWorker to prevent actual update
-            with patch(
-                "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker"
-            ) as MockWorker:
+            with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker") as MockWorker:
                 mock_worker = MockWorker.return_value
                 mock_worker.isRunning.return_value = False
 
@@ -410,10 +394,7 @@ class TestValidationWorkerRun:
         python_check = results["python_packages"][0]
         assert python_check[0] == "Python"
         # Should show current Python version
-        assert (
-            python_check[2]
-            == f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-        )
+        assert python_check[2] == f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 
     def test_validate_installation_checks_packages(self, qtbot):
         """Test validation checks all required packages."""
@@ -462,9 +443,7 @@ class TestInstallationValidatorIntegration:
     def test_full_validation_flow(self, dialog, qtbot):
         """Test complete validation flow."""
         # Mock ValidationWorker to prevent actual validation
-        with patch(
-            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker"
-        ) as MockWorker:
+        with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker") as MockWorker:
             mock_worker = MockWorker.return_value
             mock_worker.isRunning.return_value = False
 
@@ -524,9 +503,7 @@ class TestDependencyUpdateFlow:
         with patch("pathlib.Path.exists", return_value=True):
             # Mock subprocess.run for pip install
             with patch("subprocess.run") as mock_run:
-                mock_run.return_value = Mock(
-                    returncode=0, stdout="Successfully installed", stderr=""
-                )
+                mock_run.return_value = Mock(returncode=0, stdout="Successfully installed", stderr="")
 
                 worker.run()
 
@@ -588,9 +565,7 @@ class TestDependencyUpdateFlow:
         with patch("pathlib.Path.exists", return_value=True):
             # Mock subprocess.run to raise TimeoutExpired
             with patch("subprocess.run") as mock_run:
-                mock_run.side_effect = subprocess.TimeoutExpired(
-                    cmd=["pip"], timeout=300
-                )
+                mock_run.side_effect = subprocess.TimeoutExpired(cmd=["pip"], timeout=300)
 
                 worker.run()
 
@@ -690,9 +665,7 @@ class TestVersionDetectionFallbacks:
         worker = ValidationWorker()
 
         with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(
-                returncode=1, stdout="", stderr="Package not found"
-            )
+            mock_run.return_value = Mock(returncode=1, stdout="", stderr="Package not found")
 
             version = worker._get_version_from_pip("nonexistent")
 
@@ -734,9 +707,7 @@ class TestDarkModeTheme:
         mock_parent._settings = mock_settings
 
         # Mock the worker to prevent actual validation
-        with patch(
-            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"
-        ):
+        with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"):
             dialog = InstallationValidatorDialog(parent=mock_parent)
             qtbot.addWidget(dialog)
 
@@ -757,9 +728,7 @@ class TestDarkModeTheme:
         mock_parent._settings = mock_settings
 
         # Mock the worker to prevent actual validation
-        with patch(
-            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"
-        ):
+        with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"):
             dialog = InstallationValidatorDialog(parent=mock_parent)
             qtbot.addWidget(dialog)
 
@@ -774,9 +743,7 @@ class TestDarkModeTheme:
     def test_apply_theme_no_parent(self, qapp, qtbot):
         """Test theme application with no parent (defaults to light)."""
         # Mock the worker to prevent actual validation
-        with patch(
-            "asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"
-        ):
+        with patch("asciidoc_artisan.ui.installation_validator_dialog.ValidationWorker.start"):
             dialog = InstallationValidatorDialog(parent=None)
             qtbot.addWidget(dialog)
 
@@ -805,9 +772,7 @@ class TestErrorHandling:
         worker.validation_complete.connect(capture_results)
 
         # Mock _validate_installation to raise exception
-        with patch.object(
-            worker, "_validate_installation", side_effect=RuntimeError("Test error")
-        ):
+        with patch.object(worker, "_validate_installation", side_effect=RuntimeError("Test error")):
             worker.run()
 
             # Should emit error results
@@ -880,9 +845,7 @@ class TestEdgeCases:
         """Test checking a package not in the hardcoded list."""
         worker = ValidationWorker()
 
-        status, version, message = worker._check_python_package(
-            "completely_unknown_package", "1.0.0"
-        )
+        status, version, message = worker._check_python_package("completely_unknown_package", "1.0.0")
 
         assert status == "✗"
         assert version == "unknown"
@@ -906,15 +869,9 @@ class TestEdgeCases:
             mock_import.side_effect = import_side_effect
 
             # Also mock the fallback methods to return unknown
-            with patch.object(
-                worker, "_get_version_from_metadata", return_value="unknown"
-            ):
-                with patch.object(
-                    worker, "_get_version_from_pip", return_value="unknown"
-                ):
-                    status, version, message = worker._check_python_package(
-                        "PySide6", "6.0.0"
-                    )
+            with patch.object(worker, "_get_version_from_metadata", return_value="unknown"):
+                with patch.object(worker, "_get_version_from_pip", return_value="unknown"):
+                    status, version, message = worker._check_python_package("PySide6", "6.0.0")
 
                     assert status == "⚠"
                     assert version == "unknown"
@@ -936,15 +893,9 @@ class TestEdgeCases:
             mock_import.side_effect = import_side_effect
 
             # Mock metadata to return unknown, pip to return valid version
-            with patch.object(
-                worker, "_get_version_from_metadata", return_value="unknown"
-            ):
-                with patch.object(
-                    worker, "_get_version_from_pip", return_value="6.9.0"
-                ):
-                    status, version, message = worker._check_python_package(
-                        "PySide6", "6.0.0"
-                    )
+            with patch.object(worker, "_get_version_from_metadata", return_value="unknown"):
+                with patch.object(worker, "_get_version_from_pip", return_value="6.9.0"):
+                    status, version, message = worker._check_python_package("PySide6", "6.0.0")
 
                     # Should use pip version
                     assert version == "6.9.0"
@@ -966,12 +917,8 @@ class TestEdgeCases:
             mock_import.side_effect = import_side_effect
 
             # Mock _version_compare to raise exception
-            with patch.object(
-                worker, "_version_compare", side_effect=RuntimeError("Compare failed")
-            ):
-                status, version, message = worker._check_python_package(
-                    "PySide6", "6.0.0"
-                )
+            with patch.object(worker, "_version_compare", side_effect=RuntimeError("Compare failed")):
+                status, version, message = worker._check_python_package("PySide6", "6.0.0")
 
                 assert status == "⚠"
                 assert "version check failed" in message.lower()

@@ -82,14 +82,10 @@ def mock_git_handler():
 
 
 @pytest.fixture
-def github_handler(
-    mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler
-):
+def github_handler(mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler):
     """Fixture for GitHubHandler instance."""
     # Pass all 4 required arguments (matches production usage in main_window.py:324-326)
-    handler = GitHubHandler(
-        mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler
-    )
+    handler = GitHubHandler(mock_parent_window, mock_settings_manager, mock_status_manager, mock_git_handler)
     yield handler
     # Cleanup: Note - worker is managed by WorkerManager, not GitHubHandler
     # No cleanup needed here since we're using Mocks
@@ -157,9 +153,7 @@ class TestGitHubHandlerReentrancy:
         github_handler.is_processing = False
 
         # Mock dialog to return immediately (patch at import site)
-        with patch(
-            "asciidoc_artisan.ui.github_handler.CreatePullRequestDialog"
-        ) as mock_dialog:
+        with patch("asciidoc_artisan.ui.github_handler.CreatePullRequestDialog") as mock_dialog:
             mock_dialog.return_value.exec.return_value = False  # User cancelled
 
             # Try to start operation
@@ -217,23 +211,19 @@ class TestGitHubHandlerPullRequests:
         # Setup mock dialog with valid data
         mock_dialog_instance = Mock()
         mock_dialog_instance.exec.return_value = True  # User clicked OK
-        mock_dialog_instance.get_pr_data.return_value = (
-            {  # ✅ Fixed: get_pr_data not get_data
-                "title": "Test PR",
-                "body": "Description",
-                "base": "main",
-                "head": "feature",
-            }
-        )
+        mock_dialog_instance.get_pr_data.return_value = {  # ✅ Fixed: get_pr_data not get_data
+            "title": "Test PR",
+            "body": "Description",
+            "base": "main",
+            "head": "feature",
+        }
         mock_dialog.return_value = mock_dialog_instance
 
         # Call method
         github_handler.create_pull_request()
 
         # Verify data was retrieved
-        assert (
-            mock_dialog_instance.get_pr_data.called
-        )  # ✅ Fixed: get_pr_data not get_data
+        assert mock_dialog_instance.get_pr_data.called  # ✅ Fixed: get_pr_data not get_data
 
     @patch("asciidoc_artisan.ui.github_handler.CreatePullRequestDialog")
     def test_create_pull_request_requires_repo(self, mock_dialog, github_handler):
@@ -264,9 +254,7 @@ class TestGitHubHandlerPullRequests:
         assert mock_dialog.called
 
     @patch("asciidoc_artisan.ui.github_handler.PullRequestListDialog")
-    def test_list_pull_requests_triggers_worker(
-        self, mock_dialog, github_handler, qtbot
-    ):
+    def test_list_pull_requests_triggers_worker(self, mock_dialog, github_handler, qtbot):
         """Test list_pull_requests triggers worker via signal emission."""
         # Setup: Mock window to capture signal
         signal_emitted = []
@@ -317,21 +305,17 @@ class TestGitHubHandlerIssues:
         # Setup mock dialog
         mock_dialog_instance = Mock()
         mock_dialog_instance.exec.return_value = True
-        mock_dialog_instance.get_issue_data.return_value = (
-            {  # ✅ Fixed: get_issue_data not get_data
-                "title": "Bug report",
-                "body": "Something is broken",
-            }
-        )
+        mock_dialog_instance.get_issue_data.return_value = {  # ✅ Fixed: get_issue_data not get_data
+            "title": "Bug report",
+            "body": "Something is broken",
+        }
         mock_dialog.return_value = mock_dialog_instance
 
         # Call method
         github_handler.create_issue()
 
         # Verify data was retrieved
-        assert (
-            mock_dialog_instance.get_issue_data.called
-        )  # ✅ Fixed: get_issue_data not get_data
+        assert mock_dialog_instance.get_issue_data.called  # ✅ Fixed: get_issue_data not get_data
 
     @patch("asciidoc_artisan.ui.github_handler.IssueListDialog")
     def test_list_issues_opens_dialog(self, mock_dialog, github_handler):
@@ -1023,9 +1007,7 @@ class TestGitHubHandlerResultHandlers:
             {"number": 2, "title": "PR 2"},
         ]
 
-        result = GitHubResult(
-            success=True, operation="pr_list", user_message="Success", data=pr_data
-        )
+        result = GitHubResult(success=True, operation="pr_list", user_message="Success", data=pr_data)
 
         handler._handle_pr_list(result)
 
@@ -1059,9 +1041,7 @@ class TestGitHubHandlerResultHandlers:
         # Mock isinstance to return True for PullRequestListDialog
         with patch("asciidoc_artisan.ui.github_handler.isinstance", return_value=True):
             pr_data = [{"number": 1, "title": "Test PR"}]
-            result = GitHubResult(
-                success=True, operation="pr_list", user_message="Success", data=pr_data
-            )
+            result = GitHubResult(success=True, operation="pr_list", user_message="Success", data=pr_data)
 
             handler._handle_pr_list(result)
 
@@ -1214,9 +1194,7 @@ class TestGitHubHandlerRepoInfoDialog:
             "html_url": "https://github.com/org/test-repo",
         }
 
-        result = GitHubResult(
-            success=True, operation="repo_info", user_message="Success", data=repo_data
-        )
+        result = GitHubResult(success=True, operation="repo_info", user_message="Success", data=repo_data)
 
         # Mock QMessageBox (imported locally in _handle_repo_info)
         with patch("PySide6.QtWidgets.QMessageBox") as mock_msgbox:
@@ -1227,9 +1205,7 @@ class TestGitHubHandlerRepoInfoDialog:
 
             # Verify QMessageBox created and shown
             mock_msgbox.assert_called_once_with(mock_parent_window)
-            mock_box_instance.setWindowTitle.assert_called_once_with(
-                "Repository Information"
-            )
+            mock_box_instance.setWindowTitle.assert_called_once_with("Repository Information")
             mock_box_instance.exec.assert_called_once()
 
     def test_handle_repo_info_skips_dialog_when_silent(
@@ -1261,9 +1237,7 @@ class TestGitHubHandlerRepoInfoDialog:
             "html_url": "https://github.com/org/test-repo",
         }
 
-        result = GitHubResult(
-            success=True, operation="repo_info", user_message="Success", data=repo_data
-        )
+        result = GitHubResult(success=True, operation="repo_info", user_message="Success", data=repo_data)
 
         # Mock QMessageBox - should NOT be called (imported locally in _handle_repo_info)
         with patch("PySide6.QtWidgets.QMessageBox") as mock_msgbox:

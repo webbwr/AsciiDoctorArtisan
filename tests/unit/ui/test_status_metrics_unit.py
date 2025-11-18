@@ -81,9 +81,7 @@ def calculate_grade_level(text: str) -> float:
         num_syllables += max(1, syllable_count)
 
     # Flesch-Kincaid Grade Level formula
-    grade = (
-        0.39 * (num_words / num_sentences) + 11.8 * (num_syllables / num_words) - 15.59
-    )
+    grade = 0.39 * (num_words / num_sentences) + 11.8 * (num_syllables / num_words) - 15.59
 
     return round(max(0.0, grade), 2)
 

@@ -68,9 +68,7 @@ def demo_verify_deletion(creds):
     """Verify the key was deleted."""
     print_section("5. VERIFYING DELETION")
     exists = creds.has_api_key("demo_service")
-    print(
-        f"Result: {'✗ Key still exists (ERROR)' if exists else '✓ Key successfully removed'}"
-    )
+    print(f"Result: {'✗ Key still exists (ERROR)' if exists else '✓ Key successfully removed'}")
 
 
 def demo_nonexistent_key(creds):

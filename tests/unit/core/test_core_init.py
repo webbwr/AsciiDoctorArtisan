@@ -47,9 +47,7 @@ class TestEagerImports:
 
         assert GitHubResult is not None
         # GitHubResult is a Pydantic model - check model_fields instead
-        assert hasattr(GitHubResult, "model_fields") or hasattr(
-            GitHubResult, "__init__"
-        )
+        assert hasattr(GitHubResult, "model_fields") or hasattr(GitHubResult, "__init__")
 
     def test_sanitize_path_import(self):
         """Test sanitize_path function is eagerly imported."""

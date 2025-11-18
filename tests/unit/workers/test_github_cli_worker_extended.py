@@ -80,9 +80,7 @@ class TestDispatchGitHubOperation:
         github_worker.github_result_ready.connect(capture_result)
 
         # Dispatch list_pull_requests
-        github_worker.dispatch_github_operation(
-            "list_pull_requests", {"state": "open", "working_dir": ""}
-        )
+        github_worker.dispatch_github_operation("list_pull_requests", {"state": "open", "working_dir": ""})
 
         assert result is not None
         assert result.success is True
@@ -131,9 +129,7 @@ class TestDispatchGitHubOperation:
         github_worker.github_result_ready.connect(capture_result)
 
         # Dispatch list_issues
-        github_worker.dispatch_github_operation(
-            "list_issues", {"state": "open", "working_dir": ""}
-        )
+        github_worker.dispatch_github_operation("list_issues", {"state": "open", "working_dir": ""})
 
         assert result is not None
         assert result.success is True
@@ -176,9 +172,7 @@ class TestDispatchGitHubOperation:
 
         assert result is not None
         assert result.success is False
-        assert (
-            "unknown" in result.error.lower() or "not supported" in result.error.lower()
-        )
+        assert "unknown" in result.error.lower() or "not supported" in result.error.lower()
 
 
 @pytest.mark.fr_034
@@ -336,9 +330,7 @@ class TestRunGhCommandEdgeCases:
         github_worker.github_result_ready.connect(capture_result)
 
         # Run with non-existent directory
-        github_worker.run_gh_command(
-            ["pr", "list"], working_dir="/nonexistent/path/12345"
-        )
+        github_worker.run_gh_command(["pr", "list"], working_dir="/nonexistent/path/12345")
 
         # Should not call subprocess
         assert not mock_run.called
@@ -438,10 +430,7 @@ class TestRunGhCommandEdgeCases:
 
         assert result is not None
         assert result.success is False
-        assert (
-            "unexpected" in result.error.lower()
-            or "unexpected" in result.user_message.lower()
-        )
+        assert "unexpected" in result.error.lower() or "unexpected" in result.user_message.lower()
 
     @patch("asciidoc_artisan.workers.github_cli_worker.subprocess.run")
     def test_operation_parameter_default(self, mock_run, github_worker):

@@ -63,11 +63,7 @@ def flesch_reading_ease(text: str) -> float:
     total_syllables = sum(count_syllables(word) for word in words)
 
     # Flesch Reading Ease formula
-    score = (
-        206.835
-        - 1.015 * (total_words / total_sentences)
-        - 84.6 * (total_syllables / total_words)
-    )
+    score = 206.835 - 1.015 * (total_words / total_sentences) - 84.6 * (total_syllables / total_words)
 
     return round(score, 1)
 
@@ -93,11 +89,7 @@ def flesch_kincaid_grade(text: str) -> float:
     total_syllables = sum(count_syllables(word) for word in words)
 
     # Flesch-Kincaid Grade Level formula
-    grade = (
-        0.39 * (total_words / total_sentences)
-        + 11.8 * (total_syllables / total_words)
-        - 15.59
-    )
+    grade = 0.39 * (total_words / total_sentences) + 11.8 * (total_syllables / total_words) - 15.59
 
     return round(grade, 1)
 
@@ -204,11 +196,7 @@ def check_ma_principles(text: str) -> Dict[str, any]:
     paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
 
     # Check paragraph length (MA: keep them short)
-    avg_paragraph_sentences = (
-        sum(len(split_sentences(p)) for p in paragraphs) / len(paragraphs)
-        if paragraphs
-        else 0
-    )
+    avg_paragraph_sentences = sum(len(split_sentences(p)) for p in paragraphs) / len(paragraphs) if paragraphs else 0
 
     # Check white space (blank lines between paragraphs)
     has_white_space = "\n\n" in text
@@ -238,9 +226,7 @@ def check_socratic_elements(text: str) -> Dict[str, any]:
     headings = len(re.findall(r"^#{1,6}\s+", text, re.MULTILINE))
 
     # Check for examples (look for "example:", "for instance", etc.)
-    examples = len(
-        re.findall(r"\b(example|for instance|such as|like this)\b", text, re.IGNORECASE)
-    )
+    examples = len(re.findall(r"\b(example|for instance|such as|like this)\b", text, re.IGNORECASE))
 
     return {
         "questions": questions,
@@ -263,12 +249,7 @@ def generate_report(text: str) -> Dict:
     socratic_check = check_socratic_elements(text)
 
     # Determine pass/fail
-    passes = (
-        fk_grade <= 5.0
-        and fre >= 70
-        and sentence_stats["avg"] <= 15
-        and syllable_stats["avg"] <= 1.5
-    )
+    passes = fk_grade <= 5.0 and fre >= 70 and sentence_stats["avg"] <= 15 and syllable_stats["avg"] <= 1.5
 
     # Grade interpretation
     if fk_grade <= 5.0:
@@ -386,35 +367,25 @@ Examples provided: {soc["examples"]}
     recommendations = []
 
     if r["flesch_kincaid_grade"] > 5.0:
-        recommendations.append(
-            "• Simplify: Break long sentences into shorter ones (10-15 words)"
-        )
+        recommendations.append("• Simplify: Break long sentences into shorter ones (10-15 words)")
 
     if r["flesch_reading_ease"] < 70:
-        recommendations.append(
-            "• Use simpler words: Replace complex words with common alternatives"
-        )
+        recommendations.append("• Use simpler words: Replace complex words with common alternatives")
 
     if ss["avg"] > 15:
         recommendations.append("• Shorten sentences: Current average is too long")
 
     if sy["avg"] > 1.5:
-        recommendations.append(
-            "• Reduce syllables: Use 1-2 syllable words where possible"
-        )
+        recommendations.append("• Reduce syllables: Use 1-2 syllable words where possible")
 
     if not ma["has_white_space"]:
-        recommendations.append(
-            "• Add white space: Include blank lines between paragraphs"
-        )
+        recommendations.append("• Add white space: Include blank lines between paragraphs")
 
     if not soc["has_questions"]:
         recommendations.append("• Add questions: Use Socratic method to engage readers")
 
     if report["long_sentences"]:
-        recommendations.append(
-            f"• Fix {len(report['long_sentences'])} long sentences (see above)"
-        )
+        recommendations.append(f"• Fix {len(report['long_sentences'])} long sentences (see above)")
 
     if not recommendations:
         recommendations.append("✓ Excellent! Document meets all readability targets.")
@@ -427,16 +398,10 @@ Examples provided: {soc["examples"]}
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Check readability of technical documentation (Target: Grade 5.0)"
-    )
+    parser = argparse.ArgumentParser(description="Check readability of technical documentation (Target: Grade 5.0)")
     parser.add_argument("file", nargs="?", help="Markdown file to analyze")
-    parser.add_argument(
-        "--stdin", action="store_true", help="Read from stdin instead of file"
-    )
-    parser.add_argument(
-        "--json", action="store_true", help="Output JSON instead of formatted report"
-    )
+    parser.add_argument("--stdin", action="store_true", help="Read from stdin instead of file")
+    parser.add_argument("--json", action="store_true", help="Output JSON instead of formatted report")
 
     args = parser.parse_args()
 

@@ -227,9 +227,7 @@ class TestPDFExtractor:
 
         result = PDFExtractor._format_table_as_asciidoc(table)
 
-        assert (
-            'options="header"' in result
-        )  # Fixed: Check for substring without brackets
+        assert 'options="header"' in result  # Fixed: Check for substring without brackets
         assert "|===" in result
         assert "Col1" in result
         assert "Data1" in result
@@ -244,9 +242,7 @@ class TestPDFExtractor:
 
         result = PDFExtractor._format_table_as_asciidoc(table)
 
-        assert (
-            'options="header"' in result
-        )  # Fixed: Check for substring without brackets
+        assert 'options="header"' in result  # Fixed: Check for substring without brackets
         assert "|===" in result
         # None values should be converted to empty strings
         assert "| Header1 |  | Header3" in result
@@ -302,9 +298,7 @@ class TestPDFExtractor:
     def test_convert_to_asciidoc_with_complex_content(self):
         """Test conversion with complex content from multi-page PDF."""
         mock_page1 = Mock()
-        mock_page1.get_text.return_value = (
-            "First page content\nName    Value\nItem 1  100"
-        )
+        mock_page1.get_text.return_value = "First page content\nName    Value\nItem 1  100"
 
         mock_page2 = Mock()
         mock_page2.get_text.return_value = "Second page content"

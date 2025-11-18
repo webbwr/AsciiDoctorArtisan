@@ -292,9 +292,7 @@ async def test_concurrent_writes(tmp_path):
     files_and_contents = [(tmp_path / f"file{i}.txt", f"Content {i}") for i in range(5)]
 
     # Write all files concurrently
-    tasks = [
-        async_atomic_save_text(file, content) for file, content in files_and_contents
-    ]
+    tasks = [async_atomic_save_text(file, content) for file, content in files_and_contents]
     results = await asyncio.gather(*tasks)
 
     # All should succeed
@@ -555,9 +553,7 @@ def test_aiofiles_import_error():
                 sys.modules["aiofiles"] = original_aiofiles
 
             if original_async_file_ops is not None:
-                sys.modules["asciidoc_artisan.core.async_file_ops"] = (
-                    original_async_file_ops
-                )
+                sys.modules["asciidoc_artisan.core.async_file_ops"] = original_async_file_ops
 
             # Reload back to normal
             if "asciidoc_artisan.core.async_file_ops" in sys.modules:
@@ -585,9 +581,7 @@ async def test_async_atomic_save_text_cleanup_exception(tmp_path):
         # Mock aiofiles.os.replace to fail
         with patch("aiofiles.os.replace", side_effect=PermissionError("Write failed")):
             # Mock aiofiles.os.remove to also fail (triggers cleanup exception)
-            with patch(
-                "aiofiles.os.remove", side_effect=PermissionError("Cleanup failed")
-            ):
+            with patch("aiofiles.os.remove", side_effect=PermissionError("Cleanup failed")):
                 result = await async_atomic_save_text(test_file, "content")
                 assert result is False
 
@@ -608,9 +602,7 @@ async def test_async_atomic_save_json_cleanup_exception(tmp_path):
         # Mock aiofiles.os.replace to fail
         with patch("aiofiles.os.replace", side_effect=PermissionError("Write failed")):
             # Mock aiofiles.os.remove to also fail
-            with patch(
-                "aiofiles.os.remove", side_effect=PermissionError("Cleanup failed")
-            ):
+            with patch("aiofiles.os.remove", side_effect=PermissionError("Cleanup failed")):
                 result = await async_atomic_save_json(test_file, {"key": "value"})
                 assert result is False
 

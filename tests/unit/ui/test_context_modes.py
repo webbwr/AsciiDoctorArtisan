@@ -73,10 +73,7 @@ class TestContextModeDisplayNames:
             "General Chat",
             "Editing Suggestions",
         ]
-        actual_names = [
-            chat_bar._context_selector.itemText(i)
-            for i in range(chat_bar._context_selector.count())
-        ]
+        actual_names = [chat_bar._context_selector.itemText(i) for i in range(chat_bar._context_selector.count())]
         assert actual_names == expected_names
 
 

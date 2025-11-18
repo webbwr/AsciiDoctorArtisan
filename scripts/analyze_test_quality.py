@@ -35,7 +35,9 @@ def extract_tests(file_path):
     content = file_path.read_text()
 
     # Match test functions (including decorators)
-    test_pattern = r"((?:@[^\n]+\n)*\s*def\s+test_\w+\([^)]*\):(?:[^d]|d(?!ef\s))*?)(?=\n\s*(?:def\s|class\s|@pytest|$))"
+    test_pattern = (
+        r"((?:@[^\n]+\n)*\s*def\s+test_\w+\([^)]*\):(?:[^d]|d(?!ef\s))*?)(?=\n\s*(?:def\s|class\s|@pytest|$))"
+    )
     tests = re.findall(test_pattern, content, re.MULTILINE | re.DOTALL)
 
     results = []

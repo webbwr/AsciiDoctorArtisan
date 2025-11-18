@@ -24,9 +24,7 @@ def mock_editor(qapp):
 
     # Mock showMessage to track calls
     editor.status_bar._original_showMessage = editor.status_bar.showMessage
-    editor.status_bar.showMessage = Mock(
-        side_effect=editor.status_bar._original_showMessage
-    )
+    editor.status_bar.showMessage = Mock(side_effect=editor.status_bar._original_showMessage)
 
     # Status manager
     editor.status_manager = Mock()
@@ -348,9 +346,7 @@ class TestProgressTracking:
         manager.on_file_load_progress(100, "File loaded successfully")
 
         # Should show status bar message
-        mock_editor.status_bar.showMessage.assert_called_with(
-            "File loaded successfully", 3000
-        )
+        mock_editor.status_bar.showMessage.assert_called_with("File loaded successfully", 3000)
 
     def test_shows_status_bar_message_for_initial_progress(self, mock_editor):
         from asciidoc_artisan.ui.file_load_manager import FileLoadManager

@@ -37,9 +37,7 @@ class TestPandocWorkerOllamaIntegration:
 
     def test_ollama_conversion_success_text_output(self, worker, qtbot):
         """Test successful Ollama conversion for text output formats."""
-        mock_response = {
-            "response": "= Converted Document\n\nThis is the AI-converted content."
-        }
+        mock_response = {"response": "= Converted Document\n\nThis is the AI-converted content."}
 
         # Mock ollama module at import time
         mock_ollama = Mock()
@@ -61,9 +59,7 @@ class TestPandocWorkerOllamaIntegration:
         """Test Ollama conversion path for binary formats (PDF/DOCX)."""
         # This tests the code path at pandoc_worker.py:160-167
         # where Ollama produces markup for binary formats
-        mock_response = {
-            "response": "= PDF Content\n\nThis will be converted to PDF by Pandoc."
-        }
+        mock_response = {"response": "= PDF Content\n\nThis will be converted to PDF by Pandoc."}
 
         mock_ollama = Mock()
         mock_ollama.generate.return_value = mock_response
@@ -376,14 +372,10 @@ class TestPandocWorkerErrorHandling:
 
         output_file = readonly_dir / "output.pdf"
 
-        with patch.object(
-            PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf"
-        ):
+        with patch.object(PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf"):
             with patch("pypandoc.convert_text") as mock_convert:
                 # Simulate permission denied error
-                mock_convert.side_effect = PermissionError(
-                    "Permission denied: cannot write to readonly directory"
-                )
+                mock_convert.side_effect = PermissionError("Permission denied: cannot write to readonly directory")
 
                 with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:
                     worker.run_pandoc_conversion(
@@ -433,9 +425,7 @@ class TestPandocWorkerErrorHandling:
 
         with patch("pypandoc.convert_text") as mock_convert:
             # Simulate timeout
-            mock_convert.side_effect = subprocess.TimeoutExpired(
-                cmd="pandoc", timeout=30
-            )
+            mock_convert.side_effect = subprocess.TimeoutExpired(cmd="pandoc", timeout=30)
 
             with qtbot.waitSignal(worker.conversion_error, timeout=5000) as blocker:
                 worker.run_pandoc_conversion(

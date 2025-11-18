@@ -154,18 +154,14 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     terminalreporter.write_sep("=", "Performance Summary")
 
     # Sort by duration
-    by_duration = sorted(
-        _test_metrics.items(), key=lambda x: x[1]["duration"], reverse=True
-    )
+    by_duration = sorted(_test_metrics.items(), key=lambda x: x[1]["duration"], reverse=True)
 
     terminalreporter.write_line("\nSlowest 10 Tests:")
     for test_name, metrics in by_duration[:10]:
         terminalreporter.write_line(f"  {metrics['duration']:.3f}s - {test_name}")
 
     # Sort by memory
-    by_memory = sorted(
-        _test_metrics.items(), key=lambda x: abs(x[1]["memory_delta_mb"]), reverse=True
-    )
+    by_memory = sorted(_test_metrics.items(), key=lambda x: abs(x[1]["memory_delta_mb"]), reverse=True)
 
     terminalreporter.write_line("\nHighest Memory Usage (Top 10):")
     for test_name, metrics in by_memory[:10]:

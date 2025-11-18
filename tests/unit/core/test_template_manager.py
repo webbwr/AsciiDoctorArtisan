@@ -885,9 +885,7 @@ class TestGetCustomDir:
                 return str(tmp_path)
 
         # Patch where it's used (inside the method)
-        monkeypatch.setattr(
-            "PySide6.QtCore.QStandardPaths", MockQStandardPaths, raising=False
-        )
+        monkeypatch.setattr("PySide6.QtCore.QStandardPaths", MockQStandardPaths, raising=False)
 
         from asciidoc_artisan.core.template_engine import TemplateEngine
         from asciidoc_artisan.core.template_manager import TemplateManager
@@ -1145,9 +1143,7 @@ class TestYamlImportError:
         """Test _serialize_template without yaml installed (tests line 509-510)."""
         from asciidoc_artisan.core.models import Template
 
-        template = Template(
-            name="test", category="document", description="Test", content="= Test"
-        )
+        template = Template(name="test", category="document", description="Test", content="= Test")
 
         # Mock yaml import to fail
         import sys

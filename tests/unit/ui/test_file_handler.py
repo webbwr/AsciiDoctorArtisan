@@ -61,9 +61,7 @@ def mock_status_manager():
 @pytest.fixture
 def handler(mock_editor, mock_window, mock_settings_manager, mock_status_manager):
     """Create FileHandler instance."""
-    handler = FileHandler(
-        mock_editor, mock_window, mock_settings_manager, mock_status_manager
-    )
+    handler = FileHandler(mock_editor, mock_window, mock_settings_manager, mock_status_manager)
     # Mock async_manager for tests that don't need real async operations
     handler.async_manager = Mock()
     handler.async_manager.read_file = Mock(return_value=None)
@@ -242,9 +240,7 @@ async def test_load_file_tracks_loading_state_async(handler, tmp_path):
 @pytest.mark.asyncio
 @pytest.mark.fr_072
 @pytest.mark.unit
-async def test_load_file_updates_settings_async(
-    handler, tmp_path, mock_settings_manager
-):
+async def test_load_file_updates_settings_async(handler, tmp_path, mock_settings_manager):
     """Test loading file updates last directory in settings."""
     test_file = tmp_path / "test.adoc"
     test_content = "Content"
@@ -343,9 +339,7 @@ async def test_save_file_emits_signal_async(handler, tmp_path, mock_editor, qtbo
 @pytest.mark.asyncio
 @pytest.mark.fr_072
 @pytest.mark.unit
-async def test_save_file_updates_settings_async(
-    handler, tmp_path, mock_editor, mock_settings_manager
-):
+async def test_save_file_updates_settings_async(handler, tmp_path, mock_editor, mock_settings_manager):
     """Test saving file updates last directory."""
     test_file = tmp_path / "settings_test.adoc"
     test_content = "Content"
@@ -369,9 +363,7 @@ async def test_save_file_updates_settings_async(
 @pytest.mark.asyncio
 @pytest.mark.fr_072
 @pytest.mark.unit
-async def test_save_file_error_handling_async(
-    handler, mock_editor, mock_status_manager
-):
+async def test_save_file_error_handling_async(handler, mock_editor, mock_status_manager):
     """Test error handling when async save fails."""
     invalid_path = Path("/invalid/path/file.adoc")
     test_content = "Content"
@@ -665,9 +657,7 @@ class TestFilePermissions:
         finally:
             test_file.chmod(0o644)  # Restore permissions
 
-    def test_save_to_readonly_file(
-        self, handler, tmp_path, mock_editor, mock_status_manager
-    ):
+    def test_save_to_readonly_file(self, handler, tmp_path, mock_editor, mock_status_manager):
         """Test saving to a read-only file shows error."""
         test_file = tmp_path / "readonly_save.adoc"
         test_file.write_text("Original")
@@ -795,9 +785,7 @@ class TestAutoSaveEdgeCases:
 class TestSignalEmissions:
     """Test signal emission edge cases."""
 
-    def test_file_opened_signal_not_emitted_on_error(
-        self, handler, qtbot, mock_status_manager
-    ):
+    def test_file_opened_signal_not_emitted_on_error(self, handler, qtbot, mock_status_manager):
         """Test file_opened signal not emitted when load fails."""
         # Test that opening non-existent file doesn't emit signal
         handler.open_file("/nonexistent.adoc")
@@ -814,9 +802,7 @@ class TestSignalEmissions:
         # Save should fail without emitting signal
         handler.save_file()
 
-    def test_file_modified_signal_emitted_once_per_change(
-        self, handler, mock_editor, qtbot
-    ):
+    def test_file_modified_signal_emitted_once_per_change(self, handler, mock_editor, qtbot):
         """Test file_modified signal emitted for each text change."""
         with qtbot.waitSignal(handler.file_modified, timeout=1000):
             mock_editor.setPlainText("First change")
@@ -846,31 +832,23 @@ class TestFileDialogIntegration:
         mock_editor.setPlainText("Content")
         handler.current_file_path = None
 
-        with patch(
-            "PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")
-        ):
+        with patch("PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")):
             handler.save_file(save_as=True)
 
         # Should return False if user cancels
 
-    def test_open_file_dialog_respects_last_directory(
-        self, handler, tmp_path, mock_settings_manager
-    ):
+    def test_open_file_dialog_respects_last_directory(self, handler, tmp_path, mock_settings_manager):
         """Test open file dialog uses last directory from settings."""
         settings = Mock()
         settings.last_directory = str(tmp_path)
         mock_settings_manager.load_settings.return_value = settings
 
-        with patch(
-            "PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")
-        ):
+        with patch("PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")):
             handler.open_file()
 
         # Dialog should open in last_directory
 
-    def test_save_as_with_existing_file_overwrites(
-        self, handler, tmp_path, mock_editor
-    ):
+    def test_save_as_with_existing_file_overwrites(self, handler, tmp_path, mock_editor):
         """Test save_as can overwrite existing file."""
         test_file = tmp_path / "existing.adoc"
         test_file.write_text("Old content")
@@ -887,9 +865,7 @@ class TestFileDialogIntegration:
 
     def test_dialog_filters_correct_extensions(self, handler):
         """Test file dialogs filter correct file extensions."""
-        with patch(
-            "PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")
-        ):
+        with patch("PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")):
             handler.open_file()
 
             # Should include .adoc filter
@@ -1044,9 +1020,7 @@ class TestFileDialogCancellation:
 
     def test_open_file_dialog_cancelled(self, handler):
         """Test opening file with dialog when user cancels."""
-        with patch(
-            "PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")
-        ):
+        with patch("PySide6.QtWidgets.QFileDialog.getOpenFileName", return_value=("", "")):
             # Should return early without error
             handler.open_file()  # No path provided, triggers dialog
 
@@ -1055,9 +1029,7 @@ class TestFileDialogCancellation:
         mock_editor.setPlainText("Content")
         handler.current_file_path = None
 
-        with patch(
-            "PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")
-        ):
+        with patch("PySide6.QtWidgets.QFileDialog.getSaveFileName", return_value=("", "")):
             result = handler.save_file(save_as=True)
 
         # Should return False when cancelled
@@ -1117,9 +1089,7 @@ class TestFileSizeValidation:
         assert any("Opening large file" in record.message for record in caplog.records)
 
     @pytest.mark.asyncio
-    async def test_file_size_check_exception_handled(
-        self, handler, tmp_path, mock_status_manager
-    ):
+    async def test_file_size_check_exception_handled(self, handler, tmp_path, mock_status_manager):
         """Test exception during file size check is handled (lines 214-217)."""
         test_file = tmp_path / "test.adoc"
         test_file.write_text("Content")
@@ -1154,9 +1124,7 @@ class TestMemoryProfiling:
 
         # get_profiler is imported inside the function from asciidoc_artisan.core
         with patch("os.environ.get", return_value="1"):  # Enable profiling
-            with patch(
-                "asciidoc_artisan.core.get_profiler", return_value=mock_profiler
-            ):
+            with patch("asciidoc_artisan.core.get_profiler", return_value=mock_profiler):
                 await handler._load_file_async(test_file)
 
         # Should take snapshot before load
@@ -1177,9 +1145,7 @@ class TestMemoryProfiling:
 
         # get_profiler is imported inside the function from asciidoc_artisan.core
         with patch("os.environ.get", return_value="1"):  # Enable profiling
-            with patch(
-                "asciidoc_artisan.core.get_profiler", return_value=mock_profiler
-            ):
+            with patch("asciidoc_artisan.core.get_profiler", return_value=mock_profiler):
                 await handler._load_file_async(test_file)
 
         # Should take snapshot after load
@@ -1204,17 +1170,13 @@ class TestAsyncReadErrors:
         assert handler.current_file_path != test_file
 
     @pytest.mark.asyncio
-    async def test_load_file_exception_handled(
-        self, handler, tmp_path, mock_status_manager
-    ):
+    async def test_load_file_exception_handled(self, handler, tmp_path, mock_status_manager):
         """Test exception during file load shows error (lines 281-283)."""
         test_file = tmp_path / "error.adoc"
         test_file.write_text("Content")
 
         # Mock async read to raise exception
-        handler.async_manager.read_file = AsyncMock(
-            side_effect=RuntimeError("Read failed")
-        )
+        handler.async_manager.read_file = AsyncMock(side_effect=RuntimeError("Read failed"))
 
         await handler._load_file_async(test_file)
 
@@ -1273,9 +1235,7 @@ class TestAsyncSignalHandlers:
             handler._on_async_write_complete(test_file)
 
         # Should log debug message
-        assert any(
-            "Async write complete" in record.message for record in caplog.records
-        )
+        assert any("Async write complete" in record.message for record in caplog.records)
 
     def test_on_async_operation_failed_logs(self, handler, tmp_path, caplog):
         """Test async operation failed signal handler (line 486)."""
@@ -1289,9 +1249,7 @@ class TestAsyncSignalHandlers:
         # Should log error message
         assert any("Async read failed" in record.message for record in caplog.records)
 
-    def test_on_file_changed_externally_emits_signal(
-        self, handler, tmp_path, qtbot, caplog
-    ):
+    def test_on_file_changed_externally_emits_signal(self, handler, tmp_path, qtbot, caplog):
         """Test file changed externally signal handler (lines 498-505)."""
         import logging
 
@@ -1302,9 +1260,7 @@ class TestAsyncSignalHandlers:
                 handler._on_file_changed_externally(test_file)
 
         # Should log info message
-        assert any(
-            "File changed externally" in record.message for record in caplog.records
-        )
+        assert any("File changed externally" in record.message for record in caplog.records)
 
     def test_on_file_changed_externally_shows_status(self, handler, tmp_path):
         """Test file changed externally shows status bar message (lines 504-506)."""

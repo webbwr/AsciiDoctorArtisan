@@ -148,9 +148,7 @@ class TestGitStatusDialogPopulation:
 
     def test_populate_all_categories(self, dialog):
         """Test populating all file categories at once."""
-        modified = [
-            {"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}
-        ]
+        modified = [{"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
         staged = [
             {
                 "path": "stage.txt",
@@ -199,9 +197,7 @@ class TestGitStatusDialogPopulation:
         ]
         dialog.populate_status("main", modified2, [], [])
         assert dialog.modified_table.rowCount() == 1
-        assert (
-            dialog.modified_table.item(0, 1).text() == "file3.txt"
-        )  # Column 1 is File
+        assert dialog.modified_table.item(0, 1).text() == "file3.txt"  # Column 1 is File
 
 
 @pytest.mark.fr_031
@@ -272,18 +268,9 @@ class TestGitStatusDialogTableFormat:
         """Test tables are read-only (no edit triggers)."""
         from PySide6.QtWidgets import QAbstractItemView
 
-        assert (
-            dialog.modified_table.editTriggers()
-            == QAbstractItemView.EditTrigger.NoEditTriggers
-        )
-        assert (
-            dialog.staged_table.editTriggers()
-            == QAbstractItemView.EditTrigger.NoEditTriggers
-        )
-        assert (
-            dialog.untracked_table.editTriggers()
-            == QAbstractItemView.EditTrigger.NoEditTriggers
-        )
+        assert dialog.modified_table.editTriggers() == QAbstractItemView.EditTrigger.NoEditTriggers
+        assert dialog.staged_table.editTriggers() == QAbstractItemView.EditTrigger.NoEditTriggers
+        assert dialog.untracked_table.editTriggers() == QAbstractItemView.EditTrigger.NoEditTriggers
 
 
 @pytest.mark.fr_031
@@ -294,9 +281,7 @@ class TestGitStatusDialogEdgeCases:
     def test_populate_with_very_long_file_path(self, dialog):
         """Test handling very long file paths."""
         long_path = "very/long/path/" + "subdir/" * 50 + "file.txt"
-        modified = [
-            {"path": long_path, "status": "M", "lines_added": "5", "lines_deleted": "2"}
-        ]
+        modified = [{"path": long_path, "status": "M", "lines_added": "5", "lines_deleted": "2"}]
 
         dialog.populate_status("main", modified, [], [])
 
@@ -556,9 +541,7 @@ class TestGitStatusDialogTableInteraction:
     def test_click_different_tabs(self, dialog):
         """Test clicking through all tabs."""
         # Populate all tabs
-        modified = [
-            {"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}
-        ]
+        modified = [{"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
         staged = [
             {
                 "path": "stage.txt",
@@ -698,9 +681,7 @@ class TestGitStatusDialogDataIntegrity:
 
     def test_data_persists_after_tab_switch(self, dialog):
         """Test data persists when switching tabs."""
-        modified = [
-            {"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}
-        ]
+        modified = [{"path": "mod.txt", "status": "M", "lines_added": "5", "lines_deleted": "2"}]
         staged = [
             {
                 "path": "stage.txt",

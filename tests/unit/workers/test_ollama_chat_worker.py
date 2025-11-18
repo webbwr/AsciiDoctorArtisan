@@ -213,9 +213,7 @@ class TestBuildSystemPrompt:
             "general",
         ],
     )
-    def test_context_modes(
-        self, context_mode, document_content, expected_strings, not_expected_strings
-    ):
+    def test_context_modes(self, context_mode, document_content, expected_strings, not_expected_strings):
         """Test system prompts for all context modes with/without content."""
         worker = OllamaChatWorker()
         worker._context_mode = context_mode
@@ -225,15 +223,11 @@ class TestBuildSystemPrompt:
 
         # Check all expected strings are present
         for expected in expected_strings:
-            assert (
-                expected in prompt
-            ), f"Expected '{expected}' in prompt for mode '{context_mode}'"
+            assert expected in prompt, f"Expected '{expected}' in prompt for mode '{context_mode}'"
 
         # Check strings that should NOT be present
         for not_expected in not_expected_strings:
-            assert (
-                not_expected not in prompt
-            ), f"Unexpected '{not_expected}' in prompt for mode '{context_mode}'"
+            assert not_expected not in prompt, f"Unexpected '{not_expected}' in prompt for mode '{context_mode}'"
 
         # Additional check for syntax mode (formatting OR markup)
         if context_mode == "syntax":
@@ -590,8 +584,4 @@ class TestErrorHandling:
 
         # Should have user-friendly message about message length
         assert error_msg is not None
-        assert (
-            "too long" in error_msg.lower()
-            or "context" in error_msg.lower()
-            or "shorter" in error_msg.lower()
-        )
+        assert "too long" in error_msg.lower() or "context" in error_msg.lower() or "shorter" in error_msg.lower()

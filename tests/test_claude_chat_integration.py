@@ -181,7 +181,9 @@ class TestClaudeErrorMessages:
 
     def test_insufficient_credits_error_message(self):
         """Test that credit balance error gets friendly message."""
-        raw_error = "Error code: 400 - {'error': {'message': 'Your credit balance is too low to access the Anthropic API.'}}"
+        raw_error = (
+            "Error code: 400 - {'error': {'message': 'Your credit balance is too low to access the Anthropic API.'}}"
+        )
 
         # Check if error would match our pattern
         assert "credit balance is too low" in raw_error.lower()

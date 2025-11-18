@@ -68,16 +68,12 @@ class TestBlockCacheAdvanced:
         cache = BlockCache()
 
         # Original block
-        block1 = DocumentBlock(
-            id="block1", start_line=0, end_line=5, content="= Original Title"
-        )
+        block1 = DocumentBlock(id="block1", start_line=0, end_line=5, content="= Original Title")
         block1.id = block1.compute_id()
         cache.put(block1.id, "<h1>Original Title</h1>")
 
         # Modified block (different content)
-        block2 = DocumentBlock(
-            id="block2", start_line=0, end_line=5, content="= Modified Title"
-        )
+        block2 = DocumentBlock(id="block2", start_line=0, end_line=5, content="= Modified Title")
         block2.id = block2.compute_id()
 
         # IDs should be different (content changed)
@@ -250,9 +246,7 @@ class TestIncrementalRendererPerformance:
     def test_large_document_with_1000_headings(self):
         """Test rendering document with 1000 headings (stress test)."""
         mock_api = Mock()
-        mock_api.execute = Mock(
-            side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>")
-        )
+        mock_api.execute = Mock(side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>"))
 
         renderer = IncrementalPreviewRenderer(mock_api)
 
@@ -276,9 +270,7 @@ class TestIncrementalRendererPerformance:
     def test_rapid_sequential_edits(self):
         """Test multiple rapid renders in succession."""
         mock_api = Mock()
-        mock_api.execute = Mock(
-            side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>")
-        )
+        mock_api.execute = Mock(side_effect=lambda inf, outf, backend: outf.write("<p>Rendered</p>"))
 
         renderer = IncrementalPreviewRenderer(mock_api)
 
@@ -288,9 +280,7 @@ class TestIncrementalRendererPerformance:
 
         # Perform 10 rapid renders - keep Section 1 unchanged, modify Section 2
         for i in range(10):
-            source = (
-                f"= Title\n\n== Section 1\n\nStatic content\n\n== Section 2\n\nEdit {i}"
-            )
+            source = f"= Title\n\n== Section 1\n\nStatic content\n\n== Section 2\n\nEdit {i}"
             html = renderer.render(source)
             assert html is not None
 
@@ -332,9 +322,7 @@ class TestIncrementalRendererPerformance:
     def test_disabled_incremental_rendering_falls_back(self):
         """Test that disabling incremental rendering falls back to full render."""
         mock_api = Mock()
-        mock_api.execute = Mock(
-            side_effect=lambda inf, outf, backend: outf.write("<p>Full render</p>")
-        )
+        mock_api.execute = Mock(side_effect=lambda inf, outf, backend: outf.write("<p>Full render</p>"))
 
         renderer = IncrementalPreviewRenderer(mock_api)
 

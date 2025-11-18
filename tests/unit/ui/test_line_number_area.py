@@ -231,9 +231,7 @@ class TestLineNumberMixin:
         editor.setPlainText("Line 1\nLine 2\nLine 3")
 
         # Mock painter
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -265,9 +263,7 @@ class TestLineNumberMixin:
         editor.setPlainText("Line 1\nLine 2\nLine 3")
 
         # Mock painter
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -489,9 +485,7 @@ class TestPaintEventEdgeCases:
         editor.setPlainText("")
 
         # Mock painter
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -516,9 +510,7 @@ class TestPaintEventEdgeCases:
         lines = "\n".join([f"Line {i}" for i in range(1, 501)])
         editor.setPlainText(lines)
 
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -540,9 +532,7 @@ class TestPaintEventEdgeCases:
         editor.setup_line_numbers()
         editor.setPlainText("Line 1\nЛиния 2\n行 3\n🌍 4")
 
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -650,9 +640,7 @@ class TestThemeSwitching:
         editor.setPalette(palette)
 
         # Paint should use dark colors
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -683,9 +671,7 @@ class TestThemeSwitching:
         editor.setPalette(palette)
 
         # Paint should use light colors
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 
@@ -992,9 +978,7 @@ class TestConcurrentOperations:
         editor.setup_line_numbers()
         editor.setPlainText("Line 1\nLine 2\nLine 3")
 
-        with patch(
-            "asciidoc_artisan.ui.line_number_area.QPainter"
-        ) as mock_painter_class:
+        with patch("asciidoc_artisan.ui.line_number_area.QPainter") as mock_painter_class:
             mock_painter = Mock()
             mock_painter_class.return_value = mock_painter
 

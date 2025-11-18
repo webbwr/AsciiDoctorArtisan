@@ -98,9 +98,7 @@ class TestSetupSynchronizedScrolling:
         manager.setup_synchronized_scrolling()
 
         # Should connect to sync_editor_to_preview
-        call_args = (
-            mock_editor.editor.verticalScrollBar().valueChanged.connect.call_args
-        )
+        call_args = mock_editor.editor.verticalScrollBar().valueChanged.connect.call_args
         assert call_args is not None
 
 
@@ -641,9 +639,7 @@ class TestSyncingFlagLifecycle:
         manager = ScrollManager(mock_editor)
 
         # Make runJavaScript raise exception
-        mock_editor.preview.page().runJavaScript = Mock(
-            side_effect=RuntimeError("Test error")
-        )
+        mock_editor.preview.page().runJavaScript = Mock(side_effect=RuntimeError("Test error"))
 
         try:
             manager.sync_editor_to_preview(500)

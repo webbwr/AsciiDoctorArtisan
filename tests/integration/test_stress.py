@@ -195,9 +195,7 @@ async def test_large_file_open_save_async(qtbot):
 
         # Async I/O should be fast (mocked)
         # Note: Timing can vary with system load, especially in CI
-        assert (
-            open_time < 5.0
-        ), f"Async file open took {open_time:.1f}s (should be < 5s with mocking)"
+        assert open_time < 5.0, f"Async file open took {open_time:.1f}s (should be < 5s with mocking)"
 
         # Verify content loaded
         assert editor.toPlainText() == large_content

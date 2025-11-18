@@ -84,9 +84,7 @@ class TestAsyncFileWatcher:
         assert not watcher.is_running()
 
     @pytest.mark.asyncio
-    async def test_detect_file_modification(
-        self, qtbot: QtBot, watcher: AsyncFileWatcher, temp_file: Path
-    ):
+    async def test_detect_file_modification(self, qtbot: QtBot, watcher: AsyncFileWatcher, temp_file: Path):
         """Test detecting file modifications."""
         watcher.set_file(temp_file)
 
@@ -119,9 +117,7 @@ class TestAsyncFileWatcher:
         await watcher.stop()
 
     @pytest.mark.asyncio
-    async def test_detect_file_deletion(
-        self, qtbot: QtBot, watcher: AsyncFileWatcher, temp_file: Path
-    ):
+    async def test_detect_file_deletion(self, qtbot: QtBot, watcher: AsyncFileWatcher, temp_file: Path):
         """Test detecting file deletion."""
         watcher.set_file(temp_file)
 
@@ -154,9 +150,7 @@ class TestAsyncFileWatcher:
         await watcher.stop()
 
     @pytest.mark.asyncio
-    async def test_detect_file_creation(
-        self, qtbot: QtBot, watcher: AsyncFileWatcher, tmp_path: Path
-    ):
+    async def test_detect_file_creation(self, qtbot: QtBot, watcher: AsyncFileWatcher, tmp_path: Path):
         """Test detecting file creation."""
         new_file = tmp_path / "newly_created.txt"
         watcher.set_file(new_file)
@@ -220,9 +214,7 @@ class TestAsyncFileWatcher:
         await watcher.stop()
 
     @pytest.mark.asyncio
-    async def test_multiple_start_warning(
-        self, watcher: AsyncFileWatcher, temp_file: Path, caplog
-    ):
+    async def test_multiple_start_warning(self, watcher: AsyncFileWatcher, temp_file: Path, caplog):
         """Test warning on multiple starts."""
         watcher.set_file(temp_file)
 
@@ -287,9 +279,7 @@ class TestAsyncFileWatcher:
         assert not watcher.is_running()
 
     @pytest.mark.asyncio
-    async def test_watch_loop_exception(
-        self, qtbot: QtBot, watcher: AsyncFileWatcher, temp_file: Path
-    ):
+    async def test_watch_loop_exception(self, qtbot: QtBot, watcher: AsyncFileWatcher, temp_file: Path):
         """Test _watch_loop() handles exceptions (lines 190-193)."""
         from unittest.mock import patch
 
@@ -331,9 +321,7 @@ class TestAsyncFileWatcher:
         # No exception should be raised
 
     @pytest.mark.asyncio
-    async def test_file_creation_stat_exception(
-        self, qtbot: QtBot, watcher: AsyncFileWatcher, tmp_path: Path, caplog
-    ):
+    async def test_file_creation_stat_exception(self, qtbot: QtBot, watcher: AsyncFileWatcher, tmp_path: Path, caplog):
         """Test file creation with stat() exception (lines 233-234)."""
         from unittest.mock import patch
 
@@ -429,9 +417,7 @@ class TestAsyncFileWatcher:
         assert watcher.poll_interval == 1.0  # Default
 
     @pytest.mark.asyncio
-    async def test_adaptive_polling_fast_for_active_files(
-        self, qtbot: QtBot, temp_file: Path
-    ):
+    async def test_adaptive_polling_fast_for_active_files(self, qtbot: QtBot, temp_file: Path):
         """Test poll interval decreases for active files (QA-13)."""
         # Use fast poll for testing
         watcher = AsyncFileWatcher(poll_interval=0.5, debounce_period=0.05)
@@ -452,9 +438,7 @@ class TestAsyncFileWatcher:
         await watcher.stop()
 
     @pytest.mark.asyncio
-    async def test_adaptive_polling_slow_for_idle_files(
-        self, qtbot: QtBot, temp_file: Path
-    ):
+    async def test_adaptive_polling_slow_for_idle_files(self, qtbot: QtBot, temp_file: Path):
         """Test poll interval increases for idle files (QA-13)."""
         watcher = AsyncFileWatcher(poll_interval=1.0, debounce_period=0.05)
         watcher.set_file(temp_file)
@@ -472,9 +456,7 @@ class TestAsyncFileWatcher:
         await watcher.stop()
 
     @pytest.mark.asyncio
-    async def test_adaptive_polling_exponential_backoff(
-        self, qtbot: QtBot, temp_file: Path
-    ):
+    async def test_adaptive_polling_exponential_backoff(self, qtbot: QtBot, temp_file: Path):
         """Test exponential backoff for increasingly idle files (QA-13)."""
         watcher = AsyncFileWatcher(poll_interval=1.0, debounce_period=0.05)
         watcher.set_file(temp_file)
@@ -499,9 +481,7 @@ class TestAsyncFileWatcher:
         assert watcher.poll_interval <= watcher.max_poll_interval
 
     @pytest.mark.asyncio
-    async def test_adaptive_polling_activity_resumption(
-        self, qtbot: QtBot, temp_file: Path
-    ):
+    async def test_adaptive_polling_activity_resumption(self, qtbot: QtBot, temp_file: Path):
         """Test poll interval resets on activity resumption (QA-13)."""
         watcher = AsyncFileWatcher(poll_interval=1.0, debounce_period=0.05)
         watcher.set_file(temp_file)
@@ -563,9 +543,7 @@ class TestCoverageImprovements:
         return test_file
 
     @pytest.mark.asyncio
-    async def test_check_file_exception_handling(
-        self, qtbot: QtBot, temp_file: Path, caplog
-    ):
+    async def test_check_file_exception_handling(self, qtbot: QtBot, temp_file: Path, caplog):
         """Test exception handling in _check_file for modified file (lines 280-281)."""
         from unittest.mock import patch
 

@@ -568,8 +568,7 @@ class TestCoverageImprovements:
 
             # Should have logged warning about missing module (lines 251-253)
             assert any(
-                "syntax_validators" in record.message and "not found" in record.message
-                for record in caplog.records
+                "syntax_validators" in record.message and "not found" in record.message for record in caplog.records
             )
 
             # Should still work but with empty rules

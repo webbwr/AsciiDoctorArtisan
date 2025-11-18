@@ -388,9 +388,7 @@ class TestVirtualScrollBuffering:
 
         print("\nBuffer size impact:")
         for r in results:
-            print(
-                f"  Buffer {r['buffer']:2d}: {r['time'] * 1000:6.2f}ms, {r['lines']:3d} lines, {r['ratio']:5.2f}%"
-            )
+            print(f"  Buffer {r['buffer']:2d}: {r['time'] * 1000:6.2f}ms, {r['lines']:3d} lines, {r['ratio']:5.2f}%")
 
         # Larger buffer should render more lines
         assert results[0]["lines"] < results[-1]["lines"]

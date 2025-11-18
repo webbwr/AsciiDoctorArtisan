@@ -49,9 +49,7 @@ def timing_context(name: str = "operation"):
     print(f"{name} took {duration:.4f}s")
 
 
-def create_mock_worker(
-    worker_class: type, result_signal_name: str = "result_ready"
-) -> Mock:
+def create_mock_worker(worker_class: type, result_signal_name: str = "result_ready") -> Mock:
     """
     Create a mock worker with proper signal handling.
 
@@ -139,9 +137,7 @@ def assert_performance(duration: float, max_duration: float, operation: str = ""
         assert_performance(duration, 0.1, "file loading")
     """
     if duration > max_duration:
-        raise AssertionError(
-            f"{operation or 'Operation'} took {duration:.3f}s, expected <{max_duration:.3f}s"
-        )
+        raise AssertionError(f"{operation or 'Operation'} took {duration:.3f}s, expected <{max_duration:.3f}s")
 
 
 class PerformanceMonitor:

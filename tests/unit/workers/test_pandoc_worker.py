@@ -508,9 +508,7 @@ class TestErrorHandling:
 
     def test_unicode_error_handling(self, mock_pypandoc):
         """Test error handling for unicode issues."""
-        mock_pypandoc.convert_text.side_effect = UnicodeDecodeError(
-            "utf-8", b"", 0, 1, "invalid"
-        )
+        mock_pypandoc.convert_text.side_effect = UnicodeDecodeError("utf-8", b"", 0, 1, "invalid")
 
         worker = PandocWorker()
         error = None
@@ -532,9 +530,7 @@ class TestErrorHandling:
 
         assert error is not None
 
-    @patch(
-        "asciidoc_artisan.workers.pandoc_worker.is_pandoc_available", return_value=False
-    )
+    @patch("asciidoc_artisan.workers.pandoc_worker.is_pandoc_available", return_value=False)
     def test_pandoc_not_available_error(self, mock_is_available):
         """Test error when Pandoc is not available."""
         # Ensure pypandoc is NOT in sys.modules (simulate it not being installed)
@@ -603,9 +599,7 @@ class TestOllamaConversion:
             def import_side_effect(name, *args, **kwargs):
                 if name == "ollama":
                     mock_ollama = type("ollama", (), {})()
-                    mock_ollama.generate = lambda **kwargs: {
-                        "response": "= Converted by AI\n\nTest content"
-                    }
+                    mock_ollama.generate = lambda **kwargs: {"response": "= Converted by AI\n\nTest content"}
                     return mock_ollama
                 return __import__(name, *args, **kwargs)
 
@@ -669,9 +663,7 @@ class TestOllamaConversion:
             def import_side_effect(name, *args, **kwargs):
                 if name == "ollama":
                     mock_ollama = type("ollama", (), {})()
-                    mock_ollama.generate = lambda **kwargs: {
-                        "response": "abc"
-                    }  # < 10 chars
+                    mock_ollama.generate = lambda **kwargs: {"response": "abc"}  # < 10 chars
                     return mock_ollama
                 return __import__(name, *args, **kwargs)
 
@@ -740,9 +732,7 @@ class TestConversionPromptCreation:
     def test_create_prompt_markdown_to_asciidoc(self):
         """Test prompt for Markdown to AsciiDoc conversion."""
         worker = PandocWorker()
-        prompt = worker._create_conversion_prompt(
-            "# Test Header", "markdown", "asciidoc"
-        )
+        prompt = worker._create_conversion_prompt("# Test Header", "markdown", "asciidoc")
 
         assert "Markdown" in prompt
         assert "AsciiDoc" in prompt
@@ -752,9 +742,7 @@ class TestConversionPromptCreation:
     def test_create_prompt_asciidoc_to_markdown(self):
         """Test prompt for AsciiDoc to Markdown conversion."""
         worker = PandocWorker()
-        prompt = worker._create_conversion_prompt(
-            "= Test Document", "asciidoc", "markdown"
-        )
+        prompt = worker._create_conversion_prompt("= Test Document", "asciidoc", "markdown")
 
         assert "AsciiDoc" in prompt
         assert "Markdown" in prompt
@@ -872,9 +860,7 @@ class TestAIConversionWithFallback:
 
     @patch.object(PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf")
     @patch.object(PandocWorker, "_try_ollama_conversion")
-    def test_ai_conversion_for_pdf_uses_pandoc(
-        self, mock_ollama, mock_pdf_engine, mock_pypandoc
-    ):
+    def test_ai_conversion_for_pdf_uses_pandoc(self, mock_ollama, mock_pdf_engine, mock_pypandoc):
         """Test AI conversion for PDF format uses Pandoc for binary output."""
         mock_ollama.return_value = "= AI Text"  # AI produces text
         mock_pypandoc.convert_text.return_value = None  # Pandoc saves to file
@@ -967,9 +953,7 @@ class TestPathSourceConversion:
         assert result is not None
 
     @patch.object(PandocWorker, "_detect_pdf_engine", return_value="wkhtmltopdf")
-    def test_path_source_to_binary_output(
-        self, mock_pdf_engine, mock_pypandoc, tmp_path
-    ):
+    def test_path_source_to_binary_output(self, mock_pdf_engine, mock_pypandoc, tmp_path):
         """Test conversion from Path source to binary file output."""
         test_file = tmp_path / "test.adoc"
         test_file.write_text("= Test Document")

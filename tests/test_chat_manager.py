@@ -158,9 +158,7 @@ class TestChatManagerMessageHandling:
         model = "gnokit/improve-grammer"
         context_mode = "document"
 
-        with qtbot.waitSignal(
-            chat_manager.message_sent_to_worker, timeout=1000
-        ) as blocker:
+        with qtbot.waitSignal(chat_manager.message_sent_to_worker, timeout=1000) as blocker:
             chat_manager._handle_user_message(message, model, context_mode)
 
         args = blocker.args
@@ -355,9 +353,7 @@ class TestChatManagerContextModeHandling:
             ("editing", True),
         ],
     )
-    def test_context_mode_affects_document_inclusion(
-        self, chat_manager, context_mode, includes_doc
-    ):
+    def test_context_mode_affects_document_inclusion(self, chat_manager, context_mode, includes_doc):
         """Test different context modes affect document inclusion."""
         chat_manager._settings.ollama_chat_send_document = True
         chat_manager._settings.ollama_chat_context_mode = context_mode
@@ -419,9 +415,7 @@ class TestModelValidation:
         """Test validation when ollama command fails."""
         with patch("subprocess.run") as mock_run:
             # Mock command failure
-            mock_run.return_value = Mock(
-                returncode=1, stdout="", stderr="Error: something went wrong"
-            )
+            mock_run.return_value = Mock(returncode=1, stdout="", stderr="Error: something went wrong")
 
             # Should return False when command fails
             assert chat_manager._validate_model("gnokit/improve-grammer") is False

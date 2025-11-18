@@ -64,9 +64,7 @@ class TestPandocWorkerCoverage:
     def test_ai_conversion_with_path_source(self):
         """Test AI conversion with Path source (line 143)."""
         # Create a temporary file with content
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False
-        ) as tmp_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as tmp_file:
             tmp_file.write("Test content for conversion")
             tmp_path = Path(tmp_file.name)
 
@@ -74,9 +72,7 @@ class TestPandocWorkerCoverage:
             # Mock ollama module and its generate function
             with patch.dict("sys.modules", {"ollama": Mock()}) as mock_modules:
                 mock_ollama = mock_modules["ollama"]
-                mock_ollama.generate.return_value = {
-                    "response": "= Converted Content\n\nThis is the converted text."
-                }
+                mock_ollama.generate.return_value = {"response": "= Converted Content\n\nThis is the converted text."}
 
                 worker = PandocWorker()
                 worker.ollama_enabled = True
@@ -109,9 +105,7 @@ class TestPandocWorkerCoverage:
         # Mock ollama module and its generate function
         with patch.dict("sys.modules", {"ollama": Mock()}) as mock_modules:
             mock_ollama = mock_modules["ollama"]
-            mock_ollama.generate.return_value = {
-                "response": "= Converted Content\n\nThis is the converted text."
-            }
+            mock_ollama.generate.return_value = {"response": "= Converted Content\n\nThis is the converted text."}
 
             worker = PandocWorker()
             worker.ollama_enabled = True
@@ -140,9 +134,7 @@ class TestPandocWorkerCoverage:
         # Mock ollama module and make generate raise an exception
         with patch.dict("sys.modules", {"ollama": Mock()}) as mock_modules:
             mock_ollama = mock_modules["ollama"]
-            mock_ollama.generate.side_effect = RuntimeError(
-                "Ollama service unavailable"
-            )
+            mock_ollama.generate.side_effect = RuntimeError("Ollama service unavailable")
 
             worker = PandocWorker()
             worker.ollama_enabled = True

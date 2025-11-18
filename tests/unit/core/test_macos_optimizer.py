@@ -226,9 +226,7 @@ class TestDetectMacOSCapabilities:
     @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
     @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
     @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
-    def test_detect_handles_subprocess_timeout(
-        self, mock_system, mock_machine, mock_run
-    ):
+    def test_detect_handles_subprocess_timeout(self, mock_system, mock_machine, mock_run):
         """Test graceful handling of subprocess timeout."""
         mock_system.return_value = "Darwin"
         mock_machine.return_value = "arm64"
@@ -243,9 +241,7 @@ class TestDetectMacOSCapabilities:
     @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
     @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
     @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
-    def test_detect_handles_json_decode_error(
-        self, mock_system, mock_machine, mock_run
-    ):
+    def test_detect_handles_json_decode_error(self, mock_system, mock_machine, mock_run):
         """Test handling of malformed JSON from system_profiler."""
         mock_system.return_value = "Darwin"
         mock_machine.return_value = "arm64"
@@ -601,10 +597,7 @@ class TestLogOptimizationStatus:
         log_optimization_status()
 
         # Should log that macOS is not detected
-        assert any(
-            "Not running on macOS" in str(call)
-            for call in mock_logger.info.call_args_list
-        )
+        assert any("Not running on macOS" in str(call) for call in mock_logger.info.call_args_list)
 
     @patch("asciidoc_artisan.core.macos_optimizer.detect_macos_capabilities")
     @patch("asciidoc_artisan.core.macos_optimizer.logger")
@@ -656,9 +649,7 @@ class TestEdgeCases:
     @patch("asciidoc_artisan.core.macos_optimizer.subprocess.run")
     @patch("asciidoc_artisan.core.macos_optimizer.platform.machine")
     @patch("asciidoc_artisan.core.macos_optimizer.platform.system")
-    def test_detect_with_all_subprocess_failures(
-        self, mock_system, mock_machine, mock_run
-    ):
+    def test_detect_with_all_subprocess_failures(self, mock_system, mock_machine, mock_run):
         """Test detection when all subprocess calls fail."""
         mock_system.return_value = "Darwin"
         mock_machine.return_value = "arm64"

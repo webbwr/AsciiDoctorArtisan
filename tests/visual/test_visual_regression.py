@@ -376,9 +376,7 @@ class TestFileOperationRegression:
         file_data = {
             "save_successful": result,
             "file_exists": test_file.exists(),
-            "content_matches": (
-                test_file.read_text() == content if test_file.exists() else False
-            ),
+            "content_matches": (test_file.read_text() == content if test_file.exists() else False),
             "file_size": test_file.stat().st_size if test_file.exists() else 0,
         }
 

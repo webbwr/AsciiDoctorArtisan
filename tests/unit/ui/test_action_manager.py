@@ -229,9 +229,7 @@ class TestActionState:
         from asciidoc_artisan.ui.action_manager import ActionManager
 
         manager = ActionManager(main_window)
-        action = manager.create_action(
-            "Dark Mode", lambda: None, checkable=True, checked=True
-        )
+        action = manager.create_action("Dark Mode", lambda: None, checkable=True, checked=True)
 
         assert action.isCheckable() is True
         assert action.isChecked() is True
@@ -418,9 +416,7 @@ class TestActionEdgeCases:
         from asciidoc_artisan.ui.action_manager import ActionManager
 
         manager = ActionManager(main_window)
-        action = manager.create_action(
-            "Test", lambda: None, checkable=False, checked=True
-        )
+        action = manager.create_action("Test", lambda: None, checkable=False, checked=True)
 
         assert action.isCheckable() is False
         # Non-checkable actions can't be checked
@@ -735,9 +731,7 @@ class TestMenuStructure:
                 break
 
         assert file_menu is not None
-        action_texts = [
-            action.text() for action in file_menu.actions() if action.text()
-        ]
+        action_texts = [action.text() for action in file_menu.actions() if action.text()]
         assert "&New" in action_texts
         assert "&Save" in action_texts
 
@@ -757,9 +751,7 @@ class TestMenuStructure:
                 break
 
         assert edit_menu is not None
-        action_texts = [
-            action.text() for action in edit_menu.actions() if action.text()
-        ]
+        action_texts = [action.text() for action in edit_menu.actions() if action.text()]
         assert "&Undo" in action_texts
         assert "&Copy" in action_texts
 
@@ -779,9 +771,7 @@ class TestMenuStructure:
                 break
 
         assert view_menu is not None
-        action_texts = [
-            action.text() for action in view_menu.actions() if action.text()
-        ]
+        action_texts = [action.text() for action in view_menu.actions() if action.text()]
         assert "Zoom &In" in action_texts
         assert "&Dark Mode" in action_texts
 
@@ -821,9 +811,7 @@ class TestMenuStructure:
                 break
 
         assert tools_menu is not None
-        action_texts = [
-            action.text() for action in tools_menu.actions() if action.text()
-        ]
+        action_texts = [action.text() for action in tools_menu.actions() if action.text()]
         assert "Application &Settings..." in action_texts
 
     def test_help_menu_contains_about_action(self, main_window):
@@ -842,9 +830,7 @@ class TestMenuStructure:
                 break
 
         assert help_menu is not None
-        action_texts = [
-            action.text() for action in help_menu.actions() if action.text()
-        ]
+        action_texts = [action.text() for action in help_menu.actions() if action.text()]
         assert "&About" in action_texts
 
     def test_file_menu_has_separators(self, main_window):
@@ -1043,9 +1029,7 @@ class TestActionShortcuts:
         ]
 
         # All should have non-empty shortcuts
-        assert all(
-            not action.shortcut().isEmpty() for action in git_actions_with_shortcuts
-        )
+        assert all(not action.shortcut().isEmpty() for action in git_actions_with_shortcuts)
 
     def test_github_actions_have_no_shortcuts(self, main_window):
         """Test that GitHub actions have no keyboard shortcuts (accessed via menu only)."""
@@ -1097,11 +1081,7 @@ class TestActionShortcuts:
             manager.quick_commit_act,
         ]
 
-        shortcuts = [
-            action.shortcut().toString()
-            for action in all_actions
-            if not action.shortcut().isEmpty()
-        ]
+        shortcuts = [action.shortcut().toString() for action in all_actions if not action.shortcut().isEmpty()]
 
         # Note: F11 is intentionally used by both dark_mode_act and maximize_window_act
         # (they trigger the same method), so we don't check for strict uniqueness

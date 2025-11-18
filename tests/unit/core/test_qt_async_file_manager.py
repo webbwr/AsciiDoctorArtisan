@@ -48,9 +48,7 @@ class TestQtAsyncFileManager:
         await manager.cleanup()
 
     @pytest.mark.asyncio
-    async def test_read_file(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, temp_file: Path
-    ):
+    async def test_read_file(self, qtbot: QtBot, manager: QtAsyncFileManager, temp_file: Path):
         """Test async file reading with signal emission."""
         # Set up signal spy
         with qtbot.waitSignal(manager.read_complete, timeout=3000) as blocker:
@@ -64,9 +62,7 @@ class TestQtAsyncFileManager:
         assert blocker.args[1] == "Initial content"
 
     @pytest.mark.asyncio
-    async def test_read_nonexistent_file(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_read_nonexistent_file(self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path):
         """Test reading nonexistent file emits failure signal."""
         nonexistent = tmp_path / "does_not_exist.txt"
 
@@ -78,9 +74,7 @@ class TestQtAsyncFileManager:
         assert blocker.args[1] == nonexistent
 
     @pytest.mark.asyncio
-    async def test_write_file(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_write_file(self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path):
         """Test async file writing with signal emission."""
         test_file = tmp_path / "write_test.txt"
         content = "Test content for writing"
@@ -111,9 +105,7 @@ class TestQtAsyncFileManager:
         assert not list(tmp_path.glob("*.tmp"))
 
     @pytest.mark.asyncio
-    async def test_read_json(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_read_json(self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path):
         """Test async JSON reading."""
         json_file = tmp_path / "test.json"
         data = {"key": "value", "number": 42}
@@ -126,9 +118,7 @@ class TestQtAsyncFileManager:
         assert result == data
 
     @pytest.mark.asyncio
-    async def test_write_json(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_write_json(self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path):
         """Test async JSON writing."""
         json_file = tmp_path / "write_test.json"
         data = {"test": True, "value": 123}
@@ -144,9 +134,7 @@ class TestQtAsyncFileManager:
         assert loaded == data
 
     @pytest.mark.asyncio
-    async def test_copy_file(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, temp_file: Path, tmp_path: Path
-    ):
+    async def test_copy_file(self, qtbot: QtBot, manager: QtAsyncFileManager, temp_file: Path, tmp_path: Path):
         """Test async file copying."""
         dest = tmp_path / "copy_dest.txt"
 
@@ -159,9 +147,7 @@ class TestQtAsyncFileManager:
         assert blocker.args[0] == dest
 
     @pytest.mark.asyncio
-    async def test_watch_file(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, temp_file: Path
-    ):
+    async def test_watch_file(self, qtbot: QtBot, manager: QtAsyncFileManager, temp_file: Path):
         """Test file watching for external changes."""
         # Track signal emission
         signal_received = []
@@ -208,9 +194,7 @@ class TestQtAsyncFileManager:
         assert manager.get_watched_file() is None
 
     @pytest.mark.asyncio
-    async def test_concurrent_operations(
-        self, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_concurrent_operations(self, manager: QtAsyncFileManager, tmp_path: Path):
         """Test multiple concurrent file operations."""
         files = [tmp_path / f"file_{i}.txt" for i in range(5)]
 
@@ -227,9 +211,7 @@ class TestQtAsyncFileManager:
             assert f.read_text() == f"Content {i}"
 
     @pytest.mark.asyncio
-    async def test_has_running_operations(
-        self, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_has_running_operations(self, manager: QtAsyncFileManager, tmp_path: Path):
         """Test tracking of running operations."""
         test_file = tmp_path / "test.txt"
 
@@ -260,9 +242,7 @@ class TestQtAsyncFileManager:
         assert not manager.is_watching()
 
     @pytest.mark.asyncio
-    async def test_large_file_handling(
-        self, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_large_file_handling(self, manager: QtAsyncFileManager, tmp_path: Path):
         """Test handling of larger files."""
         large_file = tmp_path / "large.txt"
         # Create 1MB file
@@ -312,9 +292,7 @@ class TestQtAsyncFileManager:
         await manager.cleanup()
 
     @pytest.mark.asyncio
-    async def test_watch_replace_existing(
-        self, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_watch_replace_existing(self, manager: QtAsyncFileManager, tmp_path: Path):
         """Test replacing existing file watcher."""
         file1 = tmp_path / "file1.txt"
         file2 = tmp_path / "file2.txt"
@@ -462,9 +440,7 @@ class TestQtAsyncFileManager:
         assert "Copy failed" in blocker.args[2]
 
     @pytest.mark.asyncio
-    async def test_watcher_callbacks(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_watcher_callbacks(self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path):
         """Test file watcher callbacks (_on_file_deleted, _on_file_created, _on_watcher_error)."""
         test_file = tmp_path / "test.txt"
         test_file.write_text("Test")
@@ -502,17 +478,10 @@ class TestQtAsyncFileManager:
         assert "test error" in operation_failed_received[0][2]
 
     @pytest.mark.asyncio
-    async def test_cleanup_with_running_operations(
-        self, manager: QtAsyncFileManager, tmp_path: Path
-    ):
+    async def test_cleanup_with_running_operations(self, manager: QtAsyncFileManager, tmp_path: Path):
         """Test cleanup waits for running operations."""
         # Start multiple operations
-        tasks = [
-            asyncio.create_task(
-                manager.write_file(tmp_path / f"file{i}.txt", f"Content {i}")
-            )
-            for i in range(3)
-        ]
+        tasks = [asyncio.create_task(manager.write_file(tmp_path / f"file{i}.txt", f"Content {i}")) for i in range(3)]
 
         # Brief delay to ensure operations start
         await asyncio.sleep(0.01)
@@ -529,9 +498,7 @@ class TestQtAsyncFileManager:
             assert (tmp_path / f"file{i}.txt").read_text() == f"Content {i}"
 
     @pytest.mark.asyncio
-    async def test_cleanup_logs_running_operations(
-        self, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
-    ):
+    async def test_cleanup_logs_running_operations(self, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch):
         """Test cleanup logs when there are running operations (lines 411-415)."""
 
         # Create a slow async operation to ensure it's still running during cleanup
@@ -571,9 +538,7 @@ class TestQtAsyncFileManager:
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
 
-        monkeypatch.setattr(
-            qt_module, "async_atomic_save_text", mock_save_returns_false
-        )
+        monkeypatch.setattr(qt_module, "async_atomic_save_text", mock_save_returns_false)
 
         # Should emit operation_failed signal
         with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:
@@ -585,9 +550,7 @@ class TestQtAsyncFileManager:
         assert "Atomic save returned False" in blocker.args[2]
 
     @pytest.mark.asyncio
-    async def test_read_json_returns_none(
-        self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch
-    ):
+    async def test_read_json_returns_none(self, qtbot: QtBot, manager: QtAsyncFileManager, tmp_path: Path, monkeypatch):
         """Test read_json when read returns None."""
         json_file = tmp_path / "test.json"
         json_file.write_text('{"key": "value"}')
@@ -623,9 +586,7 @@ class TestQtAsyncFileManager:
 
         import asciidoc_artisan.core.qt_async_file_manager as qt_module
 
-        monkeypatch.setattr(
-            qt_module, "async_atomic_save_json", mock_json_save_returns_false
-        )
+        monkeypatch.setattr(qt_module, "async_atomic_save_json", mock_json_save_returns_false)
 
         # Should emit operation_failed signal
         with qtbot.waitSignal(manager.operation_failed, timeout=3000) as blocker:

@@ -23,9 +23,7 @@ class TestSecureCredentials:
 
     def test_store_api_key_success(self, mocker):
         """Test storing API key when keyring is available."""
-        mock_set = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.set_password"
-        )
+        mock_set = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.set_password")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
         creds = SecureCredentials()
@@ -36,9 +34,7 @@ class TestSecureCredentials:
 
     def test_store_api_key_strips_whitespace(self, mocker):
         """Test storing API key strips whitespace."""
-        mock_set = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.set_password"
-        )
+        mock_set = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.set_password")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
         creds = SecureCredentials()
@@ -67,9 +63,7 @@ class TestSecureCredentials:
 
     def test_store_api_key_keyring_unavailable(self, mocker):
         """Test storing API key when keyring unavailable."""
-        mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
-        )
+        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
 
         creds = SecureCredentials()
         result = creds.store_api_key("openai", "sk-test123")
@@ -80,9 +74,7 @@ class TestSecureCredentials:
         """Test storing API key when keyring raises error."""
         from keyring.errors import KeyringError
 
-        mock_set = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.set_password"
-        )
+        mock_set = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.set_password")
         mock_set.side_effect = KeyringError("Keyring locked")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -93,9 +85,7 @@ class TestSecureCredentials:
 
     def test_get_api_key_success(self, mocker):
         """Test retrieving API key from keyring."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.return_value = "sk-test123"
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -107,9 +97,7 @@ class TestSecureCredentials:
 
     def test_get_api_key_not_found(self, mocker):
         """Test retrieving non-existent API key."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.return_value = None
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -120,9 +108,7 @@ class TestSecureCredentials:
 
     def test_get_api_key_keyring_unavailable(self, mocker):
         """Test retrieving API key when keyring unavailable."""
-        mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
-        )
+        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
 
         creds = SecureCredentials()
         api_key = creds.get_api_key("openai")
@@ -133,9 +119,7 @@ class TestSecureCredentials:
         """Test retrieving API key when keyring raises error."""
         from keyring.errors import KeyringError
 
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.side_effect = KeyringError("Keyring locked")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -146,9 +130,7 @@ class TestSecureCredentials:
 
     def test_delete_api_key_success(self, mocker):
         """Test deleting API key from keyring."""
-        mock_delete = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.delete_password"
-        )
+        mock_delete = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.delete_password")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
         creds = SecureCredentials()
@@ -159,9 +141,7 @@ class TestSecureCredentials:
 
     def test_delete_api_key_keyring_unavailable(self, mocker):
         """Test deleting API key when keyring unavailable."""
-        mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
-        )
+        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
 
         creds = SecureCredentials()
         result = creds.delete_api_key("openai")
@@ -172,9 +152,7 @@ class TestSecureCredentials:
         """Test deleting non-existent API key."""
         from keyring.errors import KeyringError
 
-        mock_delete = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.delete_password"
-        )
+        mock_delete = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.delete_password")
         mock_delete.side_effect = KeyringError("Password not found")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -186,9 +164,7 @@ class TestSecureCredentials:
 
     def test_has_api_key_exists(self, mocker):
         """Test checking if API key exists."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.return_value = "sk-test123"
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -199,9 +175,7 @@ class TestSecureCredentials:
 
     def test_has_api_key_not_exists(self, mocker):
         """Test checking if API key exists when it doesn't."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.return_value = None
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -212,9 +186,7 @@ class TestSecureCredentials:
 
     def test_has_api_key_empty_string(self, mocker):
         """Test checking if API key exists when it's empty."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.return_value = "   "
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -225,9 +197,7 @@ class TestSecureCredentials:
 
     def test_has_api_key_keyring_unavailable(self, mocker):
         """Test checking if API key exists when keyring unavailable."""
-        mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False
-        )
+        mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", False)
 
         creds = SecureCredentials()
         has_key = creds.has_api_key("openai")
@@ -240,24 +210,18 @@ class TestAnthropicConvenienceMethods:
 
     def test_store_anthropic_key(self, mocker):
         """Test storing Anthropic API key."""
-        mock_set = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.set_password"
-        )
+        mock_set = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.set_password")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
         creds = SecureCredentials()
         result = creds.store_anthropic_key("sk-ant-test123")
 
         assert result is True
-        mock_set.assert_called_once_with(
-            "AsciiDocArtisan", "anthropic_api_key_key", "sk-ant-test123"
-        )
+        mock_set.assert_called_once_with("AsciiDocArtisan", "anthropic_api_key_key", "sk-ant-test123")
 
     def test_get_anthropic_key(self, mocker):
         """Test retrieving Anthropic API key."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.return_value = "sk-ant-test123"
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -278,9 +242,7 @@ class TestAnthropicConvenienceMethods:
 
     def test_has_anthropic_key(self, mocker):
         """Test checking if Anthropic API key exists."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.return_value = "sk-ant-test123"
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -295,9 +257,7 @@ class TestEdgeCases:
 
     def test_unicode_in_api_key(self, mocker):
         """Test storing API key with unicode characters."""
-        mock_set = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.set_password"
-        )
+        mock_set = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.set_password")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
         creds = SecureCredentials()
@@ -329,9 +289,7 @@ class TestEdgeCases:
 
     def test_unexpected_exception_in_store(self, mocker):
         """Test handling unexpected exception in store."""
-        mock_set = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.set_password"
-        )
+        mock_set = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.set_password")
         mock_set.side_effect = RuntimeError("Unexpected error")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -342,9 +300,7 @@ class TestEdgeCases:
 
     def test_unexpected_exception_in_get(self, mocker):
         """Test handling unexpected exception in get."""
-        mock_get = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.get_password"
-        )
+        mock_get = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.get_password")
         mock_get.side_effect = RuntimeError("Unexpected error")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 
@@ -355,9 +311,7 @@ class TestEdgeCases:
 
     def test_unexpected_exception_in_delete(self, mocker):
         """Test handling unexpected exception in delete."""
-        mock_delete = mocker.patch(
-            "asciidoc_artisan.core.secure_credentials.keyring.delete_password"
-        )
+        mock_delete = mocker.patch("asciidoc_artisan.core.secure_credentials.keyring.delete_password")
         mock_delete.side_effect = RuntimeError("Unexpected error")
         mocker.patch("asciidoc_artisan.core.secure_credentials.KEYRING_AVAILABLE", True)
 

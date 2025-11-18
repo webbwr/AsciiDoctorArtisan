@@ -39,9 +39,7 @@ This is a medium-sized document for testing.
 == Introduction
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-""" + "\n\n".join(
-    [f"=== Subsection {i}\n\nMore content here." for i in range(50)]
-)
+""" + "\n\n".join([f"=== Subsection {i}\n\nMore content here." for i in range(50)])
 
 LARGE_DOC = """= Large Document
 
@@ -50,8 +48,7 @@ This is a large document for performance testing.
 == Chapter 1
 """ + "\n\n".join(
     [
-        f"=== Section {i}\n\n"
-        + "\n".join([f"Paragraph {j} with some content here." for j in range(50)])
+        f"=== Section {i}\n\n" + "\n".join([f"Paragraph {j} with some content here." for j in range(50)])
         for i in range(200)
     ]
 )
@@ -201,9 +198,7 @@ class TestPerformanceBenchmarks:
 
         # Should complete 50 calculations in < 10s (avg < 200ms per call)
         # Relaxed timing for CI/slow systems - includes psutil system calls
-        assert (
-            elapsed < 10.0
-        ), f"Comprehensive metrics too slow: {elapsed:.3f}s for 50 calls"
+        assert elapsed < 10.0, f"Comprehensive metrics too slow: {elapsed:.3f}s for 50 calls"
 
 
 @pytest.mark.fr_062
@@ -236,22 +231,15 @@ class TestDebounceIntervalAccuracy:
 
         # Just under small threshold (9 KB)
         small_text = "x" * 9_000
-        assert (
-            monitor.calculate_debounce_interval(small_text) == monitor.MIN_DEBOUNCE_MS
-        )
+        assert monitor.calculate_debounce_interval(small_text) == monitor.MIN_DEBOUNCE_MS
 
         # Just over small threshold (11 KB)
         medium_text = "x" * 11_000
-        assert (
-            monitor.calculate_debounce_interval(medium_text)
-            == monitor.NORMAL_DEBOUNCE_MS
-        )
+        assert monitor.calculate_debounce_interval(medium_text) == monitor.NORMAL_DEBOUNCE_MS
 
         # Just over large threshold (501 KB)
         large_text = "x" * 501_000
-        assert (
-            monitor.calculate_debounce_interval(large_text) >= monitor.LARGE_DEBOUNCE_MS
-        )
+        assert monitor.calculate_debounce_interval(large_text) >= monitor.LARGE_DEBOUNCE_MS
 
     def test_debounce_consistency(self):
         """Test debounce calculation is consistent for same input."""
@@ -324,9 +312,9 @@ class TestDocumentSizeClassification:
 
         for text, expected_large in test_cases:
             metrics = monitor.get_document_metrics(text)
-            assert (
-                metrics.is_large == expected_large
-            ), f"Failed for {len(text)} bytes: expected {expected_large}, got {metrics.is_large}"
+            assert metrics.is_large == expected_large, (
+                f"Failed for {len(text)} bytes: expected {expected_large}, got {metrics.is_large}"
+            )
 
     def test_line_count_classification(self):
         """Test documents are classified correctly by line count."""

@@ -138,21 +138,13 @@ class PerformanceProfiler:
             return {}
 
         all_times = [m["time_ms"] for m in self.metrics.values() if "time_ms" in m]
-        all_memory_deltas = [
-            m["memory_delta_mb"]
-            for m in self.metrics.values()
-            if "memory_delta_mb" in m
-        ]
+        all_memory_deltas = [m["memory_delta_mb"] for m in self.metrics.values() if "memory_delta_mb" in m]
 
         return {
             "total_operations": len(self.metrics),
-            "avg_time_ms": (
-                round(sum(all_times) / len(all_times), 2) if all_times else 0
-            ),
+            "avg_time_ms": (round(sum(all_times) / len(all_times), 2) if all_times else 0),
             "max_time_ms": round(max(all_times), 2) if all_times else 0,
-            "total_memory_delta_mb": (
-                round(sum(all_memory_deltas), 2) if all_memory_deltas else 0
-            ),
+            "total_memory_delta_mb": (round(sum(all_memory_deltas), 2) if all_memory_deltas else 0),
         }
 
     def save_report(self, filepath: Path):
@@ -202,9 +194,7 @@ class PerformanceProfiler:
                         "operation": operation,
                         "baseline_ms": baseline_time,
                         "current_ms": current_time,
-                        "change_percent": round(
-                            ((current_time - baseline_time) / baseline_time) * 100, 2
-                        ),
+                        "change_percent": round(((current_time - baseline_time) / baseline_time) * 100, 2),
                     }
                 )
             elif current_time < baseline_time * 0.9:  # 10% faster
@@ -213,9 +203,7 @@ class PerformanceProfiler:
                         "operation": operation,
                         "baseline_ms": baseline_time,
                         "current_ms": current_time,
-                        "change_percent": round(
-                            ((current_time - baseline_time) / baseline_time) * 100, 2
-                        ),
+                        "change_percent": round(((current_time - baseline_time) / baseline_time) * 100, 2),
                     }
                 )
             else:
@@ -349,9 +337,9 @@ def test_profiler_overhead(profiler):
     is_wsl = "microsoft" in platform.uname().release.lower()
     threshold_ms = 160.0 if is_wsl else 100.0
 
-    assert (
-        avg_overhead_ms < threshold_ms
-    ), f"Profiler overhead too high: {avg_overhead_ms:.3f}ms per measurement (threshold: {threshold_ms}ms, WSL: {is_wsl})"
+    assert avg_overhead_ms < threshold_ms, (
+        f"Profiler overhead too high: {avg_overhead_ms:.3f}ms per measurement (threshold: {threshold_ms}ms, WSL: {is_wsl})"
+    )
     logger.info(
         f"Profiler overhead: {avg_overhead_ms:.3f}ms per measurement (threshold: {threshold_ms}ms, WSL: {is_wsl})"
     )
@@ -436,9 +424,7 @@ if __name__ == "__main__":
 
     print("\nPerformance Metrics:")
     for operation, metrics in profiler.metrics.items():
-        print(
-            f"  {operation}: {metrics['time_ms']:.2f}ms, memory: {metrics['memory_delta_mb']:.2f}MB"
-        )
+        print(f"  {operation}: {metrics['time_ms']:.2f}ms, memory: {metrics['memory_delta_mb']:.2f}MB")
 
     print("\nSummary:")
     summary = profiler._generate_summary()

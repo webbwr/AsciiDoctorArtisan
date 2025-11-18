@@ -70,9 +70,7 @@ def mock_manager(sample_templates):
     manager = MagicMock(spec=TemplateManager)
     manager.get_all_templates.return_value = sample_templates
     manager.get_categories.return_value = ["Technical", "Book"]
-    manager.get_templates_by_category.side_effect = lambda cat: [
-        t for t in sample_templates if t.category == cat
-    ]
+    manager.get_templates_by_category.side_effect = lambda cat: [t for t in sample_templates if t.category == cat]
     return manager
 
 
@@ -239,9 +237,7 @@ class TestTemplateBrowserFilteri:
 class TestTemplateBrowserSelection:
     """Test template selection."""
 
-    def test_template_selection_updates_preview(
-        self, qtbot, mock_manager, sample_template
-    ):
+    def test_template_selection_updates_preview(self, qtbot, mock_manager, sample_template):
         """Test selecting template updates preview."""
         browser = TemplateBrowser(mock_manager)
         qtbot.addWidget(browser)
@@ -252,9 +248,7 @@ class TestTemplateBrowserSelection:
         assert browser.ok_btn.isEnabled() is True
         assert sample_template.name in browser.preview_text.toPlainText()
 
-    def test_template_selection_enables_ok_button(
-        self, qtbot, mock_manager, sample_template
-    ):
+    def test_template_selection_enables_ok_button(self, qtbot, mock_manager, sample_template):
         """Test OK button enabled after selection."""
         browser = TemplateBrowser(mock_manager)
         qtbot.addWidget(browser)
@@ -330,18 +324,12 @@ class TestTemplateBrowserOkClick:
         # Mock VariableInputDialog to simulate user accepting with values
         mock_dialog_instance = MagicMock()
         mock_dialog_instance.exec.return_value = True
-        mock_dialog_instance.get_values.return_value = {
-            "title": "Test Title",
-            "author": "Test Author"
-        }
+        mock_dialog_instance.get_values.return_value = {"title": "Test Title", "author": "Test Author"}
 
         def mock_dialog_constructor(template, parent):
             return mock_dialog_instance
 
-        monkeypatch.setattr(
-            "asciidoc_artisan.ui.template_browser.VariableInputDialog",
-            mock_dialog_constructor
-        )
+        monkeypatch.setattr("asciidoc_artisan.ui.template_browser.VariableInputDialog", mock_dialog_constructor)
 
         # Mock accept to verify it's called
         accept_called = False
@@ -359,10 +347,7 @@ class TestTemplateBrowserOkClick:
         # Verify accept was called
         assert accept_called is True
         # Verify variable values were retrieved from dialog
-        assert browser.variable_values == {
-            "title": "Test Title",
-            "author": "Test Author"
-        }
+        assert browser.variable_values == {"title": "Test Title", "author": "Test Author"}
 
 
 @pytest.mark.fr_100

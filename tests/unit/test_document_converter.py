@@ -125,9 +125,7 @@ class TestGetSupportedFormats:
 
         # Mock format list queries
         input_formats = MagicMock(returncode=0, stdout="asciidoc\nmarkdown\ndocx\nhtml")
-        output_formats = MagicMock(
-            returncode=0, stdout="asciidoc\nmarkdown\nhtml\nlatex"
-        )
+        output_formats = MagicMock(returncode=0, stdout="asciidoc\nmarkdown\nhtml\nlatex")
 
         mock_run.side_effect = [version_result, input_formats, output_formats]
 
@@ -169,10 +167,7 @@ class TestStaticMethods:
 
         assert "pandoc" in instructions.lower()
         # Should include platform-specific instructions
-        assert any(
-            word in instructions.lower()
-            for word in ["install", "download", "brew", "apt", "choco"]
-        )
+        assert any(word in instructions.lower() for word in ["install", "download", "brew", "apt", "choco"])
 
     def test_get_format_info(self):
         """Test format information retrieval."""
@@ -364,9 +359,7 @@ class TestPypandocImportError:
         mock_run.return_value = MagicMock(returncode=0, stdout="pandoc 3.1.2")
 
         # Mock pypandoc import to raise ImportError
-        with patch(
-            "builtins.__import__", side_effect=ImportError("No module named 'pypandoc'")
-        ):
+        with patch("builtins.__import__", side_effect=ImportError("No module named 'pypandoc'")):
             integration = PandocIntegration()
             success, message = integration.check_installation()
 
@@ -439,9 +432,7 @@ class TestAutoInstallPypandoc:
         # Version check success, pip install fails
         mock_run.side_effect = [
             MagicMock(returncode=0, stdout="pandoc 3.1.2"),
-            MagicMock(
-                returncode=1, stdout="error output", stderr="Installation failed"
-            ),
+            MagicMock(returncode=1, stdout="error output", stderr="Installation failed"),
         ]
 
         integration = PandocIntegration()
@@ -509,9 +500,7 @@ class TestConvertFile:
 
         with patch(
             "builtins.__import__",
-            side_effect=lambda name, *args: (
-                mock_pypandoc if name == "pypandoc" else __import__(name, *args)
-            ),
+            side_effect=lambda name, *args: (mock_pypandoc if name == "pypandoc" else __import__(name, *args)),
         ):
             success, text, error = integration.convert_file(test_file, "asciidoc")
 
@@ -587,10 +576,7 @@ class TestPDFExtractorExtraction:
         assert isinstance(success, bool)
         if not success:
             # Error can be about fitz missing OR invalid PDF file
-            assert any(
-                word in error.lower()
-                for word in ["pymupdf", "fitz", "failed", "open", "pdf"]
-            )
+            assert any(word in error.lower() for word in ["pymupdf", "fitz", "failed", "open", "pdf"])
 
     def test_extract_text_file_not_found(self):
         """Test PDF extraction with non-existent file."""

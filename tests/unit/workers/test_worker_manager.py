@@ -36,9 +36,5 @@ class TestWorkerManager:
 
         manager = WorkerManager(main_window)
         # Should have methods for worker lifecycle
-        methods = [
-            m
-            for m in dir(manager)
-            if any(x in m.lower() for x in ["start", "stop", "worker"])
-        ]
+        methods = [m for m in dir(manager) if any(x in m.lower() for x in ["start", "stop", "worker"])]
         assert len(methods) > 0

@@ -20,9 +20,7 @@ class TestGPUDetection:
     def test_nvidia_gpu_detection_success(self, mocker):
         """Test NVIDIA GPU detected via nvidia-smi."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="NVIDIA GeForce RTX 3080, 10240"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="NVIDIA GeForce RTX 3080, 10240")
 
         detector = HardwareDetector()
         gpu = detector.detect_nvidia_gpu()
@@ -34,9 +32,7 @@ class TestGPUDetection:
 
     def test_nvidia_gpu_detection_not_found(self, mocker):
         """Test no NVIDIA GPU when nvidia-smi not found."""
-        mocker.patch(
-            "subprocess.run", side_effect=FileNotFoundError("nvidia-smi not found")
-        )
+        mocker.patch("subprocess.run", side_effect=FileNotFoundError("nvidia-smi not found"))
 
         detector = HardwareDetector()
         gpu = detector.detect_nvidia_gpu()
@@ -67,9 +63,7 @@ class TestGPUDetection:
 
     def test_amd_gpu_detection_not_found(self, mocker):
         """Test no AMD GPU when rocm-smi not found."""
-        mocker.patch(
-            "subprocess.run", side_effect=FileNotFoundError("rocm-smi not found")
-        )
+        mocker.patch("subprocess.run", side_effect=FileNotFoundError("rocm-smi not found"))
 
         detector = HardwareDetector()
         gpu = detector.detect_amd_gpu()
@@ -140,9 +134,7 @@ class TestEdgeCases:
     def test_gpu_detection_with_malformed_output(self, mocker):
         """Test GPU detection with unexpected output format."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Unexpected output format\n"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Unexpected output format\n")
 
         detector = HardwareDetector()
         gpu = detector.detect_nvidia_gpu()
@@ -183,9 +175,7 @@ class TestEdgeCases:
     def test_value_error_in_parsing(self, mocker):
         """Test GPU detection handles value errors in parsing."""
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="NVIDIA RTX 3080, not_a_number"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="NVIDIA RTX 3080, not_a_number")
 
         detector = HardwareDetector()
         gpu = detector.detect_nvidia_gpu()
@@ -288,9 +278,7 @@ class TestNPUDetection:
         """Test Intel NPU detected via Meteor Lake."""
         mocker.patch("platform.system", return_value="Linux")
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Model name: Intel Meteor Lake"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Model name: Intel Meteor Lake")
 
         detector = HardwareDetector()
         npu = detector.detect_npu()
@@ -302,9 +290,7 @@ class TestNPUDetection:
         """Test AMD NPU detected via Ryzen AI."""
         mocker.patch("platform.system", return_value="Linux")
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Model name: AMD Ryzen AI 7 7040 Series"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Model name: AMD Ryzen AI 7 7040 Series")
 
         detector = HardwareDetector()
         npu = detector.detect_npu()
@@ -318,9 +304,7 @@ class TestNPUDetection:
         """Test AMD NPU detected via 8040 series."""
         mocker.patch("platform.system", return_value="Linux")
         mock_run = mocker.patch("subprocess.run")
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Model name: AMD Ryzen 9 8040HS"
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Model name: AMD Ryzen 9 8040HS")
 
         detector = HardwareDetector()
         npu = detector.detect_npu()
@@ -398,9 +382,7 @@ class TestCPUInfo:
         # Mock psutil.cpu_count(logical=False) to return 8 physical cores
         mocker.patch("psutil.cpu_count", return_value=8)
         mock_virtual_memory = mocker.patch("psutil.virtual_memory")
-        mock_virtual_memory.return_value = MagicMock(
-            total=16 * 1024 * 1024 * 1024
-        )  # 16GB
+        mock_virtual_memory.return_value = MagicMock(total=16 * 1024 * 1024 * 1024)  # 16GB
 
         detector = HardwareDetector()
         cores, ram_gb = detector.get_cpu_info()
@@ -421,9 +403,7 @@ class TestDetectAll:
     def test_detect_all_with_gpu(self, mocker):
         """Test detect_all finds GPU."""
         mock_nvidia = mocker.patch.object(HardwareDetector, "detect_nvidia_gpu")
-        mock_nvidia.return_value = GPUInfo(
-            vendor="NVIDIA", model="RTX 3080", memory_mb=10240
-        )
+        mock_nvidia.return_value = GPUInfo(vendor="NVIDIA", model="RTX 3080", memory_mb=10240)
 
         mocker.patch.object(HardwareDetector, "detect_amd_gpu", return_value=None)
         mocker.patch.object(HardwareDetector, "detect_intel_gpu", return_value=None)
@@ -559,9 +539,7 @@ class TestPrintHardwareReport:
         from asciidoc_artisan.core.hardware_detection import print_hardware_report
 
         mock_detect_all = mocker.patch.object(HardwareDetector, "detect_all")
-        mock_detect_all.return_value = HardwareCapabilities(
-            cpu_cores=4, system_ram_gb=8
-        )
+        mock_detect_all.return_value = HardwareCapabilities(cpu_cores=4, system_ram_gb=8)
 
         print_hardware_report()
 

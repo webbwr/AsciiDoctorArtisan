@@ -120,9 +120,7 @@ class TestHandlePandocResult:
         handler.handle_pandoc_result(result, context)
 
         # Should delegate to export manager
-        mock_editor.export_manager.handle_pandoc_result.assert_called_once_with(
-            result, context
-        )
+        mock_editor.export_manager.handle_pandoc_result.assert_called_once_with(result, context)
 
     def test_emits_load_signal_when_pending_file_path_set(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
@@ -137,9 +135,7 @@ class TestHandlePandocResult:
         handler.handle_pandoc_result(result, context)
 
         # Should emit signal to load file content
-        mock_editor.request_load_file_content.emit.assert_called_once_with(
-            result, pending_path, context
-        )
+        mock_editor.request_load_file_content.emit.assert_called_once_with(result, pending_path, context)
 
     def test_clears_pending_file_path_after_emitting_signal(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
@@ -345,9 +341,7 @@ class TestFileLoadRequest:
         handler._handle_file_load_request(result, pending_path, context)
 
         # Should load content into editor
-        mock_editor.file_load_manager.load_content_into_editor.assert_called_once_with(
-            result, pending_path
-        )
+        mock_editor.file_load_manager.load_content_into_editor.assert_called_once_with(result, pending_path)
 
     def test_schedules_preview_update(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
@@ -357,9 +351,7 @@ class TestFileLoadRequest:
         result = "= Test Document"
         pending_path = Path("/tmp/test.docx")
 
-        with patch(
-            "asciidoc_artisan.ui.pandoc_result_handler.QTimer.singleShot"
-        ) as mock_timer:
+        with patch("asciidoc_artisan.ui.pandoc_result_handler.QTimer.singleShot") as mock_timer:
             handler._handle_file_load_request(result, pending_path, "importing")
 
             # Should schedule preview update with 100ms delay
@@ -605,9 +597,7 @@ class TestPDFErrorPatterns:
         handler = PandocResultHandler(mock_editor)
 
         mock_editor.export_manager.pending_export_path = Path("/tmp/export.pdf")
-        handler.handle_pandoc_error_result(
-            "No such file or directory", "Exporting to PDF"
-        )
+        handler.handle_pandoc_error_result("No such file or directory", "Exporting to PDF")
 
         call_args = str(mock_editor.status_manager.show_message.call_args)
         assert "Export to HTML" in call_args
@@ -630,9 +620,7 @@ class TestFileLoadRequestDetails:
     """Test suite for _handle_file_load_request method details."""
 
     @patch("asciidoc_artisan.ui.pandoc_result_handler.QTimer")
-    def test_qtimer_single_shot_called_with_correct_delay(
-        self, mock_qtimer, mock_editor
-    ):
+    def test_qtimer_single_shot_called_with_correct_delay(self, mock_qtimer, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
 
         handler = PandocResultHandler(mock_editor)
@@ -654,9 +642,7 @@ class TestFileLoadRequestDetails:
         handler._handle_file_load_request(result, pending_path, "importing")
 
         # File load manager should be called
-        mock_editor.file_load_manager.load_content_into_editor.assert_called_once_with(
-            result, pending_path
-        )
+        mock_editor.file_load_manager.load_content_into_editor.assert_called_once_with(result, pending_path)
 
     def test_context_logged_successfully(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
@@ -664,9 +650,7 @@ class TestFileLoadRequestDetails:
         handler = PandocResultHandler(mock_editor)
 
         with patch("asciidoc_artisan.ui.pandoc_result_handler.logger") as mock_logger:
-            handler._handle_file_load_request(
-                "= Test", Path("/tmp/test.docx"), "importing DOCX"
-            )
+            handler._handle_file_load_request("= Test", Path("/tmp/test.docx"), "importing DOCX")
             # Should log success message
             mock_logger.info.assert_called_once()
 
@@ -676,9 +660,7 @@ class TestFileLoadRequestDetails:
         handler = PandocResultHandler(mock_editor)
 
         for i in range(3):
-            handler._handle_file_load_request(
-                f"= Document {i}", Path(f"/tmp/doc{i}.docx"), f"importing doc{i}"
-            )
+            handler._handle_file_load_request(f"= Document {i}", Path(f"/tmp/doc{i}.docx"), f"importing doc{i}")
 
         # Should call load_content_into_editor 3 times
         assert mock_editor.file_load_manager.load_content_into_editor.call_count == 3
@@ -767,13 +749,9 @@ class TestContextStringVariations:
         handler.handle_pandoc_result("= Result", context)
 
         # Export manager should receive same context
-        mock_editor.export_manager.handle_pandoc_result.assert_called_once_with(
-            "= Result", context
-        )
+        mock_editor.export_manager.handle_pandoc_result.assert_called_once_with("= Result", context)
 
-    @pytest.mark.parametrize(
-        "context", ["importing", "exporting", "Exporting to PDF", "Converting markdown"]
-    )
+    @pytest.mark.parametrize("context", ["importing", "exporting", "Exporting to PDF", "Converting markdown"])
     def test_error_with_various_contexts(self, mock_editor, context):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
 
@@ -794,9 +772,7 @@ class TestContextStringVariations:
         context = "Exporting to 文件.pdf"
         handler.handle_pandoc_result("Result", context)
 
-        mock_editor.export_manager.handle_pandoc_result.assert_called_once_with(
-            "Result", context
-        )
+        mock_editor.export_manager.handle_pandoc_result.assert_called_once_with("Result", context)
 
 
 @pytest.mark.unit
@@ -904,9 +880,7 @@ class TestSignalEmissions:
         handler.handle_pandoc_result(result, context)
 
         # Should emit signal with correct arguments
-        mock_editor.request_load_file_content.emit.assert_called_once_with(
-            result, pending_path, context
-        )
+        mock_editor.request_load_file_content.emit.assert_called_once_with(result, pending_path, context)
 
     def test_signal_emitted_only_when_pending_path_exists(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
@@ -932,9 +906,7 @@ class TestSignalEmissions:
         ]
 
         for i, result in enumerate(results):
-            mock_editor.file_operations_manager._pending_file_path = Path(
-                f"/tmp/file{i}.txt"
-            )
+            mock_editor.file_operations_manager._pending_file_path = Path(f"/tmp/file{i}.txt")
             handler.handle_pandoc_result(result, f"operation {i}")
 
         # Should emit signal 3 times

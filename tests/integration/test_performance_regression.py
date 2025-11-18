@@ -105,9 +105,9 @@ async def test_file_open_performance_async(qtbot):
         duration_ms = (time.perf_counter() - start) * 1000
 
         # Async I/O should be very fast with mocking (< 100ms)
-        assert (
-            duration_ms < FILE_OPEN_TARGET_MS
-        ), f"Async file open took {duration_ms:.1f}ms (target: {FILE_OPEN_TARGET_MS}ms)"
+        assert duration_ms < FILE_OPEN_TARGET_MS, (
+            f"Async file open took {duration_ms:.1f}ms (target: {FILE_OPEN_TARGET_MS}ms)"
+        )
 
         # Verify content loaded
         assert editor.toPlainText() == test_content
@@ -152,9 +152,9 @@ def test_file_save_performance(qtbot):
         duration_ms = (time.perf_counter() - start) * 1000
 
         # Should save reasonably sized files quickly
-        assert (
-            duration_ms < FILE_SAVE_TARGET_MS
-        ), f"File save took {duration_ms:.1f}ms (target: {FILE_SAVE_TARGET_MS}ms)"
+        assert duration_ms < FILE_SAVE_TARGET_MS, (
+            f"File save took {duration_ms:.1f}ms (target: {FILE_SAVE_TARGET_MS}ms)"
+        )
 
         editor.deleteLater()
 
@@ -178,9 +178,7 @@ def test_metrics_collection_overhead():
     per_operation_us = (duration_ms * 1000) / iterations
 
     # Each operation should add < 10 microseconds overhead
-    assert (
-        per_operation_us < 10
-    ), f"Metrics overhead: {per_operation_us:.2f}µs per operation"
+    assert per_operation_us < 10, f"Metrics overhead: {per_operation_us:.2f}µs per operation"
 
 
 @pytest.mark.performance
@@ -210,9 +208,7 @@ def test_css_generation_performance(qtbot):
     per_generation_ms = duration_ms / 100
 
     # CSS generation should be < 1ms each
-    assert (
-        per_generation_ms < 1.0
-    ), f"CSS generation: {per_generation_ms:.3f}ms per call"
+    assert per_generation_ms < 1.0, f"CSS generation: {per_generation_ms:.3f}ms per call"
 
     editor.deleteLater()
     preview.deleteLater()
@@ -237,9 +233,7 @@ def test_adaptive_debouncer_overhead():
     per_calculation_us = (duration_ms * 1000) / iterations
 
     # Each calculation should be < 120 microseconds (increased from 100 for system variability)
-    assert (
-        per_calculation_us < 120
-    ), f"Debouncer overhead: {per_calculation_us:.2f}µs per calculation"
+    assert per_calculation_us < 120, f"Debouncer overhead: {per_calculation_us:.2f}µs per calculation"
 
 
 @pytest.mark.performance
@@ -261,9 +255,7 @@ def test_lru_cache_performance():
     per_operation_us = (duration_ms * 1000) / (iterations * 2)  # put + get
 
     # Each operation should be < 5 microseconds
-    assert (
-        per_operation_us < 5
-    ), f"LRU cache overhead: {per_operation_us:.2f}µs per operation"
+    assert per_operation_us < 5, f"LRU cache overhead: {per_operation_us:.2f}µs per operation"
 
 
 @pytest.mark.performance
@@ -287,9 +279,9 @@ def test_gpu_detection_cache_performance():
     cached_time_ms = (time.perf_counter() - start) * 1000
 
     # Cached call should be much faster
-    assert (
-        cached_time_ms < first_time_ms / 2
-    ), f"Cache speedup insufficient: {first_time_ms:.1f}ms -> {cached_time_ms:.1f}ms"
+    assert cached_time_ms < first_time_ms / 2, (
+        f"Cache speedup insufficient: {first_time_ms:.1f}ms -> {cached_time_ms:.1f}ms"
+    )
 
     # Cache should provide same result
     assert info1.has_gpu == info2.has_gpu
@@ -317,8 +309,6 @@ def test_worker_pool_task_submission_overhead():
     per_submission_us = (duration_ms * 1000) / iterations
 
     # Each submission should be < 150 microseconds (increased from 100 for system variability)
-    assert (
-        per_submission_us < 150
-    ), f"Task submission overhead: {per_submission_us:.2f}µs per task"
+    assert per_submission_us < 150, f"Task submission overhead: {per_submission_us:.2f}µs per task"
 
     pool.wait_for_done(timeout_ms=5000)

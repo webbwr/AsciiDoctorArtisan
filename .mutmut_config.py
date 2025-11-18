@@ -22,10 +22,7 @@ def pre_mutation(context):
         return
 
     # Skip mutations in generated or legacy code
-    if any(
-        pattern in context.filename
-        for pattern in ["__pycache__", ".pyc", "venv/", "build/"]
-    ):
+    if any(pattern in context.filename for pattern in ["__pycache__", ".pyc", "venv/", "build/"]):
         context.skip = True
         return
 

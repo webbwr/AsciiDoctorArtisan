@@ -298,9 +298,7 @@ class TestToolbarCreation:
 
         manager = UISetupManager(mock_editor)
 
-        toolbar = manager._create_toolbar(
-            "Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)"
-        )
+        toolbar = manager._create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
 
         # Should create toolbar widget
         assert toolbar is not None
@@ -310,9 +308,7 @@ class TestToolbarCreation:
 
         manager = UISetupManager(mock_editor)
 
-        toolbar = manager._create_toolbar(
-            "Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)"
-        )
+        toolbar = manager._create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
 
         # Should have fixed height
         assert toolbar.height() == 30
@@ -322,9 +318,7 @@ class TestToolbarCreation:
 
         manager = UISetupManager(mock_editor)
 
-        manager._create_toolbar(
-            "Editor", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)"
-        )
+        manager._create_toolbar("Editor", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
 
         # Should store label reference
         assert hasattr(mock_editor, "editor_label")
@@ -334,9 +328,7 @@ class TestToolbarCreation:
 
         manager = UISetupManager(mock_editor)
 
-        manager._create_toolbar(
-            "Preview", "#4a9eff", "preview", "rgba(74, 158, 255, 0.2)"
-        )
+        manager._create_toolbar("Preview", "#4a9eff", "preview", "rgba(74, 158, 255, 0.2)")
 
         # Should store max button reference
         assert hasattr(mock_editor, "preview_max_btn")

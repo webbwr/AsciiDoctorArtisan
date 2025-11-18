@@ -20,9 +20,7 @@ def analyze_file_coverage(file_data: Dict) -> Tuple[str, float, int, int]:
     n_missing = nums["n_missing"]
 
     # Calculate coverage percentage
-    coverage_pct = (
-        0.0 if n_statements == 0 else ((n_statements - n_missing) / n_statements) * 100
-    )
+    coverage_pct = 0.0 if n_statements == 0 else ((n_statements - n_missing) / n_statements) * 100
 
     return file_data["file"], coverage_pct, n_statements, n_missing
 
@@ -47,19 +45,13 @@ def main():
 
     for file_key, file_data in files.items():
         if "index" in file_data:
-            file_path, cov_pct, stmts, missing = analyze_file_coverage(
-                file_data["index"]
-            )
+            file_path, cov_pct, stmts, missing = analyze_file_coverage(file_data["index"])
             coverage_data.append((file_path, cov_pct, stmts, missing))
             total_statements += stmts
             total_missing += missing
 
     # Calculate overall coverage
-    overall_coverage = (
-        ((total_statements - total_missing) / total_statements) * 100
-        if total_statements > 0
-        else 0
-    )
+    overall_coverage = ((total_statements - total_missing) / total_statements) * 100 if total_statements > 0 else 0
 
     # Sort by coverage (ascending) to prioritize low-coverage files
     coverage_data.sort(key=lambda x: x[1])
@@ -125,9 +117,7 @@ def main():
     print(f"   2. Then tackle {len(high)} HIGH priority files (50-75% coverage)")
     print(f"   3. Address {len(medium)} MEDIUM priority files (75-90% coverage)")
     print(f"   4. Polish {len(low)} LOW priority files (90-99% coverage)")
-    print(
-        f"\n   Total effort: ~{total_missing // 10} test cases needed (assuming ~10 statements per test)"
-    )
+    print(f"\n   Total effort: ~{total_missing // 10} test cases needed (assuming ~10 statements per test)")
     print("=" * 100)
 
 

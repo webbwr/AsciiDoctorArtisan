@@ -151,9 +151,7 @@ class TestConversionTaskExecution:
         task.run()
 
         # Should have called convert_text
-        mock_convert_text.assert_called_once_with(
-            "# Markdown", "asciidoc", format="markdown"
-        )
+        mock_convert_text.assert_called_once_with("# Markdown", "asciidoc", format="markdown")
 
     @patch("pypandoc.convert_file")
     def test_conversion_task_file_conversion_actual(self, mock_convert_file):
@@ -166,9 +164,7 @@ class TestConversionTaskExecution:
         task.run()
 
         # Should have called convert_file
-        mock_convert_file.assert_called_once_with(
-            "/path/to/file.md", "asciidoc", format="markdown"
-        )
+        mock_convert_file.assert_called_once_with("/path/to/file.md", "asciidoc", format="markdown")
 
     @patch("pypandoc.convert_text")
     def test_conversion_task_cancellation_before_import(self, mock_convert_text):
@@ -185,9 +181,7 @@ class TestConversionTaskExecution:
         assert not mock_convert_text.called
 
     @patch("pypandoc.convert_text")
-    def test_conversion_task_cancellation_after_import_line_160(
-        self, mock_convert_text
-    ):
+    def test_conversion_task_cancellation_after_import_line_160(self, mock_convert_text):
         """Test ConversionTask returns cancelled result if cancelled after import (line 160)."""
         task = ConversionTask("Test", "asciidoc", "markdown")
 
@@ -211,9 +205,7 @@ class TestConversionTaskExecution:
         assert cancel_count[0] >= 2
 
     @patch("pypandoc.convert_text")
-    def test_conversion_task_cancellation_after_convert_line_174(
-        self, mock_convert_text
-    ):
+    def test_conversion_task_cancellation_after_convert_line_174(self, mock_convert_text):
         """Test ConversionTask returns cancelled result if cancelled after convert (line 174)."""
         mock_convert_text.return_value = "Converted"
         task = ConversionTask("Test", "asciidoc", "markdown")
@@ -377,9 +369,7 @@ class TestGitTaskExecution:
         assert not mock_run.called
 
     @patch("subprocess.run")
-    def test_git_task_cancellation_after_subprocess_returns_cancelled(
-        self, mock_run, tmp_path
-    ):
+    def test_git_task_cancellation_after_subprocess_returns_cancelled(self, mock_run, tmp_path):
         """Test GitTask returns cancelled result if cancelled after subprocess."""
         # Simulate subprocess succeeding but task being cancelled
         mock_run.return_value = Mock(
@@ -394,9 +384,7 @@ class TestGitTaskExecution:
         # Cancel right after creation (simulates cancellation during execution)
         def run_and_cancel(*args, **kwargs):
             task.cancel()
-            return Mock(
-                returncode=0, stdout="Success", stderr="", args=["git", "status"]
-            )
+            return Mock(returncode=0, stdout="Success", stderr="", args=["git", "status"])
 
         mock_run.side_effect = run_and_cancel
 
@@ -476,9 +464,7 @@ class TestGitTaskExecution:
     @patch("subprocess.run")
     def test_git_task_timeout_value(self, mock_run, tmp_path):
         """Test GitTask uses 30-second timeout."""
-        mock_run.return_value = Mock(
-            returncode=0, stdout="", stderr="", args=["git", "status"]
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="", stderr="", args=["git", "status"])
 
         task = GitTask(["git", "status"], tmp_path)
         task.run()
@@ -490,9 +476,7 @@ class TestGitTaskExecution:
     @patch("subprocess.run")
     def test_git_task_cwd_parameter(self, mock_run, tmp_path):
         """Test GitTask passes correct working directory."""
-        mock_run.return_value = Mock(
-            returncode=0, stdout="", stderr="", args=["git", "status"]
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="", stderr="", args=["git", "status"])
 
         task = GitTask(["git", "status"], tmp_path)
         task.run()

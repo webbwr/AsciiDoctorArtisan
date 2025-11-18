@@ -81,9 +81,7 @@ class TestSystemMonitor:
         monitor = SystemMonitor()
 
         # Mock metrics with very high CPU (>80%)
-        mock_metrics = SystemMetrics(
-            cpu_percent=95.0, memory_percent=50.0, timestamp=time.time()
-        )
+        mock_metrics = SystemMetrics(cpu_percent=95.0, memory_percent=50.0, timestamp=time.time())
         monitor._last_metrics = mock_metrics
 
         category = monitor.get_cpu_load_category(config)
@@ -95,9 +93,7 @@ class TestSystemMonitor:
         monitor = SystemMonitor()
 
         # Mock metrics with high CPU (60-80%)
-        mock_metrics = SystemMetrics(
-            cpu_percent=70.0, memory_percent=50.0, timestamp=time.time()
-        )
+        mock_metrics = SystemMetrics(cpu_percent=70.0, memory_percent=50.0, timestamp=time.time())
         monitor._last_metrics = mock_metrics
 
         category = monitor.get_cpu_load_category(config)
@@ -109,9 +105,7 @@ class TestSystemMonitor:
         monitor = SystemMonitor()
 
         # Mock metrics with medium CPU (30-60%)
-        mock_metrics = SystemMetrics(
-            cpu_percent=45.0, memory_percent=50.0, timestamp=time.time()
-        )
+        mock_metrics = SystemMetrics(cpu_percent=45.0, memory_percent=50.0, timestamp=time.time())
         monitor._last_metrics = mock_metrics
 
         category = monitor.get_cpu_load_category(config)
@@ -123,9 +117,7 @@ class TestSystemMonitor:
         monitor = SystemMonitor()
 
         # Mock metrics with low CPU (<30%)
-        mock_metrics = SystemMetrics(
-            cpu_percent=15.0, memory_percent=50.0, timestamp=time.time()
-        )
+        mock_metrics = SystemMetrics(cpu_percent=15.0, memory_percent=50.0, timestamp=time.time())
         monitor._last_metrics = mock_metrics
 
         category = monitor.get_cpu_load_category(config)
@@ -194,18 +186,16 @@ class TestAdaptiveDebouncer:
             "very_large_1mb",
         ],
     )
-    def test_calculate_delay_by_document_size(
-        self, document_size, min_delay, max_delay, description
-    ):
+    def test_calculate_delay_by_document_size(self, document_size, min_delay, max_delay, description):
         """Test adaptive delay calculation scales with document size."""
         debouncer = AdaptiveDebouncer()
 
         delay = debouncer.calculate_delay(document_size=document_size)
 
         # Verify delay is within expected range for document size
-        assert (
-            min_delay <= delay <= max_delay
-        ), f"Delay {delay}ms out of range [{min_delay}, {max_delay}] for {description}"
+        assert min_delay <= delay <= max_delay, (
+            f"Delay {delay}ms out of range [{min_delay}, {max_delay}] for {description}"
+        )
 
     def test_delay_clamping(self):
         """Test delays are clamped to min/max."""
@@ -243,9 +233,7 @@ class TestAdaptiveDebouncer:
 
         # Should apply typing multiplier
         # Base ~200ms * 1.5 (typing) = ~300ms (before CPU adjustment, reduced delays)
-        assert (
-            delay >= 200
-        )  # Should be increased from base (adjusted for system variance)
+        assert delay >= 200  # Should be increased from base (adjusted for system variance)
 
     def test_on_text_changed_tracks_keystrokes(self):
         """Test on_text_changed tracks keystroke timing."""

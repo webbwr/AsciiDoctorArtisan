@@ -24,9 +24,7 @@ class TestSpellError:
 
     def test_spell_error_creation(self):
         """Test SpellError initializes correctly."""
-        error = SpellError(
-            word="helo", start=0, end=4, suggestions=["hello", "help"], line=1, column=0
-        )
+        error = SpellError(word="helo", start=0, end=4, suggestions=["hello", "help"], line=1, column=0)
 
         assert error.word == "helo"
         assert error.start == 0
@@ -37,9 +35,7 @@ class TestSpellError:
 
     def test_spell_error_repr(self):
         """Test SpellError string representation."""
-        error = SpellError(
-            word="tset", start=10, end=14, suggestions=["test"], line=2, column=5
-        )
+        error = SpellError(word="tset", start=10, end=14, suggestions=["test"], line=2, column=5)
 
         repr_str = repr(error)
         assert "tset" in repr_str
@@ -129,9 +125,7 @@ class TestSuggestions:
 
         assert len(suggestions) > 0
         # Check for any reasonable suggestion (dictionary may vary)
-        assert any(
-            s in ["hello", "helot", "hero", "held", "hell", "help"] for s in suggestions
-        )
+        assert any(s in ["hello", "helot", "hero", "held", "hell", "help"] for s in suggestions)
 
     def test_get_suggestions_max_limit(self):
         """Test suggestions respect max_suggestions parameter."""
@@ -325,10 +319,7 @@ class TestCheckText:
         assert len(errors[0].suggestions) > 0
         # Check for any reasonable suggestion (dictionary may vary)
         suggestions_lower = [s.lower() for s in errors[0].suggestions]
-        assert any(
-            s in ["hello", "helot", "hero", "held", "hell", "help"]
-            for s in suggestions_lower
-        )
+        assert any(s in ["hello", "helot", "hero", "held", "hell", "help"] for s in suggestions_lower)
 
 
 @pytest.mark.fr_050

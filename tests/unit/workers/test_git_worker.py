@@ -175,9 +175,7 @@ class TestGitResult:
             "fatal_error",
         ],
     )
-    def test_git_result_variations(
-        self, success, stdout, stderr, exit_code, user_message
-    ):
+    def test_git_result_variations(self, success, stdout, stderr, exit_code, user_message):
         """Test GitResult with various success/failure combinations."""
         result = GitResult(
             success=success,
@@ -336,13 +334,9 @@ class TestGitWorkerStatus:
             elif "diff" in args:
                 # git diff --numstat
                 if "--cached" in args:  # Check for --cached (staged changes)
-                    return MagicMock(
-                        returncode=0, stdout="10\t5\tfile2.txt\n", stderr=""
-                    )
+                    return MagicMock(returncode=0, stdout="10\t5\tfile2.txt\n", stderr="")
                 else:
-                    return MagicMock(
-                        returncode=0, stdout="8\t3\tfile1.txt\n", stderr=""
-                    )
+                    return MagicMock(returncode=0, stdout="8\t3\tfile1.txt\n", stderr="")
             return MagicMock(returncode=1, stdout="", stderr="Unknown command")
 
         mock_run.side_effect = mock_git_commands
@@ -421,9 +415,7 @@ class TestGitWorkerStatus:
     @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
     def test_get_repository_status_error(self, mock_run):
         """Test Git status with command error."""
-        mock_run.return_value = MagicMock(
-            returncode=128, stdout="", stderr="fatal: not a git repository"
-        )
+        mock_run.return_value = MagicMock(returncode=128, stdout="", stderr="fatal: not a git repository")
 
         worker = GitWorker()
         status = None
@@ -517,9 +509,7 @@ class TestGitWorkerOperationTimeout:
     @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
     def test_network_operation_timeout_pull(self, mock_run):
         """Test pull command uses 60 second timeout (network operation)."""
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Already up to date.", stderr=""
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Already up to date.", stderr="")
 
         worker = GitWorker()
         result = None
@@ -541,9 +531,7 @@ class TestGitWorkerOperationTimeout:
     @patch("asciidoc_artisan.workers.git_worker.subprocess.run")
     def test_network_operation_timeout_push(self, mock_run):
         """Test push command uses 60 second timeout (network operation)."""
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="Everything up-to-date", stderr=""
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="Everything up-to-date", stderr="")
 
         worker = GitWorker()
         result = None
@@ -678,9 +666,7 @@ class TestGitWorkerStatusParsingEdgeCases:
         """Test status parsing with only untracked files."""
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout=(
-                "# branch.oid abcd1234\n# branch.head main\n? untracked1.txt\n? untracked2.txt\n"
-            ),
+            stdout=("# branch.oid abcd1234\n# branch.head main\n? untracked1.txt\n? untracked2.txt\n"),
             stderr="",
         )
 
@@ -822,9 +808,7 @@ class TestGitWorkerExceptionHandling:
         import subprocess
 
         # Mock subprocess.run to raise TimeoutExpired
-        mock_run.side_effect = subprocess.TimeoutExpired(
-            cmd=["git", "status"], timeout=2
-        )
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd=["git", "status"], timeout=2)
 
         worker = GitWorker()
         status = None
@@ -896,9 +880,7 @@ class TestGitWorkerExceptionHandling:
         """Test ValueError handling when branch.ab line is malformed."""
         worker = GitWorker()
         # Invalid integers in branch.ab line
-        output = (
-            "# branch.oid abc123\n" "# branch.head main\n" "# branch.ab +abc -def\n"
-        )
+        output = "# branch.oid abc123\n# branch.head main\n# branch.ab +abc -def\n"
 
         # Should handle ValueError gracefully
         status = worker._parse_git_status_v2(output)
@@ -952,9 +934,7 @@ class TestGitWorkerExceptionHandling:
     def test_get_detailed_status_git_command_failure(self, mock_run):
         """Test get_detailed_repository_status with git command failure."""
         # Mock subprocess to return error
-        mock_run.return_value = MagicMock(
-            returncode=128, stdout="", stderr="fatal: not a git repository"
-        )
+        mock_run.return_value = MagicMock(returncode=128, stdout="", stderr="fatal: not a git repository")
 
         worker = GitWorker()
         detailed_status = None
@@ -978,9 +958,7 @@ class TestGitWorkerExceptionHandling:
         import subprocess
 
         # Mock subprocess to raise TimeoutExpired
-        mock_run.side_effect = subprocess.TimeoutExpired(
-            cmd=["git", "status"], timeout=5
-        )
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd=["git", "status"], timeout=5)
 
         worker = GitWorker()
         detailed_status = None

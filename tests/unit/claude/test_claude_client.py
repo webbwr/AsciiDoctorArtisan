@@ -25,9 +25,7 @@ class TestClaudeClient:
 
     def test_claude_client_custom_params(self):
         """Test ClaudeClient with custom parameters."""
-        client = ClaudeClient(
-            model="claude-haiku-4-5", max_tokens=2048, temperature=0.7
-        )
+        client = ClaudeClient(model="claude-haiku-4-5", max_tokens=2048, temperature=0.7)
         assert client.model == "claude-haiku-4-5"
         assert client.max_tokens == 2048
         assert client.temperature == 0.7
@@ -143,9 +141,7 @@ class TestClaudeClient:
 
     @patch("asciidoc_artisan.claude.claude_client.Anthropic")
     @patch("asciidoc_artisan.claude.claude_client.SecureCredentials")
-    def test_send_message_with_conversation_history(
-        self, mock_credentials, mock_anthropic
-    ):
+    def test_send_message_with_conversation_history(self, mock_credentials, mock_anthropic):
         """Test message send with conversation history."""
         # Setup mocks
         mock_creds = Mock()

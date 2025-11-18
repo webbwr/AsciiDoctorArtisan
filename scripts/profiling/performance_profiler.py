@@ -122,8 +122,7 @@ def profile_preview_rendering(editor):
         ("Simple", "= Simple Document\n\nJust a paragraph."),
         (
             "Medium",
-            "= Medium Document\n\n"
-            + "\n\n".join([f"== Section {i}\n\nParagraph {i}" for i in range(10)]),
+            "= Medium Document\n\n" + "\n\n".join([f"== Section {i}\n\nParagraph {i}" for i in range(10)]),
         ),
         (
             "Complex",
@@ -163,9 +162,7 @@ def profile_preview_rendering(editor):
         status = "✅ PASS" if passes else "❌ FAIL"
 
         print(f"{name:10s} - Avg: {avg_time:6.2f}ms, P95: {p95_time:6.2f}ms {status}")
-        results.append(
-            {"name": name, "avg": avg_time, "p95": p95_time, "passes_spec": passes}
-        )
+        results.append({"name": name, "avg": avg_time, "p95": p95_time, "passes_spec": passes})
 
     print(f"\nSpec Requirement (NFR-001): < {spec_limit}ms (95th percentile)")
     print()
@@ -185,9 +182,7 @@ def profile_memory_usage(editor):
     tracemalloc.start()
 
     # Load a typical document
-    typical_doc = "= Document\n\n" + "\n\n".join(
-        [f"== Section {i}\n\nContent for section {i}." for i in range(50)]
-    )
+    typical_doc = "= Document\n\n" + "\n\n".join([f"== Section {i}\n\nContent for section {i}." for i in range(50)])
 
     editor.editor.setPlainText(typical_doc)
     editor.update_preview()
@@ -226,26 +221,20 @@ def generate_report(import_results, startup_results, preview_results, memory_res
         print(f"  - Import:    {startup_results['import_time']:.2f}ms")
         print(f"  - QApp:      {startup_results['qapp_time']:.2f}ms")
         print(f"  - Init:      {startup_results['init_time']:.2f}ms")
-        print(
-            f"  Spec Status: {'✅ PASS' if startup_results['passes_spec'] else '❌ FAIL'}"
-        )
+        print(f"  Spec Status: {'✅ PASS' if startup_results['passes_spec'] else '❌ FAIL'}")
 
     # Preview Summary
     if preview_results:
         print("\nPreview Rendering (P95):")
         all_pass = all(r["passes_spec"] for r in preview_results)
         for r in preview_results:
-            print(
-                f"  - {r['name']:10s}: {r['p95']:.2f}ms ({'✅' if r['passes_spec'] else '❌'})"
-            )
+            print(f"  - {r['name']:10s}: {r['p95']:.2f}ms ({'✅' if r['passes_spec'] else '❌'})")
         print(f"  Spec Status: {'✅ PASS' if all_pass else '❌ FAIL'}")
 
     # Memory Summary
     if memory_results:
         print(f"\nMemory Usage: {memory_results['peak_mb']:.2f}MB")
-        print(
-            f"  Spec Status: {'✅ PASS' if memory_results['passes_spec'] else '❌ FAIL'}"
-        )
+        print(f"  Spec Status: {'✅ PASS' if memory_results['passes_spec'] else '❌ FAIL'}")
 
     # Overall Compliance
     print(f"\n{'=' * 70}")
@@ -290,9 +279,7 @@ def main():
     memory_results = profile_memory_usage(editor) if editor else None
 
     # Generate summary
-    report = generate_report(
-        import_results, startup_results, preview_results, memory_results
-    )
+    report = generate_report(import_results, startup_results, preview_results, memory_results)
 
     # Save results
     print("Performance profiling complete!")

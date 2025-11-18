@@ -72,10 +72,7 @@ class TestChatBarWidgetInitialization:
         """Test context selector has correct items."""
         widget = ChatBarWidget()
 
-        items = [
-            widget._context_selector.itemText(i)
-            for i in range(widget._context_selector.count())
-        ]
+        items = [widget._context_selector.itemText(i) for i in range(widget._context_selector.count())]
 
         assert "Document Q&A" in items
         assert "Syntax Help" in items

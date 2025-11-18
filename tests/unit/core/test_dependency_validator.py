@@ -577,9 +577,7 @@ class TestEdgeCases:
         mock_import.return_value = mock_module
 
         validator = DependencyValidator()
-        validator._check_python_module(
-            "mock_module", DependencyType.OPTIONAL, min_version=None
-        )
+        validator._check_python_module("mock_module", DependencyType.OPTIONAL, min_version=None)
 
         assert len(validator.dependencies) == 1
         dep = validator.dependencies[0]
@@ -602,7 +600,6 @@ class TestEdgeCases:
 
         # Should have logged an error for missing REQUIRED module
         assert any(
-            "REQUIRED" in record.message
-            and "nonexistent_required_module_xyz123" in record.message
+            "REQUIRED" in record.message and "nonexistent_required_module_xyz123" in record.message
             for record in caplog.records
         )

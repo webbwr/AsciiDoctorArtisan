@@ -33,14 +33,10 @@ class TestInitializeAsciiDocErrors:
         assert worker._asciidoc_api is None
 
     @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
-    @patch(
-        "asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True
-    )
+    @patch("asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True)
     @patch("asciidoc_artisan.workers.preview_worker.IncrementalPreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
-    def test_initialize_with_incremental_renderer_exception(
-        self, mock_api_class, mock_incremental_class
-    ):
+    def test_initialize_with_incremental_renderer_exception(self, mock_api_class, mock_incremental_class):
         """Test initialize handles incremental renderer exception."""
         mock_api_instance = MagicMock()
         mock_api_class.return_value = mock_api_instance
@@ -58,12 +54,8 @@ class TestInitializeAsciiDocErrors:
         assert worker._incremental_renderer is None
 
     @patch("asciidoc_artisan.workers.preview_worker.ASCIIDOC3_AVAILABLE", True)
-    @patch(
-        "asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True
-    )
-    @patch(
-        "asciidoc_artisan.workers.preview_worker.PREDICTIVE_RENDERER_AVAILABLE", True
-    )
+    @patch("asciidoc_artisan.workers.preview_worker.INCREMENTAL_RENDERER_AVAILABLE", True)
+    @patch("asciidoc_artisan.workers.preview_worker.PREDICTIVE_RENDERER_AVAILABLE", True)
     @patch("asciidoc_artisan.workers.preview_worker.PredictivePreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.IncrementalPreviewRenderer")
     @patch("asciidoc_artisan.workers.preview_worker.AsciiDoc3API")
@@ -458,9 +450,7 @@ class TestImportFallbacks:
         from importlib import reload
 
         # Save original state
-        original_incremental = sys.modules.get(
-            "asciidoc_artisan.workers.incremental_renderer"
-        )
+        original_incremental = sys.modules.get("asciidoc_artisan.workers.incremental_renderer")
 
         try:
             # Remove module to simulate import failure
@@ -488,9 +478,7 @@ class TestImportFallbacks:
         finally:
             builtins.__import__ = original_import
             if original_incremental is not None:
-                sys.modules["asciidoc_artisan.workers.incremental_renderer"] = (
-                    original_incremental
-                )
+                sys.modules["asciidoc_artisan.workers.incremental_renderer"] = original_incremental
             reload(pw)
 
     def test_predictive_renderer_import_fallback(self):
@@ -498,9 +486,7 @@ class TestImportFallbacks:
         import sys
         from importlib import reload
 
-        original_predictive = sys.modules.get(
-            "asciidoc_artisan.workers.predictive_renderer"
-        )
+        original_predictive = sys.modules.get("asciidoc_artisan.workers.predictive_renderer")
 
         try:
             if "asciidoc_artisan.workers.predictive_renderer" in sys.modules:
@@ -528,9 +514,7 @@ class TestImportFallbacks:
         finally:
             builtins.__import__ = original_import
             if original_predictive is not None:
-                sys.modules["asciidoc_artisan.workers.predictive_renderer"] = (
-                    original_predictive
-                )
+                sys.modules["asciidoc_artisan.workers.predictive_renderer"] = original_predictive
             reload(pw)
 
     def test_metrics_import_fallback(self):
@@ -549,9 +533,7 @@ class TestImportFallbacks:
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
-                if name == "asciidoc_artisan.core.metrics" or "metrics" in str(
-                    kwargs.get("fromlist", [])
-                ):
+                if name == "asciidoc_artisan.core.metrics" or "metrics" in str(kwargs.get("fromlist", [])):
                     raise ImportError("Mocked metrics import failure")
                 return original_import(name, *args, **kwargs)
 

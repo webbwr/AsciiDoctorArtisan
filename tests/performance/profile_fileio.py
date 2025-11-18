@@ -76,9 +76,7 @@ def profile_file_operations():
         (100000, "Huge (100,000 lines)"),
     ]
 
-    print(
-        f"\n{'Document Size':<30} {'Write (ms)':>12} {'Read (ms)':>12} {'Size (KB)':>12}"
-    )
+    print(f"\n{'Document Size':<30} {'Write (ms)':>12} {'Read (ms)':>12} {'Size (KB)':>12}")
     print("-" * 80)
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -121,9 +119,7 @@ def profile_file_operations():
                 }
             )
 
-            print(
-                f"{label:<30} {write_time:>12.2f} {read_time:>12.2f} {file_size_kb:>12.2f}"
-            )
+            print(f"{label:<30} {write_time:>12.2f} {read_time:>12.2f} {file_size_kb:>12.2f}")
 
     print()
     return results

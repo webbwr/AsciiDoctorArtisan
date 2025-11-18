@@ -253,9 +253,7 @@ def pytest_configure(config):
         "markers",
         "requires_fresh_qt_state: Test requires clean Qt application state",
     )
-    config.addinivalue_line(
-        "markers", "modal_dialog_test: Test involves modal dialogs (QMessageBox, etc.)"
-    )
+    config.addinivalue_line("markers", "modal_dialog_test: Test involves modal dialogs (QMessageBox, etc.)")
 
 
 def pytest_runtest_setup(item):

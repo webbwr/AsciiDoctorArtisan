@@ -60,11 +60,7 @@ class TestSettingsManager:
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
         manager = SettingsManager()
-        methods = [
-            m
-            for m in dir(manager)
-            if any(x in m.lower() for x in ["get", "set", "load", "save"])
-        ]
+        methods = [m for m in dir(manager) if any(x in m.lower() for x in ["get", "set", "load", "save"])]
         assert len(methods) > 0
 
     def test_initialization_sets_settings_path(self, qapp):
@@ -124,9 +120,7 @@ class TestSettingsPath:
         """Test settings path on macOS."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
-        mock_writable.return_value = (
-            "/Users/test/Library/Application Support/AsciiDocArtisan"
-        )
+        mock_writable.return_value = "/Users/test/Library/Application Support/AsciiDocArtisan"
         manager = SettingsManager()
 
         path = manager.get_settings_path()
@@ -137,9 +131,7 @@ class TestSettingsPath:
         "asciidoc_artisan.ui.settings_manager.QStandardPaths.writableLocation",
         return_value="",
     )
-    def test_get_settings_path_fallback_when_no_writable(
-        self, mock_writable, mock_system, qapp
-    ):
+    def test_get_settings_path_fallback_when_no_writable(self, mock_writable, mock_system, qapp):
         """Test settings path falls back to home when no writable location."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -208,9 +200,7 @@ class TestDefaultSettings:
 class TestLoadSettings:
     """Test suite for settings loading."""
 
-    def test_load_settings_creates_defaults_when_file_missing(
-        self, qapp, temp_settings_file
-    ):
+    def test_load_settings_creates_defaults_when_file_missing(self, qapp, temp_settings_file):
         """Test load_settings returns defaults when file doesn't exist."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -269,9 +259,7 @@ class TestLoadSettings:
 class TestSaveSettings:
     """Test suite for settings saving."""
 
-    def test_save_settings_updates_from_window_state(
-        self, qapp, temp_settings_file, mock_window
-    ):
+    def test_save_settings_updates_from_window_state(self, qapp, temp_settings_file, mock_window):
         """Test save_settings extracts state from window."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -287,9 +275,7 @@ class TestSaveSettings:
         assert result is True
         assert settings.dark_mode is False
 
-    def test_save_settings_schedules_deferred_save(
-        self, qapp, temp_settings_file, mock_window
-    ):
+    def test_save_settings_schedules_deferred_save(self, qapp, temp_settings_file, mock_window):
         """Test save_settings schedules timer instead of saving immediately."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -303,9 +289,7 @@ class TestSaveSettings:
         assert manager._pending_save_timer.isActive()
         assert manager._pending_save_data is not None
 
-    def test_save_settings_with_current_file(
-        self, qapp, temp_settings_file, mock_window
-    ):
+    def test_save_settings_with_current_file(self, qapp, temp_settings_file, mock_window):
         """Test save_settings updates last_file and last_directory."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 
@@ -321,9 +305,7 @@ class TestSaveSettings:
         # Settings.validate() may correct invalid directories, so just check it's set
         assert settings.last_directory is not None
 
-    def test_save_settings_immediate_saves_synchronously(
-        self, qapp, temp_settings_file, mock_window
-    ):
+    def test_save_settings_immediate_saves_synchronously(self, qapp, temp_settings_file, mock_window):
         """Test save_settings_immediate saves without delay."""
         from asciidoc_artisan.ui.settings_manager import SettingsManager
 

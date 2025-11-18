@@ -105,9 +105,7 @@ class TestDocumentBlock:
 
     def test_block_compute_id(self):
         """Test block ID computation."""
-        block = DocumentBlock(
-            id="", start_line=0, end_line=5, content="= Title\n\nSome content", level=1
-        )
+        block = DocumentBlock(id="", start_line=0, end_line=5, content="= Title\n\nSome content", level=1)
 
         block_id = block.compute_id()
         assert len(block_id) == 12  # BLOCK_HASH_LENGTH is 12 (reduced from 16)
@@ -117,23 +115,15 @@ class TestDocumentBlock:
         """Test same content produces same ID."""
         content = "= Title\n\nSome content"
 
-        block1 = DocumentBlock(
-            id="", start_line=0, end_line=5, content=content, level=1
-        )
-        block2 = DocumentBlock(
-            id="", start_line=10, end_line=15, content=content, level=1
-        )
+        block1 = DocumentBlock(id="", start_line=0, end_line=5, content=content, level=1)
+        block2 = DocumentBlock(id="", start_line=10, end_line=15, content=content, level=1)
 
         assert block1.compute_id() == block2.compute_id()
 
     def test_block_id_uniqueness(self):
         """Test different content produces different IDs."""
-        block1 = DocumentBlock(
-            id="", start_line=0, end_line=5, content="= Title 1", level=1
-        )
-        block2 = DocumentBlock(
-            id="", start_line=0, end_line=5, content="= Title 2", level=1
-        )
+        block1 = DocumentBlock(id="", start_line=0, end_line=5, content="= Title 1", level=1)
+        block2 = DocumentBlock(id="", start_line=0, end_line=5, content="= Title 2", level=1)
 
         assert block1.compute_id() != block2.compute_id()
 
@@ -561,9 +551,7 @@ class TestBlockCacheThreadSafety:
         # Create 30 threads doing concurrent puts
         threads = []
         for i in range(30):
-            thread = threading.Thread(
-                target=put_operation, args=(f"block{i}", f"<div>Block {i}</div>")
-            )
+            thread = threading.Thread(target=put_operation, args=(f"block{i}", f"<div>Block {i}</div>"))
             threads.append(thread)
             thread.start()
 
@@ -749,9 +737,7 @@ class TestRenderBlockErrorHandling:
 
         renderer = IncrementalPreviewRenderer(api)
 
-        block = DocumentBlock(
-            id="test789", start_line=0, end_line=1, content="Test", level=0
-        )
+        block = DocumentBlock(id="test789", start_line=0, end_line=1, content="Test", level=0)
 
         renderer._render_block(block)
 
@@ -825,11 +811,7 @@ class TestDetectChanges:
         api = MockAsciiDocAPI()
         renderer = IncrementalPreviewRenderer(api)
 
-        current = [
-            DocumentBlock(
-                id="block1", start_line=0, end_line=1, content="Test", level=0
-            )
-        ]
+        current = [DocumentBlock(id="block1", start_line=0, end_line=1, content="Test", level=0)]
 
         changed, unchanged = renderer._detect_changes([], current)
 
@@ -842,11 +824,7 @@ class TestDetectChanges:
         api = MockAsciiDocAPI()
         renderer = IncrementalPreviewRenderer(api)
 
-        previous = [
-            DocumentBlock(
-                id="block1", start_line=0, end_line=1, content="Test", level=0
-            )
-        ]
+        previous = [DocumentBlock(id="block1", start_line=0, end_line=1, content="Test", level=0)]
 
         changed, unchanged = renderer._detect_changes(previous, [])
 
@@ -860,21 +838,13 @@ class TestDetectChanges:
         renderer = IncrementalPreviewRenderer(api)
 
         previous = [
-            DocumentBlock(
-                id="old1", start_line=0, end_line=1, content="Old 1", level=0
-            ),
-            DocumentBlock(
-                id="old2", start_line=2, end_line=3, content="Old 2", level=0
-            ),
+            DocumentBlock(id="old1", start_line=0, end_line=1, content="Old 1", level=0),
+            DocumentBlock(id="old2", start_line=2, end_line=3, content="Old 2", level=0),
         ]
 
         current = [
-            DocumentBlock(
-                id="new1", start_line=0, end_line=1, content="New 1", level=0
-            ),
-            DocumentBlock(
-                id="new2", start_line=2, end_line=3, content="New 2", level=0
-            ),
+            DocumentBlock(id="new1", start_line=0, end_line=1, content="New 1", level=0),
+            DocumentBlock(id="new2", start_line=2, end_line=3, content="New 2", level=0),
         ]
 
         changed, unchanged = renderer._detect_changes(previous, current)
@@ -889,14 +859,10 @@ class TestDetectChanges:
         renderer = IncrementalPreviewRenderer(api)
 
         # Same content = same IDs
-        block1 = DocumentBlock(
-            id="", start_line=0, end_line=1, content="Same content", level=0
-        )
+        block1 = DocumentBlock(id="", start_line=0, end_line=1, content="Same content", level=0)
         block1.id = block1.compute_id()
 
-        block2 = DocumentBlock(
-            id="", start_line=0, end_line=1, content="Same content", level=0
-        )
+        block2 = DocumentBlock(id="", start_line=0, end_line=1, content="Same content", level=0)
         block2.id = block2.compute_id()
 
         changed, unchanged = renderer._detect_changes([block1], [block2])
@@ -911,25 +877,17 @@ class TestDetectChanges:
         renderer = IncrementalPreviewRenderer(api)
 
         # Create blocks with known IDs
-        unchanged_block = DocumentBlock(
-            id="", start_line=0, end_line=1, content="Unchanged", level=0
-        )
+        unchanged_block = DocumentBlock(id="", start_line=0, end_line=1, content="Unchanged", level=0)
         unchanged_block.id = unchanged_block.compute_id()
 
-        changed_block_old = DocumentBlock(
-            id="", start_line=2, end_line=3, content="Old content", level=0
-        )
+        changed_block_old = DocumentBlock(id="", start_line=2, end_line=3, content="Old content", level=0)
         changed_block_old.id = changed_block_old.compute_id()
 
         # Current blocks
-        unchanged_block_new = DocumentBlock(
-            id="", start_line=0, end_line=1, content="Unchanged", level=0
-        )
+        unchanged_block_new = DocumentBlock(id="", start_line=0, end_line=1, content="Unchanged", level=0)
         unchanged_block_new.id = unchanged_block_new.compute_id()
 
-        changed_block_new = DocumentBlock(
-            id="", start_line=2, end_line=3, content="New content", level=0
-        )
+        changed_block_new = DocumentBlock(id="", start_line=2, end_line=3, content="New content", level=0)
         changed_block_new.id = changed_block_new.compute_id()
 
         previous = [unchanged_block, changed_block_old]
@@ -946,25 +904,17 @@ class TestDetectChanges:
         api = MockAsciiDocAPI()
         renderer = IncrementalPreviewRenderer(api)
 
-        block1 = DocumentBlock(
-            id="", start_line=0, end_line=1, content="Block 1", level=0
-        )
+        block1 = DocumentBlock(id="", start_line=0, end_line=1, content="Block 1", level=0)
         block1.id = block1.compute_id()
 
-        block2 = DocumentBlock(
-            id="", start_line=2, end_line=3, content="Block 2", level=0
-        )
+        block2 = DocumentBlock(id="", start_line=2, end_line=3, content="Block 2", level=0)
         block2.id = block2.compute_id()
 
         # Same blocks, different order
         previous = [block1, block2]
         current = [
-            DocumentBlock(
-                id=block2.id, start_line=0, end_line=1, content="Block 2", level=0
-            ),
-            DocumentBlock(
-                id=block1.id, start_line=2, end_line=3, content="Block 1", level=0
-            ),
+            DocumentBlock(id=block2.id, start_line=0, end_line=1, content="Block 2", level=0),
+            DocumentBlock(id=block1.id, start_line=2, end_line=3, content="Block 1", level=0),
         ]
 
         changed, unchanged = renderer._detect_changes(previous, current)
@@ -1028,9 +978,7 @@ class TestDocumentBlockComputeIdFallback:
     @patch("asciidoc_artisan.workers.incremental_renderer.HAS_XXHASH", False)
     def test_compute_id_md5_fallback(self):
         """Test compute_id() falls back to MD5 when xxhash unavailable."""
-        block = DocumentBlock(
-            id="", start_line=0, end_line=1, content="Test content", level=0
-        )
+        block = DocumentBlock(id="", start_line=0, end_line=1, content="Test content", level=0)
 
         block_id = block.compute_id()
 
@@ -1043,12 +991,8 @@ class TestDocumentBlockComputeIdFallback:
         """Test MD5 fallback produces consistent IDs."""
         content = "= Title\n\nTest content"
 
-        block1 = DocumentBlock(
-            id="", start_line=0, end_line=2, content=content, level=1
-        )
-        block2 = DocumentBlock(
-            id="", start_line=10, end_line=12, content=content, level=1
-        )
+        block1 = DocumentBlock(id="", start_line=0, end_line=2, content=content, level=1)
+        block2 = DocumentBlock(id="", start_line=10, end_line=12, content=content, level=1)
 
         # Same content should produce same ID
         assert block1.compute_id() == block2.compute_id()
@@ -1295,9 +1239,7 @@ class TestDocumentBlockEdgeCases:
     def test_document_block_large_content(self):
         """Test DocumentBlock with large content."""
         large_content = "= Title\n\n" + ("Content line.\n" * 10000)
-        block = DocumentBlock(
-            id="", start_line=0, end_line=10000, content=large_content, level=1
-        )
+        block = DocumentBlock(id="", start_line=0, end_line=10000, content=large_content, level=1)
 
         block_id = block.compute_id()
         assert len(block_id) == BLOCK_HASH_LENGTH
@@ -1305,9 +1247,7 @@ class TestDocumentBlockEdgeCases:
     def test_document_block_unicode_content(self):
         """Test DocumentBlock with unicode content."""
         unicode_content = "= 标题\n\nСодержание\n\n内容\n\nمحتوى"
-        block = DocumentBlock(
-            id="", start_line=0, end_line=5, content=unicode_content, level=1
-        )
+        block = DocumentBlock(id="", start_line=0, end_line=5, content=unicode_content, level=1)
 
         block_id = block.compute_id()
         assert len(block_id) == BLOCK_HASH_LENGTH
@@ -1316,9 +1256,7 @@ class TestDocumentBlockEdgeCases:
     def test_document_block_special_characters(self):
         """Test DocumentBlock with special characters."""
         special_content = "= Title\n\n<>&\"'\n\n`~!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/"
-        block = DocumentBlock(
-            id="", start_line=0, end_line=3, content=special_content, level=1
-        )
+        block = DocumentBlock(id="", start_line=0, end_line=3, content=special_content, level=1)
 
         block_id = block.compute_id()
         assert len(block_id) == BLOCK_HASH_LENGTH

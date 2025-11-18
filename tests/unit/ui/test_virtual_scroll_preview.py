@@ -1171,9 +1171,7 @@ class TestViewportCalculatorWidgetHierarchy:
         qtbot.addWidget(widget)
         widget.setGeometry(0, 0, 800, 600)
 
-        viewport = ViewportCalculator.calculate_from_widget(
-            widget, document_height=5000, line_height=20
-        )
+        viewport = ViewportCalculator.calculate_from_widget(widget, document_height=5000, line_height=20)
 
         # Should create viewport with zero scroll position
         assert viewport.scroll_x == 0
@@ -1200,9 +1198,7 @@ class TestViewportCalculatorWidgetHierarchy:
         scroll_area.verticalScrollBar().setValue(200)
         scroll_area.horizontalScrollBar().setValue(50)
 
-        viewport = ViewportCalculator.calculate_from_widget(
-            widget, document_height=5000, line_height=20
-        )
+        viewport = ViewportCalculator.calculate_from_widget(widget, document_height=5000, line_height=20)
 
         # Should extract scroll position from parent
         assert viewport.scroll_x == 50
@@ -1228,9 +1224,7 @@ class TestViewportCalculatorWidgetHierarchy:
         # Set scroll position on inner scroll (closest ancestor)
         inner_scroll.verticalScrollBar().setValue(100)
 
-        viewport = ViewportCalculator.calculate_from_widget(
-            widget, document_height=5000, line_height=20
-        )
+        viewport = ViewportCalculator.calculate_from_widget(widget, document_height=5000, line_height=20)
 
         # Should find the closest scroll area parent
         assert viewport.scroll_y == 100
@@ -1252,9 +1246,7 @@ class TestViewportCalculatorWidgetHierarchy:
         # Get the viewport widget (child of QTextBrowser)
         viewport_widget = text_browser.viewport()
 
-        viewport = ViewportCalculator.calculate_from_widget(
-            viewport_widget, document_height=5000, line_height=20
-        )
+        viewport = ViewportCalculator.calculate_from_widget(viewport_widget, document_height=5000, line_height=20)
 
         # Should extract scroll position from parent QAbstractScrollArea
         assert viewport.scroll_y == 150
@@ -1278,9 +1270,7 @@ class TestViewportCalculatorWidgetHierarchy:
         scroll_area.horizontalScrollBar().setValue(75)
         scroll_area.verticalScrollBar().setValue(300)
 
-        viewport = ViewportCalculator.calculate_from_widget(
-            widget, document_height=5000, line_height=20
-        )
+        viewport = ViewportCalculator.calculate_from_widget(widget, document_height=5000, line_height=20)
 
         # Should match exactly
         assert viewport.scroll_x == 75
@@ -1558,9 +1548,7 @@ class TestVirtualScrollingThresholds:
         config = VirtualScrollConfig(min_lines_for_virtual=500)
         renderer = VirtualScrollPreview(api, config)
 
-        source = "\n".join(
-            [f"Line {i}" for i in range(500)]
-        )  # 500 newlines = 501 lines (counting starts at 1)
+        source = "\n".join([f"Line {i}" for i in range(500)])  # 500 newlines = 501 lines (counting starts at 1)
 
         # Should use virtual scrolling (>= threshold)
         assert renderer.should_use_virtual_scrolling(source)
@@ -1573,9 +1561,7 @@ class TestVirtualScrollingThresholds:
         config = VirtualScrollConfig(min_lines_for_virtual=500)
         renderer = VirtualScrollPreview(api, config)
 
-        source = "\n".join(
-            [f"Line {i}" for i in range(498)]
-        )  # 498 newlines = 499 lines
+        source = "\n".join([f"Line {i}" for i in range(498)])  # 498 newlines = 499 lines
 
         # Should NOT use virtual scrolling (< threshold)
         assert not renderer.should_use_virtual_scrolling(source)
@@ -1588,9 +1574,7 @@ class TestVirtualScrollingThresholds:
         config = VirtualScrollConfig(min_lines_for_virtual=500)
         renderer = VirtualScrollPreview(api, config)
 
-        source = "\n".join(
-            [f"Line {i}" for i in range(500)]
-        )  # 500 newlines = 501 lines
+        source = "\n".join([f"Line {i}" for i in range(500)])  # 500 newlines = 501 lines
 
         # Should use virtual scrolling (> threshold)
         assert renderer.should_use_virtual_scrolling(source)

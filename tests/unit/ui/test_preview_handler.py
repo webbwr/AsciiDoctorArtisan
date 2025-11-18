@@ -85,9 +85,7 @@ class TestPreviewHandlerBasics:
 class TestHandlePreviewComplete:
     """Test suite for handle_preview_complete method."""
 
-    def test_updates_preview_with_html(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_updates_preview_with_html(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -114,9 +112,7 @@ class TestHandlePreviewComplete:
             styled_html = mock_set_html.call_args[0][0]
             assert "body {" in styled_html or "<style>" in styled_html
 
-    def test_emits_preview_updated_signal(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_emits_preview_updated_signal(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -129,9 +125,7 @@ class TestHandlePreviewComplete:
                 # Signal should emit original HTML (not styled)
                 mock_signal.emit.assert_called_once_with(html)
 
-    def test_updates_adaptive_debouncer_with_render_time(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_updates_adaptive_debouncer_with_render_time(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -148,9 +142,7 @@ class TestHandlePreviewComplete:
                 handler.handle_preview_complete(html)
                 # Should update debouncer with 0.5s render time
                 handler._adaptive_debouncer.on_render_complete.assert_called_once()
-                call_args = handler._adaptive_debouncer.on_render_complete.call_args[0][
-                    0
-                ]
+                call_args = handler._adaptive_debouncer.on_render_complete.call_args[0][0]
                 assert call_args == 0.5
 
 
@@ -160,9 +152,7 @@ class TestHandlePreviewComplete:
 class TestScrollSynchronization:
     """Test suite for scroll synchronization methods."""
 
-    def test_sync_editor_to_preview_uses_scrollbar(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_editor_to_preview_uses_scrollbar(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -176,9 +166,7 @@ class TestScrollSynchronization:
         # 500/1000 = 0.5 → preview_value = 1000 * 0.5 = 500
         preview_scrollbar.setValue.assert_called_with(500)
 
-    def test_sync_skips_when_disabled(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_skips_when_disabled(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -190,9 +178,7 @@ class TestScrollSynchronization:
         preview_scrollbar = mock_preview.verticalScrollBar()
         preview_scrollbar.setValue.assert_not_called()
 
-    def test_sync_skips_when_already_syncing(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_skips_when_already_syncing(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -205,9 +191,7 @@ class TestScrollSynchronization:
         preview_scrollbar = mock_preview.verticalScrollBar()
         preview_scrollbar.setValue.assert_not_called()
 
-    def test_sync_handles_zero_editor_max(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_handles_zero_editor_max(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -223,9 +207,7 @@ class TestScrollSynchronization:
         preview_scrollbar = mock_preview.verticalScrollBar()
         preview_scrollbar.setValue.assert_not_called()
 
-    def test_sync_sets_and_clears_syncing_flag(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_sets_and_clears_syncing_flag(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -237,9 +219,7 @@ class TestScrollSynchronization:
         # Flag should be cleared after sync (finally block)
         assert handler.is_syncing_scroll is False
 
-    def test_sync_preview_to_editor_uses_scrollbar(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_preview_to_editor_uses_scrollbar(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -253,9 +233,7 @@ class TestScrollSynchronization:
         # 500/1000 = 0.5 → editor_value = 1000 * 0.5 = 500
         editor_scrollbar.setValue.assert_called_with(500)
 
-    def test_sync_preview_to_editor_skips_when_disabled(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_preview_to_editor_skips_when_disabled(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -267,9 +245,7 @@ class TestScrollSynchronization:
         editor_scrollbar = mock_editor.verticalScrollBar()
         editor_scrollbar.setValue.assert_not_called()
 
-    def test_sync_preview_to_editor_skips_when_already_syncing(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_preview_to_editor_skips_when_already_syncing(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -282,9 +258,7 @@ class TestScrollSynchronization:
         editor_scrollbar = mock_editor.verticalScrollBar()
         editor_scrollbar.setValue.assert_not_called()
 
-    def test_sync_preview_to_editor_handles_zero_preview_max(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_preview_to_editor_handles_zero_preview_max(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -307,9 +281,7 @@ class TestScrollSynchronization:
 class TestScrollPercentageCalculation:
     """Test suite for scroll percentage calculations."""
 
-    def test_calculates_correct_percentage(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_calculates_correct_percentage(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -322,9 +294,7 @@ class TestScrollPercentageCalculation:
         preview_scrollbar = mock_preview.verticalScrollBar()
         preview_scrollbar.setValue.assert_called_with(250)
 
-    def test_handles_different_scrollbar_ranges(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_different_scrollbar_ranges(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -340,9 +310,7 @@ class TestScrollPercentageCalculation:
         # Preview should scroll to 50% → 500 * 0.5 = 250
         preview_scrollbar.setValue.assert_called_with(250)
 
-    def test_handles_maximum_scroll_position(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_maximum_scroll_position(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -362,9 +330,7 @@ class TestScrollPercentageCalculation:
 class TestClearPreview:
     """Test suite for clear_preview method."""
 
-    def test_clear_preview_sets_empty_html(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_clear_preview_sets_empty_html(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -376,9 +342,7 @@ class TestClearPreview:
             call_args = mock_set_html.call_args[0][0]
             assert "Preview cleared" in call_args
 
-    def test_clear_preview_does_not_crash(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_clear_preview_does_not_crash(self, mock_editor, mock_preview, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
         handler = PreviewHandler(mock_editor, mock_preview, mock_parent_window)
@@ -393,9 +357,7 @@ class TestClearPreview:
 class TestCSSStyling:
     """Test suite for CSS styling and wrapping."""
 
-    def test_css_wrapping_includes_style_tag(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_css_wrapping_includes_style_tag(self, mock_editor, mock_preview, mock_parent_window):
         """Test CSS wrapping adds style tags."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -408,9 +370,7 @@ class TestCSSStyling:
             styled_html = mock_set_html.call_args[0][0]
             assert "<style>" in styled_html or "body {" in styled_html
 
-    def test_preserves_html_content_in_css_wrapper(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_preserves_html_content_in_css_wrapper(self, mock_editor, mock_preview, mock_parent_window):
         """Test original HTML content preserved in CSS wrapper."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -483,8 +443,7 @@ class TestCSSStyling:
                     styled_html = mock_set_html.call_args[0][0]
                     assert (
                         expected_in_result in styled_html
-                        or expected_in_result.replace("&lt;", "<").replace("&gt;", ">")
-                        in styled_html
+                        or expected_in_result.replace("&lt;", "<").replace("&gt;", ">") in styled_html
                     )
 
 
@@ -494,9 +453,7 @@ class TestCSSStyling:
 class TestRenderTiming:
     """Test suite for render timing and performance metrics."""
 
-    def test_calculates_render_time_correctly(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_calculates_render_time_correctly(self, mock_editor, mock_preview, mock_parent_window):
         """Test render time calculation."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -510,9 +467,7 @@ class TestRenderTiming:
                 handler.handle_preview_complete(html)
                 # Render time should be 0.5s (1000.5 - 1000.0)
 
-    def test_updates_adaptive_debouncer_with_correct_timing(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_updates_adaptive_debouncer_with_correct_timing(self, mock_editor, mock_preview, mock_parent_window):
         """Test adaptive debouncer receives correct render time."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -527,13 +482,9 @@ class TestRenderTiming:
             with patch.object(mock_preview, "setHtml"):
                 handler.handle_preview_complete(html)
                 # Should receive 0.75s
-                handler._adaptive_debouncer.on_render_complete.assert_called_once_with(
-                    0.75
-                )
+                handler._adaptive_debouncer.on_render_complete.assert_called_once_with(0.75)
 
-    def test_handles_missing_render_start_time(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_missing_render_start_time(self, mock_editor, mock_preview, mock_parent_window):
         """Test render completion when start time not set."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -548,9 +499,7 @@ class TestRenderTiming:
             # Should not crash, debouncer not called
             handler._adaptive_debouncer.on_render_complete.assert_not_called()
 
-    def test_handles_missing_adaptive_debouncer(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_missing_adaptive_debouncer(self, mock_editor, mock_preview, mock_parent_window):
         """Test render completion when adaptive debouncer not set."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -572,9 +521,7 @@ class TestRenderTiming:
 class TestSignalEmissionsEdgeCases:
     """Test suite for signal emission edge cases."""
 
-    def test_emits_preview_updated_with_original_html(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_emits_preview_updated_with_original_html(self, mock_editor, mock_preview, mock_parent_window):
         """Test signal emits original HTML, not styled version."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -588,9 +535,7 @@ class TestSignalEmissionsEdgeCases:
                 # Should emit original, not styled
                 mock_signal.emit.assert_called_once_with(original_html)
 
-    def test_emits_signal_even_on_empty_html(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_emits_signal_even_on_empty_html(self, mock_editor, mock_preview, mock_parent_window):
         """Test signal emitted even with empty HTML."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -601,9 +546,7 @@ class TestSignalEmissionsEdgeCases:
                 handler.handle_preview_complete("")
                 mock_signal.emit.assert_called_once_with("")
 
-    def test_signal_emission_order(
-        self, mock_editor, mock_preview, mock_parent_window, qtbot
-    ):
+    def test_signal_emission_order(self, mock_editor, mock_preview, mock_parent_window, qtbot):
         """Test signal emitted after preview update."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -623,9 +566,7 @@ class TestSignalEmissionsEdgeCases:
                 # setHtml should be called
                 assert "setHtml" in call_order
 
-    def test_multiple_preview_updates_emit_multiple_signals(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_multiple_preview_updates_emit_multiple_signals(self, mock_editor, mock_preview, mock_parent_window):
         """Test each preview update emits its own signal."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -704,9 +645,7 @@ class TestScrollExtremeValues:
 class TestWidgetStateManagement:
     """Test suite for widget state management."""
 
-    def test_sync_respects_enabled_flag(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_respects_enabled_flag(self, mock_editor, mock_preview, mock_parent_window):
         """Test sync respects sync_scrolling_enabled flag."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -726,9 +665,7 @@ class TestWidgetStateManagement:
         handler.sync_editor_to_preview(500)
         preview_scrollbar.setValue.assert_not_called()
 
-    def test_can_toggle_sync_enabled_flag(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_can_toggle_sync_enabled_flag(self, mock_editor, mock_preview, mock_parent_window):
         """Test toggling sync_scrolling_enabled flag."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -746,9 +683,7 @@ class TestWidgetStateManagement:
         handler.sync_scrolling_enabled = False
         assert handler.sync_scrolling_enabled is False
 
-    def test_syncing_flag_prevents_reentrancy(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_syncing_flag_prevents_reentrancy(self, mock_editor, mock_preview, mock_parent_window):
         """Test is_syncing_scroll flag prevents reentrant calls."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -764,9 +699,7 @@ class TestWidgetStateManagement:
         preview_scrollbar = mock_preview.verticalScrollBar()
         preview_scrollbar.setValue.assert_not_called()
 
-    def test_syncing_flag_cleared_after_sync(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_syncing_flag_cleared_after_sync(self, mock_editor, mock_preview, mock_parent_window):
         """Test is_syncing_scroll flag cleared after sync completes."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -786,9 +719,7 @@ class TestWidgetStateManagement:
 class TestErrorHandling:
     """Test suite for error handling."""
 
-    def test_handles_null_html_gracefully(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_null_html_gracefully(self, mock_editor, mock_preview, mock_parent_window):
         """Test handling None as HTML input."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -809,9 +740,7 @@ class TestErrorHandling:
 class TestHTMLProcessingEdgeCases:
     """Test suite for HTML processing edge cases."""
 
-    def test_handles_very_large_html_content(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_very_large_html_content(self, mock_editor, mock_preview, mock_parent_window):
         """Test handling very large HTML content."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -827,9 +756,7 @@ class TestHTMLProcessingEdgeCases:
             styled_html = mock_set_html.call_args[0][0]
             assert len(styled_html) > 1000000  # >1MB
 
-    def test_handles_html_with_embedded_scripts(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_html_with_embedded_scripts(self, mock_editor, mock_preview, mock_parent_window):
         """Test handling HTML with embedded scripts."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -842,9 +769,7 @@ class TestHTMLProcessingEdgeCases:
             # Should not crash (QTextBrowser ignores scripts)
             mock_set_html.assert_called_once()
 
-    def test_handles_html_with_inline_styles(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_html_with_inline_styles(self, mock_editor, mock_preview, mock_parent_window):
         """Test handling HTML with inline styles."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -858,9 +783,7 @@ class TestHTMLProcessingEdgeCases:
             # Inline styles should be preserved
             assert 'style="color: red' in styled_html or "color: red" in styled_html
 
-    def test_handles_whitespace_only_html(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handles_whitespace_only_html(self, mock_editor, mock_preview, mock_parent_window):
         """Test handling HTML with only whitespace."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -880,9 +803,7 @@ class TestHTMLProcessingEdgeCases:
 class TestSyncFlagLifecycle:
     """Test suite for sync flag lifecycle management."""
 
-    def test_sync_flag_starts_false(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_flag_starts_false(self, mock_editor, mock_preview, mock_parent_window):
         """Test is_syncing_scroll initializes to False."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -890,9 +811,7 @@ class TestSyncFlagLifecycle:
 
         assert handler.is_syncing_scroll is False
 
-    def test_sync_flag_set_during_editor_sync(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_flag_set_during_editor_sync(self, mock_editor, mock_preview, mock_parent_window):
         """Test flag set during sync_editor_to_preview."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -914,9 +833,7 @@ class TestSyncFlagLifecycle:
         # Flag should be False after sync completes
         assert handler.is_syncing_scroll is False
 
-    def test_sync_flag_set_during_preview_sync(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_flag_set_during_preview_sync(self, mock_editor, mock_preview, mock_parent_window):
         """Test flag set during sync_preview_to_editor."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -938,9 +855,7 @@ class TestSyncFlagLifecycle:
         # Flag should be False after sync completes
         assert handler.is_syncing_scroll is False
 
-    def test_sync_flag_cleared_even_on_exception(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_sync_flag_cleared_even_on_exception(self, mock_editor, mock_preview, mock_parent_window):
         """Test sync flag cleared even if exception occurs."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -966,9 +881,7 @@ class TestSyncFlagLifecycle:
 class TestScrollbarBehaviorDetails:
     """Test suite for scrollbar behavior details."""
 
-    def test_retrieves_correct_scrollbar_from_editor(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_retrieves_correct_scrollbar_from_editor(self, mock_editor, mock_preview, mock_parent_window):
         """Test retrieves editor's vertical scrollbar correctly."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -980,9 +893,7 @@ class TestScrollbarBehaviorDetails:
         # Should call verticalScrollBar() on editor
         mock_editor.verticalScrollBar.assert_called()
 
-    def test_retrieves_correct_scrollbar_from_preview(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_retrieves_correct_scrollbar_from_preview(self, mock_editor, mock_preview, mock_parent_window):
         """Test retrieves preview's vertical scrollbar correctly."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -994,9 +905,7 @@ class TestScrollbarBehaviorDetails:
         # Should call verticalScrollBar() on preview
         mock_preview.verticalScrollBar.assert_called()
 
-    def test_queries_scrollbar_maximum_value(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_queries_scrollbar_maximum_value(self, mock_editor, mock_preview, mock_parent_window):
         """Test queries scrollbar maximum() for percentage calculation."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -1011,9 +920,7 @@ class TestScrollbarBehaviorDetails:
         editor_scrollbar.maximum.assert_called()
         preview_scrollbar.maximum.assert_called()
 
-    def test_calls_setvalue_on_target_scrollbar(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_calls_setvalue_on_target_scrollbar(self, mock_editor, mock_preview, mock_parent_window):
         """Test calls setValue() on target scrollbar."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -1033,9 +940,7 @@ class TestScrollbarBehaviorDetails:
 class TestMemoryManagementPreview:
     """Test suite for memory management with preview content."""
 
-    def test_repeated_preview_updates_do_not_leak(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_repeated_preview_updates_do_not_leak(self, mock_editor, mock_preview, mock_parent_window):
         """Test repeated preview updates don't cause memory leaks."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -1049,9 +954,7 @@ class TestMemoryManagementPreview:
 
             # Should not crash or consume excessive memory
 
-    def test_large_content_updates_handled_efficiently(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_large_content_updates_handled_efficiently(self, mock_editor, mock_preview, mock_parent_window):
         """Test large content updates handled efficiently."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -1065,9 +968,7 @@ class TestMemoryManagementPreview:
             # Should handle without crashing
             mock_set_html.assert_called_once()
 
-    def test_handler_cleanup_on_deletion(
-        self, mock_editor, mock_preview, mock_parent_window
-    ):
+    def test_handler_cleanup_on_deletion(self, mock_editor, mock_preview, mock_parent_window):
         """Test handler cleanup when deleted."""
         from asciidoc_artisan.ui.preview_handler import PreviewHandler
 
@@ -1084,9 +985,7 @@ class TestMemoryManagementPreview:
         assert editor_ref is not None
         assert preview_ref is not None
 
-    def test_multiple_handlers_do_not_interfere(
-        self, mock_editor, mock_preview, mock_parent_window, qapp
-    ):
+    def test_multiple_handlers_do_not_interfere(self, mock_editor, mock_preview, mock_parent_window, qapp):
         """Test multiple handler instances don't interfere."""
         from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 

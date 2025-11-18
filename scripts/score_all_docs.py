@@ -79,9 +79,7 @@ def score_document(file_path: Path) -> Dict[str, float]:
             "gunning_fog": textstat.gunning_fog(clean_text),
             "smog_index": textstat.smog_index(clean_text),
             "coleman_liau_index": textstat.coleman_liau_index(clean_text),
-            "automated_readability_index": textstat.automated_readability_index(
-                clean_text
-            ),
+            "automated_readability_index": textstat.automated_readability_index(clean_text),
             "word_count": len(clean_text.split()),
             "sentence_count": textstat.sentence_count(clean_text),
             "avg_sentence_length": textstat.avg_sentence_length(clean_text),
@@ -151,9 +149,7 @@ def main():
     print(f"Analyzed: {len(results)} files\n")
 
     # Sort by grade level
-    valid_results = [
-        (path, scores) for path, scores in results if "error" not in scores
-    ]
+    valid_results = [(path, scores) for path, scores in results if "error" not in scores]
     valid_results.sort(key=lambda x: x[1]["flesch_kincaid_grade"])
 
     # Print detailed results
@@ -206,12 +202,8 @@ def main():
         print(
             f"  ✅ EXCELLENT (≤5.0):   {excellent_count:3d} files ({excellent_count / len(valid_results) * 100:.1f}%)"
         )
-        print(
-            f"  ✓  GOOD (5.1-8.0):     {good_count:3d} files ({good_count / len(valid_results) * 100:.1f}%)"
-        )
-        print(
-            f"  ⚠  FAIR (8.1-12.0):    {fair_count:3d} files ({fair_count / len(valid_results) * 100:.1f}%)"
-        )
+        print(f"  ✓  GOOD (5.1-8.0):     {good_count:3d} files ({good_count / len(valid_results) * 100:.1f}%)")
+        print(f"  ⚠  FAIR (8.1-12.0):    {fair_count:3d} files ({fair_count / len(valid_results) * 100:.1f}%)")
         print(
             f"  ❌ NEEDS WORK (>12.0): {needs_work_count:3d} files ({needs_work_count / len(valid_results) * 100:.1f}%)"
         )
@@ -230,9 +222,7 @@ def main():
                 words = scores["word_count"]
                 avg_sent = scores["avg_sentence_length"]
                 print(f"\n📄 {path}")
-                print(
-                    f"   Grade: {grade:.1f} | Words: {words} | Avg Sentence: {avg_sent:.1f} words"
-                )
+                print(f"   Grade: {grade:.1f} | Words: {words} | Avg Sentence: {avg_sent:.1f} words")
 
     print("\n" + "=" * 100)
     print("LEGEND:")

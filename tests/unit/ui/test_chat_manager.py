@@ -74,9 +74,7 @@ class TestChatManagerInitialization:
         assert manager._settings is mock_settings
         assert manager._current_backend == "ollama"
 
-    def test_initialization_connects_signals(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_initialization_connects_signals(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test initialization connects chat bar signals."""
         ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -87,9 +85,7 @@ class TestChatManagerInitialization:
         mock_chat_bar.context_mode_changed.connect.assert_called_once()
         mock_chat_bar.scan_models_requested.connect.assert_called_once()
 
-    def test_initialization_creates_debounce_timer(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_initialization_creates_debounce_timer(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test initialization creates debounce timer."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -97,17 +93,13 @@ class TestChatManagerInitialization:
         assert manager._debounce_timer.interval() == 500
         assert manager._debounce_timer.isSingleShot()
 
-    def test_initialization_not_processing_initially(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_initialization_not_processing_initially(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test manager is not processing initially."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         assert manager._is_processing is False
 
-    def test_initialization_empty_chat_history(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_initialization_empty_chat_history(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test manager starts with empty chat history cache."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -117,9 +109,7 @@ class TestChatManagerInitialization:
 class TestBackendSwitching:
     """Test AI backend switching."""
 
-    def test_switch_backend_to_claude(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_to_claude(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test switching from Ollama to Claude."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -129,9 +119,7 @@ class TestBackendSwitching:
         assert manager._current_backend == "claude"
         assert mock_settings.ai_backend == "claude"
 
-    def test_switch_backend_sets_default_claude_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_sets_default_claude_model(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test switching to Claude sets default model if not configured."""
         mock_settings.claude_model = None
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -141,9 +129,7 @@ class TestBackendSwitching:
 
         assert mock_settings.claude_model == "claude-sonnet-4-20250514"
 
-    def test_switch_backend_reloads_models(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_reloads_models(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test backend switch reloads available models."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -152,9 +138,7 @@ class TestBackendSwitching:
 
         mock_load.assert_called_once()
 
-    def test_switch_backend_updates_chat_bar_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_updates_chat_bar_model(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test backend switch updates selected model in chat bar."""
         mock_settings.claude_model = "claude-haiku-3-20250307"
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -164,9 +148,7 @@ class TestBackendSwitching:
 
         mock_chat_bar.set_model.assert_called_with("claude-haiku-3-20250307")
 
-    def test_switch_backend_updates_scan_button_visibility(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_updates_scan_button_visibility(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test backend switch updates Scan Models button visibility."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -176,9 +158,7 @@ class TestBackendSwitching:
         # Scan button visible for Claude
         mock_chat_bar.set_scan_models_visible.assert_called_with(True)
 
-    def test_switch_backend_emits_settings_changed(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_switch_backend_emits_settings_changed(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test backend switch emits settings changed signal."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -190,9 +170,7 @@ class TestBackendSwitching:
 class TestModelLoading:
     """Test model loading for both backends."""
 
-    def test_load_available_models_ollama(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_available_models_ollama(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test load_available_models calls Ollama loader."""
         mock_settings.ai_backend = "ollama"
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -203,9 +181,7 @@ class TestModelLoading:
 
         mock_load.assert_called_once()
 
-    def test_load_available_models_claude(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_available_models_claude(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test load_available_models calls Claude loader."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -215,16 +191,12 @@ class TestModelLoading:
 
         mock_load.assert_called_once()
 
-    def test_load_ollama_models_success(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_ollama_models_success(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test loading Ollama models when ollama list succeeds."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(
-                returncode=0, stdout="NAME\nqwen2.5-coder:7b\ndeepseek-coder\n"
-            )
+            mock_run.return_value = Mock(returncode=0, stdout="NAME\nqwen2.5-coder:7b\ndeepseek-coder\n")
 
             manager._load_ollama_models()
 
@@ -234,9 +206,7 @@ class TestModelLoading:
         assert "qwen2.5-coder:7b" in models
         assert "deepseek-coder" in models
 
-    def test_load_ollama_models_not_found(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_ollama_models_not_found(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test loading Ollama models when ollama not found."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -248,15 +218,11 @@ class TestModelLoading:
         models = mock_chat_bar.set_models.call_args[0][0]
         assert "gnokit/improve-grammer" in models
 
-    def test_load_ollama_models_timeout(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_ollama_models_timeout(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test loading Ollama models handles timeout."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch(
-            "subprocess.run", side_effect=subprocess.TimeoutExpired("ollama", 3)
-        ):
+        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("ollama", 3)):
             manager._load_ollama_models()
 
         # Should fall back to defaults
@@ -267,9 +233,7 @@ class TestModelLoading:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         # Mock ClaudeClient at the correct import location (inside the method)
-        with patch(
-            "asciidoc_artisan.claude.claude_client.ClaudeClient"
-        ) as mock_client_class:
+        with patch("asciidoc_artisan.claude.claude_client.ClaudeClient") as mock_client_class:
             mock_client_class.AVAILABLE_MODELS = [
                 "claude-sonnet-4-20250514",
                 "claude-haiku-3-20250307",
@@ -297,9 +261,7 @@ class TestMessageHandling:
         # Should have added message to panel
         mock_chat_panel.add_user_message.assert_called_once()
 
-    def test_handle_user_message_adds_to_panel(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_handle_user_message_adds_to_panel(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test user message is added to chat panel."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -307,16 +269,12 @@ class TestMessageHandling:
 
         # Verify add_user_message was called with correct positional arguments
         mock_chat_panel.add_user_message.assert_called_once()
-        call_args = mock_chat_panel.add_user_message.call_args[
-            0
-        ]  # positional args tuple
+        call_args = mock_chat_panel.add_user_message.call_args[0]  # positional args tuple
         assert call_args[0] == "Test question"  # message
         assert call_args[1] == "qwen2.5-coder:7b"  # model
         assert call_args[2] == "syntax"  # context_mode
 
-    def test_handle_user_message_emits_to_worker(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_handle_user_message_emits_to_worker(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test user message is sent to worker."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -352,9 +310,7 @@ class TestMessageHandling:
         # Should emit status message
         assert "Connection failed" in blocker.args[0]
 
-    def test_handle_operation_cancelled(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_handle_operation_cancelled(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test handling operation cancellation."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._is_processing = True
@@ -368,9 +324,7 @@ class TestMessageHandling:
 class TestHistoryManagement:
     """Test chat history persistence."""
 
-    def test_load_chat_history_from_settings(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_chat_history_from_settings(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test loading chat history from settings."""
         mock_settings.ollama_chat_history = [
             {
@@ -388,9 +342,7 @@ class TestHistoryManagement:
         # Should load messages into panel
         mock_chat_panel.load_messages.assert_called_once()
 
-    def test_save_chat_history_to_settings(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_save_chat_history_to_settings(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test saving chat history to settings."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -410,9 +362,7 @@ class TestHistoryManagement:
         # Should save to settings
         assert len(mock_settings.ollama_chat_history) == 1
 
-    def test_save_chat_history_limits_to_max(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_save_chat_history_limits_to_max(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test chat history is limited to max size."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -438,9 +388,7 @@ class TestHistoryManagement:
 class TestVisibilityManagement:
     """Test chat visibility management."""
 
-    def test_should_show_chat_when_enabled_and_model_set(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_should_show_chat_when_enabled_and_model_set(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test chat should show when enabled with model."""
         mock_settings.ollama_enabled = True
         mock_settings.ollama_chat_enabled = True
@@ -451,9 +399,7 @@ class TestVisibilityManagement:
 
         assert result is True
 
-    def test_should_show_chat_false_when_disabled(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_should_show_chat_false_when_disabled(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test chat should not show when disabled."""
         mock_settings.ai_chat_enabled = False  # Backend-agnostic flag
         mock_settings.ollama_chat_enabled = False
@@ -463,9 +409,7 @@ class TestVisibilityManagement:
 
         assert result is False
 
-    def test_should_show_chat_false_when_no_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_should_show_chat_false_when_no_model(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test chat should not show when no model set."""
         mock_settings.ollama_model = None
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -474,13 +418,9 @@ class TestVisibilityManagement:
 
         assert result is False
 
-    def test_update_visibility_shows_when_should_show(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_update_visibility_shows_when_should_show(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test update_visibility shows chat when conditions met."""
-        manager = ChatManager(
-            mock_chat_bar, mock_chat_panel, mock_settings, parent=None
-        )
+        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings, parent=None)
 
         # Mock the parent after initialization
         mock_parent = Mock()
@@ -501,13 +441,9 @@ class TestVisibilityManagement:
         # Should set chat_container visible
         mock_parent.chat_container.setVisible.assert_called_with(True)
 
-    def test_update_visibility_hides_when_should_not_show(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_update_visibility_hides_when_should_not_show(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test update_visibility hides chat when conditions not met."""
-        manager = ChatManager(
-            mock_chat_bar, mock_chat_panel, mock_settings, parent=None
-        )
+        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings, parent=None)
 
         # Mock the parent after initialization
         mock_parent = Mock()
@@ -540,9 +476,7 @@ class TestSignalHandlers:
 
         mock_chat_panel.clear_messages.assert_called_once()
 
-    def test_on_clear_requested_saves_history(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_on_clear_requested_saves_history(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test clearing chat saves empty history."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -553,9 +487,7 @@ class TestSignalHandlers:
         # Verify panel was cleared
         mock_chat_panel.clear_messages.assert_called_once()
 
-    def test_on_cancel_requested(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_on_cancel_requested(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test cancel request emits status message."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -565,9 +497,7 @@ class TestSignalHandlers:
         # Should emit canceling message
         assert "cancel" in blocker.args[0].lower()
 
-    def test_on_model_changed_ollama(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_on_model_changed_ollama(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test model changed updates Ollama settings."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
@@ -579,9 +509,7 @@ class TestSignalHandlers:
 
         assert mock_settings.ollama_model == "new-model"
 
-    def test_on_model_changed_claude(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_on_model_changed_claude(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test model changed updates Claude settings."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -593,9 +521,7 @@ class TestSignalHandlers:
 
         assert mock_settings.claude_model == "claude-haiku-3-20250307"
 
-    def test_on_context_mode_changed(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_on_context_mode_changed(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test context mode changed updates settings."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -607,9 +533,7 @@ class TestSignalHandlers:
 class TestDocumentContext:
     """Test document context provider."""
 
-    def test_set_document_content_provider(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_set_document_content_provider(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test setting document content provider."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -618,9 +542,7 @@ class TestDocumentContext:
 
         assert manager._document_content_provider is provider
 
-    def test_get_document_context_returns_content(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_get_document_context_returns_content(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test getting document context."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -631,9 +553,7 @@ class TestDocumentContext:
 
         assert result == "Document content"
 
-    def test_get_document_context_returns_empty_when_no_provider(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_get_document_context_returns_empty_when_no_provider(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test getting document context without provider returns empty."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -724,9 +644,7 @@ class TestExportAndStats:
 class TestAutoDownloadModel:
     """Test auto-download default model functionality."""
 
-    def test_auto_download_default_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_auto_download_default_model(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test auto-downloading default Ollama model."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -741,9 +659,7 @@ class TestAutoDownloadModel:
             call_args = mock_popen.call_args[0][0]
             assert call_args == ["ollama", "pull", "gnokit/improve-grammer"]
 
-    def test_auto_download_model_handles_error(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_auto_download_model_handles_error(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test auto-download handles subprocess error."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -755,9 +671,7 @@ class TestAutoDownloadModel:
 class TestScanModels:
     """Test scan models functionality for Claude."""
 
-    def test_scan_models_claude_success(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_scan_models_claude_success(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test scanning Claude models successfully."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -780,9 +694,7 @@ class TestScanModels:
         assert call_args[0] == "system"
         assert "Available Models" in call_args[1]
 
-    def test_scan_models_claude_failure(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_scan_models_claude_failure(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test scanning Claude models with API error."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -804,9 +716,7 @@ class TestScanModels:
         assert "Failed" in call_args[1]
         assert "API key invalid" in call_args[1]
 
-    def test_scan_models_claude_exception(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_scan_models_claude_exception(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test scanning Claude models with exception."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -822,9 +732,7 @@ class TestScanModels:
         call_args = mock_chat_panel.add_message.call_args[0]
         assert "Error Scanning Models" in call_args[1]
 
-    def test_scan_models_not_available_for_ollama(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_scan_models_not_available_for_ollama(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test scan models not available for Ollama backend."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
@@ -839,9 +747,7 @@ class TestScanModels:
 class TestModelValidation:
     """Test model validation for both backends."""
 
-    def test_validate_model_empty_returns_false(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_empty_returns_false(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test validating empty model name returns False."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -849,9 +755,7 @@ class TestModelValidation:
 
         assert result is False
 
-    def test_validate_model_claude_valid(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_claude_valid(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test validating valid Claude model."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -866,9 +770,7 @@ class TestModelValidation:
 
         assert result is True
 
-    def test_validate_model_claude_invalid(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_claude_invalid(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test validating invalid Claude model."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -882,9 +784,7 @@ class TestModelValidation:
 
         assert result is False
 
-    def test_validate_model_claude_exception(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_claude_exception(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Claude model validation handles exception."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -898,9 +798,7 @@ class TestModelValidation:
         # Should return False on error
         assert result is False
 
-    def test_validate_model_ollama_not_found(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_ollama_not_found(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Ollama validation when ollama not found."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
@@ -911,24 +809,18 @@ class TestModelValidation:
         # Should return False when ollama not found
         assert result is False
 
-    def test_validate_model_ollama_timeout(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_ollama_timeout(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Ollama validation handles timeout gracefully."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
 
-        with patch(
-            "subprocess.run", side_effect=subprocess.TimeoutExpired("ollama", 2)
-        ):
+        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("ollama", 2)):
             result = manager._validate_model("qwen2.5-coder:7b")
 
         # Should return True on timeout (assume valid to avoid blocking)
         assert result is True
 
-    def test_validate_model_ollama_command_failed(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_ollama_command_failed(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Ollama validation when ollama list fails."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
@@ -941,9 +833,7 @@ class TestModelValidation:
         # Should return False when command fails
         assert result is False
 
-    def test_validate_model_ollama_exception(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_ollama_exception(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Ollama validation handles generic exception."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
@@ -954,9 +844,7 @@ class TestModelValidation:
         # Should return True on error (assume valid to avoid blocking)
         assert result is True
 
-    def test_validate_model_unknown_backend(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_unknown_backend(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test validation with unknown backend returns False."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "unknown"
@@ -969,9 +857,7 @@ class TestModelValidation:
 class TestTogglePanelVisibility:
     """Test toggle panel visibility functionality."""
 
-    def test_toggle_panel_visibility_shows_when_hidden(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_toggle_panel_visibility_shows_when_hidden(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test toggling panel visibility from hidden to shown."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -988,9 +874,7 @@ class TestTogglePanelVisibility:
         assert mock_settings.ai_chat_enabled is True
         assert mock_settings.ollama_chat_enabled is True
 
-    def test_toggle_panel_visibility_hides_when_shown(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_toggle_panel_visibility_hides_when_shown(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test toggling panel visibility from shown to hidden."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1007,9 +891,7 @@ class TestTogglePanelVisibility:
         assert mock_settings.ai_chat_enabled is False
         assert mock_settings.ollama_chat_enabled is False
 
-    def test_toggle_panel_visibility_no_parent(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_toggle_panel_visibility_no_parent(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test toggle panel visibility without parent does nothing."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1017,9 +899,7 @@ class TestTogglePanelVisibility:
             # Should not crash
             manager.toggle_panel_visibility()
 
-    def test_toggle_panel_visibility_no_chat_container(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_toggle_panel_visibility_no_chat_container(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test toggle panel visibility without chat_container does nothing."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1034,9 +914,7 @@ class TestInitializeEdgeCases:
     """Test initialize method edge cases."""
 
     @patch("asciidoc_artisan.core.SecureCredentials")
-    def test_initialize_auto_switch_to_claude(
-        self, mock_creds_class, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_initialize_auto_switch_to_claude(self, mock_creds_class, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test initialize auto-switches to Claude when Ollama disabled."""
         mock_settings.ollama_enabled = False
         mock_creds = Mock()
@@ -1052,9 +930,7 @@ class TestInitializeEdgeCases:
         # Should switch to Claude
         mock_switch.assert_called_once_with("claude")
 
-    def test_initialize_sets_claude_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_initialize_sets_claude_model(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test initialize sets Claude model from settings."""
         mock_settings.ai_backend = "claude"
         mock_settings.claude_model = "claude-haiku-4-5"
@@ -1064,9 +940,7 @@ class TestInitializeEdgeCases:
         with patch.object(manager, "_load_available_models"):
             with patch.object(manager, "_load_chat_history"):
                 with patch.object(manager, "_update_visibility"):
-                    with patch(
-                        "asciidoc_artisan.core.SecureCredentials"
-                    ) as mock_creds_class:
+                    with patch("asciidoc_artisan.core.SecureCredentials") as mock_creds_class:
                         mock_creds = Mock()
                         mock_creds.has_anthropic_key.return_value = False
                         mock_creds_class.return_value = mock_creds
@@ -1080,9 +954,7 @@ class TestInitializeEdgeCases:
 class TestOllamaModelLoadingEdgeCases:
     """Test Ollama model loading edge cases."""
 
-    def test_load_ollama_models_no_models_triggers_download(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_ollama_models_no_models_triggers_download(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test loading Ollama with no models triggers auto-download."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1096,9 +968,7 @@ class TestOllamaModelLoadingEdgeCases:
             # Should trigger auto-download
             mock_download.assert_called_once()
 
-    def test_load_ollama_models_generic_exception(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_ollama_models_generic_exception(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Ollama model loading handles generic exception."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1132,17 +1002,13 @@ class TestClaudeModelLoadingEdgeCases:
             # Should show models available message
             assert "available" in blocker.args[0].lower()
 
-    def test_load_claude_models_exception(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_claude_models_exception(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Claude model loading handles exception gracefully."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         # Patch to raise exception when accessing AVAILABLE_MODELS
         with patch("asciidoc_artisan.claude.ClaudeClient") as mock_client_class:
-            mock_client_class.AVAILABLE_MODELS.copy.side_effect = ImportError(
-                "Module not found"
-            )
+            mock_client_class.AVAILABLE_MODELS.copy.side_effect = ImportError("Module not found")
             with patch("asciidoc_artisan.core.SecureCredentials"):
                 manager._load_claude_models()
 
@@ -1151,9 +1017,7 @@ class TestClaudeModelLoadingEdgeCases:
         models = mock_chat_bar.set_models.call_args[0][0]
         assert "claude-sonnet-4-20250514" in models
 
-    def test_load_claude_models_adds_current_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_claude_models_adds_current_model(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test Claude loading adds current model if not in list."""
         mock_settings.claude_model = "claude-opus-4-20250514"
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -1171,9 +1035,7 @@ class TestClaudeModelLoadingEdgeCases:
 class TestLoadAvailableModelsEdgeCases:
     """Test _load_available_models edge cases."""
 
-    def test_load_available_models_unknown_backend(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_load_available_models_unknown_backend(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test loading models with unknown backend shows error."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "invalid_backend"
@@ -1189,9 +1051,7 @@ class TestLoadAvailableModelsEdgeCases:
 class TestSwitchBackendEdgeCases:
     """Test _switch_backend edge cases."""
 
-    def test_switch_backend_sets_default_ollama_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_sets_default_ollama_model(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test switching to Ollama sets default model if not configured."""
         mock_settings.ollama_model = None
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -1202,9 +1062,7 @@ class TestSwitchBackendEdgeCases:
 
         assert mock_settings.ollama_model == "gnokit/improve-grammer"
 
-    def test_switch_backend_updates_parent_checkmarks(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_updates_parent_checkmarks(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test backend switch updates parent window checkmarks."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1218,9 +1076,7 @@ class TestSwitchBackendEdgeCases:
         # Should call parent method
         mock_parent._update_ai_backend_checkmarks.assert_called_once()
 
-    def test_switch_backend_sets_ollama_model_in_chat_bar(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_switch_backend_sets_ollama_model_in_chat_bar(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test switching to Ollama sets model in chat bar."""
         mock_settings.ollama_model = "deepseek-coder"
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -1234,9 +1090,7 @@ class TestSwitchBackendEdgeCases:
 class TestReentrancyGuard:
     """Test reentrancy guard in message handling."""
 
-    def test_on_message_sent_blocks_when_processing(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_on_message_sent_blocks_when_processing(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test message sent is blocked when already processing."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._is_processing = True
@@ -1253,9 +1107,7 @@ class TestReentrancyGuard:
 class TestDocumentContentInMessages:
     """Test document content inclusion in messages."""
 
-    def test_on_message_sent_includes_document_content(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_on_message_sent_includes_document_content(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test message includes document content when enabled."""
         mock_settings.chat_send_document = True
         mock_settings.ollama_chat_send_document = True
@@ -1274,9 +1126,7 @@ class TestDocumentContentInMessages:
 class TestOnModelChangedEdgeCases:
     """Test _on_model_changed edge cases."""
 
-    def test_on_model_changed_empty_model_name(
-        self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
-    ):
+    def test_on_model_changed_empty_model_name(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
         """Test model changed with empty model name shows error."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1286,9 +1136,7 @@ class TestOnModelChangedEdgeCases:
         # Should emit error
         assert "error" in blocker.args[0].lower()
 
-    def test_on_model_changed_invalid_claude_model_reverts(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_on_model_changed_invalid_claude_model_reverts(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test invalid Claude model change reverts to current."""
         mock_settings.claude_model = "claude-sonnet-4-20250514"
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
@@ -1327,9 +1175,7 @@ class TestShouldShowChatEdgeCases:
         mock_switch.assert_called_once_with("claude")
         assert result is True
 
-    def test_should_show_chat_claude_backend(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_should_show_chat_claude_backend(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test _should_show_chat with Claude backend."""
         mock_settings.ai_chat_enabled = True
         mock_settings.claude_model = "claude-sonnet-4-20250514"
@@ -1346,9 +1192,7 @@ class TestShouldShowChatEdgeCases:
 
         assert result is True
 
-    def test_should_show_chat_unknown_backend(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_should_show_chat_unknown_backend(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test _should_show_chat with unknown backend returns False."""
         mock_settings.ai_chat_enabled = True
 
@@ -1407,9 +1251,7 @@ class TestUpdateSettingsEdgeCases:
     """Test update_settings edge cases."""
 
     @patch("asciidoc_artisan.core.SecureCredentials")
-    def test_update_settings_switches_to_claude(
-        self, mock_creds_class, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_update_settings_switches_to_claude(self, mock_creds_class, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test update_settings switches to Claude when Ollama disabled."""
         mock_creds = Mock()
         mock_creds.has_anthropic_key.return_value = True
@@ -1433,9 +1275,7 @@ class TestUpdateSettingsEdgeCases:
         mock_switch.assert_called_once_with("claude")
 
     @patch("asciidoc_artisan.core.SecureCredentials")
-    def test_update_settings_no_switch_needed(
-        self, mock_creds_class, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_update_settings_no_switch_needed(self, mock_creds_class, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test update_settings without backend switch."""
         mock_creds = Mock()
         mock_creds.has_anthropic_key.return_value = False
@@ -1461,9 +1301,7 @@ class TestUpdateSettingsEdgeCases:
         # Should set model
         mock_chat_bar.set_model.assert_called_with("qwen2.5-coder:7b")
 
-    def test_update_settings_sets_claude_model(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_update_settings_sets_claude_model(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test update_settings sets Claude model when backend is Claude."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
@@ -1498,9 +1336,7 @@ class TestHandleResponseChunk:
         manager.handle_response_chunk("Partial response")
 
         # Should append to last message
-        mock_chat_panel.append_to_last_message.assert_called_once_with(
-            "Partial response"
-        )
+        mock_chat_panel.append_to_last_message.assert_called_once_with("Partial response")
 
 
 class TestTrimHistory:
@@ -1533,9 +1369,7 @@ class TestTrimHistory:
 class TestChatManagerCoverageEdgeCases:
     """Additional tests to achieve 97%+ coverage for chat_manager."""
 
-    def test_load_chat_history_invalid_message_skipped(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_load_chat_history_invalid_message_skipped(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test load_chat_history skips invalid messages (lines 422-424)."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
@@ -1565,9 +1399,7 @@ class TestChatManagerCoverageEdgeCases:
         messages = mock_chat_panel.load_messages.call_args[0][0]
         assert len(messages) == 2
 
-    def test_validate_model_ollama_list_output_parsing(
-        self, mock_chat_bar, mock_chat_panel, mock_settings
-    ):
+    def test_validate_model_ollama_list_output_parsing(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test validate_model parses ollama list output (lines 493-503)."""
         mock_settings.chat_backend = "ollama"
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)

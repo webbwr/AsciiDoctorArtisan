@@ -56,9 +56,7 @@ class TestDocumentConverterCoverage:
         # 3. pandoc.pypandoc_available is False - pypandoc not installed
         # 4. auto_install_pypandoc() returns (False, msg) - auto-install fails
 
-        with patch(
-            "asciidoc_artisan.document_converter.pandoc"
-        ) as mock_pandoc_instance:
+        with patch("asciidoc_artisan.document_converter.pandoc") as mock_pandoc_instance:
             # Setup: pandoc binary found but version check failed
             mock_pandoc_instance.check_installation.return_value = (
                 False,
@@ -77,9 +75,7 @@ class TestDocumentConverterCoverage:
 
             assert success is False
             assert "Pandoc found but version check failed" in message
-            assert (
-                "Installation Instructions" in message or "install" in message.lower()
-            )
+            assert "Installation Instructions" in message or "install" in message.lower()
             mock_pandoc_instance.auto_install_pypandoc.assert_called_once()
 
     def test_ensure_pandoc_auto_install_success(self):
@@ -90,9 +86,7 @@ class TestDocumentConverterCoverage:
         # 3. pandoc.pypandoc_available is False - pypandoc not installed
         # 4. auto_install_pypandoc() returns (True, msg) - auto-install succeeds
 
-        with patch(
-            "asciidoc_artisan.document_converter.pandoc"
-        ) as mock_pandoc_instance:
+        with patch("asciidoc_artisan.document_converter.pandoc") as mock_pandoc_instance:
             # Setup: pandoc binary found but version check failed
             mock_pandoc_instance.check_installation.return_value = (
                 False,

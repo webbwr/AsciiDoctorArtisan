@@ -185,9 +185,7 @@ class TestEventTracking:
     def test_track_event_includes_session_id(self, tmp_path):
         """Test track_event includes session ID."""
         session_id = "test-session-123"
-        collector = TelemetryCollector(
-            enabled=True, session_id=session_id, data_dir=tmp_path
-        )
+        collector = TelemetryCollector(enabled=True, session_id=session_id, data_dir=tmp_path)
 
         collector.track_event("test_event")
 
@@ -365,9 +363,7 @@ class TestPrivacySanitization:
         """Test sanitize_data preserves int/float/bool."""
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
-        sanitized = collector._sanitize_data(
-            {"count": 5, "ratio": 0.5, "enabled": True}
-        )
+        sanitized = collector._sanitize_data({"count": 5, "ratio": 0.5, "enabled": True})
 
         assert sanitized["count"] == 5
         assert sanitized["ratio"] == 0.5
@@ -401,9 +397,7 @@ class TestPrivacySanitization:
         """Test sanitize_data works recursively."""
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
-        sanitized = collector._sanitize_data(
-            {"outer": {"inner": {"path": "/home/user/file.txt"}}}
-        )
+        sanitized = collector._sanitize_data({"outer": {"inner": {"path": "/home/user/file.txt"}}})
 
         assert sanitized["outer"]["inner"]["path"] == "<path redacted>"
 
@@ -490,9 +484,7 @@ class TestFileRotation:
         """Test rotate_events skips events with invalid timestamps."""
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
-        events = [
-            {"event_type": "malformed", "timestamp": "invalid", "session_id": "test"}
-        ]
+        events = [{"event_type": "malformed", "timestamp": "invalid", "session_id": "test"}]
 
         rotated = collector._rotate_events(events)
 
@@ -561,9 +553,7 @@ class TestStatistics:
     def test_get_statistics_includes_session_id(self, tmp_path):
         """Test get_statistics includes session ID."""
         session_id = "test-session-123"
-        collector = TelemetryCollector(
-            enabled=True, session_id=session_id, data_dir=tmp_path
-        )
+        collector = TelemetryCollector(enabled=True, session_id=session_id, data_dir=tmp_path)
 
         stats = collector.get_statistics()
 
@@ -754,9 +744,7 @@ class TestExceptionHandling:
         collector.flush()
 
         # Mock Path.unlink at the instance level to raise permission error
-        with mock.patch.object(
-            Path, "unlink", side_effect=PermissionError("Access denied")
-        ):
+        with mock.patch.object(Path, "unlink", side_effect=PermissionError("Access denied")):
             # clear_all_data should not raise exception
             collector.clear_all_data()
             # Buffer should be cleared even if file deletion failed

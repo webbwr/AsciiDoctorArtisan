@@ -136,9 +136,7 @@ class TestSupportedFormatsDialog:
         assert callable(manager.show_supported_formats)
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=False)
-    def test_show_supported_formats_unavailable(
-        self, mock_is_available, mock_main_window
-    ):
+    def test_show_supported_formats_unavailable(self, mock_is_available, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         manager = DialogManager(mock_main_window)
@@ -349,9 +347,7 @@ class TestPandocStatusEdgeCases:
     """Test edge cases for Pandoc status dialog."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_pandoc_status_with_old_version(
-        self, mock_is_available, mock_main_window
-    ):
+    def test_show_pandoc_status_with_old_version(self, mock_is_available, mock_main_window):
         import sys
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -399,9 +395,7 @@ class TestPandocStatusEdgeCases:
                 sys.modules.pop("pypandoc", None)
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_pandoc_status_with_exception(
-        self, mock_is_available, mock_main_window
-    ):
+    def test_show_pandoc_status_with_exception(self, mock_is_available, mock_main_window):
         import sys
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -429,9 +423,7 @@ class TestSupportedFormatsEdgeCases:
     """Test edge cases for supported formats dialog."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_supported_formats_available(
-        self, mock_is_available, mock_main_window
-    ):
+    def test_show_supported_formats_available(self, mock_is_available, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Note: show_supported_formats() doesn't actually call get_pandoc_formats,
@@ -442,9 +434,7 @@ class TestSupportedFormatsEdgeCases:
         assert mock_main_window.status_manager.show_message.called
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_supported_formats_with_exception(
-        self, mock_is_available, mock_main_window
-    ):
+    def test_show_supported_formats_with_exception(self, mock_is_available, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         # Note: show_supported_formats() doesn't use pypandoc.get_pandoc_formats,
@@ -514,9 +504,7 @@ class TestAnthropicStatusEdgeCases:
         assert mock_main_window.status_manager.show_message.called
 
     @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
-    def test_show_anthropic_status_with_exception(
-        self, mock_creds_cls, mock_main_window
-    ):
+    def test_show_anthropic_status_with_exception(self, mock_creds_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         mock_creds_cls.side_effect = Exception("Keyring error")
@@ -526,9 +514,7 @@ class TestAnthropicStatusEdgeCases:
         manager.show_anthropic_status()
 
     @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
-    def test_show_anthropic_status_with_different_models(
-        self, mock_creds_cls, mock_main_window
-    ):
+    def test_show_anthropic_status_with_different_models(self, mock_creds_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
         mock_creds = Mock()
@@ -724,9 +710,7 @@ class TestTelemetryStatusDialogEnabled:
     """Test telemetry status dialog when enabled."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_show_telemetry_enabled_with_session_id(
-        self, mock_msgbox_cls, mock_main_window
-    ):
+    def test_show_telemetry_enabled_with_session_id(self, mock_msgbox_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -755,9 +739,7 @@ class TestTelemetryStatusDialogEnabled:
         assert "test-session-123" in call_args
 
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_show_telemetry_enabled_without_session_id(
-        self, mock_msgbox_cls, mock_main_window
-    ):
+    def test_show_telemetry_enabled_without_session_id(self, mock_msgbox_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -781,9 +763,7 @@ class TestTelemetryStatusDialogEnabled:
         assert "⚠️ No session ID generated yet" in call_args
 
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_show_telemetry_enabled_with_storage_location(
-        self, mock_msgbox_cls, mock_main_window
-    ):
+    def test_show_telemetry_enabled_with_storage_location(self, mock_msgbox_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -840,9 +820,7 @@ class TestTelemetryOpenFileButton:
     """Test telemetry status dialog 'Open File' button."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_button_added_when_file_exists(
-        self, mock_msgbox_cls, mock_main_window
-    ):
+    def test_open_file_button_added_when_file_exists(self, mock_msgbox_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -864,9 +842,7 @@ class TestTelemetryOpenFileButton:
         mock_msgbox.addButton.assert_called()
 
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_button_not_added_when_file_not_exists(
-        self, mock_msgbox_cls, mock_main_window
-    ):
+    def test_open_file_button_not_added_when_file_not_exists(self, mock_msgbox_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -890,9 +866,7 @@ class TestTelemetryOpenFileButton:
     @patch("asciidoc_artisan.ui.dialog_manager.platform.system", return_value="Windows")
     @patch("asciidoc_artisan.ui.dialog_manager.subprocess.run")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_windows(
-        self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window
-    ):
+    def test_open_file_windows(self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -930,9 +904,7 @@ class TestTelemetryOpenFileButton:
     @patch("asciidoc_artisan.ui.dialog_manager.platform.system", return_value="Darwin")
     @patch("asciidoc_artisan.ui.dialog_manager.subprocess.run")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_macos(
-        self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window
-    ):
+    def test_open_file_macos(self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1014,9 +986,7 @@ class TestTelemetryOpenFileButton:
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
     @patch(
         "builtins.open",
-        side_effect=lambda *args, **kwargs: Mock(
-            read=Mock(return_value="microsoft wsl")
-        ),
+        side_effect=lambda *args, **kwargs: Mock(read=Mock(return_value="microsoft wsl")),
     )
     def test_open_file_wsl(
         self,
@@ -1068,9 +1038,7 @@ class TestTelemetryOpenFileButton:
         side_effect=Exception("subprocess error"),
     )
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_exception_handling(
-        self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window
-    ):
+    def test_open_file_exception_handling(self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1102,9 +1070,7 @@ class TestTelemetryOpenFileButton:
     @patch("asciidoc_artisan.ui.dialog_manager.platform.system", return_value="Windows")
     @patch("asciidoc_artisan.ui.dialog_manager.subprocess.run")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_subprocess_error(
-        self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window
-    ):
+    def test_open_file_subprocess_error(self, mock_msgbox_cls, mock_subprocess, mock_platform, mock_main_window):
         from pathlib import Path
         from subprocess import CalledProcessError
 
@@ -1142,9 +1108,7 @@ class TestTelemetryChangeDirectoryButton:
     """Test telemetry status dialog 'Change Directory' button."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_change_directory_button_always_added(
-        self, mock_msgbox_cls, mock_main_window
-    ):
+    def test_change_directory_button_always_added(self, mock_msgbox_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1167,9 +1131,7 @@ class TestTelemetryChangeDirectoryButton:
 
     @patch("asciidoc_artisan.ui.dialog_manager.QFileDialog")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_change_directory_user_cancels_selection(
-        self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window
-    ):
+    def test_change_directory_user_cancels_selection(self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1200,9 +1162,7 @@ class TestTelemetryChangeDirectoryButton:
 
     @patch("asciidoc_artisan.ui.dialog_manager.QFileDialog")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_change_directory_user_cancels_confirmation(
-        self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window
-    ):
+    def test_change_directory_user_cancels_confirmation(self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window):
         from pathlib import Path
 
         from PySide6.QtWidgets import QMessageBox
@@ -1278,9 +1238,7 @@ class TestTelemetryChangeDirectoryButton:
 
     @patch("asciidoc_artisan.ui.dialog_manager.QFileDialog")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_change_directory_success_with_existing_file(
-        self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window
-    ):
+    def test_change_directory_success_with_existing_file(self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window):
         from pathlib import Path
 
         from PySide6.QtWidgets import QMessageBox
@@ -1308,9 +1266,7 @@ class TestTelemetryChangeDirectoryButton:
         with patch("asciidoc_artisan.ui.dialog_manager.Path") as mock_path_cls:
             mock_new_path = Mock(spec=Path)
             mock_new_path.mkdir = Mock()
-            mock_new_path.__truediv__ = Mock(
-                return_value=Path("/new/dir/telemetry.json")
-            )
+            mock_new_path.__truediv__ = Mock(return_value=Path("/new/dir/telemetry.json"))
             mock_path_cls.return_value = mock_new_path
 
             with patch("asciidoc_artisan.ui.dialog_manager.shutil") as mock_shutil:
@@ -1339,9 +1295,7 @@ class TestTelemetryChangeDirectoryButton:
 
     @patch("asciidoc_artisan.ui.dialog_manager.QFileDialog")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_change_directory_error_handling(
-        self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window
-    ):
+    def test_change_directory_error_handling(self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window):
         from pathlib import Path
 
         from PySide6.QtWidgets import QMessageBox
@@ -1383,9 +1337,7 @@ class TestOllamaSettingsDialog:
     """Test Ollama settings dialog."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.OllamaSettingsDialog")
-    def test_show_ollama_settings_dialog_cancelled(
-        self, mock_dialog_cls, mock_main_window
-    ):
+    def test_show_ollama_settings_dialog_cancelled(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1407,9 +1359,7 @@ class TestOllamaSettingsDialog:
         mock_main_window._settings_manager.save_settings.assert_not_called()
 
     @patch("asciidoc_artisan.ui.dialog_manager.OllamaSettingsDialog")
-    def test_show_ollama_settings_dialog_accepted(
-        self, mock_dialog_cls, mock_main_window
-    ):
+    def test_show_ollama_settings_dialog_accepted(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1439,9 +1389,7 @@ class TestOllamaSettingsDialog:
         # Should save settings when accepted
         mock_main_window._settings_manager.save_settings.assert_called_once()
         # Should update workers
-        mock_main_window.pandoc_worker.set_ollama_config.assert_called_once_with(
-            True, "llama2"
-        )
+        mock_main_window.pandoc_worker.set_ollama_config.assert_called_once_with(True, "llama2")
         mock_main_window.chat_manager.update_settings.assert_called_once()
         mock_main_window._update_ai_status_bar.assert_called_once()
 
@@ -1697,9 +1645,7 @@ class TestPromptSaveBeforeAction:
 
     @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_user_clicks_save(
-        self, mock_msgbox_cls, mock_env_get, mock_main_window
-    ):
+    def test_prompt_save_user_clicks_save(self, mock_msgbox_cls, mock_env_get, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1739,9 +1685,7 @@ class TestPromptSaveBeforeAction:
 
     @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_user_clicks_cancel(
-        self, mock_msgbox_cls, mock_env_get, mock_main_window
-    ):
+    def test_prompt_save_user_clicks_cancel(self, mock_msgbox_cls, mock_env_get, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1763,9 +1707,7 @@ class TestPromptSaveBeforeAction:
 
     @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_with_different_actions(
-        self, mock_msgbox_cls, mock_env_get, mock_main_window
-    ):
+    def test_prompt_save_with_different_actions(self, mock_msgbox_cls, mock_env_get, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1792,9 +1734,7 @@ class TestPromptSaveBeforeAction:
 
     @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_file_fails(
-        self, mock_msgbox_cls, mock_env_get, mock_main_window
-    ):
+    def test_prompt_save_file_fails(self, mock_msgbox_cls, mock_env_get, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1819,9 +1759,7 @@ class TestAnthropicStatusFullPath:
     """Test Anthropic status dialog with full code paths."""
 
     @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
-    def test_show_anthropic_status_sdk_version_attribute_error(
-        self, mock_creds_cls, mock_main_window
-    ):
+    def test_show_anthropic_status_sdk_version_attribute_error(self, mock_creds_cls, mock_main_window):
         """Test handling when anthropic module has no __version__."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -1843,9 +1781,7 @@ class TestAnthropicStatusFullPath:
 
     @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
     @patch("asciidoc_artisan.ui.dialog_manager.ClaudeClient")
-    def test_show_anthropic_status_with_key_and_model(
-        self, mock_claude_client_cls, mock_creds_cls, mock_main_window
-    ):
+    def test_show_anthropic_status_with_key_and_model(self, mock_claude_client_cls, mock_creds_cls, mock_main_window):
         """Test Anthropic status when key is configured with model selected."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -1877,9 +1813,7 @@ class TestAnthropicStatusFullPath:
 
     @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
     @patch("asciidoc_artisan.ui.dialog_manager.ClaudeClient")
-    def test_show_anthropic_status_with_key_no_model(
-        self, mock_claude_client_cls, mock_creds_cls, mock_main_window
-    ):
+    def test_show_anthropic_status_with_key_no_model(self, mock_claude_client_cls, mock_creds_cls, mock_main_window):
         """Test Anthropic status when key is configured but no model selected."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -2009,9 +1943,7 @@ class TestOllamaStatusServiceDetection:
             assert "GPU: ⚠️ Not detected (CPU mode)" in call_args
 
     @patch("asciidoc_artisan.ui.dialog_manager.subprocess.run")
-    def test_ollama_status_nvidia_smi_not_found(
-        self, mock_subprocess, mock_main_window
-    ):
+    def test_ollama_status_nvidia_smi_not_found(self, mock_subprocess, mock_main_window):
         """Test GPU detection when nvidia-smi not found."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -2120,9 +2052,7 @@ class TestPandocImportError:
     """Test Pandoc status with pypandoc import error."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.is_pandoc_available", return_value=True)
-    def test_show_pandoc_status_pypandoc_import_error(
-        self, mock_is_available, mock_main_window
-    ):
+    def test_show_pandoc_status_pypandoc_import_error(self, mock_is_available, mock_main_window):
         """Test Pandoc status when pypandoc fails to import."""
         import sys
 
@@ -2206,9 +2136,7 @@ class TestLinuxWSLFileFallback:
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
     @patch(
         "builtins.open",
-        side_effect=lambda *args, **kwargs: Mock(
-            read=Mock(return_value="microsoft wsl linux")
-        ),
+        side_effect=lambda *args, **kwargs: Mock(read=Mock(return_value="microsoft wsl linux")),
     )
     def test_open_file_wsl_error_fallback(
         self,
@@ -2311,9 +2239,7 @@ class TestShowMessageUnknownLevel:
     """Test show_message with unknown level."""
 
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_show_message_unknown_level_defaults_to_info(
-        self, mock_msgbox_cls, mock_main_window
-    ):
+    def test_show_message_unknown_level_defaults_to_info(self, mock_msgbox_cls, mock_main_window):
         """Test that unknown message level defaults to info icon."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 

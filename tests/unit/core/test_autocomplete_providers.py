@@ -36,29 +36,21 @@ class TestSyntaxProvider:
         """Test built-in completions include headings."""
         provider = SyntaxProvider()
 
-        heading_items = [
-            item for item in provider.completions if item.text.startswith("=")
-        ]
+        heading_items = [item for item in provider.completions if item.text.startswith("=")]
         assert len(heading_items) >= 5  # 5 heading levels
 
     def test_build_completion_items_has_lists(self):
         """Test built-in completions include list items."""
         provider = SyntaxProvider()
 
-        list_items = [
-            item
-            for item in provider.completions
-            if item.text.startswith(("*", "-", "."))
-        ]
+        list_items = [item for item in provider.completions if item.text.startswith(("*", "-", "."))]
         assert len(list_items) >= 3  # *, -, .
 
     def test_build_completion_items_has_blocks(self):
         """Test built-in completions include block elements."""
         provider = SyntaxProvider()
 
-        block_items = [
-            item for item in provider.completions if item.text.startswith("[")
-        ]
+        block_items = [item for item in provider.completions if item.text.startswith("[")]
         assert len(block_items) >= 7  # source, example, NOTE, TIP, etc.
 
     def test_get_completions_default_returns_all(self):

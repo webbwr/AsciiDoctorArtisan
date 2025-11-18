@@ -494,14 +494,8 @@ class TestButtonInteractionEdgeCases:
         mock_editor_state.restore_panes()
 
         # Both buttons should show normal state
-        editor_calls = [
-            str(call)
-            for call in mock_editor_state.editor_max_btn.setText.call_args_list
-        ]
-        preview_calls = [
-            str(call)
-            for call in mock_editor_state.preview_max_btn.setText.call_args_list
-        ]
+        editor_calls = [str(call) for call in mock_editor_state.editor_max_btn.setText.call_args_list]
+        preview_calls = [str(call) for call in mock_editor_state.preview_max_btn.setText.call_args_list]
         assert any("⬜" in call for call in editor_calls)
         assert any("⬜" in call for call in preview_calls)
 
@@ -753,12 +747,7 @@ class TestMaximizationPersistence:
         saved_after_return = mock_editor_state.saved_splitter_sizes
 
         # All should be the same
-        assert (
-            saved_after_maximize
-            == saved_after_switch
-            == saved_after_return
-            == original_sizes
-        )
+        assert saved_after_maximize == saved_after_switch == saved_after_return == original_sizes
 
     def test_multiple_restore_doesnt_change_state(self, mock_editor_state):
         """Test multiple restores keep state as None."""

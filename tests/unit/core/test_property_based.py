@@ -22,14 +22,10 @@ safe_text = st.text(
     max_size=10000,
 )
 
-file_content = st.text(
-    alphabet=st.characters(blacklist_categories=("Cs",)), min_size=0, max_size=50000
-)
+file_content = st.text(alphabet=st.characters(blacklist_categories=("Cs",)), min_size=0, max_size=50000)
 
 safe_filenames = st.text(
-    alphabet=st.characters(
-        whitelist_categories=("Lu", "Ll", "Nd"), min_codepoint=32, max_codepoint=126
-    ),
+    alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd"), min_codepoint=32, max_codepoint=126),
     min_size=1,
     max_size=255,
 ).filter(lambda s: s.strip() and "/" not in s and "\\" not in s)
@@ -100,9 +96,7 @@ class TestFileOperationsProperties:
             # That's acceptable as long as it's controlled
             pass
 
-    @given(
-        filename=safe_filenames, content=file_content.filter(lambda s: len(s) < 10000)
-    )
+    @given(filename=safe_filenames, content=file_content.filter(lambda s: len(s) < 10000))
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     def test_save_and_load_preserves_content(self, filename, content, tmp_path):
         """Property: Save then load preserves content (with line ending normalization)."""
@@ -186,9 +180,7 @@ class TestCacheProperties:
                 # Key should exist (unless it was a duplicate)
                 if result is None:
                     # Check if key was overwritten by later entry
-                    later_keys = [
-                        k for k, _ in entries[entries.index((key, cache.get(key))) :]
-                    ]
+                    later_keys = [k for k, _ in entries[entries.index((key, cache.get(key))) :]]
                     assert key in later_keys or len(set(recent_keys)) < len(recent_keys)
 
 
@@ -198,27 +190,19 @@ class TestDebouncerProperties:
 
     @given(
         document_size=st.integers(min_value=0, max_value=1_000_000),
-        render_time=st.floats(
-            min_value=0.0, max_value=5.0, allow_nan=False, allow_infinity=False
-        ),
+        render_time=st.floats(min_value=0.0, max_value=5.0, allow_nan=False, allow_infinity=False),
     )
     def test_debouncer_delay_always_positive(self, document_size, render_time):
         """Property: Debouncer always returns positive delay."""
         debouncer = AdaptiveDebouncer()
 
-        delay = debouncer.calculate_delay(
-            document_size=document_size, last_render_time=render_time
-        )
+        delay = debouncer.calculate_delay(document_size=document_size, last_render_time=render_time)
 
         assert delay >= 0
         # Max delay is in config object, not instance attribute
         assert delay <= debouncer.config.max_delay
 
-    @given(
-        sizes=st.lists(
-            st.integers(min_value=100, max_value=100_000), min_size=5, max_size=20
-        )
-    )
+    @given(sizes=st.lists(st.integers(min_value=100, max_value=100_000), min_size=5, max_size=20))
     def test_debouncer_larger_docs_longer_delay(self, sizes):
         """Property: Larger documents generally get longer delays."""
         debouncer = AdaptiveDebouncer()
@@ -395,9 +379,7 @@ class TestListOperationsProperties:
         except Exception as e:
             pytest.fail(f"Safe indexing failed: {e}")
 
-    @given(
-        items=st.lists(st.text(max_size=20), max_size=50), element=st.text(max_size=20)
-    )
+    @given(items=st.lists(st.text(max_size=20), max_size=50), element=st.text(max_size=20))
     def test_membership_consistency(self, items, element):
         """Property: Membership checks are consistent."""
         is_member = element in items
@@ -414,9 +396,7 @@ class TestDictionaryProperties:
     """Property-based tests for dictionary operations."""
 
     @given(
-        keys=st.lists(
-            st.text(min_size=1, max_size=20), min_size=0, max_size=50, unique=True
-        ),
+        keys=st.lists(st.text(min_size=1, max_size=20), min_size=0, max_size=50, unique=True),
         values=st.lists(st.integers(), min_size=0, max_size=50),
     )
     def test_dict_keys_values_length_match(self, keys, values):
@@ -436,12 +416,8 @@ class TestDictionaryProperties:
             assert d[key] == value
 
     @given(
-        initial=st.dictionaries(
-            keys=st.text(min_size=1, max_size=10), values=st.integers(), max_size=20
-        ),
-        updates=st.dictionaries(
-            keys=st.text(min_size=1, max_size=10), values=st.integers(), max_size=10
-        ),
+        initial=st.dictionaries(keys=st.text(min_size=1, max_size=10), values=st.integers(), max_size=20),
+        updates=st.dictionaries(keys=st.text(min_size=1, max_size=10), values=st.integers(), max_size=10),
     )
     def test_dict_update_preserves_keys(self, initial, updates):
         """Property: Dict update adds new keys and updates existing."""

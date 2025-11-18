@@ -81,9 +81,7 @@ def measure_imports():
         print(f"  {name:25s} {time_ms:7.1f}ms  ({pct:5.1f}%)")
 
     print(f"  {'─' * 50}")
-    print(
-        f"  {'Total import time':25s} {total_time:7.1f}ms  ({total_time / 1000:.2f}s)"
-    )
+    print(f"  {'Total import time':25s} {total_time:7.1f}ms  ({total_time / 1000:.2f}s)")
     print()
 
     # Estimate total startup (imports + window creation ~500ms)
@@ -94,21 +92,15 @@ def measure_imports():
     print(f"  Import time:        {total_time:7.1f}ms")
     print(f"  Window creation:    {window_overhead:7.1f}ms (estimated)")
     print(f"  {'─' * 40}")
-    print(
-        f"  Total:              {estimated_total:7.1f}ms ({estimated_total / 1000:.2f}s)"
-    )
+    print(f"  Total:              {estimated_total:7.1f}ms ({estimated_total / 1000:.2f}s)")
     print()
 
     # Check targets
     estimated_s = estimated_total / 1000
 
     print("Performance Targets:")
-    print(
-        f"  v1.5.0 target: < 2.0s  {'✅ PASS' if estimated_s < 2.0 else '❌ FAIL'} ({estimated_s:.2f}s)"
-    )
-    print(
-        f"  v1.6.0 target: < 1.5s  {'✅ PASS' if estimated_s < 1.5 else '⚠️  Close ({:.2f}s)'.format(estimated_s)}"
-    )
+    print(f"  v1.5.0 target: < 2.0s  {'✅ PASS' if estimated_s < 2.0 else '❌ FAIL'} ({estimated_s:.2f}s)")
+    print(f"  v1.6.0 target: < 1.5s  {'✅ PASS' if estimated_s < 1.5 else '⚠️  Close ({:.2f}s)'.format(estimated_s)}")
     print()
 
     # Optimization recommendations

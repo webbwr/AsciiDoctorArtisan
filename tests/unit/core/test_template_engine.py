@@ -111,9 +111,7 @@ class TestVariableSubstitution:
             content="= {{title}}\n{{author}}\n\n{{content}}",
         )
 
-        result = engine.instantiate(
-            template, {"title": "Title", "author": "Author", "content": "Body"}
-        )
+        result = engine.instantiate(template, {"title": "Title", "author": "Author", "content": "Body"})
 
         assert "Title" in result
         assert "Author" in result
@@ -318,9 +316,7 @@ class TestTemplateValidation:
             name="Valid",
             category="article",
             description="Valid template",
-            variables=[
-                TemplateVariable(name="title", description="Title", required=True)
-            ],
+            variables=[TemplateVariable(name="title", description="Title", required=True)],
             content="= {{title}}",
         )
 
@@ -351,9 +347,7 @@ class TestTemplateValidation:
             description="Test with variables",
             variables=[
                 TemplateVariable(name="var1", description="Variable 1"),
-                TemplateVariable(
-                    name="var2", description="Variable 2", default="default"
-                ),
+                TemplateVariable(name="var2", description="Variable 2", default="default"),
             ],
             content="{{var1}} {{var2}}",
         )
@@ -379,9 +373,7 @@ class TestInstantiation:
             description="Technical article",
             variables=[
                 TemplateVariable(name="title", description="Title", required=True),
-                TemplateVariable(
-                    name="author", description="Author", default="Anonymous"
-                ),
+                TemplateVariable(name="author", description="Author", default="Anonymous"),
             ],
             content="= {{title}}\n{{author}}\n{{today}}\n\n{{#if toc}}:toc:{{/if}}\n\n== Introduction",
         )
@@ -404,9 +396,7 @@ class TestInstantiation:
             content="= {{title}}\n{{author}}\n{{date}}",
         )
 
-        result = engine.instantiate(
-            template, {"title": "Title", "author": "Author", "date": "2025-01-01"}
-        )
+        result = engine.instantiate(template, {"title": "Title", "author": "Author", "date": "2025-01-01"})
 
         assert "Title" in result
         assert "Author" in result
@@ -426,9 +416,7 @@ class TestEdgeCases:
             name="Test",
             category="test",
             description="Test",
-            variables=[
-                TemplateVariable(name="title", description="Title", required=True)
-            ],
+            variables=[TemplateVariable(name="title", description="Title", required=True)],
             content="= {{title}}",
         )
 
@@ -525,9 +513,7 @@ class TestTemplateEngineErrorHandling:
         engine = TemplateEngine()
 
         # With allow_missing=True in _substitute_variables
-        result = engine._substitute_variables(
-            "Keep: {{undefined_var}}", {}, allow_missing=True
-        )
+        result = engine._substitute_variables("Keep: {{undefined_var}}", {}, allow_missing=True)
 
         assert "{{undefined_var}}" in result
 
@@ -704,9 +690,7 @@ description: Test template
 Content"""
         )
 
-        with pytest.raises(
-            ValueError, match="must have name, category, and description"
-        ):
+        with pytest.raises(ValueError, match="must have name, category, and description"):
             engine.parse_template(str(template_file))
 
     def test_parse_template_non_string_fields(self, tmp_path):
@@ -723,9 +707,7 @@ description: Test template
 Content"""
         )
 
-        with pytest.raises(
-            ValueError, match="must have name, category, and description as strings"
-        ):
+        with pytest.raises(ValueError, match="must have name, category, and description as strings"):
             engine.parse_template(str(template_file))
 
     def test_parse_template_empty_required_fields(self, tmp_path):
@@ -742,9 +724,7 @@ description: Test template
 Content"""
         )
 
-        with pytest.raises(
-            ValueError, match="must have name, category, and description"
-        ):
+        with pytest.raises(ValueError, match="must have name, category, and description"):
             engine.parse_template(str(template_file))
 
     def test_parse_template_invalid_variable_definition(self, tmp_path):

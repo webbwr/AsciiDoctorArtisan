@@ -52,22 +52,14 @@ class TestConstants:
 
     def test_file_extensions(self):
         """Test that file extension constants are defined."""
-        ext_attrs = [
-            attr
-            for attr in dir(constants)
-            if "EXT" in attr.upper() or "EXTENSION" in attr.upper()
-        ]
+        ext_attrs = [attr for attr in dir(constants) if "EXT" in attr.upper() or "EXTENSION" in attr.upper()]
         # Should have at least one file extension defined
         assert len(ext_attrs) > 0, "Should have file extension constants"
 
     def test_no_private_constants_exposed(self):
         """Test that only public constants are exposed."""
         # Constants should not start with underscore (private)
-        public_attrs = [
-            attr
-            for attr in dir(constants)
-            if not attr.startswith("_") and attr.isupper()
-        ]
+        public_attrs = [attr for attr in dir(constants) if not attr.startswith("_") and attr.isupper()]
         assert len(public_attrs) > 0, "Should have public constants"
 
     def test_constants_are_immutable_types(self):
@@ -77,9 +69,9 @@ class TestConstants:
                 value = getattr(constants, attr)
                 # Constants should generally be immutable types
                 # (str, int, float, tuple, frozenset, etc.)
-                assert isinstance(
-                    value, (str, int, float, tuple, frozenset, bool, type(None))
-                ), f"{attr} should be an immutable type, got {type(value)}"
+                assert isinstance(value, (str, int, float, tuple, frozenset, bool, type(None))), (
+                    f"{attr} should be an immutable type, got {type(value)}"
+                )
 
     def test_all_constants_have_docstrings(self):
         """Test that the constants module has documentation."""

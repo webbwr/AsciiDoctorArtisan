@@ -191,9 +191,7 @@ class TestDarkModeToggle:
         state.toggle_dark_mode()
 
         # Should set checkbox to True
-        mock_main_window.action_manager.dark_mode_act.setChecked.assert_called_with(
-            True
-        )
+        mock_main_window.action_manager.dark_mode_act.setChecked.assert_called_with(True)
 
     def test_toggle_dark_mode_blocks_signals(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
@@ -227,9 +225,7 @@ class TestSyncScrollingToggle:
         state = EditorState(mock_main_window)
 
         # Set checkbox state
-        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(
-            return_value=False
-        )
+        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(return_value=False)
 
         state.toggle_sync_scrolling()
 
@@ -253,9 +249,7 @@ class TestPaneMaximization:
         assert state.maximized_pane == "editor"
         assert state.saved_splitter_sizes is not None
 
-    def test_toggle_pane_maximize_restores_when_already_maximized(
-        self, mock_main_window
-    ):
+    def test_toggle_pane_maximize_restores_when_already_maximized(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
 
         state = EditorState(mock_main_window)
@@ -773,11 +767,7 @@ class TestPreviewHandlerIntegration:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         # Remove preview_handler attribute
-        (
-            delattr(mock_main_window, "preview_handler")
-            if hasattr(mock_main_window, "preview_handler")
-            else None
-        )
+        (delattr(mock_main_window, "preview_handler") if hasattr(mock_main_window, "preview_handler") else None)
         mock_main_window.update_preview = Mock()
 
         state = EditorState(mock_main_window)
@@ -954,9 +944,7 @@ class TestTempFileCleanup:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.export_manager = Mock()
-        mock_main_window.export_manager.cleanup = Mock(
-            side_effect=Exception("Cleanup failed")
-        )
+        mock_main_window.export_manager.cleanup = Mock(side_effect=Exception("Cleanup failed"))
 
         state = EditorState(mock_main_window)
         state._cleanup_temp_files()  # Should not crash
@@ -993,9 +981,7 @@ class TestCloseEventWithUnsavedChanges:
 
         # User cancels save prompt
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(
-            return_value=False
-        )
+        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=False)
 
         state = EditorState(mock_main_window)
         event = Mock()
@@ -1011,9 +997,7 @@ class TestCloseEventWithUnsavedChanges:
 
         # User proceeds with close
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(
-            return_value=True
-        )
+        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -1036,9 +1020,7 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(
-            return_value=True
-        )
+        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = "/tmp/test.adoc"
@@ -1058,9 +1040,7 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(
-            return_value=True
-        )
+        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -1077,9 +1057,7 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(
-            return_value=True
-        )
+        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -1099,9 +1077,7 @@ class TestCloseEventWithUnsavedChanges:
         from asciidoc_artisan.ui.editor_state import EditorState
 
         mock_main_window.status_manager = Mock()
-        mock_main_window.status_manager.prompt_save_before_action = Mock(
-            return_value=True
-        )
+        mock_main_window.status_manager.prompt_save_before_action = Mock(return_value=True)
         mock_main_window._settings_manager = Mock()
         mock_main_window._settings_manager.save_settings_immediate = Mock()
         mock_main_window._current_file_path = None
@@ -1115,9 +1091,7 @@ class TestCloseEventWithUnsavedChanges:
         state.handle_close_event(event)
 
         # Should pass "closing" as action
-        mock_main_window.status_manager.prompt_save_before_action.assert_called_once_with(
-            "closing"
-        )
+        mock_main_window.status_manager.prompt_save_before_action.assert_called_once_with("closing")
 
 
 @pytest.mark.fr_005
@@ -1242,18 +1216,14 @@ class TestButtonAndStatusBarUpdates:
         state.restore_panes()
 
         # Should show restore message
-        call_args_list = [
-            str(call) for call in state.status_bar.showMessage.call_args_list
-        ]
+        call_args_list = [str(call) for call in state.status_bar.showMessage.call_args_list]
         assert any("restored" in call.lower() for call in call_args_list)
 
     def test_sync_scrolling_shows_status_message(self, mock_main_window):
         from asciidoc_artisan.ui.editor_state import EditorState
 
         state = EditorState(mock_main_window)
-        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(
-            return_value=False
-        )
+        mock_main_window.action_manager.sync_scrolling_act.isChecked = Mock(return_value=False)
 
         state.toggle_sync_scrolling()
 

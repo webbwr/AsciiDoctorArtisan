@@ -38,14 +38,12 @@ FR_COMPONENT_MAP = {
     "FR-018": ["incremental_renderer", "preview"],
     "FR-019": ["debounce", "preview"],
     "FR-020": ["theme", "preview"],
-
     # Export & Conversion (FR-021-025)
     "FR-021": ["export", "html", "pandoc"],
     "FR-022": ["export", "pdf", "pandoc"],
     "FR-023": ["export", "docx", "pandoc"],
     "FR-024": ["export", "markdown", "pandoc"],
     "FR-025": ["export", "ollama", "ai"],
-
     # Git Integration (FR-026-033)
     "FR-026": ["git", "repo", "git_worker"],
     "FR-027": ["git", "commit", "git_worker"],
@@ -55,14 +53,12 @@ FR_COMPONENT_MAP = {
     "FR-031": ["git", "status_dialog", "dialog"],
     "FR-032": ["git", "quick_commit"],
     "FR-033": ["git", "cancel"],
-
     # GitHub CLI (FR-034-038)
     "FR-034": ["github", "pr", "create"],
     "FR-035": ["github", "pr", "list"],
     "FR-036": ["github", "issue", "create"],
     "FR-037": ["github", "issue", "list"],
     "FR-038": ["github", "repo", "view"],
-
     # AI Features (FR-039-044)
     "FR-039": ["ollama", "chat", "panel"],
     "FR-040": ["ollama", "chat", "modes"],
@@ -70,21 +66,18 @@ FR_COMPONENT_MAP = {
     "FR-042": ["ollama", "history"],
     "FR-043": ["ollama", "integration"],
     "FR-044": ["ollama", "status", "indicator"],
-
     # Find & Replace (FR-045-049)
     "FR-045": ["find", "bar", "search"],
     "FR-046": ["replace", "search"],
     "FR-047": ["search", "engine"],
     "FR-048": ["search", "ui"],
     "FR-049": ["search", "performance"],
-
     # Spell Check (FR-050-054)
     "FR-050": ["spell", "check", "spell_checker"],
     "FR-051": ["spell", "suggestions"],
     "FR-052": ["spell", "dictionary", "custom"],
     "FR-053": ["spell", "language", "multi"],
     "FR-054": ["spell", "performance"],
-
     # UI & UX (FR-055-061)
     "FR-055": ["theme", "manager"],
     "FR-056": ["status", "bar"],
@@ -93,7 +86,6 @@ FR_COMPONENT_MAP = {
     "FR-059": ["preferences", "dialog", "settings"],
     "FR-060": ["keyboard", "shortcuts"],
     "FR-061": ["accessibility"],
-
     # Performance (FR-062-068)
     "FR-062": ["startup", "performance"],
     "FR-063": ["worker", "pool", "optimized"],
@@ -105,13 +97,11 @@ FR_COMPONENT_MAP = {
     "FR-067b": ["pdf", "optimization"],
     "FR-067c": ["binary", "optimization"],
     "FR-068": ["memory", "management"],
-
     # Security (FR-069-072)
     "FR-069": ["atomic", "write", "file_operations"],
     "FR-070": ["path", "sanitization", "security"],
     "FR-071": ["subprocess", "safety", "security"],
     "FR-072": ["input", "validation", "security"],
-
     # Additional Features (FR-073-084)
     "FR-073": ["telemetry"],
     "FR-074": ["crash", "report"],
@@ -125,7 +115,6 @@ FR_COMPONENT_MAP = {
     "FR-082": ["export", "preset"],
     "FR-083": ["macro", "recording"],
     "FR-084": ["lru", "cache"],
-
     # Auto-Complete (FR-085-090)
     "FR-085": ["autocomplete", "engine"],
     "FR-086": ["autocomplete", "context"],
@@ -133,7 +122,6 @@ FR_COMPONENT_MAP = {
     "FR-088": ["autocomplete", "fuzzy"],
     "FR-089": ["autocomplete", "widget", "ui"],
     "FR-090": ["autocomplete", "performance"],
-
     # Syntax Checking (FR-091-099)
     "FR-091": ["syntax", "checker"],
     "FR-092": ["syntax", "error", "detection"],
@@ -144,7 +132,6 @@ FR_COMPONENT_MAP = {
     "FR-097": ["syntax", "rule", "engine"],
     "FR-098": ["syntax", "custom", "rule"],
     "FR-099": ["syntax", "performance"],
-
     # Templates (FR-100-107)
     "FR-100": ["template", "manager"],
     "FR-101": ["template", "builtin"],
@@ -170,7 +157,7 @@ def count_tests_in_file(test_file):
             ["python3", "-m", "pytest", str(test_file), "--collect-only", "-q"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
         # Parse output to count tests
         lines = result.stdout.strip().split("\n")
@@ -224,14 +211,14 @@ def generate_mapping():
     print("\n\nPhase 3: Generating summary...")
 
     # Print summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("FR-to-Test Mapping Summary")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     total_frs_mapped = 0
     total_tests_mapped = 0
 
-    for fr_id in sorted(FR_COMPONENT_MAP.keys(), key=lambda x: int(re.search(r'\d+', x).group())):
+    for fr_id in sorted(FR_COMPONENT_MAP.keys(), key=lambda x: int(re.search(r"\d+", x).group())):
         if fr_id in fr_to_tests:
             tests = fr_to_tests[fr_id]
             total_test_count = sum(count for _, count in tests)
@@ -244,11 +231,11 @@ def generate_mapping():
         else:
             print(f"{fr_id}: ⚠️  NO TESTS FOUND")
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Total FRs with tests: {total_frs_mapped}/107")
     print(f"Total FRs without tests: {107 - total_frs_mapped}/107")
     print(f"Total tests mapped: {total_tests_mapped}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     return fr_to_tests, file_to_test_count
 

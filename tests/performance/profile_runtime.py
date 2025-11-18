@@ -90,9 +90,7 @@ def profile_asciidoc_conversion():
         (10000, "Very Large (10,000 lines)"),
     ]
 
-    print(
-        f"\n{'Document Size':<30} {'Time (ms)':>12} {'Memory (MB)':>12} {'HTML Size (KB)':>15}"
-    )
+    print(f"\n{'Document Size':<30} {'Time (ms)':>12} {'Memory (MB)':>12} {'HTML Size (KB)':>15}")
     print("-" * 80)
 
     for num_lines, label in test_sizes:
@@ -162,9 +160,7 @@ def profile_file_operations():
         (50000, "Very Large (50,000 lines)"),
     ]
 
-    print(
-        f"\n{'Document Size':<30} {'Save (ms)':>12} {'Load (ms)':>12} {'File Size (KB)':>15}"
-    )
+    print(f"\n{'Document Size':<30} {'Save (ms)':>12} {'Load (ms)':>12} {'File Size (KB)':>15}")
     print("-" * 80)
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -197,9 +193,7 @@ def profile_file_operations():
                 }
             )
 
-            print(
-                f"{label:<30} {save_time:>12.2f} {load_time:>12.2f} {file_size_kb:>15.2f}"
-            )
+            print(f"{label:<30} {save_time:>12.2f} {load_time:>12.2f} {file_size_kb:>15.2f}")
 
     print()
     return results
@@ -232,9 +226,7 @@ def profile_memory_usage():
         current_memory = process.memory_info().rss / 1024 / 1024
         delta = current_memory - last_memory
 
-        print(
-            f"Generated {size} line document{'':<17} {current_memory:>12.2f} {delta:>12.2f}"
-        )
+        print(f"Generated {size} line document{'':<17} {current_memory:>12.2f} {delta:>12.2f}")
         last_memory = current_memory
 
     # Test memory with conversion (if available)
@@ -252,9 +244,7 @@ def profile_memory_usage():
             current_memory = process.memory_info().rss / 1024 / 1024
             delta = current_memory - last_memory
 
-            print(
-                f"Converted {size} line document{'':<17} {current_memory:>12.2f} {delta:>12.2f}"
-            )
+            print(f"Converted {size} line document{'':<17} {current_memory:>12.2f} {delta:>12.2f}")
             last_memory = current_memory
 
     # Cleanup and measure
@@ -291,13 +281,9 @@ def analyze_results(conversion_results, io_results):
         print(f"Slowest: {slowest['size']} - {slowest['time_ms']:.2f}ms")
 
         # Check against targets
-        medium_doc = next(
-            (r for r in conversion_results if r["num_lines"] == 1000), None
-        )
+        medium_doc = next((r for r in conversion_results if r["num_lines"] == 1000), None)
         if medium_doc and medium_doc["time_ms"] > 200:
-            print(
-                f"\n⚠️  1000-line conversion ({medium_doc['time_ms']:.2f}ms) exceeds 200ms target"
-            )
+            print(f"\n⚠️  1000-line conversion ({medium_doc['time_ms']:.2f}ms) exceeds 200ms target")
             print("   Recommendation: Implement caching, optimize AsciiDoc settings")
         else:
             print("\n✅ 1000-line conversion meets target (< 200ms)")

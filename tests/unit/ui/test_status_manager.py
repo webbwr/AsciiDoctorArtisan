@@ -177,9 +177,7 @@ class TestStatusManager:
         manager.initialize_widgets()
 
         # Set document text (word count includes "=" as a word)
-        main_window.editor.setPlainText(
-            ":version: 2.0.0\n\n= Document\n\nThis has five words."
-        )
+        main_window.editor.setPlainText(":version: 2.0.0\n\n= Document\n\nThis has five words.")
 
         manager.update_document_metrics()
 

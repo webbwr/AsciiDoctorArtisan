@@ -115,9 +115,7 @@ class TestExecuteSendMessage:
             stop_reason="end_turn",
         )
 
-        with patch.object(
-            worker.client, "send_message", return_value=mock_result
-        ) as mock_send:
+        with patch.object(worker.client, "send_message", return_value=mock_result) as mock_send:
             worker._operation = "send_message"
             worker._current_message = "User message"
             worker._current_system = "System prompt"
@@ -152,9 +150,7 @@ class TestExecuteSendMessage:
             ClaudeMessage(role="assistant", content="Response"),
         ]
 
-        with patch.object(
-            worker.client, "send_message", return_value=mock_result
-        ) as mock_send:
+        with patch.object(worker.client, "send_message", return_value=mock_result) as mock_send:
             worker._operation = "send_message"
             worker._current_message = "Second message"
             worker._current_system = "System"
@@ -216,9 +212,7 @@ class TestExecuteTestConnection:
             stop_reason="end_turn",
         )
 
-        with patch.object(
-            worker.client, "test_connection", return_value=mock_result
-        ) as mock_test:
+        with patch.object(worker.client, "test_connection", return_value=mock_result) as mock_test:
             worker._operation = "test_connection"
 
             with qtbot.waitSignal(worker.connection_tested, timeout=5000) as blocker:
@@ -265,9 +259,7 @@ class TestExceptionHandlingInRun:
         """Test run() handles exception in _execute_send_message."""
         worker = ClaudeWorker()
 
-        with patch.object(
-            worker.client, "send_message", side_effect=RuntimeError("Client error")
-        ):
+        with patch.object(worker.client, "send_message", side_effect=RuntimeError("Client error")):
             worker._operation = "send_message"
             worker._current_message = "Test"
             worker._current_system = None

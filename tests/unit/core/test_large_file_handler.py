@@ -94,10 +94,7 @@ class TestPreviewOptimization:
 
     def test_should_disable_preview_very_large_file(self):
         """Test very large files (> 50MB) disable preview."""
-        assert (
-            LargeFileHandler.should_disable_preview(PREVIEW_DISABLE_THRESHOLD + 1)
-            is True
-        )
+        assert LargeFileHandler.should_disable_preview(PREVIEW_DISABLE_THRESHOLD + 1) is True
 
 
 class TestSmallFileLoading:
@@ -222,9 +219,7 @@ class TestLargeFileLoading:
         assert progress_updates[0][0] == 0
         assert progress_updates[-1][0] == 100
 
-    def test_large_file_progress_updates_every_5_percent(
-        self, handler, qtbot, tmp_path
-    ):
+    def test_large_file_progress_updates_every_5_percent(self, handler, qtbot, tmp_path):
         """Test large file emits progress every 5%."""
         file_path = tmp_path / "large.txt"
         lines = ["x" * 1000 + "\n"] * 10000

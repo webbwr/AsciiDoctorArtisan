@@ -168,9 +168,7 @@ class TestSaveFileAsFormat:
         export_file = tmp_path / "test.adoc"
         mock_dialog.return_value = (str(export_file), "")
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-        ) as mock_save:
+        with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True) as mock_save:
             result = manager.save_file_as_format("adoc")
             mock_save.assert_called_once()
             assert result is True
@@ -184,9 +182,7 @@ class TestSaveFileAsFormat:
         export_file = tmp_path / "test.md"
         mock_dialog.return_value = (str(export_file), "")
 
-        with patch.object(
-            manager, "_export_via_pandoc", return_value=True
-        ) as mock_export:
+        with patch.object(manager, "_export_via_pandoc", return_value=True) as mock_export:
             manager.save_file_as_format("md")
             mock_export.assert_called_once()
 
@@ -271,9 +267,7 @@ class TestPandocExport:
         export_file = tmp_path / "test.md"
 
         with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
-            with patch.object(
-                manager.html_converter, "asciidoc_to_html", return_value="<html>"
-            ):
+            with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
                 manager._export_via_pandoc(export_file, "md", "= Test", False)
                 main_window.request_pandoc_conversion.emit.assert_called()
 
@@ -319,13 +313,9 @@ class TestClipboardOperations:
         mock_mime.hasHtml.return_value = True
         mock_mime.html.return_value = "<p>HTML content</p>"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch(
-                "asciidoc_artisan.core.constants.is_pandoc_available", return_value=True
-            ):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should set processing flag and emit conversion request
                 assert main_window._is_processing_pandoc is True
@@ -339,9 +329,7 @@ class TestClipboardOperations:
         mock_mime.hasHtml.return_value = False
         mock_mime.hasText.return_value = False
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
             manager.convert_and_paste_from_clipboard()
             # Should show message about empty clipboard
@@ -365,12 +353,8 @@ class TestHTMLExport:
         export_file = tmp_path / "test.html"
         content = "= Test\n\nContent."
 
-        with patch.object(
-            manager.html_converter, "asciidoc_to_html", return_value="<html>Test</html>"
-        ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ) as mock_save:
+        with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>Test</html>"):
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True) as mock_save:
                 result = manager._export_html(export_file, content)
                 assert result is True
                 mock_save.assert_called_once()
@@ -415,9 +399,7 @@ class TestSignalEmissions:
             return_value=(str(export_file), ""),
         ):
             with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
-                with patch.object(
-                    manager.html_converter, "asciidoc_to_html", return_value="<html>"
-                ):
+                with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
                     manager.save_file_as_format("md")
                     assert "md" in signal_received
 
@@ -432,20 +414,14 @@ class TestSignalEmissions:
             "asciidoc_artisan.ui.export_manager.QFileDialog.getSaveFileName",
             return_value=(str(export_file), ""),
         ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ):
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
                 signal_received = []
-                manager.export_completed.connect(
-                    lambda path: signal_received.append(path)
-                )
+                manager.export_completed.connect(lambda path: signal_received.append(path))
                 manager.save_file_as_format("adoc")
                 assert len(signal_received) == 1
                 assert signal_received[0] == export_file
 
-    def test_export_failed_signal_emitted_on_atomic_save_failure(
-        self, main_window, tmp_path
-    ):
+    def test_export_failed_signal_emitted_on_atomic_save_failure(self, main_window, tmp_path):
         from asciidoc_artisan.ui.export_manager import ExportManager
 
         manager = ExportManager(main_window)
@@ -479,9 +455,7 @@ class TestSignalEmissions:
             return_value=(str(export_file), ""),
         ):
             with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
-                with patch.object(
-                    manager.html_converter, "asciidoc_to_html", return_value="<html>"
-                ):
+                with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
                     with patch.object(
                         manager.pdf_helper,
                         "check_pdf_engine_available",
@@ -503,9 +477,7 @@ class TestSignalEmissions:
             "asciidoc_artisan.ui.export_manager.QFileDialog.getSaveFileName",
             return_value=(str(export_file), ""),
         ):
-            with patch.object(
-                manager.html_converter, "asciidoc_to_html", return_value="<html>"
-            ):
+            with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
                 with patch(
                     "asciidoc_artisan.ui.export_manager.atomic_save_text",
                     return_value=True,
@@ -624,9 +596,7 @@ class TestTemporaryDirectoryManagement:
 
         manager = ExportManager(main_window)
         # Mock cleanup to raise exception
-        with patch.object(
-            manager.temp_dir, "cleanup", side_effect=Exception("Cleanup error")
-        ):
+        with patch.object(manager.temp_dir, "cleanup", side_effect=Exception("Cleanup error")):
             # Should not raise
             manager.cleanup()
             assert True
@@ -656,9 +626,7 @@ class TestPendingExportStateTracking:
         export_file = tmp_path / "test.md"
 
         with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
-            with patch.object(
-                manager.html_converter, "asciidoc_to_html", return_value="<html>"
-            ):
+            with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
                 manager._export_via_pandoc(export_file, "md", "= Test", False)
                 assert manager.pending_export_path == export_file
                 assert manager.pending_export_format == "md"
@@ -671,12 +639,8 @@ class TestPendingExportStateTracking:
         export_file = tmp_path / "test.pdf"
 
         with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
-            with patch.object(
-                manager.html_converter, "asciidoc_to_html", return_value="<html>"
-            ):
-                with patch.object(
-                    manager.pdf_helper, "check_pdf_engine_available", return_value=True
-                ):
+            with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
+                with patch.object(manager.pdf_helper, "check_pdf_engine_available", return_value=True):
                     manager._export_via_pandoc(export_file, "pdf", "= Test", False)
                     # PDF exports don't set pending state (direct file path)
                     assert manager.pending_export_path is None
@@ -690,9 +654,7 @@ class TestPendingExportStateTracking:
         manager.pending_export_path = Path("/tmp/test.md")
         manager.pending_export_format = "md"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-        ):
+        with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
             manager._handle_export_result("Converted content", "Exporting to MD")
             assert manager.pending_export_path is None
             assert manager.pending_export_format is None
@@ -714,9 +676,7 @@ class TestPendingExportStateTracking:
             assert manager.pending_export_path is None
             assert manager.pending_export_format is None
 
-    def test_pending_state_not_set_for_asciidoc_direct_save(
-        self, main_window, tmp_path
-    ):
+    def test_pending_state_not_set_for_asciidoc_direct_save(self, main_window, tmp_path):
         from asciidoc_artisan.ui.export_manager import ExportManager
 
         manager = ExportManager(main_window)
@@ -727,9 +687,7 @@ class TestPendingExportStateTracking:
             "asciidoc_artisan.ui.export_manager.QFileDialog.getSaveFileName",
             return_value=(str(export_file), ""),
         ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ):
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
                 manager.save_file_as_format("adoc")
                 assert manager.pending_export_path is None
                 assert manager.pending_export_format is None
@@ -754,9 +712,7 @@ class TestFileExtensionHandling:
             ("pdf", ".pdf"),
         ],
     )
-    def test_extension_added_when_missing(
-        self, main_window, tmp_path, format_type, expected_ext
-    ):
+    def test_extension_added_when_missing(self, main_window, tmp_path, format_type, expected_ext):
         from asciidoc_artisan.ui.export_manager import ExportManager
 
         manager = ExportManager(main_window)
@@ -768,9 +724,7 @@ class TestFileExtensionHandling:
             "asciidoc_artisan.ui.export_manager.QFileDialog.getSaveFileName",
             return_value=(str(export_file), ""),
         ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ):
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
                 with patch.object(manager, "_export_via_pandoc", return_value=True):
                     with patch.object(manager, "_export_html", return_value=True):
                         manager.save_file_as_format(format_type)
@@ -788,9 +742,7 @@ class TestFileExtensionHandling:
             "asciidoc_artisan.ui.export_manager.QFileDialog.getSaveFileName",
             return_value=(str(export_file), ""),
         ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ) as mock_save:
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True) as mock_save:
                 manager.save_file_as_format("adoc")
                 # Check that file path has correct extension
                 saved_path = mock_save.call_args[0][0]
@@ -813,12 +765,8 @@ class TestPDFEngineFallback:
 
         export_file = tmp_path / "test.pdf"
 
-        with patch.object(
-            manager.pdf_helper, "check_pdf_engine_available", return_value=False
-        ):
-            with patch.object(
-                manager, "_export_pdf_fallback", return_value=True
-            ) as mock_fallback:
+        with patch.object(manager.pdf_helper, "check_pdf_engine_available", return_value=False):
+            with patch.object(manager, "_export_pdf_fallback", return_value=True) as mock_fallback:
                 with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
                     with patch.object(
                         manager.html_converter,
@@ -836,12 +784,8 @@ class TestPDFEngineFallback:
         export_file = tmp_path / "test.pdf"
         html_content = "<html><body>Test</body></html>"
 
-        with patch.object(
-            manager.pdf_helper, "add_print_css_to_html", return_value=html_content
-        ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ) as mock_save:
+        with patch.object(manager.pdf_helper, "add_print_css_to_html", return_value=html_content):
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True) as mock_save:
                 result = manager._export_pdf_fallback(export_file, html_content)
                 assert result is True
                 # Should save as .html instead of .pdf
@@ -855,12 +799,8 @@ class TestPDFEngineFallback:
 
         export_file = tmp_path / "test.pdf"
 
-        with patch.object(
-            manager.pdf_helper, "add_print_css_to_html", return_value="<html>"
-        ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ):
+        with patch.object(manager.pdf_helper, "add_print_css_to_html", return_value="<html>"):
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
                 manager._export_pdf_fallback(export_file, "<html>")
                 # Should show informational message with instructions
                 manager.status_manager.show_message.assert_called()
@@ -874,16 +814,10 @@ class TestPDFEngineFallback:
 
         export_file = tmp_path / "test.pdf"
 
-        with patch.object(
-            manager.pdf_helper, "add_print_css_to_html", return_value="<html>"
-        ):
-            with patch(
-                "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-            ):
+        with patch.object(manager.pdf_helper, "add_print_css_to_html", return_value="<html>"):
+            with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
                 signal_received = []
-                manager.export_completed.connect(
-                    lambda path: signal_received.append(path)
-                )
+                manager.export_completed.connect(lambda path: signal_received.append(path))
                 manager._export_pdf_fallback(export_file, "<html>")
                 assert len(signal_received) == 1
 
@@ -894,9 +828,7 @@ class TestPDFEngineFallback:
 
         export_file = tmp_path / "test.pdf"
 
-        with patch.object(
-            manager.pdf_helper, "add_print_css_to_html", return_value="<html>"
-        ):
+        with patch.object(manager.pdf_helper, "add_print_css_to_html", return_value="<html>"):
             with patch(
                 "asciidoc_artisan.ui.export_manager.atomic_save_text",
                 return_value=False,
@@ -925,13 +857,9 @@ class TestClipboardMIMEDataPriority:
         mock_mime.html.return_value = "<p>HTML content</p>"
         mock_mime.text.return_value = "Plain text"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch(
-                "asciidoc_artisan.core.constants.is_pandoc_available", return_value=True
-            ):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should use HTML, not text
                 assert main_window._is_processing_pandoc is True
@@ -946,13 +874,9 @@ class TestClipboardMIMEDataPriority:
         mock_mime.hasText.return_value = True
         mock_mime.text.return_value = "Plain text"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch(
-                "asciidoc_artisan.core.constants.is_pandoc_available", return_value=True
-            ):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 assert main_window._is_processing_pandoc is True
 
@@ -965,9 +889,7 @@ class TestClipboardMIMEDataPriority:
         mock_mime.hasHtml.return_value = False
         mock_mime.hasText.return_value = False
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
             manager.convert_and_paste_from_clipboard()
             # Should show "empty clipboard" message
@@ -984,9 +906,7 @@ class TestClipboardMIMEDataPriority:
         mock_mime.hasHtml.return_value = True
         mock_mime.html.return_value = "<p>Test</p>"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
             with patch(
                 "asciidoc_artisan.core.constants.is_pandoc_available",
@@ -1007,13 +927,9 @@ class TestClipboardMIMEDataPriority:
         mock_mime.hasHtml.return_value = True
         mock_mime.html.return_value = "<p>HTML content</p>"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch(
-                "asciidoc_artisan.core.constants.is_pandoc_available", return_value=True
-            ):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should emit conversion request with "html" format
                 main_window.request_pandoc_conversion.emit.assert_called()
@@ -1031,13 +947,9 @@ class TestClipboardMIMEDataPriority:
         mock_mime.hasText.return_value = True
         mock_mime.text.return_value = "Plain text"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard"
-        ) as mock_clipboard:
+        with patch("asciidoc_artisan.ui.export_manager.QGuiApplication.clipboard") as mock_clipboard:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
-            with patch(
-                "asciidoc_artisan.core.constants.is_pandoc_available", return_value=True
-            ):
+            with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should emit conversion request with "markdown" format (default for text)
                 main_window.request_pandoc_conversion.emit.assert_called()
@@ -1086,9 +998,7 @@ class TestPandocResultContextParsing:
         manager.pending_export_format = "md"
 
         with patch.object(manager, "_handle_export_result") as mock_handler:
-            manager.handle_pandoc_result(
-                "File saved to: /tmp/test.md", "Exporting to MD"
-            )
+            manager.handle_pandoc_result("File saved to: /tmp/test.md", "Exporting to MD")
             mock_handler.assert_called_once()
 
     def test_unknown_context_ignored(self, main_window):
@@ -1107,9 +1017,7 @@ class TestPandocResultContextParsing:
 
         manager.handle_pandoc_result("Converted text", "clipboard conversion")
         # Should show status message
-        main_window.status_bar.showMessage.assert_called_with(
-            "Pasted converted content"
-        )
+        main_window.status_bar.showMessage.assert_called_with("Pasted converted content")
 
 
 @pytest.mark.fr_021
@@ -1130,15 +1038,11 @@ class TestSettingsIntegration:
         manager.pending_export_path = export_file
         manager.pending_export_format = "md"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-        ):
+        with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
             manager._handle_export_result("Converted content", "Exporting to MD")
             assert main_window._settings.last_directory == str(tmp_path)
 
-    def test_ai_conversion_preference_retrieved_for_markdown(
-        self, main_window, tmp_path
-    ):
+    def test_ai_conversion_preference_retrieved_for_markdown(self, main_window, tmp_path):
         from asciidoc_artisan.ui.export_manager import ExportManager
 
         manager = ExportManager(main_window)
@@ -1163,9 +1067,7 @@ class TestSettingsIntegration:
         export_file = tmp_path / "test.md"
 
         with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
-            with patch.object(
-                manager.html_converter, "asciidoc_to_html", return_value="<html>"
-            ):
+            with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
                 manager._export_via_pandoc(export_file, "md", "= Test", True)
                 # Should emit conversion request with use_ai=True
                 main_window.request_pandoc_conversion.emit.assert_called()
@@ -1250,16 +1152,10 @@ class TestExportErrorHandling:
         export_file = tmp_path / "test.md"
 
         with patch("asciidoc_artisan.ui.export_manager.atomic_save_text"):
-            with patch.object(
-                manager.html_converter, "asciidoc_to_html", return_value="<html>"
-            ):
+            with patch.object(manager.html_converter, "asciidoc_to_html", return_value="<html>"):
                 # Mock temp file write to raise error
-                with patch(
-                    "pathlib.Path.write_text", side_effect=Exception("Write error")
-                ):
-                    result = manager._export_via_pandoc(
-                        export_file, "md", "= Test", False
-                    )
+                with patch("pathlib.Path.write_text", side_effect=Exception("Write error")):
+                    result = manager._export_via_pandoc(export_file, "md", "= Test", False)
                     assert result is False
 
     def test_atomic_save_failure_emits_failed_signal(self, main_window):
@@ -1270,9 +1166,7 @@ class TestExportErrorHandling:
         manager.pending_export_path = Path("/tmp/test.md")
         manager.pending_export_format = "md"
 
-        with patch(
-            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False
-        ):
+        with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False):
             signal_received = []
             manager.export_failed.connect(lambda msg: signal_received.append(msg))
             manager._handle_export_result("Content", "Exporting to MD")
@@ -1322,9 +1216,7 @@ class TestExportManagerCoverageEdgeCases:
         export_file = tmp_path / "test.html"
 
         # Mock atomic_save_text to return False
-        with patch(
-            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False
-        ):
+        with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False):
             signal_received = []
             manager.export_failed.connect(lambda msg: signal_received.append(msg))
 
@@ -1346,9 +1238,7 @@ class TestExportManagerCoverageEdgeCases:
         signal_received = []
         manager.export_completed.connect(lambda path: signal_received.append(str(path)))
 
-        manager._handle_export_result(
-            f"File saved to: {export_file}", "Exporting to MD"
-        )
+        manager._handle_export_result(f"File saved to: {export_file}", "Exporting to MD")
 
         assert len(signal_received) == 1
         assert str(export_file) in signal_received[0]
@@ -1383,9 +1273,7 @@ class TestExportManagerCoverageEdgeCases:
         manager.pending_export_format = "pdf"
 
         # Mock atomic_save_text to return True
-        with patch(
-            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True
-        ):
+        with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=True):
             signal_received = []
             manager.export_completed.connect(lambda path: signal_received.append(str(path)))
 
@@ -1405,9 +1293,7 @@ class TestExportManagerCoverageEdgeCases:
         manager.pending_export_format = "pdf"
 
         # Mock atomic_save_text to return False
-        with patch(
-            "asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False
-        ):
+        with patch("asciidoc_artisan.ui.export_manager.atomic_save_text", return_value=False):
             signal_received = []
             manager.export_failed.connect(lambda msg: signal_received.append(msg))
 

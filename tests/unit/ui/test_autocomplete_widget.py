@@ -78,9 +78,7 @@ class TestInitialization:
 
     def test_widget_scroll_policy(self, widget):
         """Test horizontal scrollbar is always off."""
-        assert (
-            widget.horizontalScrollBarPolicy() == Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
+        assert widget.horizontalScrollBarPolicy() == Qt.ScrollBarPolicy.ScrollBarAlwaysOff
 
     def test_widget_size_constraints(self, widget):
         """Test widget size constraints."""

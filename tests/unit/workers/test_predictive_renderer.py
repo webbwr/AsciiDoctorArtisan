@@ -95,11 +95,7 @@ def test_predict_with_edit_history():
     prediction = renderer.predict_next_blocks(total_blocks=10, current_block_index=5)
 
     # Should include recently edited blocks
-    assert (
-        3 in prediction.block_indices
-        or 7 in prediction.block_indices
-        or 9 in prediction.block_indices
-    )
+    assert 3 in prediction.block_indices or 7 in prediction.block_indices or 9 in prediction.block_indices
 
 
 def test_predict_sequential_pattern():
@@ -339,15 +335,11 @@ def test_prediction_boundary_handling():
     renderer = PredictiveRenderer()
 
     # Test at beginning of document
-    prediction_start = renderer.predict_next_blocks(
-        total_blocks=10, current_block_index=0
-    )
+    prediction_start = renderer.predict_next_blocks(total_blocks=10, current_block_index=0)
     assert all(0 <= idx < 10 for idx in prediction_start.block_indices)
 
     # Test at end of document
-    prediction_end = renderer.predict_next_blocks(
-        total_blocks=10, current_block_index=9
-    )
+    prediction_end = renderer.predict_next_blocks(total_blocks=10, current_block_index=9)
     assert all(0 <= idx < 10 for idx in prediction_end.block_indices)
 
 

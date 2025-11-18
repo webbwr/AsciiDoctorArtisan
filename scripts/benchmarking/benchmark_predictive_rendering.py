@@ -123,9 +123,7 @@ class BenchmarkRunner:
             "cache_hit_rate": cache_stats.get("hit_rate", 0.0),
         }
 
-    def benchmark_with_prediction(
-        self, text: str, edit_sequence: List[Tuple[int, str]], iterations: int = 10
-    ) -> dict:
+    def benchmark_with_prediction(self, text: str, edit_sequence: List[Tuple[int, str]], iterations: int = 10) -> dict:
         """Benchmark rendering with predictive pre-rendering."""
         self.incremental_renderer.cache.clear()
         self.incremental_renderer.previous_blocks = []
@@ -142,9 +140,7 @@ class BenchmarkRunner:
 
                 # Pre-render predicted blocks
                 if blocks:
-                    self.predictive_renderer.request_prediction(
-                        total_blocks=len(blocks), current_block=section_idx
-                    )
+                    self.predictive_renderer.request_prediction(total_blocks=len(blocks), current_block=section_idx)
 
                     # Pre-render up to 3 blocks
                     for _ in range(3):
@@ -236,9 +232,7 @@ class BenchmarkRunner:
             with_pred = self.benchmark_with_prediction(doc, edit_seq)
 
             # Calculate improvement
-            improvement = (
-                (without["avg_ms"] - with_pred["avg_ms"]) / without["avg_ms"] * 100
-            )
+            improvement = (without["avg_ms"] - with_pred["avg_ms"]) / without["avg_ms"] * 100
 
             # Display results
             print()
@@ -254,9 +248,7 @@ class BenchmarkRunner:
             print(f"    Min:     {with_pred['min_ms']:.3f}ms")
             print(f"    Max:     {with_pred['max_ms']:.3f}ms")
             print(f"    Cache Hit Rate: {with_pred['cache_hit_rate']:.1f}%")
-            print(
-                f"    Prediction Hit Rate: {with_pred['prediction_hit_rate'] * 100:.1f}%"
-            )
+            print(f"    Prediction Hit Rate: {with_pred['prediction_hit_rate'] * 100:.1f}%")
             print(f"    Predictions Made: {with_pred['predictions_made']}")
             print()
             print(f"  ✨ Latency Improvement: {improvement:.1f}%")

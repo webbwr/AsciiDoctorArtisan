@@ -79,9 +79,7 @@ def test_worker_pool_cleanup():
 
     # Thread count should return to normal (or close to it)
     final_threads = threading.active_count()
-    assert (
-        final_threads <= initial_threads + 2
-    ), f"Thread leak detected: {initial_threads} -> {final_threads}"
+    assert final_threads <= initial_threads + 2, f"Thread leak detected: {initial_threads} -> {final_threads}"
 
 
 @pytest.mark.asyncio
@@ -125,9 +123,7 @@ async def test_file_handler_no_handle_leak_async(qtbot):
         # Open files asynchronously
         for test_file in test_files:
             # Mock async read to return content
-            handler.async_manager.read_file = AsyncMock(
-                return_value=test_file.read_text()
-            )
+            handler.async_manager.read_file = AsyncMock(return_value=test_file.read_text())
             await handler._load_file_async(test_file)
 
         # Cleanup
@@ -138,9 +134,7 @@ async def test_file_handler_no_handle_leak_async(qtbot):
     handle_diff = final_handles - initial_handles
 
     # Allow small variation (±5 handles is acceptable)
-    assert (
-        abs(handle_diff) < 5
-    ), f"File handle leak detected: {initial_handles} → {final_handles} (diff: {handle_diff})"
+    assert abs(handle_diff) < 5, f"File handle leak detected: {initial_handles} → {final_handles} (diff: {handle_diff})"
 
 
 @pytest.mark.memory
@@ -164,9 +158,7 @@ def test_lru_cache_memory_bounded():
     # Memory should be bounded (rough check)
     cache_size_bytes = sys.getsizeof(cache._cache)
     # Should be much less than 10_000 entries * 10KB = 100MB
-    assert (
-        cache_size_bytes < 5_000_000
-    ), f"Cache using {cache_size_bytes / 1_000_000:.1f}MB"
+    assert cache_size_bytes < 5_000_000, f"Cache using {cache_size_bytes / 1_000_000:.1f}MB"
 
 
 @pytest.mark.memory
@@ -187,9 +179,7 @@ def test_metrics_collector_ring_buffer():
 
     # But durations are limited to buffer size
     op_metrics = collector.operations["test_op"]
-    assert (
-        len(op_metrics.durations) <= 1000
-    ), "Ring buffer should limit duration storage"
+    assert len(op_metrics.durations) <= 1000, "Ring buffer should limit duration storage"
 
 
 @pytest.mark.memory
@@ -344,9 +334,7 @@ def test_theme_manager_css_cache_bounded():
 
     # Total cache should be small (< 100KB)
     total_cache_size = light_cache_size + dark_cache_size
-    assert (
-        total_cache_size < 100_000
-    ), f"CSS cache using {total_cache_size / 1_000:.1f}KB"
+    assert total_cache_size < 100_000, f"CSS cache using {total_cache_size / 1_000:.1f}KB"
 
 
 @pytest.mark.memory
@@ -462,9 +450,7 @@ def test_worker_pool_task_cleanup():
 
     # Verify tasks were submitted
     stats = pool.get_statistics()
-    assert (
-        stats["submitted"] == 500
-    ), f"Expected 500 submitted, got {stats['submitted']}"
+    assert stats["submitted"] == 500, f"Expected 500 submitted, got {stats['submitted']}"
 
     # Wait for tasks to execute
     time.sleep(2.0)
@@ -478,9 +464,7 @@ def test_worker_pool_task_cleanup():
     memory_growth = current_memory - initial_memory
     tracemalloc.stop()
 
-    assert (
-        memory_growth < 50_000_000
-    ), f"Memory grew by {memory_growth / 1_000_000:.1f}MB (expected < 50MB)"
+    assert memory_growth < 50_000_000, f"Memory grew by {memory_growth / 1_000_000:.1f}MB (expected < 50MB)"
 
 
 @pytest.mark.memory
