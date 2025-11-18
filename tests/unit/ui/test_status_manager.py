@@ -484,3 +484,219 @@ class TestStatusManager:
         assert "#fbbf24" in manager.git_status_label.styleSheet()  # Yellow restored
         assert "dev" in manager.git_status_label.text()
         assert "●4" in manager.git_status_label.text()  # Total changes
+
+
+class TestStatusManagerCoverageEdgeCases:
+    """Additional tests to achieve 99-100% coverage for status_manager."""
+
+    def test_show_status_with_no_status_bar(self, main_window):
+        """Test show_status handles missing status bar gracefully (lines 193-194)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+
+        # Remove status bar
+        main_window.status_bar = None
+
+        # Should not raise exception
+        manager.show_status("Test message", 5000)
+
+    def test_prompt_save_before_action_no_unsaved_changes(self, main_window):
+        """Test prompt_save skips when no unsaved changes (lines 216-217)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        main_window._unsaved_changes = False
+
+        # Should return True without prompting
+        result = manager.prompt_save_before_action("testing")
+        assert result is True
+
+    def test_prompt_save_before_action_save_choice(self, main_window):
+        """Test prompt_save when user chooses to save (lines 229-230)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+        from PySide6.QtWidgets import QMessageBox
+
+        manager = StatusManager(main_window)
+        main_window._unsaved_changes = True
+        main_window.save_file = Mock(return_value=True)
+
+        # Mock QMessageBox to return Save button
+        with patch("asciidoc_artisan.ui.status_manager.QMessageBox.question") as mock_q:
+            mock_q.return_value = QMessageBox.StandardButton.Save
+
+            # Unset pytest environment to allow prompt
+            with patch.dict("os.environ", {}, clear=True):
+                result = manager.prompt_save_before_action("testing")
+
+            assert result is True
+            main_window.save_file.assert_called_once()
+
+    def test_prompt_save_before_action_discard_choice(self, main_window):
+        """Test prompt_save when user chooses to discard (lines 231-232)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+        from PySide6.QtWidgets import QMessageBox
+
+        manager = StatusManager(main_window)
+        main_window._unsaved_changes = True
+
+        # Mock QMessageBox to return Discard button
+        with patch("asciidoc_artisan.ui.status_manager.QMessageBox.question") as mock_q:
+            mock_q.return_value = QMessageBox.StandardButton.Discard
+
+            # Unset pytest environment to allow prompt
+            with patch.dict("os.environ", {}, clear=True):
+                result = manager.prompt_save_before_action("testing")
+
+            assert result is True
+
+    def test_prompt_save_before_action_cancel_choice(self, main_window):
+        """Test prompt_save when user chooses to cancel (lines 233-234)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+        from PySide6.QtWidgets import QMessageBox
+
+        manager = StatusManager(main_window)
+        main_window._unsaved_changes = True
+
+        # Mock QMessageBox to return Cancel button
+        with patch("asciidoc_artisan.ui.status_manager.QMessageBox.question") as mock_q:
+            mock_q.return_value = QMessageBox.StandardButton.Cancel
+
+            # Unset pytest environment to allow prompt
+            with patch.dict("os.environ", {}, clear=True):
+                result = manager.prompt_save_before_action("testing")
+
+            assert result is False
+
+    def test_calculate_grade_level_empty_text(self, main_window):
+        """Test calculate_grade_level with empty text (line 305)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+
+        # Empty text should return 0.0
+        grade = manager.calculate_grade_level("")
+        assert grade == 0.0
+
+    def test_update_document_metrics_no_version_label(self, main_window):
+        """Test update_document_metrics early return when label is None (line 332)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+
+        # Set version_label to None
+        manager.version_label = None
+
+        # Should return early without error
+        manager.update_document_metrics()
+
+    def test_extract_version_no_version_path(self, main_window):
+        """Test extract_document_version when no version found (returns None - lines 345-346 test via update_document_metrics)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+
+        # No version in text
+        version = manager.extract_document_version("No version here")
+
+        # Should return None
+        assert version is None
+
+    def test_set_ai_active_deprecated(self, main_window):
+        """Test deprecated set_ai_active method (line 428)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+
+        # Should do nothing but not raise error
+        manager.set_ai_active(True)
+        manager.set_ai_active(False)
+
+    def test_on_cancel_clicked_no_operation(self, main_window):
+        """Test cancel button click with no current operation (line 449)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager._current_operation = None
+
+        # Should return early without error
+        manager._on_cancel_clicked()
+
+    def test_on_cancel_clicked_git_operation(self, main_window):
+        """Test cancel button click for git operation (lines 453-454)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager._current_operation = "git"
+
+        # Mock worker_manager
+        main_window.worker_manager = Mock()
+        main_window.worker_manager.cancel_git_operation = Mock()
+
+        manager._on_cancel_clicked()
+
+        main_window.worker_manager.cancel_git_operation.assert_called_once()
+
+    def test_on_cancel_clicked_pandoc_operation(self, main_window):
+        """Test cancel button click for pandoc operation (lines 455-456)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager._current_operation = "pandoc"
+
+        # Mock worker_manager
+        main_window.worker_manager = Mock()
+        main_window.worker_manager.cancel_pandoc_operation = Mock()
+
+        manager._on_cancel_clicked()
+
+        main_window.worker_manager.cancel_pandoc_operation.assert_called_once()
+
+    def test_on_cancel_clicked_preview_operation(self, main_window):
+        """Test cancel button click for preview operation (lines 457-458)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+        manager._current_operation = "preview"
+
+        # Mock worker_manager
+        main_window.worker_manager = Mock()
+        main_window.worker_manager.cancel_preview_operation = Mock()
+
+        manager._on_cancel_clicked()
+
+        main_window.worker_manager.cancel_preview_operation.assert_called_once()
+
+    def test_update_git_status_no_label(self, main_window):
+        """Test update_git_status early return when label is None (line 481)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+        from asciidoc_artisan.core.models import GitStatus
+
+        manager = StatusManager(main_window)
+        manager.git_status_label = None
+
+        status = GitStatus(
+            branch="main",
+            modified_count=1,
+            staged_count=0,
+            untracked_count=0,
+            has_conflicts=False,
+            ahead_count=0,
+            behind_count=0,
+        )
+
+        # Should return early without error
+        manager.update_git_status(status)
+
+    def test_restore_git_status_color_no_data(self, main_window):
+        """Test restore_git_status_color early return when no stored data (line 554)."""
+        from asciidoc_artisan.ui.status_manager import StatusManager
+
+        manager = StatusManager(main_window)
+
+        # Clear stored git data
+        manager._current_git_color = None
+        manager._current_git_text = None
+
+        # Should return early without error
+        manager.restore_git_status_color()
