@@ -38,8 +38,8 @@ def measure_imports():
     # Test 3: AsciiDoc
     start = time.perf_counter()
     try:
-        import asciidoc3
-        from asciidoc3.asciidoc3api import AsciiDoc3API
+        import asciidoc3  # noqa: F401
+        from asciidoc3.asciidoc3api import AsciiDoc3API  # noqa: F401
 
         asciidoc_time = (time.perf_counter() - start) * 1000
     except ImportError:
@@ -49,7 +49,7 @@ def measure_imports():
     # Test 4: Pandoc
     start = time.perf_counter()
     try:
-        import pypandoc
+        import pypandoc  # noqa: F401
 
         pandoc_time = (time.perf_counter() - start) * 1000
     except ImportError:
@@ -59,7 +59,7 @@ def measure_imports():
     # Test 5: PyMuPDF
     start = time.perf_counter()
     try:
-        import pymupdf
+        import pymupdf  # noqa: F401
 
         pymupdf_time = (time.perf_counter() - start) * 1000
     except ImportError:
