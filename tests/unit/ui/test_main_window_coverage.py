@@ -19,13 +19,9 @@ Current 75% is excellent for a 1,724-line UI controller with 97 tests passing.
 - Simple testable methods without complex Qt mocking
 """
 
-import time
-import uuid
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog
 
 
 @pytest.fixture
@@ -250,9 +246,7 @@ class TestPandocResultHandling:
 
         window._handle_pandoc_result("converted content", "paste")
 
-        window.pandoc_result_handler.handle_pandoc_result.assert_called_once_with(
-            "converted content", "paste"
-        )
+        window.pandoc_result_handler.handle_pandoc_result.assert_called_once_with("converted content", "paste")
 
 
 @pytest.mark.unit
