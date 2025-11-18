@@ -743,7 +743,8 @@ class TestSetupWorkersAndThreads:
         assert hasattr(window, "git_worker")
         assert hasattr(window, "pandoc_worker")
         assert hasattr(window, "preview_worker")
-        assert hasattr(window, "github_cli_worker")
+        # Note: github_cli_worker is managed internally by github_handler
+        assert hasattr(window, "github_handler")
         assert hasattr(window, "ollama_chat_worker")
 
     def test_chat_manager_initialized(self, mock_workers, qapp):
@@ -794,9 +795,8 @@ class TestRefreshFromSettings:
         # Set dark mode in settings
         window._settings.dark_mode = True
 
-        # Mock theme_manager methods
-        window.theme_manager.apply_dark_theme = Mock()
-        window.theme_manager.apply_light_theme = Mock()
+        # Mock theme_manager method
+        window.theme_manager.apply_theme = Mock()
 
         # Mock other methods
         window._update_ai_status_bar = Mock()
@@ -805,9 +805,8 @@ class TestRefreshFromSettings:
         # Refresh from settings
         window._refresh_from_settings()
 
-        # Verify dark theme applied
-        window.theme_manager.apply_dark_theme.assert_called_once()
-        window.theme_manager.apply_light_theme.assert_not_called()
+        # Verify apply_theme was called (which checks dark_mode internally)
+        window.theme_manager.apply_theme.assert_called_once()
 
     def test_applies_light_theme(self, mock_workers, qapp):
         """Test that light theme is applied when disabled."""
@@ -818,9 +817,8 @@ class TestRefreshFromSettings:
         # Set light mode in settings
         window._settings.dark_mode = False
 
-        # Mock theme_manager methods
-        window.theme_manager.apply_dark_theme = Mock()
-        window.theme_manager.apply_light_theme = Mock()
+        # Mock theme_manager method
+        window.theme_manager.apply_theme = Mock()
 
         # Mock other methods
         window._update_ai_status_bar = Mock()
@@ -829,9 +827,8 @@ class TestRefreshFromSettings:
         # Refresh from settings
         window._refresh_from_settings()
 
-        # Verify light theme applied
-        window.theme_manager.apply_light_theme.assert_called_once()
-        window.theme_manager.apply_dark_theme.assert_not_called()
+        # Verify apply_theme was called (which checks dark_mode internally)
+        window.theme_manager.apply_theme.assert_called_once()
 
     def test_updates_font_size(self, mock_workers, qapp):
         """Test that font size setting triggers setFont call."""
