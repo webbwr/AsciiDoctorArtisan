@@ -936,9 +936,9 @@ class TestRefreshFromSettings:
         # Refresh from settings
         window._refresh_from_settings()
 
-        # Verify geometry updated
-        assert window.x() == 100
-        assert window.y() == 100
+        # Verify geometry updated (allow small variance for window manager decorations)
+        assert abs(window.x() - 100) <= 5  # Allow up to 5 pixel difference
+        assert abs(window.y() - 100) <= 5
         assert window.width() == 800
         assert window.height() == 600
 
@@ -1152,6 +1152,7 @@ class TestNewFromTemplate:
             mock_template = Mock()
             mock_template.name = "Article"
             mock_template.content = "= {{title}}\n\nContent here"
+            mock_template.variables = []  # Template engine expects an iterable
 
             # Configure mock browser instance
             mock_browser_instance = Mock()
