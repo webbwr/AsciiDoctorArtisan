@@ -334,8 +334,8 @@ Comprehensive test suite health improvements and documentation consolidation fol
 3. **Statusline** - Fixed coverage display (was "?", now "91.7%")
 
 **Documentation Consolidation:**
-- Created `TESTING_README.md` - Comprehensive testing index (350+ lines)
-- Created `TEST_ISSUES_SUMMARY.md` - Complete test health report (298 lines)
+- Created `TESTING_README.md` - Comprehensive testing guide with integrated health report (750+ lines)
+- Merged `TEST_ISSUES_SUMMARY.md` and `HANGING_TESTS.md` into TESTING_README.md
 - Archived 7 outdated investigation docs to `docs/archive/2025-11-16-test-investigations/`
 - Established single source of truth for test documentation
 
@@ -352,8 +352,7 @@ Comprehensive test suite health improvements and documentation consolidation fol
 - `tests/performance/test_performance_baseline.py` - WSL2 threshold update
 
 **Documentation:**
-- `docs/developer/TESTING_README.md` - New comprehensive index
-- `docs/developer/TEST_ISSUES_SUMMARY.md` - New health report
+- `docs/developer/TESTING_README.md` - Comprehensive testing guide (merged with test issues summary and hanging tests analysis)
 - `docs/archive/2025-11-16-test-investigations/README.md` - Archive documentation
 - `SPECIFICATIONS_AI.md` - Updated to v2.0.4
 - `SPECIFICATIONS_HU.md` - Updated to v2.0.4

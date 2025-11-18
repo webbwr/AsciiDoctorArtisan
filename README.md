@@ -240,6 +240,9 @@ If you are in a Git folder, you can use Git.
 **Push** means send work to the web:
 - Click `Git` then click `Push`
 
+**Want more details?**
+See [User Guide](docs/user/user-guide.md) for complete feature documentation.
+
 ## GPU Speed
 
 New in v1.4!
@@ -458,14 +461,13 @@ Need more help?
 
 ## Version
 
-**Current Version**: 2.0.2 (Complete)
+**Current Version**: 2.0.4 (November 18, 2025)
 
-**What's New in v2.0.2:**
-- Modern Python code (3.12+ type hints)
-- Better code quality (all checks pass)
-- Faster and cleaner code
-- 5,479 tests total (96.4% coverage)
-- 204 tests passing (100% pass rate)
+**What's New in v2.0.4:**
+- Documentation consolidation and cleanup
+- Architecture documentation updated with FR mapping
+- All 204 tests passing (100% pass rate)
+- 91.7% code coverage (5,527/5,563 statements)
 
 **What's New in v2.0.0:**
 - Smart writing help (auto-complete)
@@ -473,42 +475,8 @@ Need more help?
 - Paper plans (templates)
 - Very fast (0.586 seconds to start)
 
-**What's New in v1.9.0:**
-- Enhanced Git Status Display (real-time updates)
-- Git Status Dialog with file details (Ctrl+Shift+G)
-- Quick Commit Widget (Ctrl+G for fast commits)
-- Color-coded Git indicators (clean, changes, conflicts)
-- Improved Git workflow for power users
-
-**What's New in v1.8.0:**
-- Find and Replace words in your work
-- Spell check with red lines under wrong words
-- Right-click to see word fixes
-- Add words to your own word list
-- Press F7 to turn spell check on or off
-
-**What's New in v1.7.1:**
-- All 82 tests passing (100% pass rate)
-- Full Ollama Chat feature tested
-- Complete documentation added
-- All bugs fixed (24 test failures → 0)
-- Production ready quality
-
-**What's New in v1.7.0:**
-- AI Chat with 4 help modes
-- Ask about your document
-- Learn AsciiDoc syntax
-- Get writing help
-- Edit suggestions
-- Chat history saved (100 messages)
-- Works offline (your computer only)
-
-**What's New in v1.6.0:**
-- Works with GitHub now
-- Can make pull requests
-- Can make issues
-- Faster file reading (async I/O)
-- Faster block detection (10-14% better)
+**Previous Versions:**
+See [CHANGELOG.md](CHANGELOG.md) for complete version history (v1.6-v2.0.3)
 
 ## Thank You
 

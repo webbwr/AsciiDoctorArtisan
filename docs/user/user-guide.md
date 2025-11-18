@@ -33,7 +33,7 @@ It helps you write docs.
 
 ### First Time
 
-1. Install (see how-to-install.md)
+1. Install (see [../../README.md#install-it](../../README.md#install-it))
 2. Start - Click start file
 3. Two sides:
    - Left: Type here
