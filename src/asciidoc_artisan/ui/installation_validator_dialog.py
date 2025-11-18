@@ -81,7 +81,9 @@ class ValidationWorker(QThread):
         # Check Python version
         py_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         if sys.version_info >= (3, 14):
-            results["python_packages"].append(("Python", "✓", py_version, "Version OK")) # pragma: no cover
+            results["python_packages"].append(
+                ("Python", "✓", py_version, "Version OK")
+            )  # pragma: no cover
         else:
             results["python_packages"].append(
                 ("Python", "✗", py_version, "Requires Python 3.14+")
@@ -340,8 +342,10 @@ class ValidationWorker(QThread):
             return "unknown"
         except metadata.PackageNotFoundError:
             # Package not found in metadata
-            logger.debug(f"Package {package_name} not found in metadata") # pragma: no cover
-            return "unknown" # pragma: no cover
+            logger.debug(
+                f"Package {package_name} not found in metadata"
+            )  # pragma: no cover
+            return "unknown"  # pragma: no cover
         except Exception as e:
             logger.warning(
                 f"Error getting version for {package_name} from metadata: {e}"
@@ -418,9 +422,9 @@ class ValidationWorker(QThread):
                     return 1
 
             return 0
-        except Exception: # pragma: no cover
+        except Exception:  # pragma: no cover
             # If version parsing fails, assume equal # pragma: no cover
-            return 0 # pragma: no cover
+            return 0  # pragma: no cover
 
 
 class InstallationValidatorDialog(QDialog):

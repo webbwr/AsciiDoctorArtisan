@@ -218,7 +218,7 @@ class ClaudeClient:
             if system:
                 kwargs["system"] = system
 
-            response = client.messages.create(**kwargs)  # type: ignore[call-overload]
+            response = client.messages.create(**kwargs)
 
             # Extract response
             content = ""

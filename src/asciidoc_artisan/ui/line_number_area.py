@@ -58,7 +58,7 @@ class LineNumberMixin:
 
     def setup_line_numbers(self) -> None:
         """Set up line number area and connect signals."""
-        self.line_number_area = LineNumberArea(self)  # type: ignore[arg-type]  # Mixin pattern on QPlainTextEdit
+        self.line_number_area = LineNumberArea(self)
 
         # Connect signals for auto-update
         self.blockCountChanged.connect(self.update_line_number_area_width)

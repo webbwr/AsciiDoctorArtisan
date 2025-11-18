@@ -505,7 +505,7 @@ class TemplateManager:
             Content...
         """
         try:
-            import yaml  # type: ignore[import-untyped]
+            import yaml
         except ImportError:
             raise ImportError("PyYAML is required for template serialization")
 
