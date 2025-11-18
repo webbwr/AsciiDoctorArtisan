@@ -514,8 +514,9 @@ class TestStatusManagerCoverageEdgeCases:
 
     def test_prompt_save_before_action_save_choice(self, main_window):
         """Test prompt_save when user chooses to save (lines 229-230)."""
-        from asciidoc_artisan.ui.status_manager import StatusManager
         from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.status_manager import StatusManager
 
         manager = StatusManager(main_window)
         main_window._unsaved_changes = True
@@ -534,8 +535,9 @@ class TestStatusManagerCoverageEdgeCases:
 
     def test_prompt_save_before_action_discard_choice(self, main_window):
         """Test prompt_save when user chooses to discard (lines 231-232)."""
-        from asciidoc_artisan.ui.status_manager import StatusManager
         from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.status_manager import StatusManager
 
         manager = StatusManager(main_window)
         main_window._unsaved_changes = True
@@ -552,8 +554,9 @@ class TestStatusManagerCoverageEdgeCases:
 
     def test_prompt_save_before_action_cancel_choice(self, main_window):
         """Test prompt_save when user chooses to cancel (lines 233-234)."""
-        from asciidoc_artisan.ui.status_manager import StatusManager
         from PySide6.QtWidgets import QMessageBox
+
+        from asciidoc_artisan.ui.status_manager import StatusManager
 
         manager = StatusManager(main_window)
         main_window._unsaved_changes = True
@@ -669,8 +672,8 @@ class TestStatusManagerCoverageEdgeCases:
 
     def test_update_git_status_no_label(self, main_window):
         """Test update_git_status early return when label is None (line 481)."""
-        from asciidoc_artisan.ui.status_manager import StatusManager
         from asciidoc_artisan.core.models import GitStatus
+        from asciidoc_artisan.ui.status_manager import StatusManager
 
         manager = StatusManager(main_window)
         manager.git_status_label = None

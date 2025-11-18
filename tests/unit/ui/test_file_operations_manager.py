@@ -1005,7 +1005,9 @@ class TestFileOperationsCoverageEdgeCases:
             assert "PDF Extraction Failed" in args[1]
             assert "Encryption error" in args[2]
 
-    def test_open_non_adoc_pandoc_unavailable_returns_early(self, mock_editor, tmp_path):
+    def test_open_non_adoc_pandoc_unavailable_returns_early(
+        self, mock_editor, tmp_path
+    ):
         """Test opening non-adoc file returns early if Pandoc unavailable (line 601)."""
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -1013,7 +1015,9 @@ class TestFileOperationsCoverageEdgeCases:
         file_path = tmp_path / "test.docx"
 
         # Mock check_pandoc_availability to return False
-        mock_editor.ui_state_manager.check_pandoc_availability = Mock(return_value=False)
+        mock_editor.ui_state_manager.check_pandoc_availability = Mock(
+            return_value=False
+        )
 
         manager._open_with_pandoc_conversion(file_path, ".docx")
 
@@ -1059,7 +1063,9 @@ class TestFileOperationsCoverageEdgeCases:
 
             # Should load content into editor
             mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
-            loaded_content = mock_editor.file_load_manager.load_content_into_editor.call_args[0][0]
+            loaded_content = (
+                mock_editor.file_load_manager.load_content_into_editor.call_args[0][0]
+            )
             assert loaded_content == content
 
     def test_determine_format_from_docx_filter(self, mock_editor, tmp_path):
