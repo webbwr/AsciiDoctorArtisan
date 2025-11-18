@@ -37,6 +37,7 @@ Example:
 """
 
 import re
+from functools import cached_property
 from typing import Protocol
 
 from asciidoc_artisan.core.models import SyntaxErrorModel
@@ -92,12 +93,7 @@ class ValidationContext:
         self.lines = document.splitlines()
         self.changed_lines = changed_lines
 
-        # Caches (populated on demand)
-        self._anchors: list[str] | None = None
-        self._attributes: dict[str, str] | None = None
-        self._includes: list[str] | None = None
-
-    @property
+    @cached_property
     def anchors(self) -> list[str]:
         """
         Extract all anchor IDs from document.
@@ -107,17 +103,15 @@ class ValidationContext:
         - [#anchor-id]
 
         Returns:
-            List of anchor IDs
+            List of anchor IDs (cached after first access)
         """
-        if self._anchors is None:
-            # Match [[id]] and [#id] patterns
-            pattern = r"\[\[([^\]]+)\]\]|\[#([^\]]+)\]"
-            matches = re.findall(pattern, self.document)
-            # Flatten tuples (each match has 2 groups)
-            self._anchors = [m[0] or m[1] for m in matches]
-        return self._anchors
+        # Match [[id]] and [#id] patterns
+        pattern = r"\[\[([^\]]+)\]\]|\[#([^\]]+)\]"
+        matches = re.findall(pattern, self.document)
+        # Flatten tuples (each match has 2 groups)
+        return [m[0] or m[1] for m in matches]
 
-    @property
+    @cached_property
     def attributes(self) -> dict[str, str]:
         """
         Extract all document attributes.
@@ -125,15 +119,13 @@ class ValidationContext:
         Matches pattern: :key: value
 
         Returns:
-            Dictionary mapping attribute names to values
+            Dictionary mapping attribute names to values (cached after first access)
         """
-        if self._attributes is None:
-            pattern = r"^:([^:]+):\s*(.*)$"
-            matches = re.findall(pattern, self.document, re.MULTILINE)
-            self._attributes = {key.strip(): value.strip() for key, value in matches}
-        return self._attributes
+        pattern = r"^:([^:]+):\s*(.*)$"
+        matches = re.findall(pattern, self.document, re.MULTILINE)
+        return {key.strip(): value.strip() for key, value in matches}
 
-    @property
+    @cached_property
     def includes(self) -> list[str]:
         """
         Extract all include directives.
@@ -141,12 +133,10 @@ class ValidationContext:
         Matches pattern: include::path[]
 
         Returns:
-            List of include file paths
+            List of include file paths (cached after first access)
         """
-        if self._includes is None:
-            pattern = r"include::([^\[]+)\["
-            self._includes = re.findall(pattern, self.document)
-        return self._includes
+        pattern = r"include::([^\[]+)\["
+        return re.findall(pattern, self.document)
 
     def should_validate_line(self, line_number: int) -> bool:
         """
