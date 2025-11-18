@@ -16,7 +16,7 @@ CYAN='\033[36m'
 
 # Project information
 PROJECT_NAME="AsciiDocArtisan"
-PROJECT_VERSION="2.0.0"
+PROJECT_VERSION="2.0.5"
 
 # Git information
 GIT_BRANCH=$(git branch --show-current 2>/dev/null || echo "no-git")
