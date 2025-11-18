@@ -264,3 +264,209 @@ class TestPreviewCSSDelegate:
 
         assert result == "body { color: black; }"
         window.theme_manager.get_preview_css.assert_called_once()
+
+
+@pytest.mark.unit
+class TestTelemetryOptInDialog:
+    """Test telemetry opt-in dialog (lines 514-549)."""
+
+    def test_telemetry_opt_in_accepted(self, mock_workers, qapp):
+        """Test user accepts telemetry."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+        window._settings.telemetry_enabled = False
+        window._settings.telemetry_opt_in_shown = False
+
+        # Mock the dialog to return ACCEPTED
+        with patch("asciidoc_artisan.ui.telemetry_opt_in_dialog.TelemetryOptInDialog") as mock_dialog_class:
+            mock_dialog = Mock()
+            mock_dialog.exec.return_value = 1  # ACCEPTED enum value
+            mock_dialog.Result.ACCEPTED = 1
+            mock_dialog.Result.DECLINED = 2
+            mock_dialog_class.return_value = mock_dialog
+            mock_dialog_class.Result = mock_dialog.Result
+
+            window._show_telemetry_opt_in_dialog()
+
+            # Verify settings updated
+            assert window._settings.telemetry_enabled is True
+            assert window._settings.telemetry_opt_in_shown is True
+            assert window._settings.telemetry_session_id is not None
+            assert window.telemetry_collector is not None
+            assert window.telemetry_collector.enabled is True
+
+    def test_telemetry_opt_in_declined(self, mock_workers, qapp):
+        """Test user declines telemetry."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+        window._settings.telemetry_enabled = True
+        window._settings.telemetry_opt_in_shown = False
+
+        # Mock the dialog to return DECLINED
+        with patch("asciidoc_artisan.ui.telemetry_opt_in_dialog.TelemetryOptInDialog") as mock_dialog_class:
+            mock_dialog = Mock()
+            mock_dialog.exec.return_value = 2  # DECLINED enum value
+            mock_dialog.Result.ACCEPTED = 1
+            mock_dialog.Result.DECLINED = 2
+            mock_dialog_class.return_value = mock_dialog
+            mock_dialog_class.Result = mock_dialog.Result
+
+            window._show_telemetry_opt_in_dialog()
+
+            # Verify settings updated
+            assert window._settings.telemetry_enabled is False
+            assert window._settings.telemetry_opt_in_shown is True
+            assert window.telemetry_collector is not None
+            assert window.telemetry_collector.enabled is False
+
+    def test_telemetry_opt_in_deferred(self, mock_workers, qapp):
+        """Test user defers telemetry decision."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+        window._settings.telemetry_enabled = False
+        window._settings.telemetry_opt_in_shown = False
+
+        # Mock the dialog to return other value (deferred)
+        with patch("asciidoc_artisan.ui.telemetry_opt_in_dialog.TelemetryOptInDialog") as mock_dialog_class:
+            mock_dialog = Mock()
+            mock_dialog.exec.return_value = 0  # Dialog closed/deferred
+            mock_dialog.Result.ACCEPTED = 1
+            mock_dialog.Result.DECLINED = 2
+            mock_dialog_class.return_value = mock_dialog
+            mock_dialog_class.Result = mock_dialog.Result
+
+            window._show_telemetry_opt_in_dialog()
+
+            # Verify opt-in not marked as shown (will show again)
+            assert window._settings.telemetry_opt_in_shown is False
+            assert window.telemetry_collector is not None
+            assert window.telemetry_collector.enabled is False
+
+
+@pytest.mark.unit
+class TestAutocompleteSettingsDialog:
+    """Test auto-complete settings dialog (lines 1506-1572)."""
+
+    def test_autocomplete_settings_dialog_accept(self, mock_workers, qapp, qtbot):
+        """Test accepting auto-complete settings changes."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Set initial values
+        window.autocomplete_manager.enabled = True
+        window.autocomplete_manager.auto_delay = 300
+        window.autocomplete_manager.min_chars = 2
+
+        # Mock settings save method
+        window._settings.save = Mock()
+
+        # Mock QDialog.exec to return accepted
+        with patch("PySide6.QtWidgets.QDialog.exec", return_value=1):
+            window.show_autocomplete_settings()
+
+            # Dialog was accepted - settings should be saved
+            assert window._settings.save.called
+
+    def test_autocomplete_settings_dialog_cancel(self, mock_workers, qapp, qtbot):
+        """Test canceling auto-complete settings changes."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Set initial values
+        original_enabled = window.autocomplete_manager.enabled
+        original_delay = window.autocomplete_manager.auto_delay
+        original_min_chars = window.autocomplete_manager.min_chars
+
+        # Mock QDialog.exec to return rejected
+        with patch("PySide6.QtWidgets.QDialog.exec", return_value=0):
+            window.show_autocomplete_settings()
+
+            # Dialog was canceled - settings should be unchanged
+            assert window.autocomplete_manager.enabled == original_enabled
+            assert window.autocomplete_manager.auto_delay == original_delay
+            assert window.autocomplete_manager.min_chars == original_min_chars
+
+    def test_autocomplete_settings_dialog_invokes(self, mock_workers, qapp, qtbot):
+        """Test auto-complete settings dialog is invoked successfully."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock settings save method
+        window._settings.save = Mock()
+
+        # Mock QDialog.exec to return accepted
+        with patch("PySide6.QtWidgets.QDialog.exec", return_value=1):
+            # This should execute without errors, exercising the dialog creation code
+            window.show_autocomplete_settings()
+
+            # Dialog was accepted - verify save was called
+            assert window._settings.save.called
+
+
+@pytest.mark.unit
+class TestSyntaxCheckerSettingsDialog:
+    """Test syntax checker settings dialog (lines 1586-1651)."""
+
+    def test_syntax_checker_settings_dialog_accept(self, mock_workers, qapp, qtbot):
+        """Test accepting syntax checker settings changes."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Set initial values
+        window.syntax_checker_manager.enabled = True
+        window.syntax_checker_manager.check_delay = 500
+        window.syntax_checker_manager.show_underlines = True
+
+        # Mock settings save method
+        window._settings.save = Mock()
+
+        # Mock QDialog.exec to return accepted
+        with patch("PySide6.QtWidgets.QDialog.exec", return_value=1):
+            window.show_syntax_check_settings()
+
+            # Dialog was accepted - settings should be saved
+            assert window._settings.save.called
+
+    def test_syntax_checker_settings_dialog_cancel(self, mock_workers, qapp, qtbot):
+        """Test canceling syntax checker settings changes."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Set initial values
+        original_enabled = window.syntax_checker_manager.enabled
+        original_delay = window.syntax_checker_manager.check_delay
+        original_underlines = window.syntax_checker_manager.show_underlines
+
+        # Mock QDialog.exec to return rejected
+        with patch("PySide6.QtWidgets.QDialog.exec", return_value=0):
+            window.show_syntax_check_settings()
+
+            # Dialog was canceled - settings should be unchanged
+            assert window.syntax_checker_manager.enabled == original_enabled
+            assert window.syntax_checker_manager.check_delay == original_delay
+            assert window.syntax_checker_manager.show_underlines == original_underlines
+
+    def test_syntax_checker_settings_dialog_invokes(self, mock_workers, qapp, qtbot):
+        """Test syntax checker settings dialog is invoked successfully."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock settings save method
+        window._settings.save = Mock()
+
+        # Mock QDialog.exec to return accepted
+        with patch("PySide6.QtWidgets.QDialog.exec", return_value=1):
+            # This should execute without errors, exercising the dialog creation code
+            window.show_syntax_check_settings()
+
+            # Dialog was accepted - verify save was called
+            assert window._settings.save.called
