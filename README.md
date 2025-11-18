@@ -1,6 +1,6 @@
 # AsciiDoc Artisan
 
-**Version 2.0.2** | November 2025
+**Version 2.0.4** | November 18, 2025
 
 A smart program for writing papers. Very fast. Has smart help.
 

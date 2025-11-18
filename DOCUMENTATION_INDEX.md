@@ -1,7 +1,7 @@
 # AsciiDoc Artisan - Documentation Index
 
-**Last Updated:** November 15, 2025
-**Version:** 2.0.2 ✅ Production Ready
+**Last Updated:** November 18, 2025
+**Version:** 2.0.4 ✅ Production Ready
 
 Complete guide to all project documentation with quick navigation.
 

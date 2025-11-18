@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **AsciiDoc Artisan** — Cross-platform desktop AsciiDoc editor with live preview (PySide6/Qt)
 
-**Version:** 2.0.3 (Nov 16, 2025) | **Status:** Production-ready | **Startup:** 0.586s
+**Version:** 2.0.4 (Nov 18, 2025) | **Status:** Production-ready | **Startup:** 0.586s
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
 

@@ -35,19 +35,34 @@
    - 11/24 fixed (46% complete)
    - **Superseded by:** All tests now passing (204/204)
 
+6. **assertion-failures-analysis.md** (Added Nov 18, 2025)
+   - Analysis of assertion failures in dialog tests
+   - Mock/parent initialization issues
+   - **Superseded by:** All tests fixed, MockParentWidget pattern documented
+
+7. **dialog-init-failures-analysis.md** (Added Nov 18, 2025)
+   - Dialog initialization failure investigation
+   - PySide6 C++ parent validation issues
+   - **Superseded by:** MockParentWidget pattern in conftest.py
+
+8. **mock-assertion-analysis.md** (Added Nov 18, 2025)
+   - Mock assertion failures in dialog tests
+   - MagicMock compatibility with Qt C++ layer
+   - **Superseded by:** Real QWidget fixtures with trackable methods
+
 ### Session Documentation (Nov 17, 2025)
 
-6. **PHASE4_SESSION_2025-11-17.md** (9.5K)
+9. **PHASE4_SESSION_2025-11-17.md** (9.5K)
    - Phase 4 coverage improvement session summary
    - 4-hour session, 3 files improved to 98-99%
    - Documents hanging test investigation
    - **Status:** Historical record of completed work
 
-7. **PHASE4_NEXT_SESSION.md** (4.6K)
-   - Quick start guide for next coverage session
-   - File priorities and uncovered line numbers
-   - **Outdated:** Mentions file_operations_manager at 90% (now 98%)
-   - **Superseded by:** Work completed, no longer applicable
+10. **PHASE4_NEXT_SESSION.md** (4.6K)
+    - Quick start guide for next coverage session
+    - File priorities and uncovered line numbers
+    - **Outdated:** Mentions file_operations_manager at 90% (now 98%)
+    - **Superseded by:** Work completed, no longer applicable
 
 ---
 
