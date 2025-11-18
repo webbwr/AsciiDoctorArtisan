@@ -930,3 +930,256 @@ class TestNonAsciidocExtensionConversion:
             saved_path = mock_save.call_args[0][0]
             assert saved_path.suffix == ".adoc"
             assert saved_path.name == "test.adoc"
+
+
+@pytest.mark.fr_007
+@pytest.mark.edge_case
+@pytest.mark.unit
+class TestFileOperationsCoverageEdgeCases:
+    """Additional tests to achieve 99-100% coverage for file_operations_manager.
+
+    FR-007: Save Files
+    FR-006: Open Files
+    """
+
+    def test_html_atomic_save_failure_raises_oserror(self, mock_editor, tmp_path):
+        """Test HTML save raises OSError when atomic save fails (line 433)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.html"
+
+        # Mock atomic_save_text to return False
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=False,
+        ):
+            result = manager.save_as_format_internal(file_path, "html", use_ai=False)
+
+            # Should return False and show error
+            assert result is False
+            mock_editor.status_manager.show_message.assert_called_once()
+            args = mock_editor.status_manager.show_message.call_args[0]
+            assert args[0] == "critical"
+            assert "Save Error" in args[1]
+
+    def test_save_as_adoc_updates_file_state(self, mock_editor, tmp_path):
+        """Test saving as adoc updates file state (lines 542-545)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.adoc"
+
+        # Mock atomic_save_text
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            return_value=True,
+        ):
+            result = manager.save_as_format_internal(file_path, "adoc", use_ai=False)
+
+            # Should succeed and update state
+            assert result is True
+            assert mock_editor._current_file_path == file_path
+            assert mock_editor._settings.last_directory == str(file_path.parent)
+            assert mock_editor._unsaved_changes is False
+            mock_editor.status_manager.update_window_title.assert_called_once()
+
+    def test_pdf_extraction_failure_shows_error(self, mock_editor, tmp_path):
+        """Test PDF extraction failure shows error dialog (lines 577-583)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.pdf"
+
+        # Mock pdf_extractor to return failure
+        with patch(
+            "asciidoc_artisan.document_converter.pdf_extractor.convert_to_asciidoc",
+            return_value=(False, "", "Encryption error"),
+        ):
+            manager._open_pdf_with_extraction(file_path)
+
+            # Should show error dialog
+            mock_editor.status_manager.show_message.assert_called_once()
+            args = mock_editor.status_manager.show_message.call_args[0]
+            assert args[0] == "critical"
+            assert "PDF Extraction Failed" in args[1]
+            assert "Encryption error" in args[2]
+
+    def test_open_non_adoc_pandoc_unavailable_returns_early(self, mock_editor, tmp_path):
+        """Test opening non-adoc file returns early if Pandoc unavailable (line 601)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.docx"
+
+        # Mock check_pandoc_availability to return False
+        mock_editor.ui_state_manager.check_pandoc_availability = Mock(return_value=False)
+
+        manager._open_with_pandoc_conversion(file_path, ".docx")
+
+        # Should return early without emitting signal
+        mock_editor.request_pandoc_conversion.emit.assert_not_called()
+
+    def test_load_asciidoc_large_file_error_handling(self, mock_editor, tmp_path):
+        """Test large file handler error path (lines 666-671)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "large_test.adoc"
+        file_path.write_text("= Test\n\nContent", encoding="utf-8")
+
+        # Mock large file handler to return error
+        mock_editor.large_file_handler.load_file_optimized = Mock(
+            return_value=(False, None, "Memory error")
+        )
+
+        # Mock get_file_size_category to return "large"
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.LargeFileHandler.get_file_size_category",
+            return_value="large",
+        ):
+            with pytest.raises(Exception, match="Memory error"):
+                manager._open_native_file(file_path)
+
+    def test_load_asciidoc_normal_file_loads_content(self, mock_editor, tmp_path):
+        """Test normal file loading calls load_content_into_editor (line 675)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.adoc"
+        content = "= Test Document\n\nContent"
+        file_path.write_text(content, encoding="utf-8")
+
+        # Mock get_file_size_category to return "small"
+        with patch(
+            "asciidoc_artisan.ui.file_operations_manager.LargeFileHandler.get_file_size_category",
+            return_value="small",
+        ):
+            manager._open_native_file(file_path)
+
+            # Should load content into editor
+            mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
+            loaded_content = mock_editor.file_load_manager.load_content_into_editor.call_args[0][0]
+            assert loaded_content == content
+
+    def test_determine_format_from_docx_filter(self, mock_editor, tmp_path):
+        """Test format detection from DOCX filter (lines 695-696)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "Microsoft Word 365 Documents (*.docx)"
+        )
+
+        assert format_type == "docx"
+        assert result_path.suffix == ".docx"
+
+    def test_determine_format_from_pdf_filter(self, mock_editor, tmp_path):
+        """Test format detection from PDF filter (lines 699-700)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "Adobe Acrobat PDF Files (*.pdf)"
+        )
+
+        assert format_type == "pdf"
+        assert result_path.suffix == ".pdf"
+
+    def test_determine_format_from_extension_md(self, mock_editor, tmp_path):
+        """Test format detection from .md extension (line 704)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.md"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "AsciiDoc Files (*.adoc)"
+        )
+
+        assert format_type == "md"
+
+    def test_determine_format_from_extension_docx(self, mock_editor, tmp_path):
+        """Test format detection from .docx extension (lines 705-706)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.docx"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "AsciiDoc Files (*.adoc)"
+        )
+
+        assert format_type == "docx"
+
+    def test_determine_format_from_extension_html(self, mock_editor, tmp_path):
+        """Test format detection from .html extension (lines 707-708)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.html"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "AsciiDoc Files (*.adoc)"
+        )
+
+        assert format_type == "html"
+
+    def test_determine_format_from_extension_pdf(self, mock_editor, tmp_path):
+        """Test format detection from .pdf extension (lines 709-710)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test.pdf"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "AsciiDoc Files (*.adoc)"
+        )
+
+        assert format_type == "pdf"
+
+    def test_determine_format_adds_docx_extension(self, mock_editor, tmp_path):
+        """Test adding .docx extension when missing (lines 715-716)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "Microsoft Word 365 Documents (*.docx)"
+        )
+
+        assert format_type == "docx"
+        assert result_path.suffix == ".docx"
+
+    def test_determine_format_adds_pdf_extension(self, mock_editor, tmp_path):
+        """Test adding .pdf extension when missing (lines 719-720)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "Adobe Acrobat PDF Files (*.pdf)"
+        )
+
+        assert format_type == "pdf"
+        assert result_path.suffix == ".pdf"
+
+    def test_determine_format_adds_adoc_extension(self, mock_editor, tmp_path):
+        """Test adding .adoc extension when missing (lines 721-722)."""
+        from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
+
+        manager = FileOperationsManager(mock_editor)
+        file_path = tmp_path / "test"
+
+        format_type, result_path = manager._determine_save_format(
+            file_path, "AsciiDoc Files (*.adoc)"
+        )
+
+        assert format_type == "adoc"
+        assert result_path.suffix == ".adoc"
