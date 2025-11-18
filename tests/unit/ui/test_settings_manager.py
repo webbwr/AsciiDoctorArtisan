@@ -475,3 +475,186 @@ class TestAIConversionPreference:
         result = SettingsManager.get_ai_conversion_preference(settings)
 
         assert isinstance(result, bool)
+
+
+@pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
+@pytest.mark.fr_005
+@pytest.mark.unit
+class TestDeferredSave:
+    """Test suite for deferred save functionality."""
+
+    def test_deferred_save_timer_fires(self, qapp, qtbot, temp_settings_file, mock_window):
+        """Test _do_deferred_save is called after timer fires."""
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        manager._settings_path = temp_settings_file
+        settings = manager.create_default_settings()
+
+        # Trigger deferred save
+        manager.save_settings(settings, mock_window)
+
+        # Timer should be active with pending data
+        assert manager._pending_save_timer.isActive()
+        assert manager._pending_save_data is not None
+
+        # Wait for timer to fire (100ms + margin)
+        qtbot.wait(200)
+
+        # File should be saved
+        assert temp_settings_file.exists()
+        assert manager._pending_save_data is None
+
+    def test_deferred_save_coalesces_rapid_saves(self, qapp, qtbot, temp_settings_file, mock_window):
+        """Test multiple rapid saves are coalesced into one."""
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        manager._settings_path = temp_settings_file
+        settings = manager.create_default_settings()
+
+        # Trigger multiple saves rapidly
+        manager.save_settings(settings, mock_window)
+        manager.save_settings(settings, mock_window)
+        manager.save_settings(settings, mock_window)
+
+        # Only one timer should be active
+        assert manager._pending_save_timer.isActive()
+
+        # Wait for timer to fire
+        qtbot.wait(200)
+
+        # File should be saved once
+        assert temp_settings_file.exists()
+
+    def test_deferred_save_handles_none_pending_data(self, qapp, temp_settings_file):
+        """Test _do_deferred_save handles None pending data gracefully."""
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        manager._settings_path = temp_settings_file
+        manager._pending_save_data = None
+
+        # Should not crash
+        manager._do_deferred_save()
+
+        # No file should be created
+        assert not temp_settings_file.exists()
+
+    def test_deferred_save_handles_save_failure(self, qapp, qtbot, mock_window):
+        """Test _do_deferred_save handles atomic_save_json failure."""
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        manager._settings_path = Path("/invalid/path/settings.json")
+        settings = manager.create_default_settings()
+
+        # Trigger deferred save
+        manager.save_settings(settings, mock_window)
+
+        # Wait for timer to fire
+        qtbot.wait(200)
+
+        # Pending data should be cleared even on failure
+        assert manager._pending_save_data is None
+
+
+@pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
+@pytest.mark.fr_005
+@pytest.mark.unit
+class TestWindowGeometryEdgeCases:
+    """Test suite for window geometry edge cases."""
+
+    def test_save_maximized_window_clears_geometry(self, qapp, temp_settings_file, mock_window):
+        """Test maximized window sets geometry to None."""
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        manager._settings_path = temp_settings_file
+        settings = manager.create_default_settings()
+
+        # Make window maximized
+        mock_window.isMaximized = Mock(return_value=True)
+
+        result = manager.save_settings_immediate(settings, mock_window)
+
+        assert result is True
+        assert settings.window_geometry is None
+
+    def test_save_settings_immediate_without_current_file(self, qapp, temp_settings_file, mock_window):
+        """Test save_settings_immediate when current_file_path is None."""
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        manager._settings_path = temp_settings_file
+        settings = manager.create_default_settings()
+
+        # Call without current_file_path (defaults to None)
+        result = manager.save_settings_immediate(settings, mock_window, current_file_path=None)
+
+        assert result is True
+        assert settings.last_file is None
+
+
+@pytest.mark.fr_004
+@pytest.mark.fr_010
+@pytest.mark.fr_011
+@pytest.mark.fr_005
+@pytest.mark.unit
+class TestSplitterSizeEdgeCases:
+    """Test suite for splitter size restoration edge cases."""
+
+    def test_restore_ui_ignores_invalid_splitter_sizes(self, qapp, mock_window):
+        """Test restore_ui_settings ignores splitter sizes with 0 or negative values."""
+        from PySide6.QtWidgets import QLabel
+
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        settings = manager.create_default_settings()
+        settings.splitter_sizes = [0, 600]  # Invalid: first pane is 0
+
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(QLabel("Editor"))
+        splitter.addWidget(QLabel("Preview"))
+
+        # Should not crash, should log and ignore
+        manager.restore_ui_settings(mock_window, splitter, settings)
+
+    def test_restore_ui_ignores_second_pane_zero(self, qapp, mock_window):
+        """Test restore_ui_settings ignores when second pane is 0."""
+        from PySide6.QtWidgets import QLabel
+
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        settings = manager.create_default_settings()
+        settings.splitter_sizes = [600, 0]  # Invalid: second pane is 0
+
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(QLabel("Editor"))
+        splitter.addWidget(QLabel("Preview"))
+
+        # Should not crash, should log and ignore
+        manager.restore_ui_settings(mock_window, splitter, settings)
+
+    def test_restore_ui_ignores_both_panes_zero(self, qapp, mock_window):
+        """Test restore_ui_settings ignores when both panes are 0."""
+        from PySide6.QtWidgets import QLabel
+
+        from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+        manager = SettingsManager()
+        settings = manager.create_default_settings()
+        settings.splitter_sizes = [0, 0]  # Invalid: both panes are 0
+
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(QLabel("Editor"))
+        splitter.addWidget(QLabel("Preview"))
+
+        # Should not crash, should log and ignore
+        manager.restore_ui_settings(mock_window, splitter, settings)
