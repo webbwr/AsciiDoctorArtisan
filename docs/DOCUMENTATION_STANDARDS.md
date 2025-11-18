@@ -117,7 +117,7 @@ docs/archive/
 
 ### Audit Frequency
 
-**Quarterly (Every 3 months):**
+**Weekly:**
 - Review for duplicate content
 - Check for misplaced files
 - Verify cross-references
