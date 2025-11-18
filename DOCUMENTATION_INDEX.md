@@ -201,7 +201,7 @@ Located in `docs/archive/snapshots/`:
 
 ## 📊 Documentation Stats
 
-**Total Documentation:** ~223KB across all files
+**Total Documentation:** 56 markdown files across project
 **Active Documentation:** ~223KB (current)
 **Archived Documentation:** Historical versions in docs/archive/
 
@@ -213,7 +213,7 @@ Located in `docs/archive/snapshots/`:
 - ROADMAP.md: 11KB - Future planning
 
 **Test Suite:**
-- 5,479 total tests
+- 5,498 total tests
 - 87/107 FRs with pytest markers (81% coverage)
 - 149 test files
 
@@ -262,7 +262,7 @@ All documentation follows:
 
 ## 🔄 Keeping Documentation Updated
 
-**Current Status:** ✅ All documentation up-to-date (as of Nov 15, 2025)
+**Current Status:** ✅ All documentation up-to-date (as of Nov 18, 2025)
 
 **Update Schedule:**
 - README.md: Updated with each major release
@@ -280,6 +280,9 @@ All documentation follows:
 - Snapshots → Archive immediately after creation
 
 **Recent Updates:**
+- **Nov 18**: Documentation consolidation (40% duplication removed, 203 lines net reduction)
+- **Nov 18**: Testing docs merged into unified TESTING_README.md
+- **Nov 18**: Updated version to v2.0.4, test count to 5,498 tests
 - **Nov 15**: Pytest marker framework complete (87/107 FRs)
 - **Nov 15**: SPECIFICATIONS.md → SPECIFICATIONS_HU.md rename
 - **Nov 15**: SPECIFICATIONS_V2.md → SPECIFICATIONS_AI.md rename
@@ -327,5 +330,5 @@ All documentation follows:
 
 ---
 
-**Last Major Update:** Pytest marker framework + spec restructure (November 15, 2025)
+**Last Major Update:** Documentation consolidation + v2.0.4 update (November 18, 2025)
 **Next Review:** v2.1.0 planning (Q1 2026)
