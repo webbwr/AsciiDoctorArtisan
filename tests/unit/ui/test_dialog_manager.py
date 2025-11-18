@@ -1602,6 +1602,8 @@ class TestApplyFontSettings:
 
         mock_main_window._settings.editor_font_family = "Monaco"
         mock_main_window._settings.editor_font_size = 12
+        mock_main_window._settings.chat_font_family = "Courier"  # Actual string for QFont
+        mock_main_window._settings.chat_font_size = 11  # Actual int for QFont
         mock_main_window.editor.setFont = Mock()
 
         # Chat manager exists but no panel
@@ -1610,7 +1612,7 @@ class TestApplyFontSettings:
         mock_main_window.chat_manager = mock_chat_manager
 
         manager = DialogManager(mock_main_window)
-        # Should not raise exception
+        # Should not raise exception (QFont created but not applied since chat_panel is None)
         manager._apply_font_settings()
 
 
@@ -1643,15 +1645,12 @@ class TestPromptSaveBeforeAction:
         # Should continue without prompting
         assert result is True
 
-    @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
+    @patch.dict("os.environ", {}, clear=True)  # Clear all environment variables including PYTEST_CURRENT_TEST
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_user_clicks_save(self, mock_msgbox_cls, mock_env_get, mock_main_window):
+    def test_prompt_save_user_clicks_save(self, mock_msgbox_cls, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
-
-        # Mock os.environ.get to return None for PYTEST_CURRENT_TEST
-        mock_env_get.return_value = None
 
         mock_main_window._unsaved_changes = True
         mock_main_window.save_file = Mock(return_value=True)
@@ -1683,15 +1682,12 @@ class TestPromptSaveBeforeAction:
         mock_main_window.save_file.assert_not_called()
         assert result is True
 
-    @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
+    @patch.dict("os.environ", {}, clear=True)  # Clear all environment variables including PYTEST_CURRENT_TEST
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_user_clicks_cancel(self, mock_msgbox_cls, mock_env_get, mock_main_window):
+    def test_prompt_save_user_clicks_cancel(self, mock_msgbox_cls, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
-
-        # Mock os.environ.get to return None for PYTEST_CURRENT_TEST
-        mock_env_get.return_value = None
 
         mock_main_window._unsaved_changes = True
         mock_main_window.save_file = Mock()
@@ -1705,15 +1701,12 @@ class TestPromptSaveBeforeAction:
         mock_main_window.save_file.assert_not_called()
         assert result is False
 
-    @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
+    @patch.dict("os.environ", {}, clear=True)  # Clear all environment variables including PYTEST_CURRENT_TEST
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_with_different_actions(self, mock_msgbox_cls, mock_env_get, mock_main_window):
+    def test_prompt_save_with_different_actions(self, mock_msgbox_cls, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
-
-        # Mock os.environ.get to return None for PYTEST_CURRENT_TEST
-        mock_env_get.return_value = None
 
         mock_main_window._unsaved_changes = True
         mock_main_window.save_file = Mock(return_value=True)
@@ -1732,15 +1725,12 @@ class TestPromptSaveBeforeAction:
         assert result3 is True
         assert mock_main_window.save_file.call_count == 3
 
-    @patch("asciidoc_artisan.ui.dialog_manager.os.environ.get")
+    @patch.dict("os.environ", {}, clear=True)  # Clear all environment variables including PYTEST_CURRENT_TEST
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_prompt_save_file_fails(self, mock_msgbox_cls, mock_env_get, mock_main_window):
+    def test_prompt_save_file_fails(self, mock_msgbox_cls, mock_main_window):
         from PySide6.QtWidgets import QMessageBox
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
-
-        # Mock os.environ.get to return None for PYTEST_CURRENT_TEST
-        mock_env_get.return_value = None
 
         mock_main_window._unsaved_changes = True
         mock_main_window.save_file = Mock(return_value=False)
