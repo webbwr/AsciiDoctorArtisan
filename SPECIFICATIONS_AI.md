@@ -14,6 +14,8 @@ metadata:
   implemented: 107
   partial: 0
   planned: 0
+  scope: "Feature-complete, maintenance mode"
+  future_work: "Out of scope (LSP, plugins, collaboration deferred)"
 
 quality_metrics:
   test_coverage: 91.7
@@ -168,7 +170,7 @@ graph TD
     FR077[FR-077: Documentation]
     FR078[FR-078: Help System]
     FR079[FR-079: Update Check]
-    FR080[FR-080: Plugin System]
+    FR080[FR-080: Keyboard Reference]
     FR081[FR-081: Custom Themes]
     FR082[FR-082: Export Presets]
     FR083[FR-083: Macro Recording]

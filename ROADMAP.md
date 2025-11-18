@@ -126,9 +126,9 @@ True 100% coverage is **impossible** due to:
 | UI | ~90-95% | 100% | 🔄 Opportunity | Main improvement area (Phase 4E) |
 
 **Coverage Targets:**
-- **v2.0.4 (completed):** 91.7% overall (Nov 18, 2025 - test health focus)
-- **v2.1.0 (planned):** 95%+ overall (Phase 4E continuation, UI manager improvements)
-- **v3.0.0 (long-term):** 99%+ overall (Phase 4E completion, maximum achievable)
+- **v2.0.4 (current):** 91.7% overall (Nov 18, 2025 - test health focus)
+- **v2.0.x (aspirational):** 95%+ overall (Phase 4E continuation, if pursued)
+- **Maximum achievable:** ~99% (Qt threading limits prevent 100%)
 
 **Detailed Analysis:** See `/tmp/coverage_final_summary.md` for comprehensive findings.
 
@@ -404,11 +404,15 @@ Phase 4E UI coverage improvements targeting 95%+ overall coverage:
 
 ---
 
-## v3.0.0 Next-Generation Architecture 📋
+## v3.0.0 Next-Generation Architecture 🚫 OUT OF SCOPE
 
-**Target:** Q4 2026 - Q2 2027 | **Effort:** 240-360h | **Status:** BACKLOG
+**Target:** DEFERRED | **Effort:** 240-360h | **Status:** OUT OF SCOPE
 
-### Goals
+### Rationale for Deferral
+
+v3.0.0 features (LSP, plugins, multi-core) are deferred indefinitely to maintain focus on core editor functionality and stability. v2.x series provides complete, production-ready AsciiDoc editing experience. Future architectural expansion only justified by significant user demand.
+
+### Original Goals (Deferred)
 
 Transform into extensible platform with LSP, multi-core, and plugins.
 
@@ -449,24 +453,28 @@ Transform into extensible platform with LSP, multi-core, and plugins.
 - ✅ Test coverage 100%
 - ✅ Startup <0.7s
 
-**Target Release:** June 2027
+**Original Target Release:** June 2027 (DEFERRED)
 
 ---
 
-## Future Vision
+## Future Vision 🚫 OUT OF SCOPE
 
-**v2.1.0** - Collaborative Editing & Cloud (180-240h, Q3-Q4 2027)
+All v2.1.0+ features are deferred to maintain focus on core editor stability and quality. v2.0.x series provides complete AsciiDoc editing solution. Future expansion contingent on demonstrated user demand.
+
+### Originally Planned (Now Out of Scope)
+
+**v2.1.0** - Collaborative Editing & Cloud (DEFERRED)
 - Real-time multi-user (CRDT), presence indicators
 - Cloud sync (Dropbox, Drive, OneDrive)
 - WebSocket sync (<100ms latency), offline support
 
-**v2.2.0+** - Advanced Collaboration
+**v2.2.0+** - Advanced Collaboration (DEFERRED)
 - Video/audio, annotations, workflows, team workspaces
 
-**v2.3.0+** - AI Enhancement
+**v2.3.0+** - AI Enhancement (DEFERRED)
 - Writing suggestions, auto-formatting, content generation
 
-**v2.4.0+** - Mobile & Enterprise
+**v2.4.0+** - Mobile & Enterprise (DEFERRED)
 - iOS/Android apps, web version (Tauri)
 - Self-hosted server, SSO, LDAP
 
@@ -474,49 +482,50 @@ Transform into extensible platform with LSP, multi-core, and plugins.
 
 ## Performance Budget
 
-| Metric | v2.0.0 (Current) | v2.1.0 | v3.0.0 | v4.0.0 |
-|--------|------------------|--------|--------|--------|
-| Startup | 0.586s ✅ | <0.5s | <0.4s | <0.3s |
-| Preview (small) | 150-200ms | 80-120ms | 60-100ms | 40-80ms |
-| Preview (large, 1K+) | 600-750ms | 300-500ms | 200-300ms | 100-200ms |
-| Memory (idle) | 60-100MB | 60-100MB | 50-80MB | 40-70MB |
-| Auto-complete | 20-40ms ✅ | <25ms | <10ms | <5ms |
-| Syntax Check (1K) | <100ms ✅ | <50ms | <25ms | <10ms |
-| Test Coverage | 96.4% | 100% | 100% | 100% |
-| Type Coverage | 100% ✅ | 100% | 100% | 100% |
+| Metric | v2.0.4 (Current) | Target (Aspirational) |
+|--------|------------------|----------------------|
+| Startup | 0.586s ✅ | <0.5s |
+| Preview (small) | 150-200ms | 80-120ms |
+| Preview (large, 1K+) | 600-750ms | 300-500ms |
+| Memory (idle) | 60-100MB | 60-100MB |
+| Auto-complete | 20-40ms ✅ | <25ms |
+| Syntax Check (1K) | <100ms ✅ | <50ms |
+| Test Coverage | 91.7% ✅ | 95%+ |
+| Type Coverage | 100% ✅ | 100% |
 
 ---
 
 ## Risk Management
 
-**High-Risk:**
-- Plugin Security → Sandboxing, code review, kill switch
-- LSP Complexity → Use pygls, incremental implementation
-- Test Coverage Target → Gradual increase, automated enforcement
+**Current Focus (v2.0.x):**
+- Test Coverage Maintenance → Automated enforcement, PR checks
+- Qt Threading Stability → Documented limitations, workarounds established
+- WSL2 Performance → Platform-specific thresholds
 
-**Medium-Risk:**
-- Multi-core overhead → Benchmark, fallback to single-thread
-- Collab data loss → Backups, version history, disable if needed
+**Deferred (Out of Scope):**
+- Plugin Security (v3.0.0 deferred)
+- LSP Complexity (v3.0.0 deferred)
+- Multi-core overhead (v3.0.0 deferred)
+- Collaboration data loss (v2.1.0+ deferred)
 
 ---
 
 ## Success Metrics
 
-**Quality (v2.0.0):**
-- Test coverage: 96.4% ✅ (Goal: 100% by v3.0.0)
-- Test pass rate: 100% ✅
-- Test suite: 4,092 tests (95 files) ✅
+**Quality (v2.0.4 Current):**
+- Test coverage: 91.7% ✅
+- Test pass rate: 100% ✅ (204/204 passing, 3 legitimate skips)
+- Test suite: 204 tests (148 files) ✅
 - Startup: 0.586s ✅
 - Type coverage: 100% ✅
 - Quality score: 98/100 (GRANDMASTER+)
 
-**Targets (v3.0.0):**
-- Test coverage: 100% (4,000+ tests)
-- Weekly downloads: 1,500+
-- Active users: 3,000+
-- Bug reports: <8/month
-- User satisfaction: >4.6/5
-- Feature adoption: >50% use auto-complete/templates/syntax-check
+**Targets (v2.0.x Maintenance):**
+- Test coverage: Maintain 90%+ (95%+ aspirational)
+- Test pass rate: 100%
+- Bug reports: <5/month
+- User satisfaction: >4.5/5
+- Feature stability: No regressions
 
 ---
 
@@ -525,15 +534,26 @@ Transform into extensible platform with LSP, multi-core, and plugins.
 **Strategy:**
 1. ✅ v1.5-v1.9: Foundation (performance, features, quality) - COMPLETE
 2. ✅ v2.0: Advanced Editing (Auto-complete, Syntax Check, Templates) - COMPLETE
-3. 📋 v3.0: Platform (LSP, plugins, multi-core) - PLANNED
+3. ✅ v2.0.x: Maintenance & Stability (test health, documentation) - ONGOING
+4. 🚫 v3.0+: Platform expansion (LSP, plugins, multi-core) - OUT OF SCOPE
+
+**Current Focus (v2.0.x):**
+- Maintain 100% test pass rate
+- Preserve 90%+ coverage
+- Bug fixes and stability improvements
+- Documentation maintenance
+- No major new features planned
 
 **Success Factors:**
 - ✅ Solid architecture (67% code reduction, 0.586s startup)
 - ✅ Low tech debt (<20% duplication, 0 security issues)
-- ✅ High quality (98/100, 100% type, 96.4% test coverage)
+- ✅ High quality (98/100, 100% type, 91.7% test coverage)
 - ✅ Competitive advantages (performance, native UI, GPU, Advanced Editing features)
 - ✅ v2.0.0 delivered ahead of schedule (2 days vs 16 weeks)
+- ✅ v2.0.4 test health (100% pass rate, comprehensive documentation)
+
+**Project Status:** Production-ready, maintenance mode. Feature-complete for core AsciiDoc editing use cases.
 
 ---
 
-**Last Updated:** Nov 15, 2025 | **Next Review:** Q2 2026
+**Last Updated:** Nov 18, 2025 | **Next Review:** As needed (maintenance mode)
