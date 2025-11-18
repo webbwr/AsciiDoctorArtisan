@@ -35,7 +35,20 @@ VENV_ACTIVE=$([ -n "$VIRTUAL_ENV" ] && echo "✓" || echo "✗")
 # Test statistics (from last run)
 # Try multiple sources in order of reliability: status.json > coverage.xml > index.html
 if [ -f htmlcov/status.json ]; then
-    COVERAGE=$(python3 -c "import json; data=json.load(open('htmlcov/status.json')); pct=data.get('totals', {}).get('percent_covered'); print(f'{pct:.1f}' if pct else '?')" 2>/dev/null)
+    COVERAGE=$(python3 -c "
+import json
+data = json.load(open('htmlcov/status.json'))
+if 'files' in data:
+    total_stmts = sum(f.get('index', {}).get('nums', {}).get('n_statements', 0) for f in data['files'].values())
+    total_missing = sum(f.get('index', {}).get('nums', {}).get('n_missing', 0) for f in data['files'].values())
+    if total_stmts > 0:
+        pct = ((total_stmts - total_missing) / total_stmts) * 100
+        print(f'{pct:.1f}')
+    else:
+        print('?')
+else:
+    print('?')
+" 2>/dev/null)
     [ -z "$COVERAGE" ] && COVERAGE="?"
 elif [ -f coverage.xml ]; then
     COVERAGE=$(python3 -c "import xml.etree.ElementTree as ET; tree=ET.parse('coverage.xml'); root=tree.getroot(); rate=float(root.attrib.get('line-rate', 0))*100; print(f'{rate:.1f}')" 2>/dev/null)
