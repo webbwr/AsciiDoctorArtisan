@@ -38,19 +38,22 @@ Example:
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QFont, QMouseEvent
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
+    QFormLayout,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QTextEdit,
     QVBoxLayout,
     QWidget,
 )
 
-from asciidoc_artisan.core.models import Template
+from asciidoc_artisan.core.models import Template, TemplateVariable
 from asciidoc_artisan.core.template_manager import TemplateManager
 
 
@@ -311,10 +314,12 @@ class TemplateBrowser(QDialog):
             self.variable_values = {}
             self.accept()
 
-    def _create_new_template(self) -> None:  # pragma: no cover
+    def _create_new_template(self) -> None:
         """Create new custom template."""
-        # TODO: Implement custom template creation dialog
-        pass
+        dialog = CustomTemplateDialog(self.manager, self)
+        if dialog.exec():
+            # Reload templates to show newly created one
+            self._load_templates()
 
 
 class VariableInputDialog(QDialog):
@@ -422,3 +427,202 @@ class VariableInputDialog(QDialog):
         for var_name, input_widget in self.inputs.items():
             values[var_name] = input_widget.text().strip()
         return values
+
+
+class CustomTemplateDialog(QDialog):
+    """
+    Dialog for creating custom templates.
+
+    Allows users to create new templates by providing:
+    - Template metadata (name, category, description, author)
+    - Template content (AsciiDoc with {{variable}} placeholders)
+    - Variable definitions (optional)
+
+    The dialog automatically saves the template to the custom templates directory.
+
+    Example:
+        ```python
+        dialog = CustomTemplateDialog(template_manager, parent)
+        if dialog.exec():
+            print("Template created successfully")
+        ```
+    """
+
+    def __init__(self, manager: TemplateManager, parent: QWidget | None = None) -> None:
+        """
+        Initialize custom template dialog.
+
+        Args:
+            manager: Template manager instance
+            parent: Parent widget
+        """
+        super().__init__(parent)
+        self.manager = manager
+        self._setup_ui()
+
+    def _setup_ui(self) -> None:
+        """Setup dialog UI."""
+        self.setWindowTitle("Create Custom Template")
+        self.setModal(True)
+        self.resize(700, 600)
+
+        layout = QVBoxLayout(self)
+
+        # Form for metadata
+        form = QFormLayout()
+
+        self.name_edit = QLineEdit()
+        self.name_edit.setPlaceholderText("My Custom Template")
+        form.addRow("Template Name*:", self.name_edit)
+
+        self.category_combo = QComboBox()
+        # Get existing categories from manager
+        categories = self.manager.get_categories()
+        self.category_combo.addItems(categories if categories else ["article", "book", "report", "general"])
+        self.category_combo.setEditable(True)  # Allow custom categories
+        form.addRow("Category*:", self.category_combo)
+
+        self.description_edit = QLineEdit()
+        self.description_edit.setPlaceholderText("Brief description of the template")
+        form.addRow("Description*:", self.description_edit)
+
+        self.author_edit = QLineEdit()
+        self.author_edit.setPlaceholderText("Your Name")
+        form.addRow("Author:", self.author_edit)
+
+        self.version_edit = QLineEdit()
+        self.version_edit.setText("1.0")
+        form.addRow("Version:", self.version_edit)
+
+        layout.addLayout(form)
+
+        # Content editor
+        content_label = QLabel("Template Content*:")
+        content_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        layout.addWidget(content_label)
+
+        help_label = QLabel("Use {{variable_name}} for placeholders. Example: {{title}}, {{author}}, {{date}}")
+        help_label.setStyleSheet("color: gray; font-size: 10pt;")
+        layout.addWidget(help_label)
+
+        self.content_edit = QTextEdit()
+        self.content_edit.setPlaceholderText(
+            "= {{title}}\n:author: {{author}}\n:date: {{date}}\n\n== Introduction\n\n{{content}}"
+        )
+        self.content_edit.setMinimumHeight(200)
+        layout.addWidget(self.content_edit)
+
+        # Variable detection checkbox
+        self.auto_detect_vars = QCheckBox("Auto-detect variables from content")
+        self.auto_detect_vars.setChecked(True)
+        self.auto_detect_vars.setToolTip("Automatically find {{variable}} patterns and create variable definitions")
+        layout.addWidget(self.auto_detect_vars)
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        self.create_btn = QPushButton("Create Template")
+        self.create_btn.clicked.connect(self._on_create_clicked)
+        button_layout.addWidget(self.create_btn)
+
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(self.cancel_btn)
+
+        layout.addLayout(button_layout)
+
+    def _on_create_clicked(self) -> None:
+        """Handle create button click."""
+        # Validate required fields
+        name = self.name_edit.text().strip()
+        category = self.category_combo.currentText().strip()
+        description = self.description_edit.text().strip()
+        content = self.content_edit.toPlainText().strip()
+
+        if not name:
+            QMessageBox.warning(self, "Validation Error", "Template name is required.")
+            self.name_edit.setFocus()
+            return
+
+        if not category:
+            QMessageBox.warning(self, "Validation Error", "Category is required.")
+            self.category_combo.setFocus()
+            return
+
+        if not description:
+            QMessageBox.warning(self, "Validation Error", "Description is required.")
+            self.description_edit.setFocus()
+            return
+
+        if not content:
+            QMessageBox.warning(self, "Validation Error", "Template content is required.")
+            self.content_edit.setFocus()
+            return
+
+        # Extract variables if auto-detect enabled
+        variables: list[TemplateVariable] = []
+        if self.auto_detect_vars.isChecked():
+            variables = self._detect_variables(content)
+
+        # Create template object
+        template = Template(
+            name=name,
+            category=category,
+            description=description,
+            author=self.author_edit.text().strip() or "Anonymous",
+            version=self.version_edit.text().strip() or "1.0",
+            variables=variables,
+            content=content,
+        )
+
+        # Save template
+        if self.manager.create_template(template, custom=True):
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Template '{name}' created successfully!\n\nYou can now use it from the template browser.",
+            )
+            self.accept()
+        else:
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to create template '{name}'.\n\nPlease check the logs for details.",
+            )
+
+    def _detect_variables(self, content: str) -> list[TemplateVariable]:
+        """
+        Auto-detect variables from template content.
+
+        Finds all {{variable}} patterns and creates TemplateVariable objects.
+
+        Args:
+            content: Template content to scan
+
+        Returns:
+            List of detected variables
+        """
+        import re
+
+        # Find all {{variable}} patterns
+        pattern = r"\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}"
+        matches = re.findall(pattern, content)
+
+        # Create unique list
+        unique_vars = sorted(set(matches))
+
+        # Create TemplateVariable objects
+        variables = []
+        for var_name in unique_vars:
+            variables.append(
+                TemplateVariable(
+                    name=var_name,
+                    description=f"Value for {var_name}",
+                    required=True,  # Mark all detected variables as required
+                    default=None,
+                    type="string",
+                )
+            )
+
+        return variables

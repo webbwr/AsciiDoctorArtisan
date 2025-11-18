@@ -48,6 +48,9 @@ class WebEngineHandler(PreviewHandlerBase):
     - JavaScript-based scroll synchronization
     - Significantly reduced CPU usage (70-90% less)
 
+    Attributes:
+        _scroll_position_cache: Cached scroll position from async JavaScript callback
+
     Requires:
     - GPU hardware (NVIDIA, AMD, Intel, or NPU)
     - QWebEngineView available
@@ -69,6 +72,9 @@ class WebEngineHandler(PreviewHandlerBase):
             parent_window: Main window (for signals and state)
         """
         super().__init__(editor, preview, parent_window)
+
+        # Cache for scroll position from async JavaScript callback
+        self._scroll_position_cache: float | None = None
 
         # Verify widget type
         if not hasattr(preview, "page"):
@@ -108,20 +114,44 @@ class WebEngineHandler(PreviewHandlerBase):
 
     def _get_preview_scroll_percentage(self) -> float | None:
         """
-        Get scroll percentage from QWebEngineView (requires JavaScript callback).
+        Get scroll percentage from QWebEngineView via JavaScript callback.
 
-        Note: Currently not fully implemented. Would require async JavaScript
-        callback to get scroll position from web view.
+        Uses cached value from async JavaScript execution. Call is non-blocking
+        and updates cache via callback. This enables preview -> editor sync.
 
         Returns:
-            None (not implemented - primarily sync editor -> preview)
+            Cached scroll percentage (0.0 to 1.0), or None if not yet available
         """
-        # TODO: Implement JavaScript callback to get scroll position
-        # self.preview.page().runJavaScript(
-        #     "window.scrollY / (document.body.scrollHeight - window.innerHeight)",
-        #     lambda result: self._on_scroll_position_received(result)
-        # )
-        return None
+        # Request current scroll position asynchronously
+        js_code = """
+            (function() {
+                var body = document.body;
+                var html = document.documentElement;
+                var height = Math.max(
+                    body.scrollHeight, body.offsetHeight,
+                    html.clientHeight, html.scrollHeight, html.offsetHeight
+                );
+                var maxScroll = height - window.innerHeight;
+                if (maxScroll <= 0) return 0.0;
+                return window.scrollY / maxScroll;
+            })()
+        """
+        self.preview.page().runJavaScript(js_code, self._on_scroll_position_received)
+
+        # Return cached value (will be None on first call, then updated)
+        return self._scroll_position_cache
+
+    def _on_scroll_position_received(self, result: float | None) -> None:
+        """
+        Callback for JavaScript scroll position query.
+
+        Updates cached scroll position for use by _get_preview_scroll_percentage.
+
+        Args:
+            result: Scroll percentage from JavaScript (0.0 to 1.0), or None
+        """
+        if result is not None and isinstance(result, (int, float)):
+            self._scroll_position_cache = float(result)
 
 
 def create_preview_widget(parent: QWidget | None = None) -> QWidget:
