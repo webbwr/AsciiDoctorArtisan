@@ -1937,8 +1937,9 @@ class TestSettingsEditorDialogItemChanged:
 class TestSettingsEditorDialogClearAll:
     """Test SettingsEditorDialog clear all functionality."""
 
+    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.information")
     @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
-    def test_clear_all_with_parent_refresh(self, mock_question, mock_settings, mock_parent_widget):
+    def test_clear_all_with_parent_refresh(self, mock_question, mock_info, mock_settings, mock_parent_widget):
         """Test clear_all_settings with parent refresh."""
         from PySide6.QtWidgets import QMessageBox
 

@@ -10,7 +10,7 @@
 
 ## Summary
 
-Successfully improved test suite stability by fixing Qt segfault issues in dialog_manager tests. The test suite now progresses to 50.2% (vs. 47% previously) before encountering a new hang. This represents significant progress - the suite ran 179 more tests past the previous failure point.
+Successfully improved test suite stability by fixing Qt dialog test issues. Fixed 5 hung/segfault tests (4 in dialog_manager, 1 in dialogs). The test suite now progresses past 50.2% (vs. 47% previously). This represents significant progress - the suite ran 179+ tests past the previous failure point.
 
 ## Issues Fixed
 
@@ -89,14 +89,17 @@ Successfully improved test suite stability by fixing Qt segfault issues in dialo
 
 **Action**: Investigate why these status dialog tests are failing. Likely related to mocking or import error simulation.
 
-### 5. Hung Test (NEW ISSUE ⚠️)
+### 5. Hung Test (FIXED ✓)
 **Test**: `tests/unit/ui/test_dialogs.py::TestSettingsEditorDialogClearAll::test_clear_all_with_parent_refresh`
 **Location**: 50.2% progress (2783/5548 tests)
-**Behavior**: Hung indefinitely with 6.8% CPU usage
-**Action**:
-- Investigate Qt event loop interaction in settings editor dialog
-- Check for missing mocks or signal/slot issues
-- May need similar fix pattern as dialog_manager tests
+**Behavior**: Was: Hung indefinitely → Now: PASSED (0.52s)
+**Root Cause**: Test mocked `QMessageBox.question` but not `QMessageBox.information`. The unmocked `information()` call created a real dialog waiting for user interaction.
+**Fix Applied**:
+- Added `@patch("asciidoc_artisan.ui.dialogs.QMessageBox.information")` decorator
+- Added `mock_info` parameter to function signature
+- Pattern: Same as dialog_manager fixes - mock all QMessageBox methods
+
+**Commit**: (pending) - "fix: Add missing QMessageBox.information mock to test_clear_all_with_parent_refresh"
 
 ## Test Coverage Progress
 
@@ -105,8 +108,9 @@ Successfully improved test suite stability by fixing Qt segfault issues in dialo
 | Initial | 2608/5548 | 47% | Segfault on test_open_file_linux_with_xdg_open |
 | After Fix 1 | 2604/5548 | 46.9% | Hung on test_open_file_subprocess_error |
 | After Skip | 2783/5548 | 50.2% | Hung on test_clear_all_with_parent_refresh |
+| After Fix 2 | 2784+/5548 | 50.2%+ | test_clear_all_with_parent_refresh FIXED → continuing |
 
-**Progress**: Successfully moved from 47% to 50.2% completion (+179 tests)
+**Progress**: Successfully moved from 47% to 50.2%+ completion (+179+ tests)
 
 ## Recommendations
 
