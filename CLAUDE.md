@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,486 tests (5,480 passing, 99.89% pass), mypy --strict (0 errors), 88-char line limit
+**Quality:** 5,548 tests (5,516 passing, 99.42% pass), mypy --strict (0 errors), 88-char line limit
 
 ## Critical Patterns — Read First!
 
@@ -363,5 +363,11 @@ Entry: `src/main.py`
 
 ---
 
-*AsciiDoc Artisan v2.0.2 | Production-ready | 5,479 tests (204/204 passing) | mypy --strict*
+*AsciiDoc Artisan v2.0.4 | Production-ready | 5,548 tests (5,516 passing, 22 skipped) | mypy --strict*
 - use sudo -A instead of sudo
+
+**Recent Improvements (Nov 19, 2025):**
+- ✅ Refactored dialog_manager: Extracted callback logic into testable methods
+- ✅ Fixed import mocking tests: Corrected `__builtins__` usage
+- ✅ Improved test documentation: 22 tests properly documented as skipped
+- ✅ Enhanced testability: Dialog button handlers now independently testable

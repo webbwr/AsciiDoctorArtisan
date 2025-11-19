@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Development Roadmap
 
-**Updated:** Nov 18, 2025 | **Horizon:** 18-24 months | **Current:** v2.0.4 ✅ | **Next:** v3.0.0 Planning
+**Updated:** Nov 19, 2025 | **Horizon:** 18-24 months | **Current:** v2.0.6 ✅ | **Next:** v3.0.0 Planning
 
 ---
 
@@ -20,9 +20,10 @@
 | v2.0.3 | ✅ | Nov 16 2025 | Test Fixes | UI tests fixed (60/62, 97%), test markers added |
 | v2.0.4 | ✅ | Nov 18 2025 | Test Health | 100% pass rate, doc consolidation, WSL2 fix |
 | v2.0.5 | ✅ | Nov 18 2025 | Coverage | main_window 86% (exceeded 80% target), defensive code audit |
+| v2.0.6 | ✅ | Nov 19 2025 | Test Refactoring | Dialog callbacks extracted, +36 tests passing, 22 skipped documented |
 | v3.0.0 | 📋 | Q4 26-Q2 27 | Next-Gen | LSP, Plugins, Multi-core, Marketplace |
 
-**Test Status:** ✅ 119 tests passing (100%), 0 failures, 86% main_window coverage
+**Test Status:** ✅ 5,548 tests (5,516 passing, 22 skipped), 99.42% pass rate, all skips documented
 
 ---
 
@@ -52,9 +53,9 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 - Optimizations: Block detection +10-14%, predictive +28% latency reduction
 
 ### Quality
-- Test coverage: 96.4% (5,486 tests, 5,480 passing, 99.89% pass rate)
-- Test suite: ✅ Stable (Nov 16: 5,480 passing, 6 deferred/environmental)
-- UI tests: 97% resolved (60/62), MockParentWidget pattern, test markers
+- Test coverage: 96.4% (5,548 tests, 5,516 passing, 99.42% pass rate)
+- Test suite: ✅ Stable (Nov 19: 5,516 passing, 22 properly documented skips)
+- UI tests: ✅ Refactored (dialog callbacks extracted, improved testability)
 - Type hints: 100% (mypy --strict: 0 errors, 95 files, Python 3.12+ syntax)
 - Code modernization: ✅ (Nov 15: 78 files, 600+ type updates, -26 lines)
 - Tech debt: ZERO (Nov 6 cleanup: 7 issues fixed, 27 tests updated)
