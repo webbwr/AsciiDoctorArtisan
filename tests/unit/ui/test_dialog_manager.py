@@ -2027,21 +2027,13 @@ class TestOllamaStatusServiceDetection:
 
     def test_ollama_status_import_error(self, mock_main_window):
         """Test Ollama status when ollama module not installed."""
-        from asciidoc_artisan.ui.dialog_manager import DialogManager
-
         mock_main_window._settings.ollama_enabled = True
         mock_main_window._settings.ollama_model = "llama2"
 
-        # Mock ImportError for ollama module
+        # Patch ollama to None to simulate ImportError
+        with patch("asciidoc_artisan.ui.dialog_manager.ollama", None):
+            from asciidoc_artisan.ui.dialog_manager import DialogManager
 
-        original_import = __builtins__.__import__
-
-        def mock_import(name, *args, **kwargs):
-            if name == "ollama":
-                raise ImportError("No module named 'ollama'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
             manager = DialogManager(mock_main_window)
             manager.show_ollama_status()
 
@@ -2087,7 +2079,9 @@ class TestPandocImportError:
             del sys.modules["pypandoc"]
 
         # Mock import to raise ImportError
-        original_import = __builtins__.__import__
+        import builtins
+
+        original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
             if name == "pypandoc":
