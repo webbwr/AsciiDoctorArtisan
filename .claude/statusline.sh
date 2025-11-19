@@ -92,10 +92,15 @@ if ls /tmp/test_*.log >/dev/null 2>&1; then
     fi
 
     # Get passed tests from all log files
+    # Try summary line first (e.g., "5480 passed" at end of run)
     TEST_PASSED=$(grep -h "passed" /tmp/test_*.log 2>/dev/null | grep -o "[0-9]* passed" | cut -d' ' -f1 | awk '{s+=$1} END {print s}')
     # Only use if we got a valid number
     if ! [[ "$TEST_PASSED" =~ ^[0-9]+$ ]]; then
-        TEST_PASSED=""
+        # Fallback: Count individual "PASSED" lines for in-progress runs
+        TEST_PASSED=$(grep -ch "PASSED" /tmp/test_*.log 2>/dev/null | awk '{s+=$1} END {print s}')
+        if ! [[ "$TEST_PASSED" =~ ^[0-9]+$ ]]; then
+            TEST_PASSED=""
+        fi
     fi
 fi
 
