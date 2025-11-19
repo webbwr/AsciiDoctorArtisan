@@ -867,7 +867,9 @@ class TestTelemetryOpenFileButton:
     @patch("asciidoc_artisan.ui.dialog_manager.subprocess.run")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox.warning")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_windows(self, mock_msgbox_cls, mock_msgbox_warning, mock_subprocess, mock_platform, mock_main_window):
+    def test_open_file_windows(
+        self, mock_msgbox_cls, mock_msgbox_warning, mock_subprocess, mock_platform, mock_main_window
+    ):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -908,7 +910,9 @@ class TestTelemetryOpenFileButton:
     @patch("asciidoc_artisan.ui.dialog_manager.subprocess.run")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox.warning")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_open_file_macos(self, mock_msgbox_cls, mock_msgbox_warning, mock_subprocess, mock_platform, mock_main_window):
+    def test_open_file_macos(
+        self, mock_msgbox_cls, mock_msgbox_warning, mock_subprocess, mock_platform, mock_main_window
+    ):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager

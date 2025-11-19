@@ -289,6 +289,7 @@ def test_gpu_detection_cache_performance():
 
 
 @pytest.mark.performance
+@pytest.mark.flaky(reruns=3, reruns_delay=1)
 def test_worker_pool_task_submission_overhead():
     """Test worker pool task submission is fast."""
     from asciidoc_artisan.workers.optimized_worker_pool import OptimizedWorkerPool

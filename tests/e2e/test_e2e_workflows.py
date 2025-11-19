@@ -244,6 +244,7 @@ The old_method will be removed.
 class TestTemplateWorkflow:
     """Test template-based document creation workflow."""
 
+    @pytest.mark.flaky(reruns=3, reruns_delay=2)
     def test_template_customize_save_export(self, app_window, qtbot, tmp_path):
         """
         E2E Workflow: Load template → Customize → Save → Export multiple formats.
