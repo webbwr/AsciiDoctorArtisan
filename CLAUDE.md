@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **AsciiDoc Artisan** — Cross-platform desktop AsciiDoc editor with live preview (PySide6/Qt)
 
-**Version:** 2.0.4 (Nov 18, 2025) | **Status:** Production-ready | **Startup:** 0.586s
+**Version:** 2.0.6 (Nov 19, 2025) | **Status:** Production-ready | **Startup:** 0.586s
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
 
@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,548 tests (5,516 passing, 99.42% pass), mypy --strict (0 errors), 88-char line limit
+**Quality:** 5,548 tests (5,516 passing, 22 skipped, 99.42% pass), mypy --strict (0 errors), 88-char line limit
 
 ## Critical Patterns — Read First!
 
@@ -316,7 +316,7 @@ Entry: `src/main.py`
   - Ruff provides Black-compatible formatting but faster (Rust-based)
   - Pre-commit hooks enforce consistent formatting automatically
 - **Types**: mypy --strict, 100% coverage, 0 errors, target py311
-- **Tests**: pytest + pytest-qt, 5,498 tests, use `qtbot` for GUI
+- **Tests**: pytest + pytest-qt, 5,548 tests, use `qtbot` for GUI
 - **Docs**: Docstrings for public APIs, update SPECIFICATIONS_AI.md for features
 - **Python**: 3.11+ (3.12.3 current, <3.14 for PySide6)
 
@@ -363,11 +363,12 @@ Entry: `src/main.py`
 
 ---
 
-*AsciiDoc Artisan v2.0.4 | Production-ready | 5,548 tests (5,516 passing, 22 skipped) | mypy --strict*
-- use sudo -A instead of sudo
+*AsciiDoc Artisan v2.0.6 | Production-ready | 5,548 tests (5,516 passing, 22 skipped) | mypy --strict*
 
-**Recent Improvements (Nov 19, 2025):**
+**Recent Improvements (Nov 19, 2025 - v2.0.6):**
 - ✅ Refactored dialog_manager: Extracted callback logic into testable methods
-- ✅ Fixed import mocking tests: Corrected `__builtins__` usage
-- ✅ Improved test documentation: 22 tests properly documented as skipped
+- ✅ Fixed import mocking tests: Corrected `__builtins__` usage to use `builtins` module
+- ✅ Improved test documentation: All 22 skipped tests properly documented with clear reasons
 - ✅ Enhanced testability: Dialog button handlers now independently testable
+- ✅ Fixed Qt window geometry test: Changed from position checking to method call verification
+- ✅ Cleaned up project: Archived outdated docs, removed build artifacts
