@@ -5,7 +5,7 @@ Provides line numbers alongside the QPlainTextEdit editor widget.
 Implements specification requirement: Line Numbers (Editor Specifications).
 """
 
-from typing import Any
+from typing import Any, cast
 
 from PySide6.QtCore import QRect, QSize, Qt
 from PySide6.QtGui import QColor, QContextMenuEvent, QPainter, QPaintEvent, QResizeEvent
@@ -58,7 +58,7 @@ class LineNumberMixin:
 
     def setup_line_numbers(self) -> None:
         """Set up line number area and connect signals."""
-        self.line_number_area = LineNumberArea(self)
+        self.line_number_area = LineNumberArea(cast(QPlainTextEdit, self))
 
         # Connect signals for auto-update
         self.blockCountChanged.connect(self.update_line_number_area_width)

@@ -23,6 +23,7 @@ Example:
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from anthropic import Anthropic, APIConnectionError, APIError
 from pydantic import BaseModel, Field
@@ -207,7 +208,7 @@ class ClaudeClient:
             logger.debug(f"Sending message to Claude (model={self.model}, messages={len(messages)})")
 
             # Build kwargs, only add system if provided
-            kwargs = {
+            kwargs: dict[str, Any] = {
                 "model": self.model,
                 "max_tokens": self.max_tokens,
                 "temperature": self.temperature,
