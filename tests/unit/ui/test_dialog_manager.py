@@ -1160,9 +1160,7 @@ class TestTelemetryChangeDirectoryButton:
 
     @patch("asciidoc_artisan.ui.dialog_manager.QFileDialog")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_change_directory_user_cancels_selection(
-        self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window
-    ):
+    def test_change_directory_user_cancels_selection(self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window):
         from pathlib import Path
 
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1186,9 +1184,7 @@ class TestTelemetryChangeDirectoryButton:
 
     @patch("asciidoc_artisan.ui.dialog_manager.QFileDialog")
     @patch("asciidoc_artisan.ui.dialog_manager.QMessageBox")
-    def test_change_directory_user_cancels_confirmation(
-        self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window
-    ):
+    def test_change_directory_user_cancels_confirmation(self, mock_msgbox_cls, mock_filedialog_cls, mock_main_window):
         from pathlib import Path
 
         from PySide6.QtWidgets import QMessageBox

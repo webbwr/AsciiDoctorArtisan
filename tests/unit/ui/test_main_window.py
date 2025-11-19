@@ -933,14 +933,13 @@ class TestRefreshFromSettings:
         window._update_ai_backend_checkmarks = Mock()
         window.theme_manager.apply_light_theme = Mock()
 
-        # Refresh from settings
-        window._refresh_from_settings()
+        # Mock setGeometry to verify it's called (Qt may not honor it in headless tests)
+        with patch.object(window, "setGeometry") as mock_set_geometry:
+            # Refresh from settings
+            window._refresh_from_settings()
 
-        # Verify geometry updated (allow small variance for window manager decorations)
-        assert abs(window.x() - 100) <= 5  # Allow up to 5 pixel difference
-        assert abs(window.y() - 100) <= 5
-        assert window.width() == 800
-        assert window.height() == 600
+            # Verify setGeometry was called with correct values
+            mock_set_geometry.assert_called_once_with(100, 100, 800, 600)
 
 
 @pytest.mark.fr_001
