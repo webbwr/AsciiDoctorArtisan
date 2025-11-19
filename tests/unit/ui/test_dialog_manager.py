@@ -203,7 +203,7 @@ class TestAnthropicStatusDialog:
         assert hasattr(manager, "show_anthropic_status")
         assert callable(manager.show_anthropic_status)
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     def test_show_anthropic_status_no_key(self, mock_creds_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -490,7 +490,7 @@ class TestOllamaStatusEdgeCases:
 class TestAnthropicStatusEdgeCases:
     """Test edge cases for Anthropic status dialog."""
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     def test_show_anthropic_status_with_key(self, mock_creds_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -503,7 +503,7 @@ class TestAnthropicStatusEdgeCases:
 
         assert mock_main_window.status_manager.show_message.called
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     def test_show_anthropic_status_with_exception(self, mock_creds_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -513,7 +513,7 @@ class TestAnthropicStatusEdgeCases:
         # Should handle exception
         manager.show_anthropic_status()
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     def test_show_anthropic_status_with_different_models(self, mock_creds_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -1777,7 +1777,7 @@ class TestPromptSaveBeforeAction:
 class TestAnthropicStatusFullPath:
     """Test Anthropic status dialog with full code paths."""
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     def test_show_anthropic_status_sdk_version_attribute_error(self, mock_creds_cls, mock_main_window):
         """Test handling when anthropic module has no __version__."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1798,7 +1798,7 @@ class TestAnthropicStatusFullPath:
             call_args = mock_main_window.status_manager.show_message.call_args[0][2]
             assert "SDK Version: Unknown" in call_args
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     @patch("asciidoc_artisan.ui.dialog_manager.ClaudeClient")
     def test_show_anthropic_status_with_key_and_model(self, mock_claude_client_cls, mock_creds_cls, mock_main_window):
         """Test Anthropic status when key is configured with model selected."""
@@ -1830,7 +1830,7 @@ class TestAnthropicStatusFullPath:
         assert "✅ Active backend: Claude (remote)" in call_args
         assert "✅ Connection test: Success" in call_args
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     @patch("asciidoc_artisan.ui.dialog_manager.ClaudeClient")
     def test_show_anthropic_status_with_key_no_model(self, mock_claude_client_cls, mock_creds_cls, mock_main_window):
         """Test Anthropic status when key is configured but no model selected."""
@@ -1860,7 +1860,7 @@ class TestAnthropicStatusFullPath:
         assert "⚠️ No model selected" in call_args
         assert "⚠️ Active backend: Ollama (local)" in call_args
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     @patch("asciidoc_artisan.ui.dialog_manager.ClaudeClient")
     def test_show_anthropic_status_connection_test_failure(
         self, mock_claude_client_cls, mock_creds_cls, mock_main_window
@@ -1888,7 +1888,7 @@ class TestAnthropicStatusFullPath:
         assert "❌ Connection test: Failed" in call_args
         assert "Invalid API key" in call_args
 
-    @patch("asciidoc_artisan.core.secure_credentials.SecureCredentials")
+    @patch("asciidoc_artisan.core.SecureCredentials")
     @patch("asciidoc_artisan.ui.dialog_manager.ClaudeClient")
     def test_show_anthropic_status_connection_test_exception(
         self, mock_claude_client_cls, mock_creds_cls, mock_main_window
