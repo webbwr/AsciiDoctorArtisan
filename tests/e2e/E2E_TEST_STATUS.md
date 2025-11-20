@@ -165,12 +165,17 @@ Peak Memory: 306.37MB
 7. ~~Create `templates.feature`~~ → 7/7 scenarios passing ✅
 
 ### 🚧 In Progress (Needs Investigation)
-8. `spell_check.feature` - Created but tests timeout during collection
-   - Issue: Qt + pyspellchecker interaction causing hang in test environment
-   - Files created: spell_check.feature (6 scenarios), spell_check_steps.py (204 lines)
-   - SpellChecker initializes quickly in isolation (0.07s)
-   - Likely issue: Qt event loop + spell check manager initialization
-   - Recommended: Investigate pytest-qt compatibility or mock SpellChecker for tests
+8. `spell_check.feature` - Created but tests timeout during execution
+   - **Status**: HUNG - Tests timeout after 30s (exit code 143: SIGTERM)
+   - **Issue**: Hangs in `spell_check_manager.toggle_spell_check()` method
+   - **Files**: spell_check.feature (6 scenarios), spell_check_steps.py (207 lines with markers)
+   - **Investigation**:
+     - SpellChecker initializes quickly in isolation (0.07s)
+     - Full app fixture (AsciiDocEditor) creates spell_check_manager successfully
+     - Hang occurs when calling `toggle_spell_check()` in test steps
+     - Likely: Qt event loop + QTimer + pyspellchecker thread interaction
+   - **Recommended Fix**: Mock SpellChecker in E2E tests or use isolated QThread testing
+   - **Priority**: Medium - Feature works in production, E2E tests can wait
 
 ### High Priority (Expand Coverage)
 9. Create `ai_integration.feature` (FR-100 to FR-107) - 8 scenarios planned
