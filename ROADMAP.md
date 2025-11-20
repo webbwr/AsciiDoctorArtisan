@@ -82,10 +82,10 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 - 4B: Core (async/resource/lazy) - ~30 tests, 1 day [COMPLETE at 99%]
 - 4C: Polish (14 files, 90-99% coverage) - ~180 statements, 4-6 hours [COMPLETE]
 - 4D: document_converter - 48 tests, 4 hours [COMPLETE at 100%]
-- 4E: UI layer (90-95% → 99-100%) - ~150-200 tests, 2-6 weeks, HIGH complexity [IN PROGRESS: Session 1 complete]
+- 4E: UI layer (90-95% → 99-100%) - ~150-200 tests, 2-6 weeks, HIGH complexity [IN PROGRESS: Session 2 complete]
 
 **Completed Phases:** 4A, 4B, 4C, 4D (Nov 17, 2025)
-**In Progress:** Phase 4E (UI layer, started Nov 17, 2025) - Session 1: action_manager 100%, 18 quick wins remaining
+**In Progress:** Phase 4E (UI layer, started Nov 17, 2025) - Session 2: dialog_manager/main_window +31 tests, QTimer fix
 **Estimated:** 2-6 weeks, ~150-200 tests, +2-3% coverage to 99.5% max
 
 **Rationale:** v2.0.0 feature development > incremental coverage. Current 96.4% with 99.89% pass rate (5,480/5,486) is production-ready.
@@ -97,6 +97,12 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 **Update Nov 17, 2025 (AM):** Phase 4D completed. document_converter.py: 97% → 100% coverage (+2 tests, removed 1 unreachable code). Phase 4A-4D complete.
 
 **Update Nov 17, 2025 (PM):** Phase 4E started. Session 1: Analyzed 42 UI files, created detailed plan, fixed action_manager.py → 100%. Identified 19 quick wins, 3 hung test files (root cause of test suite hangs). Revised estimate: 2-6 weeks, ~150-200 tests (down from 690).
+
+**Update Nov 20, 2025:** Phase 4E Session 2 completed. Created 31 new tests (651 lines):
+- test_dialog_manager_telemetry.py: 14 tests (310 lines) - Platform-specific file opening (Windows/macOS/Linux/WSL), telemetry directory changes
+- test_main_window_extended.py: 17 tests (341 lines) - Git status dialog, quick commit widget, replace operations
+- Fixed QTimer timing in E2E auto-save tests: 6s → 0.43s (15x faster)
+- Progress: dialog_manager (81% → target 95%), main_window (84% → target 99%)
 
 **Coverage Analysis (Nov 16, 2025):** True 100% coverage is impossible due to Qt threading limitations. Maximum achievable: ~99.5%.
 
