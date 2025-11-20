@@ -165,6 +165,19 @@ Peak Memory: 306.37MB
 7. ~~Create `templates.feature`~~ → 7/7 scenarios passing ✅
 
 ### 🚧 In Progress (Needs Investigation)
+8. `spell_check.feature` - Created but tests timeout during execution (HUNG)
+9. `ollama_integration.feature` - Created with 1/6 passing (WIP)
+   - **Status**: 1/6 passing, 5 failing
+   - **Files**: ollama_integration.feature (6 scenarios), ollama_steps.py (330 lines)
+   - **Passing**: test_open_and_close_ollama_chat_panel ✅
+   - **Failing**: Model selection, message sending, history viewing, mode selection
+   - **Issues**:
+     - Chat visibility requires multiple settings (ai_chat_enabled, ollama_enabled, ollama_model)
+     - Mock response logic needs ChatMessage initialization fixes
+     - Context mode and model selection need verification updates
+   - **FR Coverage**: FR-039 to FR-044 (Ollama AI Integration) - 6 features
+   - **Priority**: Medium - Basic panel open/close works, other features need fixes
+
 8. `spell_check.feature` - Created but tests timeout during execution
    - **Status**: HUNG - Tests timeout after 30s (exit code 143: SIGTERM)
    - **Issue**: Hangs in `spell_check_manager.toggle_spell_check()` method
@@ -178,9 +191,14 @@ Peak Memory: 306.37MB
    - **Priority**: Medium - Feature works in production, E2E tests can wait
 
 ### High Priority (Expand Coverage)
-9. Create `ai_integration.feature` (FR-100 to FR-107) - 8 scenarios planned
-10. Create `syntax_highlighting.feature` (FR-041 to FR-045) - 5 scenarios planned
-11. Create `autocomplete.feature` (FR-036 to FR-040) - 5 scenarios planned
+10. Create `autocomplete.feature` (FR-085 to FR-090) - 6 scenarios planned
+11. Create `syntax_checking.feature` (FR-091 to FR-099) - 9 scenarios planned
+
+**Note**: FR mappings corrected:
+- FR-039 to FR-044: Ollama AI Integration (covered above)
+- FR-085 to FR-090: Auto-complete features (6 FRs)
+- FR-091 to FR-099: Syntax checking features (9 FRs)
+- FR-100 to FR-107: Template features (already covered in templates.feature ✅)
 
 ### Medium Priority (Polish)
 10. ~~Add pytest markers: `@pytest.mark.e2e`, `@pytest.mark.bdd`~~ → Completed ✅
