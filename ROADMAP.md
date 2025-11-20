@@ -109,7 +109,14 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 - **14 modules at 99-100%** (3 at perfect 100%: base_vcs_handler, theme_manager, ui_state_manager)
 - **5 modules at 95-99%** (branch coverage only)
 - **Status:** Quick Wins phase complete - NO additional tests needed (all work done in previous sessions)
-- **Next:** Phase 4E-2 (Medium files) and 4E-3 (Needs Work files)
+
+**Update Nov 20, 2025 (Late PM):** Phase 4E-2 Medium Files **COMPLETE**. Coverage verification:
+- **preview_handler_base:** 94% (4 missing - defensive ImportError handler at maximum achievable)
+- **file_handler:** 97% (0 missing statements, branch coverage only)
+- **git_status_dialog:** 100% PERFECT (0 missing, 0 branch partials)
+- **Status:** All 3 medium files at/above target - NO additional tests needed
+- **Progress:** 22 of 42 UI modules (52%) verified at 94-100% coverage
+- **Next:** Phase 4E-3 (Needs Work files: 6 modules with 10-39 missing statements each)
 
 **Coverage Analysis (Nov 16, 2025):** True 100% coverage is impossible due to Qt threading limitations. Maximum achievable: ~99.5%.
 
