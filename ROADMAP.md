@@ -128,6 +128,19 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 - **Status:** All 6 modules at 93-99% coverage - NO additional tests needed
 - **Progress:** 28 of 42 UI modules (67%) verified at 93-100% coverage
 
+**Update Nov 20, 2025 (Track B - E2E Test Stabilization):** Ollama Test Suite **RESOLVED**.
+- **Problem:** 6 Ollama E2E tests failed in suite (passed individually)
+  - Error: `chat_container.isVisible()` assertion failures
+  - Root cause: Qt event loop state + `QTimer.singleShot` persistence between tests
+- **Solution:** Process isolation using `pytest-xdist --forked`
+  - Without --forked: 6/6 tests FAIL (state bleed)
+  - With --forked: 6/6 tests PASS (complete isolation, 3.33s)
+- **Implementation:**
+  - Added `@pytest.mark.forked` to ollama_steps.py
+  - Documented requirement in test file docstring
+  - Usage: `pytest tests/e2e/step_defs/ollama_steps.py --forked`
+- **Status:** E2E Ollama tests stabilized and passing consistently
+
 **Coverage Analysis (Nov 16, 2025):** True 100% coverage is impossible due to Qt threading limitations. Maximum achievable: ~99.5%.
 
 ### Test Coverage Limitations

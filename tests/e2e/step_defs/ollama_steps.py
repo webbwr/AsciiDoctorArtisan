@@ -3,8 +3,19 @@ Step definitions for Ollama AI integration E2E tests.
 
 Implements Gherkin steps for Ollama chat panel and AI operations.
 
-NOTE: These tests require Ollama service to be running.
-Run with: pytest tests/e2e/step_defs/ollama_steps.py -m live_api
+IMPORTANT: These tests REQUIRE process isolation to pass in test suite.
+- Individual tests: pytest tests/e2e/step_defs/ollama_steps.py::test_name
+- Full suite: pytest tests/e2e/step_defs/ollama_steps.py --forked
+
+Root Cause: Qt event loop state and chat manager visibility (QTimer.singleShot)
+persist between tests when run in the same process, causing chat_container
+visibility assertion failures.
+
+Solution: Use pytest-xdist --forked flag for process isolation.
+- Without --forked: 6/6 tests fail (chat panel not visible)
+- With --forked: 6/6 tests pass (complete process isolation)
+
+Run with: pytest tests/e2e/step_defs/ollama_steps.py --forked -m live_api
 """
 
 import pytest
@@ -13,7 +24,14 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 # Load all scenarios from the feature file
-pytestmark = [pytest.mark.e2e, pytest.mark.bdd, pytest.mark.gui, pytest.mark.live_api]
+# IMPORTANT: forked marker ensures process isolation for Qt state management
+pytestmark = [
+    pytest.mark.e2e,
+    pytest.mark.bdd,
+    pytest.mark.gui,
+    pytest.mark.live_api,
+    pytest.mark.forked,  # Required: prevents Qt state bleed between tests
+]
 scenarios("../features/ollama_integration.feature")
 
 
