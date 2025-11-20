@@ -8,15 +8,16 @@
 
 ## Summary
 
-**Current Status:** ✅ 29/29 scenarios passing individually (100%)
+**Current Status:** ✅ 36/36 scenarios passing individually (100%)
 
 **Test Suites:**
 - Document Editing: 9/9 passing ✅
 - Export Workflows: 7/7 passing ✅
 - Find & Replace: 7/7 passing ✅
 - Git Operations: 6/6 passing ✅
+- Templates: 7/7 passing ✅
 
-**FR Coverage:** 25/107 (23.4%)
+**FR Coverage:** 32/107 (29.9%)
 
 ### Test Results (Individual Execution)
 
@@ -67,6 +68,18 @@
 | ✅ PASS | Create and switch Git branch | subprocess git branch + checkout |
 | ✅ PASS | Pull changes from remote | Simulated for E2E (Git functional check) |
 
+### Templates (7 scenarios)
+
+| Status | Scenario | Implementation Notes |
+|--------|----------|----------------------|
+| ✅ PASS | List available templates | TemplateManager.get_all_templates() |
+| ✅ PASS | Get template by category | Filter by category field |
+| ✅ PASS | Create document from template | TemplateEngine.instantiate() with variables |
+| ✅ PASS | View template variables | Access Template.variables list |
+| ✅ PASS | Create custom template | TemplateManager.create_template() with cleanup |
+| ✅ PASS | Delete custom template | TemplateManager.delete_template() |
+| ✅ PASS | Track recent templates | TemplateManager.add_to_recent() and get_recent_templates() |
+
 ---
 
 ## Known Issues
@@ -107,8 +120,10 @@ RuntimeError: Internal C++ object already deleted
 - `tests/e2e/step_defs/find_replace_steps.py` (250 lines) - Find/replace step definitions
 - `tests/e2e/features/git_operations.feature` (46 lines) - 6 Git scenarios
 - `tests/e2e/step_defs/git_steps.py` (322 lines) - Git operation step definitions
+- `tests/e2e/features/templates.feature` (57 lines) - 7 template scenarios
+- `tests/e2e/step_defs/template_steps.py` (363 lines) - Template management step definitions
 
-**Total:** 4 feature files (257 lines), 4 step definition files (1,059 lines)
+**Total:** 5 feature files (314 lines), 5 step definition files (1,422 lines)
 
 ### Dependencies Added
 - `pytest-bdd>=8.0.0` (added to requirements.txt)
@@ -257,12 +272,21 @@ assert text.lower() in app.windowTitle().lower()
 - FR-085: Branch operations ✅
 - FR-086: Remote sync ✅
 
-**Coverage:** 25/107 FRs (23.4%)
+**Templates (7 FRs):**
+- FR-091: List templates ✅
+- FR-092: Template categories ✅
+- FR-093: Create from template ✅
+- FR-094: Template variables ✅
+- FR-095: Custom templates ✅
+- FR-096: Delete templates ✅
+- FR-097: Recent templates ✅
+
+**Coverage:** 32/107 FRs (29.9%)
 
 **Next Feature Sets:**
-- Templates (FR-091 to FR-097): 7 FRs
 - Spell Check (FR-051 to FR-055): 5 FRs
 - AI Integration (FR-100 to FR-107): 8 FRs
+- Syntax Highlighting (FR-041 to FR-045): 5 FRs
 
 ---
 
