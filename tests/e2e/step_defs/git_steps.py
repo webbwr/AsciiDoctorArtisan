@@ -13,6 +13,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 # Load all scenarios from the feature file
+pytestmark = [pytest.mark.e2e, pytest.mark.bdd, pytest.mark.gui]
 scenarios("../features/git_operations.feature")
 
 

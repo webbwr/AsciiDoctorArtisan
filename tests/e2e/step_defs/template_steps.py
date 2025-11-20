@@ -15,6 +15,7 @@ from asciidoc_artisan.core.template_manager import TemplateManager
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 # Load all scenarios from the feature file
+pytestmark = [pytest.mark.e2e, pytest.mark.bdd, pytest.mark.gui]
 scenarios("../features/templates.feature")
 
 
