@@ -4,13 +4,11 @@ Step definitions for user preferences E2E tests.
 Implements Gherkin steps for user preferences and settings configuration.
 """
 
-import time
 from pathlib import Path
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from asciidoc_artisan.core.settings import Settings
 from asciidoc_artisan.ui.dialogs import PreferencesDialog
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
@@ -338,9 +336,9 @@ def settings_restored(app: AsciiDocEditor, prefs_state: PreferencesState):
     # E2E: Verify key settings match what was saved
     assert app._settings.dark_mode == prefs_state.initial_settings["dark_mode"], "Dark mode should be restored"
     assert app._settings.font_size == prefs_state.initial_settings["font_size"], "Font size should be restored"
-    assert (
-        app._settings.ai_conversion_enabled == prefs_state.initial_settings["ai_conversion_enabled"]
-    ), "AI conversion should be restored"
+    assert app._settings.ai_conversion_enabled == prefs_state.initial_settings["ai_conversion_enabled"], (
+        "AI conversion should be restored"
+    )
 
 
 @then("the window geometry should be preserved")
