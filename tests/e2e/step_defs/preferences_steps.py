@@ -13,6 +13,7 @@ from asciidoc_artisan.ui.dialogs import PreferencesDialog
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 # Load all scenarios from the feature file
+# Note: Auto-save scenarios may hang in E2E environment due to QTimer timing
 pytestmark = [pytest.mark.e2e, pytest.mark.bdd, pytest.mark.gui]
 scenarios("../features/user_preferences.feature")
 
