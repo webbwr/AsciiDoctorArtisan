@@ -90,8 +90,8 @@ pytest tests/test_file.py::test_func  # Single test
 pytest tests/unit/MODULE/ --cov=asciidoc_artisan.MODULE --cov-report=term-missing  # Module coverage
 
 # Quality
-make format                     # Auto-format (black, isort, ruff)
-make lint                       # Check (ruff, black, mypy --strict)
+make format                     # Auto-format (ruff-format, isort, ruff)
+make lint                       # Check (ruff, mypy --strict)
 pre-commit run --all-files      # Manual hook run
 
 # Build
@@ -121,7 +121,7 @@ make help                       # All targets
 
 **Pre-commit hooks:**
 - Auto-enabled after `pre-commit install`
-- Runs: ruff (lint), black (format), trailing whitespace, YAML/TOML validation, large file check
+- Runs: ruff (lint + format), trailing-whitespace, end-of-file-fixer, YAML/TOML validation, large file check, merge conflict check
 - Bypass (emergency only): `git commit --no-verify`
 
 **Risk levels:**
