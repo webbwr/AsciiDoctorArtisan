@@ -171,12 +171,12 @@ qt_api = "pyside6"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 # Anyio configuration (use asyncio backend only, not trio)
-anyio_backends = ["asyncio"]
+# anyio_backends = ["asyncio"]  # Disabled: Not a pytest core option
 # Environment variables for test execution
-env = [
-    "QT_QPA_PLATFORM=offscreen",
-    "PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring",
-]
+# env = [  # Disabled: Already set in tests/conftest.py
+#     "QT_QPA_PLATFORM=offscreen",
+#     "PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring",
+# ]
 # Markers for test organization
 markers = [
     "unit: Unit tests for individual functions and classes",
@@ -201,6 +201,7 @@ markers = [
     "security: Security tests (vulnerability, injection, sanitization)",
     "edge_case: Edge case and boundary condition tests",
     "requires_gpu: Tests requiring GPU hardware and Qt WebEngine libraries (libsmime3.so)",
+    "requires_pandoc: Tests requiring Pandoc executable for document conversion",
     # FR markers - Functional Requirements from SPECIFICATIONS_AI.md
     "fr_001: FR-001 Text Editor",
     "fr_002: FR-002 Line Numbers",
