@@ -195,8 +195,6 @@ def autocomplete_suggests(app: AsciiDocEditor, text: str):
     # Auto-completion might not be visible for all scenarios
     if widget.isVisible():
         items = [widget.item(i).text() for i in range(widget.count())]
-        text_lower = text.lower()
-        found = any(text_lower in item.lower() for item in items)
         # For E2E, just verify widget works - specific suggestions depend on engine
         assert True, f"Auto-completion working (suggestions: {items})"
     else:
@@ -265,8 +263,7 @@ def suggestions_appear_quickly(autocomplete_state: AutoCompleteState):
     """Verify auto-completion performance."""
     # For E2E, allow generous time (real benchmark is in unit tests)
     assert autocomplete_state.trigger_time_ms < 200, (
-        f"Auto-completion took {autocomplete_state.trigger_time_ms:.2f}ms "
-        "(E2E allows <200ms, production target <50ms)"
+        f"Auto-completion took {autocomplete_state.trigger_time_ms:.2f}ms (E2E allows <200ms, production target <50ms)"
     )
 
 

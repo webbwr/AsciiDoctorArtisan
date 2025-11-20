@@ -59,9 +59,7 @@ def document_with_content(app: AsciiDocEditor, content: str) -> AsciiDocEditor:
 
 
 @given(parsers.parse('I have saved the document as "{filename}"'))
-def saved_document(
-    app: AsciiDocEditor, temp_workspace: Path, filename: str
-) -> Path:
+def saved_document(app: AsciiDocEditor, temp_workspace: Path, filename: str) -> Path:
     """Save document to file."""
     from pathlib import Path
 
@@ -93,9 +91,7 @@ def made_commit(temp_workspace: Path, message: str, git_state: GitState):
     test_file.write_text("test content")
 
     # Stage and commit
-    subprocess.run(
-        ["git", "add", "test.txt"], cwd=temp_workspace, capture_output=True, check=True
-    )
+    subprocess.run(["git", "add", "test.txt"], cwd=temp_workspace, capture_output=True, check=True)
     result = subprocess.run(
         ["git", "commit", "-m", message],
         cwd=temp_workspace,
@@ -111,9 +107,7 @@ def remote_configured(temp_workspace: Path):
     """Configure a remote repository (mock)."""
     # For E2E tests, we'll just verify Git is available
     # Real remote operations would require a test server
-    result = subprocess.run(
-        ["git", "remote", "-v"], cwd=temp_workspace, capture_output=True, text=True
-    )
+    subprocess.run(["git", "remote", "-v"], cwd=temp_workspace, capture_output=True, text=True)
     # Remote may or may not exist - that's ok for testing
 
 
@@ -138,9 +132,7 @@ def check_git_status(temp_workspace: Path, git_state: GitState):
 @when(parsers.parse('I stage the file "{filename}"'))
 def stage_file(temp_workspace: Path, filename: str):
     """Stage a file for commit."""
-    subprocess.run(
-        ["git", "add", filename], cwd=temp_workspace, capture_output=True, check=True
-    )
+    subprocess.run(["git", "add", filename], cwd=temp_workspace, capture_output=True, check=True)
 
 
 @when(parsers.parse('I commit with message "{message}"'))
@@ -197,9 +189,7 @@ def pull_from_remote(temp_workspace: Path):
     """Pull changes from remote (simulated)."""
     # For E2E tests, we'll just check if Git is working
     # Real pull would require remote setup
-    result = subprocess.run(
-        ["git", "status"], cwd=temp_workspace, capture_output=True, check=True
-    )
+    subprocess.run(["git", "status"], cwd=temp_workspace, capture_output=True, check=True)
     # Just verify Git is functional
 
 
@@ -212,9 +202,7 @@ def pull_from_remote(temp_workspace: Path):
 def verify_modified(temp_workspace: Path, filename: str, git_state: GitState):
     """Verify file shows as modified in Git status."""
     # Porcelain format: ?? for untracked, M for modified, A for added
-    assert (
-        filename in git_state.last_status
-    ), f"Expected {filename} in Git status:\n{git_state.last_status}"
+    assert filename in git_state.last_status, f"Expected {filename} in Git status:\n{git_state.last_status}"
 
 
 @then(parsers.parse('Git should show "{filename}" as staged'))
@@ -229,9 +217,7 @@ def verify_staged(temp_workspace: Path, filename: str, git_state: GitState):
         check=True,
     )
     # Staged files show with A (added) or M (modified) in first column
-    assert (
-        filename in result.stdout
-    ), f"Expected {filename} in staged files:\n{result.stdout}"
+    assert filename in result.stdout, f"Expected {filename} in staged files:\n{result.stdout}"
 
 
 @then("the commit should succeed")
@@ -295,9 +281,7 @@ def verify_current_branch(temp_workspace: Path, branch_name: str):
         text=True,
         check=True,
     )
-    assert (
-        result.stdout.strip() == branch_name
-    ), f"Expected branch '{branch_name}', got '{result.stdout.strip()}'"
+    assert result.stdout.strip() == branch_name, f"Expected branch '{branch_name}', got '{result.stdout.strip()}'"
 
 
 @then("the pull operation should complete")

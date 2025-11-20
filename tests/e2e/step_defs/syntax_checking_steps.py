@@ -7,8 +7,6 @@ Implements Gherkin steps for AsciiDoc syntax validation (FR-091 to FR-099).
 import time
 
 import pytest
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
@@ -158,7 +156,6 @@ More valid content here.
 def no_syntax_errors(app: AsciiDocEditor, qtbot):
     """Verify no syntax errors present."""
     qtbot.wait(600)
-    errors = app.syntax_checker_manager.get_errors()
     # For E2E, just ensure checker is working
     assert hasattr(app, "syntax_checker_manager")
 
@@ -323,7 +320,6 @@ def cursor_at_second_error(app: AsciiDocEditor):
     """Verify cursor at second error."""
     # E2E: Verify navigation mechanism works
     cursor = app.editor.textCursor()
-    errors = app.syntax_checker_manager.get_errors()
     # Verify navigation functionality exists and doesn't crash
     assert cursor.position() >= 0, "Navigation to next error works"
     assert hasattr(app.syntax_checker_manager, "current_error_index"), "Error tracking works"
@@ -382,8 +378,7 @@ def validation_completes_quickly(syntax_state: SyntaxCheckState):
     """Verify validation performance."""
     # E2E allows more time than unit tests
     assert syntax_state.validation_time_ms < 500, (
-        f"Validation took {syntax_state.validation_time_ms:.2f}ms "
-        "(E2E allows <500ms, production target <100ms)"
+        f"Validation took {syntax_state.validation_time_ms:.2f}ms (E2E allows <500ms, production target <100ms)"
     )
 
 
