@@ -919,6 +919,9 @@ class TestRefreshFromSettings:
 
         window = AsciiDocEditor()
 
+        # Mock save_settings to prevent it from overwriting settings.maximized
+        window._settings_manager.save_settings = Mock()
+
         # Set window geometry in settings
         window._settings.maximized = False
         window._settings.window_geometry = {
@@ -928,10 +931,13 @@ class TestRefreshFromSettings:
             "height": 600,
         }
 
-        # Mock other methods
+        # Mock other methods to prevent side effects
         window._update_ai_status_bar = Mock()
         window._update_ai_backend_checkmarks = Mock()
-        window.theme_manager.apply_light_theme = Mock()
+        window.theme_manager.apply_theme = Mock()
+
+        # Mock dialog_manager to prevent _apply_font_settings side effects
+        window.dialog_manager._apply_font_settings = Mock()
 
         # Mock setGeometry to verify it's called (Qt may not honor it in headless tests)
         with patch.object(window, "setGeometry") as mock_set_geometry:

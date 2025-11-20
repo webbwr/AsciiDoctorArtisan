@@ -507,11 +507,17 @@ class TestAnthropicStatusEdgeCases:
     def test_show_anthropic_status_with_exception(self, mock_creds_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
-        mock_creds_cls.side_effect = Exception("Keyring error")
+        # Mock instance that raises on has_anthropic_key() call
+        mock_creds = Mock()
+        mock_creds.has_anthropic_key.side_effect = Exception("Keyring error")
+        mock_creds_cls.return_value = mock_creds
 
         manager = DialogManager(mock_main_window)
-        # Should handle exception
+        # Should handle exception gracefully without crashing
         manager.show_anthropic_status()
+
+        # Verify the error was handled (message was shown)
+        assert mock_main_window.status_manager.show_message.called
 
     @patch("asciidoc_artisan.core.SecureCredentials")
     def test_show_anthropic_status_with_different_models(self, mock_creds_cls, mock_main_window):

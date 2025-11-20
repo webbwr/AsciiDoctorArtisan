@@ -243,8 +243,12 @@ class DialogManager:
             status += "SDK Version: Unknown\n\n"
 
         # Check if API key is configured
-        creds = SecureCredentials()
-        has_key = creds.has_anthropic_key()
+        try:
+            creds = SecureCredentials()
+            has_key = creds.has_anthropic_key()
+        except Exception as e:
+            logger.warning(f"Error checking Anthropic API key: {e}")
+            has_key = False
 
         if not has_key:
             status += "⚠️ Anthropic API: No API key configured\n\n"
