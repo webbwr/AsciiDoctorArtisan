@@ -162,11 +162,20 @@ Peak Memory: 306.37MB
 4. ~~Create `export_workflows.feature`~~ → 7/7 scenarios passing ✅
 5. ~~Create `find_replace.feature`~~ → 7/7 scenarios passing ✅
 6. ~~Create `git_operations.feature`~~ → 6/6 scenarios passing ✅
+7. ~~Create `templates.feature`~~ → 7/7 scenarios passing ✅
+
+### 🚧 In Progress (Needs Investigation)
+8. `spell_check.feature` - Created but tests timeout during collection
+   - Issue: Qt + pyspellchecker interaction causing hang in test environment
+   - Files created: spell_check.feature (6 scenarios), spell_check_steps.py (204 lines)
+   - SpellChecker initializes quickly in isolation (0.07s)
+   - Likely issue: Qt event loop + spell check manager initialization
+   - Recommended: Investigate pytest-qt compatibility or mock SpellChecker for tests
 
 ### High Priority (Expand Coverage)
-7. Create `templates.feature` (FR-091 to FR-097) - 7 scenarios planned
-8. Create `spell_check.feature` (FR-051 to FR-055) - 5 scenarios planned
 9. Create `ai_integration.feature` (FR-100 to FR-107) - 8 scenarios planned
+10. Create `syntax_highlighting.feature` (FR-041 to FR-045) - 5 scenarios planned
+11. Create `autocomplete.feature` (FR-036 to FR-040) - 5 scenarios planned
 
 ### Medium Priority (Polish)
 10. Add pytest markers: `@pytest.mark.e2e`, `@pytest.mark.bdd`
