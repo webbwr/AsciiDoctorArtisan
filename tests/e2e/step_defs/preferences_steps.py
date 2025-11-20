@@ -214,8 +214,8 @@ def restart_application(app: AsciiDocEditor, prefs_state: PreferencesState, qtbo
     """Simulate application restart by reloading settings."""
     # Save settings path
     prefs_state.saved_settings_path = app._settings_manager._settings_path
-    # Reload settings from file
-    app._settings_manager.load_settings()
+    # Reload settings from file and update app settings
+    app._settings = app._settings_manager.load_settings()
     qtbot.wait(100)
 
 

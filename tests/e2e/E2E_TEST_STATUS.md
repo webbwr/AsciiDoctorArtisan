@@ -97,9 +97,9 @@
 | ✅ PASS | Disable AI-enhanced conversion | Settings.ai_conversion_enabled flag |
 | ✅ PASS | Switch to light theme | ThemeManager.apply_theme() with dark_mode=False |
 | ✅ PASS | Switch to dark theme | ThemeManager.apply_theme() with dark_mode=True |
-| ⏸️ INVESTIGATING | Enable auto-save | Timing-dependent file save, needs adjustment |
+| ⏸️ INVESTIGATING | Enable auto-save | Test isolation: Uses real user settings file, timing-dependent verification |
 | ✅ PASS | Disable auto-save | Settings.auto_save_enabled flag |
-| ⏸️ INVESTIGATING | Settings persist across sessions | Settings reload mechanism, needs investigation |
+| ⏸️ INVESTIGATING | Settings persist across sessions | Test isolation: Loads user's actual settings instead of test data. Fix: restart_application step updated to assign loaded settings, but needs temp settings path |
 
 ---
 
