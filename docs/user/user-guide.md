@@ -8,13 +8,17 @@ Learn to use AsciiDoc Artisan.
 
 1. [Get Started](#get-started)
 2. [Write Docs](#write-docs)
-3. [Save and Open](#save-and-open)
-4. [Find and Replace](#find-and-replace)
-5. [Spell Check](#spell-check)
-6. [Use Git](#use-git)
-7. [Change Types](#change-types)
-8. [Settings](#settings)
-9. [Tips](#tips)
+3. [Auto-Complete](#auto-complete) ⭐ NEW
+4. [Syntax Checking](#syntax-checking) ⭐ NEW
+5. [Templates](#templates) ⭐ NEW
+6. [Save and Open](#save-and-open)
+7. [Find and Replace](#find-and-replace)
+8. [Spell Check](#spell-check)
+9. [Use Git](#use-git)
+10. [GitHub CLI](#github-cli) ⭐ NEW
+11. [Change Types](#change-types)
+12. [Settings](#settings)
+13. [Tips](#tips)
 
 ## Get Started
 
@@ -92,6 +96,311 @@ https://www.example.com
 https://www.example.com[Click Here]
 ```
 
+## Auto-Complete
+
+**NEW in v2.0!** The app helps you type.
+
+### What It Does
+
+Auto-complete shows what to type next. It knows AsciiDoc rules.
+
+**It helps with:**
+- Headings (=, ==, ===)
+- Lists (*, ., -)
+- Bold and italic (*text*, _text_)
+- Links and images
+- Tables and blocks
+
+### How to Use
+
+**Auto way:**
+1. Start typing
+2. List appears by itself
+3. Pick what you want
+4. Press Enter
+
+**Manual way:**
+1. Type something
+2. Press Ctrl+Space
+3. See all choices
+4. Pick one
+5. Press Enter
+
+### Examples
+
+**Make a heading:**
+1. Type `==`
+2. See heading choices
+3. Pick "Section Level 2"
+4. Press Enter
+5. Done!
+
+**Make a list:**
+1. Type `*`
+2. See list choices
+3. Pick "Bullet List"
+4. Press Enter
+5. Type list item
+
+**Make bold text:**
+1. Type `*`
+2. Pick "Bold Text"
+3. Type your words
+4. Type `*` again
+5. Done!
+
+### Fuzzy Match
+
+Can't spell? No problem!
+
+Type close words. It finds them.
+
+**Example:**
+- Type "hed" → finds "heading"
+- Type "tbl" → finds "table"
+- Type "img" → finds "image"
+
+### Turn It Off
+
+Don't like auto-complete?
+
+1. Click `Settings`
+2. Find "Auto-Complete"
+3. Turn it off
+4. Click Save
+
+### Speed
+
+Very fast! Works with big docs.
+
+**Speed:**
+- 1,000 items: < 50ms
+- Updates as you type
+- No waiting
+
+## Syntax Checking
+
+**NEW in v2.0!** Finds mistakes as you type.
+
+### What It Does
+
+Checks your AsciiDoc. Shows errors.
+
+**It finds:**
+- Wrong headings
+- Bad links
+- Broken tables
+- Missing parts
+- Style mistakes
+
+### How It Looks
+
+**Errors show as:**
+- Red squiggly lines
+- Yellow warning lines
+- Error list in panel
+
+See the error? Fix it fast!
+
+### Turn It On
+
+Press F8 key. Or use menu:
+
+1. Click `Tools`
+2. Click `Syntax Check`
+3. Now it checks
+
+Press F8 again to turn off.
+
+### See All Errors
+
+1. Press F8
+2. Error list opens
+3. See all mistakes
+4. Click one to jump there
+
+### Fix Errors
+
+**Two ways:**
+
+**Way 1 - Jump to error:**
+1. Press F8
+2. Click error in list
+3. Goes to that line
+4. Fix it
+
+**Way 2 - Quick fix:**
+1. Click error
+2. See suggestions
+3. Pick one
+4. Done!
+
+### Error Colors
+
+**Red** - Must fix:
+- Broken syntax
+- Missing parts
+- Bad format
+
+**Yellow** - Should fix:
+- Style issues
+- Best practice
+- Warnings
+
+**Green** - Good:
+- No errors
+- All correct
+
+### Speed
+
+Checks fast! No waiting.
+
+**Speed:**
+- 1,000 lines: < 100ms
+- Checks as you type
+- Real-time feedback
+
+### Turn It Off
+
+Don't need checking?
+
+1. Press F8
+2. Or click `Tools` → `Syntax Check`
+3. Turns off
+
+## Templates
+
+**NEW in v2.0!** Start docs fast with templates.
+
+### What Are Templates
+
+Ready-made docs. Just fill in blanks.
+
+**We have:**
+- Technical Report
+- User Manual
+- Meeting Notes
+- Blog Post
+- README File
+- Presentation
+
+All ready to use!
+
+### Use a Template
+
+**Easy steps:**
+1. Click `File`
+2. Click `New from Template`
+3. Pick template you want
+4. Fill in the form
+5. Click Create
+6. Done! Doc is ready.
+
+### Fill the Form
+
+Templates ask questions.
+
+**Example form:**
+- Title: Type doc name
+- Author: Type your name
+- Date: Pick today
+- Company: Type company name
+
+Fill all fields. Click Create.
+
+### What You Get
+
+Full document! Just edit it.
+
+**It has:**
+- Correct structure
+- Sample text
+- Good format
+- All parts ready
+
+Change what you want. Keep the rest.
+
+### Built-In Templates
+
+**Technical Report:**
+- Title page
+- Table of contents
+- Introduction
+- Sections
+- Conclusion
+- References
+
+**User Manual:**
+- Cover page
+- How to use
+- Features
+- Troubleshooting
+- FAQ
+
+**Meeting Notes:**
+- Date and time
+- Who came
+- What we talked about
+- Action items
+- Next meeting
+
+**Blog Post:**
+- Title
+- Author
+- Date
+- Content sections
+- Tags
+
+**README:**
+- Project name
+- What it does
+- How to install
+- How to use
+- License
+
+**Presentation:**
+- Slides
+- Title slide
+- Content slides
+- Thank you slide
+
+### Make Your Own
+
+Can make custom templates!
+
+1. Make a doc
+2. Use `{{variable}}` for blanks
+3. Save as template
+4. Use it later
+
+**Example:**
+```
+= {{title}}
+{{author}}
+{{date}}
+
+== Introduction
+
+This is about {{topic}}.
+```
+
+### Template Speed
+
+Very fast!
+
+**Speed:**
+- Loads in < 200ms
+- Big templates work
+- No waiting
+
+### Tips
+
+**Good ideas:**
+- Pick right template
+- Fill all fields
+- Edit after
+- Save your work
+
 ## Save and Open
 
 ### Save Your Work
@@ -164,6 +473,128 @@ Good notes are short:
 - ✓ "Add cats"
 - ✗ "Changes"
 - ✗ "asdf"
+
+## GitHub CLI
+
+**NEW in v1.6!** Work with GitHub from the app.
+
+### What You Need
+
+**Need these installed:**
+1. Git (see above)
+2. GitHub CLI (`gh` command)
+3. GitHub account
+
+**Install GitHub CLI:**
+- Linux: `sudo apt install gh`
+- Mac: `brew install gh`
+- Windows: Download from cli.github.com
+
+**Login first:**
+```
+gh auth login
+```
+
+Follow the steps. Only do this once.
+
+### What You Can Do
+
+**From the app:**
+- Make pull requests
+- See pull requests
+- Make issues
+- See issues
+- View repo on GitHub
+
+All from `Git` → `GitHub` menu!
+
+### Make Pull Request
+
+Share your work with the team.
+
+**Steps:**
+1. Save and commit first
+2. Click `Git` → `GitHub`
+3. Click `Create Pull Request`
+4. Fill in:
+   - Title: What you did
+   - Description: Why you did it
+5. Click Create
+6. Done!
+
+**What happens:**
+- Makes PR on GitHub
+- Team can see it
+- They can comment
+- You can merge later
+
+### See Pull Requests
+
+Check what others did.
+
+**Steps:**
+1. Click `Git` → `GitHub`
+2. Click `List Pull Requests`
+3. See all PRs
+4. Click one to open on GitHub
+
+### Make Issue
+
+Report a bug or idea.
+
+**Steps:**
+1. Click `Git` → `GitHub`
+2. Click `Create Issue`
+3. Fill in:
+   - Title: Short problem
+   - Body: Details
+   - Labels: Type of issue
+4. Click Create
+5. Done!
+
+**Good for:**
+- Report bugs
+- Ask for features
+- Get help
+- Track work
+
+### See Issues
+
+Check all issues.
+
+**Steps:**
+1. Click `Git` → `GitHub`
+2. Click `List Issues`
+3. See all issues
+4. Click one to open
+
+### View Repo
+
+Open repo on GitHub.
+
+**Steps:**
+1. Click `Git` → `GitHub`
+2. Click `View Repository`
+3. Opens in web browser
+
+Quick way to see the project online!
+
+### Tips
+
+**Good ideas:**
+- Commit before making PR
+- Write clear PR titles
+- Add details to issues
+- Check existing issues first
+
+### Not Working?
+
+**If GitHub menu is gray:**
+1. Check `gh` installed: `gh --version`
+2. Check logged in: `gh auth status`
+3. Check in Git repo: `git status`
+
+All three must work!
 
 ## Change Types
 
