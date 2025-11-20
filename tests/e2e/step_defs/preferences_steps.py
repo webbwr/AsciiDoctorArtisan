@@ -173,15 +173,15 @@ def switch_to_dark_theme(app: AsciiDocEditor):
 
 @when(parsers.parse("I enable auto-save with {interval:d} second interval"))
 def enable_auto_save(app: AsciiDocEditor, interval: int, temp_workspace: Path):
-    """Enable auto-save with specified interval."""
+    """Enable auto-save with specified interval (uses 100ms for E2E speed)."""
     app._settings.auto_save_enabled = True
     app._settings.auto_save_interval = interval
     # Set up a temp file for auto-save
     temp_file = temp_workspace / "autosave_test.adoc"
     app.file_handler.current_file_path = temp_file
-    # Start auto-save timer if file handler supports it
+    # Start auto-save timer with 100ms interval for E2E testing (fast)
     if hasattr(app.file_handler, "start_auto_save"):
-        app.file_handler.start_auto_save()
+        app.file_handler.start_auto_save(100)  # 100ms instead of real interval
 
 
 @when("I disable auto-save")
@@ -200,8 +200,13 @@ def type_content(app: AsciiDocEditor):
 
 @when(parsers.parse("I wait {seconds:d} seconds"))
 def wait_seconds(qtbot, seconds: int):
-    """Wait for specified number of seconds."""
-    qtbot.wait(seconds * 1000)
+    """Wait for specified number of seconds (uses 200ms for E2E speed when > 1s)."""
+    # For E2E tests, long waits are for QTimer-based operations (auto-save)
+    # Since we use 100ms interval in tests, wait 200ms to ensure timer fires
+    if seconds > 1:
+        qtbot.wait(200)  # Fast wait for QTimer operations
+    else:
+        qtbot.wait(seconds * 1000)  # Normal wait for short intervals
 
 
 @when("I save the settings")

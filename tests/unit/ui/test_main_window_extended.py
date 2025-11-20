@@ -10,13 +10,10 @@ Current main_window.py coverage: 84% → Target: 99%
 Missing statements: 95 → Target: <10
 """
 
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import pytest
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWidgets import QApplication
 
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
@@ -35,6 +32,7 @@ def editor_with_git(qapp, tmp_path, monkeypatch):
 
     # Change to git repo directory
     import os
+
     original_dir = os.getcwd()
     os.chdir(git_repo)
 
@@ -267,7 +265,6 @@ class TestReplaceOperations:
         assert selected == "other"
 
         # Try to replace (should verify mismatch)
-        original_text = editor.editor.toPlainText()
         editor._handle_replace("replacement")
         qtbot.wait(50)
 

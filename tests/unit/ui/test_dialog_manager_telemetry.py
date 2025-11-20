@@ -8,10 +8,9 @@ Covers previously untested code paths in DialogManager:
 Targets 95%+ coverage for dialog_manager.py (currently 81%).
 """
 
-import platform
 import subprocess
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import pytest
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QPlainTextEdit, QStatusBar, QTextBrowser
@@ -152,9 +151,9 @@ class TestTelemetryFileOpening:
         manager._open_telemetry_file(telemetry_file)
 
         # Verify wslpath was called
-        assert any(
-            call[0][0][0] == "wslpath" for call in mock_run.call_args_list
-        ), "wslpath should be called for WSL path conversion"
+        assert any(call[0][0][0] == "wslpath" for call in mock_run.call_args_list), (
+            "wslpath should be called for WSL path conversion"
+        )
 
     @patch("platform.system", return_value="Linux")
     @patch("subprocess.run", side_effect=FileNotFoundError("xdg-open not found"))
