@@ -153,7 +153,7 @@ def save_preferences(app: AsciiDocEditor, prefs_state: PreferencesState):
     # Trigger accept (simulating OK button)
     prefs_state.dialog.accept()
     # Save settings to file
-    app._settings_manager.save_settings()
+    app._settings_manager.save_settings(app._settings, app)
 
 
 @when("I switch to light theme")
@@ -206,14 +206,14 @@ def wait_seconds(qtbot, seconds: int):
 @when("I save the settings")
 def save_settings(app: AsciiDocEditor):
     """Save current settings."""
-    app._settings_manager.save_settings()
+    app._settings_manager.save_settings(app._settings, app)
 
 
 @when("I restart the application")
 def restart_application(app: AsciiDocEditor, prefs_state: PreferencesState, qtbot):
     """Simulate application restart by reloading settings."""
     # Save settings path
-    prefs_state.saved_settings_path = app._settings_manager.settings_path
+    prefs_state.saved_settings_path = app._settings_manager._settings_path
     # Reload settings from file
     app._settings_manager.load_settings()
     qtbot.wait(100)
@@ -256,7 +256,7 @@ def ai_conversion_enabled_in_settings(app: AsciiDocEditor):
 def preferences_persist(app: AsciiDocEditor):
     """Verify preferences were saved and can be reloaded."""
     # E2E: Just verify settings file exists
-    settings_file = app._settings_manager.settings_path
+    settings_file = app._settings_manager._settings_path
     assert settings_file.exists(), f"Settings file should exist at {settings_file}"
 
 
