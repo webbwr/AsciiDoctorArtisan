@@ -178,7 +178,10 @@ Peak Memory: 306.37MB
 11. Create `autocomplete.feature` (FR-036 to FR-040) - 5 scenarios planned
 
 ### Medium Priority (Polish)
-10. Add pytest markers: `@pytest.mark.e2e`, `@pytest.mark.bdd`
+10. ~~Add pytest markers: `@pytest.mark.e2e`, `@pytest.mark.bdd`~~ → Completed ✅
+    - Added "bdd" marker to pyproject.toml (commit aba659c)
+    - Added pytestmark to all 6 step definition files (commit bcf8386)
+    - Verified: 42 tests collected with marker filtering
 11. Configure pytest-bdd output formatting
 12. Add E2E tests to CI/CD pipeline
 
