@@ -190,8 +190,18 @@ Peak Memory: 306.37MB
    - **Recommended Fix**: Mock SpellChecker in E2E tests or use isolated QThread testing
    - **Priority**: Medium - Feature works in production, E2E tests can wait
 
+10. `autocomplete.feature` - Created with 0/6 passing (WIP)
+   - **Status**: 0/6 passing, 6 failing
+   - **Files**: autocomplete.feature (6 scenarios), autocomplete_steps.py (240 lines)
+   - **Failing**: All scenarios need widget visibility and suggestion verification fixes
+   - **Issues**:
+     - Widget visibility checks failing
+     - Suggestion content verification needs adjustment
+     - Item selection logic needs refinement
+   - **FR Coverage**: FR-085 to FR-090 (Auto-completion Engine) - 6 features
+   - **Priority**: Medium - Tests run cleanly, need assertion fixes
+
 ### High Priority (Expand Coverage)
-10. Create `autocomplete.feature` (FR-085 to FR-090) - 6 scenarios planned
 11. Create `syntax_checking.feature` (FR-091 to FR-099) - 9 scenarios planned
 
 **Note**: FR mappings corrected:
