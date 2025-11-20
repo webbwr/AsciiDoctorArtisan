@@ -256,6 +256,41 @@ Always test these:
 - [ ] Git works
 - [ ] Settings save
 
+### Automated Tests
+
+We have two types of automated tests:
+
+**Unit tests** (5,548 tests):
+```bash
+# Run all tests
+make test
+
+# Run specific test file
+pytest tests/unit/test_file.py -v
+
+# Check coverage
+pytest --cov=asciidoc_artisan --cov-report=html
+```
+
+**E2E tests** (71 scenarios):
+```bash
+# Run all E2E tests
+pytest tests/e2e/ -m e2e -v
+
+# Run specific suite
+pytest tests/e2e/step_defs/document_steps.py -v
+
+# Run without coverage (faster)
+pytest tests/e2e/ -v --no-cov
+```
+
+**Before sending changes**:
+1. All tests must pass: `make test`
+2. No lint errors: `make lint`
+3. Format code: `make format`
+
+See [Testing Guide](testing.md) for detailed test writing instructions.
+
 ### Test on Different Systems
 
 If you can, test on:
