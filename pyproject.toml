@@ -197,6 +197,7 @@ markers = [
     "medium: Medium tests (0.1-1s) - moderate complexity",
     "flaky: Flaky tests that may fail intermittently (auto-retry with pytest-rerunfailures)",
     "e2e: End-to-end workflow tests",
+    "bdd: Behavior-Driven Development tests using pytest-bdd and Gherkin scenarios",
     "security: Security tests (vulnerability, injection, sanitization)",
     "edge_case: Edge case and boundary condition tests",
     "requires_gpu: Tests requiring GPU hardware and Qt WebEngine libraries (libsmime3.so)",
