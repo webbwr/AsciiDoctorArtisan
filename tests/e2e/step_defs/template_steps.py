@@ -4,8 +4,6 @@ Step definitions for template management E2E tests.
 Implements Gherkin steps for template operations.
 """
 
-from pathlib import Path
-
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -91,18 +89,14 @@ def view_template_library(template_manager: TemplateManager, template_state: Tem
 
 
 @when(parsers.parse('I filter templates by category "{category}"'))
-def filter_by_category(
-    template_manager: TemplateManager, template_state: TemplateState, category: str
-):
+def filter_by_category(template_manager: TemplateManager, template_state: TemplateState, category: str):
     """Filter templates by category."""
     template_state.templates = template_manager.get_templates_by_category(category)
 
 
 @when(parsers.parse('I select the template "{template_name}"'))
 @given(parsers.parse('I select the template "{template_name}"'))
-def select_template(
-    template_manager: TemplateManager, template_state: TemplateState, template_name: str
-):
+def select_template(template_manager: TemplateManager, template_state: TemplateState, template_name: str):
     """Select a specific template."""
     template_state.selected_template = template_manager.get_template(template_name)
     assert template_state.selected_template is not None, f"Template '{template_name}' not found"
@@ -126,9 +120,7 @@ def create_from_template(
             variables[var_name] = var_value
 
     # Render template
-    rendered = template_manager.engine.instantiate(
-        template_state.selected_template, variables
-    )
+    rendered = template_manager.engine.instantiate(template_state.selected_template, variables)
 
     # Set editor content
     app.editor.setPlainText(rendered)
@@ -142,9 +134,7 @@ def view_template_variables(template_state: TemplateState):
 
 
 @when("I create a custom template with:")
-def create_custom_template(
-    template_manager: TemplateManager, template_state: TemplateState, datatable
-):
+def create_custom_template(template_manager: TemplateManager, template_state: TemplateState, datatable):
     """Create a custom template."""
     # Store manager for use across steps
     if template_state.manager is None:
@@ -167,8 +157,7 @@ def create_custom_template(
     var_names = re.findall(r"\{\{(\w+)\}\}", content)
 
     variables = [
-        TemplateVariable(name=var_name, description=f"{var_name} variable", required=False)
-        for var_name in var_names
+        TemplateVariable(name=var_name, description=f"{var_name} variable", required=False) for var_name in var_names
     ]
 
     # Create template object
@@ -182,9 +171,7 @@ def create_custom_template(
 
     # Delete if exists (for test idempotency)
     existing = template_manager.get_template(template.name)
-    if existing and existing.file_path and existing.file_path.startswith(
-        str(template_manager.custom_dir)
-    ):
+    if existing and existing.file_path and existing.file_path.startswith(str(template_manager.custom_dir)):
         template_manager.delete_template(template.name)
 
     # Save template
@@ -226,15 +213,11 @@ def have_used_template(template_manager: TemplateManager, template_name: str):
 
 
 @given(parsers.parse('I have a custom template "{template_name}"'))
-def have_custom_template(
-    template_manager: TemplateManager, template_state: TemplateState, template_name: str
-):
+def have_custom_template(template_manager: TemplateManager, template_state: TemplateState, template_name: str):
     """Create a custom template for testing."""
     # Delete if exists (for test idempotency)
     existing = template_manager.get_template(template_name)
-    if existing and existing.file_path and existing.file_path.startswith(
-        str(template_manager.custom_dir)
-    ):
+    if existing and existing.file_path and existing.file_path.startswith(str(template_manager.custom_dir)):
         template_manager.delete_template(template_name)
 
     template = Template(
@@ -263,44 +246,38 @@ def have_custom_template(
 @then(parsers.parse("I should see {count:d} built-in templates"))
 def verify_template_count(template_state: TemplateState, count: int):
     """Verify number of templates."""
-    assert (
-        len(template_state.templates) == count
-    ), f"Expected {count} templates, found {len(template_state.templates)}"
+    assert len(template_state.templates) == count, f"Expected {count} templates, found {len(template_state.templates)}"
 
 
 @then(parsers.parse("I should see at least {count:d} templates"))
 def verify_minimum_template_count(template_state: TemplateState, count: int):
     """Verify minimum number of templates."""
-    assert (
-        len(template_state.templates) >= count
-    ), f"Expected at least {count} templates, found {len(template_state.templates)}"
+    assert len(template_state.templates) >= count, (
+        f"Expected at least {count} templates, found {len(template_state.templates)}"
+    )
 
 
 @then(parsers.parse('the templates should include "{template_name}"'))
 def templates_include(template_state: TemplateState, template_name: str):
     """Verify specific template is in list."""
     template_names = [t.name for t in template_state.templates]
-    assert (
-        template_name in template_names
-    ), f"Expected '{template_name}' in templates: {template_names}"
+    assert template_name in template_names, f"Expected '{template_name}' in templates: {template_names}"
 
 
 @then(parsers.parse('I should see templates in the "{category}" category'))
 def verify_category(template_state: TemplateState, category: str):
     """Verify templates are in specified category."""
     for template in template_state.templates:
-        assert (
-            template.category == category
-        ), f"Template '{template.name}' has category '{template.category}', expected '{category}'"
+        assert template.category == category, (
+            f"Template '{template.name}' has category '{template.category}', expected '{category}'"
+        )
 
 
 @then(parsers.parse('the results should include "{template_name}"'))
 def results_include(template_state: TemplateState, template_name: str):
     """Verify template is in results."""
     template_names = [t.name for t in template_state.templates]
-    assert (
-        template_name in template_names
-    ), f"Expected '{template_name}' in results: {template_names}"
+    assert template_name in template_names, f"Expected '{template_name}' in results: {template_names}"
 
 
 @then(parsers.parse('the editor should contain "{text}"'))
@@ -314,9 +291,7 @@ def editor_contains(app: AsciiDocEditor, text: str):
 def verify_required_variable(template_state: TemplateState, var_name: str):
     """Verify required variable exists."""
     var_names = [v.name for v in template_state.variables if v.required]
-    assert (
-        var_name in var_names
-    ), f"Expected required variable '{var_name}', found: {var_names}"
+    assert var_name in var_names, f"Expected required variable '{var_name}', found: {var_names}"
 
 
 @then(parsers.parse('I should see optional variable "{var_name}"'))
@@ -365,15 +340,11 @@ def verify_most_recent(template_state: TemplateState, template_name: str):
     """Verify template is most recent."""
     assert len(template_state.recent_templates) > 0, "No recent templates"
     most_recent = template_state.recent_templates[0]
-    assert (
-        most_recent.name == template_name
-    ), f"Expected '{template_name}' as most recent, got '{most_recent.name}'"
+    assert most_recent.name == template_name, f"Expected '{template_name}' as most recent, got '{most_recent.name}'"
 
 
 @then(parsers.parse('"{template_name}" should be in recent list'))
 def verify_in_recent(template_state: TemplateState, template_name: str):
     """Verify template is in recent list."""
     recent_names = [t.name for t in template_state.recent_templates]
-    assert (
-        template_name in recent_names
-    ), f"Expected '{template_name}' in recent list: {recent_names}"
+    assert template_name in recent_names, f"Expected '{template_name}' in recent list: {recent_names}"

@@ -4,12 +4,9 @@ Step definitions for document editing E2E tests.
 Implements Gherkin steps for document creation, editing, saving, and opening.
 """
 
-import time
 from pathlib import Path
 
 import pytest
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
@@ -56,9 +53,7 @@ def temporary_workspace(temp_workspace: Path) -> Path:
 
 
 @given(parsers.parse('a file "{filename}" exists with content "{content}"'))
-def file_exists_with_content(
-    temp_workspace: Path, filename: str, content: str
-) -> Path:
+def file_exists_with_content(temp_workspace: Path, filename: str, content: str) -> Path:
     """Create a file with specific content."""
     file_path = temp_workspace / filename
     file_path.write_text(content)
@@ -66,11 +61,10 @@ def file_exists_with_content(
 
 
 @given(parsers.parse('I have opened a file "{filename}" with content "{content}"'))
-def opened_file_with_content(
-    app: AsciiDocEditor, temp_workspace: Path, filename: str, content: str
-) -> Path:
+def opened_file_with_content(app: AsciiDocEditor, temp_workspace: Path, filename: str, content: str) -> Path:
     """Create and open a file with content."""
     from pathlib import Path
+
     file_path = temp_workspace / filename
     file_path.write_text(content)
     # For E2E tests, directly load to avoid async issues
@@ -136,6 +130,7 @@ def redo_action(app: AsciiDocEditor):
 def save_document_as(app: AsciiDocEditor, temp_workspace: Path, filename: str):
     """Save document with specific filename."""
     from pathlib import Path
+
     file_path = temp_workspace / filename
     # For E2E tests, directly write the file to avoid async/dialog complications
     content = app.editor.toPlainText()
@@ -149,6 +144,7 @@ def save_document_as(app: AsciiDocEditor, temp_workspace: Path, filename: str):
 def open_file(app: AsciiDocEditor, temp_workspace: Path, filename: str):
     """Open a specific file (direct load to avoid async issues)."""
     from pathlib import Path
+
     file_path = temp_workspace / filename
     # For E2E tests, directly load file content to avoid async complications
     content = file_path.read_text()
@@ -170,7 +166,6 @@ def append_to_editor(app: AsciiDocEditor, text: str):
 @when("I save the current document")
 def save_current_document(app: AsciiDocEditor):
     """Save the current document."""
-    from pathlib import Path
     # For E2E tests, directly write if we have a path
     if app.file_handler.current_file_path:
         content = app.editor.toPlainText()

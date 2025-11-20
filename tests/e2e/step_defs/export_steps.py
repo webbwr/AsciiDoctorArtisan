@@ -112,7 +112,6 @@ def document_with_table(app: AsciiDocEditor) -> AsciiDocEditor:
 @when(parsers.parse('I export the document as HTML to "{filename}"'))
 def export_to_html(app: AsciiDocEditor, temp_workspace: Path, filename: str):
     """Export document to HTML format."""
-    from pathlib import Path
     output_path = temp_workspace / filename
 
     # For E2E tests, directly call the export method
@@ -191,8 +190,8 @@ def pdf_contains_text(temp_workspace: Path, filename: str):
     file_path = temp_workspace / filename
     assert file_path.exists(), f"PDF file {filename} should exist"
     content = file_path.read_bytes()
-    assert content.startswith(b"%PDF"), f"File should be a PDF"
-    assert len(content) > 10, f"PDF should have content"
+    assert content.startswith(b"%PDF"), "File should be a PDF"
+    assert len(content) > 10, "PDF should have content"
 
 
 @then(parsers.parse('the Word file "{filename}" should be valid'))
@@ -202,7 +201,7 @@ def word_file_valid(temp_workspace: Path, filename: str):
     assert file_path.exists(), f"Word file {filename} should exist"
     content = file_path.read_bytes()
     # DOCX files are ZIP archives
-    assert content.startswith(b"PK"), f"DOCX should be a ZIP archive"
+    assert content.startswith(b"PK"), "DOCX should be a ZIP archive"
 
 
 @then("the exported HTML should reference the image")
@@ -224,8 +223,7 @@ def html_has_bold(temp_workspace: Path):
 
     content = html_files[0].read_text()
     # Look for bold indicators (could be <b>, <strong>, or *bold*)
-    has_bold = ("<b>" in content or "<strong>" in content or
-                "*bold" in content or "bold text" in content)
+    has_bold = "<b>" in content or "<strong>" in content or "*bold" in content or "bold text" in content
     assert has_bold, "HTML should contain bold formatting"
 
 
@@ -237,8 +235,7 @@ def html_has_italic(temp_workspace: Path):
 
     content = html_files[0].read_text()
     # Look for italic indicators
-    has_italic = ("<i>" in content or "<em>" in content or
-                  "_italic" in content or "italic text" in content)
+    has_italic = "<i>" in content or "<em>" in content or "_italic" in content or "italic text" in content
     assert has_italic, "HTML should contain italic formatting"
 
 
@@ -250,7 +247,5 @@ def html_has_table(temp_workspace: Path):
 
     content = html_files[0].read_text()
     # Look for table indicators
-    has_table = ("<table" in content.lower() or
-                 "|===" in content or
-                 "Alice" in content and "Bob" in content)
+    has_table = "<table" in content.lower() or "|===" in content or "Alice" in content and "Bob" in content
     assert has_table, "HTML should contain table"

@@ -10,7 +10,6 @@ Run with: pytest tests/e2e/step_defs/ollama_steps.py -m live_api
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
 # Load all scenarios from the feature file
@@ -113,9 +112,7 @@ def select_chat_mode_given(app: AsciiDocEditor, mode: str, ollama_state: OllamaS
 
 
 @given(parsers.parse("I have sent {count:d} messages"))
-def send_multiple_messages(
-    app: AsciiDocEditor, ollama_state: OllamaState, count: int, qtbot
-):
+def send_multiple_messages(app: AsciiDocEditor, ollama_state: OllamaState, count: int, qtbot):
     """Send multiple messages for testing chat history."""
     model = app.chat_bar.get_current_model()
     context_mode = app.chat_bar.get_current_context_mode()
@@ -300,9 +297,7 @@ def see_all_messages(app: AsciiDocEditor, count: int):
     """Verify specific number of user messages visible."""
     messages = app.chat_panel._messages
     user_messages = [msg for msg in messages if msg.role == "user"]
-    assert (
-        len(user_messages) == count
-    ), f"Expected {count} user messages, found {len(user_messages)}"
+    assert len(user_messages) == count, f"Expected {count} user messages, found {len(user_messages)}"
 
 
 @then(parsers.parse("I should see {count:d} AI responses"))
@@ -310,9 +305,7 @@ def see_ai_responses(app: AsciiDocEditor, count: int):
     """Verify specific number of AI responses visible."""
     messages = app.chat_panel._messages
     ai_messages = [msg for msg in messages if msg.role == "assistant"]
-    assert (
-        len(ai_messages) == count
-    ), f"Expected {count} AI responses, found {len(ai_messages)}"
+    assert len(ai_messages) == count, f"Expected {count} AI responses, found {len(ai_messages)}"
 
 
 @then("messages should be in chronological order")
@@ -339,6 +332,4 @@ def verify_mode_indicator(app: AsciiDocEditor, mode_text: str):
     }
 
     expected_mode = mode_map.get(mode_text, mode_text.lower())
-    assert (
-        current_mode == expected_mode
-    ), f"Expected mode '{expected_mode}', got '{current_mode}'"
+    assert current_mode == expected_mode, f"Expected mode '{expected_mode}', got '{current_mode}'"

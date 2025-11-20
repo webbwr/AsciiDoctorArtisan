@@ -4,10 +4,7 @@ Step definitions for find and replace E2E tests.
 Implements Gherkin steps for text search and replacement operations.
 """
 
-from pathlib import Path
-
 import pytest
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextDocument
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -125,9 +122,7 @@ def search_for_text(app: AsciiDocEditor, text: str, find_state: FindReplaceState
 
 
 @when(parsers.parse('I search for "{text}" with case sensitivity enabled'))
-def search_case_sensitive(
-    app: AsciiDocEditor, text: str, find_state: FindReplaceState
-):
+def search_case_sensitive(app: AsciiDocEditor, text: str, find_state: FindReplaceState):
     """Perform case-sensitive search."""
     find_state.search_term = text
     find_state.case_sensitive = True
@@ -192,9 +187,7 @@ def replace_all_occurrences(app: AsciiDocEditor, find_state: FindReplaceState):
     if find_state.regex_mode:
         import re
 
-        new_content = re.sub(
-            find_state.search_term, find_state.replace_term, content
-        )
+        new_content = re.sub(find_state.search_term, find_state.replace_term, content)
     else:
         new_content = content.replace(find_state.search_term, find_state.replace_term)
 
@@ -229,9 +222,7 @@ def find_previous(app: AsciiDocEditor, find_state: FindReplaceState):
 @then(parsers.parse("the search should find {count:d} occurrences"))
 def verify_occurrence_count(find_state: FindReplaceState, count: int):
     """Verify number of search results."""
-    assert (
-        find_state.total_matches == count
-    ), f"Expected {count} matches, found {find_state.total_matches}"
+    assert find_state.total_matches == count, f"Expected {count} matches, found {find_state.total_matches}"
 
 
 @then("the first occurrence should be highlighted")

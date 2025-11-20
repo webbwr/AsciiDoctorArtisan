@@ -166,9 +166,9 @@ def verify_status_message(message: str):
 @then(parsers.parse("I should see {count:d} spelling errors"))
 def verify_error_count(spell_state: SpellCheckState, count: int):
     """Verify number of spelling errors."""
-    assert (
-        len(spell_state.errors) == count
-    ), f"Expected {count} errors, found {len(spell_state.errors)}: {[e.word for e in spell_state.errors]}"
+    assert len(spell_state.errors) == count, (
+        f"Expected {count} errors, found {len(spell_state.errors)}: {[e.word for e in spell_state.errors]}"
+    )
 
 
 @then(parsers.parse('"{word}" should be marked as misspelled'))
@@ -190,33 +190,25 @@ def verify_suggestion_included(spell_state: SpellCheckState, suggestion: str):
     """Verify suggestion is in list."""
     # Case-insensitive check
     suggestions_lower = [s.lower() for s in spell_state.suggestions]
-    assert (
-        suggestion.lower() in suggestions_lower
-    ), f"Expected '{suggestion}' in suggestions: {spell_state.suggestions}"
+    assert suggestion.lower() in suggestions_lower, f"Expected '{suggestion}' in suggestions: {spell_state.suggestions}"
 
 
 @then(parsers.parse('the custom dictionary should contain "{word}"'))
 def verify_in_custom_dictionary(app: AsciiDocEditor, word: str):
     """Verify word is in custom dictionary."""
     custom_dict = app.spell_check_manager.spell_checker._custom_dictionary
-    assert (
-        word.lower() in custom_dict
-    ), f"Expected '{word}' in custom dictionary: {custom_dict}"
+    assert word.lower() in custom_dict, f"Expected '{word}' in custom dictionary: {custom_dict}"
 
 
 @then(parsers.parse('"{word}" should not be in the custom dictionary'))
 def verify_not_in_custom_dictionary(app: AsciiDocEditor, word: str):
     """Verify word is not in custom dictionary."""
     custom_dict = app.spell_check_manager.spell_checker._custom_dictionary
-    assert (
-        word.lower() not in custom_dict
-    ), f"Did not expect '{word}' in custom dictionary: {custom_dict}"
+    assert word.lower() not in custom_dict, f"Did not expect '{word}' in custom dictionary: {custom_dict}"
 
 
 @then("no words should be marked as misspelled")
 def verify_no_errors(app: AsciiDocEditor):
     """Verify no spelling errors."""
     # When disabled, errors list should be empty or spell check shouldn't run
-    assert (
-        not app.spell_check_manager.enabled
-    ), "Spell check should be disabled"
+    assert not app.spell_check_manager.enabled, "Spell check should be disabled"

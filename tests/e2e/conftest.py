@@ -4,8 +4,6 @@ E2E Test Configuration and Fixtures
 Provides shared fixtures for end-to-end integration tests using pytest-bdd.
 """
 
-import os
-import tempfile
 from pathlib import Path
 from typing import Generator
 
