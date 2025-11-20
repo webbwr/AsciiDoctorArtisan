@@ -28,16 +28,18 @@ def qapp() -> QApplication:
 
 
 @pytest.fixture
-def app(qtbot: QtBot, qapp: QApplication) -> Generator[AsciiDocEditor, None, None]:
+def app(qtbot: QtBot, qapp: QApplication, tmp_path: Path, monkeypatch) -> Generator[AsciiDocEditor, None, None]:
     """
-    Launch application for E2E testing.
+    Launch application for E2E testing with isolated settings.
 
     Provides a fully initialized AsciiDocEditor with all managers and workers.
-    The window is shown and exposed before tests run.
+    Uses temporary settings file to avoid modifying user's actual settings.
 
     Args:
         qtbot: pytest-qt fixture for Qt testing
         qapp: QApplication instance
+        tmp_path: pytest temporary directory for test isolation
+        monkeypatch: pytest monkeypatch for settings path override
 
     Yields:
         AsciiDocEditor: Initialized and displayed main window
@@ -46,6 +48,21 @@ def app(qtbot: QtBot, qapp: QApplication) -> Generator[AsciiDocEditor, None, Non
         def test_window_title(app):
             assert "AsciiDoc Artisan" in app.windowTitle()
     """
+    # Create temp settings directory for test isolation
+    temp_settings_dir = tmp_path / "test_settings"
+    temp_settings_dir.mkdir(parents=True, exist_ok=True)
+    temp_settings_file = temp_settings_dir / "AsciiDocArtisan.json"
+
+    # Monkey-patch SettingsManager to use temp settings file
+    from asciidoc_artisan.ui.settings_manager import SettingsManager
+
+    def temp_get_settings_path(self) -> Path:
+        """Return temporary settings path for testing."""
+        return temp_settings_file
+
+    monkeypatch.setattr(SettingsManager, "get_settings_path", temp_get_settings_path)
+
+    # Create app with temp settings
     window = AsciiDocEditor()
     qtbot.addWidget(window)
     window.show()
