@@ -470,3 +470,161 @@ class TestSyntaxCheckerSettingsDialog:
 
             # Dialog was accepted - verify save was called
             assert window._settings.save.called
+
+
+@pytest.mark.unit
+class TestAsciiDocRenderingErrors:
+    """Test AsciiDoc rendering error handling (lines 830-840) - Priority 1."""
+
+    def test_render_asciidoc_when_api_is_none(self, mock_workers, qapp):
+        """Test rendering when _asciidoc_api is None - returns escaped HTML."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Set _asciidoc_api to None
+        window._asciidoc_api = None
+
+        # Test rendering with None API
+        test_text = "Hello <script>alert('xss')</script> World"
+        result = window._convert_asciidoc_to_html_body(test_text)
+
+        # Should return escaped HTML in <pre> tag
+        assert "<pre>" in result
+        assert "&lt;script&gt;" in result  # HTML escaped
+        assert "<script>" not in result  # Not unescaped
+        assert "alert" in result
+
+    def test_render_asciidoc_when_rendering_fails(self, mock_workers, qapp):
+        """Test rendering when AsciiDoc execution raises exception."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock the _asciidoc_api to raise exception
+        mock_api = Mock()
+        mock_api.execute.side_effect = Exception("AsciiDoc rendering failed")
+        window._asciidoc_api = mock_api
+
+        # Test rendering with failing API
+        with patch("asciidoc_artisan.ui.main_window.logger") as mock_logger:
+            result = window._convert_asciidoc_to_html_body("test content")
+
+            # Should return error message with red styling
+            assert "<div style='color:red'>" in result or '<div style="color:red">' in result
+            assert "Render Error:" in result
+            assert "AsciiDoc rendering failed" in result
+
+            # Should log the error
+            mock_logger.error.assert_called_once()
+
+
+@pytest.mark.unit
+class TestGitStatusDialog:
+    """Test Git status dialog creation (lines 891-918) - Priority 2."""
+
+    @pytest.mark.skip(reason="Method _show_git_status_dialog does not exist in current codebase")
+    def test_show_git_status_dialog_when_git_not_ready(self, mock_workers, qapp):
+        """Test _show_git_status_dialog returns early when Git not ready."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock _ensure_git_ready to return False
+        window._ensure_git_ready = Mock(return_value=False)
+
+        # Call should return early
+        window._show_git_status_dialog()
+
+        # Dialog should not be created
+        assert not hasattr(window, "_git_status_dialog")
+
+    @pytest.mark.skip(reason="Method _show_git_status_dialog does not exist in current codebase")
+    def test_show_git_status_dialog_creates_dialog_first_time(self, mock_workers, qapp):
+        """Test _show_git_status_dialog creates dialog on first call."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock dependencies
+        window._ensure_git_ready = Mock(return_value=True)
+        window.git_handler.get_repository_path = Mock(return_value="/fake/repo")
+        window.request_detailed_git_status = Mock()
+        window.request_detailed_git_status.emit = Mock()
+
+        # Mock GitStatusDialog
+        with patch("asciidoc_artisan.ui.main_window.GitStatusDialog") as mock_dialog_cls:
+            mock_dialog = Mock()
+            mock_dialog_cls.return_value = mock_dialog
+
+            # Call the method
+            window._show_git_status_dialog()
+
+            # Dialog should be created
+            mock_dialog_cls.assert_called_once_with(window)
+            assert hasattr(window, "_git_status_dialog")
+
+            # Dialog should be shown
+            mock_dialog.show.assert_called_once()
+            mock_dialog.raise_.assert_called_once()
+            mock_dialog.activateWindow.assert_called_once()
+
+    @pytest.mark.skip(reason="Method _show_git_status_dialog does not exist in current codebase")
+    def test_show_git_status_dialog_reuses_existing_dialog(self, mock_workers, qapp):
+        """Test _show_git_status_dialog reuses existing dialog."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock dependencies
+        window._ensure_git_ready = Mock(return_value=True)
+        window.git_handler.get_repository_path = Mock(return_value="/fake/repo")
+        window.request_detailed_git_status = Mock()
+        window.request_detailed_git_status.emit = Mock()
+
+        # Create existing dialog
+        mock_dialog = Mock()
+        window._git_status_dialog = mock_dialog
+
+        # Call the method - should reuse dialog
+        window._show_git_status_dialog()
+
+        # Dialog should be shown (not recreated)
+        mock_dialog.show.assert_called_once()
+        mock_dialog.raise_.assert_called_once()
+        mock_dialog.activateWindow.assert_called_once()
+
+    def test_refresh_git_status_dialog_emits_signal(self, mock_workers, qapp):
+        """Test _refresh_git_status_dialog emits detailed status signal."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock dependencies
+        repo_path = "/fake/repo"
+        window.git_handler.get_repository_path = Mock(return_value=repo_path)
+        window.request_detailed_git_status = Mock()
+        window.request_detailed_git_status.emit = Mock()
+
+        # Call the method
+        window._refresh_git_status_dialog()
+
+        # Signal should be emitted with repo path
+        window.request_detailed_git_status.emit.assert_called_once_with(repo_path)
+
+    def test_refresh_git_status_dialog_when_no_repo(self, mock_workers, qapp):
+        """Test _refresh_git_status_dialog does nothing when no repo."""
+        from asciidoc_artisan.ui.main_window import AsciiDocEditor
+
+        window = AsciiDocEditor()
+
+        # Mock git_handler to return None
+        window.git_handler.get_repository_path = Mock(return_value=None)
+        window.request_detailed_git_status = Mock()
+        window.request_detailed_git_status.emit = Mock()
+
+        # Call the method
+        window._refresh_git_status_dialog()
+
+        # Signal should NOT be emitted
+        window.request_detailed_git_status.emit.assert_not_called()
