@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Development Roadmap
 
-**Updated:** Nov 19, 2025 | **Horizon:** 18-24 months | **Current:** v2.0.6 ✅ | **Next:** v3.0.0 Planning
+**Updated:** Nov 20, 2025 | **Horizon:** 18-24 months | **Current:** v2.0.7 ✅ | **Next:** v3.0.0 Planning
 
 ---
 
@@ -21,9 +21,10 @@
 | v2.0.4 | ✅ | Nov 18 2025 | Test Health | 100% pass rate, doc consolidation, WSL2 fix |
 | v2.0.5 | ✅ | Nov 18 2025 | Coverage | main_window 86% (exceeded 80% target), defensive code audit |
 | v2.0.6 | ✅ | Nov 19 2025 | Test Refactoring | Dialog callbacks extracted, +36 tests passing, 22 skipped documented |
+| v2.0.7 | ✅ | Nov 20 2025 | E2E Test Coverage | 10 test suites, 63/71 scenarios (88.7%), user preferences, ~3,500 lines |
 | v3.0.0 | 📋 | Q4 26-Q2 27 | Next-Gen | LSP, Plugins, Multi-core, Marketplace |
 
-**Test Status:** ✅ 5,548 tests (5,516 passing, 22 skipped), 99.42% pass rate, all skips documented
+**Test Status:** ✅ 5,548 tests (5,516 passing, 22 skipped), 99.42% pass rate + 71 E2E scenarios (63 passing, 88.7%)
 
 ---
 
