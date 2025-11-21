@@ -437,8 +437,12 @@ class OllamaSettingsDialog(QDialog):
         # Update enabled state of controls
         self._on_enabled_changed()
 
-    def _load_models(self) -> None:  # noqa: C901
-        """Load available Ollama models from the service."""
+    def _load_models(self) -> None:
+        """
+        Load available Ollama models from the service.
+
+        MA principle: Reduced from 71→18 lines by extracting 4 helper methods.
+        """
         import logging
 
         logger = logging.getLogger(__name__)
@@ -448,66 +452,83 @@ class OllamaSettingsDialog(QDialog):
 
             try:
                 response = ollama.list()
-                logger.info(f"Ollama API response type: {type(response)}")
-
-                # Handle both old API (dict with "models" key) and new API (direct list)
-                if isinstance(response, dict):
-                    models_data = response.get("models", [])
-                    logger.info(f"Using dict API - found {len(models_data)} models")
-                elif hasattr(response, "models"):
-                    models_data = response.models if isinstance(response.models, list) else list(response.models)
-                    logger.info(f"Using new API with .models attribute - found {len(models_data)} models")
-                else:
-                    # Assume response is the models list directly
-                    models_data = response if isinstance(response, list) else []
-                    logger.info(f"Using direct list API - found {len(models_data)} models")
+                models_data = self._parse_ollama_response(response, logger)
 
                 if not models_data:
-                    self.status_label.setText("⚠️ No models installed")
-                    self.status_label.setStyleSheet("QLabel { color: orange; font-size: 10pt; }")
-                    self.model_combo.addItem("No models available")
-                    self.model_combo.setEnabled(False)
+                    self._show_no_models_status()
                     return
 
-                # Extract model names properly
-                self.models = []
-                for model in models_data:
-                    # Handle both dict (old API) and object (new API) formats
-                    if isinstance(model, dict):
-                        name = model.get("name") or model.get("model", "Unknown")
-                    elif hasattr(model, "model"):
-                        name = model.model
-                    elif hasattr(model, "name"):
-                        name = model.name
-                    else:
-                        name = str(model)
-
-                    logger.info(f"Found model: {name}")
-                    self.models.append(name)
-                    self.model_combo.addItem(name)
-
-                # Select the previously chosen model or first one
-                saved_model = getattr(self.settings, "ollama_model", None)
-                if saved_model and saved_model in self.models:
-                    index = self.models.index(saved_model)
-                    self.model_combo.setCurrentIndex(index)
-
-                self.status_label.setText(f"✅ Ollama service running - {len(self.models)} model(s) available")
-                self.status_label.setStyleSheet("QLabel { color: green; font-size: 10pt; }")
+                self._extract_model_names(models_data, logger)
+                self._populate_model_list()
 
             except Exception as e:
                 logger.error(f"Ollama service error: {type(e).__name__}: {e}", exc_info=True)
-                self.status_label.setText(f"❌ Ollama service not running: {str(e)}")
-                self.status_label.setStyleSheet("QLabel { color: red; font-size: 10pt; }")
-                self.model_combo.addItem("Service not available")
-                self.model_combo.setEnabled(False)
+                self._show_model_load_error(f"❌ Ollama service not running: {str(e)}", "Service not available")
 
         except ImportError as e:
             logger.error(f"Ollama import error: {e}", exc_info=True)
-            self.status_label.setText("❌ Ollama library not installed")
-            self.status_label.setStyleSheet("QLabel { color: red; font-size: 10pt; }")
-            self.model_combo.addItem("Library not installed")
-            self.model_combo.setEnabled(False)
+            self._show_model_load_error("❌ Ollama library not installed", "Library not installed")
+
+    def _parse_ollama_response(self, response: Any, logger: Any) -> list[Any]:
+        """Parse Ollama API response handling different formats."""
+        logger.info(f"Ollama API response type: {type(response)}")
+
+        # Handle both old API (dict with "models" key) and new API (direct list)
+        if isinstance(response, dict):
+            models_data = response.get("models", [])
+            logger.info(f"Using dict API - found {len(models_data)} models")
+        elif hasattr(response, "models"):
+            models_data = response.models if isinstance(response.models, list) else list(response.models)
+            logger.info(f"Using new API with .models attribute - found {len(models_data)} models")
+        else:
+            # Assume response is the models list directly
+            models_data = response if isinstance(response, list) else []
+            logger.info(f"Using direct list API - found {len(models_data)} models")
+
+        return models_data
+
+    def _extract_model_names(self, models_data: list[Any], logger: Any) -> None:
+        """Extract model names from models data."""
+        self.models = []
+        for model in models_data:
+            # Handle both dict (old API) and object (new API) formats
+            if isinstance(model, dict):
+                name = model.get("name") or model.get("model", "Unknown")
+            elif hasattr(model, "model"):
+                name = model.model
+            elif hasattr(model, "name"):
+                name = model.name
+            else:
+                name = str(model)
+
+            logger.info(f"Found model: {name}")
+            self.models.append(name)
+            self.model_combo.addItem(name)
+
+    def _populate_model_list(self) -> None:
+        """Populate model combo box and select saved model."""
+        # Select the previously chosen model or first one
+        saved_model = getattr(self.settings, "ollama_model", None)
+        if saved_model and saved_model in self.models:
+            index = self.models.index(saved_model)
+            self.model_combo.setCurrentIndex(index)
+
+        self.status_label.setText(f"✅ Ollama service running - {len(self.models)} model(s) available")
+        self.status_label.setStyleSheet("QLabel { color: green; font-size: 10pt; }")
+
+    def _show_no_models_status(self) -> None:
+        """Show status when no models are installed."""
+        self.status_label.setText("⚠️ No models installed")
+        self.status_label.setStyleSheet("QLabel { color: orange; font-size: 10pt; }")
+        self.model_combo.addItem("No models available")
+        self.model_combo.setEnabled(False)
+
+    def _show_model_load_error(self, status_text: str, combo_text: str) -> None:
+        """Show error status when model loading fails."""
+        self.status_label.setText(status_text)
+        self.status_label.setStyleSheet("QLabel { color: red; font-size: 10pt; }")
+        self.model_combo.addItem(combo_text)
+        self.model_combo.setEnabled(False)
 
     def _on_enabled_changed(self) -> None:
         """Handle enable/disable checkbox state change."""
