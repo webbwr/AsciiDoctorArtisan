@@ -229,6 +229,8 @@ def __getattr__(name: str) -> Any:
     Makes startup 3x faster (1.05s instead of 3-5s) by loading modules
     only when first accessed. Subsequent accesses are instant (cached).
 
+    MA principle: Reduced from 66→25 lines by extracting 2 helper methods.
+
     Args:
         name: The attribute name to import
 
@@ -248,17 +250,54 @@ def __getattr__(name: str) -> Any:
             continue  # Already checked above
 
         if name in attr_names:
-            # Handle special cases for async file operations
-            if name == "AsyncFileWatcher":
-                return _lazy_import_special(name, "async_file_watcher")
-            if name == "QtAsyncFileManager":
-                return _lazy_import_special(name, "qt_async_file_manager")
-            if name == "SecureCredentials":
-                return _lazy_import_special(name, "secure_credentials")
+            return _handle_module_import(name, module_name)
 
-            # Standard lazy import
-            return _lazy_import(name, module_name, _MODULE_CACHE)
+    # Try additional attributes not in main map
+    result = _try_additional_attributes(name)
+    if result is not None:
+        return result
 
+    # Unknown attribute - raise error
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
+
+def _handle_module_import(name: str, module_name: str) -> Any:
+    """
+    Handle import for a specific module with special case handling.
+
+    MA principle: Extracted from __getattr__ (18 lines).
+
+    Args:
+        name: Attribute name to import
+        module_name: Module name containing the attribute
+
+    Returns:
+        The requested attribute
+    """
+    # Handle special cases for async file operations
+    if name == "AsyncFileWatcher":
+        return _lazy_import_special(name, "async_file_watcher")
+    if name == "QtAsyncFileManager":
+        return _lazy_import_special(name, "qt_async_file_manager")
+    if name == "SecureCredentials":
+        return _lazy_import_special(name, "secure_credentials")
+
+    # Standard lazy import
+    return _lazy_import(name, module_name, _MODULE_CACHE)
+
+
+def _try_additional_attributes(name: str) -> Any | None:
+    """
+    Try importing additional attributes not in main lazy import map.
+
+    MA principle: Extracted from __getattr__ (24 lines).
+
+    Args:
+        name: Attribute name to import
+
+    Returns:
+        The requested attribute, or None if not found
+    """
     # Handle additional resource monitor attributes
     if name in ("DocumentMetrics", "ResourceMetrics"):
         return _lazy_import(name, "resource_monitor", _MODULE_CACHE)
@@ -286,8 +325,7 @@ def __getattr__(name: str) -> Any:
     if name == "TelemetryEvent":
         return _lazy_import(name, "telemetry_collector", _MODULE_CACHE)
 
-    # Unknown attribute - raise error
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+    return None
 
 
 def _lazy_import_special(name: str, module_name: str) -> Any:
