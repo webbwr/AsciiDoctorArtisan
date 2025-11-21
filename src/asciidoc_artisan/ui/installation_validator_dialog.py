@@ -116,9 +116,7 @@ class ValidationWorker(QThread):
 
         self.validation_complete.emit(results)
 
-    def _check_python_package(
-        self, package_name: str, min_version: str
-    ) -> tuple[str, str, str]:
+    def _check_python_package(self, package_name: str, min_version: str) -> tuple[str, str, str]:
         """
         Check if Python package is installed and meets minimum version.
 
@@ -191,9 +189,7 @@ class ValidationWorker(QThread):
 
         return version
 
-    def _validate_package_version(
-        self, version: str, min_version: str
-    ) -> tuple[str, str, str]:
+    def _validate_package_version(self, version: str, min_version: str) -> tuple[str, str, str]:
         """Validate package version against minimum requirement.
 
         MA principle: Extracted helper (17 lines) - focused version validation.
@@ -502,59 +498,94 @@ class InstallationValidatorDialog(QDialog):
         return button_layout
 
     def _apply_theme(self) -> None:
-        """Apply theme based on parent editor's dark mode setting."""
-        # Check if parent has settings and dark mode attribute
+        """Apply theme based on parent editor's dark mode setting.
+
+        MA principle: Reduced from 55→10 lines by extracting 2 helpers (82% reduction).
+        """
+        dark_mode = self._get_dark_mode_setting()
+        colors = self._get_theme_colors(dark_mode)
+        self._apply_widget_styles(colors)
+
+    def _get_dark_mode_setting(self) -> bool:
+        """Get dark mode setting from parent editor.
+
+        MA principle: Extracted helper (7 lines) - focused setting lookup.
+
+        Returns:
+            True if dark mode enabled, False otherwise
+        """
         if self.parent_editor and hasattr(self.parent_editor, "_settings"):
-            dark_mode = self.parent_editor._settings.dark_mode
-        else:
-            # Default to light mode if parent not available
-            dark_mode = False
+            return self.parent_editor._settings.dark_mode
+        return False
 
+    def _get_theme_colors(self, dark_mode: bool) -> dict[str, str]:
+        """Get color scheme for theme.
+
+        MA principle: Extracted helper (24 lines) - focused color selection.
+
+        Args:
+            dark_mode: Whether dark mode is enabled
+
+        Returns:
+            Dictionary with color keys for all UI elements
+        """
         if dark_mode:
-            # Dark theme colors
-            dialog_bg = "#2b2b2b"
-            text_color = "#e0e0e0"
-            desc_color = "#a0a0a0"
-            results_bg = "#1e1e1e"
-            results_text = "#d0d0d0"
-            button_bg = "#3c3c3c"
-            button_text = "#e0e0e0"
-            update_btn_bg = "#2e7d32"  # Darker green for dark mode
-            update_btn_text = "#ffffff"
+            return {
+                "dialog_bg": "#2b2b2b",
+                "text": "#e0e0e0",
+                "desc": "#a0a0a0",
+                "results_bg": "#1e1e1e",
+                "results_text": "#d0d0d0",
+                "button_bg": "#3c3c3c",
+                "button_text": "#e0e0e0",
+                "update_btn_bg": "#2e7d32",  # Darker green for dark mode
+                "update_btn_text": "#ffffff",
+            }
         else:
-            # Light theme colors
-            dialog_bg = "#ffffff"
-            text_color = "#000000"
-            desc_color = "#666666"
-            results_bg = "#f5f5f5"
-            results_text = "#000000"
-            button_bg = "#f0f0f0"
-            button_text = "#000000"
-            update_btn_bg = "#4CAF50"  # Bright green for light mode
-            update_btn_text = "#ffffff"
+            return {
+                "dialog_bg": "#ffffff",
+                "text": "#000000",
+                "desc": "#666666",
+                "results_bg": "#f5f5f5",
+                "results_text": "#000000",
+                "button_bg": "#f0f0f0",
+                "button_text": "#000000",
+                "update_btn_bg": "#4CAF50",  # Bright green for light mode
+                "update_btn_text": "#ffffff",
+            }
 
+    def _apply_widget_styles(self, colors: dict[str, str]) -> None:
+        """Apply color scheme to all widgets.
+
+        MA principle: Extracted helper (18 lines) - focused style application.
+
+        Args:
+            colors: Color dictionary from _get_theme_colors
+        """
         # Apply to dialog
-        self.setStyleSheet(f"background-color: {dialog_bg}; color: {text_color};")
+        self.setStyleSheet(f"background-color: {colors['dialog_bg']}; color: {colors['text']};")
 
         # Apply to header
-        self.header.setStyleSheet(f"font-size: 16px; font-weight: bold; padding: 10px; color: {text_color};")
+        self.header.setStyleSheet(f"font-size: 16px; font-weight: bold; padding: 10px; color: {colors['text']};")
 
         # Apply to description
-        self.description.setStyleSheet(f"padding: 5px 10px; color: {desc_color};")
+        self.description.setStyleSheet(f"padding: 5px 10px; color: {colors['desc']};")
 
         # Apply to results text
         self.results_text.setStyleSheet(
-            f"font-family: monospace; padding: 10px; background-color: {results_bg}; color: {results_text};"
+            f"font-family: monospace; padding: 10px; background-color: {colors['results_bg']}; color: {colors['results_text']};"
         )
 
         # Apply to buttons
-        self.validate_btn.setStyleSheet(f"background-color: {button_bg}; color: {button_text}; padding: 8px;")
-
-        self.update_btn.setStyleSheet(
-            f"background-color: {update_btn_bg}; color: {update_btn_text}; font-weight: bold; padding: 8px;"
+        self.validate_btn.setStyleSheet(
+            f"background-color: {colors['button_bg']}; color: {colors['button_text']}; padding: 8px;"
         )
-
-        self.close_btn.setStyleSheet(f"background-color: {button_bg}; color: {button_text}; padding: 8px;")
+        self.update_btn.setStyleSheet(
+            f"background-color: {colors['update_btn_bg']}; color: {colors['update_btn_text']}; font-weight: bold; padding: 8px;"
+        )
+        self.close_btn.setStyleSheet(
+            f"background-color: {colors['button_bg']}; color: {colors['button_text']}; padding: 8px;"
+        )
 
     def _start_validation(self) -> None:
         """Start validation in background thread."""

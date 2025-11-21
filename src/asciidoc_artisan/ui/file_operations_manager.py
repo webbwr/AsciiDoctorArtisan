@@ -783,9 +783,7 @@ class FileOperationsManager:
 
     # Helper methods for file saving
 
-    def _determine_save_format(
-        self, file_path: Path, selected_filter: str
-    ) -> tuple[str, Path]:
+    def _determine_save_format(self, file_path: Path, selected_filter: str) -> tuple[str, Path]:
         """Determine save format and ensure file path has correct extension.
 
         MA principle: Reduced from 47→15 lines by extracting 2 helpers (68% reduction).
@@ -801,9 +799,7 @@ class FileOperationsManager:
         corrected_path = self._ensure_file_extension(file_path, format_type)
         return format_type, corrected_path
 
-    def _get_format_from_filter_or_extension(
-        self, selected_filter: str, file_path: Path
-    ) -> str:
+    def _get_format_from_filter_or_extension(self, selected_filter: str, file_path: Path) -> str:
         """Determine format type from filter string or file extension.
 
         MA principle: Extracted helper (18 lines) - uses mapping for O(1) lookup.
