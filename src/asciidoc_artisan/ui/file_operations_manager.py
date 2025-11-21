@@ -101,6 +101,7 @@ from asciidoc_artisan.core import (
 from asciidoc_artisan.core.large_file_handler import (  # Streaming I/O for large files
     LargeFileHandler,
 )
+from asciidoc_artisan.ui.format_conversion_helper import FormatConversionHelper
 from asciidoc_artisan.ui.path_format_utils import PathFormatUtils
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
@@ -155,6 +156,7 @@ class FileOperationsManager:
         1. Stores reference to main editor window
         2. Sets up reentrancy guard (_is_processing_pandoc)
         3. Initializes pending file path storage
+        4. Creates helper instances for format conversion
 
         PARAMETERS:
             editor: The main application window (AsciiDocEditor)
@@ -163,6 +165,7 @@ class FileOperationsManager:
             self.editor: Reference to main window
             self._is_processing_pandoc: Guard flag (prevents concurrent operations)
             self._pending_file_path: Stores file path during async operations
+            self._format_helper: Format conversion helper (MA principle extraction)
         """
         # Store reference to main editor window
         self.editor = editor
@@ -174,6 +177,9 @@ class FileOperationsManager:
         # Storage for file path during async operations
         # When Pandoc worker finishes, we need to know which file we were working on
         self._pending_file_path: Path | None = None
+
+        # Helper instances (MA principle: delegate conversion logic)
+        self._format_helper = FormatConversionHelper(editor)
 
     def open_file(self) -> None:
         """
@@ -471,83 +477,16 @@ class FileOperationsManager:
             return False
 
     def _determine_source_format(self) -> str:
-        """
-        Determine source format from current file extension.
-
-        Returns:
-            Source format string ("asciidoc", "markdown", "docx", "html")
-
-        MA principle: Extracted from save_as_format_internal (15 lines).
-        """
-        source_format = "asciidoc"  # default
-
-        if self.editor._current_file_path:
-            suffix = self.editor._current_file_path.suffix.lower()
-            format_map = {
-                ".md": "markdown",
-                ".markdown": "markdown",
-                ".docx": "docx",
-                ".pdf": "markdown",  # PDF was converted to text, treat as markdown
-                ".html": "html",
-                ".htm": "html",
-            }
-            source_format = format_map.get(suffix, "asciidoc")
-
-        return source_format
+        """Determine source format from current file extension (delegates to format_helper)."""
+        return self._format_helper.determine_source_format()
 
     def _convert_asciidoc_to_html_temp(self, content: str) -> Path | None:
-        """
-        Convert AsciiDoc to HTML and save to temp file.
-
-        Args:
-            content: AsciiDoc content to convert
-
-        Returns:
-            Path to temp HTML file or None if conversion failed
-
-        MA principle: Extracted from save_as_format_internal (21 lines).
-        """
-        try:
-            if self.editor._asciidoc_api is None:
-                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-            infile = io.StringIO(content)
-            outfile = io.StringIO()
-            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
-            html_content = outfile.getvalue()
-
-            temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
-            temp_source_file.write_text(html_content, encoding="utf-8")
-            return temp_source_file
-        except Exception as e:
-            logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-            self.editor.status_manager.show_message(
-                "critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}"
-            )
-            return None
+        """Convert AsciiDoc to HTML and save to temp file (delegates to format_helper)."""
+        return self._format_helper.convert_asciidoc_to_html_temp(content)
 
     def _save_to_temp_file(self, content: str, source_format: str) -> Path | None:
-        """
-        Save content to temporary file for Pandoc processing.
-
-        Args:
-            content: Content to save
-            source_format: Format type ("markdown", "docx", "html")
-
-        Returns:
-            Path to temp file or None if save failed
-
-        MA principle: Extracted from save_as_format_internal (12 lines).
-        """
-        ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
-        temp_ext = ext_map.get(source_format, ".txt")
-        temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
-        try:
-            temp_source_file.write_text(content, encoding="utf-8")
-            return temp_source_file
-        except Exception as e:
-            self.editor.status_manager.show_message("critical", "Save Error", f"Failed to create temporary file:\n{e}")
-            return None
+        """Save content to temporary file for Pandoc processing (delegates to format_helper)."""
+        return self._format_helper.save_to_temp_file(content, source_format)
 
     def _emit_pandoc_conversion(
         self,
@@ -557,55 +496,8 @@ class FileOperationsManager:
         file_path: Path,
         use_ai: bool,
     ) -> None:
-        """
-        Emit Pandoc conversion request signal.
-
-        Args:
-            temp_source_file: Temporary source file path
-            format_type: Target format type
-            source_format: Source format type
-            file_path: Final output file path
-            use_ai: Whether to use AI conversion
-
-        MA principle: Extracted from save_as_format_internal (32 lines).
-        """
-        self.editor.status_bar.showMessage(f"Saving as {format_type.upper()}...")
-
-        # Set export manager pending paths for result handling
-        self.editor.export_manager.pending_export_path = file_path
-        self.editor.export_manager.pending_export_format = format_type
-
-        if format_type in ["pdf", "docx"]:
-            # Use Pandoc for PDF and DOCX conversion - pass output file directly
-            logger.info(
-                f"Emitting pandoc conversion request for {format_type} - "
-                f"source: {temp_source_file} ({source_format}), "
-                f"output: {file_path}"
-            )
-            self.editor.request_pandoc_conversion.emit(
-                temp_source_file,
-                format_type,
-                source_format,
-                f"Exporting to {format_type.upper()}",
-                file_path,
-                use_ai,
-            )
-        else:
-            # For other formats, let worker return the content
-            logger.info(
-                f"Emitting pandoc conversion request for {format_type} - source: {temp_source_file} ({source_format})"
-            )
-            self.editor.request_pandoc_conversion.emit(
-                temp_source_file,
-                format_type,
-                source_format,
-                f"Exporting to {format_type.upper()}",
-                None,
-                use_ai,
-            )
-
-            self.editor._pending_export_path = file_path
-            self.editor._pending_export_format = format_type
+        """Emit Pandoc conversion request signal (delegates to format_helper)."""
+        return self._format_helper.emit_pandoc_conversion(temp_source_file, format_type, source_format, file_path, use_ai)
 
     def save_as_format_internal(self, file_path: Path, format_type: str, use_ai: bool | None = None) -> bool:
         """
