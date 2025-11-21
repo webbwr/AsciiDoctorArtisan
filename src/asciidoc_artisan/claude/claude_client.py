@@ -1,24 +1,10 @@
 """
 Claude AI Client - Main API client for Anthropic Claude integration.
 
-This module provides a high-level interface to the Anthropic Claude API with:
-- Secure API key management via OS keyring
-- Configurable models and parameters
-- Error handling and validation
-- Token usage tracking
-- Streaming support for real-time responses
+High-level interface with secure API key management (OS keyring), configurable models, error handling, token tracking, streaming support.
+Security: API keys never stored in plain text, credentials via SecureCredentials, validation before requests.
 
-Security:
-- API keys never stored in plain text
-- Credentials managed via secure_credentials module
-- API key validation before requests
-
-Example:
-    >>> client = ClaudeClient()
-    >>> if client.is_configured():
-    ...     result = client.send_message("Hello Claude!")
-    ...     if result.success:
-    ...         print(result.content)
+Example: client = ClaudeClient(); if client.is_configured(): result = client.send_message("Hello Claude!")
 """
 
 import logging
@@ -35,17 +21,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ClaudeResult:
-    """
-    Result of a Claude API operation.
-
-    Attributes:
-        success: True if operation succeeded
-        content: Response text from Claude
-        model: Model used for the response
-        tokens_used: Total tokens consumed (prompt + completion)
-        error: Error message if operation failed
-        stop_reason: Reason Claude stopped generating (e.g., "end_turn", "max_tokens")
-    """
+    """Result of a Claude API operation. Fields: success, content (response text), model, tokens_used (prompt + completion), error, stop_reason."""
 
     success: bool
     content: str = ""
@@ -56,37 +32,14 @@ class ClaudeResult:
 
 
 class ClaudeMessage(BaseModel):
-    """
-    Single message in Claude conversation history.
-
-    Attributes:
-        role: Message sender ("user" or "assistant")
-        content: Message text content
-    """
+    """Single message in Claude conversation history. Fields: role ("user" or "assistant"), content (text)."""
 
     role: str = Field(..., description='Message role: "user" or "assistant"')
     content: str = Field(..., description="Message text content")
 
 
 class ClaudeClient:
-    """
-    High-level client for Anthropic Claude API.
-
-    Provides a simple interface for sending messages to Claude and managing
-    conversation context. Handles API key management, error handling, and
-    response parsing.
-
-    Attributes:
-        model: Claude model to use (default: claude-sonnet-4-20250514)
-        max_tokens: Maximum tokens in response (default: 4096)
-        temperature: Sampling temperature 0-1 (default: 1.0)
-
-    Example:
-        >>> client = ClaudeClient(model="claude-sonnet-4-20250514")
-        >>> result = client.send_message("Explain AsciiDoc")
-        >>> if result.success:
-        ...     print(result.content)
-    """
+    """High-level client for Anthropic Claude API. Handles messages, conversation context, API key management, error handling, response parsing. Default model: claude-sonnet-4-20250514."""
 
     # Default Claude model
     # Using Claude Sonnet 4 (current generation, 2025)
@@ -104,14 +57,7 @@ class ClaudeClient:
         max_tokens: int = 4096,
         temperature: float = 1.0,
     ) -> None:
-        """
-        Initialize Claude client.
-
-        Args:
-            model: Claude model identifier
-            max_tokens: Maximum tokens in response
-            temperature: Sampling temperature (0-1)
-        """
+        """Initialize Claude client with model, max_tokens (4096), temperature (0-1, default 1.0)."""
         self.model = model
         self.max_tokens = max_tokens
         self.temperature = temperature
@@ -121,25 +67,12 @@ class ClaudeClient:
         logger.debug(f"Claude client initialized with model={model}")
 
     def is_configured(self) -> bool:
-        """
-        Check if Claude API key is configured.
-
-        Returns:
-            True if API key is available in keyring
-        """
+        """Check if Claude API key is configured. Returns True if available in keyring."""
         result: bool = self.credentials.has_anthropic_key()
         return result
 
     def _get_client(self) -> Anthropic | None:
-        """
-        Get or create Anthropic client instance.
-
-        Returns:
-            Anthropic client or None if no API key configured
-
-        Raises:
-            ValueError: If API key is invalid
-        """
+        """Get or create Anthropic client instance. Returns client or None if no API key configured. Raises ValueError if API key invalid."""
         if self._client is not None:
             return self._client
 
@@ -318,27 +251,7 @@ class ClaudeClient:
         system: str | None = None,
         conversation_history: list[ClaudeMessage] | None = None,
     ) -> ClaudeResult:
-        """
-        Send a message to Claude and get a response.
-
-        MA principle: Reduced from 111→48 lines by extracting 7 helper methods.
-
-        Args:
-            message: User message to send
-            system: System prompt for context (optional)
-            conversation_history: Previous messages for context (optional)
-
-        Returns:
-            ClaudeResult with response or error
-
-        Example:
-            >>> client = ClaudeClient()
-            >>> result = client.send_message(
-            ...     "Explain AsciiDoc syntax",
-            ...     system="You are an AsciiDoc expert"
-            ... )
-            >>> print(result.content)
-        """
+        """Send message to Claude and get response. MA: 111→48 lines (7 helpers). Args: message, system (optional), conversation_history (optional). Returns ClaudeResult."""
         # Validate input
         validation_error = self._validate_message_input(message)
         if validation_error:
@@ -383,18 +296,7 @@ class ClaudeClient:
             return self._handle_generic_error(e)
 
     def test_connection(self) -> ClaudeResult:
-        """
-        Test Claude API connection with a simple message.
-
-        Returns:
-            ClaudeResult indicating if connection is working
-
-        Example:
-            >>> client = ClaudeClient()
-            >>> result = client.test_connection()
-            >>> if result.success:
-            ...     print("Connection OK!")
-        """
+        """Test Claude API connection with a simple message. Returns ClaudeResult indicating if connection working."""
         logger.debug("Testing Claude API connection")
         return self.send_message(
             "Reply with exactly: 'Connection OK'",
@@ -402,39 +304,11 @@ class ClaudeClient:
         )
 
     def get_available_models(self) -> list[str]:
-        """
-        Get list of available Claude models (hardcoded list).
-
-        Returns:
-            List of model identifiers
-
-        Example:
-            >>> client = ClaudeClient()
-            >>> models = client.get_available_models()
-            >>> print(models)
-            ['claude-sonnet-4-20250514', ...]
-        """
+        """Get list of available Claude models (hardcoded list). Returns list of model identifiers."""
         return self.AVAILABLE_MODELS.copy()
 
     def fetch_available_models_from_api(self) -> ClaudeResult:
-        """
-        Fetch list of available models from Anthropic API.
-
-        MA principle: Reduced from 78→39 lines by extracting formatting helper (50% reduction).
-
-        Makes a request to the /v1/models endpoint to get the actual list
-        of models available to this API key.
-
-        Returns:
-            ClaudeResult with models list in content field (JSON formatted)
-            or error if request fails
-
-        Example:
-            >>> client = ClaudeClient()
-            >>> result = client.fetch_available_models_from_api()
-            >>> if result.success:
-            ...     print(result.content)
-        """
+        """Fetch available models from Anthropic API. MA: 78→39 lines (formatting helper, 50% reduction). Requests /v1/models endpoint. Returns ClaudeResult with JSON formatted list or error."""
         client = self._get_client()
         if client is None:
             return ClaudeResult(
