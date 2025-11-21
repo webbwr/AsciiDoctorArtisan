@@ -466,21 +466,18 @@ class DialogManager:
         except (subprocess.CalledProcessError, Exception) as e:
             self._handle_file_open_error(e, telemetry_file)
 
-    def _change_telemetry_directory(
-        self, telemetry_file: "Path | None", telemetry_dir: "Path | None", msg_box: QMessageBox
-    ) -> None:
+    def _select_telemetry_directory(self, telemetry_dir: "Path | None") -> "Path | None":
         """
-        Allow user to select a new telemetry directory.
+        Show directory selection dialog for telemetry.
+
+        MA principle: Extracted from _change_telemetry_directory (10 lines).
 
         Args:
-            telemetry_file: Current telemetry file path
             telemetry_dir: Current telemetry directory
-            msg_box: Parent message box (for closing/reopening)
 
+        Returns:
+            Selected directory path or None if cancelled
         """
-        logger.info("User requested to change telemetry directory")
-
-        # Show directory selection dialog
         new_dir = QFileDialog.getExistingDirectory(
             self.editor,
             "Select Telemetry Directory",
@@ -490,12 +487,24 @@ class DialogManager:
 
         if not new_dir:
             logger.info("User cancelled directory selection")
-            return
+            return None
 
         new_dir_path = Path(new_dir)
         logger.info(f"User selected new directory: {new_dir_path}")
+        return new_dir_path
 
-        # Confirm change
+    def _confirm_directory_change(self, new_dir_path: "Path") -> bool:
+        """
+        Show confirmation dialog for directory change.
+
+        MA principle: Extracted from _change_telemetry_directory (10 lines).
+
+        Args:
+            new_dir_path: New directory path
+
+        Returns:
+            True if user confirmed, False otherwise
+        """
         reply = QMessageBox.question(
             self.editor,
             "Confirm Directory Change",
@@ -506,36 +515,90 @@ class DialogManager:
 
         if reply != QMessageBox.StandardButton.Yes:
             logger.info("User cancelled directory change confirmation")
+            return False
+
+        return True
+
+    def _move_telemetry_data(self, telemetry_file: "Path | None", new_dir_path: "Path") -> None:
+        """
+        Move telemetry data to new directory and update collector.
+
+        MA principle: Extracted from _change_telemetry_directory (15 lines).
+
+        Args:
+            telemetry_file: Current telemetry file path
+            new_dir_path: New directory path
+
+        Raises:
+            Exception: If file move or directory creation fails
+        """
+        # Create new directory if it doesn't exist
+        new_dir_path.mkdir(parents=True, exist_ok=True)
+
+        # Move existing telemetry file if it exists
+        if telemetry_file and telemetry_file.exists():
+            new_file_path = new_dir_path / "telemetry.json"
+            import shutil
+
+            shutil.copy2(telemetry_file, new_file_path)
+            logger.info(f"Copied telemetry file to: {new_file_path}")
+
+        # Update telemetry collector
+        self.editor.telemetry_collector.data_dir = new_dir_path
+        self.editor.telemetry_collector.telemetry_file = new_dir_path / "telemetry.json"
+
+        logger.info("Telemetry directory changed successfully")
+
+    def _show_directory_change_success(self, new_dir_path: "Path", msg_box: QMessageBox) -> None:
+        """
+        Show success message and reopen telemetry status.
+
+        MA principle: Extracted from _change_telemetry_directory (8 lines).
+
+        Args:
+            new_dir_path: New directory path
+            msg_box: Parent message box to close
+        """
+        QMessageBox.information(
+            self.editor,
+            "Directory Changed",
+            f"Telemetry directory changed to:\n{new_dir_path}\n\nPrevious data has been copied to the new location.",
+        )
+
+        # Close the dialog and reopen to show updated info
+        msg_box.done(QMessageBox.StandardButton.Ok)
+        self.show_telemetry_status()
+
+    def _change_telemetry_directory(
+        self, telemetry_file: "Path | None", telemetry_dir: "Path | None", msg_box: QMessageBox
+    ) -> None:
+        """
+        Allow user to select a new telemetry directory.
+
+        MA principle: Reduced from 80→28 lines by extracting 4 dialog/operation helpers (65% reduction).
+
+        Args:
+            telemetry_file: Current telemetry file path
+            telemetry_dir: Current telemetry directory
+            msg_box: Parent message box (for closing/reopening)
+        """
+        logger.info("User requested to change telemetry directory")
+
+        # Show directory selection dialog
+        new_dir_path = self._select_telemetry_directory(telemetry_dir)
+        if not new_dir_path:
+            return
+
+        # Confirm change
+        if not self._confirm_directory_change(new_dir_path):
             return
 
         try:
-            # Create new directory if it doesn't exist
-            new_dir_path.mkdir(parents=True, exist_ok=True)
+            # Move data and update collector
+            self._move_telemetry_data(telemetry_file, new_dir_path)
 
-            # Move existing telemetry file if it exists
-            if telemetry_file and telemetry_file.exists():
-                new_file_path = new_dir_path / "telemetry.json"
-                import shutil
-
-                shutil.copy2(telemetry_file, new_file_path)
-                logger.info(f"Copied telemetry file to: {new_file_path}")
-
-            # Update telemetry collector
-            self.editor.telemetry_collector.data_dir = new_dir_path
-            self.editor.telemetry_collector.telemetry_file = new_dir_path / "telemetry.json"
-
-            logger.info("Telemetry directory changed successfully")
-
-            QMessageBox.information(
-                self.editor,
-                "Directory Changed",
-                f"Telemetry directory changed to:\n{new_dir_path}\n\n"
-                "Previous data has been copied to the new location.",
-            )
-
-            # Close the dialog and reopen to show updated info
-            msg_box.done(QMessageBox.StandardButton.Ok)
-            self.show_telemetry_status()
+            # Show success and reopen dialog
+            self._show_directory_change_success(new_dir_path, msg_box)
 
         except Exception as e:
             error_msg = f"Failed to change directory: {type(e).__name__}: {e}"
