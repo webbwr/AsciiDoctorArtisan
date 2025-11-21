@@ -193,15 +193,14 @@
 ## Performance
 
 **FR-062: Fast Startup** - 0.586s (v2.0.0), -OO flag, lazy imports, 15-20% improvement (v1.9.1)
-**FR-062a: Lazy Import** - `is_pandoc_available()`, global cache, 5 files refactored (Nov 6, 2025)
 **FR-063: Worker Pool** - `OptimizedWorkerPool`, CPU*2 threads (default: 32), priority/cancel/coalesce (v1.5.0)
 **FR-064: Memory** - `MemoryProfiler`, 148.9% growth baseline, target: <100MB idle/<500MB large (v1.4.0)
 **FR-065: Async I/O** - `QtAsyncFileManager`, aiofiles, non-blocking (v1.6.0)
 **FR-066: Block Detection** - Optimized regex, 10-14% faster (v1.6.0)
-**FR-067: Predictive** - Heuristics, 28% latency reduction (v1.6.0)
-**FR-067a: Worker Pattern** - All 6 workers use QObject + moveToThread(), no QThread subclass (Nov 6, 2025)
-**FR-067b: Duplication** - 70% → <20% via Template Method, ~80 lines saved, 154 tests (Nov 6, 2025)
-**FR-067c: Test Parametrization** - Analysis: 105-120 → 43-56 tests (47% reduction, ~240 lines) (Nov 6, 2025)
+**FR-067: Cache Strategy** - LRU cache (100 blocks), 76% hit rate (v1.4.0)
+**FR-067a: Incremental Rendering** - Block-based cache, 10-50x speedup, incremental_renderer.py (v1.5.0)
+**FR-067b: Predictive Rendering** - Pre-render adjacent blocks, 28% latency reduction (v1.6.0)
+**FR-067c: Render Prioritization** - Priority queue, visible blocks first (v1.6.0)
 
 ---
 
@@ -434,15 +433,14 @@ Complete implementation status for all 107 functional requirements.
 | FR | Feature | Status | Implementation | Tests |
 |----|---------|--------|----------------|-------|
 | FR-062 | Fast Startup | ✅ | 0.586s, -OO flag | ✓ |
-| FR-062a | Lazy Import | ✅ | is_pandoc_available() | ✓ |
 | FR-063 | Worker Pool | ✅ | OptimizedWorkerPool | ✓ |
 | FR-064 | Memory Management | ✅ | MemoryProfiler | ✓ |
 | FR-065 | Async I/O | ✅ | QtAsyncFileManager | ✓ |
 | FR-066 | Block Detection | ✅ | Optimized regex, 10-14% faster | ✓ |
-| FR-067 | Predictive Rendering | ✅ | Heuristics, 28% reduction | ✓ |
-| FR-067a | Worker Pattern | ✅ | QObject + moveToThread() | ✓ |
-| FR-067b | Duplication | ✅ | Template Method, <20% | ✓ |
-| FR-067c | Parametrization | ✅ | Test optimization analysis | ✓ |
+| FR-067 | Cache Strategy | ✅ | LRU cache, 76% hit rate | ✓ |
+| FR-067a | Incremental Rendering | ✅ | Block-based cache, 10-50x | ✓ |
+| FR-067b | Predictive Rendering | ✅ | Pre-render adjacent blocks | ✓ |
+| FR-067c | Render Prioritization | ✅ | Priority queue, visible first | ✓ |
 
 ### Security (FR-068 to FR-072)
 
