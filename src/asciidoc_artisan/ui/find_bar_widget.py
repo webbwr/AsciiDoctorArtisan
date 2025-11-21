@@ -1,21 +1,10 @@
 """
 Find Bar Widget - Quick find toolbar for AsciiDoc Artisan.
 
-This module provides a non-modal find bar that appears at the bottom of the
-editor for quick text searches. Triggered by Ctrl+F.
+Non-modal find bar at editor bottom for quick text searches. Triggered by Ctrl+F.
+Features: Live search as you type, find next/previous buttons, match counter (e.g., "5 of 23"), case sensitivity toggle, close button or Esc to hide, preserves search history.
 
-Features:
-- Live search as you type
-- Find next/previous buttons
-- Match counter (e.g., "5 of 23")
-- Case sensitivity toggle
-- Close button or Esc to hide
-- Preserves search history
-
-Example:
-    >>> find_bar = FindBarWidget(parent)
-    >>> find_bar.search_requested.connect(on_search)
-    >>> find_bar.show_and_focus()
+Example: find_bar = FindBarWidget(parent); find_bar.search_requested.connect(on_search); find_bar.show_and_focus()
 """
 
 import logging
