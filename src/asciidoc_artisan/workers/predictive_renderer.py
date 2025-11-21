@@ -110,11 +110,11 @@ class PredictiveRenderer:
 
         self._last_edited_block = block_index
 
-    def predict_next_blocks(  # noqa: C901
-        self, total_blocks: int, current_block_index: int | None = None
-    ) -> RenderPrediction:
+    def predict_next_blocks(self, total_blocks: int, current_block_index: int | None = None) -> RenderPrediction:
         """
         Predict which blocks should be pre-rendered next.
+
+        MA principle: Reduced from 78→30 lines by extracting 4 heuristic helpers (62% reduction).
 
         Uses multiple heuristics to predict user's next action:
         1. Current cursor position (highest priority)
@@ -134,7 +134,36 @@ class PredictiveRenderer:
         predictions: set[int] = set()
         reasons: list[str] = []
 
-        # Heuristic 1: Blocks around cursor position
+        # Apply 4 heuristics
+        self._predict_cursor_blocks(current_block_index, total_blocks, predictions, reasons)
+        self._predict_recent_edit_blocks(total_blocks, predictions, reasons)
+        self._predict_sequential_blocks(total_blocks, predictions, reasons)
+        self._predict_temporal_locality_blocks(total_blocks, predictions, reasons)
+
+        # Convert to sorted list and calculate confidence
+        block_indices = sorted(predictions)[: self.max_predictions]
+        confidence = min(1.0, len(reasons) * 0.2)
+
+        return RenderPrediction(
+            block_indices=block_indices,
+            confidence=confidence,
+            reason=", ".join(reasons) if reasons else "no strong signals",
+        )
+
+    def _predict_cursor_blocks(
+        self, current_block_index: int | None, total_blocks: int, predictions: set[int], reasons: list[str]
+    ) -> None:
+        """
+        Heuristic 1: Predict blocks around cursor position.
+
+        MA principle: Extracted helper (17 lines) - focused cursor prediction.
+
+        Args:
+            current_block_index: Current cursor block index
+            total_blocks: Total number of blocks
+            predictions: Set to add predictions to
+            reasons: List to add reason strings to
+        """
         if current_block_index is not None:
             predictions.add(current_block_index)
             reasons.append(f"cursor at block {current_block_index}")
@@ -148,22 +177,53 @@ class PredictiveRenderer:
                 predictions.add(current_block_index + 1)
                 reasons.append("block after cursor")
 
-        # Heuristic 2: Recently edited blocks
+    def _predict_recent_edit_blocks(self, total_blocks: int, predictions: set[int], reasons: list[str]) -> None:
+        """
+        Heuristic 2: Predict recently edited blocks.
+
+        MA principle: Extracted helper (11 lines) - focused recent edit prediction.
+
+        Args:
+            total_blocks: Total number of blocks
+            predictions: Set to add predictions to
+            reasons: List to add reason strings to
+        """
         if self._recent_edits:
             for block_idx in list(self._recent_edits)[-3:]:  # Last 3 edits
                 if block_idx < total_blocks:
                     predictions.add(block_idx)
                     reasons.append(f"recent edit at {block_idx}")
 
-        # Heuristic 3: Sequential editing prediction
+    def _predict_sequential_blocks(self, total_blocks: int, predictions: set[int], reasons: list[str]) -> None:
+        """
+        Heuristic 3: Predict next block based on sequential editing pattern.
+
+        MA principle: Extracted helper (11 lines) - focused sequential prediction.
+
+        Args:
+            total_blocks: Total number of blocks
+            predictions: Set to add predictions to
+            reasons: List to add reason strings to
+        """
         if self._sequential_edits >= 2 and self._last_edited_block is not None:
             next_block = self._last_edited_block + 1
             if next_block < total_blocks:
                 predictions.add(next_block)
                 reasons.append(f"sequential pattern predicts {next_block}")
 
-        # Heuristic 4: Time-based proximity
-        # If recently edited a block, likely to continue in that area
+    def _predict_temporal_locality_blocks(self, total_blocks: int, predictions: set[int], reasons: list[str]) -> None:
+        """
+        Heuristic 4: Predict blocks based on temporal proximity.
+
+        MA principle: Extracted helper (19 lines) - focused temporal locality prediction.
+
+        If recently edited a block, likely to continue in that area.
+
+        Args:
+            total_blocks: Total number of blocks
+            predictions: Set to add predictions to
+            reasons: List to add reason strings to
+        """
         if self._edit_timestamps:
             last_edit_time = self._edit_timestamps[-1]
             time_since_edit = time.time() - last_edit_time
@@ -176,18 +236,6 @@ class PredictiveRenderer:
                     if 0 <= nearby_block < total_blocks:
                         predictions.add(nearby_block)
                 reasons.append("temporal locality")
-
-        # Convert to sorted list (prioritize lower indices)
-        block_indices = sorted(predictions)[: self.max_predictions]
-
-        # Calculate confidence based on heuristics strength
-        confidence = min(1.0, len(reasons) * 0.2)
-
-        return RenderPrediction(
-            block_indices=block_indices,
-            confidence=confidence,
-            reason=", ".join(reasons) if reasons else "no strong signals",
-        )
 
     def record_prediction_used(self, block_index: int) -> None:
         """
