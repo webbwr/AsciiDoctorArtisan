@@ -153,132 +153,190 @@ class DialogManager:
                 "• And many more...",
             )
 
+    def _build_disabled_ollama_status(self) -> str:
+        """
+        Build status message for disabled Ollama.
+
+        MA principle: Extracted from show_ollama_status (8 lines).
+
+        Returns:
+            Status message string
+        """
+        return (
+            "⚠️ Ollama AI: Disabled in settings\n\n"
+            "Current conversion method: Pandoc (standard)\n\n"
+            "To enable Ollama AI:\n"
+            "1. Go to Tools → AI Status → Settings...\n"
+            "2. Check 'Enable Ollama AI integration'\n"
+            "3. Select an AI model\n"
+            "4. Click OK\n"
+        )
+
+    def _detect_gpu_status(self) -> str:
+        """
+        Detect GPU availability for Ollama.
+
+        MA principle: Extracted from show_ollama_status (15 lines).
+
+        Returns:
+            GPU status message
+        """
+        try:
+            result = subprocess.run(
+                ["nvidia-smi"],
+                capture_output=True,
+                text=True,
+                timeout=2,  # Quick timeout to avoid hanging
+            )
+            if result.returncode == 0:
+                return "GPU: ✅ NVIDIA GPU detected\n"
+            else:
+                return "GPU: ⚠️ Not detected (CPU mode)\n"
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return "GPU: ⚠️ Not detected (CPU mode)\n"
+
+    def _check_ollama_service(self) -> str:
+        """
+        Check Ollama service status and build message.
+
+        MA principle: Extracted from show_ollama_status (20 lines).
+
+        Returns:
+            Service status message
+
+        Raises:
+            Exception: If service check fails
+        """
+        try:
+            # List models to test connection
+            models = ollama.list()
+            status = "✅ Ollama service: Running\n"
+            status += "API endpoint: http://127.0.0.1:11434\n"
+            status += f"Models installed: {len(models.get('models', []))}\n"
+            status += self._detect_gpu_status()
+            return status
+        except Exception as e:
+            # Library exists but service not running
+            return (
+                "❌ Ollama service: Not running\n"
+                f"Error: {str(e)}\n\n"
+                "To start Ollama:\n"
+                "  Linux/Mac: systemctl start ollama\n"
+                "  Windows: Start Ollama application\n"
+            )
+
+    def _build_ollama_import_error(self) -> str:
+        """
+        Build message for missing Ollama library.
+
+        MA principle: Extracted from show_ollama_status (7 lines).
+
+        Returns:
+            Import error message
+        """
+        return (
+            "❌ Ollama Python library not installed\n\n"
+            "To install:\n"
+            "  pip install ollama>=0.4.0\n\n"
+            "To install Ollama itself:\n"
+            "  Visit: https://ollama.com/download\n"
+        )
+
     def show_ollama_status(self) -> None:
-        """Show Ollama service and installation status."""
+        """
+        Show Ollama service and installation status.
+
+        MA principle: Reduced from 73→23 lines by extracting 4 message builders (68% reduction).
+        """
         status = "Ollama Status:\n\n"
 
-        # Exit early if user disabled AI in settings.
+        # Exit early if user disabled AI in settings
         if not self.editor._settings.ollama_enabled:
-            status += "⚠️ Ollama AI: Disabled in settings\n\n"
-            status += "Current conversion method: Pandoc (standard)\n\n"
-            status += "To enable Ollama AI:\n"
-            status += "1. Go to Tools → AI Status → Settings...\n"
-            status += "2. Check 'Enable Ollama AI integration'\n"
-            status += "3. Select an AI model\n"
-            status += "4. Click OK\n"
+            status += self._build_disabled_ollama_status()
             self.editor.status_manager.show_message("info", "Ollama Status", status)
             return
 
-        # AI is enabled so check if service is running.
+        # AI is enabled - show model selection
         status += "✅ Ollama AI: Enabled\n"
         if self.editor._settings.ollama_model:
             status += f"Selected model: {self.editor._settings.ollama_model}\n\n"
         else:
-            # Enabled but no model chosen yet.
             status += "⚠️ No model selected\n\n"
 
+        # Check service status
         try:
-            # Check if Python client library is available.
             if ollama is None:
                 raise ImportError("ollama library not installed")
-
-            # Check if service is running.
-            try:
-                # List models to test connection.
-                models = ollama.list()
-                status += "✅ Ollama service: Running\n"
-                status += "API endpoint: http://127.0.0.1:11434\n"
-                status += f"Models installed: {len(models.get('models', []))}\n"
-
-                # Detect GPU for faster inference.
-                try:
-                    result = subprocess.run(
-                        ["nvidia-smi"],
-                        capture_output=True,
-                        text=True,
-                        # Quick timeout to avoid hanging.
-                        timeout=2,
-                    )
-                    if result.returncode == 0:
-                        status += "GPU: ✅ NVIDIA GPU detected\n"
-                    else:
-                        # nvidia-smi failed so no GPU.
-                        status += "GPU: ⚠️ Not detected (CPU mode)\n"
-                except (FileNotFoundError, subprocess.TimeoutExpired):
-                    # nvidia-smi not found or too slow.
-                    status += "GPU: ⚠️ Not detected (CPU mode)\n"
-
-            except Exception as e:
-                # Library exists but service not running.
-                status += "❌ Ollama service: Not running\n"
-                status += f"Error: {str(e)}\n\n"
-                status += "To start Ollama:\n"
-                status += "  Linux/Mac: systemctl start ollama\n"
-                status += "  Windows: Start Ollama application\n"
-
+            status += self._check_ollama_service()
         except ImportError:
-            # Python library not installed.
-            status += "❌ Ollama Python library not installed\n\n"
-            status += "To install:\n"
-            status += "  pip install ollama>=0.4.0\n\n"
-            status += "To install Ollama itself:\n"
-            status += "  Visit: https://ollama.com/download\n"
+            status += self._build_ollama_import_error()
 
         self.editor.status_manager.show_message("info", "Ollama Status", status)
 
-    def show_anthropic_status(self) -> None:
-        """Show Anthropic API key and service status."""
-        from asciidoc_artisan.core import SecureCredentials
+    def _build_sdk_version_status(self) -> str:
+        """
+        Build SDK version status message.
 
-        status = "Anthropic Status:\n\n"
+        MA principle: Extracted from show_anthropic_status (8 lines).
 
-        # Show SDK version
+        Returns:
+            SDK version status string
+        """
         try:
             if anthropic:
                 sdk_version = anthropic.__version__
-                status += f"SDK Version: {sdk_version}\n\n"
+                return f"SDK Version: {sdk_version}\n\n"
             else:
-                status += "SDK: Not installed\n\n"
+                return "SDK: Not installed\n\n"
         except AttributeError:
-            status += "SDK Version: Unknown\n\n"
+            return "SDK Version: Unknown\n\n"
 
-        # Check if API key is configured
-        try:
-            creds = SecureCredentials()
-            has_key = creds.has_anthropic_key()
-        except Exception as e:
-            logger.warning(f"Error checking Anthropic API key: {e}")
-            has_key = False
+    def _build_no_api_key_message(self) -> str:
+        """
+        Build message for missing API key configuration.
 
-        if not has_key:
-            status += "⚠️ Anthropic API: No API key configured\n\n"
-            status += "To configure Anthropic API key:\n"
-            status += "1. Go to Tools → API Key Setup\n"
-            status += "2. Enter your Anthropic API key\n"
-            status += "3. Click Save\n\n"
-            status += "To get an API key:\n"
-            status += "  Visit: https://console.anthropic.com/settings/keys\n"
-            self.editor.status_manager.show_message("info", "Anthropic Status", status)
-            return
+        MA principle: Extracted from show_anthropic_status (13 lines).
 
-        # API key is configured
-        status += "✅ Anthropic API: Key configured\n"
-        if self.editor._settings.claude_model:
-            status += f"Selected model: {self.editor._settings.claude_model}\n\n"
-        else:
-            status += "⚠️ No model selected\n\n"
+        Returns:
+            Configuration instructions string
+        """
+        message = "⚠️ Anthropic API: No API key configured\n\n"
+        message += "To configure Anthropic API key:\n"
+        message += "1. Go to Tools → API Key Setup\n"
+        message += "2. Enter your Anthropic API key\n"
+        message += "3. Click Save\n\n"
+        message += "To get an API key:\n"
+        message += "  Visit: https://console.anthropic.com/settings/keys\n"
+        return message
 
-        # Check if Claude backend is active
+    def _build_backend_status(self) -> str:
+        """
+        Build Claude backend status message.
+
+        MA principle: Extracted from show_anthropic_status (8 lines).
+
+        Returns:
+            Backend status string
+        """
         if self.editor._settings.ai_backend == "claude":
-            status += "✅ Active backend: Claude (remote)\n"
+            return "✅ Active backend: Claude (remote)\n"
         else:
-            status += "⚠️ Active backend: Ollama (local)\n"
-            status += "\nTo switch to Claude:\n"
-            status += "1. Disable Ollama in Tools → AI Status → Settings\n"
-            status += "2. Chat will automatically use Claude\n"
+            message = "⚠️ Active backend: Ollama (local)\n"
+            message += "\nTo switch to Claude:\n"
+            message += "1. Disable Ollama in Tools → AI Status → Settings\n"
+            message += "2. Chat will automatically use Claude\n"
+            return message
 
-        # Test connection
-        status += "\nTesting connection...\n"
+    def _test_anthropic_connection(self) -> str:
+        """
+        Test Anthropic API connection and build status message.
+
+        MA principle: Extracted from show_anthropic_status (19 lines).
+
+        Returns:
+            Connection test result string
+        """
+        status = "\nTesting connection...\n"
         try:
             if ClaudeClient is None:
                 raise ImportError("Claude client not available")
@@ -296,6 +354,47 @@ class DialogManager:
         except Exception as e:
             status += "❌ Connection test: Failed\n"
             status += f"Error: {str(e)}\n"
+        return status
+
+    def show_anthropic_status(self) -> None:
+        """
+        Show Anthropic API key and service status.
+
+        MA principle: Reduced from 71→28 lines by extracting 4 message builders (61% reduction).
+        """
+        from asciidoc_artisan.core import SecureCredentials
+
+        status = "Anthropic Status:\n\n"
+
+        # Show SDK version
+        status += self._build_sdk_version_status()
+
+        # Check if API key is configured
+        try:
+            creds = SecureCredentials()
+            has_key = creds.has_anthropic_key()
+        except Exception as e:
+            logger.warning(f"Error checking Anthropic API key: {e}")
+            has_key = False
+
+        # Exit early if no API key
+        if not has_key:
+            status += self._build_no_api_key_message()
+            self.editor.status_manager.show_message("info", "Anthropic Status", status)
+            return
+
+        # API key is configured - show model selection
+        status += "✅ Anthropic API: Key configured\n"
+        if self.editor._settings.claude_model:
+            status += f"Selected model: {self.editor._settings.claude_model}\n\n"
+        else:
+            status += "⚠️ No model selected\n\n"
+
+        # Show backend status
+        status += self._build_backend_status()
+
+        # Test connection
+        status += self._test_anthropic_connection()
 
         self.editor.status_manager.show_message("info", "Anthropic Status", status)
 
