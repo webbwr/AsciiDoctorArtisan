@@ -279,6 +279,8 @@ class FileOperationsManager:
         """
         Save file with Windows-friendly dialog.
 
+        MA principle: Reduced from 72→23 lines by extracting 4 helpers (68% reduction).
+
         Handles both simple AsciiDoc saves and export to other formats.
         Simple .adoc saves delegate to atomic file write.
 
@@ -288,48 +290,107 @@ class FileOperationsManager:
         Returns:
             True if saved successfully, False otherwise
         """
+        # Determine file path
         if save_as or not self.editor._current_file_path:
-            suggested_name = self.editor._current_file_path.name if self.editor._current_file_path else DEFAULT_FILENAME
-            suggested_path = Path(self.editor._settings.last_directory) / suggested_name
-
-            file_path_str, selected_filter = QFileDialog.getSaveFileName(
-                self.editor,
-                "Save File",
-                str(suggested_path),
-                SUPPORTED_SAVE_FILTER,
-                options=(
-                    QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
-                ),
-            )
-
-            if not file_path_str:
+            # Show save dialog for Save As or new files
+            result = self._show_save_dialog()
+            if not result:
                 return False
+            file_path, format_type = result
 
-            file_path = Path(file_path_str)
-            logger.info(f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}")
-
-            format_type, file_path = self._determine_save_format(file_path, selected_filter)
-
+            # Handle export to non-adoc formats
             if format_type != "adoc":
-                # Use settings preference for AI conversion (defaults to Pandoc)
-                use_ai_for_export = self.editor._settings_manager.get_ai_conversion_preference(self.editor._settings)
-
-                logger.info(
-                    f"Calling _save_as_format_internal with "
-                    f"file_path={file_path}, format_type={format_type}, "
-                    f"use_ai={use_ai_for_export}"
-                )
-                return self.save_as_format_internal(file_path, format_type, use_ai_for_export)
-
+                return self._handle_export_format(file_path, format_type)
         else:
-            # We only reach here if _current_file_path is not None
-            file_path = self.editor._current_file_path
-            assert file_path is not None, "file_path should not be None in save mode"
+            # Regular save with existing path
+            file_path = self._prepare_regular_save_path()
 
-            if file_path.suffix.lower() not in [".adoc", ".asciidoc"]:
-                file_path = file_path.with_suffix(".adoc")
-                logger.info(f"Converting save format from {self.editor._current_file_path.suffix} to .adoc")
+        # Execute atomic save and update state
+        return self._execute_save_and_update(file_path)
 
+    def _show_save_dialog(self) -> tuple[Path, str] | None:
+        """
+        Show save dialog and return selected path and format.
+
+        MA principle: Extracted from save_file (19 lines).
+
+        Returns:
+            Tuple of (file_path, format_type) if user selected, None if cancelled
+        """
+        suggested_name = self.editor._current_file_path.name if self.editor._current_file_path else DEFAULT_FILENAME
+        suggested_path = Path(self.editor._settings.last_directory) / suggested_name
+
+        file_path_str, selected_filter = QFileDialog.getSaveFileName(
+            self.editor,
+            "Save File",
+            str(suggested_path),
+            SUPPORTED_SAVE_FILTER,
+            options=(
+                QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
+            ),
+        )
+
+        if not file_path_str:
+            return None
+
+        file_path = Path(file_path_str)
+        logger.info(f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}")
+
+        format_type, file_path = self._determine_save_format(file_path, selected_filter)
+        return file_path, format_type
+
+    def _handle_export_format(self, file_path: Path, format_type: str) -> bool:
+        """
+        Handle export to non-adoc format.
+
+        MA principle: Extracted from save_file (10 lines).
+
+        Args:
+            file_path: Target file path
+            format_type: Format type (md, docx, html, pdf)
+
+        Returns:
+            True if export succeeded, False otherwise
+        """
+        use_ai_for_export = self.editor._settings_manager.get_ai_conversion_preference(self.editor._settings)
+
+        logger.info(
+            f"Calling _save_as_format_internal with "
+            f"file_path={file_path}, format_type={format_type}, "
+            f"use_ai={use_ai_for_export}"
+        )
+        return self.save_as_format_internal(file_path, format_type, use_ai_for_export)
+
+    def _prepare_regular_save_path(self) -> Path:
+        """
+        Prepare file path for regular save operation.
+
+        MA principle: Extracted from save_file (8 lines).
+
+        Returns:
+            File path with .adoc extension
+        """
+        file_path = self.editor._current_file_path
+        assert file_path is not None, "file_path should not be None in save mode"
+
+        if file_path.suffix.lower() not in [".adoc", ".asciidoc"]:
+            file_path = file_path.with_suffix(".adoc")
+            logger.info(f"Converting save format from {self.editor._current_file_path.suffix} to .adoc")
+
+        return file_path
+
+    def _execute_save_and_update(self, file_path: Path) -> bool:
+        """
+        Execute atomic save and update editor state.
+
+        MA principle: Extracted from save_file (17 lines).
+
+        Args:
+            file_path: Target file path
+
+        Returns:
+            True if saved successfully, False otherwise
+        """
         content = self.editor.editor.toPlainText()
 
         if atomic_save_text(file_path, content, encoding="utf-8"):
