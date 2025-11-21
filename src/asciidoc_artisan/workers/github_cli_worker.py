@@ -26,6 +26,8 @@ from PySide6.QtCore import Signal, Slot
 
 from asciidoc_artisan.core.models import GitHubResult
 from asciidoc_artisan.workers.base_worker import BaseWorker
+from asciidoc_artisan.workers.github_command_builder import GitHubCommandBuilder
+from asciidoc_artisan.workers.github_result_factory import GitHubResultFactory
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,28 @@ class GitHubCLIWorker(BaseWorker):
 
     github_result_ready = Signal(GitHubResult)
 
+    @property
+    def _result_factory(self) -> GitHubResultFactory:
+        """
+        Lazy-initialized result factory for GitHub operations.
+
+        MA principle: Delegates result/error creation to GitHubResultFactory (extracted class).
+        """
+        if not hasattr(self, "_factory_instance"):
+            self._factory_instance = GitHubResultFactory(self.github_result_ready)
+        return self._factory_instance
+
+    @property
+    def _command_builder(self) -> GitHubCommandBuilder:
+        """
+        Lazy-initialized command builder for GitHub operations.
+
+        MA principle: Delegates command construction to GitHubCommandBuilder (extracted class).
+        """
+        if not hasattr(self, "_builder_instance"):
+            self._builder_instance = GitHubCommandBuilder(self)
+        return self._builder_instance
+
     @Slot(str, dict)
     def dispatch_github_operation(self, operation: str, kwargs: dict[str, Any]) -> None:
         """
@@ -70,12 +94,14 @@ class GitHubCLIWorker(BaseWorker):
         Args:
             operation: Operation type (e.g., "create_pull_request", "list_pull_requests")
             kwargs: Keyword arguments for the operation
+
+        MA principle: Delegates command building to GitHubCommandBuilder (extracted class).
         """
         logger.info(f"Dispatching GitHub operation: {operation}")
 
         # Route to appropriate method based on operation type.
         if operation == "create_pull_request":
-            self.create_pull_request(
+            self._command_builder.create_pull_request(
                 kwargs.get("title", ""),
                 kwargs.get("body", ""),
                 kwargs.get("base", "main"),
@@ -83,17 +109,17 @@ class GitHubCLIWorker(BaseWorker):
                 kwargs.get("working_dir", ""),
             )
         elif operation == "list_pull_requests":
-            self.list_pull_requests(kwargs.get("state"), kwargs.get("working_dir", ""))
+            self._command_builder.list_pull_requests(kwargs.get("state"), kwargs.get("working_dir", ""))
         elif operation == "create_issue":
-            self.create_issue(
+            self._command_builder.create_issue(
                 kwargs.get("title", ""),
                 kwargs.get("body", ""),
                 kwargs.get("working_dir", ""),
             )
         elif operation == "list_issues":
-            self.list_issues(kwargs.get("state"), kwargs.get("working_dir", ""))
+            self._command_builder.list_issues(kwargs.get("state"), kwargs.get("working_dir", ""))
         elif operation == "get_repo_info":
-            self.get_repo_info(kwargs.get("working_dir", ""))
+            self._command_builder.get_repo_info(kwargs.get("working_dir", ""))
         else:
             # Unknown operation - emit error result immediately.
             error_msg = f"Unknown GitHub operation: {operation}"
@@ -164,147 +190,6 @@ class GitHubCLIWorker(BaseWorker):
             timeout=60,  # 60s is enough for most GitHub API calls.
         )
 
-    def _parse_gh_json_output(self, stdout: str) -> Any:
-        """
-        Parse GitHub CLI JSON output or wrap plain text.
-
-        Args:
-            stdout: GitHub CLI command output
-
-        Returns:
-            Parsed JSON data or dict with "output" key for plain text
-
-        MA principle: Extracted from run_gh_command (9 lines).
-        """
-        if not stdout:
-            return None
-
-        try:
-            # GitHub CLI returns JSON when --json flag is used.
-            return json.loads(stdout)
-        except json.JSONDecodeError:
-            # Not JSON (e.g. plain text output from gh auth status).
-            logger.debug("GitHub CLI output is not JSON")
-            return {"output": stdout}
-
-    def _create_gh_success_result(self, data: Any, operation: str) -> GitHubResult:
-        """
-        Create success GitHubResult.
-
-        Args:
-            data: Parsed JSON data or None
-            operation: Operation name for result tracking
-
-        Returns:
-            GitHubResult with success=True
-
-        MA principle: Extracted from run_gh_command (7 lines).
-        """
-        logger.info("GitHub CLI command successful")
-        return GitHubResult(
-            success=True,
-            data=data,
-            error="",
-            user_message="GitHub command successful.",
-            operation=operation,
-        )
-
-    def _create_gh_error_result(self, stderr: str, args: list[str], operation: str) -> GitHubResult:
-        """
-        Create error GitHubResult with parsed user message.
-
-        Args:
-            stderr: GitHub CLI error output
-            args: GitHub CLI arguments (for error parsing)
-            operation: Operation name for result tracking
-
-        Returns:
-            GitHubResult with success=False and user-friendly message
-
-        MA principle: Extracted from run_gh_command (10 lines).
-        """
-        user_message = self._parse_gh_error(stderr, args)
-        logger.error(f"GitHub CLI command failed: {user_message}")
-        return GitHubResult(
-            success=False,
-            data=None,
-            error=stderr,
-            user_message=user_message,
-            operation=operation,
-        )
-
-    def _emit_gh_timeout_error(self, args: list[str], timeout: float, operation: str) -> None:
-        """
-        Emit timeout error result.
-
-        Args:
-            args: GitHub CLI arguments that timed out
-            timeout: Timeout value in seconds
-            operation: Operation name for result tracking
-
-        MA principle: Extracted from run_gh_command (15 lines).
-        """
-        timeout_msg = (
-            f"GitHub CLI operation timed out after {timeout}s. "
-            f"Command: {' '.join(['gh'] + args)}. "
-            "Check network connection or try again."
-        )
-        logger.error(timeout_msg)
-        self.github_result_ready.emit(
-            GitHubResult(
-                success=False,
-                data=None,
-                error=timeout_msg,
-                user_message="GitHub operation timed out",
-                operation=operation,
-            )
-        )
-
-    def _emit_gh_not_found_error(self, operation: str) -> None:
-        """
-        Emit GitHub CLI not found error result.
-
-        Args:
-            operation: Operation name for result tracking
-
-        MA principle: Extracted from run_gh_command (13 lines).
-        """
-        error_msg = (
-            "GitHub CLI (gh) not found. Ensure gh is installed and in system PATH. Install: https://cli.github.com/"
-        )
-        logger.error(error_msg)
-        self.github_result_ready.emit(
-            GitHubResult(
-                success=False,
-                data=None,
-                error=error_msg,
-                user_message="GitHub CLI not found",
-                operation=operation,
-            )
-        )
-
-    def _emit_gh_general_error(self, e: Exception, operation: str) -> None:
-        """
-        Emit general exception error result.
-
-        Args:
-            e: Exception that occurred
-            operation: Operation name for result tracking
-
-        MA principle: Extracted from run_gh_command (11 lines).
-        """
-        error_msg = f"Unexpected error running GitHub CLI command: {e}"
-        logger.exception("Unexpected GitHub CLI error")
-        self.github_result_ready.emit(
-            GitHubResult(
-                success=False,
-                data=None,
-                error=str(e),
-                user_message=error_msg,
-                operation=operation,
-            )
-        )
-
     @Slot(list, str, str)
     def run_gh_command(
         self,
@@ -365,188 +250,43 @@ class GitHubCLIWorker(BaseWorker):
 
             # Create and emit result based on exit code.
             if exit_code == 0:
-                data = self._parse_gh_json_output(stdout)
-                result = self._create_gh_success_result(data, operation)
+                data = self._result_factory.parse_json_output(stdout)
+                result = self._result_factory.create_success_result(data, operation)
             else:
-                result = self._create_gh_error_result(stderr, args, operation)
+                result = self._result_factory.create_error_result(stderr, args, operation)
 
             self.github_result_ready.emit(result)
 
         except subprocess.TimeoutExpired as e:
-            self._emit_gh_timeout_error(args, e.timeout, operation)
+            self._result_factory.emit_timeout_error(args, e.timeout, operation)
         except FileNotFoundError:
-            self._emit_gh_not_found_error(operation)
+            self._result_factory.emit_not_found_error(operation)
         except Exception as e:
-            self._emit_gh_general_error(e, operation)
+            self._result_factory.emit_general_error(e, operation)
+
+    # Wrapper methods for backward compatibility (delegate to command builder)
 
     @Slot(str, str, str, str)
-    def create_pull_request(
-        self,
-        title: str,
-        body: str,
-        base: str,
-        head: str,
-        working_dir: str | None = None,
-    ) -> None:
-        """
-        Create a GitHub pull request.
-
-        Args:
-            title: PR title
-            body: PR description/body
-            base: Base branch (e.g., "main")
-            head: Head branch (e.g., "feature-x")
-            working_dir: Optional repository path
-
-        Emits:
-            github_result_ready: GitHubResult with PR number and URL in data field
-        """
-        # Build gh pr create command with JSON output
-        args = [
-            "pr",
-            "create",
-            "--title",
-            title,
-            "--body",
-            body,
-            "--base",
-            base,
-            "--head",
-            head,
-            "--json",
-            "number,url",
-        ]
-        self.run_gh_command(args, working_dir, operation="pr_create")
+    def create_pull_request(self, title: str, body: str, base: str, head: str, working_dir: str | None = None) -> None:
+        """Create a GitHub pull request (delegates to command builder)."""
+        self._command_builder.create_pull_request(title, body, base, head, working_dir)
 
     @Slot(str)
     def list_pull_requests(self, state: str | None = None, working_dir: str | None = None) -> None:
-        """
-        List pull requests in the repository.
-
-        Args:
-            state: Filter by state: "open", "closed", "merged", or None for all
-            working_dir: Optional repository path
-
-        Emits:
-            github_result_ready: GitHubResult with list of PRs in data field
-        """
-        args = [
-            "pr",
-            "list",
-            "--json",
-            "number,title,state,url,headRefName,author,createdAt",
-        ]
-
-        if state:
-            args.extend(["--state", state])
-
-        self.run_gh_command(args, working_dir, operation="pr_list")
+        """List pull requests (delegates to command builder)."""
+        self._command_builder.list_pull_requests(state, working_dir)
 
     @Slot(str, str)
     def create_issue(self, title: str, body: str, working_dir: str | None = None) -> None:
-        """
-        Create a GitHub issue.
-
-        Args:
-            title: Issue title
-            body: Issue description/body
-            working_dir: Optional repository path
-
-        Emits:
-            github_result_ready: GitHubResult with issue number and URL in data field
-        """
-        args = [
-            "issue",
-            "create",
-            "--title",
-            title,
-            "--body",
-            body,
-            "--json",
-            "number,url",
-        ]
-        self.run_gh_command(args, working_dir, operation="issue_create")
+        """Create a GitHub issue (delegates to command builder)."""
+        self._command_builder.create_issue(title, body, working_dir)
 
     @Slot(str)
     def list_issues(self, state: str | None = None, working_dir: str | None = None) -> None:
-        """
-        List issues in the repository.
-
-        Args:
-            state: Filter by state: "open", "closed", or None for all
-            working_dir: Optional repository path
-
-        Emits:
-            github_result_ready: GitHubResult with list of issues in data field
-        """
-        args = [
-            "issue",
-            "list",
-            "--json",
-            "number,title,state,url,labels,author,createdAt",
-        ]
-
-        if state:
-            args.extend(["--state", state])
-
-        self.run_gh_command(args, working_dir, operation="issue_list")
+        """List issues (delegates to command builder)."""
+        self._command_builder.list_issues(state, working_dir)
 
     @Slot()
     def get_repo_info(self, working_dir: str | None = None) -> None:
-        """
-        Get repository information.
-
-        Args:
-            working_dir: Optional repository path
-
-        Emits:
-            github_result_ready: GitHubResult with repo info in data field
-        """
-        args = [
-            "repo",
-            "view",
-            "--json",
-            "name,nameWithOwner,description,stargazerCount,forkCount,defaultBranchRef,visibility,url",
-        ]
-        self.run_gh_command(args, working_dir, operation="repo_info")
-
-    def _parse_gh_error(self, stderr: str, command: list[str]) -> str:
-        """
-        Parse GitHub CLI error messages and provide user-friendly explanations.
-
-        MA principle: Reduced from depth=7 to depth=1 using error pattern mapping (86% reduction).
-
-        Args:
-            stderr: GitHub CLI command standard error output
-            command: GitHub CLI command that was executed
-
-        Returns:
-            Human-readable error message for status bar display
-
-        Examples:
-            >>> worker._parse_gh_error("not logged into any GitHub hosts", ["pr", "list"])
-            "Not authenticated. Run 'gh auth login' in terminal."
-        """
-        stderr_lower = stderr.lower()
-
-        # Error pattern mapping (keywords -> user message)
-        error_patterns = [
-            (["not logged into", "not authenticated"], "Not authenticated. Run 'gh auth login' in terminal."),
-            (
-                ["no default remote", "not a git repository"],
-                "No GitHub remote found. Add remote with 'git remote add origin <url>'.",
-            ),
-            (["rate limit"], "GitHub API rate limit exceeded. Try again in 1 hour."),
-            (["permission denied", "forbidden"], "Permission denied. Check repository access and token scopes."),
-            (["not found", "repository"], "Repository not found. Check repository name and access."),
-            (["network", "could not resolve host"], "Network error. Check internet connection."),
-            (["timeout"], "Request timed out. Check network connection."),
-        ]
-
-        # Check each pattern (OR logic - any keyword matches)
-        for keywords, message in error_patterns:
-            if any(keyword in stderr_lower for keyword in keywords):
-                return message
-
-        # Default: return first 200 chars of error
-        return f"GitHub CLI error: {stderr[:200]}"
+        """Get repository information (delegates to command builder)."""
+        self._command_builder.get_repo_info(working_dir)
