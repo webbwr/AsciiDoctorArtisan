@@ -36,29 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class FindBarWidget(QWidget):
-    """
-    Non-modal find/replace bar for quick text searches and replacements.
-
-    This widget appears at the bottom of the editor and provides
-    quick search and replace functionality without blocking the UI.
-
-    Signals:
-        search_requested(str, bool): Emitted when search parameters change
-            - str: search text
-            - bool: case sensitive
-        find_next_requested(): Emitted when user clicks Find Next
-        find_previous_requested(): Emitted when user clicks Find Previous
-        replace_requested(str): Emitted when user clicks Replace
-            - str: replacement text
-        replace_all_requested(str): Emitted when user clicks Replace All
-            - str: replacement text
-        closed(): Emitted when find bar is closed
-
-    Example:
-        >>> find_bar = FindBarWidget(parent)
-        >>> find_bar.search_requested.connect(lambda text, case: print(f"Search: {text}"))
-        >>> find_bar.show_and_focus()
-    """
+    """Non-modal find/replace bar. Signals: search_requested, find_next/previous_requested, replace/replace_all_requested, closed."""
 
     # Signals
     search_requested = Signal(str, bool)  # (search_text, case_sensitive)
@@ -69,12 +47,7 @@ class FindBarWidget(QWidget):
     closed = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
-        """
-        Initialize FindBarWidget.
-
-        Args:
-            parent: Parent widget (usually main window)
-        """
+        """Initialize FindBarWidget with parent."""
         super().__init__(parent)
         self._current_match = 0
         self._total_matches = 0
@@ -83,14 +56,7 @@ class FindBarWidget(QWidget):
         self._connect_signals()
 
     def _create_close_button(self) -> QPushButton:
-        """
-        Create close button with styling.
-
-        Returns:
-            Styled close button
-
-        MA principle: Extracted from _setup_ui (17 lines).
-        """
+        """Create close button with styling (MA: extracted 17 lines)."""
         close_btn = QPushButton("×")
         close_btn.setFixedSize(24, 24)
         close_btn.setToolTip("Close (Esc)")
@@ -110,14 +76,7 @@ class FindBarWidget(QWidget):
         return close_btn
 
     def _create_toggle_replace_button(self) -> QPushButton:
-        """
-        Create toggle replace button with styling.
-
-        Returns:
-            Styled toggle replace button
-
-        MA principle: Extracted from _setup_ui (16 lines).
-        """
+        """Create toggle replace button with styling (MA: extracted 16 lines)."""
         toggle_btn = QPushButton("▶")
         toggle_btn.setFixedSize(24, 24)
         toggle_btn.setToolTip("Toggle Replace (Ctrl+H)")
@@ -136,14 +95,7 @@ class FindBarWidget(QWidget):
         return toggle_btn
 
     def _create_find_row(self) -> QHBoxLayout:
-        """
-        Create find row with search controls.
-
-        Returns:
-            Horizontal layout with find controls
-
-        MA principle: Extracted from _setup_ui (42 lines).
-        """
+        """Create find row with search controls (MA: extracted 42 lines)."""
         find_row = QHBoxLayout()
         find_row.setSpacing(8)
 
@@ -189,14 +141,7 @@ class FindBarWidget(QWidget):
         return find_row
 
     def _create_replace_row(self) -> QWidget:
-        """
-        Create replace row with replace controls.
-
-        Returns:
-            Widget containing replace row layout
-
-        MA principle: Extracted from _setup_ui (38 lines).
-        """
+        """Create replace row with replace controls (MA: extracted 38 lines)."""
         replace_row_widget = QWidget()
         replace_row = QHBoxLayout(replace_row_widget)
         replace_row.setContentsMargins(0, 0, 0, 0)
@@ -233,11 +178,7 @@ class FindBarWidget(QWidget):
         return replace_row_widget
 
     def _apply_widget_styling(self) -> None:
-        """
-        Apply widget background styling.
-
-        MA principle: Extracted from _setup_ui (8 lines).
-        """
+        """Apply widget background styling (MA: extracted 8 lines)."""
         self.setStyleSheet(
             """
             FindBarWidget {
@@ -248,11 +189,7 @@ class FindBarWidget(QWidget):
         )
 
     def _setup_ui(self) -> None:
-        """
-        Setup the UI components.
-
-        MA principle: Reduced from 135→21 lines by extracting 5 helper methods.
-        """
+        """Setup UI components (MA: 135→21 lines, 5 helpers)."""
         # Main vertical layout (stacks Find row and Replace row)
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(4, 4, 4, 4)
@@ -352,22 +289,14 @@ class FindBarWidget(QWidget):
             super().keyPressEvent(event)
 
     def show_and_focus(self) -> None:
-        """
-        Show the find bar and focus the search input.
-
-        This is the recommended way to activate the find bar.
-        """
+        """Show find bar and focus search input (recommended activation method)."""
         self.show()
         self._search_input.setFocus()
         self._search_input.selectAll()  # Select existing text for easy replacement
         logger.debug("Find bar shown and focused")
 
     def show_replace_and_focus(self) -> None:
-        """
-        Show the find bar in replace mode and focus the search input.
-
-        This is triggered by Ctrl+H (Find and Replace).
-        """
+        """Show find bar in replace mode and focus search (Ctrl+H)."""
         self.show()
         # Enable replace mode if not already enabled
         if not self._replace_mode:
@@ -377,71 +306,31 @@ class FindBarWidget(QWidget):
         logger.debug("Find/Replace bar shown and focused")
 
     def get_search_text(self) -> str:
-        """
-        Get current search text.
-
-        Returns:
-            Current search text
-        """
+        """Get current search text."""
         return self._search_input.text()
 
     def set_search_text(self, text: str) -> None:
-        """
-        Set search text programmatically.
-
-        Args:
-            text: Text to set in search input
-        """
+        """Set search text programmatically."""
         self._search_input.setText(text)
 
     def get_replace_text(self) -> str:
-        """
-        Get current replace text.
-
-        Returns:
-            Current replace text
-        """
+        """Get current replace text."""
         return self._replace_input.text()
 
     def set_replace_text(self, text: str) -> None:
-        """
-        Set replace text programmatically.
-
-        Args:
-            text: Text to set in replace input
-        """
+        """Set replace text programmatically."""
         self._replace_input.setText(text)
 
     def is_case_sensitive(self) -> bool:
-        """
-        Check if case-sensitive search is enabled.
-
-        Returns:
-            True if case-sensitive, False otherwise
-        """
+        """Check if case-sensitive search is enabled."""
         return self._case_checkbox.isChecked()
 
     def set_case_sensitive(self, enabled: bool) -> None:
-        """
-        Set case sensitivity.
-
-        Args:
-            enabled: True for case-sensitive, False otherwise
-        """
+        """Set case sensitivity."""
         self._case_checkbox.setChecked(enabled)
 
     def update_match_count(self, current: int, total: int) -> None:
-        """
-        Update the match counter display.
-
-        Args:
-            current: Current match index (1-indexed, 0 if no matches)
-            total: Total number of matches
-
-        Example:
-            >>> find_bar.update_match_count(5, 23)
-            # Displays: "5 of 23"
-        """
+        """Update match counter display (e.g., "5 of 23")."""
         self._current_match = current
         self._total_matches = total
 
