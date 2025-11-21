@@ -5134,11 +5134,22 @@ Context-aware auto-complete for AsciiDoc syntax. Ctrl+Space trigger, fuzzy match
 **API:** `class AutoCompleteEngine: def get_completions(context: str) -> list[Completion]`
 **Tests:** 15 tests, 90%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 15
+- **Coverage Target:** 90%+
+- **Test Types:**
+  - Unit: Context detection (5 tests)
+  - Unit: Provider registration (4 tests)
+  - Integration: Editor integration (4 tests)
+  - Performance: <50ms for 1K completions (2 tests)
+
 ---
 
 ## FR-086: Completion Popup
 
 **Category:** Auto-Complete | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/ui/autocomplete_widget.py`
 
 Popup widget showing completion suggestions. Arrow keys navigate, Enter accepts, Esc cancels. Shows 10 items max.
 
@@ -5146,11 +5157,22 @@ Popup widget showing completion suggestions. Arrow keys navigate, Enter accepts,
 **API:** `class CompletionPopup(QListWidget): def show_completions(items: list[Completion])`
 **Tests:** 12 tests, 85%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 12
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Show/hide popup (4 tests)
+  - Unit: Item navigation (4 tests)
+  - Integration: Editor integration (2 tests)
+  - UI: Arrow keys, Enter, Esc (2 tests)
+
 ---
 
 ## FR-087: Syntax-Aware Completions
 
 **Category:** Auto-Complete | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/autocomplete_providers.py`
 
 AsciiDoc syntax completions: headings (=), lists (*), attributes (:), cross-refs (<<>>), blocks (----).
 
@@ -5158,11 +5180,21 @@ AsciiDoc syntax completions: headings (=), lists (*), attributes (:), cross-refs
 **API:** `def get_syntax_completions(position: int, text: str) -> list[Completion]`
 **Tests:** 20 tests, 90%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Completion types (5 tests)
+  - Unit: Context detection (3 tests)
+  - Integration: Engine integration (2 tests)
+
 ---
 
 ## FR-088: Fuzzy Matching
 
 **Category:** Auto-Complete | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/autocomplete_engine.py::fuzzy_match()`
 
 Fuzzy string matching for completions. Ranks by relevance. Supports abbreviations (e.g., "hdr" matches "header").
 
@@ -5170,11 +5202,21 @@ Fuzzy string matching for completions. Ranks by relevance. Supports abbreviation
 **API:** `def fuzzy_match(query: str, candidates: list[str]) -> list[tuple[str, float]]`
 **Tests:** 15 tests, 95%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 90%+
+- **Test Types:**
+  - Unit: Match algorithm (4 tests)
+  - Unit: Scoring logic (2 tests)
+  - Performance: <10ms for 1K items (2 tests)
+
 ---
 
 ## FR-089: Completion Cache
 
 **Category:** Auto-Complete | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/autocomplete_engine.py`
 
 Cache completion items. Invalidate on document change. LRU cache, 1K items max.
 
@@ -5182,17 +5224,36 @@ Cache completion items. Invalidate on document change. LRU cache, 1K items max.
 **API:** `class CompletionCache(LRUCache): def get_completions_cached(context: str)`
 **Tests:** 10 tests, 85%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Cache hit/miss (3 tests)
+  - Unit: Cache invalidation (3 tests)
+  - Performance: Cache benefit verification (2 tests)
+
 ---
 
 ## FR-090: Custom Completions
 
 **Category:** Auto-Complete | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/autocomplete_providers.py`
 
 User-defined completion snippets. Load from JSON. Supports placeholders ${1}, ${2}.
 
 **Acceptance:** Load from JSON | Placeholders | Tab navigation | Save custom snippets
 **API:** `class CustomCompletions: def add_snippet(trigger: str, template: str)`
 **Tests:** 10 tests, 80%+ coverage
+
+### Test Requirements
+
+- **Minimum Tests:** 6
+- **Coverage Target:** 80%+
+- **Test Types:**
+  - Unit: Provider registration (3 tests)
+  - Unit: Priority handling (2 tests)
+  - Integration: Engine integration (1 test)
 
 ---
 
@@ -5207,11 +5268,22 @@ Real-time AsciiDoc syntax validation. Highlights errors inline. <100ms for 1K li
 **API:** `class SyntaxChecker: def check_syntax(text: str) -> list[SyntaxError]`
 **Tests:** 20 tests, 95%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 12
+- **Coverage Target:** 90%+
+- **Test Types:**
+  - Unit: Validation logic (5 tests)
+  - Unit: Error detection (3 tests)
+  - Integration: Editor integration (2 tests)
+  - Performance: <100ms for 1K lines (2 tests)
+
 ---
 
 ## FR-092: Error Highlighting
 
 **Category:** Syntax Checking | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/ui/syntax_checker_manager.py`
 
 Color-coded error highlights: red (errors), yellow (warnings), blue (info). Squiggly underlines in editor.
 
@@ -5219,11 +5291,22 @@ Color-coded error highlights: red (errors), yellow (warnings), blue (info). Squi
 **API:** `class ErrorHighlighter: def highlight_errors(errors: list[SyntaxError])`
 **Tests:** 12 tests, 90%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Highlight logic (4 tests)
+  - Unit: Error colors (3 tests)
+  - Integration: Editor integration (2 tests)
+  - UI: Visual indicators (1 test)
+
 ---
 
 ## FR-093: Error Navigation
 
 **Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/ui/syntax_checker_manager.py`
 
 Navigate errors with F8 (next), Shift+F8 (previous). Jump to error location, show error message.
 
@@ -5231,11 +5314,22 @@ Navigate errors with F8 (next), Shift+F8 (previous). Jump to error location, sho
 **API:** `def next_error() -> SyntaxError | None`
 **Tests:** 10 tests, 85%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Navigation logic (3 tests)
+  - Unit: Error position tracking (2 tests)
+  - Integration: Editor integration (2 tests)
+  - UI: F8 key handling (1 test)
+
 ---
 
 ## FR-094: Error Panel
 
 **Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/ui/syntax_checker_manager.py`
 
 Error list panel (bottom). Shows all errors with line numbers. Click to jump. Filter by severity.
 
@@ -5243,11 +5337,22 @@ Error list panel (bottom). Shows all errors with line numbers. Click to jump. Fi
 **API:** `class ErrorPanel(QDockWidget): def update_errors(errors: list[SyntaxError])`
 **Tests:** 10 tests, 80%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Error list management (4 tests)
+  - Unit: Panel show/hide (2 tests)
+  - Integration: Checker integration (2 tests)
+  - UI: Click navigation (2 tests)
+
 ---
 
 ## FR-095: Syntax Rules
 
 **Category:** Syntax Checking | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/syntax_validators.py`
 
 AsciiDoc syntax validation rules: heading structure, attribute syntax, cross-ref validity, block delimiters, list consistency.
 
@@ -5255,11 +5360,21 @@ AsciiDoc syntax validation rules: heading structure, attribute syntax, cross-ref
 **API:** `class ValidationRule: def validate(text: str) -> list[SyntaxError]`
 **Tests:** 25 tests, 95%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 12
+- **Coverage Target:** 90%+
+- **Test Types:**
+  - Unit: Rule definitions (6 tests)
+  - Unit: Validation logic (4 tests)
+  - Integration: Checker integration (2 tests)
+
 ---
 
 ## FR-096: Quick Fixes
 
 **Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/syntax_checker.py`
 
 Suggest quick fixes for common errors. Click lightbulb icon or Ctrl+. to apply fix.
 
@@ -5267,11 +5382,22 @@ Suggest quick fixes for common errors. Click lightbulb icon or Ctrl+. to apply f
 **API:** `class QuickFix: def get_fixes(error: SyntaxError) -> list[Fix]`
 **Tests:** 15 tests, 85%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 80%+
+- **Test Types:**
+  - Unit: Fix suggestions (4 tests)
+  - Unit: Fix application (2 tests)
+  - Integration: Editor integration (1 test)
+  - UI: Context menu (1 test)
+
 ---
 
 ## FR-097: Configurable Rules
 
 **Category:** Syntax Checking | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/syntax_checker.py`
 
 Enable/disable validation rules. Configure rule severity. Save preferences.
 
@@ -5279,11 +5405,21 @@ Enable/disable validation rules. Configure rule severity. Save preferences.
 **API:** `class RuleConfig: def set_rule_enabled(rule: str, enabled: bool)`
 **Tests:** 8 tests, 80%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 6
+- **Coverage Target:** 80%+
+- **Test Types:**
+  - Unit: Rule enable/disable (3 tests)
+  - Unit: Severity configuration (2 tests)
+  - Integration: Settings persistence (1 test)
+
 ---
 
 ## FR-098: Performance Optimization
 
 **Category:** Syntax Checking | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/syntax_checker.py`
 
 Optimize syntax checking: incremental validation, debouncing (200ms), background thread, cancel on type.
 
@@ -5291,17 +5427,36 @@ Optimize syntax checking: incremental validation, debouncing (200ms), background
 **API:** `def check_incremental(changes: list[Change]) -> list[SyntaxError]`
 **Tests:** 12 tests, 90%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 5
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Performance: Batch validation (2 tests)
+  - Performance: Incremental checking (2 tests)
+  - Performance: Large document handling (1 test)
+
 ---
 
 ## FR-099: Error Recovery
 
 **Category:** Syntax Checking | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/syntax_checker.py`
 
 Graceful error recovery. Continue validation after error. Don't block on parse failures.
 
 **Acceptance:** Continue after errors | Don't block | Partial validation | Error boundaries
 **API:** `def validate_with_recovery(text: str) -> ValidationResult`
 **Tests:** 10 tests, 85%+ coverage
+
+### Test Requirements
+
+- **Minimum Tests:** 6
+- **Coverage Target:** 80%+
+- **Test Types:**
+  - Unit: Error recovery logic (3 tests)
+  - Unit: Partial validation (2 tests)
+  - Integration: Checker integration (1 test)
 
 ---
 
@@ -5316,11 +5471,22 @@ Document templates: Article, Book, Report, Resume, Presentation, Letter. New Doc
 **API:** `class TemplateManager: def create_from_template(name: str, vars: dict) -> str`
 **Tests:** 15 tests, 90%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 15
+- **Coverage Target:** 90%+
+- **Test Types:**
+  - Unit: Template load/save (5 tests)
+  - Unit: Template management (4 tests)
+  - Integration: Manager integration (3 tests)
+  - File I/O: Template file operations (3 tests)
+
 ---
 
 ## FR-101: Template Variables
 
 **Category:** Templates | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/template_engine.py`
 
 Template variables with Handlebars syntax: {{title}}, {{author}}, {{date}}. Input dialog on template selection.
 
@@ -5328,11 +5494,21 @@ Template variables with Handlebars syntax: {{title}}, {{author}}, {{date}}. Inpu
 **API:** `def substitute_variables(template: str, vars: dict[str, str]) -> str`
 **Tests:** 12 tests, 90%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Variable substitution (5 tests)
+  - Unit: Handlebars parsing (3 tests)
+  - Integration: Engine integration (2 tests)
+
 ---
 
 ## FR-102: Custom Templates
 
 **Category:** Templates | **Priority:** Medium | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/template_manager.py`
 
 User-defined templates. Save current document as template. Load from ~/.local/share/AsciiDocArtisan/templates/.
 
@@ -5340,11 +5516,22 @@ User-defined templates. Save current document as template. Load from ~/.local/sh
 **API:** `def save_as_template(name: str, content: str, metadata: dict)`
 **Tests:** 10 tests, 85%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Add/remove templates (3 tests)
+  - Unit: Template validation (2 tests)
+  - Integration: Manager integration (2 tests)
+  - File I/O: Custom template storage (1 test)
+
 ---
 
 ## FR-103: Template Preview
 
 **Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/ui/template_browser.py`
 
 Preview template before applying. Show rendered output in dialog. Edit variables before apply.
 
@@ -5352,11 +5539,22 @@ Preview template before applying. Show rendered output in dialog. Edit variables
 **API:** `class TemplatePreview(QDialog): def show_preview(template: str)`
 **Tests:** 8 tests, 80%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 10
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Preview rendering (4 tests)
+  - Unit: Preview updates (2 tests)
+  - Integration: Browser integration (2 tests)
+  - UI: Preview pane display (2 tests)
+
 ---
 
 ## FR-104: Template Metadata
 
 **Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/template_manager.py`
 
 Template metadata: name, description, author, category, tags. Display in template selector.
 
@@ -5364,11 +5562,21 @@ Template metadata: name, description, author, category, tags. Display in templat
 **API:** `class TemplateMetadata: name: str; description: str; author: str; tags: list[str]`
 **Tests:** 8 tests, 80%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 85%+
+- **Test Types:**
+  - Unit: Metadata read/write (4 tests)
+  - Unit: Metadata validation (2 tests)
+  - Integration: Manager integration (2 tests)
+
 ---
 
 ## FR-105: Template Categories
 
 **Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/template_manager.py`
 
 Organize templates by category: Document, Academic, Business, Personal, Technical, Other.
 
@@ -5376,17 +5584,38 @@ Organize templates by category: Document, Academic, Business, Personal, Technica
 **API:** `enum TemplateCategory: DOCUMENT, ACADEMIC, BUSINESS, PERSONAL, TECHNICAL, OTHER`
 **Tests:** 6 tests, 75%+ coverage
 
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 80%+
+- **Test Types:**
+  - Unit: Category logic (3 tests)
+  - Unit: Category filtering (2 tests)
+  - Integration: Browser integration (2 tests)
+  - UI: Category filters (1 test)
+
 ---
 
 ## FR-106: Template Sharing
 
 **Category:** Templates | **Priority:** Low | **Status:** ✅ Implemented | **Version:** 2.0.0
+**Implementation:** `src/asciidoc_artisan/core/template_manager.py`
 
 Export templates to .zip. Import templates from .zip. Share templates with others.
 
 **Acceptance:** Export to ZIP | Import from ZIP | Include metadata | Validation
 **API:** `def export_template(name: str, path: Path) -> bool`
 **Tests:** 10 tests, 80%+ coverage
+
+### Test Requirements
+
+- **Minimum Tests:** 6
+- **Coverage Target:** 75%+
+- **Test Types:**
+  - Unit: Export/import logic (2 tests)
+  - Unit: Template validation (2 tests)
+  - Integration: Manager integration (1 test)
+  - File I/O: Template file operations (1 test)
 
 ---
 
@@ -5400,6 +5629,16 @@ Template rendering engine. Handlebars syntax, conditionals, loops. <200ms for ty
 **Acceptance:** Handlebars syntax | Conditionals {{#if}} | Loops {{#each}} | Helpers | <200ms render
 **API:** `class TemplateEngine: def render(template: str, context: dict) -> str`
 **Tests:** 20 tests, 95%+ coverage
+
+### Test Requirements
+
+- **Minimum Tests:** 12
+- **Coverage Target:** 90%+
+- **Test Types:**
+  - Unit: Template rendering (5 tests)
+  - Unit: Variable processing (3 tests)
+  - Integration: Template integration (2 tests)
+  - Performance: <200ms template load (2 tests)
 
 ---
 
