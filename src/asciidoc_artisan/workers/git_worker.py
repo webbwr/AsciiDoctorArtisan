@@ -413,11 +413,61 @@ class GitWorker(BaseWorker):
 
         return has_conflict, is_staged, is_modified
 
+    def _parse_status_line(self, line: str) -> dict[str, Any]:
+        """
+        Parse a single git status line and return updates to counters.
+
+        MA principle: Extracted from _parse_git_status_v2 (30 lines) to reduce complexity.
+
+        Args:
+            line: Single line from git status --porcelain=v2 output
+
+        Returns:
+            Dictionary with keys: branch, ahead_behind, has_conflict, modified, staged, untracked
+        """
+        result: dict[str, Any] = {
+            "branch": None,
+            "ahead_behind": None,
+            "has_conflict": False,
+            "modified": 0,
+            "staged": 0,
+            "untracked": 0,
+        }
+
+        # Parse branch headers
+        if line.startswith("# branch.head "):
+            result["branch"] = self._parse_branch_head(line)
+        elif line.startswith("# branch.ab "):
+            result["ahead_behind"] = self._parse_ahead_behind(line)
+
+        # Parse tracked file status
+        elif line.startswith("1 ") or line.startswith("2 "):
+            parts = line.split(maxsplit=8)
+            conflict, staged, modified = self._parse_tracked_file_status(parts)
+            if conflict:
+                result["has_conflict"] = True
+            if staged:
+                result["staged"] = 1
+            if modified:
+                result["modified"] = 1
+
+        # Unmerged entry (always a conflict)
+        elif line.startswith("u "):
+            result["has_conflict"] = True
+            result["modified"] = 1
+            result["staged"] = 1
+
+        # Untracked file
+        elif line.startswith("? "):
+            result["untracked"] = 1
+
+        return result
+
     def _parse_git_status_v2(self, stdout: str) -> GitStatus:
         """
         Parse git status --porcelain=v2 output into GitStatus model.
 
-        MA principle: Reduced from 125→65 lines by extracting 3 helper methods.
+        MA principle: Reduced from 125→50 lines by extracting 4 helper methods.
 
         Porcelain v2 format documentation:
         https://git-scm.com/docs/git-status#_porcelain_format_version_2
@@ -475,32 +525,17 @@ class GitWorker(BaseWorker):
             if not line:
                 continue
 
-            # Parse branch headers using helpers
-            if line.startswith("# branch.head "):
-                branch = self._parse_branch_head(line)
-            elif line.startswith("# branch.ab "):
-                ahead_count, behind_count = self._parse_ahead_behind(line)
-
-            # Parse tracked file status
-            elif line.startswith("1 ") or line.startswith("2 "):
-                parts = line.split(maxsplit=8)
-                conflict, staged, modified = self._parse_tracked_file_status(parts)
-                if conflict:
-                    has_conflicts = True
-                if staged:
-                    staged_count += 1
-                if modified:
-                    modified_count += 1
-
-            # Unmerged entry (always a conflict)
-            elif line.startswith("u "):
+            # Parse line and update counters
+            result = self._parse_status_line(line)
+            if result["branch"]:
+                branch = result["branch"]
+            if result["ahead_behind"]:
+                ahead_count, behind_count = result["ahead_behind"]
+            if result["has_conflict"]:
                 has_conflicts = True
-                modified_count += 1
-                staged_count += 1
-
-            # Untracked file
-            elif line.startswith("? "):
-                untracked_count += 1
+            modified_count += result["modified"]
+            staged_count += result["staged"]
+            untracked_count += result["untracked"]
 
         # Calculate dirty status
         is_dirty = modified_count > 0 or staged_count > 0 or untracked_count > 0
