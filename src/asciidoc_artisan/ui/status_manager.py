@@ -21,6 +21,7 @@ from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
 
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME, GitStatus
 from asciidoc_artisan.ui.document_metrics_calculator import DocumentMetricsCalculator
+from asciidoc_artisan.ui.git_status_formatter import GitStatusFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,17 @@ class StatusManager:
         if not hasattr(self, "_calculator_instance"):
             self._calculator_instance = DocumentMetricsCalculator()
         return self._calculator_instance
+
+    @property
+    def _git_formatter(self) -> GitStatusFormatter:
+        """
+        Lazy-initialized Git status formatter.
+
+        MA principle: Delegates Git formatting to GitStatusFormatter (extracted class).
+        """
+        if not hasattr(self, "_formatter_instance"):
+            self._formatter_instance = GitStatusFormatter()
+        return self._formatter_instance
 
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets after status bar is created."""
@@ -380,69 +392,12 @@ class StatusManager:
         self.editor.status_bar.showMessage(f"Cancelled {self._current_operation} operation", 3000)
 
     def _determine_git_display_state(self, status: GitStatus) -> tuple[str, str, str]:
-        """
-        Determine Git status display text, color, and description.
-
-        MA principle: Extracted from update_git_status (18 lines).
-
-        Args:
-            status: GitStatus object
-
-        Returns:
-            Tuple of (text, color, status_desc)
-        """
-        branch = status.branch
-        total_changes = status.modified_count + status.staged_count + status.untracked_count
-
-        if status.has_conflicts:
-            # Red for conflicts
-            return (f"{branch} ⚠", "#ef4444", "Conflicts")
-        elif total_changes > 0:
-            # Yellow for changes (show count)
-            return (f"{branch} ●{total_changes}", "#fbbf24", "Changes")
-        else:
-            # Green for clean
-            return (f"{branch} ✓", "#4ade80", "Clean")
+        """Determine Git display state (delegates to git_formatter)."""
+        return self._git_formatter.determine_git_display_state(status)
 
     def _build_git_tooltip(self, status: GitStatus, status_desc: str, total_changes: int) -> str:
-        """
-        Build detailed Git status tooltip.
-
-        MA principle: Extracted from update_git_status (25 lines).
-
-        Args:
-            status: GitStatus object
-            status_desc: Status description
-            total_changes: Total number of changes
-
-        Returns:
-            Tooltip text
-        """
-        tooltip_parts = [
-            f"Git Repository Status: {status_desc}",
-            f"Branch: {status.branch}",
-            "",
-        ]
-
-        if status.has_conflicts:
-            tooltip_parts.append("⚠ CONFLICTS DETECTED - Resolve before committing")
-            tooltip_parts.append("")
-
-        if total_changes > 0:
-            tooltip_parts.append("Changes:")
-            if status.modified_count > 0:
-                tooltip_parts.append(f"  Modified: {status.modified_count} files")
-            if status.staged_count > 0:
-                tooltip_parts.append(f"  Staged: {status.staged_count} files")
-            if status.untracked_count > 0:
-                tooltip_parts.append(f"  Untracked: {status.untracked_count} files")
-        else:
-            tooltip_parts.append("✓ Working tree clean")
-
-        tooltip_parts.append("")
-        tooltip_parts.append("Click to view detailed status (Ctrl+Shift+G)")
-
-        return "\n".join(tooltip_parts)
+        """Build Git tooltip (delegates to git_formatter)."""
+        return self._git_formatter.build_git_tooltip(status, status_desc, total_changes)
 
     def update_git_status(self, status: GitStatus) -> None:
         """
