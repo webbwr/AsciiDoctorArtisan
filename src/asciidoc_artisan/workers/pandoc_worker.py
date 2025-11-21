@@ -33,7 +33,9 @@ from PySide6.QtCore import QObject, Signal, Slot
 
 # Lazy import check for Pandoc (deferred until first use for faster startup)
 from asciidoc_artisan.core.constants import is_pandoc_available
+from asciidoc_artisan.workers.asciidoc_enhancer import AsciiDocEnhancer
 from asciidoc_artisan.workers.ollama_conversion_handler import OllamaConversionHandler
+from asciidoc_artisan.workers.pandoc_args_builder import PandocArgsBuilder
 from asciidoc_artisan.workers.pandoc_executor import PandocExecutor
 
 # AI client removed - using Ollama for local AI features instead
@@ -74,13 +76,6 @@ class ConversionRequest:
     output_file: Path | None
     use_ai_conversion: bool
 
-
-# Pre-compiled regex patterns for post-processing (hot path optimization, v1.9.1)
-# Compiling at module level is 2-3x faster than compiling on each conversion
-_SOURCE_BLOCK_FIX = re.compile(r"\[source\](\w+)")
-_HEADING_SPACING = re.compile(r"\n(=+\s+[^\n]+)\n(?!=)")
-_TABLE_CLEANUP = re.compile(r"\|===\n\n")
-_ADMONITION_FORMAT = re.compile(r"(?m)^(NOTE|TIP|IMPORTANT|WARNING|CAUTION):\s*")
 
 
 class PandocWorker(QObject):
@@ -127,6 +122,8 @@ class PandocWorker(QObject):
             ollama_model=None,
             progress_signal=self.progress_update
         )
+        self._args_builder = PandocArgsBuilder()
+        self._asciidoc_enhancer = AsciiDocEnhancer()
         self._pandoc_executor = PandocExecutor(output_enhancer=self)
 
     def set_ollama_config(self, enabled: bool, model: str | None) -> None:
@@ -210,107 +207,12 @@ class PandocWorker(QObject):
         return None, request.source, conversion_method
 
     def _detect_pdf_engine(self) -> str:
-        """
-        Detect available PDF engine for Pandoc PDF conversion.
-
-        Tries engines in priority order: wkhtmltopdf (fastest), weasyprint,
-        prince, pdflatex, xelatex, lualatex, context, pdfroff.
-
-        Returns:
-            Name of the first available PDF engine
-
-        Raises:
-            RuntimeError: If no PDF engine is available
-        """
-        pdf_engines = [
-            "wkhtmltopdf",
-            "weasyprint",
-            "prince",
-            "pdflatex",
-            "xelatex",
-            "lualatex",
-            "context",
-            "pdfroff",
-        ]
-
-        for engine in pdf_engines:
-            try:
-                subprocess.run(
-                    [engine, "--version"],
-                    capture_output=True,
-                    check=True,
-                    timeout=5,  # 5 second timeout for version check
-                )
-                logger.info(f"Using PDF engine: {engine}")
-                return engine
-            except (
-                FileNotFoundError,
-                subprocess.CalledProcessError,
-                subprocess.TimeoutExpired,
-                Exception,
-            ):
-                # Engine not found, returned error, timed out, or other issue
-                # Continue to next engine
-                continue
-
-        # No PDF engine available - this should not happen in production
-        logger.error("No PDF engine found. Install wkhtmltopdf, weasyprint, or pdflatex.")
-        raise RuntimeError(
-            "PDF conversion requires a PDF engine. Install wkhtmltopdf: sudo apt-get install wkhtmltopdf"
-        )
+        """Detect PDF engine (delegates to args_builder)."""
+        return self._args_builder.detect_pdf_engine()
 
     def _build_pandoc_args(self, from_format: str, to_format: str) -> list[str]:
-        """
-        Build Pandoc command-line arguments based on format conversion.
-
-        Args:
-            from_format: Source format (e.g., "docx", "markdown")
-            to_format: Target format (e.g., "pdf", "asciidoc")
-
-        Returns:
-            List of Pandoc command-line arguments
-        """
-        # Base Pandoc arguments
-        extra_args = [
-            "--wrap=preserve",
-            "--reference-links",
-            "--standalone",
-            "--toc-depth=3",
-        ]
-
-        # Format-specific arguments - input format
-        if from_format == "docx":
-            extra_args.extend(
-                [
-                    "--extract-media=.",
-                ]
-            )
-
-        # Format-specific arguments - output format
-        if to_format == "pdf":
-            # PDF-specific arguments
-            extra_args.extend(
-                [
-                    "--variable=geometry:margin=1in",
-                    "--variable=fontsize=11pt",
-                    "--highlight-style=tango",
-                ]
-            )
-
-            # Detect and configure PDF engine
-            pdf_engine = self._detect_pdf_engine()
-            extra_args.append(f"--pdf-engine={pdf_engine}")
-        elif to_format == "docx":
-            # DOCX-specific arguments (currently none)
-            pass
-        elif to_format == "markdown":
-            extra_args.extend(
-                [
-                    "--wrap=none",
-                ]
-            )
-
-        return extra_args
+        """Build Pandoc args (delegates to args_builder)."""
+        return self._args_builder.build_pandoc_args(from_format, to_format)
 
     def _convert_binary_to_file(
         self,
@@ -432,45 +334,8 @@ class PandocWorker(QObject):
             self.conversion_error.emit(str(e), context)
 
     def _enhance_asciidoc_output(self, text: str) -> str:
-        """
-        Post-process AsciiDoc output for better quality.
-
-        Improvements:
-        - Add document title if missing
-        - Fix source block attributes
-        - Add proper spacing around headings
-        - Clean up table syntax
-        - Format admonition blocks
-
-        Args:
-            text: Raw AsciiDoc output from Pandoc
-
-        Returns:
-            Enhanced AsciiDoc with better formatting
-        """
-        # Add document title if missing
-        if not text.strip().startswith("="):
-            lines = text.strip().split("\n")
-
-            # Try to find first heading to use as title
-            for i, line in enumerate(lines):
-                if line.startswith("=="):
-                    title = line[2:].strip()
-                    lines.insert(0, f"= {title}\n")
-                    lines[i + 1] = line
-                    break
-            else:
-                # No heading found, add generic title
-                lines.insert(0, "= Converted Document\n")
-            text = "\n".join(lines)
-
-        # Apply post-processing fixes (use pre-compiled patterns for 2-3x speedup)
-        text = _SOURCE_BLOCK_FIX.sub(r"[source,\1]", text)
-        text = _HEADING_SPACING.sub(r"\n\n\1\n", text)
-        text = _TABLE_CLEANUP.sub(r"|===\n", text)
-        text = _ADMONITION_FORMAT.sub(r"\n\1: ", text)
-
-        return text
+        """Enhance AsciiDoc output (delegates to asciidoc_enhancer)."""
+        return self._asciidoc_enhancer.enhance_asciidoc_output(text)
 
     def _try_ollama_conversion(self, source: str, from_format: str, to_format: str) -> str | None:
         """Attempt Ollama conversion (delegates to ollama_handler)."""
