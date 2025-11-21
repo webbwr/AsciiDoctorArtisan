@@ -1,73 +1,21 @@
 """
-===============================================================================
-EXPORT MANAGER - Document Export and Format Conversion
-===============================================================================
+Export Manager - Document export and format conversion.
 
-FILE PURPOSE:
-This file manages exporting documents to different formats: AsciiDoc, Markdown,
-Word (DOCX), HTML, and PDF.
+Exports AsciiDoc to: Markdown (.md), DOCX (.docx), HTML (.html), PDF (.pdf).
+Uses Pandoc for conversion, supports AI-enhanced exports (optional).
+Handles clipboard content conversion (Word/HTML → AsciiDoc).
 
-WHAT THIS FILE DOES:
-1. Exports AsciiDoc documents to multiple formats (5 formats total)
-2. Uses Pandoc for format conversion (AsciiDoc → Markdown/Word/HTML/PDF)
-3. Handles clipboard content conversion (paste and convert)
-4. Detects PDF engines and chooses best one (wkhtmltopdf or xhtml2pdf)
-5. Manages export state (prevents concurrent exports)
+Architecture (delegation pattern):
+- PandocExporter: Pandoc operations
+- HTMLConverter: AsciiDoc → HTML
+- PDFHelper: PDF engine detection
+- ClipboardHelper: Clipboard conversion
 
-FOR BEGINNERS - WHAT IS EXPORTING?:
-Exporting means saving your document in a different format:
-- You write in AsciiDoc (easy to read and write)
-- You export to Word (DOCX) to send to colleagues
-- You export to PDF to share a finished document
-- You export to HTML to publish on a website
+Security: Atomic file writes, temp cleanup, path validation, shell=False.
+Performance: Lazy imports, background PandocWorker, responsive UI.
 
-ANALOGY:
-Think of a translator:
-- You speak English (AsciiDoc)
-- Translator converts to Spanish (Word/PDF/HTML)
-- Same content, different language (format)
-
-WHY THIS FILE WAS EXTRACTED:
-Before v1.5.0, export logic was in main_window.py (making it 1,700+ lines!).
-We extracted it to:
-- Reduce main_window.py size (part of 67% reduction to 561 lines)
-- Group related functionality (all exports in one place)
-- Make testing easier (can test exports separately)
-- Separate concerns (main window doesn't need to know about Pandoc)
-
-KEY CONCEPTS:
-
-1. FORMAT CONVERSION:
-   - Pandoc is the "Swiss Army knife" of document conversion
-   - It converts between 40+ formats
-   - We use it for: Markdown, Word, HTML, PDF
-
-2. PDF ENGINES:
-   - wkhtmltopdf: Fast, high quality (requires external program)
-   - xhtml2pdf: Pure Python, slower (fallback if wkhtmltopdf missing)
-   - We auto-detect which is available
-
-3. EXPORT STATE MANAGEMENT:
-   - _is_exporting flag prevents concurrent exports
-   - Can't start new export while one is running
-   - Prevents file corruption and UI confusion
-
-4. CLIPBOARD CONVERSION:
-   - Copy Word/HTML content to clipboard
-   - Paste in AsciiDoc Artisan
-   - Automatically converts to AsciiDoc!
-
-SPECIFICATIONS IMPLEMENTED:
-- FR-021 to FR-024: Multi-format export (Markdown, DOCX, HTML, PDF)
-- FR-028: Clipboard content conversion
-- NFR-010: Export operation status indication
-
-REFACTORING HISTORY:
-- v1.0: All export code in main_window.py
-- v1.5.0: Extracted to export_manager.py (455 lines)
-- Result: Main window reduced by 67%
-
-VERSION: 1.5.0 (Major refactoring)
+Implements: FR-021 to FR-024 (multi-format export), FR-028 (clipboard).
+MA principle: Reduced from 648→572 lines (11.7% reduction, partial work).
 """
 
 # === STANDARD LIBRARY IMPORTS ===
@@ -116,34 +64,12 @@ ERR_ASCIIDOC_NOT_INITIALIZED = "AsciiDoc renderer not initialized"  # Error mess
 
 class ExportManager(QObject):
     """
-    Export Manager - Handles Document Export and Format Conversion.
+    Export Manager - Document export and format conversion.
 
-    FOR BEGINNERS - WHAT IS THIS CLASS?:
-    This class is like a "document translator" that converts your AsciiDoc
-    document to other formats (Word, PDF, HTML, Markdown). Think of it as
-    having multiple "save as" options.
+    Exports AsciiDoc to multiple formats (Markdown, DOCX, HTML, PDF).
+    Uses Pandoc for conversion, handles clipboard content conversion.
 
-    RESPONSIBILITIES:
-    1. Export to multiple formats (AsciiDoc, Markdown, Word, HTML, PDF)
-    2. Use Pandoc for format conversion (background thread)
-    3. Detect and use best PDF engine (wkhtmltopdf or fallback)
-    4. Handle clipboard content conversion (paste Word/HTML → AsciiDoc)
-    5. Manage export state (prevent concurrent exports)
-
-    WHY IT EXISTS:
-    Before this class, export logic was in main_window.py. By extracting it,
-    we reduced main_window.py by 67% and made exports testable independently.
-
-    USAGE:
-    Called by main_window.py:
-        export_mgr = ExportManager(self)
-        export_mgr.export_as_docx()  # Export to Word
-        export_mgr.export_as_pdf()   # Export to PDF
-
-    SIGNALS (Events):
-    - export_started: Fired when export begins (emits format name)
-    - export_completed: Fired when export succeeds (emits file path)
-    - export_failed: Fired when export fails (emits error message)
+    Signals: export_started(str), export_completed(Path), export_failed(str)
     """
 
     # === QT SIGNALS ===
@@ -153,24 +79,7 @@ class ExportManager(QObject):
     export_failed = Signal(str)  # Emits error message when export fails
 
     def __init__(self, main_window: "AsciiDocEditor"):
-        """
-        Initialize Export Manager.
-
-        WHAT THIS DOES:
-        1. Calls parent QObject.__init__ for signal/slot support
-        2. Stores reference to main window
-        3. Initializes export state flag
-
-        PARAMETERS:
-            main_window: The main AsciiDocEditor window
-
-        CREATES:
-            self.main_window: Reference to main window
-            self._is_exporting: Guard flag (prevents concurrent exports)
-
-        Args:
-            main_window: Main window instance (for signals, editor access, etc.)
-        """
+        """Initialize Export Manager with main window reference and helpers."""
         super().__init__(main_window)
         self.window = main_window
         self.editor = main_window.editor
@@ -201,43 +110,17 @@ class ExportManager(QObject):
 
     @property
     def _pandoc_exporter(self) -> PandocExporter:
-        """
-        Lazy-initialized Pandoc exporter for export operations.
-
-        MA principle: Delegates Pandoc operations to PandocExporter (extracted class).
-        """
+        """Lazy-initialized Pandoc exporter (MA principle: delegates to PandocExporter)."""
         if not hasattr(self, "_exporter_instance"):
             self._exporter_instance = PandocExporter(self)
         return self._exporter_instance
 
     def _save_file_atomic(self, file_path: Path, content: str, encoding: str = "utf-8") -> bool:
-        """
-        Save file atomically (helper for PandocExporter).
-
-        This wrapper allows tests to mock file saving at the ExportManager level.
-
-        Args:
-            file_path: Target file path
-            content: File content
-            encoding: File encoding
-
-        Returns:
-            True if successful, False otherwise
-        """
+        """Save file atomically (test wrapper for PandocExporter)."""
         return atomic_save_text(file_path, content, encoding=encoding)
 
     def _get_format_filter_and_extension(self, format_type: str) -> tuple[str, str] | None:
-        """
-        Get file filter and extension for export format.
-
-        MA principle: Extracted from save_file_as_format (12 lines).
-
-        Args:
-            format_type: Target format
-
-        Returns:
-            Tuple of (file_filter, extension) or None if unsupported
-        """
+        """Get file filter and extension for format (MA: extracted 12 lines)."""
         format_filters = {
             "adoc": (ADOC_FILTER, ".adoc"),
             "md": (MD_FILTER, ".md"),
@@ -253,17 +136,7 @@ class ExportManager(QObject):
         return format_filters[format_type]
 
     def _get_suggested_export_path(self, suggested_ext: str) -> Path:
-        """
-        Generate suggested file path for export.
-
-        MA principle: Extracted from save_file_as_format (6 lines).
-
-        Args:
-            suggested_ext: File extension
-
-        Returns:
-            Suggested file path
-        """
+        """Generate suggested file path for export (MA: extracted 6 lines)."""
         if self.window._current_file_path:
             suggested_name = self.window._current_file_path.stem + suggested_ext
         else:
@@ -271,19 +144,7 @@ class ExportManager(QObject):
         return Path(self._settings.last_directory) / suggested_name
 
     def _show_export_dialog(self, format_type: str, suggested_path: Path, file_filter: str) -> Path | None:
-        """
-        Show save dialog for export.
-
-        MA principle: Extracted from save_file_as_format (13 lines).
-
-        Args:
-            format_type: Target format (for dialog title)
-            suggested_path: Suggested file path
-            file_filter: File filter string
-
-        Returns:
-            Selected file path or None if cancelled
-        """
+        """Show save dialog for export (MA: extracted 13 lines)."""
         file_path_str, _ = QFileDialog.getSaveFileName(
             self.window,
             f"Export as {format_type.upper()}",
@@ -300,18 +161,7 @@ class ExportManager(QObject):
         return Path(file_path_str)
 
     def _save_asciidoc_directly(self, file_path: Path, content: str) -> bool:
-        """
-        Save content as AsciiDoc file (no conversion).
-
-        MA principle: Extracted from save_file_as_format (14 lines).
-
-        Args:
-            file_path: Target file path
-            content: AsciiDoc content
-
-        Returns:
-            True if successful, False otherwise
-        """
+        """Save as AsciiDoc file, no conversion (MA: extracted 14 lines)."""
         if atomic_save_text(file_path, content, encoding="utf-8"):
             self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
             self.export_completed.emit(file_path)
@@ -326,17 +176,7 @@ class ExportManager(QObject):
             return False
 
     def save_file_as_format(self, format_type: str) -> bool:
-        """
-        Save/export file in specified format using background conversion.
-
-        MA principle: Reduced from 78→27 lines by extracting 4 helpers (65% reduction).
-
-        Args:
-            format_type: Target format (adoc, md, docx, html, pdf)
-
-        Returns:
-            True if export initiated successfully, False otherwise
-        """
+        """Save/export file in format (MA: 78→27 lines, 4 helpers, 65% reduction)."""
         # Get format filter and extension
         result = self._get_format_filter_and_extension(format_type)
         if not result:
@@ -370,16 +210,7 @@ class ExportManager(QObject):
         return self._export_via_pandoc(file_path, format_type, content, use_ai_for_export)
 
     def _export_html(self, file_path: Path, content: str) -> bool:
-        """
-        Export to HTML format (synchronous).
-
-        Args:
-            file_path: Target file path
-            content: AsciiDoc content to export
-
-        Returns:
-            True if successful, False otherwise
-        """
+        """Export to HTML format (synchronous)."""
         self.status_bar.showMessage("Exporting to HTML...")
         try:
             # Convert AsciiDoc to HTML using helper
@@ -399,17 +230,7 @@ class ExportManager(QObject):
             return False
 
     def _convert_to_html_for_export(self, content: str) -> str | None:
-        """
-        Convert AsciiDoc to HTML for export.
-
-        MA principle: Extracted from _export_via_pandoc (12 lines).
-
-        Args:
-            content: AsciiDoc content
-
-        Returns:
-            HTML content or None on error
-        """
+        """Convert AsciiDoc to HTML for export (MA: extracted 12 lines)."""
         try:
             return self.html_converter.asciidoc_to_html(content)
         except Exception as e:
@@ -423,17 +244,7 @@ class ExportManager(QObject):
             return None
 
     def _create_temp_html_file(self, html_content: str) -> Path | None:
-        """
-        Create temporary HTML file for Pandoc conversion.
-
-        MA principle: Extracted from _export_via_pandoc (8 lines).
-
-        Args:
-            html_content: HTML content to write
-
-        Returns:
-            Path to temp file or None on error
-        """
+        """Create temp HTML file for Pandoc (MA: extracted 8 lines)."""
         temp_html = Path(self.temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
         try:
             temp_html.write_text(html_content, encoding="utf-8")
@@ -452,11 +263,7 @@ class ExportManager(QObject):
         return self._pandoc_exporter.export_pdf_fallback(file_path, html_content)
 
     def convert_and_paste_from_clipboard(self) -> None:
-        """
-        Convert clipboard content to AsciiDoc and paste at cursor.
-
-        Supports HTML and plain text clipboard content.
-        """
+        """Convert clipboard (HTML/text) to AsciiDoc and paste at cursor."""
         # Check Pandoc availability (lazy import for fast startup)
         from asciidoc_artisan.core.constants import is_pandoc_available
 
@@ -502,13 +309,7 @@ class ExportManager(QObject):
         )
 
     def handle_pandoc_result(self, result: str, context: str) -> None:
-        """
-        Handle Pandoc conversion result.
-
-        Args:
-            result: Conversion result text
-            context: Context string identifying the operation
-        """
+        """Handle Pandoc conversion result."""
         # Handle clipboard conversion
         if context == "clipboard conversion":
             self.editor.insertPlainText(result)
@@ -520,13 +321,7 @@ class ExportManager(QObject):
             self._handle_export_result(result, context)
 
     def _handle_export_result(self, result: str, context: str) -> None:
-        """
-        Handle export operation result.
-
-        Args:
-            result: Export result text
-            context: Context string identifying the operation
-        """
+        """Handle export operation result."""
         if self.pending_export_path is None or self.pending_export_format is None:
             logger.error("Export paths not set despite being in export context")
             return
