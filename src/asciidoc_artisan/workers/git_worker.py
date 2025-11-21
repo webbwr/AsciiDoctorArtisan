@@ -65,6 +65,112 @@ class GitWorker(BaseWorker):
     status_ready = Signal(GitStatus)
     detailed_status_ready = Signal(dict)  # v1.9.0+
 
+    def _check_and_handle_cancellation(self) -> bool:
+        """Check for cancellation and emit result if cancelled. Returns True if cancelled."""
+        if self._check_cancellation():
+            logger.info("Git operation cancelled before execution")
+            self.command_complete.emit(
+                GitResult(
+                    success=False,
+                    stdout="",
+                    stderr="Operation cancelled by user",
+                    exit_code=-1,
+                    user_message="Cancelled",
+                )
+            )
+            self.reset_cancellation()
+            return True
+        return False
+
+    def _get_timeout_for_command(self, command: list[str]) -> int:
+        """Determine timeout based on operation type (network vs local)."""
+        network_ops = {"pull", "push", "fetch", "clone"}
+        is_network_op = any(op in command for op in network_ops)
+        return 60 if is_network_op else 30
+
+    def _execute_git_subprocess(
+        self, command: list[str], working_dir: str, timeout: int
+    ) -> subprocess.CompletedProcess[str]:
+        """Execute Git subprocess with security controls."""
+        return subprocess.run(
+            command,
+            cwd=working_dir,
+            capture_output=True,
+            text=True,
+            check=False,
+            shell=False,  # Critical: prevents command injection
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+        )
+
+    def _create_success_result(self, stdout: str, stderr: str, exit_code: int) -> GitResult:
+        """Create success result."""
+        return GitResult(
+            success=True,
+            stdout=stdout,
+            stderr=stderr,
+            exit_code=exit_code,
+            user_message="Git command successful.",
+        )
+
+    def _create_error_result(self, stdout: str, stderr: str, exit_code: int | None, command: list[str]) -> GitResult:
+        """Create error result with analyzed message."""
+        user_message = self._analyze_git_error(stderr, command)
+        return GitResult(
+            success=False,
+            stdout=stdout,
+            stderr=stderr,
+            exit_code=exit_code,
+            user_message=user_message,
+        )
+
+    def _emit_timeout_error(self, command: list[str], timeout: int) -> None:
+        """Emit timeout error result."""
+        timeout_msg = (
+            f"Git operation timed out after {timeout}s. "
+            f"Command: {' '.join(command)}. "
+            "Check network connection or try again."
+        )
+        logger.error(timeout_msg)
+        self.command_complete.emit(
+            GitResult(
+                success=False,
+                stdout="",
+                stderr=timeout_msg,
+                exit_code=None,
+                user_message="Git operation timed out",
+            )
+        )
+
+    def _emit_not_found_error(self) -> None:
+        """Emit Git not found error result."""
+        error_msg = "Git command not found. Ensure Git is installed and in system PATH."
+        logger.error(error_msg)
+        self.command_complete.emit(
+            GitResult(
+                success=False,
+                stdout="",
+                stderr=error_msg,
+                exit_code=None,
+                user_message=error_msg,
+            )
+        )
+
+    def _emit_general_error(self, e: Exception, stdout: str, stderr: str, exit_code: int | None) -> None:
+        """Emit general exception error result."""
+        error_msg = f"Unexpected error running Git command: {e}"
+        logger.exception("Unexpected Git error")
+        self.command_complete.emit(
+            GitResult(
+                success=False,
+                stdout=stdout,
+                stderr=stderr or str(e),
+                exit_code=exit_code,
+                user_message=error_msg,
+            )
+        )
+
     @Slot(list, str)
     def run_git_command(self, command: list[str], working_dir: str) -> None:
         """
@@ -83,25 +189,15 @@ class GitWorker(BaseWorker):
             - Uses subprocess with shell=False to prevent command injection (NFR-010)
             - Validates working directory exists before execution
             - No destructive force flags without user confirmation (NFR-008)
+
+        MA principle: Reduced from 121 lines to ~45 lines by extracting error
+        handling and subprocess execution into focused helper methods.
         """
         # Check for cancellation
-        if self._check_cancellation():
-            logger.info("Git operation cancelled before execution")
-            self.command_complete.emit(
-                GitResult(
-                    success=False,
-                    stdout="",
-                    stderr="Operation cancelled by user",
-                    exit_code=-1,
-                    user_message="Cancelled",
-                )
-            )
-            self.reset_cancellation()
+        if self._check_and_handle_cancellation():
             return
 
-        user_message = "Git command failed."
-        stdout, stderr = "", ""
-        exit_code = None
+        stdout, stderr, exit_code = "", "", None
 
         try:
             # Validate working directory
@@ -120,92 +216,30 @@ class GitWorker(BaseWorker):
 
             logger.info(f"Executing Git: {' '.join(command)} in {working_dir}")
 
-            # Determine timeout based on operation type
-            # Network operations (pull, push, fetch, clone) get 60s
-            # Local operations (commit, add, status, diff, log) get 30s
-            network_ops = {"pull", "push", "fetch", "clone"}
-            is_network_op = any(op in command for op in network_ops)
-            timeout_seconds = 60 if is_network_op else 30
-
-            # SECURITY: Never use shell=True - always use list arguments to prevent command injection
-            process = subprocess.run(
-                command,
-                cwd=working_dir,
-                capture_output=True,
-                text=True,
-                check=False,
-                shell=False,  # Critical: prevents command injection
-                encoding="utf-8",
-                errors="replace",
-                timeout=timeout_seconds,  # Security: Prevent indefinite hangs
-            )
+            # Execute with appropriate timeout
+            timeout = self._get_timeout_for_command(command)
+            process = self._execute_git_subprocess(command, working_dir, timeout)
 
             exit_code = process.returncode
             stdout = process.stdout.strip() if process.stdout else ""
             stderr = process.stderr.strip() if process.stderr else ""
 
+            # Create and emit result
             if exit_code == 0:
                 logger.info(f"Git command successful: {' '.join(command)}")
-                result = GitResult(
-                    success=True,
-                    stdout=stdout,
-                    stderr=stderr,
-                    exit_code=exit_code,
-                    user_message="Git command successful.",
-                )
+                result = self._create_success_result(stdout, stderr, exit_code)
             else:
-                user_message = self._analyze_git_error(stderr, command)
-                logger.error(f"Git command failed (code {exit_code}): {user_message}")
-                result = GitResult(
-                    success=False,
-                    stdout=stdout,
-                    stderr=stderr,
-                    exit_code=exit_code,
-                    user_message=user_message,
-                )
+                logger.error(f"Git command failed (code {exit_code})")
+                result = self._create_error_result(stdout, stderr, exit_code, command)
 
             self.command_complete.emit(result)
 
         except subprocess.TimeoutExpired as e:
-            timeout_msg = (
-                f"Git operation timed out after {e.timeout}s. "
-                f"Command: {' '.join(command)}. "
-                "Check network connection or try again."
-            )
-            logger.error(timeout_msg)
-            self.command_complete.emit(
-                GitResult(
-                    success=False,
-                    stdout="",
-                    stderr=timeout_msg,
-                    exit_code=None,
-                    user_message="Git operation timed out",
-                )
-            )
+            self._emit_timeout_error(command, int(e.timeout))
         except FileNotFoundError:
-            error_msg = "Git command not found. Ensure Git is installed and in system PATH."
-            logger.error(error_msg)
-            self.command_complete.emit(
-                GitResult(
-                    success=False,
-                    stdout="",
-                    stderr=error_msg,
-                    exit_code=None,
-                    user_message=error_msg,
-                )
-            )
+            self._emit_not_found_error()
         except Exception as e:
-            error_msg = f"Unexpected error running Git command: {e}"
-            logger.exception("Unexpected Git error")
-            self.command_complete.emit(
-                GitResult(
-                    success=False,
-                    stdout=stdout,
-                    stderr=stderr or str(e),
-                    exit_code=exit_code,
-                    user_message=error_msg,
-                )
-            )
+            self._emit_general_error(e, stdout, stderr, exit_code)
 
     def _analyze_git_error(self, stderr: str, command: list[str]) -> str:
         """
@@ -316,9 +350,74 @@ class GitWorker(BaseWorker):
             # Emit default status on error
             self.status_ready.emit(GitStatus())
 
-    def _parse_git_status_v2(self, stdout: str) -> GitStatus:  # noqa: C901
+    def _parse_branch_head(self, line: str) -> str:
+        """
+        Parse branch name from git status v2 header.
+
+        MA principle: Extracted from _parse_git_status_v2 (4 lines).
+
+        Args:
+            line: Branch head line (e.g., "# branch.head main")
+
+        Returns:
+            Branch name or "HEAD (detached)" for detached state
+        """
+        branch = line.split(" ", 2)[2]
+        if branch == "(detached)":
+            branch = "HEAD (detached)"
+        return branch
+
+    def _parse_ahead_behind(self, line: str) -> tuple[int, int]:
+        """
+        Parse ahead/behind counts from git status v2 header.
+
+        MA principle: Extracted from _parse_git_status_v2 (8 lines).
+
+        Args:
+            line: Branch ahead/behind line (e.g., "# branch.ab +2 -1")
+
+        Returns:
+            Tuple of (ahead_count, behind_count)
+        """
+        parts = line.split()
+        if len(parts) >= 4:
+            try:
+                ahead = int(parts[2].replace("+", ""))
+                behind = int(parts[3].replace("-", ""))
+                return ahead, behind
+            except ValueError:
+                logger.warning(f"Failed to parse branch.ab: {line}")
+        return 0, 0
+
+    def _parse_tracked_file_status(self, parts: list[str]) -> tuple[bool, bool, bool]:
+        """
+        Parse tracked file status codes.
+
+        MA principle: Extracted from _parse_git_status_v2 (15 lines).
+
+        Args:
+            parts: Split status line parts
+
+        Returns:
+            Tuple of (has_conflict, is_staged, is_modified)
+        """
+        if len(parts) < 2:
+            return False, False, False
+
+        xy_status = parts[1]
+        has_conflict = "U" in xy_status
+        x_status = xy_status[0] if len(xy_status) > 0 else "."
+        y_status = xy_status[1] if len(xy_status) > 1 else "."
+        is_staged = x_status != "."
+        is_modified = y_status != "."
+
+        return has_conflict, is_staged, is_modified
+
+    def _parse_git_status_v2(self, stdout: str) -> GitStatus:
         """
         Parse git status --porcelain=v2 output into GitStatus model.
+
+        MA principle: Reduced from 125→65 lines by extracting 3 helper methods.
 
         Porcelain v2 format documentation:
         https://git-scm.com/docs/git-status#_porcelain_format_version_2
@@ -362,6 +461,7 @@ class GitWorker(BaseWorker):
             >>> status.ahead_count
             2
         """
+        # Initialize counters
         branch = "unknown"
         modified_count = 0
         staged_count = 0
@@ -370,65 +470,39 @@ class GitWorker(BaseWorker):
         ahead_count = 0
         behind_count = 0
 
-        lines = stdout.strip().split("\n")
-
-        for line in lines:
+        # Parse each line
+        for line in stdout.strip().split("\n"):
             if not line:
                 continue
 
-            # Parse branch headers
+            # Parse branch headers using helpers
             if line.startswith("# branch.head "):
-                branch = line.split(" ", 2)[2]
-                if branch == "(detached)":
-                    branch = "HEAD (detached)"
-
+                branch = self._parse_branch_head(line)
             elif line.startswith("# branch.ab "):
-                # Format: "# branch.ab +<ahead> -<behind>"
-                parts = line.split()
-                if len(parts) >= 4:
-                    try:
-                        ahead_count = int(parts[2].replace("+", ""))
-                        behind_count = int(parts[3].replace("-", ""))
-                    except ValueError:
-                        logger.warning(f"Failed to parse branch.ab: {line}")
+                ahead_count, behind_count = self._parse_ahead_behind(line)
 
-            # Parse file status
+            # Parse tracked file status
             elif line.startswith("1 ") or line.startswith("2 "):
-                # Tracked file: 1/2 <XY> <other fields>
-                # Status codes are in field 2 (XY)
                 parts = line.split(maxsplit=8)
-                if len(parts) >= 2:
-                    xy_status = parts[1]
+                conflict, staged, modified = self._parse_tracked_file_status(parts)
+                if conflict:
+                    has_conflicts = True
+                if staged:
+                    staged_count += 1
+                if modified:
+                    modified_count += 1
 
-                    # Check for conflicts (U in either position)
-                    if "U" in xy_status:
-                        has_conflicts = True
-
-                    # X = index status (staged), Y = working tree status
-                    x_status = xy_status[0] if len(xy_status) > 0 else "."
-                    y_status = xy_status[1] if len(xy_status) > 1 else "."
-
-                    # Count staged changes (X != '.')
-                    if x_status != ".":
-                        staged_count += 1
-
-                    # Count working tree changes (Y != '.')
-                    if y_status != ".":
-                        modified_count += 1
-
+            # Unmerged entry (always a conflict)
             elif line.startswith("u "):
-                # Unmerged entry (conflict): u <XY> <other fields>
-                # Always indicates conflicts
                 has_conflicts = True
-                # Count as both modified and staged (unresolved conflict)
                 modified_count += 1
                 staged_count += 1
 
+            # Untracked file
             elif line.startswith("? "):
-                # Untracked file
                 untracked_count += 1
 
-        # Working tree is dirty if any changes exist
+        # Calculate dirty status
         is_dirty = modified_count > 0 or staged_count > 0 or untracked_count > 0
 
         return GitStatus(
