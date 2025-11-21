@@ -24,6 +24,7 @@ from asciidoc_artisan.ui.document_metrics_calculator import DocumentMetricsCalcu
 from asciidoc_artisan.ui.git_status_formatter import GitStatusFormatter
 from asciidoc_artisan.ui.status_bar_label_updater import StatusBarLabelUpdater
 from asciidoc_artisan.ui.status_bar_widget_factory import StatusBarWidgetFactory
+from asciidoc_artisan.ui.user_message_handler import UserMessageHandler
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,17 @@ class StatusManager:
             self._updater_instance = StatusBarLabelUpdater(self)
         return self._updater_instance
 
+    @property
+    def _message_handler(self) -> UserMessageHandler:
+        """
+        Lazy-initialized user message handler.
+
+        MA principle: Delegates message/dialog handling to UserMessageHandler (extracted class).
+        """
+        if not hasattr(self, "_handler_instance"):
+            self._handler_instance = UserMessageHandler(self.editor)
+        return self._handler_instance
+
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets (delegates to widget_factory)."""
         self._widget_factory.initialize_widgets()
@@ -123,74 +135,16 @@ class StatusManager:
         self.editor.setWindowTitle(title)
 
     def show_message(self, level: str, title: str, text: str) -> None:
-        """Show a message dialog to the user.
-
-        Args:
-            level: Message level ('info', 'warning', 'critical')
-            title: Dialog window title
-            text: Message text to display
-        """
-        icon_map = {
-            "info": QMessageBox.Icon.Information,
-            "warning": QMessageBox.Icon.Warning,
-            "critical": QMessageBox.Icon.Critical,
-        }
-
-        msg = QMessageBox(self.editor)
-        msg.setWindowTitle(title)
-        msg.setText(text)
-        msg.setIcon(icon_map.get(level, QMessageBox.Icon.Information))
-        msg.exec()
+        """Show message dialog (delegates to message_handler)."""
+        self._message_handler.show_message(level, title, text)
 
     def show_status(self, message: str, timeout: int = 0) -> None:
-        """Show a message in the status bar.
-
-        Args:
-            message: Status message to display
-            timeout: Duration in milliseconds (0 = permanent)
-        """
-        logger.info(f"[STATUS_BAR] Attempting to show: '{message}' (timeout={timeout}ms)")
-        if not hasattr(self.editor, "status_bar") or self.editor.status_bar is None:
-            logger.error("[STATUS_BAR] ERROR: status_bar not found or is None!")
-            return
-        logger.info("[STATUS_BAR] status_bar exists, calling showMessage()")
-        self.editor.status_bar.showMessage(message, timeout)
-        logger.info("[STATUS_BAR] showMessage() completed, checking current message...")
-        current_msg = self.editor.status_bar.currentMessage()
-        logger.info(f"[STATUS_BAR] Current message in status bar: '{current_msg}'")
+        """Show status bar message (delegates to message_handler)."""
+        self._message_handler.show_status(message, timeout)
 
     def prompt_save_before_action(self, action: str) -> bool:
-        """Prompt user to save unsaved changes before an action.
-
-        Args:
-            action: Description of the action about to be performed
-
-        Returns:
-            True if user wants to proceed, False if cancelled
-        """
-        import os
-
-        # Skip prompts in test environment to prevent blocking
-        if os.environ.get("PYTEST_CURRENT_TEST"):
-            return True
-
-        if not self.editor._unsaved_changes:
-            return True
-
-        reply = QMessageBox.question(
-            self.editor,
-            "Unsaved Changes",
-            f"You have unsaved changes. Save before {action}?",
-            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
-            QMessageBox.StandardButton.Save,
-        )
-
-        if reply == QMessageBox.StandardButton.Save:
-            return self.editor.save_file()  # type: ignore[no-any-return]  # save_file returns bool but QMessageBox comparison typed as Any
-        elif reply == QMessageBox.StandardButton.Discard:
-            return True
-        else:
-            return False
+        """Prompt save before action (delegates to message_handler)."""
+        return self._message_handler.prompt_save_before_action(action)
 
     def extract_document_version(self, text: str) -> str | None:
         """Extract document version (delegates to metrics_calculator)."""
