@@ -102,7 +102,24 @@ get_test_statistics() {
     fi
 }
 
-# MA Principle: Extract QA checks (30→16 lines)
+# MA Principle: Extract MA violation parsing (14 lines)
+parse_ma_violations() {
+    local MA_OUTPUT="$1"
+
+    # Extract violation counts using grep and awk for robustness
+    local P0=$(echo "$MA_OUTPUT" | grep "P0 (Critical):" | head -1 | awk -F': ' '{print $2}' | awk '{print $1}' | tr -d '\n')
+    local P1=$(echo "$MA_OUTPUT" | grep "P1 (High):" | head -1 | awk -F': ' '{print $2}' | awk '{print $1}' | tr -d '\n')
+    local TOTAL=$(echo "$MA_OUTPUT" | grep "Total Violations:" | head -1 | awk '{print $NF}' | tr -d '\n')
+
+    # Default to 0 if extraction failed
+    [ -z "$P0" ] && P0="0"
+    [ -z "$P1" ] && P1="0"
+    [ -z "$TOTAL" ] && TOTAL="0"
+
+    echo "${P0}|${P1}|${TOTAL}"
+}
+
+# MA Principle: Extract QA checks (30→20 lines)
 run_qa_checks() {
     MYPY_STATUS=$(mypy src --strict 2>&1 | grep -q "Success" && echo "✓" || echo "✗")
     RUFF_STATUS=$(ruff check src 2>&1 | grep -q "All checks passed" && echo "✓" || echo "✗")
@@ -110,15 +127,17 @@ run_qa_checks() {
     # MA Principle compliance
     if [ -f scripts/analyze_ma_violations.py ]; then
         MA_OUTPUT=$(python3 scripts/analyze_ma_violations.py 2>&1 || true)
-        MA_P0=$(echo "$MA_OUTPUT" | grep "P0 (Critical):" | head -1 | sed 's/.*P0 (Critical): \([0-9]\+\).*/\1/' 2>/dev/null)
-        MA_P1=$(echo "$MA_OUTPUT" | grep "P1 (High):" | head -1 | sed 's/.*P1 (High): \([0-9]\+\).*/\1/' 2>/dev/null)
-        MA_TOTAL=$(echo "$MA_OUTPUT" | grep "Total Violations:" | head -1 | sed 's/.*Total Violations: \([0-9]\+\).*/\1/' 2>/dev/null)
+        MA_PARSED=$(parse_ma_violations "$MA_OUTPUT")
 
-        [ -z "$MA_P0" ] && MA_P0="0"; [ -z "$MA_P1" ] && MA_P1="0"; [ -z "$MA_TOTAL" ] && MA_TOTAL="0"
+        MA_P0=$(echo "$MA_PARSED" | cut -d'|' -f1)
+        MA_P1=$(echo "$MA_PARSED" | cut -d'|' -f2)
+        MA_TOTAL=$(echo "$MA_PARSED" | cut -d'|' -f3)
+
         MA_STATUS=$( [ "$MA_P0" -eq 0 ] 2>/dev/null && echo "✓" || echo "✗" )
         MA_VIOLATIONS="P0:${MA_P0} P1:${MA_P1} (${MA_TOTAL} total)"
     else
-        MA_STATUS="—"; MA_VIOLATIONS="not configured"
+        MA_STATUS="—"
+        MA_VIOLATIONS="not configured"
     fi
 
     # Write to cache

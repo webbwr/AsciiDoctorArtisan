@@ -311,15 +311,15 @@ class StatusManager:
 
         return round(max(0.0, grade), 2)
 
-    def update_document_metrics(self) -> None:
-        """Update all document metrics in status bar."""
-        # Skip if widgets not yet initialized
-        if not self.version_label:
-            return
+    def _update_version_label(self, text: str) -> None:
+        """
+        Update version label with document version.
 
-        text = self.editor.editor.toPlainText()
+        MA principle: Extracted from update_document_metrics (17 lines).
 
-        # Update version
+        Args:
+            text: Document text
+        """
         version = self.extract_document_version(text)
         if version:
             self.version_label.setText(f"v{version}")
@@ -336,8 +336,16 @@ class StatusManager:
                 "  :revnumber: 1.0"
             )
 
-        # Update word count
-        word_count = self.count_words(text)
+    def _update_word_count_label(self, text: str, word_count: int) -> None:
+        """
+        Update word count label with document statistics.
+
+        MA principle: Extracted from update_document_metrics (11 lines).
+
+        Args:
+            text: Document text
+            word_count: Word count
+        """
         char_count = len(text)
         line_count = len(text.splitlines())
         self.word_count_label.setText(f"Words: {word_count}")
@@ -349,27 +357,44 @@ class StatusManager:
             "(Excludes code blocks and comments)"
         )
 
-        # Update grade level
+    def _interpret_grade_level(self, grade: float) -> tuple[str, str]:
+        """
+        Interpret grade level for tooltip display.
+
+        MA principle: Extracted from update_document_metrics (15 lines).
+
+        Args:
+            grade: Grade level
+
+        Returns:
+            Tuple of (difficulty, audience)
+        """
+        if grade <= 5:
+            return ("Elementary", "Easy to read for most audiences")
+        elif grade <= 8:
+            return ("Middle School", "Accessible to general readers")
+        elif grade <= 12:
+            return ("High School", "Suitable for educated readers")
+        elif grade <= 16:
+            return ("College", "Technical or academic content")
+        else:
+            return ("Graduate", "Complex academic content")
+
+    def _update_grade_level_label(self, text: str, word_count: int) -> None:
+        """
+        Update grade level label with readability metrics.
+
+        MA principle: Extracted from update_document_metrics (21 lines).
+
+        Args:
+            text: Document text
+            word_count: Word count
+        """
         if word_count > 0:
             grade = self.calculate_grade_level(text)
             self.grade_level_label.setText(f"Grade: {grade}")
 
-            # Interpret grade level for tooltip
-            if grade <= 5:
-                difficulty = "Elementary"
-                audience = "Easy to read for most audiences"
-            elif grade <= 8:
-                difficulty = "Middle School"
-                audience = "Accessible to general readers"
-            elif grade <= 12:
-                difficulty = "High School"
-                audience = "Suitable for educated readers"
-            elif grade <= 16:
-                difficulty = "College"
-                audience = "Technical or academic content"
-            else:
-                difficulty = "Graduate"
-                audience = "Complex academic content"
+            difficulty, audience = self._interpret_grade_level(grade)
 
             self.grade_level_label.setToolTip(
                 f"Reading Grade Level: {grade}\n"
@@ -383,6 +408,24 @@ class StatusManager:
             self.grade_level_label.setToolTip(
                 "Reading Grade Level: Not available\n(Document has no content to analyze)"
             )
+
+    def update_document_metrics(self) -> None:
+        """
+        Update all document metrics in status bar.
+
+        MA principle: Reduced from 72→17 lines by extracting 4 helpers (76% reduction).
+        """
+        # Skip if widgets not yet initialized
+        if not self.version_label:
+            return
+
+        text = self.editor.editor.toPlainText()
+        word_count = self.count_words(text)
+
+        # Update all metric labels
+        self._update_version_label(text)
+        self._update_word_count_label(text, word_count)
+        self._update_grade_level_label(text, word_count)
 
     def set_ai_model(self, model_name: str | None = None) -> None:
         """Set AI model name in status bar.
@@ -449,53 +492,48 @@ class StatusManager:
         # Show feedback
         self.editor.status_bar.showMessage(f"Cancelled {self._current_operation} operation", 3000)
 
-    def update_git_status(self, status: GitStatus) -> None:
+    def _determine_git_display_state(self, status: GitStatus) -> tuple[str, str, str]:
         """
-        Update Git status display with brief format and color coding.
+        Determine Git status display text, color, and description.
 
-        Brief format:
-        - Clean: "main ✓" (green)
-        - Dirty: "main ●2" (yellow, showing total changes)
-        - Conflicts: "main ⚠" (red)
+        MA principle: Extracted from update_git_status (18 lines).
 
         Args:
-            status: GitStatus object with repository information
-        """
-        if not self.git_status_label:
-            return
+            status: GitStatus object
 
-        # Build brief status text
+        Returns:
+            Tuple of (text, color, status_desc)
+        """
         branch = status.branch
         total_changes = status.modified_count + status.staged_count + status.untracked_count
 
         if status.has_conflicts:
             # Red for conflicts
-            text = f"{branch} ⚠"
-            color = "#ef4444"
-            status_desc = "Conflicts"
+            return (f"{branch} ⚠", "#ef4444", "Conflicts")
         elif total_changes > 0:
             # Yellow for changes (show count)
-            text = f"{branch} ●{total_changes}"
-            color = "#fbbf24"
-            status_desc = "Changes"
+            return (f"{branch} ●{total_changes}", "#fbbf24", "Changes")
         else:
             # Green for clean
-            text = f"{branch} ✓"
-            color = "#4ade80"
-            status_desc = "Clean"
+            return (f"{branch} ✓", "#4ade80", "Clean")
 
-        # Store current state for theme restoration
-        self._current_git_color = color
-        self._current_git_text = text
+    def _build_git_tooltip(self, status: GitStatus, status_desc: str, total_changes: int) -> str:
+        """
+        Build detailed Git status tooltip.
 
-        # Apply color and text
-        self.git_status_label.setStyleSheet(f"color: {color};")
-        self.git_status_label.setText(text)
+        MA principle: Extracted from update_git_status (25 lines).
 
-        # Build detailed tooltip
+        Args:
+            status: GitStatus object
+            status_desc: Status description
+            total_changes: Total number of changes
+
+        Returns:
+            Tooltip text
+        """
         tooltip_parts = [
             f"Git Repository Status: {status_desc}",
-            f"Branch: {branch}",
+            f"Branch: {status.branch}",
             "",
         ]
 
@@ -517,7 +555,40 @@ class StatusManager:
         tooltip_parts.append("")
         tooltip_parts.append("Click to view detailed status (Ctrl+Shift+G)")
 
-        self.git_status_label.setToolTip("\n".join(tooltip_parts))
+        return "\n".join(tooltip_parts)
+
+    def update_git_status(self, status: GitStatus) -> None:
+        """
+        Update Git status display with brief format and color coding.
+
+        MA principle: Reduced from 71→23 lines by extracting 2 helpers (68% reduction).
+
+        Brief format:
+        - Clean: "main ✓" (green)
+        - Dirty: "main ●2" (yellow, showing total changes)
+        - Conflicts: "main ⚠" (red)
+
+        Args:
+            status: GitStatus object with repository information
+        """
+        if not self.git_status_label:
+            return
+
+        # Determine display state
+        text, color, status_desc = self._determine_git_display_state(status)
+        total_changes = status.modified_count + status.staged_count + status.untracked_count
+
+        # Store current state for theme restoration
+        self._current_git_color = color
+        self._current_git_text = text
+
+        # Apply color and text
+        self.git_status_label.setStyleSheet(f"color: {color};")
+        self.git_status_label.setText(text)
+
+        # Build and set tooltip
+        tooltip = self._build_git_tooltip(status, status_desc, total_changes)
+        self.git_status_label.setToolTip(tooltip)
 
         logger.debug(f"Git status updated: {text} ({color})")
 
