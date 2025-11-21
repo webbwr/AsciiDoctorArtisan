@@ -198,15 +198,17 @@ class ExportManager(QObject):
         except Exception as e:
             logger.warning(f"Failed to cleanup temp directory: {e}")
 
-    def save_file_as_format(self, format_type: str) -> bool:
+    def _get_format_filter_and_extension(self, format_type: str) -> tuple[str, str] | None:
         """
-        Save/export file in specified format using background conversion.
+        Get file filter and extension for export format.
+
+        MA principle: Extracted from save_file_as_format (12 lines).
 
         Args:
-            format_type: Target format (adoc, md, docx, html, pdf)
+            format_type: Target format
 
         Returns:
-            True if export initiated successfully, False otherwise
+            Tuple of (file_filter, extension) or None if unsupported
         """
         format_filters = {
             "adoc": (ADOC_FILTER, ".adoc"),
@@ -218,19 +220,42 @@ class ExportManager(QObject):
 
         if format_type not in format_filters:
             self.status_manager.show_message("warning", "Export Error", f"Unsupported format: {format_type}")
-            return False
+            return None
 
-        file_filter, suggested_ext = format_filters[format_type]
+        return format_filters[format_type]
 
-        # Determine suggested file name
+    def _get_suggested_export_path(self, suggested_ext: str) -> Path:
+        """
+        Generate suggested file path for export.
+
+        MA principle: Extracted from save_file_as_format (6 lines).
+
+        Args:
+            suggested_ext: File extension
+
+        Returns:
+            Suggested file path
+        """
         if self.window._current_file_path:
             suggested_name = self.window._current_file_path.stem + suggested_ext
         else:
             suggested_name = "document" + suggested_ext
+        return Path(self._settings.last_directory) / suggested_name
 
-        suggested_path = Path(self._settings.last_directory) / suggested_name
+    def _show_export_dialog(self, format_type: str, suggested_path: Path, file_filter: str) -> Path | None:
+        """
+        Show save dialog for export.
 
-        # Show save dialog
+        MA principle: Extracted from save_file_as_format (13 lines).
+
+        Args:
+            format_type: Target format (for dialog title)
+            suggested_path: Suggested file path
+            file_filter: File filter string
+
+        Returns:
+            Selected file path or None if cancelled
+        """
         file_path_str, _ = QFileDialog.getSaveFileName(
             self.window,
             f"Export as {format_type.upper()}",
@@ -242,9 +267,61 @@ class ExportManager(QObject):
         )
 
         if not file_path_str:
+            return None
+
+        return Path(file_path_str)
+
+    def _save_asciidoc_directly(self, file_path: Path, content: str) -> bool:
+        """
+        Save content as AsciiDoc file (no conversion).
+
+        MA principle: Extracted from save_file_as_format (14 lines).
+
+        Args:
+            file_path: Target file path
+            content: AsciiDoc content
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if atomic_save_text(file_path, content, encoding="utf-8"):
+            self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
+            self.export_completed.emit(file_path)
+            return True
+        else:
+            self.status_manager.show_message(
+                "critical",
+                "Export Error",
+                f"Failed to save AsciiDoc file: {file_path}",
+            )
+            self.export_failed.emit(f"Failed to save: {file_path}")
             return False
 
-        file_path = Path(file_path_str)
+    def save_file_as_format(self, format_type: str) -> bool:
+        """
+        Save/export file in specified format using background conversion.
+
+        MA principle: Reduced from 78→27 lines by extracting 4 helpers (65% reduction).
+
+        Args:
+            format_type: Target format (adoc, md, docx, html, pdf)
+
+        Returns:
+            True if export initiated successfully, False otherwise
+        """
+        # Get format filter and extension
+        result = self._get_format_filter_and_extension(format_type)
+        if not result:
+            return False
+        file_filter, suggested_ext = result
+
+        # Get suggested file path
+        suggested_path = self._get_suggested_export_path(suggested_ext)
+
+        # Show save dialog
+        file_path = self._show_export_dialog(format_type, suggested_path, file_filter)
+        if not file_path:
+            return False
 
         # Ensure proper extension
         if not file_path.suffix:
@@ -252,29 +329,16 @@ class ExportManager(QObject):
 
         content = self.editor.toPlainText()
 
-        # Use settings preference for AI conversion (defaults to Pandoc)
-        use_ai_for_export = self.settings_manager.get_ai_conversion_preference(self._settings)
-
         # Handle direct AsciiDoc save
         if format_type == "adoc":
-            if atomic_save_text(file_path, content, encoding="utf-8"):
-                self.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
-                self.export_completed.emit(file_path)
-                return True
-            else:
-                self.status_manager.show_message(
-                    "critical",
-                    "Export Error",
-                    f"Failed to save AsciiDoc file: {file_path}",
-                )
-                self.export_failed.emit(f"Failed to save: {file_path}")
-                return False
+            return self._save_asciidoc_directly(file_path, content)
 
         # Handle HTML export (synchronous)
         if format_type == "html":
             return self._export_html(file_path, content)
 
         # Handle Pandoc-based exports (asynchronous)
+        use_ai_for_export = self.settings_manager.get_ai_conversion_preference(self._settings)
         return self._export_via_pandoc(file_path, format_type, content, use_ai_for_export)
 
     def _export_html(self, file_path: Path, content: str) -> bool:
@@ -306,24 +370,20 @@ class ExportManager(QObject):
             self.export_failed.emit(str(e))
             return False
 
-    def _export_via_pandoc(self, file_path: Path, format_type: str, content: str, use_ai: bool) -> bool:
+    def _convert_to_html_for_export(self, content: str) -> str | None:
         """
-        Export via Pandoc (asynchronous).
+        Convert AsciiDoc to HTML for export.
+
+        MA principle: Extracted from _export_via_pandoc (12 lines).
 
         Args:
-            file_path: Target file path
-            format_type: Target format (md, docx, pdf)
-            content: AsciiDoc content to export
-            use_ai: Whether to use AI-enhanced conversion
+            content: AsciiDoc content
 
         Returns:
-            True if export initiated successfully, False otherwise
+            HTML content or None on error
         """
-        self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
-
-        # Convert AsciiDoc to HTML first using helper
         try:
-            html_content = self.html_converter.asciidoc_to_html(content)
+            return self.html_converter.asciidoc_to_html(content)
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
             self.status_manager.show_message(
@@ -332,22 +392,41 @@ class ExportManager(QObject):
                 f"Failed to convert AsciiDoc to HTML:\n{e}",
             )
             self.export_failed.emit(str(e))
-            return False
+            return None
 
-        # Create temporary HTML file
+    def _create_temp_html_file(self, html_content: str) -> Path | None:
+        """
+        Create temporary HTML file for Pandoc conversion.
+
+        MA principle: Extracted from _export_via_pandoc (8 lines).
+
+        Args:
+            html_content: HTML content to write
+
+        Returns:
+            Path to temp file or None on error
+        """
         temp_html = Path(self.temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
         try:
             temp_html.write_text(html_content, encoding="utf-8")
+            return temp_html
         except Exception as e:
             self.status_manager.show_message("critical", "Export Error", f"Failed to create temporary file:\n{e}")
             self.export_failed.emit(str(e))
-            return False
+            return None
 
-        # Handle PDF engine fallback
-        if format_type == "pdf" and not self.pdf_helper.check_pdf_engine_available():
-            return self._export_pdf_fallback(file_path, html_content)
+    def _emit_pandoc_request(self, temp_html: Path, file_path: Path, format_type: str, use_ai: bool) -> None:
+        """
+        Emit Pandoc conversion request.
 
-        # Emit Pandoc conversion request
+        MA principle: Extracted from _export_via_pandoc (25 lines).
+
+        Args:
+            temp_html: Temporary HTML file path
+            file_path: Target file path
+            format_type: Target format
+            use_ai: Whether to use AI conversion
+        """
         if format_type in ["pdf", "docx"]:
             # Direct file path conversion
             self.window.request_pandoc_conversion.emit(
@@ -374,6 +453,40 @@ class ExportManager(QObject):
             self.pending_export_format = format_type
 
         self.export_started.emit(format_type)
+
+    def _export_via_pandoc(self, file_path: Path, format_type: str, content: str, use_ai: bool) -> bool:
+        """
+        Export via Pandoc (asynchronous).
+
+        MA principle: Reduced from 69→23 lines by extracting 3 helpers (67% reduction).
+
+        Args:
+            file_path: Target file path
+            format_type: Target format (md, docx, pdf)
+            content: AsciiDoc content to export
+            use_ai: Whether to use AI-enhanced conversion
+
+        Returns:
+            True if export initiated successfully, False otherwise
+        """
+        self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
+
+        # Convert AsciiDoc to HTML
+        html_content = self._convert_to_html_for_export(content)
+        if html_content is None:
+            return False
+
+        # Create temporary HTML file
+        temp_html = self._create_temp_html_file(html_content)
+        if temp_html is None:
+            return False
+
+        # Handle PDF engine fallback
+        if format_type == "pdf" and not self.pdf_helper.check_pdf_engine_available():
+            return self._export_pdf_fallback(file_path, html_content)
+
+        # Emit Pandoc conversion request
+        self._emit_pandoc_request(temp_html, file_path, format_type, use_ai)
         return True
 
     def _export_pdf_fallback(self, file_path: Path, html_content: str) -> bool:
