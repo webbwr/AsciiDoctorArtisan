@@ -87,15 +87,15 @@ class ChatBarWidget(QWidget):
         self._setup_ui()
         self._connect_signals()
 
-    def _setup_ui(self) -> None:
-        """Set up the widget layout and controls."""
-        from PySide6.QtWidgets import QVBoxLayout
+    def _create_top_row_controls(self) -> QHBoxLayout:
+        """
+        Create top row with model selector, context selector, and action buttons.
 
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(4)
+        MA principle: Extracted from _setup_ui (46 lines).
 
-        # Top row: Model selector, context selector, and action buttons
+        Returns:
+            Configured QHBoxLayout with all top row controls
+        """
         top_row = QHBoxLayout()
         top_row.setSpacing(6)
 
@@ -140,26 +140,14 @@ class ChatBarWidget(QWidget):
         self._cancel_button.hide()
         top_row.addWidget(self._cancel_button)
 
-        main_layout.addLayout(top_row)
+        return top_row
 
-        # Bottom row: Input field and send button
-        bottom_row = QHBoxLayout()
-        bottom_row.setSpacing(6)
+    def _style_send_button(self) -> None:
+        """
+        Apply blue-themed styling to send button.
 
-        # Input field
-        self._input_field = QLineEdit()
-        self._input_field.setPlaceholderText("Ask AI a question... (Enter to send)")
-        self._input_field.setClearButtonEnabled(True)
-        bottom_row.addWidget(self._input_field, 1)  # Stretch to fill space
-
-        # Send button with standard media play icon
-        self._send_button = QPushButton()
-        self._send_button.setIcon(self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
-        self._send_button.setIconSize(QSize(24, 24))  # Set larger icon size
-        self._send_button.setToolTip("Send message (or press Enter)")
-        self._send_button.setMaximumWidth(40)
-        self._send_button.setMinimumWidth(40)
-        # Style button with blue colors
+        MA principle: Extracted from _setup_ui (20 lines).
+        """
         self._send_button.setStyleSheet(
             """
             QPushButton {
@@ -180,9 +168,52 @@ class ChatBarWidget(QWidget):
             }
         """
         )
+
+    def _create_bottom_row_controls(self) -> QHBoxLayout:
+        """
+        Create bottom row with input field and send button.
+
+        MA principle: Extracted from _setup_ui (32 lines).
+
+        Returns:
+            Configured QHBoxLayout with input and send controls
+        """
+        bottom_row = QHBoxLayout()
+        bottom_row.setSpacing(6)
+
+        # Input field
+        self._input_field = QLineEdit()
+        self._input_field.setPlaceholderText("Ask AI a question... (Enter to send)")
+        self._input_field.setClearButtonEnabled(True)
+        bottom_row.addWidget(self._input_field, 1)  # Stretch to fill space
+
+        # Send button with standard media play icon
+        self._send_button = QPushButton()
+        self._send_button.setIcon(self._send_button.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
+        self._send_button.setIconSize(QSize(24, 24))  # Set larger icon size
+        self._send_button.setToolTip("Send message (or press Enter)")
+        self._send_button.setMaximumWidth(40)
+        self._send_button.setMinimumWidth(40)
+        self._style_send_button()
         bottom_row.addWidget(self._send_button)
 
-        main_layout.addLayout(bottom_row)
+        return bottom_row
+
+    def _setup_ui(self) -> None:
+        """
+        Set up the widget layout and controls.
+
+        MA principle: Reduced from 100→16 lines by extracting 3 layout helpers (84% reduction).
+        """
+        from PySide6.QtWidgets import QVBoxLayout
+
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(4)
+
+        # Add control rows
+        main_layout.addLayout(self._create_top_row_controls())
+        main_layout.addLayout(self._create_bottom_row_controls())
 
         # Set initial state
         self._send_button.setEnabled(False)  # Disabled until text entered
