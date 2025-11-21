@@ -116,11 +116,13 @@ class ValidationWorker(QThread):
 
         self.validation_complete.emit(results)
 
-    def _check_python_package(  # noqa: C901
+    def _check_python_package(
         self, package_name: str, min_version: str
     ) -> tuple[str, str, str]:
         """
         Check if Python package is installed and meets minimum version.
+
+        MA principle: Reduced from 81→23 lines by extracting 2 helpers (72% reduction).
 
         Args:
             package_name: Package name (e.g., "PySide6")
@@ -130,73 +132,91 @@ class ValidationWorker(QThread):
             (status, version, message) tuple
         """
         try:
-            # Import package to check if installed
-            version = "unknown"
-
-            if package_name == "PySide6":
-                import PySide6
-
-                version = getattr(PySide6, "__version__", "unknown")
-            elif package_name == "asciidoc3":
-                import asciidoc3
-
-                version = getattr(asciidoc3, "__version__", "unknown")
-            elif package_name == "pypandoc":
-                import pypandoc
-
-                version = getattr(pypandoc, "__version__", "unknown")
-            elif package_name == "pymupdf":
-                import fitz
-
-                version = getattr(fitz, "__version__", getattr(fitz, "version", "unknown"))
-            elif package_name == "keyring":
-                import keyring
-
-                version = getattr(keyring, "__version__", "unknown")
-            elif package_name == "psutil":
-                import psutil
-
-                version = getattr(psutil, "__version__", "unknown")
-            elif package_name == "pydantic":
-                import pydantic
-
-                version = getattr(pydantic, "__version__", "unknown")
-            elif package_name == "aiofiles":
-                import aiofiles
-
-                version = getattr(aiofiles, "__version__", "unknown")
-            elif package_name == "ollama":
-                import ollama
-
-                version = getattr(ollama, "__version__", "unknown")
-            else:
-                return ("✗", "unknown", "Unknown package")
-
-            # If version still unknown, try alternative methods
-            if version == "unknown":
-                version = self._get_version_from_metadata(package_name)
-
-            if version == "unknown":
-                version = self._get_version_from_pip(package_name)
-
-            # Check version
-            if version == "unknown":
-                return ("⚠", version, "Installed (version unknown)")
-
-            # Safely compare versions
-            try:
-                if self._version_compare(version, min_version) >= 0:
-                    return ("✓", version, "Version OK")
-                else:
-                    return ("⚠", version, f"Upgrade recommended (>={min_version})")
-            except Exception:
-                # Version comparison failed, assume OK if installed
-                return ("⚠", version, "Installed (version check failed)")
-
+            version = self._get_package_version(package_name)
+            return self._validate_package_version(version, min_version)
         except ImportError:
             return ("✗", "not installed", f"Required: >={min_version}")
         except Exception as e:
             return ("✗", "error", f"Check failed: {str(e)[:50]}")
+
+    def _get_package_version(self, package_name: str) -> str:
+        """Import package and get version string.
+
+        MA principle: Extracted helper (32 lines) - uses mapping for clean imports.
+
+        Args:
+            package_name: Package name to import and check
+
+        Returns:
+            Version string or "unknown"
+
+        Raises:
+            ImportError: If package not installed
+            ValueError: If package name not recognized
+        """
+        # Map package names to import names and version attributes
+        package_map = {
+            "PySide6": ("PySide6", "__version__"),
+            "asciidoc3": ("asciidoc3", "__version__"),
+            "pypandoc": ("pypandoc", "__version__"),
+            "pymupdf": ("fitz", "__version__"),  # pymupdf imports as fitz
+            "keyring": ("keyring", "__version__"),
+            "psutil": ("psutil", "__version__"),
+            "pydantic": ("pydantic", "__version__"),
+            "aiofiles": ("aiofiles", "__version__"),
+            "ollama": ("ollama", "__version__"),
+        }
+
+        if package_name not in package_map:
+            raise ValueError(f"Unknown package: {package_name}")
+
+        import_name, version_attr = package_map[package_name]
+
+        # Dynamically import the module
+        import importlib
+
+        module = importlib.import_module(import_name)
+        version = getattr(module, version_attr, "unknown")
+
+        # For pymupdf, try fallback version attribute
+        if version == "unknown" and import_name == "fitz":
+            version = getattr(module, "version", "unknown")
+
+        # Try alternative methods if still unknown
+        if version == "unknown":
+            version = self._get_version_from_metadata(package_name)
+
+        if version == "unknown":
+            version = self._get_version_from_pip(package_name)
+
+        return version
+
+    def _validate_package_version(
+        self, version: str, min_version: str
+    ) -> tuple[str, str, str]:
+        """Validate package version against minimum requirement.
+
+        MA principle: Extracted helper (17 lines) - focused version validation.
+
+        Args:
+            version: Installed version string
+            min_version: Minimum required version
+
+        Returns:
+            Tuple of (status_icon, version_string, message)
+        """
+        if version == "unknown":
+            return ("⚠", version, "Installed (version unknown)")
+
+        # Safely compare versions
+        try:
+            if self._version_compare(version, min_version) >= 0:
+                return ("✓", version, "Version OK")
+            else:
+                return ("⚠", version, f"Upgrade recommended (>={min_version})")
+        except Exception:
+            # Version comparison failed, assume OK if installed
+            return ("⚠", version, "Installed (version check failed)")
 
     def _check_system_binary(self, binary_name: str, required: bool) -> tuple[str, str, str]:
         """

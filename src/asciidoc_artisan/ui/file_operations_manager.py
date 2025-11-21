@@ -783,10 +783,12 @@ class FileOperationsManager:
 
     # Helper methods for file saving
 
-    def _determine_save_format(  # noqa: C901
+    def _determine_save_format(
         self, file_path: Path, selected_filter: str
     ) -> tuple[str, Path]:
         """Determine save format and ensure file path has correct extension.
+
+        MA principle: Reduced from 47→15 lines by extracting 2 helpers (68% reduction).
 
         Args:
             file_path: Initial file path from dialog
@@ -795,37 +797,73 @@ class FileOperationsManager:
         Returns:
             Tuple of (format_type, corrected_file_path)
         """
-        format_type = "adoc"
+        format_type = self._get_format_from_filter_or_extension(selected_filter, file_path)
+        corrected_path = self._ensure_file_extension(file_path, format_type)
+        return format_type, corrected_path
 
-        if MD_FILTER in selected_filter:
-            format_type = "md"
-        elif DOCX_FILTER in selected_filter:
-            format_type = "docx"
-        elif HTML_FILTER in selected_filter:
-            format_type = "html"
-        elif PDF_FILTER in selected_filter:
-            format_type = "pdf"
-        elif file_path.suffix:
-            ext = file_path.suffix.lower()
-            if ext in [".md", ".markdown"]:
-                format_type = "md"
-            elif ext == ".docx":
-                format_type = "docx"
-            elif ext in [".html", ".htm"]:
-                format_type = "html"
-            elif ext == ".pdf":
-                format_type = "pdf"
+    def _get_format_from_filter_or_extension(
+        self, selected_filter: str, file_path: Path
+    ) -> str:
+        """Determine format type from filter string or file extension.
 
-        # Ensure proper file extension
-        if format_type == "md" and not file_path.suffix:
-            file_path = file_path.with_suffix(".md")
-        elif format_type == "docx" and not file_path.suffix:
-            file_path = file_path.with_suffix(".docx")
-        elif format_type == "html" and not file_path.suffix:
-            file_path = file_path.with_suffix(".html")
-        elif format_type == "pdf" and not file_path.suffix:
-            file_path = file_path.with_suffix(".pdf")
-        elif format_type == "adoc" and not file_path.suffix:
-            file_path = file_path.with_suffix(".adoc")
+        MA principle: Extracted helper (18 lines) - uses mapping for O(1) lookup.
 
-        return format_type, file_path
+        Args:
+            selected_filter: Filter string from file dialog
+            file_path: File path to check extension
+
+        Returns:
+            Format type string ("md", "docx", "html", "pdf", or "adoc")
+        """
+        # Map filter strings to format types
+        filter_map = {
+            MD_FILTER: "md",
+            DOCX_FILTER: "docx",
+            HTML_FILTER: "html",
+            PDF_FILTER: "pdf",
+        }
+
+        # Check filter first
+        for filter_str, format_type in filter_map.items():
+            if filter_str in selected_filter:
+                return format_type
+
+        # Fall back to extension mapping
+        ext = file_path.suffix.lower()
+        ext_map = {
+            ".md": "md",
+            ".markdown": "md",
+            ".docx": "docx",
+            ".html": "html",
+            ".htm": "html",
+            ".pdf": "pdf",
+        }
+
+        return ext_map.get(ext, "adoc")
+
+    def _ensure_file_extension(self, file_path: Path, format_type: str) -> Path:
+        """Add file extension if missing.
+
+        MA principle: Extracted helper (11 lines) - uses mapping for clean code.
+
+        Args:
+            file_path: Original file path
+            format_type: Desired format type
+
+        Returns:
+            Path with correct extension
+        """
+        if file_path.suffix:
+            return file_path
+
+        # Map format types to extensions
+        ext_map = {
+            "md": ".md",
+            "docx": ".docx",
+            "html": ".html",
+            "pdf": ".pdf",
+            "adoc": ".adoc",
+        }
+
+        extension = ext_map.get(format_type, ".adoc")
+        return file_path.with_suffix(extension)

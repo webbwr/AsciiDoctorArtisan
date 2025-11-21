@@ -208,9 +208,11 @@ class AsyncFileWatcher(QObject):
                 self.error.emit(str(e))
                 await asyncio.sleep(self.poll_interval)
 
-    async def _check_file(self) -> None:  # noqa: C901
+    async def _check_file(self) -> None:
         """
         Check file for changes.
+
+        MA principle: Reduced from 73→20 lines by extracting 3 helpers (73% reduction).
 
         Compares current state with last known state.
         """
@@ -218,69 +220,106 @@ class AsyncFileWatcher(QObject):
             return
 
         current_time = asyncio.get_event_loop().time()
-        file_changed = False  # Track if file changed for adaptive polling
-
-        # Check if file exists
         file_exists = self._file_path.exists()
 
-        # File deleted
+        # Handle three file state transitions
         if self._file_exists and not file_exists:
-            if self._should_notify(current_time):
-                logger.info(f"File deleted: {self._file_path}")
-                self.file_deleted.emit(self._file_path)
-                self._last_notification_time = current_time
-            self._file_exists = False
-            self._last_mtime = None
-            self._last_size = None
-            file_changed = True
-            self._adjust_poll_interval(file_changed, current_time)
-            return
+            file_changed = self._handle_file_deleted(current_time)
+        elif not self._file_exists and file_exists:
+            file_changed = self._handle_file_created(current_time)
+        else:
+            file_changed = self._handle_file_modified(file_exists, current_time)
 
-        # File created
-        if not self._file_exists and file_exists:
-            if self._should_notify(current_time):
-                logger.info(f"File created: {self._file_path}")
-                self.file_created.emit(self._file_path)
-                self._last_notification_time = current_time
-            self._file_exists = True
-
-            # Update state
-            try:
-                stat = self._file_path.stat()
-                self._last_mtime = stat.st_mtime
-                self._last_size = stat.st_size
-            except Exception as e:
-                logger.error(f"Failed to stat file {self._file_path}: {e}")
-            file_changed = True
-            self._adjust_poll_interval(file_changed, current_time)
-            return
-
-        # File modified
-        if file_exists:
-            try:
-                stat = self._file_path.stat()
-                current_mtime = stat.st_mtime
-                current_size = stat.st_size
-
-                # Check if modified (mtime or size changed)
-                if (self._last_mtime is not None and current_mtime != self._last_mtime) or (
-                    self._last_size is not None and current_size != self._last_size
-                ):
-                    if self._should_notify(current_time):
-                        logger.info(f"File modified: {self._file_path}")
-                        self.file_modified.emit(self._file_path)
-                        self._last_notification_time = current_time
-
-                    # Update state
-                    self._last_mtime = current_mtime
-                    self._last_size = current_size
-                    file_changed = True
-
-            except Exception as e:
-                logger.error(f"Failed to check file {self._file_path}: {e}")
-
-        # Adjust polling interval based on activity (QA-13)
         self._adjust_poll_interval(file_changed, current_time)
+
+    def _handle_file_deleted(self, current_time: float) -> bool:
+        """Handle file deletion event.
+
+        MA principle: Extracted helper (13 lines) - focused deletion logic.
+
+        Args:
+            current_time: Current timestamp
+
+        Returns:
+            True to indicate file changed
+        """
+        if self._should_notify(current_time):
+            logger.info(f"File deleted: {self._file_path}")
+            self.file_deleted.emit(self._file_path)
+            self._last_notification_time = current_time
+
+        self._file_exists = False
+        self._last_mtime = None
+        self._last_size = None
+        return True
+
+    def _handle_file_created(self, current_time: float) -> bool:
+        """Handle file creation event.
+
+        MA principle: Extracted helper (19 lines) - focused creation logic.
+
+        Args:
+            current_time: Current timestamp
+
+        Returns:
+            True to indicate file changed
+        """
+        if self._should_notify(current_time):
+            logger.info(f"File created: {self._file_path}")
+            self.file_created.emit(self._file_path)
+            self._last_notification_time = current_time
+
+        self._file_exists = True
+
+        # Update state with new file metadata
+        try:
+            stat = self._file_path.stat()
+            self._last_mtime = stat.st_mtime
+            self._last_size = stat.st_size
+        except Exception as e:
+            logger.error(f"Failed to stat file {self._file_path}: {e}")
+
+        return True
+
+    def _handle_file_modified(self, file_exists: bool, current_time: float) -> bool:
+        """Handle file modification event.
+
+        MA principle: Extracted helper (27 lines) - focused modification logic.
+
+        Args:
+            file_exists: Whether file currently exists
+            current_time: Current timestamp
+
+        Returns:
+            True if file changed, False otherwise
+        """
+        if not file_exists:
+            return False
+
+        try:
+            stat = self._file_path.stat()
+            current_mtime = stat.st_mtime
+            current_size = stat.st_size
+
+            # Check if modified (mtime or size changed)
+            mtime_changed = self._last_mtime is not None and current_mtime != self._last_mtime
+            size_changed = self._last_size is not None and current_size != self._last_size
+
+            if mtime_changed or size_changed:
+                if self._should_notify(current_time):
+                    logger.info(f"File modified: {self._file_path}")
+                    self.file_modified.emit(self._file_path)
+                    self._last_notification_time = current_time
+
+                # Update state
+                self._last_mtime = current_mtime
+                self._last_size = current_size
+                return True
+
+        except Exception as e:
+            logger.error(f"Failed to check file {self._file_path}: {e}")
+
+        return False
 
     def _should_notify(self, current_time: float) -> bool:
         """
