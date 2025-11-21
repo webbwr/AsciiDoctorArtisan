@@ -1417,63 +1417,115 @@ class AsciiDocEditor(QMainWindow):
 
     @Slot(str)
     def _handle_replace_all(self, replace_text: str) -> None:
-        """Replace all occurrences after confirmation.
+        """
+        Replace all occurrences after confirmation.
+
+        MA principle: Reduced from 58→20 lines by extracting 3 helpers (66% reduction).
 
         Args:
             replace_text: Text to replace with
         """
-        from PySide6.QtWidgets import QMessageBox
-
         search_text = self.find_bar.get_search_text()
         if not search_text:
             return
 
         try:
-            # Count matches first
-            matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
-            match_count = len(matches)
-
-            if match_count == 0:
-                self.status_manager.show_status("No matches to replace", 2000)
+            # Count matches and early return if none
+            match_count = self._count_replace_matches(search_text)
+            if match_count is None:
                 return
 
-            # Show confirmation dialog
-            reply = QMessageBox.question(
-                self,
-                "Replace All",
-                f"Replace {match_count} occurrence(s) of '{search_text}' with '{replace_text}'?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
+            # Confirm replacement with user
+            if not self._confirm_replace_all(search_text, replace_text, match_count):
+                return
 
-            if reply == QMessageBox.StandardButton.Yes:
-                # Perform replace all
-                new_text, count = self.search_engine.replace_all(
-                    search_text,
-                    replace_text,
-                    case_sensitive=self.find_bar.is_case_sensitive(),
-                )
-
-                # Update editor with new text
-                cursor = self.editor.textCursor()
-                cursor_pos = cursor.position()  # Save cursor position
-
-                self.editor.setPlainText(new_text)
-
-                # Restore cursor position (approximately)
-                cursor.setPosition(min(cursor_pos, len(new_text)))
-                self.editor.setTextCursor(cursor)
-
-                # Clear highlights and update status
-                self._clear_search_highlighting()
-                self.find_bar.update_match_count(0, 0)
-                self.status_manager.show_status(f"Replaced {count} occurrence(s)", 3000)
-
-                logger.info(f"Replaced all: {count} occurrences of '{search_text}' with '{replace_text}'")
+            # Execute replacement and update UI
+            self._execute_replace_all(search_text, replace_text)
 
         except Exception as e:
             logger.error(f"Replace all error: {e}")
             self.status_manager.show_status(f"Replace failed: {e}", 3000)
+
+    def _count_replace_matches(self, search_text: str) -> int | None:
+        """
+        Count matches for replacement.
+
+        MA principle: Extracted from _handle_replace_all (9 lines).
+
+        Args:
+            search_text: Text to search for
+
+        Returns:
+            Match count if matches found, None if no matches
+        """
+        matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
+        match_count = len(matches)
+
+        if match_count == 0:
+            self.status_manager.show_status("No matches to replace", 2000)
+            return None
+
+        return match_count
+
+    def _confirm_replace_all(self, search_text: str, replace_text: str, match_count: int) -> bool:
+        """
+        Show confirmation dialog for replace all operation.
+
+        MA principle: Extracted from _handle_replace_all (11 lines).
+
+        Args:
+            search_text: Text being searched
+            replace_text: Replacement text
+            match_count: Number of matches to replace
+
+        Returns:
+            True if user confirmed, False otherwise
+        """
+        from PySide6.QtWidgets import QMessageBox
+
+        reply = QMessageBox.question(
+            self,
+            "Replace All",
+            f"Replace {match_count} occurrence(s) of '{search_text}' with '{replace_text}'?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        return reply == QMessageBox.StandardButton.Yes
+
+    def _execute_replace_all(self, search_text: str, replace_text: str) -> None:
+        """
+        Execute replace all and update editor state.
+
+        MA principle: Extracted from _handle_replace_all (24 lines).
+
+        Args:
+            search_text: Text to search for
+            replace_text: Text to replace with
+        """
+        # Perform replace all
+        new_text, count = self.search_engine.replace_all(
+            search_text,
+            replace_text,
+            case_sensitive=self.find_bar.is_case_sensitive(),
+        )
+
+        # Update editor with new text
+        cursor = self.editor.textCursor()
+        cursor_pos = cursor.position()  # Save cursor position
+
+        self.editor.setPlainText(new_text)
+
+        # Restore cursor position (approximately)
+        cursor.setPosition(min(cursor_pos, len(new_text)))
+        self.editor.setTextCursor(cursor)
+
+        # Clear highlights and update status
+        self._clear_search_highlighting()
+        self.find_bar.update_match_count(0, 0)
+        self.status_manager.show_status(f"Replaced {count} occurrence(s)", 3000)
+
+        logger.info(f"Replaced all: {count} occurrences of '{search_text}' with '{replace_text}'")
 
     def _select_match(self, match: SearchMatch) -> None:
         """Select a search match in the editor.
