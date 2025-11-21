@@ -741,11 +741,11 @@ class GitWorker(BaseWorker):
 
         return branch, modified_files, staged_files, untracked_files
 
-    def _add_line_counts(  # noqa: C901
-        self, working_dir: str, files: list[dict[str, Any]], staged: bool
-    ) -> list[dict[str, Any]]:
+    def _add_line_counts(self, working_dir: str, files: list[dict[str, Any]], staged: bool) -> list[dict[str, Any]]:
         """
         Add line change counts to file list using git diff --numstat.
+
+        MA principle: Reduced from 67→19 lines by extracting 3 helpers (72% reduction).
 
         Args:
             working_dir: Repository root directory
@@ -755,8 +755,40 @@ class GitWorker(BaseWorker):
         Returns:
             Updated file list with lines_added and lines_deleted keys
         """
+        result, timeout = self._execute_git_diff_numstat(working_dir, staged)
+        if result and result.returncode == 0:
+            line_counts = self._parse_numstat_output(result.stdout)
+            self._update_files_with_line_counts(files, line_counts)
+        elif not timeout:
+            # Set default values on generic error (not timeout)
+            for file_dict in files:
+                file_dict.setdefault("lines_added", "0")
+                file_dict.setdefault("lines_deleted", "0")
+
+        return files
+
+    def _execute_git_diff_numstat(
+        self, working_dir: str, staged: bool
+    ) -> tuple[subprocess.CompletedProcess[str] | None, bool]:
+        """
+        MA principle: Extracted helper (23 lines) - focused git diff command execution.
+
+        Execute git diff --numstat to get line change counts.
+
+        Args:
+            working_dir: Repository root directory
+            staged: If True, get staged changes (--cached), else working tree changes
+
+        Returns:
+            Tuple of (CompletedProcess or None, timeout_occurred)
+            - First element: CompletedProcess if successful, None on error
+            - Second element: True if timeout occurred, False otherwise
+
+        Security:
+            - Uses subprocess with shell=False to prevent command injection
+            - 3 second timeout to avoid blocking
+        """
         try:
-            # Build git diff command
             cmd = ["git", "diff", "--numstat"]
             if staged:
                 cmd.append("--cached")
@@ -772,39 +804,62 @@ class GitWorker(BaseWorker):
                 errors="replace",
                 timeout=3,
             )
-
-            if result.returncode == 0:
-                # Parse numstat output (format: <added>\t<deleted>\t<path>)
-                line_counts = {}
-                for line in result.stdout.strip().split("\n"):
-                    if not line:
-                        continue
-
-                    parts = line.split("\t")
-                    if len(parts) >= 3:
-                        added = int(parts[0]) if parts[0] != "-" else 0
-                        deleted = int(parts[1]) if parts[1] != "-" else 0
-                        path = parts[2]
-                        line_counts[path] = {"added": added, "deleted": deleted}
-
-                # Add line counts to file dicts
-                for file_dict in files:
-                    path = file_dict["path"]
-                    if path in line_counts:
-                        file_dict["lines_added"] = line_counts[path]["added"]
-                        file_dict["lines_deleted"] = line_counts[path]["deleted"]
-                    else:
-                        file_dict["lines_added"] = 0
-                        file_dict["lines_deleted"] = 0
+            return result, False
 
         except subprocess.TimeoutExpired:
             logger.warning("Git diff --numstat timed out after 3s")
+            return None, True
         except Exception as e:
             logger.warning(f"Failed to get line counts: {e}")
+            return None, False
 
-            # Set default values on error
-            for file_dict in files:
-                file_dict.setdefault("lines_added", "0")
-                file_dict.setdefault("lines_deleted", "0")
+    def _parse_numstat_output(self, stdout: str) -> dict[str, dict[str, int]]:
+        """
+        MA principle: Extracted helper (14 lines) - focused numstat parsing.
 
-        return files
+        Parse git diff --numstat output into line counts dictionary.
+
+        Args:
+            stdout: Output from git diff --numstat command
+
+        Returns:
+            Dictionary mapping file paths to {added, deleted} dicts
+
+        Format:
+            <added>\t<deleted>\t<path>
+            Binary files show "-" for added/deleted
+        """
+        line_counts = {}
+        for line in stdout.strip().split("\n"):
+            if not line:
+                continue
+
+            parts = line.split("\t")
+            if len(parts) >= 3:
+                added = int(parts[0]) if parts[0] != "-" else 0
+                deleted = int(parts[1]) if parts[1] != "-" else 0
+                path = parts[2]
+                line_counts[path] = {"added": added, "deleted": deleted}
+
+        return line_counts
+
+    def _update_files_with_line_counts(
+        self, files: list[dict[str, Any]], line_counts: dict[str, dict[str, int]]
+    ) -> None:
+        """
+        MA principle: Extracted helper (9 lines) - focused file dict updates.
+
+        Update file dictionaries with line change counts.
+
+        Args:
+            files: List of file dicts (modified in place)
+            line_counts: Dictionary mapping paths to {added, deleted} dicts
+        """
+        for file_dict in files:
+            path = file_dict["path"]
+            if path in line_counts:
+                file_dict["lines_added"] = line_counts[path]["added"]
+                file_dict["lines_deleted"] = line_counts[path]["deleted"]
+            else:
+                file_dict["lines_added"] = 0
+                file_dict["lines_deleted"] = 0
