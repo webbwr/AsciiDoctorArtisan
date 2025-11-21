@@ -682,14 +682,40 @@ class CreateIssueDialog(QDialog):
         self._init_ui()
 
     def _init_ui(self) -> None:
-        """Initialize the create issue UI."""
+        """
+        Initialize the create issue UI.
+
+        MA principle: Reduced from 57→19 lines by extracting 4 helpers (67% reduction).
+        """
         self.setWindowTitle("Create Issue")
         self.setMinimumSize(500, 350)
         self.setModal(True)
 
         layout = QVBoxLayout(self)
 
-        # Form layout for input fields
+        # Add UI components
+        form_layout = self._setup_form_fields()
+        layout.addLayout(form_layout)
+
+        body_label, self.body_input = self._setup_body_field()
+        layout.addWidget(body_label)
+        layout.addWidget(self.body_input)
+
+        required_label = self._setup_required_note()
+        layout.addWidget(required_label)
+
+        button_box = self._setup_action_buttons()
+        layout.addWidget(button_box)
+
+    def _setup_form_fields(self) -> QFormLayout:
+        """
+        Create form fields for issue creation.
+
+        MA principle: Extracted from _init_ui (15 lines).
+
+        Returns:
+            QFormLayout with title and labels fields
+        """
         form_layout = QFormLayout()
 
         # Title field (required)
@@ -706,15 +732,22 @@ class CreateIssueDialog(QDialog):
         )
         form_layout.addRow("Labels:", self.labels_input)
 
-        layout.addLayout(form_layout)
+        return form_layout
 
-        # Body field (optional)
+    def _setup_body_field(self) -> tuple[QLabel, QPlainTextEdit]:
+        """
+        Create description field for issue body.
+
+        MA principle: Extracted from _init_ui (17 lines).
+
+        Returns:
+            Tuple of (label, text_edit) for issue description
+        """
         body_label = QLabel("Description:")
         body_label.setToolTip("Detailed description of the issue (optional)")
-        layout.addWidget(body_label)
 
-        self.body_input = QPlainTextEdit()
-        self.body_input.setPlaceholderText(
+        body_input = QPlainTextEdit()
+        body_input.setPlaceholderText(
             "Describe the issue...\n\n"
             "What is the problem?\n"
             "What is the expected behavior?\n"
@@ -723,21 +756,38 @@ class CreateIssueDialog(QDialog):
             "2. \n"
             "3. "
         )
-        self.body_input.setMinimumHeight(150)
-        self.body_input.setToolTip("Detailed issue description (optional)")
-        layout.addWidget(self.body_input)
+        body_input.setMinimumHeight(150)
+        body_input.setToolTip("Detailed issue description (optional)")
 
-        # Required field note
+        return body_label, body_input
+
+    def _setup_required_note(self) -> QLabel:
+        """
+        Create required field note label.
+
+        MA principle: Extracted from _init_ui (4 lines).
+
+        Returns:
+            QLabel with required field note styling
+        """
         required_label = QLabel("* Required field")
         required_label.setStyleSheet("QLabel { color: gray; font-size: 9pt; }")
-        layout.addWidget(required_label)
+        return required_label
 
-        # Dialog buttons
+    def _setup_action_buttons(self) -> QDialogButtonBox:
+        """
+        Create action buttons for issue creation dialog.
+
+        MA principle: Extracted from _init_ui (6 lines).
+
+        Returns:
+            QDialogButtonBox with Create Issue and Cancel buttons
+        """
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.button(QDialogButtonBox.Ok).setText("Create Issue")
         button_box.accepted.connect(self._validate_and_accept)
         button_box.rejected.connect(self.reject)
-        layout.addWidget(button_box)
+        return button_box
 
     def _validate_and_accept(self) -> None:
         """Validate inputs and accept dialog if valid."""
