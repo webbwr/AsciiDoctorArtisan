@@ -514,6 +514,8 @@ class GitHubCLIWorker(BaseWorker):
         """
         Parse GitHub CLI error messages and provide user-friendly explanations.
 
+        MA principle: Reduced from depth=7 to depth=1 using error pattern mapping (86% reduction).
+
         Args:
             stderr: GitHub CLI command standard error output
             command: GitHub CLI command that was executed
@@ -527,20 +529,24 @@ class GitHubCLIWorker(BaseWorker):
         """
         stderr_lower = stderr.lower()
 
-        if "not logged into" in stderr_lower or "not authenticated" in stderr_lower:
-            return "Not authenticated. Run 'gh auth login' in terminal."
-        elif "no default remote" in stderr_lower or "not a git repository" in stderr_lower:
-            return "No GitHub remote found. Add remote with 'git remote add origin <url>'."
-        elif "rate limit" in stderr_lower:
-            return "GitHub API rate limit exceeded. Try again in 1 hour."
-        elif "permission denied" in stderr_lower or "forbidden" in stderr_lower:
-            return "Permission denied. Check repository access and token scopes."
-        elif "not found" in stderr_lower and "repository" in stderr_lower:
-            return "Repository not found. Check repository name and access."
-        elif "network" in stderr_lower or "could not resolve host" in stderr_lower:
-            return "Network error. Check internet connection."
-        elif "timeout" in stderr_lower:
-            return "Request timed out. Check network connection."
-        else:
-            # Return first 200 chars of error
-            return f"GitHub CLI error: {stderr[:200]}"
+        # Error pattern mapping (keywords -> user message)
+        error_patterns = [
+            (["not logged into", "not authenticated"], "Not authenticated. Run 'gh auth login' in terminal."),
+            (
+                ["no default remote", "not a git repository"],
+                "No GitHub remote found. Add remote with 'git remote add origin <url>'.",
+            ),
+            (["rate limit"], "GitHub API rate limit exceeded. Try again in 1 hour."),
+            (["permission denied", "forbidden"], "Permission denied. Check repository access and token scopes."),
+            (["not found", "repository"], "Repository not found. Check repository name and access."),
+            (["network", "could not resolve host"], "Network error. Check internet connection."),
+            (["timeout"], "Request timed out. Check network connection."),
+        ]
+
+        # Check each pattern (OR logic - any keyword matches)
+        for keywords, message in error_patterns:
+            if any(keyword in stderr_lower for keyword in keywords):
+                return message
+
+        # Default: return first 200 chars of error
+        return f"GitHub CLI error: {stderr[:200]}"
