@@ -101,6 +101,7 @@ from asciidoc_artisan.core import (
 from asciidoc_artisan.core.large_file_handler import (  # Streaming I/O for large files
     LargeFileHandler,
 )
+from asciidoc_artisan.ui.path_format_utils import PathFormatUtils
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
 if TYPE_CHECKING:
@@ -781,85 +782,16 @@ class FileOperationsManager:
 
         self.editor.file_load_manager.load_content_into_editor(content, file_path)
 
-    # Helper methods for file saving
+    # Helper methods for file saving (delegate to PathFormatUtils)
 
     def _determine_save_format(self, file_path: Path, selected_filter: str) -> tuple[str, Path]:
-        """Determine save format and ensure file path has correct extension.
-
-        MA principle: Reduced from 47→15 lines by extracting 2 helpers (68% reduction).
-
-        Args:
-            file_path: Initial file path from dialog
-            selected_filter: Selected file filter from dialog
-
-        Returns:
-            Tuple of (format_type, corrected_file_path)
-        """
-        format_type = self._get_format_from_filter_or_extension(selected_filter, file_path)
-        corrected_path = self._ensure_file_extension(file_path, format_type)
-        return format_type, corrected_path
+        """Determine save format and ensure file path has correct extension (delegates to PathFormatUtils)."""
+        return PathFormatUtils.determine_save_format(file_path, selected_filter)
 
     def _get_format_from_filter_or_extension(self, selected_filter: str, file_path: Path) -> str:
-        """Determine format type from filter string or file extension.
-
-        MA principle: Extracted helper (18 lines) - uses mapping for O(1) lookup.
-
-        Args:
-            selected_filter: Filter string from file dialog
-            file_path: File path to check extension
-
-        Returns:
-            Format type string ("md", "docx", "html", "pdf", or "adoc")
-        """
-        # Map filter strings to format types
-        filter_map = {
-            MD_FILTER: "md",
-            DOCX_FILTER: "docx",
-            HTML_FILTER: "html",
-            PDF_FILTER: "pdf",
-        }
-
-        # Check filter first
-        for filter_str, format_type in filter_map.items():
-            if filter_str in selected_filter:
-                return format_type
-
-        # Fall back to extension mapping
-        ext = file_path.suffix.lower()
-        ext_map = {
-            ".md": "md",
-            ".markdown": "md",
-            ".docx": "docx",
-            ".html": "html",
-            ".htm": "html",
-            ".pdf": "pdf",
-        }
-
-        return ext_map.get(ext, "adoc")
+        """Determine format type from filter string or file extension (delegates to PathFormatUtils)."""
+        return PathFormatUtils.get_format_from_filter_or_extension(selected_filter, file_path)
 
     def _ensure_file_extension(self, file_path: Path, format_type: str) -> Path:
-        """Add file extension if missing.
-
-        MA principle: Extracted helper (11 lines) - uses mapping for clean code.
-
-        Args:
-            file_path: Original file path
-            format_type: Desired format type
-
-        Returns:
-            Path with correct extension
-        """
-        if file_path.suffix:
-            return file_path
-
-        # Map format types to extensions
-        ext_map = {
-            "md": ".md",
-            "docx": ".docx",
-            "html": ".html",
-            "pdf": ".pdf",
-            "adoc": ".adoc",
-        }
-
-        extension = ext_map.get(format_type, ".adoc")
-        return file_path.with_suffix(extension)
+        """Add file extension if missing (delegates to PathFormatUtils)."""
+        return PathFormatUtils.ensure_file_extension(file_path, format_type)
