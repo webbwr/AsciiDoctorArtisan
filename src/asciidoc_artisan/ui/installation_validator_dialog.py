@@ -419,15 +419,22 @@ class InstallationValidatorDialog(QDialog):
         self._start_validation()
 
     def _setup_ui(self) -> None:
-        """Setup dialog UI."""
-        layout = QVBoxLayout(self)
+        """
+        Setup dialog UI.
 
-        # Header
+        MA principle: Reduced from 53→10 lines by extracting 3 helper methods.
+        """
+        layout = QVBoxLayout(self)
+        self._create_header_section(layout)
+        self._create_progress_section(layout)
+        layout.addLayout(self._create_button_bar())
+
+    def _create_header_section(self, layout: QVBoxLayout) -> None:
+        """Create header and description section."""
         self.header = QLabel("Installation Validator")
         self.header.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;")
         layout.addWidget(self.header)
 
-        # Description
         self.description = QLabel(
             "This tool validates all application requirements and allows you to\n"
             "update Python dependencies to their latest versions."
@@ -435,7 +442,8 @@ class InstallationValidatorDialog(QDialog):
         self.description.setStyleSheet("padding: 5px 10px;")
         layout.addWidget(self.description)
 
-        # Results display
+    def _create_progress_section(self, layout: QVBoxLayout) -> None:
+        """Create results display and progress indicators."""
         self.results_text = QTextEdit()
         self.results_text.setReadOnly(True)
         self.results_text.setStyleSheet("font-family: monospace; padding: 10px;")
@@ -453,7 +461,8 @@ class InstallationValidatorDialog(QDialog):
         self.progress_label.setVisible(False)
         layout.addWidget(self.progress_label)
 
-        # Button bar
+    def _create_button_bar(self) -> QHBoxLayout:
+        """Create button bar with validation and update controls."""
         button_layout = QHBoxLayout()
 
         self.validate_btn = QPushButton("Re-validate")
@@ -470,7 +479,7 @@ class InstallationValidatorDialog(QDialog):
         self.close_btn.clicked.connect(self.accept)
         button_layout.addWidget(self.close_btn)
 
-        layout.addLayout(button_layout)
+        return button_layout
 
     def _apply_theme(self) -> None:
         """Apply theme based on parent editor's dark mode setting."""

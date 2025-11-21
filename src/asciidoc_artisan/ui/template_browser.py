@@ -170,14 +170,23 @@ class TemplateBrowser(QDialog):
         self._load_templates()
 
     def _setup_ui(self) -> None:
-        """Setup browser UI."""
+        """
+        Setup browser UI.
+
+        MA principle: Reduced from 63→16 lines by extracting 4 helper methods.
+        """
         self.setWindowTitle("Template Browser")
         self.setModal(True)
         self.resize(800, 600)
 
         layout = QVBoxLayout(self)
+        layout.addLayout(self._create_filter_bar())
+        layout.addWidget(self._create_template_grid())
+        self._create_preview_area(layout)
+        layout.addLayout(self._create_buttons())
 
-        # Top bar: Category filter and search
+    def _create_filter_bar(self) -> QHBoxLayout:
+        """Create top bar with category filter and search."""
         top_layout = QHBoxLayout()
 
         # Category filter
@@ -194,15 +203,17 @@ class TemplateBrowser(QDialog):
         self.search_edit.textChanged.connect(self._filter_templates)
         top_layout.addWidget(self.search_edit)
 
-        layout.addLayout(top_layout)
+        return top_layout
 
-        # Template grid
+    def _create_template_grid(self) -> QWidget:
+        """Create template grid widget."""
         self.grid_widget = QWidget()
         self.grid_layout = QGridLayout(self.grid_widget)
         self.grid_layout.setSpacing(10)
-        layout.addWidget(self.grid_widget)
+        return self.grid_widget
 
-        # Preview area
+    def _create_preview_area(self, layout: QVBoxLayout) -> None:
+        """Create preview area with label and text editor."""
         preview_label = QLabel("Preview:")
         preview_label.setStyleSheet("font-weight: bold;")
         layout.addWidget(preview_label)
@@ -212,7 +223,8 @@ class TemplateBrowser(QDialog):
         self.preview_text.setMaximumHeight(200)
         layout.addWidget(self.preview_text)
 
-        # Bottom buttons
+    def _create_buttons(self) -> QHBoxLayout:
+        """Create bottom button bar."""
         button_layout = QHBoxLayout()
 
         self.new_template_btn = QPushButton("Create New Template")
@@ -230,7 +242,7 @@ class TemplateBrowser(QDialog):
         self.cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(self.cancel_btn)
 
-        layout.addLayout(button_layout)
+        return button_layout
 
     def _load_templates(self) -> None:
         """Load templates from manager."""
@@ -356,14 +368,21 @@ class VariableInputDialog(QDialog):
         self._setup_ui()
 
     def _setup_ui(self) -> None:
-        """Setup dialog UI."""
+        """
+        Setup dialog UI.
+
+        MA principle: Reduced from 46→12 lines by extracting 2 helper methods.
+        """
         self.setWindowTitle(f"Template Variables: {self.template.name}")
         self.setModal(True)
         self.resize(400, 300)
 
         layout = QVBoxLayout(self)
+        self._create_variable_inputs(layout)
+        layout.addLayout(self._create_dialog_buttons())
 
-        # Create input fields for each variable
+    def _create_variable_inputs(self, layout: QVBoxLayout) -> None:
+        """Create input fields for each template variable."""
         for var in self.template.variables:
             # Variable name label
             label = QLabel(f"{var.name}:")
@@ -388,7 +407,8 @@ class VariableInputDialog(QDialog):
                 desc_label.setStyleSheet("color: gray; font-size: 10px;")
                 layout.addWidget(desc_label)
 
-        # Buttons
+    def _create_dialog_buttons(self) -> QHBoxLayout:
+        """Create OK/Cancel button layout."""
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
@@ -400,7 +420,7 @@ class VariableInputDialog(QDialog):
         self.cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(self.cancel_btn)
 
-        layout.addLayout(button_layout)
+        return button_layout
 
     def _on_ok_clicked(self) -> None:
         """Handle OK button click with validation."""
@@ -461,14 +481,22 @@ class CustomTemplateDialog(QDialog):
         self._setup_ui()
 
     def _setup_ui(self) -> None:
-        """Setup dialog UI."""
+        """
+        Setup dialog UI.
+
+        MA principle: Reduced from 73→14 lines by extracting 3 helper methods.
+        """
         self.setWindowTitle("Create Custom Template")
         self.setModal(True)
         self.resize(700, 600)
 
         layout = QVBoxLayout(self)
+        layout.addLayout(self._create_metadata_form())
+        self._create_content_editor(layout)
+        layout.addLayout(self._create_action_buttons())
 
-        # Form for metadata
+    def _create_metadata_form(self) -> QFormLayout:
+        """Create form for template metadata fields."""
         form = QFormLayout()
 
         self.name_edit = QLineEdit()
@@ -494,9 +522,10 @@ class CustomTemplateDialog(QDialog):
         self.version_edit.setText("1.0")
         form.addRow("Version:", self.version_edit)
 
-        layout.addLayout(form)
+        return form
 
-        # Content editor
+    def _create_content_editor(self, layout: QVBoxLayout) -> None:
+        """Create content editor section with help text."""
         content_label = QLabel("Template Content*:")
         content_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
         layout.addWidget(content_label)
@@ -518,7 +547,8 @@ class CustomTemplateDialog(QDialog):
         self.auto_detect_vars.setToolTip("Automatically find {{variable}} patterns and create variable definitions")
         layout.addWidget(self.auto_detect_vars)
 
-        # Buttons
+    def _create_action_buttons(self) -> QHBoxLayout:
+        """Create Create/Cancel button layout."""
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
@@ -530,7 +560,7 @@ class CustomTemplateDialog(QDialog):
         self.cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(self.cancel_btn)
 
-        layout.addLayout(button_layout)
+        return button_layout
 
     def _on_create_clicked(self) -> None:
         """Handle create button click."""
