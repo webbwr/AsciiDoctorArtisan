@@ -107,6 +107,7 @@ from PySide6.QtGui import (
 )
 
 # === LOCAL IMPORTS ===
+from asciidoc_artisan.ui.action_creators import ActionCreators
 from asciidoc_artisan.ui.action_factory import ActionFactory
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
@@ -203,6 +204,7 @@ class ActionManager:
         self._settings = main_window._settings
         self._sync_scrolling = main_window._sync_scrolling
         self._factory = ActionFactory(main_window)
+        self._creators = ActionCreators(self)
 
     def _declare_file_actions(self) -> None:
         """Declare File menu action type hints."""
@@ -327,301 +329,56 @@ class ActionManager:
         return self._factory.create_action(text, triggered, shortcut, icon, tooltip, enabled, checkable, checked)
 
     def _create_file_actions(self) -> None:
-        """Create File menu actions (11 actions)."""
-        self.new_act = self._create_action(
-            "&New", "Create a new file", self.window.new_file, shortcut=QKeySequence.StandardKey.New
-        )
-        self.new_from_template_act = self._create_action(
-            "New from &Template...", "Create a new document from a template", self.window.new_from_template
-        )
-        self.open_act = self._create_action(
-            "&Open...", "Open a file", self.window.open_file, shortcut=QKeySequence.StandardKey.Open
-        )
-        self.save_act = self._create_action(
-            "&Save",
-            "Save the document as AsciiDoc format (.adoc)",
-            self.window.save_file,
-            shortcut=QKeySequence.StandardKey.Save,
-        )
-        self.save_as_act = self._create_action(
-            "Save &As...",
-            "Save with a new name",
-            lambda: self.window.save_file(save_as=True),
-            shortcut=QKeySequence.StandardKey.SaveAs,
-        )
-        self.save_as_adoc_act = self._create_action(
-            "AsciiDoc (*.adoc)", "Save as AsciiDoc file", lambda: self.window.save_file_as_format("adoc")
-        )
-        self.save_as_md_act = self._create_action(
-            "GitHub Markdown (*.md)", "Export to GitHub Markdown format", lambda: self.window.save_file_as_format("md")
-        )
-        self.save_as_docx_act = self._create_action(
-            "Microsoft Word (*.docx)",
-            "Export to Microsoft Office 365 Word format",
-            lambda: self.window.save_file_as_format("docx"),
-        )
-        self.save_as_html_act = self._create_action(
-            "HTML Web Page (*.html)",
-            "Export to HTML format (can print to PDF from browser)",
-            lambda: self.window.save_file_as_format("html"),
-        )
-        self.save_as_pdf_act = self._create_action(
-            "Adobe PDF (*.pdf)", "Export to Adobe Acrobat PDF format", lambda: self.window.save_file_as_format("pdf")
-        )
-        self.exit_act = self._create_action(
-            "E&xit", "Exit the application", self.window.close, shortcut=QKeySequence.StandardKey.Quit
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_file_actions()
 
     def _create_edit_actions(self) -> None:
-        """Create Edit menu actions (7 actions)."""
-        self.undo_act = self._create_action(
-            "&Undo", "Undo last action", self.editor.undo, shortcut=QKeySequence.StandardKey.Undo
-        )
-        self.redo_act = self._create_action(
-            "&Redo", "Redo last action", self.editor.redo, shortcut=QKeySequence.StandardKey.Redo
-        )
-        self.cut_act = self._create_action(
-            "Cu&t", "Cut selection", self.editor.cut, shortcut=QKeySequence.StandardKey.Cut
-        )
-        self.copy_act = self._create_action(
-            "&Copy", "Copy selection", self.editor.copy, shortcut=QKeySequence.StandardKey.Copy
-        )
-        self.paste_act = self._create_action(
-            "&Paste", "Paste from clipboard", self.editor.paste, shortcut=QKeySequence.StandardKey.Paste
-        )
-        self.convert_paste_act = self._create_action(
-            "Convert && Paste",
-            "Convert clipboard content to AsciiDoc",
-            self.window.convert_and_paste_from_clipboard,
-            shortcut="Ctrl+Shift+V",
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_edit_actions()
 
     def _create_find_actions(self) -> None:
-        """Create Find & Replace actions (4 actions)."""
-        self.find_act = self._create_action(
-            "&Find...",
-            "Find text in document",
-            lambda: self.window.find_bar.show_and_focus(),
-            shortcut=QKeySequence.StandardKey.Find,
-        )
-        self.replace_act = self._create_action(
-            "R&eplace...",
-            "Find and replace text",
-            lambda: self.window.find_bar.show_replace_and_focus(),
-            shortcut=QKeySequence.StandardKey.Replace,
-        )
-        self.find_next_act = self._create_action(
-            "Find &Next",
-            "Find next occurrence",
-            self.window._handle_find_next,
-            shortcut=QKeySequence.StandardKey.FindNext,
-        )
-        self.find_previous_act = self._create_action(
-            "Find &Previous",
-            "Find previous occurrence",
-            self.window._handle_find_previous,
-            shortcut=QKeySequence.StandardKey.FindPrevious,
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_find_actions()
 
     def _create_view_actions(self) -> None:
-        """Create View menu actions (7 actions)."""
-        self.zoom_in_act = self._create_action(
-            "Zoom &In", "Increase font size", lambda: self.window._zoom(1), shortcut=QKeySequence.StandardKey.ZoomIn
-        )
-        self.zoom_out_act = self._create_action(
-            "Zoom &Out", "Decrease font size", lambda: self.window._zoom(-1), shortcut=QKeySequence.StandardKey.ZoomOut
-        )
-        self.dark_mode_act = self._create_action(
-            "&Dark Mode",
-            "Toggle dark mode (F11)",
-            self.window._toggle_dark_mode,
-            shortcut=Qt.Key.Key_F11,
-            checkable=True,
-            checked=self._settings.dark_mode,
-        )
-        self.sync_scrolling_act = self._create_action(
-            "&Synchronized Scrolling",
-            "Toggle synchronized scrolling between editor and preview",
-            self.window._toggle_sync_scrolling,
-            checkable=True,
-            checked=self._sync_scrolling,
-        )
-        self.maximize_window_act = self._create_action(
-            "Maximize &Window",
-            "Maximize application window to full screen",
-            self.window._toggle_maximize_window,
-            shortcut="F11",
-        )
-        self.maximize_editor_act = self._create_action(
-            "Maximize &Editor",
-            "Toggle maximize editor pane",
-            lambda: self.window._toggle_pane_maximize("editor"),
-            shortcut="Ctrl+Shift+E",
-        )
-        self.maximize_preview_act = self._create_action(
-            "Maximize &Preview",
-            "Toggle maximize preview pane",
-            lambda: self.window._toggle_pane_maximize("preview"),
-            shortcut="Ctrl+Shift+R",
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_view_actions()
 
     def _create_git_actions(self) -> None:
-        """Create Git menu actions (6 actions)."""
-        self.set_repo_act = self._create_action(
-            "Set &Repository...", "Select Git repository", self.window._select_git_repository
-        )
-        self.git_status_act = self._create_action(
-            "&Status", "Show detailed Git repository status", self.window._show_git_status, shortcut="Ctrl+Shift+S"
-        )
-        self.git_commit_act = self._create_action(
-            "&Commit...", "Commit changes", self.window._trigger_git_commit, shortcut="Ctrl+Shift+C"
-        )
-        self.git_pull_act = self._create_action(
-            "&Pull", "Pull from remote", self.window._trigger_git_pull, shortcut="Ctrl+Shift+P"
-        )
-        self.git_push_act = self._create_action(
-            "P&ush", "Push to remote", self.window._trigger_git_push, shortcut="Ctrl+Shift+U"
-        )
-        self.quick_commit_act = self._create_action(
-            "&Quick Commit...",
-            "Quick commit with inline message (Ctrl+G)",
-            self.window._show_quick_commit,
-            shortcut="Ctrl+G",
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_git_actions()
 
     def _create_github_actions(self) -> None:
-        """Create GitHub menu actions (5 actions)."""
-        self.github_create_pr_act = self._create_action(
-            "Create &Pull Request...", "Create a GitHub pull request", self.window._trigger_github_create_pr
-        )
-        self.github_list_prs_act = self._create_action(
-            "&List Pull Requests", "List GitHub pull requests", self.window._trigger_github_list_prs
-        )
-        self.github_create_issue_act = self._create_action(
-            "Create &Issue...", "Create a GitHub issue", self.window._trigger_github_create_issue
-        )
-        self.github_list_issues_act = self._create_action(
-            "List &Issues", "List GitHub issues", self.window._trigger_github_list_issues
-        )
-        self.github_repo_info_act = self._create_action(
-            "Repository &Info", "Show GitHub repository information", self.window._trigger_github_repo_info
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_github_actions()
 
     def _create_tools_actions(self) -> None:
-        """
-        Create Tools menu actions (16 actions).
-
-        MA principle: Reduced from 67→21 lines by extracting 5 action group helpers (69% reduction).
-        """
-        self._create_validation_settings_actions()
-        self._create_service_status_actions()
-        self._create_service_settings_actions()
-        self._create_ui_toggle_actions()
-        self._create_general_settings_actions()
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_tools_actions()
 
     def _create_validation_settings_actions(self) -> None:
-        """
-        Create validation and editor settings actions.
-
-        MA principle: Extracted helper (18 lines) - validation and editor config actions.
-        """
-        self.validate_install_act = self._create_action(
-            "&Validate Installation...",
-            "Check installation requirements and update dependencies",
-            self.window._show_installation_validator,
-        )
-        self.autocomplete_settings_act = self._create_action(
-            "&Auto-Complete Settings...",
-            "Configure auto-complete settings (enable/disable, delay, min characters)",
-            self.window.show_autocomplete_settings,
-        )
-        self.syntax_check_settings_act = self._create_action(
-            "&Syntax Checking Settings...",
-            "Configure syntax checking settings (enable/disable, delay, underlines)",
-            self.window.show_syntax_check_settings,
-        )
-        self.toggle_theme_act = self._create_action(
-            "Toggle &Theme (Dark/Light)", "Switch between dark and light theme", self.window._toggle_dark_mode
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_validation_settings_actions()
 
     def _create_service_status_actions(self) -> None:
-        """
-        Create service status check actions.
-
-        MA principle: Extracted helper (19 lines) - status check actions for services.
-        """
-        self.pandoc_status_act = self._create_action(
-            "&Pandoc Status", "Check Pandoc installation status", self.window._show_pandoc_status
-        )
-        self.pandoc_formats_act = self._create_action(
-            "Supported &Formats", "Show supported conversion formats", self.window._show_supported_formats
-        )
-        self.ollama_status_act = self._create_action(
-            "&Ollama Status", "Check Ollama service and installation status", self.window._show_ollama_status
-        )
-        self.anthropic_status_act = self._create_action(
-            "&Anthropic Status", "Check Anthropic API key and service status", self.window._show_anthropic_status
-        )
-        self.telemetry_status_act = self._create_action(
-            "&Telemetry Status",
-            "Check telemetry configuration and data collection status",
-            self.window._show_telemetry_status,
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_service_status_actions()
 
     def _create_service_settings_actions(self) -> None:
-        """
-        Create AI service settings actions.
-
-        MA principle: Extracted helper (13 lines) - AI service configuration actions.
-        """
-        self.ollama_settings_act = self._create_action(
-            "&Ollama Settings...", "Configure Ollama AI integration and select model", self.window._show_ollama_settings
-        )
-        self.anthropic_settings_act = self._create_action(
-            "&Anthropic Settings...",
-            "Configure Anthropic API key for AI conversations",
-            self.window._show_anthropic_settings,
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_service_settings_actions()
 
     def _create_ui_toggle_actions(self) -> None:
-        """
-        Create UI toggle actions.
-
-        MA principle: Extracted helper (18 lines) - UI feature toggle actions.
-        """
-        self.toggle_chat_pane_act = self._create_action(
-            "&Chat Pane",
-            "Show or hide AI chat pane",
-            lambda: self.window.chat_manager.toggle_panel_visibility(),
-            checkable=True,
-            checked=self._settings.ai_chat_enabled or self._settings.ollama_chat_enabled,
-        )
-        self.toggle_spell_check_act = self._create_action(
-            "&Spell Check",
-            "Enable or disable spell checking (F7)",
-            self.window.spell_check_manager.toggle_spell_check,
-            shortcut=Qt.Key.Key_F7,
-        )
-        self.toggle_telemetry_act = self._create_action(
-            "&Telemetry", "Enable or disable telemetry collection", self.window.toggle_telemetry
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_ui_toggle_actions()
 
     def _create_general_settings_actions(self) -> None:
-        """
-        Create general settings actions.
-
-        MA principle: Extracted helper (11 lines) - general application settings actions.
-        """
-        self.font_settings_act = self._create_action(
-            "&Font Settings...", "Customize fonts for editor, preview, and chat panes", self.window._show_font_settings
-        )
-        self.app_settings_act = self._create_action(
-            "Application &Settings...", "View and edit all application settings", self.window._show_app_settings
-        )
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_general_settings_actions()
 
     def _create_help_actions(self) -> None:
-        """Create Help menu actions (1 action)."""
-        self.about_act = self._create_action("&About", "About AsciiDoctor Artisan", self.window._show_about)
+        """Create actions (delegates to action_creators).""" 
+        self._creators.create_help_actions()
 
     def create_actions(self) -> None:
         """
