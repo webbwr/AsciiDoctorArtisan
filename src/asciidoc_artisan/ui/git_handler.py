@@ -32,14 +32,7 @@ class GitHandler(BaseVCSHandler):
     git_operation_completed = Signal(bool, str)  # Emitted when operation completes (success, message)
 
     def __init__(self, parent_window: Any, settings_manager: Any, status_manager: Any) -> None:
-        """
-        Initialize GitHandler.
-
-        Args:
-            parent_window: Main window (for dialogs and signals)
-            settings_manager: Settings manager instance
-            status_manager: Status manager instance
-        """
+        """Initialize GitHandler with parent window and managers."""
         super().__init__(parent_window, settings_manager, status_manager)
 
         # Git-specific state
@@ -52,15 +45,7 @@ class GitHandler(BaseVCSHandler):
         self.status_refresh_enabled: bool = False
 
     def initialize(self) -> None:
-        """
-        Initialize Git handler from settings.
-
-        Loads saved Git repository path from settings and validates it.
-        Called after UI setup is complete.
-
-        Note: Does not update UI state - UI state will be updated later
-        in the initialization sequence when all managers are ready.
-        """
+        """Initialize from settings (loads/validates repo path, UI updated later)."""
         settings = self.settings_manager.load_settings()
 
         # Load repository path from settings
@@ -211,15 +196,7 @@ class GitHandler(BaseVCSHandler):
         logger.info("Git push started")
 
     def quick_commit(self, message: str) -> None:
-        """
-        Quick commit with inline message (v1.9.0+).
-
-        Stages all files and commits with the provided message in one operation.
-        Used by QuickCommitWidget for keyboard-driven commits.
-
-        Args:
-            message: Commit message
-        """
+        """Quick commit (v1.9.0+): stages all files, commits with message (keyboard-driven)."""
         if not self._ensure_ready():
             return
 
@@ -252,12 +229,7 @@ class GitHandler(BaseVCSHandler):
         logger.info(f"Quick commit started: '{message[:50]}...'")
 
     def handle_git_result(self, result: GitResult) -> None:
-        """
-        Handle Git operation result from worker.
-
-        Args:
-            result: GitResult object with operation outcome
-        """
+        """Handle Git operation result from worker."""
         # Handle commit staging -> commit message step
         if self.last_operation == "commit" and result.success:
             # Stage was successful, now do the actual commit
@@ -293,12 +265,7 @@ class GitHandler(BaseVCSHandler):
         self.pending_commit_message = None
 
     def _check_repository_ready(self) -> bool:
-        """
-        Check if Git repository is configured and ready.
-
-        Returns:
-            True if repository ready, False otherwise
-        """
+        """Check if Git repository is configured and ready."""
         settings = self.settings_manager.load_settings()
 
         # Check if repository is set
@@ -313,12 +280,7 @@ class GitHandler(BaseVCSHandler):
         return "Git operation in progress."
 
     def get_repository_path(self) -> str | None:
-        """
-        Get current Git repository path.
-
-        Returns:
-            Repository path or None
-        """
+        """Get current Git repository path."""
         settings = self.settings_manager.load_settings()
         return settings.git_repo_path if hasattr(settings, "git_repo_path") else None
 
@@ -331,32 +293,7 @@ class GitHandler(BaseVCSHandler):
         return self.is_processing
 
     def get_current_branch(self) -> str:
-        """
-        Get current Git branch name synchronously.
-
-        MA principle: Reduced from 80→30 lines by extracting 2 helpers (63% reduction).
-
-        This is a fast local operation (<50ms) that runs synchronously
-        to provide immediate results for UI operations like GitHub PR creation.
-
-        Returns:
-            Branch name (e.g., "main", "feature/new") or empty string if unavailable
-
-        Security:
-            - Uses subprocess with shell=False to prevent command injection
-            - 2 second timeout to prevent UI blocking
-            - Graceful error handling (returns empty string on failure)
-
-        Example:
-            >>> handler.get_current_branch()
-            'main'
-
-            >>> handler.get_current_branch()  # Detached HEAD
-            'HEAD (detached)'
-
-            >>> handler.get_current_branch()  # No repo
-            ''
-        """
+        """Get branch name synchronously (MA: 80→30 lines, 2 helpers, 63%). <50ms, shell=False, 2s timeout."""
         if not self.is_repository_set():
             return ""
 
@@ -377,22 +314,7 @@ class GitHandler(BaseVCSHandler):
         return self._get_detached_head_label(repo_path)
 
     def _execute_git_command(self, command: list[str], repo_path: str) -> subprocess.CompletedProcess[str] | None:
-        """
-        MA principle: Extracted helper (22 lines) - focused git command execution.
-
-        Execute git command with security and timeout protections.
-
-        Args:
-            command: Git command as list (e.g., ["git", "branch", "--show-current"])
-            repo_path: Repository path for cwd
-
-        Returns:
-            CompletedProcess if successful (returncode 0), None on error
-
-        Security:
-            - Uses subprocess with shell=False to prevent command injection
-            - 2 second timeout to prevent UI blocking
-        """
+        """Execute git command (MA: extracted 22 lines). shell=False, 2s timeout."""
         try:
             result = subprocess.run(
                 command,
@@ -420,17 +342,7 @@ class GitHandler(BaseVCSHandler):
         return None
 
     def _get_detached_head_label(self, repo_path: str) -> str:
-        """
-        MA principle: Extracted helper (14 lines) - focused detached HEAD handling.
-
-        Get label for detached HEAD state with commit hash if available.
-
-        Args:
-            repo_path: Repository path for cwd
-
-        Returns:
-            Label like "HEAD (detached at abc123)" or "HEAD (detached)"
-        """
+        """Get detached HEAD label with commit hash (MA: extracted 14 lines)."""
         result = self._execute_git_command(["git", "rev-parse", "--short", "HEAD"], repo_path)
         if result:
             commit_hash = result.stdout.strip()
@@ -439,14 +351,7 @@ class GitHandler(BaseVCSHandler):
         return "HEAD (detached)"
 
     def start_status_refresh(self) -> None:
-        """
-        Start periodic Git status refresh (v1.9.0+).
-
-        Starts a timer that queries Git status every 5 seconds to update
-        the status bar display in real-time.
-
-        Note: Only starts if repository is set and not already running.
-        """
+        """Start periodic Git status refresh (v1.9.0+): 5s interval, status bar updates."""
         if not self.status_refresh_enabled and self.is_repository_set():
             self.status_refresh_enabled = True
             self.status_timer.start()
@@ -454,29 +359,14 @@ class GitHandler(BaseVCSHandler):
             logger.info("Git status refresh started (5 second interval)")
 
     def stop_status_refresh(self) -> None:
-        """
-        Stop periodic Git status refresh (v1.9.0+).
-
-        Stops the status refresh timer. Called when repository is unset
-        or when the application is shutting down.
-        """
+        """Stop periodic Git status refresh (v1.9.0+)."""
         if self.status_refresh_enabled:
             self.status_refresh_enabled = False
             self.status_timer.stop()
             logger.info("Git status refresh stopped")
 
     def _refresh_git_status(self) -> None:
-        """
-        Request Git status update (non-blocking, v1.9.0+).
-
-        Emits request_git_status signal to trigger GitWorker to fetch
-        current repository status. Worker will emit status_ready signal
-        with GitStatus object which will update the status bar.
-
-        Skips refresh if:
-        - Repository not set
-        - Git operation in progress (avoid conflicts)
-        """
+        """Request Git status update (v1.9.0+): non-blocking, emits request_git_status signal."""
         if not self.is_repository_set() or self.is_processing:
             return
 
