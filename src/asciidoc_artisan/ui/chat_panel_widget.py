@@ -225,6 +225,8 @@ class ChatPanelWidget(QWidget):
         """
         Render a single message in the display.
 
+        MA principle: Reduced from 63→16 lines by extracting 3 helper methods.
+
         Args:
             message: ChatMessage to render
         """
@@ -232,7 +234,21 @@ class ChatPanelWidget(QWidget):
         if len(self._messages) == 1:
             self._text_display.clear()
 
-        # Format timestamp
+        time_str, mode_display = self._format_message_metadata(message)
+        html = self._create_message_html(message, time_str, mode_display)
+
+        # Append to display
+        cursor = self._text_display.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        self._text_display.setTextCursor(cursor)
+        self._text_display.insertHtml(html)
+
+        # Auto-scroll to bottom
+        if self._auto_scroll:
+            self._scroll_to_bottom()
+
+    def _format_message_metadata(self, message: ChatMessage) -> tuple[str, str]:
+        """Format timestamp and context mode display for message."""
         time_str = time.strftime("%H:%M:%S", time.localtime(message.timestamp))
 
         # Format context mode badge with user-friendly labels
@@ -245,11 +261,14 @@ class ChatPanelWidget(QWidget):
             "editing": "✏️ Edit",  # Editing suggestions
         }.get(message.context_mode, message.context_mode)  # Fallback: use raw name if unknown
 
+        return time_str, mode_display
+
+    def _create_message_html(self, message: ChatMessage, time_str: str, mode_display: str) -> str:
+        """Create HTML for message based on role."""
         colors = self._get_colors()
 
         if message.role == "user":
-            # User message styling
-            html = f"""
+            return f"""
             <div style='margin: 10px; padding: 10px; background-color: {colors["user_bg"]};
                         border-left: 4px solid {colors["user_border"]}; border-radius: 4px;'>
                 <div style='font-size: 10px; color: {colors["user_meta"]}; margin-bottom: 5px;'>
@@ -261,8 +280,7 @@ class ChatPanelWidget(QWidget):
             </div>
             """
         else:
-            # AI message styling
-            html = f"""
+            return f"""
             <div style='margin: 10px; padding: 10px; background-color: {colors["ai_bg"]};
                         border-left: 4px solid {colors["ai_border"]}; border-radius: 4px;'>
                 <div style='font-size: 10px; color: {colors["ai_meta"]}; margin-bottom: 5px;'>
@@ -273,16 +291,6 @@ class ChatPanelWidget(QWidget):
                 </div>
             </div>
             """
-
-        # Append to display
-        cursor = self._text_display.textCursor()
-        cursor.movePosition(QTextCursor.MoveOperation.End)
-        self._text_display.setTextCursor(cursor)
-        self._text_display.insertHtml(html)
-
-        # Auto-scroll to bottom
-        if self._auto_scroll:
-            self._scroll_to_bottom()
 
     def _escape_html(self, text: str) -> str:
         """
