@@ -11,7 +11,7 @@ Implements specification requirement: Spell Checker (v1.8.0).
 """
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import (
@@ -164,41 +164,42 @@ class SpellCheckManager:
 
         logger.debug(f"Ignoring word '{word}' for this session")
 
-    def show_context_menu(self, event: QContextMenuEvent) -> None:
+    def _get_word_and_error_at_position(self, event: QContextMenuEvent) -> tuple[str, QTextCursor, Any] | None:
         """
-        Show context menu with spell check suggestions.
+        Get word and spell error at cursor position.
+
+        MA principle: Extracted from show_context_menu (13 lines).
 
         Args:
             event: Context menu event
-        """
-        if not self.enabled:
-            # Spell check disabled - show default context menu
-            self._show_default_context_menu(event)
-            return
 
-        # Get cursor position at mouse click
+        Returns:
+            Tuple of (word, cursor, error) or None if no misspelled word
+        """
         cursor = self.editor.cursorForPosition(event.pos())
         cursor.select(QTextCursor.SelectionType.WordUnderCursor)
         word = cursor.selectedText().strip()
 
         if not word:
-            # No word under cursor - show default menu
-            self._show_default_context_menu(event)
-            return
+            return None
 
-        # Check if this word is misspelled
         error = self._find_error_at_position(cursor.selectionStart())
-
         if not error:
-            # Word is correctly spelled - show default menu
-            self._show_default_context_menu(event)
-            return
+            return None
 
-        # Create context menu with suggestions
-        menu = QMenu(self.editor)
+        return (word, cursor, error)
 
-        # Add suggestions (bold text)
-        suggestions = error.suggestions[:5]  # Max 5 suggestions
+    def _add_suggestion_actions(self, menu: QMenu, suggestions: list[str], cursor: QTextCursor) -> None:
+        """
+        Add suggestion actions to context menu.
+
+        MA principle: Extracted from show_context_menu (18 lines).
+
+        Args:
+            menu: Context menu
+            suggestions: List of suggestions (max 5)
+            cursor: Text cursor for word replacement
+        """
         if suggestions:
             for suggestion in suggestions:
                 action = QAction(suggestion, menu)
@@ -207,7 +208,6 @@ class SpellCheckManager:
                 font.setBold(True)
                 action.setFont(font)
                 menu.addAction(action)
-
             menu.addSeparator()
         else:  # pragma: no cover
             # No suggestions available
@@ -216,6 +216,16 @@ class SpellCheckManager:
             menu.addAction(no_suggestions)
             menu.addSeparator()
 
+    def _add_dictionary_actions(self, menu: QMenu, word: str) -> None:
+        """
+        Add dictionary management actions to context menu.
+
+        MA principle: Extracted from show_context_menu (10 lines).
+
+        Args:
+            menu: Context menu
+            word: Word to add/ignore
+        """
         # Add "Add to Dictionary" action
         add_action = QAction(f"Add '{word}' to Dictionary", menu)
         add_action.triggered.connect(lambda: self.add_to_dictionary(word))
@@ -227,6 +237,37 @@ class SpellCheckManager:
         menu.addAction(ignore_action)
 
         menu.addSeparator()
+
+    def show_context_menu(self, event: QContextMenuEvent) -> None:
+        """
+        Show context menu with spell check suggestions.
+
+        MA principle: Reduced from 69→23 lines by extracting 3 helpers (67% reduction).
+
+        Args:
+            event: Context menu event
+        """
+        # Early exit if spell check disabled
+        if not self.enabled:
+            self._show_default_context_menu(event)
+            return
+
+        # Get word and error at cursor position
+        result = self._get_word_and_error_at_position(event)
+        if not result:
+            self._show_default_context_menu(event)
+            return
+
+        word, cursor, error = result
+
+        # Create context menu with suggestions
+        menu = QMenu(self.editor)
+
+        # Add suggestions (max 5)
+        self._add_suggestion_actions(menu, error.suggestions[:5], cursor)
+
+        # Add dictionary management actions
+        self._add_dictionary_actions(menu, word)
 
         # Add standard editor actions
         self._add_standard_actions(menu)
