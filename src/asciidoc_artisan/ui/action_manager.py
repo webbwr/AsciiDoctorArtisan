@@ -1,95 +1,34 @@
 """
-===============================================================================
-ACTION MANAGER - Menu Actions and Keyboard Shortcuts
-===============================================================================
+Action Manager - Coordinates menu actions and keyboard shortcuts.
 
-FILE PURPOSE:
-This file manages all the menu actions (File, Edit, View, Git, Tools, Help)
-and their keyboard shortcuts. It creates the menu bar you see at the top of
-the application.
+Manages application menu bar by delegating to specialized components:
+- ActionFactory: QAction creation with DRY pattern (97% code reduction)
+- ActionCreators: Instantiates 50+ actions organized by menu
+- MenuBuilder: Constructs menu hierarchy (File, Edit, View, Git, Tools, Help)
 
-WHAT THIS FILE DOES:
-1. Creates QAction objects (menu items like "New", "Save", "Copy", etc.)
-2. Sets up keyboard shortcuts (Ctrl+N, Ctrl+S, Ctrl+C, etc.)
-3. Connects actions to their handler functions (what happens when clicked)
-4. Builds the menu bar structure (File menu, Edit menu, etc.)
-5. Manages action state (enabled/disabled, checked/unchecked)
+Architecture:
+- Thin coordination layer with delegation pattern
+- Platform-aware shortcuts (Ctrl/Cmd auto-adaptation)
+- Action state management (enabled/disabled, checked/unchecked)
+- Type-safe action declarations for IDE autocomplete
 
-FOR BEGINNERS - WHAT ARE ACTIONS?:
-Think of actions as buttons in a menu. When you click "File → New", that's
-an action. Actions can be:
-- In menus (File → New)
-- In toolbars (the Save button with a disk icon)
-- Triggered by keyboard shortcuts (Ctrl+N for New)
+Menu Structure:
+- File: New, Open, Save, Export (5 formats), Exit
+- Edit: Undo, Redo, Cut, Copy, Paste, Find/Replace
+- View: Zoom, Dark mode, Sync scroll, Maximize
+- Git: Repo, Commit, Pull, Push, GitHub submenu (5 actions)
+- Tools: AI Settings, Validation, UI toggles
+- Help: About, Service status checks
 
-All three are the SAME action - just different ways to trigger it!
+Keyboard Shortcuts:
+- Standard: Ctrl+N/O/S (New/Open/Save), Ctrl+Z/Y (Undo/Redo), Ctrl+X/C/V
+- Custom: F7 (Spell check), F11 (Dark mode), Ctrl+Shift+V (Convert paste)
 
-ANALOGY:
-Think of a TV remote. The power button on the remote, the power button on
-the TV itself, and saying "Turn on" to a voice assistant all do the SAME
-thing - they trigger the "turn on TV" action. Actions work the same way.
+Specifications:
+- FR-048: Platform-appropriate keyboard shortcuts
+- FR-053: Complete keyboard shortcut coverage
 
-WHY THIS FILE WAS EXTRACTED:
-Before v1.1, all this code was in main_window.py (over 1,000 lines!). We
-extracted it to:
-- Make main_window.py smaller and easier to understand
-- Make actions reusable (could add toolbar buttons later)
-- Make testing easier (can test actions separately)
-- Follow "Single Responsibility Principle" (one file = one job)
-
-KEY DESIGN PATTERN - DRY (Don't Repeat Yourself):
-Before refactoring, creating each action took 5-10 lines of code:
-  action = QAction("&New", self)
-  action.setStatusTip("Create a new file")
-  action.setShortcut(QKeySequence.StandardKey.New)
-  action.triggered.connect(self.new_file)
-
-With 50+ actions, that's 250+ lines of repetitive code!
-
-After refactoring with _create_action helper, each action is ONE line:
-  self.new_act = self._create_action("&New", "Create a new file",
-                                      self.new_file, QKeySequence.StandardKey.New)
-
-Result: 97% reduction in QAction instantiation code! (5-10 lines → 1 line)
-
-SPECIFICATIONS IMPLEMENTED:
-- FR-048: Platform-appropriate keyboard shortcuts (Ctrl on Windows/Linux, Cmd on Mac)
-- FR-053: Complete keyboard shortcut list for all common operations
-
-MENU STRUCTURE:
-File    Edit    View    Git        Tools           Help
-├─New   ├─Undo  ├─Zoom  ├─Set Repo ├─AI Settings   ├─About
-├─Open  ├─Redo  ├─Dark  ├─Commit   │ ├─Ollama
-├─Save  ├─Cut   ├─Sync  ├─Pull     ├─App Settings
-├─Save As Copy  ├─Max   ├─Push     ├─Chat Pane
-└─Exit  └─Paste └─Max   └─GitHub   ├─Font Settings
-                 Editor   Preview    ├─Spell Check
-                                     ├─Telemetry
-                                     └─Toggle Theme
-                          ├─Create PR
-                          ├─List PRs
-                          ├─Create Issue
-                          ├─List Issues
-                          └─Repo Info
-
-KEYBOARD SHORTCUTS:
-- Ctrl+N (Cmd+N on Mac) = New file
-- Ctrl+O (Cmd+O on Mac) = Open file
-- Ctrl+S (Cmd+S on Mac) = Save file
-- Ctrl+Z (Cmd+Z on Mac) = Undo
-- Ctrl+Y (Cmd+Y on Mac) = Redo
-- Ctrl+X, C, V = Cut, Copy, Paste
-- Ctrl++ / Ctrl+- = Zoom in/out
-- F11 = Toggle dark mode
-- (20+ total shortcuts)
-
-REFACTORING HISTORY:
-- v1.0: All code in main_window.py (1,000+ lines)
-- v1.1: Extracted to action_manager.py (462 lines)
-- v1.5.0: Added _create_action helper (97% reduction in duplication)
-- v1.6.0: Added GitHub CLI actions (PR/Issue management)
-
-VERSION: 1.6.0 (GitHub CLI integration)
+MA Compliance: Reduced from 971→457 lines via 3 class extractions (53% reduction).
 """
 
 # === STANDARD LIBRARY IMPORTS ===
