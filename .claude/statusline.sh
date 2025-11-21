@@ -206,6 +206,21 @@ get_system_info() {
     echo "${ARCH}|${OPT}|${OS}|${VER}"
 }
 
+# MA Principle: Extract readability grade calculation (12 lines)
+get_readability_grade() {
+    if [ -f scripts/readability_check.py ] && [ -f README.md ]; then
+        # Use existing readability check script
+        GRADE=$(python3 scripts/readability_check.py README.md 2>/dev/null | grep "Grade Level:" | awk '{print $NF}')
+        if [[ "$GRADE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "$GRADE"
+        else
+            echo "?"
+        fi
+    else
+        echo "?"
+    fi
+}
+
 # MA Principle: Extract display lines (24 lines)
 build_status_display() {
     # Parse all info
@@ -232,7 +247,7 @@ ${BOLD}${BLUE}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION}${RESET}
 ${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}
 ${DIM}├─ Env${RESET}: Python ${PY_VER} │ venv:${VENV} │ ${ARCH} (opt:${OPT})
 ${DIM}├─ QA ${RESET}: mypy:${MYPY_STATUS} │ ruff:${RUFF_STATUS} │ MA:${MA_STATUS} ${MA_VIOLATIONS}
-${DIM}├─ TST${RESET}: ${TEST_STATS} │ Coverage:${COVERAGE}%
+${DIM}├─ TST${RESET}: ${TEST_STATS} │ Coverage:${COVERAGE}% │ Grade:${GRADE}
 ${DIM}└─ OS ${RESET}: ${OS} ${OS_VER} │ $(date +"%H:%M:%S")
 EOF
 }
@@ -244,6 +259,7 @@ EOF
 # Gather metrics
 COVERAGE=$(get_coverage)
 TEST_STATS=$(get_test_statistics)
+GRADE=$(get_readability_grade)
 get_cached_qa_status
 
 # Build and display status
