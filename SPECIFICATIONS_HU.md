@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Functional Specifications
 
-**Quick Reference Guide** | **Version:** 2.0.4 | **Updated:** Nov 18, 2025
+**Quick Reference Guide** | **Version:** 2.0.8 | **Updated:** Nov 21, 2025
 
 > **📌 For AI-Assisted Development:** See [SPECIFICATIONS_AI.md](SPECIFICATIONS_AI.md)
 > This file provides human-readable quick reference. For AI-actionable specifications with acceptance criteria, API contracts, test requirements, and dependency graphs, use **SPECIFICATIONS_AI.md**.
