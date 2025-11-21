@@ -65,30 +65,40 @@ class UISetupManager:
         self.editor = editor
 
     def setup_ui(self) -> None:
-        """Set up the complete UI including editor, preview, chat, and toolbars."""
-        # Set minimum window size
+        """
+        Set up the complete UI including editor, preview, chat, and toolbars.
+
+        MA principle: Reduced from 67→16 lines by extracting 4 helper methods.
+        """
         self.editor.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
 
-        # Create main container widget and layout
+        main_container, main_layout = self._setup_main_container()
+        self._setup_main_splitter(main_layout)
+        self._setup_auxiliary_widgets(main_layout)
+
+        self.editor.setCentralWidget(main_container)
+        self.editor._setup_synchronized_scrolling()
+
+        self._setup_status_bar()
+        self.setup_dynamic_sizing()
+
+    def _setup_main_container(self) -> tuple[QWidget, QVBoxLayout]:
+        """Create main container widget and layout."""
         main_container = QWidget()
         main_layout = QVBoxLayout(main_container)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
+        return main_container, main_layout
 
+    def _setup_main_splitter(self, main_layout: QVBoxLayout) -> None:
+        """Create and configure main splitter with editor, preview, and chat panes."""
         # Create main splitter (editor + preview + chat)
         self.editor.splitter = QSplitter(Qt.Orientation.Horizontal, self.editor)
 
-        # Setup editor pane
-        editor_container = self._create_editor_pane()
-        self.editor.splitter.addWidget(editor_container)
-
-        # Setup preview pane
-        preview_container = self._create_preview_pane()
-        self.editor.splitter.addWidget(preview_container)
-
-        # Setup chat pane (persistent right pane)
-        chat_container = self._create_chat_pane()
-        self.editor.splitter.addWidget(chat_container)
+        # Setup panes
+        self.editor.splitter.addWidget(self._create_editor_pane())
+        self.editor.splitter.addWidget(self._create_preview_pane())
+        self.editor.splitter.addWidget(self._create_chat_pane())
 
         # Configure splitter stretch factors - all panes user-resizable
         self.editor.splitter.setStretchFactor(0, 2)  # Editor (2/5 when chat visible)
@@ -102,6 +112,8 @@ class UISetupManager:
         # Add splitter to main layout
         main_layout.addWidget(self.editor.splitter, 1)  # Stretch factor 1
 
+    def _setup_auxiliary_widgets(self, main_layout: QVBoxLayout) -> None:
+        """Setup find bar and quick commit widget."""
         # Setup find bar (hidden by default, shown with Ctrl+F)
         self.editor.find_bar = FindBarWidget(self.editor)
         main_layout.addWidget(self.editor.find_bar)
@@ -112,13 +124,8 @@ class UISetupManager:
         self.editor.quick_commit_widget = QuickCommitWidget(self.editor)
         main_layout.addWidget(self.editor.quick_commit_widget)
 
-        # Set main container as central widget
-        self.editor.setCentralWidget(main_container)
-
-        # Setup synchronized scrolling
-        self.editor._setup_synchronized_scrolling()
-
-        # Setup status bar
+    def _setup_status_bar(self) -> None:
+        """Setup and initialize status bar."""
         self.editor.status_bar = QStatusBar(self.editor)
         self.editor.setStatusBar(self.editor.status_bar)
 
@@ -127,9 +134,6 @@ class UISetupManager:
 
         # Initialize status manager widgets now that status bar exists
         self.editor.status_manager.initialize_widgets()
-
-        # Setup dynamic window sizing
-        self.setup_dynamic_sizing()
 
     def _create_editor_pane(self) -> QWidget:
         """Create the editor pane with toolbar and text editor.

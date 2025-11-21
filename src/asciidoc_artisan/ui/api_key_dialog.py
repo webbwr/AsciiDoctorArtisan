@@ -64,10 +64,19 @@ class APIKeySetupDialog(QDialog):
         self._setup_ui()
 
     def _setup_ui(self) -> None:
-        """Set up the dialog UI components."""
-        layout = QVBoxLayout(self)
+        """
+        Set up the dialog UI components.
 
-        # Information label
+        MA principle: Reduced from 67→13 lines by extracting 4 helper methods.
+        """
+        layout = QVBoxLayout(self)
+        layout.addWidget(self._create_info_header())
+        layout.addLayout(self._create_api_key_form())
+        layout.addWidget(self._create_help_section())
+        layout.addWidget(self._create_button_box())
+
+    def _create_info_header(self) -> QLabel:
+        """Create information header label."""
         info_label = QLabel(
             "<b>Secure API Key Configuration</b><br><br>"
             "Configure your API keys for AI-enhanced document conversion. "
@@ -75,9 +84,10 @@ class APIKeySetupDialog(QDialog):
             "in plain text."
         )
         info_label.setWordWrap(True)
-        layout.addWidget(info_label)
+        return info_label
 
-        # Form layout for API keys
+    def _create_api_key_form(self) -> QFormLayout:
+        """Create form layout with API key input and test button."""
         form_layout = QFormLayout()
         form_layout.setSpacing(10)
 
@@ -103,9 +113,10 @@ class APIKeySetupDialog(QDialog):
         self.test_button.clicked.connect(self._test_api_key)
         form_layout.addRow("", self.test_button)
 
-        layout.addLayout(form_layout)
+        return form_layout
 
-        # Help text
+    def _create_help_section(self) -> QLabel:
+        """Create help text with instructions."""
         help_label = QLabel(
             "<small><b>How to get an API key:</b><br>"
             "1. Visit <a href='https://console.anthropic.com'>console.anthropic.com</a><br>"
@@ -117,9 +128,10 @@ class APIKeySetupDialog(QDialog):
         help_label.setWordWrap(True)
         help_label.setOpenExternalLinks(True)
         help_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
-        layout.addWidget(help_label)
+        return help_label
 
-        # Buttons
+    def _create_button_box(self) -> QDialogButtonBox:
+        """Create button box with OK/Cancel/Clear buttons."""
         button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         button_box.accepted.connect(self._save_and_accept)
         button_box.rejected.connect(self.reject)
@@ -129,7 +141,7 @@ class APIKeySetupDialog(QDialog):
         clear_button.clicked.connect(self._clear_stored_key)
         button_box.addButton(clear_button, QDialogButtonBox.ButtonRole.ActionRole)
 
-        layout.addWidget(button_box)
+        return button_box
 
     def _update_status_label(self) -> None:
         """Update the status label showing whether a key is stored."""
