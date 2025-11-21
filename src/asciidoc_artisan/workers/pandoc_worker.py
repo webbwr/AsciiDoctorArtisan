@@ -283,6 +283,139 @@ class PandocWorker(QObject):
 
         return extra_args
 
+    def _convert_binary_to_file(
+        self,
+        source: str | bytes | Path,
+        to_format: str,
+        from_format: str,
+        output_file: Path,
+        extra_args: list[str],
+    ) -> str:
+        """
+        Convert to binary format (PDF/DOCX) and save to file.
+
+        MA principle: Extracted from _execute_pandoc_conversion (18 lines).
+
+        Args:
+            source: Document content or Path to file
+            to_format: Target format (pdf or docx)
+            from_format: Source format
+            output_file: Output file path
+            extra_args: Pandoc command-line arguments
+
+        Returns:
+            Status message indicating file location
+        """
+        import pypandoc
+
+        if isinstance(source, Path):
+            pypandoc.convert_file(
+                source_file=str(source),
+                to=to_format,
+                format=from_format,
+                outputfile=str(output_file),
+                extra_args=extra_args,
+            )
+        else:
+            # Source is str or bytes
+            pypandoc.convert_text(
+                source=source,
+                to=to_format,
+                format=from_format,
+                outputfile=str(output_file),
+                extra_args=extra_args,
+            )
+        return f"File saved to: {output_file}"
+
+    def _convert_path_source_to_text(
+        self, source: Path, to_format: str, from_format: str, extra_args: list[str]
+    ) -> str:
+        """
+        Convert Path source to text output.
+
+        MA principle: Extracted from _execute_pandoc_conversion (10 lines).
+
+        Args:
+            source: Path to source file
+            to_format: Target format
+            from_format: Source format
+            extra_args: Pandoc command-line arguments
+
+        Returns:
+            Converted text content
+        """
+        import pypandoc
+
+        source_content = source.read_text(encoding="utf-8")
+        converted = pypandoc.convert_text(
+            source=source_content,
+            to=to_format,
+            format=from_format,
+            extra_args=extra_args,
+        )
+        return str(converted) if not isinstance(converted, bytes) else converted.decode("utf-8")
+
+    def _convert_bytes_source_to_text(
+        self, source: bytes, to_format: str, from_format: str, extra_args: list[str]
+    ) -> str:
+        """
+        Convert bytes source to text output using temp file.
+
+        MA principle: Extracted from _execute_pandoc_conversion (21 lines).
+
+        Args:
+            source: Binary document content
+            to_format: Target format
+            from_format: Source format
+            extra_args: Pandoc command-line arguments
+
+        Returns:
+            Converted text content
+        """
+        import os
+        import tempfile
+
+        import pypandoc
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{from_format}") as tmp:
+            tmp.write(source)
+            tmp_path = tmp.name
+        try:
+            converted = pypandoc.convert_file(
+                source_file=tmp_path,
+                to=to_format,
+                format=from_format,
+                extra_args=extra_args,
+            )
+            return str(converted) if not isinstance(converted, bytes) else converted.decode("utf-8")
+        finally:
+            os.unlink(tmp_path)
+
+    def _convert_str_source_to_text(self, source: str, to_format: str, from_format: str, extra_args: list[str]) -> str:
+        """
+        Convert string source to text output.
+
+        MA principle: Extracted from _execute_pandoc_conversion (9 lines).
+
+        Args:
+            source: String document content
+            to_format: Target format
+            from_format: Source format
+            extra_args: Pandoc command-line arguments
+
+        Returns:
+            Converted text content
+        """
+        import pypandoc
+
+        converted = pypandoc.convert_text(
+            source=source,
+            to=to_format,
+            format=from_format,
+            extra_args=extra_args,
+        )
+        return str(converted) if not isinstance(converted, bytes) else converted.decode("utf-8")
+
     def _execute_pandoc_conversion(
         self,
         source: str | bytes | Path,
@@ -294,6 +427,8 @@ class PandocWorker(QObject):
         """
         Execute Pandoc conversion with the given parameters.
 
+        MA principle: Reduced from 90→25 lines by extracting 4 source/output type helpers (72% reduction).
+
         Args:
             source: Document content or Path to file
             to_format: Target format
@@ -304,73 +439,21 @@ class PandocWorker(QObject):
         Returns:
             Result text (converted content or status message)
         """
-        # Lazy import pypandoc (only when actually performing conversion)
-        import pypandoc
-
+        # Binary output to file (PDF/DOCX)
         if output_file and to_format in ["pdf", "docx"]:
-            # Binary output to file
-            if isinstance(source, Path):
-                pypandoc.convert_file(
-                    source_file=str(source),
-                    to=to_format,
-                    format=from_format,
-                    outputfile=str(output_file),
-                    extra_args=extra_args,
-                )
-            else:
-                # Source is str or bytes
-                pypandoc.convert_text(
-                    source=source,
-                    to=to_format,
-                    format=from_format,
-                    outputfile=str(output_file),
-                    extra_args=extra_args,
-                )
-            result_text = f"File saved to: {output_file}"
+            return self._convert_binary_to_file(source, to_format, from_format, output_file, extra_args)
+
+        # Text output - route by source type
+        if isinstance(source, Path):
+            result_text = self._convert_path_source_to_text(source, to_format, from_format, extra_args)
+        elif isinstance(source, bytes):
+            result_text = self._convert_bytes_source_to_text(source, to_format, from_format, extra_args)
         else:
-            # Text output (load into editor)
-            if isinstance(source, Path):
-                source_content = source.read_text(encoding="utf-8")
-                converted = pypandoc.convert_text(
-                    source=source_content,
-                    to=to_format,
-                    format=from_format,
-                    extra_args=extra_args,
-                )
-            elif isinstance(source, bytes):
-                # Binary content (like DOCX) - save to temp file and use convert_file
-                import tempfile
+            result_text = self._convert_str_source_to_text(str(source), to_format, from_format, extra_args)
 
-                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{from_format}") as tmp:
-                    tmp.write(source)
-                    tmp_path = tmp.name
-                try:
-                    converted = pypandoc.convert_file(
-                        source_file=tmp_path,
-                        to=to_format,
-                        format=from_format,
-                        extra_args=extra_args,
-                    )
-                finally:
-                    import os
-
-                    os.unlink(tmp_path)
-            else:
-                source_content = str(source)
-                converted = pypandoc.convert_text(
-                    source=source_content,
-                    to=to_format,
-                    format=from_format,
-                    extra_args=extra_args,
-                )
-            if isinstance(converted, bytes):
-                result_text = converted.decode("utf-8")
-            else:
-                result_text = str(converted)
-
-            # Post-process AsciiDoc output
-            if to_format == "asciidoc":
-                result_text = self._enhance_asciidoc_output(result_text)
+        # Post-process AsciiDoc output
+        if to_format == "asciidoc":
+            result_text = self._enhance_asciidoc_output(result_text)
 
         return result_text
 
