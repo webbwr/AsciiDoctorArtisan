@@ -1,34 +1,8 @@
 """
-Chat manager for coordinating AI chat components (Ollama/Claude).
+Chat Manager - Orchestrates AI chat components (Ollama/Claude backends).
 
-This module provides ChatManager, which orchestrates all chat-related UI
-components and coordinates between them, the worker threads, and settings.
-
-The manager handles:
-- AI backend selection (Ollama local or Claude remote)
-- Chat bar and panel visibility based on settings
-- Message flow between user, worker, and display
-- Chat history persistence via Settings
-- Model and context mode management
-- Error handling and user feedback
-
-Integration Points:
-    - ChatBarWidget: User input controls
-    - ChatPanelWidget: Conversation display
-    - OllamaChatWorker: Background AI processing (local)
-    - ClaudeWorker: Background AI processing (remote, v1.10.0+)
-    - Settings: Chat preferences and history persistence
-    - StatusManager: Status bar messages
-
-Architecture (v1.10.0+):
-    User can select between two AI backends:
-    - Ollama: Local AI models (free, offline)
-    - Claude: Cloud AI via Anthropic API (requires API key, online)
-
-    Only one backend is active at a time. Backend is selected via
-    Settings.ai_backend ("ollama" or "claude").
-
-Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
+Coordinates ChatBarWidget, ChatPanelWidget, workers, and settings.
+Delegates to ChatModelManager and ChatBackendController (MA principle).
 """
 
 import logging
@@ -48,39 +22,11 @@ logger = logging.getLogger(__name__)
 
 class ChatManager(QObject):
     """
-    Orchestrates all chat-related components and interactions.
+    Orchestrates chat components (bar, panel, workers) for Ollama/Claude backends.
 
-    Coordinates between ChatBarWidget, ChatPanelWidget, AI workers (Ollama/Claude),
-    and Settings to provide a cohesive chat experience.
+    Signals: visibility_changed, message_sent_to_worker, status_message, settings_changed
 
-    Supports dual AI backends (v1.10.0+):
-    - Ollama: Local AI models (free, offline, no API key)
-    - Claude: Anthropic Cloud AI (requires API key, online)
-
-    Backend is selected via Settings.ai_backend and only one is active at a time.
-
-    Signals:
-        visibility_changed: Emitted with (bar_visible, panel_visible) when visibility changes
-        message_sent_to_worker: Emitted with send_message args when user sends message
-        status_message: Emitted with status text for status bar display
-        settings_changed: Emitted when chat settings need to be saved
-
-    Attributes:
-        _chat_bar: ChatBarWidget instance
-        _chat_panel: ChatPanelWidget instance
-        _settings: Settings instance
-        _document_content_provider: Callable that returns current document text
-        _debounce_timer: QTimer for document content debouncing
-        _current_backend: Current AI backend ("ollama" or "claude")
-
-    Example:
-        ```python
-        manager = ChatManager(chat_bar, chat_panel, settings)
-        manager.set_document_content_provider(lambda: editor.toPlainText())
-        manager.message_sent_to_worker.connect(ollama_worker.send_message)
-        manager.message_sent_to_worker.connect(claude_worker.send_message)
-        manager.initialize()
-        ```
+    MA principle: Reduced from 1079→<300 lines via ChatModelManager and ChatBackendController.
     """
 
     # Signals
@@ -96,15 +42,7 @@ class ChatManager(QObject):
         settings: Settings,
         parent: QObject | None = None,
     ) -> None:
-        """
-        Initialize the chat manager.
-
-        Args:
-            chat_bar: ChatBarWidget instance
-            chat_panel: ChatPanelWidget instance
-            settings: Settings instance for persistence
-            parent: Parent QObject (usually MainWindow)
-        """
+        """Initialize ChatManager with chat components, settings, and parent."""
         super().__init__(parent)
         self._chat_bar = chat_bar
         self._chat_panel = chat_panel
@@ -156,14 +94,7 @@ class ChatManager(QObject):
         self._chat_bar.scan_models_requested.connect(self._on_scan_models_requested)
 
     def initialize(self) -> None:
-        """
-        Initialize chat UI based on current settings.
-
-        Loads chat history, sets visibility, and configures UI state.
-        Detects active AI backend and loads appropriate models.
-        Auto-switches to Claude if Ollama disabled but Claude available.
-        Must be called after UI setup is complete.
-        """
+        """Initialize chat UI (history, visibility, models). Auto-switches to Claude if needed."""
         # Update current backend from settings (may have changed)
         self._current_backend = self._settings.ai_backend
         logger.info(f"Initializing chat with backend: {self._current_backend}")
@@ -203,24 +134,17 @@ class ChatManager(QObject):
         logger.info(f"Chat manager initialized (backend: {self._current_backend})")
 
     def _auto_download_default_model(self) -> None:
-        """
-        Automatically download the default model if Ollama is running but no models installed.
-
-        Runs 'ollama pull gnokit/improve-grammer' in background and updates status.
-        """
+        """Auto-download default Ollama model (gnokit/improve-grammer) in background."""
         default_model = "gnokit/improve-grammer"
         logger.info(f"Auto-downloading default model: {default_model}")
         self.status_message.emit(f"Downloading {default_model}... (this may take a few minutes)")
 
         try:
-            # Use Popen (not run) because download takes minutes and we don't want to freeze the UI
-            # SECURITY: List form prevents command injection attacks
-            # (Never use shell=True with user input - that allows hackers to run malicious commands!)
             subprocess.Popen(
-                ["ollama", "pull", default_model],  # Safe: list form, no shell
-                stdout=subprocess.PIPE,  # Capture output for logging
-                stderr=subprocess.PIPE,  # Capture errors
-                text=True,  # Get strings, not bytes
+                ["ollama", "pull", default_model],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
             logger.info(f"Started download of {default_model}")
         except Exception as e:
@@ -284,41 +208,16 @@ class ChatManager(QObject):
 
 
     def _handle_user_message(self, message: str, model: str, context_mode: str) -> None:
-        """
-        Handle user message from chat bar (test-friendly wrapper).
-
-        Args:
-            message: User's message text
-            model: Selected Ollama model
-            context_mode: Selected context mode
-        """
+        """Handle user message from chat bar (test wrapper for _on_message_sent)."""
         self._on_message_sent(message, model, context_mode)
 
     def _on_message_sent(self, message: str, model: str, context_mode: str) -> None:
-        """
-        Handle message sent from chat bar.
-
-        Args:
-            message: User's message text
-            model: Selected Ollama model
-            context_mode: Selected context mode
-        """
-        # REENTRANCY GUARD: Prevent multiple AI requests at the same time
-        #
-        # WHY THIS MATTERS:
-        # 1. AI takes 2-30 seconds to respond
-        # 2. User might click Send multiple times while waiting (impatience!)
-        # 3. Multiple requests would queue up and waste resources
-        # 4. Results would arrive out of order, confusing the UI
-        # 5. Could overwhelm the AI service or local Ollama
-        #
-        # SOLUTION:
-        # Block new requests until current one finishes.
-        # Show helpful message so user knows we're still working.
+        """Handle message sent from chat bar. Reentrancy guard prevents concurrent AI requests."""
+        # REENTRANCY GUARD: Block concurrent requests (AI takes 2-30s)
         if self._is_processing:
             logger.warning("Already processing a message, ignoring new message")
             self.status_message.emit("AI is still processing previous message...")
-            return  # Exit early - don't start new request
+            return
 
         # Add user message to panel
         self._chat_panel.add_user_message(message, model, context_mode)
@@ -367,12 +266,7 @@ class ChatManager(QObject):
         self._model_manager.handle_model_changed(model)
 
     def _on_context_mode_changed(self, mode: str) -> None:
-        """
-        Handle context mode selector change.
-
-        Args:
-            mode: New context mode
-        """
+        """Handle context mode selector change."""
         # Save to both new and deprecated settings
         self._settings.chat_context_mode = mode
         self._settings.ollama_chat_context_mode = mode
@@ -384,12 +278,7 @@ class ChatManager(QObject):
         self._model_manager.handle_scan_models_requested(self._chat_panel)
 
     def handle_response_ready(self, message: ChatMessage) -> None:
-        """
-        Handle AI response from worker.
-
-        Args:
-            message: ChatMessage with AI response
-        """
+        """Handle AI response from worker."""
         # Add AI message to panel
         self._chat_panel.add_message(message)
 
@@ -404,25 +293,12 @@ class ChatManager(QObject):
         logger.info(f"AI response added ({len(message.content)} chars)")
 
     def handle_response_chunk(self, chunk: str) -> None:
-        """
-        Handle streaming response chunk from worker.
-
-        Args:
-            chunk: Partial response text
-        """
+        """Handle streaming response chunk from worker."""
         # Append to last message in panel
         self._chat_panel.append_to_last_message(chunk)
 
     def handle_error(self, error_message: str) -> None:
-        """
-        Handle error from worker.
-
-        Displays error in both status bar and chat panel so user can see
-        what went wrong in their conversation history.
-
-        Args:
-            error_message: Error description
-        """
+        """Handle error from worker (display in status bar and chat panel)."""
         # Update UI state
         self._is_processing = False
         self._chat_bar.set_processing(False)
@@ -458,37 +334,18 @@ class ChatManager(QObject):
         logger.info("AI operation cancelled")
 
     def _get_document_context(self) -> str:
-        """
-        Get current document content from provider.
-
-        Returns:
-            Document text, or empty string if no provider set
-        """
+        """Get current document content from provider."""
         if self._document_content_provider:
             return self._document_content_provider()
         return ""
 
     def set_document_content_provider(self, provider: Callable[[], str]) -> None:
-        """
-        Set callable that provides current document content.
-
-        Args:
-            provider: Callable that returns document text (e.g., editor.toPlainText)
-        """
+        """Set callable that provides current document content."""
         self._document_content_provider = provider
         logger.debug("Document content provider set")
 
     def update_settings(self, settings: Settings) -> None:
-        """
-        Update chat UI when settings change (backend-agnostic).
-
-        Checks if backend should switch based on new Ollama enabled state.
-        If Ollama was disabled and Claude is available, auto-switches to Claude.
-        If Ollama was enabled, switches back to Ollama.
-
-        Args:
-            settings: New settings instance
-        """
+        """Update chat UI when settings change. Auto-switches backend if needed."""
         self._settings = settings
 
         # Check if backend should switch based on Ollama enabled state
