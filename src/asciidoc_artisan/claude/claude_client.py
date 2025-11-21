@@ -156,7 +156,163 @@ class ClaudeClient:
             logger.error(f"Failed to create Anthropic client: {e}")
             return None
 
-    def send_message(  # noqa: C901
+    def _validate_message_input(self, message: str) -> ClaudeResult | None:
+        """
+        Validate message input.
+
+        MA principle: Extracted from send_message (6 lines).
+
+        Args:
+            message: User message to validate
+
+        Returns:
+            ClaudeResult with error if invalid, None if valid
+        """
+        if not message or not message.strip():
+            logger.warning("Empty message provided")
+            return ClaudeResult(success=False, error="Message cannot be empty")
+        return None
+
+    def _build_messages_list(
+        self,
+        message: str,
+        conversation_history: list[ClaudeMessage] | None,
+    ) -> list[dict[str, str]]:
+        """
+        Build messages list from conversation history and current message.
+
+        MA principle: Extracted from send_message (11 lines).
+
+        Args:
+            message: Current user message
+            conversation_history: Previous messages for context
+
+        Returns:
+            List of message dictionaries for API
+        """
+        messages = []
+
+        # Add conversation history if provided
+        if conversation_history:
+            for msg in conversation_history:
+                messages.append({"role": msg.role, "content": msg.content})
+
+        # Add current user message
+        messages.append({"role": "user", "content": message.strip()})
+
+        return messages
+
+    def _build_api_kwargs(
+        self,
+        messages: list[dict[str, str]],
+        system: str | None,
+    ) -> dict[str, Any]:
+        """
+        Build kwargs dictionary for Claude API request.
+
+        MA principle: Extracted from send_message (10 lines).
+
+        Args:
+            messages: Messages list for API
+            system: Optional system prompt
+
+        Returns:
+            Dictionary of API call parameters
+        """
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "messages": messages,
+        }
+        if system:
+            kwargs["system"] = system
+        return kwargs
+
+    def _extract_response_content(self, response: Any) -> tuple[str, int]:
+        """
+        Extract content and token usage from Claude API response.
+
+        MA principle: Extracted from send_message (12 lines).
+
+        Args:
+            response: Claude API response object
+
+        Returns:
+            Tuple of (content_text, tokens_used)
+        """
+        content = ""
+        if response.content and len(response.content) > 0:
+            # Claude returns a list of content blocks
+            first_block = response.content[0]
+            if hasattr(first_block, "text"):
+                content = first_block.text
+
+        tokens_used = response.usage.input_tokens + response.usage.output_tokens if hasattr(response, "usage") else 0
+
+        return content, tokens_used
+
+    def _handle_api_connection_error(self, error: APIConnectionError) -> ClaudeResult:
+        """
+        Handle API connection errors with user-friendly message.
+
+        MA principle: Extracted from send_message (7 lines).
+
+        Args:
+            error: APIConnectionError exception
+
+        Returns:
+            ClaudeResult with error details
+        """
+        logger.error(f"Claude API connection error: {error}")
+        return ClaudeResult(
+            success=False,
+            error=f"Connection error: {str(error)}. Check your internet connection.",
+        )
+
+    def _handle_api_error(self, error: APIError) -> ClaudeResult:
+        """
+        Handle API errors with user-friendly messages.
+
+        MA principle: Extracted from send_message (20 lines).
+
+        Args:
+            error: APIError exception
+
+        Returns:
+            ClaudeResult with user-friendly error message
+        """
+        logger.error(f"Claude API error: {error}")
+        error_msg = str(error)
+
+        # Provide user-friendly error messages
+        if "invalid_api_key" in error_msg.lower():
+            error_msg = "Invalid API key. Please update your key in Tools → API Key Setup."
+        elif "rate_limit" in error_msg.lower():
+            error_msg = "Rate limit exceeded. Please wait a moment and try again."
+        elif "insufficient_quota" in error_msg.lower() or "credit balance is too low" in error_msg.lower():
+            error_msg = "Insufficient API credits. Please add credits at console.anthropic.com/settings/billing"
+        elif "overloaded" in error_msg.lower():
+            error_msg = "Claude API is temporarily overloaded. Please try again in a moment."
+
+        return ClaudeResult(success=False, error=error_msg)
+
+    def _handle_generic_error(self, error: Exception) -> ClaudeResult:
+        """
+        Handle generic exceptions.
+
+        MA principle: Extracted from send_message (4 lines).
+
+        Args:
+            error: Generic exception
+
+        Returns:
+            ClaudeResult with error details
+        """
+        logger.exception(f"Unexpected error calling Claude API: {error}")
+        return ClaudeResult(success=False, error=f"Unexpected error: {str(error)}")
+
+    def send_message(
         self,
         message: str,
         system: str | None = None,
@@ -164,6 +320,8 @@ class ClaudeClient:
     ) -> ClaudeResult:
         """
         Send a message to Claude and get a response.
+
+        MA principle: Reduced from 111→48 lines by extracting 7 helper methods.
 
         Args:
             message: User message to send
@@ -181,10 +339,12 @@ class ClaudeClient:
             ... )
             >>> print(result.content)
         """
-        if not message or not message.strip():
-            logger.warning("Empty message provided")
-            return ClaudeResult(success=False, error="Message cannot be empty")
+        # Validate input
+        validation_error = self._validate_message_input(message)
+        if validation_error:
+            return validation_error
 
+        # Get API client
         client = self._get_client()
         if client is None:
             return ClaudeResult(
@@ -193,44 +353,16 @@ class ClaudeClient:
             )
 
         try:
-            # Build messages list
-            messages = []
-
-            # Add conversation history if provided
-            if conversation_history:
-                for msg in conversation_history:
-                    messages.append({"role": msg.role, "content": msg.content})
-
-            # Add current user message
-            messages.append({"role": "user", "content": message.strip()})
+            # Build request
+            messages = self._build_messages_list(message, conversation_history)
+            kwargs = self._build_api_kwargs(messages, system)
 
             # Make API request
             logger.debug(f"Sending message to Claude (model={self.model}, messages={len(messages)})")
-
-            # Build kwargs, only add system if provided
-            kwargs: dict[str, Any] = {
-                "model": self.model,
-                "max_tokens": self.max_tokens,
-                "temperature": self.temperature,
-                "messages": messages,
-            }
-            if system:
-                kwargs["system"] = system
-
             response = client.messages.create(**kwargs)
 
-            # Extract response
-            content = ""
-            if response.content and len(response.content) > 0:
-                # Claude returns a list of content blocks
-                first_block = response.content[0]
-                if hasattr(first_block, "text"):
-                    content = first_block.text
-
-            tokens_used = (
-                response.usage.input_tokens + response.usage.output_tokens if hasattr(response, "usage") else 0
-            )
-
+            # Extract and return response
+            content, tokens_used = self._extract_response_content(response)
             logger.info(f"Claude response received: {len(content)} chars, {tokens_used} tokens")
 
             return ClaudeResult(
@@ -242,31 +374,13 @@ class ClaudeClient:
             )
 
         except APIConnectionError as e:
-            logger.error(f"Claude API connection error: {e}")
-            return ClaudeResult(
-                success=False,
-                error=f"Connection error: {str(e)}. Check your internet connection.",
-            )
+            return self._handle_api_connection_error(e)
 
         except APIError as e:
-            logger.error(f"Claude API error: {e}")
-            error_msg = str(e)
-
-            # Provide user-friendly error messages
-            if "invalid_api_key" in error_msg.lower():
-                error_msg = "Invalid API key. Please update your key in Tools → API Key Setup."
-            elif "rate_limit" in error_msg.lower():
-                error_msg = "Rate limit exceeded. Please wait a moment and try again."
-            elif "insufficient_quota" in error_msg.lower() or "credit balance is too low" in error_msg.lower():
-                error_msg = "Insufficient API credits. Please add credits at console.anthropic.com/settings/billing"
-            elif "overloaded" in error_msg.lower():
-                error_msg = "Claude API is temporarily overloaded. Please try again in a moment."
-
-            return ClaudeResult(success=False, error=error_msg)
+            return self._handle_api_error(e)
 
         except Exception as e:
-            logger.exception(f"Unexpected error calling Claude API: {e}")
-            return ClaudeResult(success=False, error=f"Unexpected error: {str(e)}")
+            return self._handle_generic_error(e)
 
     def test_connection(self) -> ClaudeResult:
         """
