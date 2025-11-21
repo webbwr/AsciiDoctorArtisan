@@ -31,6 +31,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 
 # Lazy import check for Pandoc (deferred until first use for faster startup)
 from asciidoc_artisan.core.constants import is_pandoc_available
+from asciidoc_artisan.workers.ai_conversion_coordinator import AIConversionCoordinator
 from asciidoc_artisan.workers.asciidoc_enhancer import AsciiDocEnhancer
 from asciidoc_artisan.workers.ollama_conversion_handler import OllamaConversionHandler
 from asciidoc_artisan.workers.pandoc_args_builder import PandocArgsBuilder
@@ -123,6 +124,13 @@ class PandocWorker(QObject):
         self._args_builder = PandocArgsBuilder()
         self._asciidoc_enhancer = AsciiDocEnhancer()
         self._pandoc_executor = PandocExecutor(output_enhancer=self)
+        self._ai_coordinator = AIConversionCoordinator(
+            ollama_converter=self,
+            ollama_enabled=False,
+            ollama_model=None,
+            metrics_available=METRICS_AVAILABLE,
+            get_metrics=get_metrics_collector if METRICS_AVAILABLE else None,
+        )
 
     def set_ollama_config(self, enabled: bool, model: str | None) -> None:
         """
@@ -136,73 +144,16 @@ class PandocWorker(QObject):
         self.ollama_model = model
         self._ollama_handler.ollama_enabled = enabled
         self._ollama_handler.ollama_model = model
+        self._ai_coordinator.ollama_enabled = enabled
+        self._ai_coordinator.ollama_model = model
 
     def _try_ai_conversion_with_fallback(
         self,
         request: ConversionRequest,
         start_time: float,
     ) -> tuple[str | None, str | bytes | Path, str]:
-        """
-        Attempt AI conversion with automatic fallback to source.
-
-        MA principle: Reduced from 8→3 params using ConversionRequest config object (62% reduction).
-
-        Args:
-            request: Conversion configuration (source, formats, context, output_file, use_ai_conversion)
-            start_time: Conversion start time (for metrics)
-
-        Returns:
-            Tuple of (result_or_none, updated_source, conversion_method)
-            - If AI succeeds for text output: (result_text, source, "ollama")
-            - If AI succeeds for binary output: (None, ollama_text, "ollama_pandoc")
-            - If AI fails or not requested: (None, source, "pandoc")
-        """
-        conversion_method = "pandoc"
-
-        # Try Ollama AI conversion first if requested
-        if request.use_ai_conversion and self.ollama_enabled and self.ollama_model:
-            # Get source content as string
-            if isinstance(request.source, Path):
-                source_content = request.source.read_text(encoding="utf-8")
-            elif isinstance(request.source, bytes):
-                source_content = request.source.decode("utf-8", errors="replace")
-            else:
-                source_content = str(request.source)
-
-            # Try Ollama conversion
-            try:
-                ollama_result = self._try_ollama_conversion(source_content, request.from_format, request.to_format)
-
-                if ollama_result:
-                    # Ollama conversion succeeded
-                    conversion_method = "ollama"
-                    logger.info("Using Ollama AI conversion result")
-
-                    # Handle output
-                    if request.output_file and request.to_format in ["pdf", "docx"]:
-                        # For binary formats, save the text and convert with Pandoc
-                        # (Ollama can't directly create PDF/DOCX binaries)
-                        logger.info(f"Ollama produced {request.to_format} markup, using Pandoc for binary output")
-                        # Continue to Pandoc with Ollama's result as source
-                        return None, ollama_result, "ollama_pandoc"
-                    else:
-                        # Text output - use Ollama result directly
-                        # Record metrics
-                        if METRICS_AVAILABLE:
-                            duration_ms = (time.perf_counter() - start_time) * 1000
-                            metrics = get_metrics_collector()
-                            metrics.record_operation(f"conversion_{conversion_method}", duration_ms)
-
-                        return ollama_result, request.source, conversion_method
-
-                else:
-                    logger.warning("Ollama conversion returned no result, falling back to Pandoc")
-
-            except Exception as e:
-                logger.warning(f"Ollama conversion failed, falling back to Pandoc: {e}")
-                # Continue to Pandoc fallback
-
-        return None, request.source, conversion_method
+        """Try AI conversion with fallback (delegates to ai_coordinator)."""
+        return self._ai_coordinator.try_ai_conversion_with_fallback(request, start_time)
 
     def _detect_pdf_engine(self) -> str:
         """Detect PDF engine (delegates to args_builder)."""
