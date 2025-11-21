@@ -9,8 +9,6 @@ import json
 import logging
 from typing import Any
 
-from PySide6.QtCore import Signal
-
 from asciidoc_artisan.core.models import GitHubResult
 
 logger = logging.getLogger(__name__)
@@ -29,12 +27,12 @@ class GitHubResultFactory:
     - Error result emission
     """
 
-    def __init__(self, result_signal: Signal) -> None:
+    def __init__(self, result_signal: Any) -> None:
         """
         Initialize the result factory.
 
         Args:
-            result_signal: Signal to emit results (github_result_ready)
+            result_signal: Signal to emit results (github_result_ready, PySide6 SignalInstance)
         """
         self.result_signal = result_signal
 

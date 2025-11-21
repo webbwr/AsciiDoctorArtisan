@@ -17,7 +17,6 @@ Security:
 - JSON output parsing for structured data
 """
 
-import json
 import logging
 import subprocess
 from typing import Any

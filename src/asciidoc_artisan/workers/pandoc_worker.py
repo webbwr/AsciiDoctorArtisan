@@ -23,8 +23,6 @@ Supported Formats:
 """
 
 import logging
-import re
-import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
