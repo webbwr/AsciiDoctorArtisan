@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **AsciiDoc Artisan** — Cross-platform desktop AsciiDoc editor with live preview (PySide6/Qt)
 
-**Version:** 2.0.7 (Nov 20, 2025) | **Status:** Production-ready | **Startup:** 0.586s
+**Version:** 2.0.8 (Nov 21, 2025) | **Status:** Production-ready | **Startup:** 0.586s
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
 
@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,548 tests (5,516 passing, 22 skipped, 99.42% pass) + 71 E2E scenarios (63 passing, 88.7%), mypy --strict (0 errors), 88-char line limit
+**Quality:** 5,548 tests (5,516 passing, 22 skipped, 99.42% pass) + 71 E2E scenarios (65 passing, 91.5%), mypy --strict (0 errors), 88-char line limit
 
 ## Critical Patterns — Read First!
 
@@ -363,9 +363,17 @@ Entry: `src/main.py`
 
 ---
 
-*AsciiDoc Artisan v2.0.7 | Production-ready | 5,548 tests (5,516 passing, 22 skipped) + 71 E2E scenarios (63 passing) | mypy --strict*
+*AsciiDoc Artisan v2.0.8 | Production-ready | 5,548 tests (5,516 passing, 22 skipped) + 71 E2E scenarios (65 passing, 91.5%) | mypy --strict*
 
-**Recent Improvements (Nov 20, 2025 - v2.0.7):**
+**Recent Improvements (Nov 21, 2025 - v2.0.8):**
+- ✅ E2E Test Fixes: User preferences tests 8/8 passing individually (was 6/8)
+- ✅ Test Pass Rate: Improved from 88.7% (63/71) to 91.5% (65/71)
+- ✅ Telemetry Fix: Disabled opt-in dialog in E2E fixture (prevents QTimer crashes)
+- ✅ Settings Persistence: Fixed race condition using save_settings_immediate()
+- ✅ Investigation Complete: Documented all test limitations (spell check, suite execution, main_window timeout)
+- ✅ Release Notes: Comprehensive v2.0.8 release notes in docs/RELEASE_NOTES_v2.0.8.md
+
+**Previous (Nov 20, 2025 - v2.0.7):**
 - ✅ E2E Test Coverage: Created 10 BDD test suites with 71 Gherkin scenarios (63 passing, 88.7% pass rate)
 - ✅ User Preferences Testing: 8 scenarios covering AI conversion, themes, auto-save, settings persistence
 - ✅ Test Remediation: Fixed syntax checking (8/9), autocomplete (6/6), Ollama integration (6/6)
