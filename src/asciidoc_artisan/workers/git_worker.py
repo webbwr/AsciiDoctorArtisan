@@ -25,6 +25,7 @@ from PySide6.QtCore import Signal, Slot
 
 from asciidoc_artisan.core import GitResult, GitStatus
 from asciidoc_artisan.workers.base_worker import BaseWorker
+from asciidoc_artisan.workers.git_status_parser import GitStatusParser
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,11 @@ class GitWorker(BaseWorker):
     command_complete = Signal(GitResult)
     status_ready = Signal(GitStatus)
     detailed_status_ready = Signal(dict)  # v1.9.0+
+
+    def __init__(self) -> None:
+        """Initialize GitWorker with parser instance."""
+        super().__init__()
+        self._parser = GitStatusParser()
 
     def _check_and_handle_cancellation(self) -> bool:
         """Check for cancellation and emit result if cancelled. Returns True if cancelled."""
@@ -383,205 +389,24 @@ class GitWorker(BaseWorker):
             self.status_ready.emit(GitStatus())
 
     def _parse_branch_head(self, line: str) -> str:
-        """
-        Parse branch name from git status v2 header.
-
-        MA principle: Extracted from _parse_git_status_v2 (4 lines).
-
-        Args:
-            line: Branch head line (e.g., "# branch.head main")
-
-        Returns:
-            Branch name or "HEAD (detached)" for detached state
-        """
-        branch = line.split(" ", 2)[2]
-        if branch == "(detached)":
-            branch = "HEAD (detached)"
-        return branch
+        """Parse branch name (delegates to git_status_parser)."""
+        return self._parser.parse_branch_head(line)
 
     def _parse_ahead_behind(self, line: str) -> tuple[int, int]:
-        """
-        Parse ahead/behind counts from git status v2 header.
-
-        MA principle: Extracted from _parse_git_status_v2 (8 lines).
-
-        Args:
-            line: Branch ahead/behind line (e.g., "# branch.ab +2 -1")
-
-        Returns:
-            Tuple of (ahead_count, behind_count)
-        """
-        parts = line.split()
-        if len(parts) >= 4:
-            try:
-                ahead = int(parts[2].replace("+", ""))
-                behind = int(parts[3].replace("-", ""))
-                return ahead, behind
-            except ValueError:
-                logger.warning(f"Failed to parse branch.ab: {line}")
-        return 0, 0
+        """Parse ahead/behind counts (delegates to git_status_parser)."""
+        return self._parser.parse_ahead_behind(line)
 
     def _parse_tracked_file_status(self, parts: list[str]) -> tuple[bool, bool, bool]:
-        """
-        Parse tracked file status codes.
-
-        MA principle: Extracted from _parse_git_status_v2 (15 lines).
-
-        Args:
-            parts: Split status line parts
-
-        Returns:
-            Tuple of (has_conflict, is_staged, is_modified)
-        """
-        if len(parts) < 2:
-            return False, False, False
-
-        xy_status = parts[1]
-        has_conflict = "U" in xy_status
-        x_status = xy_status[0] if len(xy_status) > 0 else "."
-        y_status = xy_status[1] if len(xy_status) > 1 else "."
-        is_staged = x_status != "."
-        is_modified = y_status != "."
-
-        return has_conflict, is_staged, is_modified
+        """Parse tracked file status (delegates to git_status_parser)."""
+        return self._parser.parse_tracked_file_status(parts)
 
     def _parse_status_line(self, line: str) -> dict[str, Any]:
-        """
-        Parse a single git status line and return updates to counters.
-
-        MA principle: Extracted from _parse_git_status_v2 (30 lines) to reduce complexity.
-
-        Args:
-            line: Single line from git status --porcelain=v2 output
-
-        Returns:
-            Dictionary with keys: branch, ahead_behind, has_conflict, modified, staged, untracked
-        """
-        result: dict[str, Any] = {
-            "branch": None,
-            "ahead_behind": None,
-            "has_conflict": False,
-            "modified": 0,
-            "staged": 0,
-            "untracked": 0,
-        }
-
-        # Parse branch headers
-        if line.startswith("# branch.head "):
-            result["branch"] = self._parse_branch_head(line)
-        elif line.startswith("# branch.ab "):
-            result["ahead_behind"] = self._parse_ahead_behind(line)
-
-        # Parse tracked file status
-        elif line.startswith("1 ") or line.startswith("2 "):
-            parts = line.split(maxsplit=8)
-            conflict, staged, modified = self._parse_tracked_file_status(parts)
-            if conflict:
-                result["has_conflict"] = True
-            if staged:
-                result["staged"] = 1
-            if modified:
-                result["modified"] = 1
-
-        # Unmerged entry (always a conflict)
-        elif line.startswith("u "):
-            result["has_conflict"] = True
-            result["modified"] = 1
-            result["staged"] = 1
-
-        # Untracked file
-        elif line.startswith("? "):
-            result["untracked"] = 1
-
-        return result
+        """Parse single status line (delegates to git_status_parser)."""
+        return self._parser.parse_status_line(line)
 
     def _parse_git_status_v2(self, stdout: str) -> GitStatus:
-        """
-        Parse git status --porcelain=v2 output into GitStatus model.
-
-        MA principle: Reduced from 125→50 lines by extracting 4 helper methods.
-
-        Porcelain v2 format documentation:
-        https://git-scm.com/docs/git-status#_porcelain_format_version_2
-
-        Format:
-            # branch.oid <commit-hash>
-            # branch.head <branch-name>
-            # branch.upstream <upstream-branch>
-            # branch.ab +<ahead> -<behind>
-            1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>   (tracked file)
-            2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>   (renamed)
-            ? <path>   (untracked file)
-
-        Status codes (XY):
-            - First char (X): status in index (staged)
-            - Second char (Y): status in working tree
-            - '.' = unmodified, 'M' = modified, 'A' = added, 'D' = deleted
-            - 'U' = unmerged (conflict)
-
-        Args:
-            stdout: Output from git status --porcelain=v2 --branch
-
-        Returns:
-            GitStatus with parsed repository information
-
-        Example:
-            >>> stdout = '''# branch.oid abc123
-            ... # branch.head feature/new
-            ... # branch.upstream origin/main
-            ... # branch.ab +2 -1
-            ... 1 .M N... 100644 100644 100644 abc123 def456 file1.txt
-            ... 1 A. N... 000000 100644 100644 000000 abc123 file2.txt
-            ... ? untracked.txt'''
-            >>> status = worker._parse_git_status_v2(stdout)
-            >>> status.branch
-            'feature/new'
-            >>> status.modified_count
-            1
-            >>> status.staged_count
-            1
-            >>> status.ahead_count
-            2
-        """
-        # Initialize counters
-        branch = "unknown"
-        modified_count = 0
-        staged_count = 0
-        untracked_count = 0
-        has_conflicts = False
-        ahead_count = 0
-        behind_count = 0
-
-        # Parse each line
-        for line in stdout.strip().split("\n"):
-            if not line:
-                continue
-
-            # Parse line and update counters
-            result = self._parse_status_line(line)
-            if result["branch"]:
-                branch = result["branch"]
-            if result["ahead_behind"]:
-                ahead_count, behind_count = result["ahead_behind"]
-            if result["has_conflict"]:
-                has_conflicts = True
-            modified_count += result["modified"]
-            staged_count += result["staged"]
-            untracked_count += result["untracked"]
-
-        # Calculate dirty status
-        is_dirty = modified_count > 0 or staged_count > 0 or untracked_count > 0
-
-        return GitStatus(
-            branch=branch,
-            modified_count=modified_count,
-            staged_count=staged_count,
-            untracked_count=untracked_count,
-            has_conflicts=has_conflicts,
-            ahead_count=ahead_count,
-            behind_count=behind_count,
-            is_dirty=is_dirty,
-        )
+        """Parse git status v2 output (delegates to git_status_parser)."""
+        return self._parser.parse_git_status_v2(stdout)
 
     @Slot(str)
     def get_detailed_repository_status(self, working_dir: str) -> None:
@@ -713,71 +538,8 @@ class GitWorker(BaseWorker):
     def _parse_detailed_status_v2(
         self, stdout: str
     ) -> tuple[str, list[dict[str, str]], list[dict[str, str]], list[dict[str, str]]]:
-        """
-        Parse git status --porcelain=v2 output into file lists.
-
-        Args:
-            stdout: Output from git status --porcelain=v2 --branch
-
-        Returns:
-            Tuple of (branch, modified_files, staged_files, untracked_files)
-            Each file list contains dicts with keys: path, status
-
-        Example:
-            >>> stdout = '''# branch.head main
-            ... 1 .M N... 100644 100644 100644 abc123 def456 file1.txt
-            ... 1 A. N... 000000 100644 100644 000000 abc123 file2.txt
-            ... ? untracked.txt'''
-            >>> branch, modified, staged, untracked = worker._parse_detailed_status_v2(stdout)
-            >>> branch
-            'main'
-            >>> modified
-            [{'path': 'file1.txt', 'status': 'M'}]
-            >>> staged
-            [{'path': 'file2.txt', 'status': 'A'}]
-        """
-        branch = "unknown"
-        modified_files: list[dict[str, str]] = []
-        staged_files: list[dict[str, str]] = []
-        untracked_files: list[dict[str, str]] = []
-
-        lines = stdout.strip().split("\n")
-
-        for line in lines:
-            if not line:
-                continue
-
-            # Parse branch header
-            if line.startswith("# branch.head "):
-                branch = line.split(" ", 2)[2]
-                if branch == "(detached)":
-                    branch = "HEAD (detached)"
-
-            # Parse tracked files (format: 1/2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>)
-            elif line.startswith("1 ") or line.startswith("2 "):
-                parts = line.split(maxsplit=8)
-                if len(parts) >= 9:
-                    xy_status = parts[1]
-                    file_path = parts[8]
-
-                    # X = index status (staged), Y = working tree status
-                    x_status = xy_status[0] if len(xy_status) > 0 else "."
-                    y_status = xy_status[1] if len(xy_status) > 1 else "."
-
-                    # Add to staged files if X != '.'
-                    if x_status != ".":
-                        staged_files.append({"path": file_path, "status": x_status})
-
-                    # Add to modified files if Y != '.'
-                    if y_status != ".":
-                        modified_files.append({"path": file_path, "status": y_status})
-
-            # Parse untracked files (format: ? <path>)
-            elif line.startswith("? "):
-                file_path = line[2:]  # Skip "? " prefix
-                untracked_files.append({"path": file_path})
-
-        return branch, modified_files, staged_files, untracked_files
+        """Parse detailed status v2 output (delegates to git_status_parser)."""
+        return self._parser.parse_detailed_status_v2(stdout)
 
     def _add_line_counts(self, working_dir: str, files: list[dict[str, Any]], staged: bool) -> list[dict[str, Any]]:
         """
@@ -852,52 +614,11 @@ class GitWorker(BaseWorker):
             return None, False
 
     def _parse_numstat_output(self, stdout: str) -> dict[str, dict[str, int]]:
-        """
-        MA principle: Extracted helper (14 lines) - focused numstat parsing.
-
-        Parse git diff --numstat output into line counts dictionary.
-
-        Args:
-            stdout: Output from git diff --numstat command
-
-        Returns:
-            Dictionary mapping file paths to {added, deleted} dicts
-
-        Format:
-            <added>\t<deleted>\t<path>
-            Binary files show "-" for added/deleted
-        """
-        line_counts = {}
-        for line in stdout.strip().split("\n"):
-            if not line:
-                continue
-
-            parts = line.split("\t")
-            if len(parts) >= 3:
-                added = int(parts[0]) if parts[0] != "-" else 0
-                deleted = int(parts[1]) if parts[1] != "-" else 0
-                path = parts[2]
-                line_counts[path] = {"added": added, "deleted": deleted}
-
-        return line_counts
+        """Parse numstat output (delegates to git_status_parser)."""
+        return self._parser.parse_numstat_output(stdout)
 
     def _update_files_with_line_counts(
         self, files: list[dict[str, Any]], line_counts: dict[str, dict[str, int]]
     ) -> None:
-        """
-        MA principle: Extracted helper (9 lines) - focused file dict updates.
-
-        Update file dictionaries with line change counts.
-
-        Args:
-            files: List of file dicts (modified in place)
-            line_counts: Dictionary mapping paths to {added, deleted} dicts
-        """
-        for file_dict in files:
-            path = file_dict["path"]
-            if path in line_counts:
-                file_dict["lines_added"] = line_counts[path]["added"]
-                file_dict["lines_deleted"] = line_counts[path]["deleted"]
-            else:
-                file_dict["lines_added"] = 0
-                file_dict["lines_deleted"] = 0
+        """Update files with line counts (delegates to git_status_parser)."""
+        self._parser.update_files_with_line_counts(files, line_counts)
