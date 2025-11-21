@@ -96,24 +96,30 @@ class WorkerManager:
             self.worker_pool = OptimizedWorkerPool(max_threads=max_pool_threads)
             logger.info(f"Worker pool enabled with {max_pool_threads} threads")
 
-    def setup_workers_and_threads(self) -> None:
-        """Set up all worker threads (Git, Pandoc, Preview) with signal connections."""
-        logger.info("Setting up worker threads...")
+    def _setup_git_worker(self) -> None:
+        """
+        Setup Git worker thread with signal connections.
 
-        # Git Worker
+        MA principle: Extracted from setup_workers_and_threads (12 lines).
+        """
         self.git_thread = QThread(self.editor)
         self.git_worker = GitWorker()
         self.git_worker.moveToThread(self.git_thread)
         self.editor.request_git_command.connect(self.git_worker.run_git_command)
-        self.editor.request_git_status.connect(self.git_worker.get_repository_status)  # v1.9.0+
-        self.editor.request_detailed_git_status.connect(self.git_worker.get_detailed_repository_status)  # v1.9.0+
+        self.editor.request_git_status.connect(self.git_worker.get_repository_status)
+        self.editor.request_detailed_git_status.connect(self.git_worker.get_detailed_repository_status)
         self.git_worker.command_complete.connect(self.editor._handle_git_result)
-        self.git_worker.status_ready.connect(self.editor._handle_git_status)  # v1.9.0+
-        self.git_worker.detailed_status_ready.connect(self.editor._handle_detailed_git_status)  # v1.9.0+
+        self.git_worker.status_ready.connect(self.editor._handle_git_status)
+        self.git_worker.detailed_status_ready.connect(self.editor._handle_detailed_git_status)
         self.git_thread.finished.connect(self.git_worker.deleteLater)
         self.git_thread.start()
 
-        # GitHub Worker
+    def _setup_github_worker(self) -> None:
+        """
+        Setup GitHub CLI worker thread with signal connections.
+
+        MA principle: Extracted from setup_workers_and_threads (8 lines).
+        """
         self.github_thread = QThread(self.editor)
         self.github_worker = GitHubCLIWorker()
         self.github_worker.moveToThread(self.github_thread)
@@ -122,7 +128,12 @@ class WorkerManager:
         self.github_thread.finished.connect(self.github_worker.deleteLater)
         self.github_thread.start()
 
-        # Pandoc Worker
+    def _setup_pandoc_worker(self) -> None:
+        """
+        Setup Pandoc worker thread with signal connections.
+
+        MA principle: Extracted from setup_workers_and_threads (22 lines).
+        """
         self.pandoc_thread = QThread(self.editor)
         self.pandoc_worker = PandocWorker()
         self.pandoc_worker.moveToThread(self.pandoc_thread)
@@ -136,16 +147,21 @@ class WorkerManager:
         self.editor.request_pandoc_conversion.connect(self.pandoc_worker.run_pandoc_conversion)
         self.pandoc_worker.conversion_complete.connect(
             self.editor.pandoc_result_handler.handle_pandoc_result,
-            Qt.ConnectionType.QueuedConnection,  # Force main thread execution
+            Qt.ConnectionType.QueuedConnection,
         )
         self.pandoc_worker.conversion_error.connect(
             self.editor.pandoc_result_handler.handle_pandoc_error_result,
-            Qt.ConnectionType.QueuedConnection,  # Force main thread execution
+            Qt.ConnectionType.QueuedConnection,
         )
         self.pandoc_thread.finished.connect(self.pandoc_worker.deleteLater)
         self.pandoc_thread.start()
 
-        # Preview Worker
+    def _setup_preview_worker(self) -> None:
+        """
+        Setup Preview worker thread with signal connections.
+
+        MA principle: Extracted from setup_workers_and_threads (17 lines).
+        """
         self.preview_thread = QThread(self.editor)
         self.preview_worker = PreviewWorker()
         self.preview_worker.moveToThread(self.preview_thread)
@@ -158,36 +174,42 @@ class WorkerManager:
 
         # Initialize AsciiDoc API on worker thread after thread starts
         if ASCIIDOC3_AVAILABLE and asciidoc3:
-            # Use lambda to defer initialization until thread is running
             self.preview_thread.started.connect(lambda: self.preview_worker.initialize_asciidoc(asciidoc3.__file__))
 
         self.preview_thread.start()
 
-        # Ollama Chat Worker (v1.7.0)
+    def _setup_ollama_chat_worker(self) -> None:
+        """
+        Setup Ollama chat worker thread.
+
+        MA principle: Extracted from setup_workers_and_threads (10 lines).
+        Note: Chat worker signals connected via ChatManager after initialization.
+        """
         self.ollama_chat_thread = QThread(self.editor)
         self.ollama_chat_worker = OllamaChatWorker()
         self.ollama_chat_worker.moveToThread(self.ollama_chat_thread)
-
-        # Chat worker signals will be connected via ChatManager
-        # (ChatManager connects to worker signals after initialization)
-
         self.ollama_chat_thread.finished.connect(self.ollama_chat_worker.deleteLater)
         self.ollama_chat_thread.start()
 
-        # Claude Worker (v1.10.0)
+    def _setup_claude_worker(self) -> None:
+        """
+        Setup Claude AI worker thread.
+
+        MA principle: Extracted from setup_workers_and_threads (10 lines).
+        Note: Claude worker signals connected via main_window adapter pattern.
+        """
         self.claude_thread = QThread(self.editor)
         self.claude_worker = ClaudeWorker()
         self.claude_worker.moveToThread(self.claude_thread)
-
-        # Claude worker signals will be connected via main_window
-        # (Adapter pattern converts ClaudeResult to ChatMessage)
-
         self.claude_thread.finished.connect(self.claude_worker.deleteLater)
         self.claude_thread.start()
 
-        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview, Ollama, Claude)")
+    def _store_worker_references(self) -> None:
+        """
+        Store worker/thread references on main window for backward compatibility.
 
-        # Store references on main window for backward compatibility
+        MA principle: Extracted from setup_workers_and_threads (13 lines).
+        """
         self.editor.git_thread = self.git_thread
         self.editor.git_worker = self.git_worker
         self.editor.github_thread = self.github_thread
@@ -200,6 +222,27 @@ class WorkerManager:
         self.editor.ollama_chat_worker = self.ollama_chat_worker
         self.editor.claude_thread = self.claude_thread
         self.editor.claude_worker = self.claude_worker
+
+    def setup_workers_and_threads(self) -> None:
+        """
+        Set up all worker threads with signal connections.
+
+        MA principle: Reduced from 105→20 lines by extracting 7 helper methods.
+        """
+        logger.info("Setting up worker threads...")
+
+        # Setup all workers using dedicated helper methods
+        self._setup_git_worker()
+        self._setup_github_worker()
+        self._setup_pandoc_worker()
+        self._setup_preview_worker()
+        self._setup_ollama_chat_worker()
+        self._setup_claude_worker()
+
+        logger.info("All worker threads started (Git, GitHub, Pandoc, Preview, Ollama, Claude)")
+
+        # Store references on main window for backward compatibility
+        self._store_worker_references()
 
     def get_pool_statistics(self) -> dict[str, Any]:
         """

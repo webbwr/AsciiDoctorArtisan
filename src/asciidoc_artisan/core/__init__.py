@@ -120,188 +120,151 @@ _CONSTANTS_CACHE = {}
 # Stores classes and functions (MemoryProfiler, ResourceMonitor, etc.) after first access
 _MODULE_CACHE = {}
 
-
-def __getattr__(name: str) -> Any:  # noqa: C901
-    """
-    Lazy Import Handler - Load Modules Only When Accessed.
-
-    WHY THIS EXISTS:
-    Loading 50+ constants and 3 heavy modules at startup takes time. Instead,
-    we load them only when someone actually uses them. This makes startup
-    3x faster (1.05s instead of 3-5s).
-
-    HOW IT WORKS:
-    1. Someone does: from asciidoc_artisan.core import APP_NAME
-    2. Python looks for APP_NAME in this file
-    3. APP_NAME doesn't exist yet (not imported)
-    4. Python calls __getattr__("APP_NAME")
-    5. We check: Is this a constant? Memory profiler? Resource monitor?
-    6. Import the appropriate module and cache the result
-    7. Return the value to the user
-    8. Next time they access APP_NAME: instant (cached)
-
-    CACHING STRATEGY:
-    - First access: Import module + cache result (~1-10ms)
-    - Second access: Return cached value (~0.001ms - instant!)
-
-    This is like a library:
-    - Without caching: Every time you need a book, search the entire library
-    - With caching: First search is slow, then you bookmark it for instant access
-
-    PARAMETERS:
-        name: The attribute name someone tried to import
-
-    RETURNS:
-        The requested constant, class, or function
-
-    RAISES:
-        AttributeError: If name is not in our public API
-    """
-    # === GROUP 1: CONSTANTS (50+ Values) ===
-    # These are string and numeric constants used throughout the app
-    # All stored in constants.py - we import that file once and cache all accesses
-    if name in (
-        "ADOC_FILTER",  # File dialog filter: "AsciiDoc Files (*.adoc *.asciidoc)"
-        "ALL_FILES_FILTER",  # File dialog filter: "All Files (*)"
-        "ALL_FORMATS",  # List of all supported file formats
-        "APP_NAME",  # "AsciiDoc Artisan" (application name)
-        "APP_VERSION",  # "1.5.0" (current version)
-        "AUTO_SAVE_INTERVAL_MS",  # 60000 (auto-save every 60 seconds)
-        "COMMON_FORMATS",  # List of common file formats (DOCX, PDF, MD, HTML)
-        "DEFAULT_FILENAME",  # "Untitled.adoc" (new file default name)
-        "DIALOG_CONVERSION_ERROR",  # "Conversion Error" (dialog title)
-        "DIALOG_OPEN_FILE",  # "Open File" (dialog title)
-        "DIALOG_SAVE_ERROR",  # "Save Error" (dialog title)
-        "DIALOG_SAVE_FILE",  # "Save File" (dialog title)
-        "DOCX_FILTER",  # File dialog filter: "Word Documents (*.docx)"
-        "EDITOR_FONT_FAMILY",  # "Courier New" (default editor font)
-        "EDITOR_FONT_SIZE",  # 12 (default editor font size in points)
-        "ERR_ASCIIDOC_NOT_INITIALIZED",  # Error message for uninitialized AsciiDoc
-        "ERR_ATOMIC_SAVE_FAILED",  # Error message for failed atomic save
-        "ERR_FAILED_CREATE_TEMP",  # Error message for failed temp file creation
-        "ERR_FAILED_SAVE_HTML",  # Error message for failed HTML save
-        "HTML_FILTER",  # File dialog filter: "HTML Files (*.html *.htm)"
-        "LARGE_FILE_THRESHOLD_BYTES",  # 1048576 (1MB - files above this show warning)
-        "LATEX_FILTER",  # File dialog filter: "LaTeX Files (*.tex)"
-        "MAX_FILE_SIZE_MB",  # 50 (maximum file size in megabytes)
-        "MD_FILTER",  # File dialog filter: "Markdown Files (*.md)"
-        "MENU_FILE",  # "File" (File menu label)
-        "MIN_FONT_SIZE",  # 6 (minimum allowed font size)
-        "MIN_WINDOW_HEIGHT",  # 600 (minimum window height in pixels)
-        "MIN_WINDOW_WIDTH",  # 800 (minimum window width in pixels)
-        "MSG_LOADING_LARGE_FILE",  # "Loading large file..." (status message)
-        "MSG_PDF_IMPORTED",  # "PDF imported successfully" (status message)
-        "MSG_SAVED_ASCIIDOC",  # "Saved as AsciiDoc" (status message)
-        "MSG_SAVED_HTML",  # "Saved as HTML" (status message)
-        "MSG_SAVED_HTML_PDF_READY",  # "Saved as HTML (ready for PDF)" (status)
-        "ORG_FILTER",  # File dialog filter: "Org-mode Files (*.org)"
-        "PDF_FILTER",  # File dialog filter: "PDF Files (*.pdf)"
-        "PREVIEW_FAST_INTERVAL_MS",  # 100 (100ms - fast preview update interval)
-        "PREVIEW_NORMAL_INTERVAL_MS",  # 500 (500ms - normal preview update interval)
-        "PREVIEW_SLOW_INTERVAL_MS",  # 1000 (1000ms - slow preview update interval)
-        "PREVIEW_UPDATE_INTERVAL_MS",  # 500 (default preview update interval)
-        "RST_FILTER",  # File dialog filter: "reStructuredText Files (*.rst)"
-        "SETTINGS_FILENAME",  # "AsciiDocArtisan.json" (settings file name)
-        "STATUS_MESSAGE_DURATION_MS",  # 3000 (status messages show for 3 seconds)
-        "STATUS_TIP_EXPORT_OFFICE365",  # "Export to Word/Office365" (tooltip)
-        "SUPPORTED_OPEN_FILTER",  # Combined filter for Open dialog
-        "SUPPORTED_SAVE_FILTER",  # Combined filter for Save dialog
-        "TEXTILE_FILTER",  # File dialog filter: "Textile Files (*.textile)"
-        "ZOOM_STEP",  # 1 (font size change per zoom step)
-    ):
-        # Check if we've already imported this constant
-        if name not in _CONSTANTS_CACHE:
-            # First time accessing this constant - import constants.py now
-            from . import constants
-
-            # Get the constant value and cache it
-            _CONSTANTS_CACHE[name] = getattr(constants, name)
-
-        # Return the cached value (instant on subsequent accesses)
-        return _CONSTANTS_CACHE[name]
-
-    # === GROUP 1B: DATA MODELS (Pydantic-based, lazy to save 115ms startup) ===
-    # These models use Pydantic which takes 115ms to import.
-    # Since they're used by background worker threads, lazy loading them doesn't affect UI.
-    if name in ("GitResult", "GitStatus", "GitHubResult", "ChatMessage"):
-        # Check if we've already imported this model
-        if name not in _MODULE_CACHE:
-            # First time accessing this model - import models.py now
-            from . import models
-
-            # Get the model class and cache it
-            _MODULE_CACHE[name] = getattr(models, name)
-
-        # Return the cached model class
-        return _MODULE_CACHE[name]
-
-    # === GROUP 2: MEMORY PROFILER (Developer Tools) ===
-    # Only used when debugging memory leaks - rarely accessed
-    if name in ("MemoryProfiler", "MemorySnapshot", "get_profiler", "profile_memory"):
-        # Check if we've already imported memory_profiler module
-        if name not in _MODULE_CACHE:
-            # First time accessing memory profiler - import it now
-            from . import memory_profiler
-
-            # Get the class/function and cache it
-            _MODULE_CACHE[name] = getattr(memory_profiler, name)
-
-        # Return the cached class/function
-        return _MODULE_CACHE[name]
-
-    # === GROUP 2B: CPU PROFILER (Developer Tools - QA-15) ===
-    # Only used when profiling CPU performance - rarely accessed
-    if name in (
+# === LAZY IMPORT CONFIGURATION ===
+# Maps attribute names to their source modules for lazy loading
+_LAZY_IMPORT_MAP = {
+    # Constants module (50+ values)
+    "constants": (
+        "ADOC_FILTER",
+        "ALL_FILES_FILTER",
+        "ALL_FORMATS",
+        "APP_NAME",
+        "APP_VERSION",
+        "AUTO_SAVE_INTERVAL_MS",
+        "COMMON_FORMATS",
+        "DEFAULT_FILENAME",
+        "DIALOG_CONVERSION_ERROR",
+        "DIALOG_OPEN_FILE",
+        "DIALOG_SAVE_ERROR",
+        "DIALOG_SAVE_FILE",
+        "DOCX_FILTER",
+        "EDITOR_FONT_FAMILY",
+        "EDITOR_FONT_SIZE",
+        "ERR_ASCIIDOC_NOT_INITIALIZED",
+        "ERR_ATOMIC_SAVE_FAILED",
+        "ERR_FAILED_CREATE_TEMP",
+        "ERR_FAILED_SAVE_HTML",
+        "HTML_FILTER",
+        "LARGE_FILE_THRESHOLD_BYTES",
+        "LATEX_FILTER",
+        "MAX_FILE_SIZE_MB",
+        "MD_FILTER",
+        "MENU_FILE",
+        "MIN_FONT_SIZE",
+        "MIN_WINDOW_HEIGHT",
+        "MIN_WINDOW_WIDTH",
+        "MSG_LOADING_LARGE_FILE",
+        "MSG_PDF_IMPORTED",
+        "MSG_SAVED_ASCIIDOC",
+        "MSG_SAVED_HTML",
+        "MSG_SAVED_HTML_PDF_READY",
+        "ORG_FILTER",
+        "PDF_FILTER",
+        "PREVIEW_FAST_INTERVAL_MS",
+        "PREVIEW_NORMAL_INTERVAL_MS",
+        "PREVIEW_SLOW_INTERVAL_MS",
+        "PREVIEW_UPDATE_INTERVAL_MS",
+        "RST_FILTER",
+        "SETTINGS_FILENAME",
+        "STATUS_MESSAGE_DURATION_MS",
+        "STATUS_TIP_EXPORT_OFFICE365",
+        "SUPPORTED_OPEN_FILTER",
+        "SUPPORTED_SAVE_FILTER",
+        "TEXTILE_FILTER",
+        "ZOOM_STEP",
+    ),
+    # Data models (Pydantic-based)
+    "models": ("GitResult", "GitStatus", "GitHubResult", "ChatMessage"),
+    # Memory profiler (developer tools)
+    "memory_profiler": ("MemoryProfiler", "MemorySnapshot", "get_profiler", "profile_memory"),
+    # CPU profiler (developer tools)
+    "cpu_profiler": (
         "CPUProfiler",
         "ProfileResult",
         "get_cpu_profiler",
         "enable_cpu_profiling",
         "disable_cpu_profiling",
-    ):
-        # Check if we've already imported cpu_profiler module
-        if name not in _MODULE_CACHE:
-            # First time accessing CPU profiler - import it now
-            from . import cpu_profiler
+    ),
+    # Resource monitor (performance tracking)
+    "resource_monitor": ("ResourceMonitor", "get_resource_monitor", "monitor_memory"),
+    # Security (credential storage)
+    "security": ("SecureCredentials",),
+    # Async file operations
+    "async_file_watcher": ("AsyncFileWatcher", "get_file_watcher", "monitor_file"),
+    # Spell checker
+    "spell_checker": ("SpellChecker", "get_spell_checker", "check_spelling"),
+    # Telemetry
+    "telemetry_collector": ("TelemetryCollector", "get_telemetry", "record_event"),
+    # Dependency validator
+    "dependency_validator": ("DependencyValidator", "validate_dependencies", "check_dependency"),
+    # Qt async file manager (v1.7.0)
+    "qt_async_file_manager": ("QtAsyncFileManager",),
+}
 
-            # Get the class/function and cache it
-            _MODULE_CACHE[name] = getattr(cpu_profiler, name)
 
-        # Return the cached class/function
-        return _MODULE_CACHE[name]
+def _lazy_import(name: str, module_name: str, cache: dict) -> Any:
+    """
+    Helper to lazily import an attribute from a module.
 
-    # === GROUP 3: RESOURCE MONITOR (Performance Tracking) ===
-    # Used for tracking memory usage and document metrics
-    if name in ("DocumentMetrics", "ResourceMetrics", "ResourceMonitor"):
-        # Check if we've already imported resource_monitor module
-        if name not in _MODULE_CACHE:
-            # First time accessing resource monitor - import it now
-            from . import resource_monitor
+    Args:
+        name: Attribute name to import
+        module_name: Module name to import from
+        cache: Cache dictionary to use
 
-            # Get the class and cache it
-            _MODULE_CACHE[name] = getattr(resource_monitor, name)
+    Returns:
+        The requested attribute value
+    """
+    if name not in cache:
+        # Import module and cache the attribute
+        module = __import__(f"asciidoc_artisan.core.{module_name}", fromlist=[name])
+        cache[name] = getattr(module, name)
 
-        # Return the cached class
-        return _MODULE_CACHE[name]
+    return cache[name]
 
-    # === GROUP 4: SECURITY (Credential Storage) ===
-    # Only used if API keys are configured (optional feature)
-    if name == "SecureCredentials":
-        # Check if we've already imported SecureCredentials
-        if name not in _MODULE_CACHE:
-            # First time accessing credentials - import it now
-            from .secure_credentials import SecureCredentials
 
-            # Cache the class
-            _MODULE_CACHE[name] = SecureCredentials
+def __getattr__(name: str) -> Any:
+    """
+    Lazy Import Handler - Load Modules Only When Accessed.
 
-        # Return the cached class
-        return _MODULE_CACHE[name]
+    Makes startup 3x faster (1.05s instead of 3-5s) by loading modules
+    only when first accessed. Subsequent accesses are instant (cached).
 
-    # === GROUP 5: ASYNC FILE OPERATIONS (v1.7.0 Task 4) ===
-    # Async file I/O with Qt integration and file watching
+    Args:
+        name: The attribute name to import
+
+    Returns:
+        The requested constant, class, or function
+
+    Raises:
+        AttributeError: If name is not in our public API
+    """
+    # Check constants first (most common case)
+    if name in _LAZY_IMPORT_MAP["constants"]:
+        return _lazy_import(name, "constants", _CONSTANTS_CACHE)
+
+    # Check each module group
+    for module_name, attr_names in _LAZY_IMPORT_MAP.items():
+        if module_name == "constants":
+            continue  # Already checked above
+
+        if name in attr_names:
+            # Handle special cases for async file operations
+            if name == "AsyncFileWatcher":
+                return _lazy_import_special(name, "async_file_watcher")
+            if name == "QtAsyncFileManager":
+                return _lazy_import_special(name, "qt_async_file_manager")
+            if name == "SecureCredentials":
+                return _lazy_import_special(name, "secure_credentials")
+
+            # Standard lazy import
+            return _lazy_import(name, module_name, _MODULE_CACHE)
+
+    # Handle additional resource monitor attributes
+    if name in ("DocumentMetrics", "ResourceMetrics"):
+        return _lazy_import(name, "resource_monitor", _MODULE_CACHE)
+
+    # Handle async file operations (multi-module group)
     if name in (
-        "AsyncFileWatcher",
-        "QtAsyncFileManager",
         "async_read_text",
         "async_atomic_save_text",
         "async_atomic_save_json",
@@ -309,78 +272,40 @@ def __getattr__(name: str) -> Any:  # noqa: C901
         "async_copy_file",
         "AsyncFileContext",
     ):
-        # Check if we've already imported this async component
-        if name not in _MODULE_CACHE:
-            # Determine which module to import from
-            if name == "AsyncFileWatcher":
-                from .async_file_watcher import AsyncFileWatcher
+        return _lazy_import(name, "async_file_ops", _MODULE_CACHE)
 
-                _MODULE_CACHE[name] = AsyncFileWatcher
-            elif name == "QtAsyncFileManager":
-                from .qt_async_file_manager import QtAsyncFileManager
+    # Handle dependency validator additional attributes
+    if name in ("DependencyType", "DependencyStatus", "Dependency"):
+        return _lazy_import(name, "dependency_validator", _MODULE_CACHE)
 
-                _MODULE_CACHE[name] = QtAsyncFileManager
-            else:
-                # Import from async_file_ops
-                from . import async_file_ops
+    # Handle spell checker additional attributes
+    if name == "SpellError":
+        return _lazy_import(name, "spell_checker", _MODULE_CACHE)
 
-                _MODULE_CACHE[name] = getattr(async_file_ops, name)
+    # Handle telemetry additional attributes
+    if name == "TelemetryEvent":
+        return _lazy_import(name, "telemetry_collector", _MODULE_CACHE)
 
-        # Return the cached class/function
-        return _MODULE_CACHE[name]
-
-    # === GROUP 6: SPELL CHECKER (v1.8.0) ===
-    # Integrated spell checking with custom dictionary support
-    if name in ("SpellChecker", "SpellError"):
-        # Check if we've already imported spell checker
-        if name not in _MODULE_CACHE:
-            # First time accessing spell checker - import it now
-            from . import spell_checker
-
-            # Get the class and cache it
-            _MODULE_CACHE[name] = getattr(spell_checker, name)
-
-        # Return the cached class
-        return _MODULE_CACHE[name]
-
-    # === GROUP 7: TELEMETRY (v1.8.0) ===
-    # Privacy-first usage analytics (opt-in only)
-    if name in ("TelemetryCollector", "TelemetryEvent"):
-        # Check if we've already imported telemetry collector
-        if name not in _MODULE_CACHE:
-            # First time accessing telemetry - import it now
-            from . import telemetry_collector
-
-            # Get the class and cache it
-            _MODULE_CACHE[name] = getattr(telemetry_collector, name)
-
-        # Return the cached class
-        return _MODULE_CACHE[name]
-
-    # === GROUP 8: DEPENDENCY VALIDATOR (v2.0.1) ===
-    # Startup dependency validation for system and Python requirements
-    if name in (
-        "DependencyValidator",
-        "validate_dependencies",
-        "DependencyType",
-        "DependencyStatus",
-        "Dependency",
-    ):
-        # Check if we've already imported dependency validator
-        if name not in _MODULE_CACHE:
-            # First time accessing validator - import it now
-            from . import dependency_validator
-
-            # Get the class/function and cache it
-            _MODULE_CACHE[name] = getattr(dependency_validator, name)
-
-        # Return the cached class/function
-        return _MODULE_CACHE[name]
-
-    # === UNKNOWN ATTRIBUTE ===
-    # If we get here, they asked for something not in our public API
-    # Raise AttributeError (same as Python does for missing attributes)
+    # Unknown attribute - raise error
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
+
+def _lazy_import_special(name: str, module_name: str) -> Any:
+    """
+    Special lazy import for single-class modules.
+
+    Args:
+        name: Class name to import
+        module_name: Module name to import from
+
+    Returns:
+        The requested class
+    """
+    if name not in _MODULE_CACHE:
+        module = __import__(f"asciidoc_artisan.core.{module_name}", fromlist=[name])
+        _MODULE_CACHE[name] = getattr(module, name)
+
+    return _MODULE_CACHE[name]
 
 
 # === PUBLIC API DECLARATION ===

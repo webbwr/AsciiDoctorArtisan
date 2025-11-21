@@ -88,17 +88,28 @@ class TelemetryOptInDialog(QDialog):
         self._result_code = self.Result.REMIND_LATER
         self._setup_ui()
 
-    def _setup_ui(self) -> None:
-        """Set up the dialog UI components."""
-        layout = QVBoxLayout(self)
-        layout.setSpacing(15)
+    def _create_header(self) -> QLabel:
+        """
+        Create header label.
 
-        # Header
+        Returns:
+            Header QLabel with title and subtitle
+
+        MA principle: Extracted from _setup_ui (4 lines).
+        """
         header = QLabel("<h2>Help Improve AsciiDoc Artisan</h2><p>We would like your help to improve this app.</p>")
         header.setWordWrap(True)
-        layout.addWidget(header)
+        return header
 
-        # Privacy-first explanation
+    def _create_explanation_browser(self) -> QTextBrowser:
+        """
+        Create explanation text browser with telemetry information.
+
+        Returns:
+            QTextBrowser with HTML content explaining telemetry
+
+        MA principle: Extracted from _setup_ui (53 lines).
+        """
         explanation = QTextBrowser()
         explanation.setOpenExternalLinks(True)
         explanation.setHtml(
@@ -151,12 +162,17 @@ class TelemetryOptInDialog(QDialog):
             """
         )
         explanation.setMinimumHeight(300)
-        layout.addWidget(explanation)
+        return explanation
 
-        # Buttons (equal emphasis on all options - no dark patterns)
-        button_box = QDialogButtonBox()
+    def _create_accept_button(self) -> QPushButton:
+        """
+        Create accept telemetry button with green styling.
 
-        # Accept button (green)
+        Returns:
+            Styled QPushButton for accepting telemetry
+
+        MA principle: Extracted from _setup_ui (17 lines).
+        """
         accept_btn = QPushButton("✓ Enable Telemetry")
         accept_btn.setStyleSheet(
             """
@@ -172,9 +188,17 @@ class TelemetryOptInDialog(QDialog):
             """
         )
         accept_btn.clicked.connect(self._accept_telemetry)
-        button_box.addButton(accept_btn, QDialogButtonBox.ButtonRole.AcceptRole)
+        return accept_btn
 
-        # Decline button (red)
+    def _create_decline_button(self) -> QPushButton:
+        """
+        Create decline telemetry button with red styling.
+
+        Returns:
+            Styled QPushButton for declining telemetry
+
+        MA principle: Extracted from _setup_ui (17 lines).
+        """
         decline_btn = QPushButton("✗ No Thanks")
         decline_btn.setStyleSheet(
             """
@@ -190,9 +214,17 @@ class TelemetryOptInDialog(QDialog):
             """
         )
         decline_btn.clicked.connect(self._decline_telemetry)
-        button_box.addButton(decline_btn, QDialogButtonBox.ButtonRole.RejectRole)
+        return decline_btn
 
-        # Remind Me Later button (neutral)
+    def _create_remind_button(self) -> QPushButton:
+        """
+        Create remind later button with neutral styling.
+
+        Returns:
+            Styled QPushButton for reminding later
+
+        MA principle: Extracted from _setup_ui (16 lines).
+        """
         remind_btn = QPushButton("⏰ Remind Me Later")
         remind_btn.setStyleSheet(
             """
@@ -207,18 +239,47 @@ class TelemetryOptInDialog(QDialog):
             """
         )
         remind_btn.clicked.connect(self._remind_later)
-        button_box.addButton(remind_btn, QDialogButtonBox.ButtonRole.ActionRole)
+        return remind_btn
 
-        layout.addWidget(button_box)
+    def _create_privacy_note(self) -> QLabel:
+        """
+        Create privacy note label.
 
-        # Privacy note
+        Returns:
+            QLabel with centered privacy note
+
+        MA principle: Extracted from _setup_ui (8 lines).
+        """
         privacy_note = QLabel(
             "<small><i>Privacy is important. All choices are respected. "
             "You can change your decision anytime in Settings.</i></small>"
         )
         privacy_note.setAlignment(Qt.AlignmentFlag.AlignCenter)
         privacy_note.setWordWrap(True)
-        layout.addWidget(privacy_note)
+        return privacy_note
+
+    def _setup_ui(self) -> None:
+        """
+        Set up the dialog UI components.
+
+        MA principle: Reduced from 131→25 lines by extracting 6 helper methods.
+        """
+        layout = QVBoxLayout(self)
+        layout.setSpacing(15)
+
+        # Add header and explanation
+        layout.addWidget(self._create_header())
+        layout.addWidget(self._create_explanation_browser())
+
+        # Create button box with all three options (equal emphasis)
+        button_box = QDialogButtonBox()
+        button_box.addButton(self._create_accept_button(), QDialogButtonBox.ButtonRole.AcceptRole)
+        button_box.addButton(self._create_decline_button(), QDialogButtonBox.ButtonRole.RejectRole)
+        button_box.addButton(self._create_remind_button(), QDialogButtonBox.ButtonRole.ActionRole)
+        layout.addWidget(button_box)
+
+        # Add privacy note
+        layout.addWidget(self._create_privacy_note())
 
     def _accept_telemetry(self) -> None:
         """User accepted telemetry collection."""

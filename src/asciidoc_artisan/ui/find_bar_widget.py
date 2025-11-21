@@ -82,22 +82,19 @@ class FindBarWidget(QWidget):
         self._setup_ui()
         self._connect_signals()
 
-    def _setup_ui(self) -> None:
-        """Setup the UI components."""
-        # Main vertical layout (stacks Find row and Replace row)
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(4)
+    def _create_close_button(self) -> QPushButton:
+        """
+        Create close button with styling.
 
-        # === FIND ROW ===
-        find_row = QHBoxLayout()
-        find_row.setSpacing(8)
+        Returns:
+            Styled close button
 
-        # Close button
-        self._close_btn = QPushButton("×")
-        self._close_btn.setFixedSize(24, 24)
-        self._close_btn.setToolTip("Close (Esc)")
-        self._close_btn.setStyleSheet(
+        MA principle: Extracted from _setup_ui (17 lines).
+        """
+        close_btn = QPushButton("×")
+        close_btn.setFixedSize(24, 24)
+        close_btn.setToolTip("Close (Esc)")
+        close_btn.setStyleSheet(
             """
             QPushButton {
                 border: 1px solid #555;
@@ -110,13 +107,21 @@ class FindBarWidget(QWidget):
             }
             """
         )
-        find_row.addWidget(self._close_btn)
+        return close_btn
 
-        # Toggle replace button
-        self._toggle_replace_btn = QPushButton("▶")
-        self._toggle_replace_btn.setFixedSize(24, 24)
-        self._toggle_replace_btn.setToolTip("Toggle Replace (Ctrl+H)")
-        self._toggle_replace_btn.setStyleSheet(
+    def _create_toggle_replace_button(self) -> QPushButton:
+        """
+        Create toggle replace button with styling.
+
+        Returns:
+            Styled toggle replace button
+
+        MA principle: Extracted from _setup_ui (16 lines).
+        """
+        toggle_btn = QPushButton("▶")
+        toggle_btn.setFixedSize(24, 24)
+        toggle_btn.setToolTip("Toggle Replace (Ctrl+H)")
+        toggle_btn.setStyleSheet(
             """
             QPushButton {
                 border: 1px solid #555;
@@ -128,6 +133,25 @@ class FindBarWidget(QWidget):
             }
             """
         )
+        return toggle_btn
+
+    def _create_find_row(self) -> QHBoxLayout:
+        """
+        Create find row with search controls.
+
+        Returns:
+            Horizontal layout with find controls
+
+        MA principle: Extracted from _setup_ui (42 lines).
+        """
+        find_row = QHBoxLayout()
+        find_row.setSpacing(8)
+
+        # Close and toggle buttons
+        self._close_btn = self._create_close_button()
+        find_row.addWidget(self._close_btn)
+
+        self._toggle_replace_btn = self._create_toggle_replace_button()
         find_row.addWidget(self._toggle_replace_btn)
 
         # Label
@@ -146,12 +170,11 @@ class FindBarWidget(QWidget):
         self._counter_label.setStyleSheet("color: #888;")
         find_row.addWidget(self._counter_label)
 
-        # Previous button
+        # Previous/Next buttons
         self._prev_btn = QPushButton("Previous")
         self._prev_btn.setToolTip("Find Previous (Shift+F3)")
         find_row.addWidget(self._prev_btn)
 
-        # Next button
         self._next_btn = QPushButton("Next")
         self._next_btn.setToolTip("Find Next (F3)")
         find_row.addWidget(self._next_btn)
@@ -163,12 +186,19 @@ class FindBarWidget(QWidget):
         # Stretch to push everything left
         find_row.addStretch()
 
-        # Add find row to main layout
-        main_layout.addLayout(find_row)
+        return find_row
 
-        # === REPLACE ROW ===
-        self._replace_row_widget = QWidget()
-        replace_row = QHBoxLayout(self._replace_row_widget)
+    def _create_replace_row(self) -> QWidget:
+        """
+        Create replace row with replace controls.
+
+        Returns:
+            Widget containing replace row layout
+
+        MA principle: Extracted from _setup_ui (38 lines).
+        """
+        replace_row_widget = QWidget()
+        replace_row = QHBoxLayout(replace_row_widget)
         replace_row.setContentsMargins(0, 0, 0, 0)
         replace_row.setSpacing(8)
 
@@ -188,12 +218,11 @@ class FindBarWidget(QWidget):
         # Spacer to align with counter (80px width)
         replace_row.addSpacing(80)
 
-        # Replace button
+        # Replace buttons
         self._replace_btn = QPushButton("Replace")
         self._replace_btn.setToolTip("Replace current match (Ctrl+Shift+1)")
         replace_row.addWidget(self._replace_btn)
 
-        # Replace All button
         self._replace_all_btn = QPushButton("Replace All")
         self._replace_all_btn.setToolTip("Replace all matches (Ctrl+Shift+Enter)")
         replace_row.addWidget(self._replace_all_btn)
@@ -201,11 +230,14 @@ class FindBarWidget(QWidget):
         # Stretch to push everything left
         replace_row.addStretch()
 
-        # Add replace row to main layout (initially hidden)
-        main_layout.addWidget(self._replace_row_widget)
-        self._replace_row_widget.hide()
+        return replace_row_widget
 
-        # Set background color to distinguish from editor
+    def _apply_widget_styling(self) -> None:
+        """
+        Apply widget background styling.
+
+        MA principle: Extracted from _setup_ui (8 lines).
+        """
         self.setStyleSheet(
             """
             FindBarWidget {
@@ -214,6 +246,28 @@ class FindBarWidget(QWidget):
             }
             """
         )
+
+    def _setup_ui(self) -> None:
+        """
+        Setup the UI components.
+
+        MA principle: Reduced from 135→21 lines by extracting 5 helper methods.
+        """
+        # Main vertical layout (stacks Find row and Replace row)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(4)
+
+        # Add find row
+        main_layout.addLayout(self._create_find_row())
+
+        # Add replace row (initially hidden)
+        self._replace_row_widget = self._create_replace_row()
+        main_layout.addWidget(self._replace_row_widget)
+        self._replace_row_widget.hide()
+
+        # Apply widget styling
+        self._apply_widget_styling()
 
         # Initially hidden
         self.hide()

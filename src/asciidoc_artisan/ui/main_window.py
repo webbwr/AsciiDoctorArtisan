@@ -244,17 +244,22 @@ class AsciiDocEditor(QMainWindow):
     request_preview_render = Signal(str)
     request_load_file_content = Signal(str, object, str)  # content, file_path, context
 
-    def __init__(self) -> None:
-        super().__init__()
+    def _init_settings(self) -> None:
+        """
+        Initialize settings manager and load configuration.
 
-        # === Core Configuration ===
-        # Settings must be loaded first as other components depend on it
+        MA principle: Extracted from __init__ (5 lines).
+        """
         self._settings_manager = SettingsManager()
         self._settings_path = self._settings_manager.get_settings_path()
         self._settings = self._settings_manager.load_settings()
 
-        # === State Variables ===
-        # Initialize state tracking before managers
+    def _init_state_variables(self) -> None:
+        """
+        Initialize state tracking variables.
+
+        MA principle: Extracted from __init__ (23 lines).
+        """
         self._current_file_path: Path | None = None
         self._initial_geometry: QRect | None = None
         self._start_maximized = self._settings.maximized
@@ -276,40 +281,70 @@ class AsciiDocEditor(QMainWindow):
         if self._settings.last_file and Path(self._settings.last_file).is_file():
             self._current_file_path = Path(self._settings.last_file)
 
-        # === Core Managers (Always Needed) ===
-        # These managers are used throughout initialization
+    def _init_core_managers(self) -> None:
+        """
+        Initialize core managers (status, theme).
+
+        MA principle: Extracted from __init__ (3 lines).
+        """
         self.status_manager = StatusManager(self)
         self.theme_manager = ThemeManager(self)
 
-        # === UI State & Coordination Managers ===
+    def _init_ui_managers(self) -> None:
+        """
+        Initialize UI state and coordination managers.
+
+        MA principle: Extracted from __init__ (4 lines).
+        """
         self.ui_state_manager = UIStateManager(self)
         self.dialog_manager = DialogManager(self)
         self.scroll_manager = ScrollManager(self)
 
-        # === File & Operations Managers ===
+    def _init_file_managers(self) -> None:
+        """
+        Initialize file and operations managers.
+
+        MA principle: Extracted from __init__ (4 lines).
+        """
         self.file_load_manager = FileLoadManager(self)
         self.file_operations_manager = FileOperationsManager(self)
         self.pandoc_result_handler = PandocResultHandler(self)
 
-        # === Resource Monitoring ===
+    def _init_resource_monitoring(self) -> None:
+        """
+        Initialize resource monitoring and large file handling.
+
+        MA principle: Extracted from __init__ (7 lines).
+        """
         self.resource_monitor = ResourceMonitor()
         logger.info(f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})")
 
-        # Large file handling
         self.large_file_handler = LargeFileHandler()
         self.large_file_handler.progress_update.connect(self.file_load_manager.on_file_load_progress)
 
-        # === Menu & Actions ===
-        # MenuManager removed - replaced by ActionManager (see _setup_actions_and_menus)
+    def _init_worker_management(self) -> None:
+        """
+        Initialize worker thread management.
 
-        # === Worker Thread Management ===
+        MA principle: Extracted from __init__ (2 lines).
+        """
         self.worker_manager = WorkerManager(self)
 
-        # === AsciiDoc Processing ===
+    def _init_asciidoc_and_preview(self) -> None:
+        """
+        Initialize AsciiDoc API and preview timer.
+
+        MA principle: Extracted from __init__ (3 lines).
+        """
         self._asciidoc_api = self._initialize_asciidoc()
         self._preview_timer = self._setup_preview_timer()
 
-        # === Window Configuration ===
+    def _configure_window(self) -> None:
+        """
+        Configure window title and flags.
+
+        MA principle: Extracted from __init__ (12 lines).
+        """
         self.setWindowTitle(f"{APP_NAME} · Basic Preview")
 
         if platform.system() == "Windows":
@@ -322,86 +357,169 @@ class AsciiDocEditor(QMainWindow):
                 | Qt.WindowType.WindowCloseButtonHint
             )
 
-        # === UI Setup ===
+    def _setup_ui_components(self) -> None:
+        """
+        Setup UI components via UISetupManager.
+
+        MA principle: Extracted from __init__ (3 lines).
+        """
         self.ui_setup = UISetupManager(self)
         self.ui_setup.setup_ui()
 
-        # === File Operations ===
+    def _setup_file_operations(self) -> None:
+        """
+        Setup file operations and auto-save.
+
+        MA principle: Extracted from __init__ (3 lines).
+        """
         self.file_handler = FileHandler(self.editor, self, self._settings_manager, self.status_manager)
         self.file_handler.start_auto_save(AUTO_SAVE_INTERVAL_MS)
 
-        # === Preview System ===
+    def _setup_preview_system(self) -> None:
+        """
+        Setup preview handler and start updates.
+
+        MA principle: Extracted from __init__ (3 lines).
+        """
         self.preview_handler = create_preview_handler(self.editor, self.preview, self)
         self.preview_handler.start_preview_updates()
 
-        # === Git Integration ===
-        self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)
-        self.git_handler.initialize()  # Load repository from settings
+    def _setup_git_integration(self) -> None:
+        """
+        Setup Git and GitHub integration.
 
-        # === GitHub Integration ===
+        MA principle: Extracted from __init__ (6 lines).
+        """
+        self.git_handler = GitHandler(self, self._settings_manager, self.status_manager)
+        self.git_handler.initialize()
+
         self.github_handler = GitHubHandler(self, self._settings_manager, self.status_manager, self.git_handler)
 
-        # === Spell Check System (v1.8.0) ===
-        # SpellCheckManager must be initialized BEFORE ActionManager (actions reference it)
-        # and AFTER UISetupManager creates editor
+    def _setup_editor_features(self) -> None:
+        """
+        Setup editor features (spell check, autocomplete, syntax, templates).
+
+        MA principle: Extracted from __init__ (19 lines).
+        """
+        # Spell Check System (v1.8.0)
         self.spell_check_manager = SpellCheckManager(self)
-        # Connect editor to spell check manager for context menu
         self.editor.spell_check_manager = self.spell_check_manager
         logger.info("SpellCheckManager initialized")
 
-        # === Auto-Complete System (v2.0.0) ===
-        # AutoCompleteManager must be initialized AFTER UISetupManager creates editor
+        # Auto-Complete System (v2.0.0)
         self._setup_autocomplete()
 
-        # === Syntax Checking System (v2.0.0) ===
-        # SyntaxCheckerManager must be initialized AFTER UISetupManager creates editor
+        # Syntax Checking System (v2.0.0)
         self._setup_syntax_checker()
 
-        # === Template System (v2.0.0) ===
-        # TemplateManager must be initialized early (used by File → New from Template)
+        # Template System (v2.0.0)
         self._setup_template_system()
 
-        # === Actions & Menus ===
+    def _setup_actions_and_export(self) -> None:
+        """
+        Setup actions, menus, and export system.
+
+        MA principle: Extracted from __init__ (12 lines).
+        """
         self.action_manager = ActionManager(self)
         self.action_manager.create_actions()
         self.action_manager.create_menus()
 
-        # Update spell check menu text to show initial state (ON/OFF)
+        # Update spell check menu text to show initial state
         self.spell_check_manager._update_menu_text()
 
-        # Update telemetry menu text to show initial state (ON/OFF)
+        # Update telemetry menu text to show initial state
         self._update_telemetry_menu_text()
 
-        # === Export System ===
+        # Export System
         self.export_manager = ExportManager(self)
 
-        # === Editor State ===
+    def _setup_chat_and_search(self) -> None:
+        """
+        Setup chat, find, and quick commit systems.
+
+        MA principle: Extracted from __init__ (12 lines).
+        """
+        # Editor State
         self.editor_state = EditorState(self)
 
-        # === Chat System (v1.7.0) ===
-        # ChatManager must be initialized AFTER UISetupManager creates chat_bar and chat_panel
+        # Chat System (v1.7.0)
         self.chat_manager = ChatManager(self.chat_bar, self.chat_panel, self._settings, parent=self)
 
-        # === Find & Search System (v1.8.0) ===
-        # SearchEngine must be initialized AFTER UISetupManager creates find_bar
+        # Find & Search System (v1.8.0)
         self._setup_find_system()
 
-        # === Quick Commit System (v1.9.0) ===
-        # QuickCommitWidget must be initialized AFTER UISetupManager creates quick_commit_widget
+        # Quick Commit System (v1.9.0)
         self._setup_quick_commit()
 
-        # === Telemetry System (v1.8.0) ===
-        # Privacy-first telemetry (opt-in only, local storage)
+    def _finalize_initialization(self) -> None:
+        """
+        Finalize initialization (telemetry, restore settings, apply theme).
+
+        MA principle: Extracted from __init__ (11 lines).
+        """
+        # Telemetry System (v1.8.0)
         self._setup_telemetry()
 
-        # === Finalization ===
+        # Restore UI settings and apply theme
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
         self.theme_manager.apply_theme()
         self._setup_workers_and_threads()
         self._update_ui_state()
 
-        # Update AI backend checkmarks based on initial settings
+        # Update AI backend checkmarks
         self._update_ai_backend_checkmarks()
+
+    def __init__(self) -> None:
+        """
+        Initialize the main window.
+
+        MA principle: Reduced from 159→34 lines by extracting 15 helper methods.
+
+        Initialization phases:
+        1. Core configuration (settings, state variables, managers)
+        2. Resource monitoring and worker management
+        3. AsciiDoc processing and window setup
+        4. UI components and file operations
+        5. Preview and Git integration
+        6. Editor features (spell check, autocomplete, syntax, templates)
+        7. Actions, menus, and export system
+        8. Chat, search, and finalization
+        """
+        super().__init__()
+
+        # Phase 1: Core Configuration
+        self._init_settings()
+        self._init_state_variables()
+        self._init_core_managers()
+        self._init_ui_managers()
+        self._init_file_managers()
+
+        # Phase 2: Resource & Workers
+        self._init_resource_monitoring()
+        self._init_worker_management()
+
+        # Phase 3: AsciiDoc & Window
+        self._init_asciidoc_and_preview()
+        self._configure_window()
+
+        # Phase 4: UI & File Operations
+        self._setup_ui_components()
+        self._setup_file_operations()
+
+        # Phase 5: Preview & Git
+        self._setup_preview_system()
+        self._setup_git_integration()
+
+        # Phase 6: Editor Features
+        self._setup_editor_features()
+
+        # Phase 7: Actions & Export
+        self._setup_actions_and_export()
+
+        # Phase 8: Chat, Search & Finalization
+        self._setup_chat_and_search()
+        self._finalize_initialization()
 
     def _initialize_asciidoc(self) -> AsciiDoc3API | None:
         if ASCIIDOC3_AVAILABLE and AsciiDoc3API and asciidoc3:

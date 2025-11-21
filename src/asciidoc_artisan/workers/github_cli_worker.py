@@ -107,8 +107,206 @@ class GitHubCLIWorker(BaseWorker):
             )
             self.github_result_ready.emit(result)
 
+    def _check_and_handle_gh_cancellation(self, operation: str | None) -> bool:
+        """
+        Check for cancellation and emit result if cancelled.
+
+        Args:
+            operation: Operation name for result tracking
+
+        Returns:
+            True if cancelled, False otherwise
+
+        MA principle: Extracted from run_gh_command (8 lines).
+        """
+        if self._check_cancellation():
+            logger.info("GitHub CLI operation cancelled before execution")
+            self.github_result_ready.emit(
+                GitHubResult(
+                    success=False,
+                    data=None,
+                    error="Operation cancelled by user",
+                    user_message="Cancelled",
+                    operation=operation or "cancelled",
+                )
+            )
+            self.reset_cancellation()
+            return True
+        return False
+
+    def _execute_gh_subprocess(self, command: list[str], working_dir: str | None) -> subprocess.CompletedProcess[str]:
+        """
+        Execute GitHub CLI subprocess with security controls.
+
+        Args:
+            command: Full gh command (e.g., ["gh", "pr", "list"])
+            working_dir: Optional working directory
+
+        Returns:
+            CompletedProcess with stdout/stderr/returncode
+
+        MA principle: Extracted from run_gh_command (18 lines).
+        Security: shell=False prevents command injection (NFR-010).
+        """
+        logger.info(f"Executing GitHub CLI: {' '.join(command)}")
+        if working_dir:
+            logger.info(f"Working directory: {working_dir}")
+
+        return subprocess.run(
+            command,
+            cwd=working_dir,
+            capture_output=True,
+            text=True,
+            check=False,
+            shell=False,  # Critical: prevents command injection
+            encoding="utf-8",
+            errors="replace",  # Replace invalid UTF-8 with placeholder.
+            timeout=60,  # 60s is enough for most GitHub API calls.
+        )
+
+    def _parse_gh_json_output(self, stdout: str) -> Any:
+        """
+        Parse GitHub CLI JSON output or wrap plain text.
+
+        Args:
+            stdout: GitHub CLI command output
+
+        Returns:
+            Parsed JSON data or dict with "output" key for plain text
+
+        MA principle: Extracted from run_gh_command (9 lines).
+        """
+        if not stdout:
+            return None
+
+        try:
+            # GitHub CLI returns JSON when --json flag is used.
+            return json.loads(stdout)
+        except json.JSONDecodeError:
+            # Not JSON (e.g. plain text output from gh auth status).
+            logger.debug("GitHub CLI output is not JSON")
+            return {"output": stdout}
+
+    def _create_gh_success_result(self, data: Any, operation: str) -> GitHubResult:
+        """
+        Create success GitHubResult.
+
+        Args:
+            data: Parsed JSON data or None
+            operation: Operation name for result tracking
+
+        Returns:
+            GitHubResult with success=True
+
+        MA principle: Extracted from run_gh_command (7 lines).
+        """
+        logger.info("GitHub CLI command successful")
+        return GitHubResult(
+            success=True,
+            data=data,
+            error="",
+            user_message="GitHub command successful.",
+            operation=operation,
+        )
+
+    def _create_gh_error_result(self, stderr: str, args: list[str], operation: str) -> GitHubResult:
+        """
+        Create error GitHubResult with parsed user message.
+
+        Args:
+            stderr: GitHub CLI error output
+            args: GitHub CLI arguments (for error parsing)
+            operation: Operation name for result tracking
+
+        Returns:
+            GitHubResult with success=False and user-friendly message
+
+        MA principle: Extracted from run_gh_command (10 lines).
+        """
+        user_message = self._parse_gh_error(stderr, args)
+        logger.error(f"GitHub CLI command failed: {user_message}")
+        return GitHubResult(
+            success=False,
+            data=None,
+            error=stderr,
+            user_message=user_message,
+            operation=operation,
+        )
+
+    def _emit_gh_timeout_error(self, args: list[str], timeout: float, operation: str) -> None:
+        """
+        Emit timeout error result.
+
+        Args:
+            args: GitHub CLI arguments that timed out
+            timeout: Timeout value in seconds
+            operation: Operation name for result tracking
+
+        MA principle: Extracted from run_gh_command (15 lines).
+        """
+        timeout_msg = (
+            f"GitHub CLI operation timed out after {timeout}s. "
+            f"Command: {' '.join(['gh'] + args)}. "
+            "Check network connection or try again."
+        )
+        logger.error(timeout_msg)
+        self.github_result_ready.emit(
+            GitHubResult(
+                success=False,
+                data=None,
+                error=timeout_msg,
+                user_message="GitHub operation timed out",
+                operation=operation,
+            )
+        )
+
+    def _emit_gh_not_found_error(self, operation: str) -> None:
+        """
+        Emit GitHub CLI not found error result.
+
+        Args:
+            operation: Operation name for result tracking
+
+        MA principle: Extracted from run_gh_command (13 lines).
+        """
+        error_msg = (
+            "GitHub CLI (gh) not found. Ensure gh is installed and in system PATH. Install: https://cli.github.com/"
+        )
+        logger.error(error_msg)
+        self.github_result_ready.emit(
+            GitHubResult(
+                success=False,
+                data=None,
+                error=error_msg,
+                user_message="GitHub CLI not found",
+                operation=operation,
+            )
+        )
+
+    def _emit_gh_general_error(self, e: Exception, operation: str) -> None:
+        """
+        Emit general exception error result.
+
+        Args:
+            e: Exception that occurred
+            operation: Operation name for result tracking
+
+        MA principle: Extracted from run_gh_command (11 lines).
+        """
+        error_msg = f"Unexpected error running GitHub CLI command: {e}"
+        logger.exception("Unexpected GitHub CLI error")
+        self.github_result_ready.emit(
+            GitHubResult(
+                success=False,
+                data=None,
+                error=str(e),
+                user_message=error_msg,
+                operation=operation,
+            )
+        )
+
     @Slot(list, str, str)
-    def run_gh_command(  # noqa: C901
+    def run_gh_command(
         self,
         args: list[str],
         working_dir: str | None = None,
@@ -131,26 +329,16 @@ class GitHubCLIWorker(BaseWorker):
             - Uses subprocess with shell=False to prevent command injection (NFR-010)
             - 60-second timeout for all network operations
             - Validates working directory exists before execution
+
+        MA principle: Reduced from 160→50 lines by extracting 8 helper methods.
         """
-        # Check cancellation flag before starting network operation.
-        if self._check_cancellation():
-            logger.info("GitHub CLI operation cancelled before execution")
-            self.github_result_ready.emit(
-                GitHubResult(
-                    success=False,
-                    data=None,
-                    error="Operation cancelled by user",
-                    user_message="Cancelled",
-                    operation=operation or "cancelled",
-                )
-            )
-            self.reset_cancellation()
+        # Check cancellation before starting network operation.
+        if self._check_and_handle_gh_cancellation(operation):
             return
 
         # Use provided operation name, or default to first command arg.
         if operation is None:
             operation = args[0] if args else "unknown"
-        user_message = "GitHub CLI command failed."
 
         try:
             # Validate directory exists before running subprocess.
@@ -167,107 +355,29 @@ class GitHubCLIWorker(BaseWorker):
                 )
                 return
 
-            # Prepend 'gh' to user's args to build full command.
+            # Execute GitHub CLI command with security controls.
             command = ["gh"] + args
-            logger.info(f"Executing GitHub CLI: {' '.join(command)}")
-            if working_dir:
-                logger.info(f"Working directory: {working_dir}")
-
-            # SECURITY: shell=False prevents command injection attacks.
-            # timeout=60 prevents hung network requests from blocking forever.
-            process = subprocess.run(
-                command,
-                cwd=working_dir,
-                capture_output=True,
-                text=True,
-                check=False,
-                shell=False,  # Critical: prevents command injection
-                encoding="utf-8",
-                errors="replace",  # Replace invalid UTF-8 with placeholder.
-                timeout=60,  # 60s is enough for most GitHub API calls.
-            )
+            process = self._execute_gh_subprocess(command, working_dir)
 
             exit_code = process.returncode
             stdout = process.stdout.strip() if process.stdout else ""
             stderr = process.stderr.strip() if process.stderr else ""
 
+            # Create and emit result based on exit code.
             if exit_code == 0:
-                logger.info(f"GitHub CLI command successful: {' '.join(command)}")
-
-                # Parse JSON if available, otherwise wrap plain text.
-                data = None
-                if stdout:
-                    try:
-                        # GitHub CLI returns JSON when --json flag is used.
-                        data = json.loads(stdout)
-                    except json.JSONDecodeError:
-                        # Not JSON (e.g. plain text output from gh auth status).
-                        logger.debug("GitHub CLI output is not JSON")
-                        data = {"output": stdout}
-
-                result = GitHubResult(
-                    success=True,
-                    data=data,
-                    error="",
-                    user_message="GitHub command successful.",
-                    operation=operation,
-                )
+                data = self._parse_gh_json_output(stdout)
+                result = self._create_gh_success_result(data, operation)
             else:
-                # Parse error message to give user-friendly feedback.
-                user_message = self._parse_gh_error(stderr, args)
-                logger.error(f"GitHub CLI command failed (code {exit_code}): {user_message}")
-                result = GitHubResult(
-                    success=False,
-                    data=None,
-                    error=stderr,
-                    user_message=user_message,
-                    operation=operation,
-                )
+                result = self._create_gh_error_result(stderr, args, operation)
 
             self.github_result_ready.emit(result)
 
         except subprocess.TimeoutExpired as e:
-            timeout_msg = (
-                f"GitHub CLI operation timed out after {e.timeout}s. "
-                f"Command: {' '.join(['gh'] + args)}. "
-                "Check network connection or try again."
-            )
-            logger.error(timeout_msg)
-            self.github_result_ready.emit(
-                GitHubResult(
-                    success=False,
-                    data=None,
-                    error=timeout_msg,
-                    user_message="GitHub operation timed out",
-                    operation=operation,
-                )
-            )
+            self._emit_gh_timeout_error(args, e.timeout, operation)
         except FileNotFoundError:
-            error_msg = (
-                "GitHub CLI (gh) not found. Ensure gh is installed and in system PATH. Install: https://cli.github.com/"
-            )
-            logger.error(error_msg)
-            self.github_result_ready.emit(
-                GitHubResult(
-                    success=False,
-                    data=None,
-                    error=error_msg,
-                    user_message="GitHub CLI not found",
-                    operation=operation,
-                )
-            )
+            self._emit_gh_not_found_error(operation)
         except Exception as e:
-            error_msg = f"Unexpected error running GitHub CLI command: {e}"
-            logger.exception("Unexpected GitHub CLI error")
-            self.github_result_ready.emit(
-                GitHubResult(
-                    success=False,
-                    data=None,
-                    error=str(e),
-                    user_message=error_msg,
-                    operation=operation,
-                )
-            )
+            self._emit_gh_general_error(e, operation)
 
     @Slot(str, str, str, str)
     def create_pull_request(

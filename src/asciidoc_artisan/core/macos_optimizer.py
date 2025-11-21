@@ -39,7 +39,194 @@ class MacOSOptimizationInfo:
     gcd_available: bool = False
 
 
-def detect_macos_capabilities() -> MacOSOptimizationInfo:  # noqa: C901
+def _run_sysctl(key: str, timeout: int = 1) -> str | None:
+    """
+    Run sysctl command and return output.
+
+    Args:
+        key: sysctl key to query (e.g., "machdep.cpu.brand_string")
+        timeout: Command timeout in seconds
+
+    Returns:
+        Command output or None if failed
+
+    MA principle: Extracted helper (8 lines).
+    """
+    try:
+        result = subprocess.run(["sysctl", "-n", key], capture_output=True, text=True, timeout=timeout)
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+        pass
+    return None
+
+
+def _detect_chip_name(info: MacOSOptimizationInfo) -> None:
+    """
+    Detect Apple Silicon chip name (M1, M2, M3, M4).
+
+    Args:
+        info: MacOSOptimizationInfo to update
+
+    MA principle: Extracted from detect_macos_capabilities (13 lines).
+    """
+    brand = _run_sysctl("machdep.cpu.brand_string")
+    if brand:
+        # Extract M1/M2/M3/M4 from "Apple M1 Ultra" etc
+        for chip in ["M4", "M3", "M2", "M1"]:
+            if chip in brand:
+                info.chip_name = brand
+                break
+
+
+def _detect_memory_size(info: MacOSOptimizationInfo) -> None:
+    """
+    Detect unified memory size in GB.
+
+    Args:
+        info: MacOSOptimizationInfo to update
+
+    MA principle: Extracted from detect_macos_capabilities (9 lines).
+    """
+    mem_str = _run_sysctl("hw.memsize")
+    if mem_str:
+        try:
+            mem_bytes = int(mem_str)
+            info.unified_memory_gb = mem_bytes // (1024**3)
+        except ValueError:
+            pass
+
+
+def _detect_performance_cores(info: MacOSOptimizationInfo) -> None:
+    """
+    Detect performance core count.
+
+    Args:
+        info: MacOSOptimizationInfo to update
+
+    MA principle: Extracted from detect_macos_capabilities (8 lines).
+    """
+    cores_str = _run_sysctl("hw.perflevel0.physicalcpu")
+    if cores_str:
+        try:
+            info.performance_cores = int(cores_str)
+        except ValueError:
+            pass
+
+
+def _detect_efficiency_cores(info: MacOSOptimizationInfo) -> None:
+    """
+    Detect efficiency core count.
+
+    Args:
+        info: MacOSOptimizationInfo to update
+
+    MA principle: Extracted from detect_macos_capabilities (8 lines).
+    """
+    cores_str = _run_sysctl("hw.perflevel1.physicalcpu")
+    if cores_str:
+        try:
+            info.efficiency_cores = int(cores_str)
+        except ValueError:
+            pass
+
+
+def _detect_metal_and_gpu(info: MacOSOptimizationInfo) -> None:
+    """
+    Detect Metal version and GPU core count.
+
+    Args:
+        info: MacOSOptimizationInfo to update
+
+    MA principle: Extracted from detect_macos_capabilities (34 lines).
+    """
+    try:
+        result = subprocess.run(
+            ["system_profiler", "SPDisplaysDataType", "-detailLevel", "mini", "-json"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+        if result.returncode == 0:
+            import json
+
+            try:
+                data = json.loads(result.stdout)
+                displays = data.get("SPDisplaysDataType", [])
+                for display in displays:
+                    # Get Metal version
+                    metal_info = display.get("spdisplays_mtlgpufamilymacOS", "")
+                    if metal_info:
+                        info.metal_version = metal_info
+                        if "Metal" in metal_info:
+                            info.metal_feature_set = metal_info
+
+                    # Get GPU core count
+                    chip_type = display.get("sppci_model", "")
+                    if "GPU" in chip_type:
+                        for cores, pattern in [
+                            (64, "64-core"),
+                            (48, "48-core"),
+                            (32, "32-core"),
+                            (24, "24-core"),
+                            (16, "16-core"),
+                            (10, "10-core"),
+                            (8, "8-core"),
+                        ]:
+                            if pattern in chip_type:
+                                info.gpu_cores = cores
+                                break
+            except (json.JSONDecodeError, KeyError):
+                pass
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+        pass
+
+
+def _infer_neural_engine_cores(info: MacOSOptimizationInfo) -> None:
+    """
+    Infer Neural Engine core count from chip name.
+
+    Args:
+        info: MacOSOptimizationInfo to update
+
+    MA principle: Extracted from detect_macos_capabilities (22 lines).
+    Note: Apple doesn't expose direct APIs, so we infer from chip generation.
+    """
+    if not info.chip_name:
+        return
+
+    # Check for Ultra/Max variants first
+    is_ultra = "Ultra" in info.chip_name
+    is_max = "Max" in info.chip_name
+
+    # All Apple Silicon chips have Neural Engine
+    if any(chip in info.chip_name for chip in ["M1", "M2", "M3", "M4"]):
+        if is_ultra:
+            info.neural_engine_cores = 32
+        elif is_max:
+            info.neural_engine_cores = 16
+        else:
+            info.neural_engine_cores = 16
+
+
+def _detect_apfs(info: MacOSOptimizationInfo) -> None:
+    """
+    Detect APFS filesystem availability.
+
+    Args:
+        info: MacOSOptimizationInfo to update
+
+    MA principle: Extracted from detect_macos_capabilities (8 lines).
+    """
+    try:
+        result = subprocess.run(["diskutil", "info", "/"], capture_output=True, text=True, timeout=1)
+        if result.returncode == 0:
+            info.apfs_enabled = "APFS" in result.stdout
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+        pass
+
+
+def detect_macos_capabilities() -> MacOSOptimizationInfo:
     """
     Detect macOS platform capabilities for optimization.
 
@@ -49,6 +236,8 @@ def detect_macos_capabilities() -> MacOSOptimizationInfo:  # noqa: C901
     - Core counts (Performance/Efficiency/Neural/GPU)
     - Metal feature set
     - APFS availability
+
+    MA principle: Reduced from 149→35 lines by extracting 7 helper methods.
     """
     info = MacOSOptimizationInfo()
 
@@ -64,138 +253,19 @@ def detect_macos_capabilities() -> MacOSOptimizationInfo:  # noqa: C901
         info.is_apple_silicon = arch == "arm64"
 
         if info.is_apple_silicon:
-            # Get chip name (M1, M2, M3, M4, etc.)
-            result = subprocess.run(
-                ["sysctl", "-n", "machdep.cpu.brand_string"],
-                capture_output=True,
-                text=True,
-                timeout=1,
-            )
-            if result.returncode == 0:
-                brand = result.stdout.strip()
-                # Extract M1/M2/M3/M4 from "Apple M1 Ultra" etc
-                for chip in ["M4", "M3", "M2", "M1"]:
-                    if chip in brand:
-                        info.chip_name = brand
-                        break
+            # Detect all Apple Silicon capabilities
+            _detect_chip_name(info)
+            _detect_memory_size(info)
+            _detect_performance_cores(info)
+            _detect_efficiency_cores(info)
+            _detect_metal_and_gpu(info)
+            _infer_neural_engine_cores(info)
 
-            # Get memory size (unified memory on Apple Silicon)
-            result = subprocess.run(
-                ["sysctl", "-n", "hw.memsize"],
-                capture_output=True,
-                text=True,
-                timeout=1,
-            )
-            if result.returncode == 0:
-                mem_bytes = int(result.stdout.strip())
-                info.unified_memory_gb = mem_bytes // (1024**3)
-
-            # Get core counts
-            result = subprocess.run(
-                ["sysctl", "-n", "hw.perflevel0.physicalcpu"],
-                capture_output=True,
-                text=True,
-                timeout=1,
-            )
-            if result.returncode == 0:
-                info.performance_cores = int(result.stdout.strip())
-
-            result = subprocess.run(
-                ["sysctl", "-n", "hw.perflevel1.physicalcpu"],
-                capture_output=True,
-                text=True,
-                timeout=1,
-            )
-            if result.returncode == 0:
-                info.efficiency_cores = int(result.stdout.strip())
-
-            # Detect Metal version and GPU cores from system_profiler
-            result = subprocess.run(
-                [
-                    "system_profiler",
-                    "SPDisplaysDataType",
-                    "-detailLevel",
-                    "mini",
-                    "-json",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=2,
-            )
-            if result.returncode == 0:
-                import json
-
-                try:
-                    data = json.loads(result.stdout)
-                    displays = data.get("SPDisplaysDataType", [])
-                    for display in displays:
-                        # Get Metal version
-                        metal_info = display.get("spdisplays_mtlgpufamilymacOS", "")
-                        if metal_info:
-                            info.metal_version = metal_info
-                            # Extract feature set (e.g., "Metal 3 v1")
-                            if "Metal" in metal_info:
-                                info.metal_feature_set = metal_info
-
-                        # Get GPU core count from chip name
-                        chip_type = display.get("sppci_model", "")
-                        if "GPU" in chip_type:
-                            # Extract GPU cores (e.g., "Apple M1 Ultra 64-core GPU")
-                            if "64-core" in chip_type:
-                                info.gpu_cores = 64
-                            elif "48-core" in chip_type:
-                                info.gpu_cores = 48
-                            elif "32-core" in chip_type:
-                                info.gpu_cores = 32
-                            elif "24-core" in chip_type:
-                                info.gpu_cores = 24
-                            elif "16-core" in chip_type:
-                                info.gpu_cores = 16
-                            elif "10-core" in chip_type:
-                                info.gpu_cores = 10
-                            elif "8-core" in chip_type:
-                                info.gpu_cores = 8
-                except (json.JSONDecodeError, KeyError):
-                    pass
-
-            # Detect Neural Engine
-            # Apple doesn't expose direct APIs, but we can infer from chip
-            if "M1" in info.chip_name:
-                if "Ultra" in info.chip_name:
-                    info.neural_engine_cores = 32
-                elif "Max" in info.chip_name:
-                    info.neural_engine_cores = 16
-                else:
-                    info.neural_engine_cores = 16
-            elif "M2" in info.chip_name:
-                if "Ultra" in info.chip_name:
-                    info.neural_engine_cores = 32
-                elif "Max" in info.chip_name:
-                    info.neural_engine_cores = 16
-                else:
-                    info.neural_engine_cores = 16
-            elif "M3" in info.chip_name or "M4" in info.chip_name:
-                if "Ultra" in info.chip_name:
-                    info.neural_engine_cores = 32
-                elif "Max" in info.chip_name:
-                    info.neural_engine_cores = 16
-                else:
-                    info.neural_engine_cores = 16
-
-        # Check for APFS (available on all modern macOS)
-        result = subprocess.run(
-            ["diskutil", "info", "/"],
-            capture_output=True,
-            text=True,
-            timeout=1,
-        )
-        if result.returncode == 0:
-            info.apfs_enabled = "APFS" in result.stdout
-
-        # GCD is always available on macOS
+        # Check for APFS and GCD (available on all macOS)
+        _detect_apfs(info)
         info.gcd_available = True
 
-    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, Exception) as e:
+    except Exception as e:
         logger.debug(f"macOS capability detection error: {e}")
 
     return info

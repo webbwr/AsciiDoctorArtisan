@@ -348,74 +348,76 @@ class FileOperationsManager:
             )
             return False
 
-    def save_as_format_internal(  # noqa: C901
-        self, file_path: Path, format_type: str, use_ai: bool | None = None
-    ) -> bool:
-        """Internal method to save file in specified format without showing dialog.
+    def _save_as_adoc(self, file_path: Path, content: str) -> bool:
+        """
+        Save content as AsciiDoc format.
 
         Args:
             file_path: Target file path
-            format_type: Target format (adoc, md, docx, pdf, html)
-            use_ai: Whether to use AI conversion (None = use settings default)
+            content: Content to save
 
         Returns:
-            True if export started successfully, False otherwise
+            True if saved successfully, False otherwise
+
+        MA principle: Extracted from save_as_format_internal (14 lines).
         """
-        logger.info(
-            f"_save_as_format_internal called - file_path: {file_path}, format_type: {format_type}, use_ai: {use_ai}"
-        )
-
-        if use_ai is None:
-            use_ai = self.editor._settings_manager.get_ai_conversion_preference(self.editor._settings)
-
-        content = self.editor.editor.toPlainText()
-
-        if format_type == "adoc":
-            if atomic_save_text(file_path, content, encoding="utf-8"):
-                self.editor._current_file_path = file_path
-                self.editor._settings.last_directory = str(file_path.parent)
-                self.editor._unsaved_changes = False
-                self.editor.status_manager.update_window_title()
-                self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
-                return True
-            else:
-                self.editor.status_manager.show_message(
-                    "critical",
-                    "Save Error",
-                    f"Failed to save AsciiDoc file: {file_path}",
-                )
-                return False
-
-        if format_type == "html":
-            self.editor.status_bar.showMessage("Saving as HTML...")
-            try:
-                if self.editor._asciidoc_api is None:
-                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-                infile = io.StringIO(content)
-                outfile = io.StringIO()
-                self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
-                html_content = outfile.getvalue()
-
-                if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                    self.editor.status_bar.showMessage(MSG_SAVED_HTML.format(file_path))
-                    logger.info(f"Successfully saved as HTML: {file_path}")
-                    return True
-                else:
-                    raise OSError(f"Atomic save failed for {file_path}")
-            except Exception as e:
-                logger.exception(f"Failed to save HTML file: {e}")
-                self.editor.status_manager.show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
-                return False
-
-        if not self.editor.ui_state_manager.check_pandoc_availability(f"Save as {format_type.upper()}"):
+        if atomic_save_text(file_path, content, encoding="utf-8"):
+            self.editor._current_file_path = file_path
+            self.editor._settings.last_directory = str(file_path.parent)
+            self.editor._unsaved_changes = False
+            self.editor.status_manager.update_window_title()
+            self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
+            return True
+        else:
+            self.editor.status_manager.show_message(
+                "critical", "Save Error", f"Failed to save AsciiDoc file: {file_path}"
+            )
             return False
 
-        self.editor.status_bar.showMessage(f"Saving as {format_type.upper()}...")
+    def _save_as_html(self, file_path: Path, content: str) -> bool:
+        """
+        Save content as HTML format.
 
-        # Determine source format from current file
+        Args:
+            file_path: Target file path
+            content: AsciiDoc content to convert and save
+
+        Returns:
+            True if saved successfully, False otherwise
+
+        MA principle: Extracted from save_as_format_internal (20 lines).
+        """
+        self.editor.status_bar.showMessage("Saving as HTML...")
+        try:
+            if self.editor._asciidoc_api is None:
+                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
+
+            infile = io.StringIO(content)
+            outfile = io.StringIO()
+            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
+            html_content = outfile.getvalue()
+
+            if atomic_save_text(file_path, html_content, encoding="utf-8"):
+                self.editor.status_bar.showMessage(MSG_SAVED_HTML.format(file_path))
+                logger.info(f"Successfully saved as HTML: {file_path}")
+                return True
+            else:
+                raise OSError(f"Atomic save failed for {file_path}")
+        except Exception as e:
+            logger.exception(f"Failed to save HTML file: {e}")
+            self.editor.status_manager.show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
+            return False
+
+    def _determine_source_format(self) -> str:
+        """
+        Determine source format from current file extension.
+
+        Returns:
+            Source format string ("asciidoc", "markdown", "docx", "html")
+
+        MA principle: Extracted from save_as_format_internal (15 lines).
+        """
         source_format = "asciidoc"  # default
-        temp_source_file = None
 
         if self.editor._current_file_path:
             suffix = self.editor._current_file_path.suffix.lower()
@@ -429,41 +431,82 @@ class FileOperationsManager:
             }
             source_format = format_map.get(suffix, "asciidoc")
 
-        # If source is AsciiDoc, convert to HTML first (legacy path)
-        if source_format == "asciidoc":
-            try:
-                if self.editor._asciidoc_api is None:
-                    raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
+        return source_format
 
-                infile = io.StringIO(content)
-                outfile = io.StringIO()
-                self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
-                html_content = outfile.getvalue()
+    def _convert_asciidoc_to_html_temp(self, content: str) -> Path | None:
+        """
+        Convert AsciiDoc to HTML and save to temp file.
 
-                temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
-                temp_source_file.write_text(html_content, encoding="utf-8")
-                source_format = "html"
-            except Exception as e:
-                logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-                self.editor.status_manager.show_message(
-                    "critical",
-                    "Conversion Error",
-                    f"Failed to convert AsciiDoc to HTML:\n{e}",
-                )
-                return False
-        else:
-            # For non-AsciiDoc sources, save content to temp file for Pandoc
-            ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
-            temp_ext = ext_map.get(source_format, ".txt")
-            temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
-            try:
-                temp_source_file.write_text(content, encoding="utf-8")
-            except Exception as e:
-                self.editor.status_manager.show_message(
-                    "critical", "Save Error", f"Failed to create temporary file:\n{e}"
-                )
-                return False
+        Args:
+            content: AsciiDoc content to convert
 
+        Returns:
+            Path to temp HTML file or None if conversion failed
+
+        MA principle: Extracted from save_as_format_internal (21 lines).
+        """
+        try:
+            if self.editor._asciidoc_api is None:
+                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
+
+            infile = io.StringIO(content)
+            outfile = io.StringIO()
+            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
+            html_content = outfile.getvalue()
+
+            temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
+            temp_source_file.write_text(html_content, encoding="utf-8")
+            return temp_source_file
+        except Exception as e:
+            logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
+            self.editor.status_manager.show_message(
+                "critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}"
+            )
+            return None
+
+    def _save_to_temp_file(self, content: str, source_format: str) -> Path | None:
+        """
+        Save content to temporary file for Pandoc processing.
+
+        Args:
+            content: Content to save
+            source_format: Format type ("markdown", "docx", "html")
+
+        Returns:
+            Path to temp file or None if save failed
+
+        MA principle: Extracted from save_as_format_internal (12 lines).
+        """
+        ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
+        temp_ext = ext_map.get(source_format, ".txt")
+        temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
+        try:
+            temp_source_file.write_text(content, encoding="utf-8")
+            return temp_source_file
+        except Exception as e:
+            self.editor.status_manager.show_message("critical", "Save Error", f"Failed to create temporary file:\n{e}")
+            return None
+
+    def _emit_pandoc_conversion(
+        self,
+        temp_source_file: Path,
+        format_type: str,
+        source_format: str,
+        file_path: Path,
+        use_ai: bool,
+    ) -> None:
+        """
+        Emit Pandoc conversion request signal.
+
+        Args:
+            temp_source_file: Temporary source file path
+            format_type: Target format type
+            source_format: Source format type
+            file_path: Final output file path
+            use_ai: Whether to use AI conversion
+
+        MA principle: Extracted from save_as_format_internal (32 lines).
+        """
         self.editor.status_bar.showMessage(f"Saving as {format_type.upper()}...")
 
         # Set export manager pending paths for result handling
@@ -502,6 +545,59 @@ class FileOperationsManager:
             self.editor._pending_export_path = file_path
             self.editor._pending_export_format = format_type
 
+    def save_as_format_internal(self, file_path: Path, format_type: str, use_ai: bool | None = None) -> bool:
+        """
+        Internal method to save file in specified format without showing dialog.
+
+        Args:
+            file_path: Target file path
+            format_type: Target format (adoc, md, docx, pdf, html)
+            use_ai: Whether to use AI conversion (None = use settings default)
+
+        Returns:
+            True if export started successfully, False otherwise
+
+        MA principle: Reduced from 161→48 lines by extracting 6 helper methods.
+        """
+        logger.info(
+            f"_save_as_format_internal called - file_path: {file_path}, format_type: {format_type}, use_ai: {use_ai}"
+        )
+
+        # Determine AI preference if not specified
+        if use_ai is None:
+            use_ai = self.editor._settings_manager.get_ai_conversion_preference(self.editor._settings)
+
+        content = self.editor.editor.toPlainText()
+
+        # Handle direct saves (no Pandoc needed)
+        if format_type == "adoc":
+            return self._save_as_adoc(file_path, content)
+
+        if format_type == "html":
+            return self._save_as_html(file_path, content)
+
+        # For other formats, check Pandoc availability
+        if not self.editor.ui_state_manager.check_pandoc_availability(f"Save as {format_type.upper()}"):
+            return False
+
+        # Determine source format and create temp file
+        source_format = self._determine_source_format()
+        temp_source_file = None
+
+        if source_format == "asciidoc":
+            temp_source_file = self._convert_asciidoc_to_html_temp(content)
+            if temp_source_file is None:
+                return False
+            source_format = "html"
+        else:
+            temp_source_file = self._save_to_temp_file(content, source_format)
+            if temp_source_file is None:
+                return False
+
+        # Emit Pandoc conversion request
+        self._emit_pandoc_conversion(temp_source_file, format_type, source_format, file_path, use_ai)
+
+        # Update state for ADOC format
         if format_type == "adoc":
             self.editor._current_file_path = file_path
             self.editor._settings.last_directory = str(file_path.parent)

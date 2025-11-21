@@ -253,14 +253,35 @@ class OllamaSettingsDialog(QDialog):
         self._init_ui()
         self._load_models()
 
-    def _init_ui(self) -> None:
-        """Initialize the Ollama settings UI."""
-        self.setWindowTitle("Ollama AI Settings")
-        self.setMinimumWidth(500)
+    def _create_model_selector(self) -> QHBoxLayout:
+        """
+        Create model selection layout.
 
-        layout = QVBoxLayout(self)
+        Returns:
+            Horizontal layout with label and combo box
 
-        # Ollama Settings Group
+        MA principle: Extracted from _init_ui (9 lines).
+        """
+        model_layout = QHBoxLayout()
+        model_label = QLabel("AI Model:")
+        model_layout.addWidget(model_label)
+
+        self.model_combo = QComboBox()
+        self.model_combo.setToolTip("Select which AI model to use for conversions")
+        self.model_combo.currentIndexChanged.connect(self._on_model_changed)
+        model_layout.addWidget(self.model_combo)
+
+        return model_layout
+
+    def _create_ollama_settings_group(self) -> QGroupBox:
+        """
+        Create Ollama AI configuration group.
+
+        Returns:
+            Group box with Ollama settings controls
+
+        MA principle: Extracted from _init_ui (42 lines).
+        """
         ollama_group = QGroupBox("Ollama AI Configuration")
         ollama_layout = QVBoxLayout()
 
@@ -274,16 +295,7 @@ class OllamaSettingsDialog(QDialog):
         ollama_layout.addWidget(self.ollama_enabled_checkbox)
 
         # Model Selection
-        model_layout = QHBoxLayout()
-        model_label = QLabel("AI Model:")
-        model_layout.addWidget(model_label)
-
-        self.model_combo = QComboBox()
-        self.model_combo.setToolTip("Select which AI model to use for conversions")
-        self.model_combo.currentIndexChanged.connect(self._on_model_changed)
-        model_layout.addWidget(self.model_combo)
-
-        ollama_layout.addLayout(model_layout)
+        ollama_layout.addLayout(self._create_model_selector())
 
         # Service Status
         self.status_label = QLabel("Checking Ollama service...")
@@ -302,19 +314,17 @@ class OllamaSettingsDialog(QDialog):
         ollama_layout.addWidget(info_label)
 
         ollama_group.setLayout(ollama_layout)
-        layout.addWidget(ollama_group)
+        return ollama_group
 
-        # === Chat Settings Group (v1.7.0) ===
-        chat_group = QGroupBox("Chat Settings (Experimental)")
-        chat_layout = QVBoxLayout()
+    def _create_history_selector(self) -> QHBoxLayout:
+        """
+        Create chat history limit selector.
 
-        # Enable/Disable Chat Toggle
-        self.chat_enabled_checkbox = QCheckBox("Enable AI chat interface")
-        self.chat_enabled_checkbox.setChecked(getattr(self.settings, "ollama_chat_enabled", False))
-        self.chat_enabled_checkbox.setToolTip("Show chat bar and panel for interactive conversations with AI")
-        chat_layout.addWidget(self.chat_enabled_checkbox)
+        Returns:
+            Horizontal layout with label and spinbox
 
-        # Max History Setting
+        MA principle: Extracted from _init_ui (12 lines).
+        """
         history_layout = QHBoxLayout()
         history_label = QLabel("Max chat history:")
         history_layout.addWidget(history_label)
@@ -328,40 +338,60 @@ class OllamaSettingsDialog(QDialog):
         history_layout.addWidget(self.max_history_spin)
         history_layout.addStretch()
 
-        chat_layout.addLayout(history_layout)
+        return history_layout
 
-        # Default Context Mode
+    def _create_context_mode_selector(self) -> QHBoxLayout:
+        """
+        Create context mode selector.
+
+        Returns:
+            Horizontal layout with label and combo box
+
+        MA principle: Extracted from _init_ui (25 lines).
+        """
         mode_layout = QHBoxLayout()
         mode_label = QLabel("Default context mode:")
         mode_layout.addWidget(mode_label)
 
         self.context_mode_combo = QComboBox()
-        self.context_mode_combo.addItems(
-            [
-                "Document Q&A",
-                "Syntax Help",
-                "General Chat",
-                "Editing Suggestions",
-            ]
-        )
+        self.context_mode_combo.addItems(["Document Q&A", "Syntax Help", "General Chat", "Editing Suggestions"])
         self.context_mode_combo.setToolTip(
             "Default interaction mode when chat starts\nYou can change this in the chat bar at any time"
         )
 
         # Map current setting to combo index
         current_mode = getattr(self.settings, "ollama_chat_context_mode", "document")
-        mode_index_map = {
-            "document": 0,
-            "syntax": 1,
-            "general": 2,
-            "editing": 3,
-        }
+        mode_index_map = {"document": 0, "syntax": 1, "general": 2, "editing": 3}
         self.context_mode_combo.setCurrentIndex(mode_index_map.get(current_mode, 0))
 
         mode_layout.addWidget(self.context_mode_combo)
         mode_layout.addStretch()
 
-        chat_layout.addLayout(mode_layout)
+        return mode_layout
+
+    def _create_chat_settings_group(self) -> QGroupBox:
+        """
+        Create chat settings configuration group.
+
+        Returns:
+            Group box with chat settings controls
+
+        MA principle: Extracted from _init_ui (47 lines).
+        """
+        chat_group = QGroupBox("Chat Settings (Experimental)")
+        chat_layout = QVBoxLayout()
+
+        # Enable/Disable Chat Toggle
+        self.chat_enabled_checkbox = QCheckBox("Enable AI chat interface")
+        self.chat_enabled_checkbox.setChecked(getattr(self.settings, "ollama_chat_enabled", False))
+        self.chat_enabled_checkbox.setToolTip("Show chat bar and panel for interactive conversations with AI")
+        chat_layout.addWidget(self.chat_enabled_checkbox)
+
+        # Max History Setting
+        chat_layout.addLayout(self._create_history_selector())
+
+        # Default Context Mode
+        chat_layout.addLayout(self._create_context_mode_selector())
 
         # Send Document Content Toggle
         self.send_document_checkbox = QCheckBox("Include document content in context-aware modes")
@@ -384,7 +414,22 @@ class OllamaSettingsDialog(QDialog):
         chat_layout.addWidget(chat_info_label)
 
         chat_group.setLayout(chat_layout)
-        layout.addWidget(chat_group)
+        return chat_group
+
+    def _init_ui(self) -> None:
+        """
+        Initialize the Ollama settings UI.
+
+        MA principle: Reduced from 138→18 lines by extracting 5 helper methods.
+        """
+        self.setWindowTitle("Ollama AI Settings")
+        self.setMinimumWidth(500)
+
+        layout = QVBoxLayout(self)
+
+        # Add Ollama and Chat configuration groups
+        layout.addWidget(self._create_ollama_settings_group())
+        layout.addWidget(self._create_chat_settings_group())
 
         # Dialog Buttons
         layout.addLayout(_create_ok_cancel_buttons(self))
