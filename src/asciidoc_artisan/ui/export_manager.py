@@ -99,6 +99,7 @@ from asciidoc_artisan.ui.export_helpers import (
     HTMLConverter,  # HTML generation for export
     PDFHelper,  # PDF engine detection and conversion
 )
+from asciidoc_artisan.ui.pandoc_exporter import PandocExporter
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
 if TYPE_CHECKING:
@@ -197,6 +198,33 @@ class ExportManager(QObject):
             self.temp_dir.cleanup()
         except Exception as e:
             logger.warning(f"Failed to cleanup temp directory: {e}")
+
+    @property
+    def _pandoc_exporter(self) -> PandocExporter:
+        """
+        Lazy-initialized Pandoc exporter for export operations.
+
+        MA principle: Delegates Pandoc operations to PandocExporter (extracted class).
+        """
+        if not hasattr(self, "_exporter_instance"):
+            self._exporter_instance = PandocExporter(self)
+        return self._exporter_instance
+
+    def _save_file_atomic(self, file_path: Path, content: str, encoding: str = "utf-8") -> bool:
+        """
+        Save file atomically (helper for PandocExporter).
+
+        This wrapper allows tests to mock file saving at the ExportManager level.
+
+        Args:
+            file_path: Target file path
+            content: File content
+            encoding: File encoding
+
+        Returns:
+            True if successful, False otherwise
+        """
+        return atomic_save_text(file_path, content, encoding=encoding)
 
     def _get_format_filter_and_extension(self, format_type: str) -> tuple[str, str] | None:
         """
@@ -415,117 +443,13 @@ class ExportManager(QObject):
             self.export_failed.emit(str(e))
             return None
 
-    def _emit_pandoc_request(self, temp_html: Path, file_path: Path, format_type: str, use_ai: bool) -> None:
-        """
-        Emit Pandoc conversion request.
-
-        MA principle: Extracted from _export_via_pandoc (25 lines).
-
-        Args:
-            temp_html: Temporary HTML file path
-            file_path: Target file path
-            format_type: Target format
-            use_ai: Whether to use AI conversion
-        """
-        if format_type in ["pdf", "docx"]:
-            # Direct file path conversion
-            self.window.request_pandoc_conversion.emit(
-                temp_html,
-                format_type,
-                "html",
-                f"Exporting to {format_type.upper()}",
-                file_path,
-                use_ai,
-            )
-            self.pending_export_path = None
-            self.pending_export_format = None
-        else:
-            # Indirect conversion (result comes back via signal)
-            self.window.request_pandoc_conversion.emit(
-                temp_html,
-                format_type,
-                "html",
-                f"Exporting to {format_type.upper()}",
-                None,
-                use_ai,
-            )
-            self.pending_export_path = file_path
-            self.pending_export_format = format_type
-
-        self.export_started.emit(format_type)
-
     def _export_via_pandoc(self, file_path: Path, format_type: str, content: str, use_ai: bool) -> bool:
-        """
-        Export via Pandoc (asynchronous).
-
-        MA principle: Reduced from 69→23 lines by extracting 3 helpers (67% reduction).
-
-        Args:
-            file_path: Target file path
-            format_type: Target format (md, docx, pdf)
-            content: AsciiDoc content to export
-            use_ai: Whether to use AI-enhanced conversion
-
-        Returns:
-            True if export initiated successfully, False otherwise
-        """
-        self.status_bar.showMessage(f"Exporting to {format_type.upper()}...")
-
-        # Convert AsciiDoc to HTML
-        html_content = self._convert_to_html_for_export(content)
-        if html_content is None:
-            return False
-
-        # Create temporary HTML file
-        temp_html = self._create_temp_html_file(html_content)
-        if temp_html is None:
-            return False
-
-        # Handle PDF engine fallback
-        if format_type == "pdf" and not self.pdf_helper.check_pdf_engine_available():
-            return self._export_pdf_fallback(file_path, html_content)
-
-        # Emit Pandoc conversion request
-        self._emit_pandoc_request(temp_html, file_path, format_type, use_ai)
-        return True
+        """Export via Pandoc (delegates to pandoc_exporter)."""
+        return self._pandoc_exporter.export_via_pandoc(file_path, format_type, content, use_ai)
 
     def _export_pdf_fallback(self, file_path: Path, html_content: str) -> bool:
-        """
-        Export PDF fallback when no PDF engine is available.
-
-        Creates an HTML file with print styling for manual PDF creation.
-
-        Args:
-            file_path: Target PDF file path
-            html_content: HTML content to save
-
-        Returns:
-            True if fallback successful, False otherwise
-        """
-        try:
-            styled_html = self.pdf_helper.add_print_css_to_html(html_content)
-            html_path = file_path.with_suffix(".html")
-
-            if not atomic_save_text(html_path, styled_html, encoding="utf-8"):
-                raise OSError(f"Failed to save HTML file: {html_path}")
-
-            self.status_bar.showMessage(f"Exported as HTML (PDF-ready): {html_path}")
-            self.status_manager.show_message(
-                "information",
-                "PDF Export Alternative",
-                f"Exported as HTML with print styling: {html_path}\n\n"
-                f"To create PDF:\n"
-                f"1. Open this file in your browser\n"
-                f"2. Press Ctrl+P (or Cmd+P on Mac)\n"
-                f"3. Select 'Save as PDF'\n\n"
-                f"The HTML includes print-friendly styling for optimal PDF output.",
-            )
-            self.export_completed.emit(html_path)
-            return True
-        except Exception as e:
-            logger.exception(f"Failed to save HTML for PDF: {e}")
-            self.export_failed.emit(str(e))
-            return False
+        """Export PDF fallback (delegates to pandoc_exporter)."""
+        return self._pandoc_exporter.export_pdf_fallback(file_path, html_content)
 
     def convert_and_paste_from_clipboard(self) -> None:
         """
