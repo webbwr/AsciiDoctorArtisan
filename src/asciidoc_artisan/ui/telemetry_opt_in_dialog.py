@@ -105,15 +105,27 @@ class TelemetryOptInDialog(QDialog):
         """
         Create explanation text browser with telemetry information.
 
+        MA principle: Reduced from 62→8 lines by extracting HTML content (87% reduction).
+
         Returns:
             QTextBrowser with HTML content explaining telemetry
-
-        MA principle: Extracted from _setup_ui (53 lines).
         """
         explanation = QTextBrowser()
         explanation.setOpenExternalLinks(True)
-        explanation.setHtml(
-            """
+        explanation.setHtml(self._get_telemetry_explanation_html())
+        explanation.setMinimumHeight(300)
+        return explanation
+
+    def _get_telemetry_explanation_html(self) -> str:
+        """
+        MA principle: Extracted helper (52 lines) - focused HTML content.
+
+        Get HTML content explaining telemetry features and privacy.
+
+        Returns:
+            HTML string with telemetry explanation
+        """
+        return """
             <h3>What is Telemetry?</h3>
             <p>Telemetry helps us see how you use the app. This lets us fix bugs
             and add features you want.</p>
@@ -160,9 +172,6 @@ class TelemetryOptInDialog(QDialog):
             <p><small>This complies with GDPR (General Data Protection Regulation)
             for user privacy.</small></p>
             """
-        )
-        explanation.setMinimumHeight(300)
-        return explanation
 
     def _create_accept_button(self) -> QPushButton:
         """
