@@ -334,6 +334,8 @@ class GitHandler(BaseVCSHandler):
         """
         Get current Git branch name synchronously.
 
+        MA principle: Reduced from 80→30 lines by extracting 2 helpers (63% reduction).
+
         This is a fast local operation (<50ms) that runs synchronously
         to provide immediate results for UI operations like GitHub PR creation.
 
@@ -362,11 +364,38 @@ class GitHandler(BaseVCSHandler):
         if not repo_path:  # pragma: no cover
             return ""
 
+        # Get branch name (or empty for detached HEAD)
+        result = self._execute_git_command(["git", "branch", "--show-current"], repo_path)
+        if result is None:
+            return ""
+
+        branch = result.stdout.strip()
+        if branch:
+            return branch
+
+        # Handle detached HEAD (empty output from --show-current)
+        return self._get_detached_head_label(repo_path)
+
+    def _execute_git_command(self, command: list[str], repo_path: str) -> subprocess.CompletedProcess[str] | None:
+        """
+        MA principle: Extracted helper (22 lines) - focused git command execution.
+
+        Execute git command with security and timeout protections.
+
+        Args:
+            command: Git command as list (e.g., ["git", "branch", "--show-current"])
+            repo_path: Repository path for cwd
+
+        Returns:
+            CompletedProcess if successful (returncode 0), None on error
+
+        Security:
+            - Uses subprocess with shell=False to prevent command injection
+            - 2 second timeout to prevent UI blocking
+        """
         try:
-            # Run git branch --show-current (fast local operation)
-            # Security: shell=False prevents command injection
             result = subprocess.run(
-                ["git", "branch", "--show-current"],
+                command,
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
@@ -377,39 +406,37 @@ class GitHandler(BaseVCSHandler):
             )
 
             if result.returncode == 0:
-                branch = result.stdout.strip()
+                return result
 
-                # Handle detached HEAD (empty output from --show-current)
-                if not branch:
-                    # Try to get commit hash for detached HEAD
-                    result2 = subprocess.run(
-                        ["git", "rev-parse", "--short", "HEAD"],
-                        cwd=repo_path,
-                        capture_output=True,
-                        text=True,
-                        timeout=2,
-                        shell=False,
-                        encoding="utf-8",
-                        errors="replace",
-                    )
-                    if result2.returncode == 0:
-                        commit_hash = result2.stdout.strip()
-                        return f"HEAD (detached at {commit_hash})"
-                    else:
-                        return "HEAD (detached)"
-
-                return branch
-
-            logger.warning(f"Git branch command failed (code {result.returncode})")
+            logger.warning(f"Git command {command[1]} failed (code {result.returncode})")
 
         except subprocess.TimeoutExpired:
-            logger.warning("Git branch command timed out after 2s")
+            logger.warning(f"Git command {command[1]} timed out after 2s")
         except FileNotFoundError:
             logger.warning("Git command not found")
         except Exception as e:
-            logger.exception(f"Unexpected error getting current branch: {e}")
+            logger.exception(f"Unexpected error executing git command: {e}")
 
-        return ""
+        return None
+
+    def _get_detached_head_label(self, repo_path: str) -> str:
+        """
+        MA principle: Extracted helper (14 lines) - focused detached HEAD handling.
+
+        Get label for detached HEAD state with commit hash if available.
+
+        Args:
+            repo_path: Repository path for cwd
+
+        Returns:
+            Label like "HEAD (detached at abc123)" or "HEAD (detached)"
+        """
+        result = self._execute_git_command(["git", "rev-parse", "--short", "HEAD"], repo_path)
+        if result:
+            commit_hash = result.stdout.strip()
+            return f"HEAD (detached at {commit_hash})"
+
+        return "HEAD (detached)"
 
     def start_status_refresh(self) -> None:
         """
