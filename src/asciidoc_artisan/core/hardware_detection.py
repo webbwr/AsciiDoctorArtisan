@@ -151,59 +151,91 @@ class HardwareDetector:
 
     @staticmethod
     def detect_npu() -> NPUInfo | None:
-        """Detect NPU (Neural Processing Unit)."""
+        """Detect NPU (Neural Processing Unit).
+
+        MA principle: Reduced from 56→16 lines by extracting 2 helpers (71% reduction).
+        """
         system = platform.system()
 
-        # Intel NPU detection (Core Ultra CPUs with AI Boost).
-        if system == "Windows" or system == "Linux":
-            try:
-                result = subprocess.run(["lscpu"], capture_output=True, text=True, timeout=5)
+        # Intel/AMD NPU detection (Windows/Linux)
+        if system in ("Windows", "Linux"):
+            npu = HardwareDetector._detect_intel_amd_npu()
+            if npu:
+                return npu
 
-                if result.returncode == 0:
-                    # Search CPU info for NPU indicators.
-                    cpu_info = result.stdout.lower()
+        # Apple Neural Engine (macOS)
+        if system == "Darwin":
+            return HardwareDetector._detect_apple_neural_engine()
 
-                    # Intel Core Ultra has built-in NPU (Meteor Lake architecture).
-                    if "core ultra" in cpu_info or "meteor lake" in cpu_info:
-                        logger.info("Detected Intel NPU (Core Ultra)")
-                        return NPUInfo(
-                            vendor="Intel",
-                            model="Intel AI Boost",
-                            tops=10,  # Core Ultra NPUs typically 10-16 TOPS.
-                        )
+        return None
 
-                    # AMD Ryzen AI has built-in NPU (7040/8040 series).
-                    if "ryzen ai" in cpu_info or "7040" in cpu_info or "8040" in cpu_info:
-                        logger.info("Detected AMD NPU (Ryzen AI)")
-                        return NPUInfo(
-                            vendor="AMD",
-                            model="Ryzen AI",
-                            tops=16,  # Ryzen AI NPUs typically 16-50 TOPS.
-                        )
-            except (FileNotFoundError, subprocess.TimeoutExpired):
-                # lscpu not available on this system.
-                pass
+    @staticmethod
+    def _detect_intel_amd_npu() -> NPUInfo | None:
+        """Detect Intel or AMD NPU via lscpu.
 
-        # Apple Neural Engine (M-series chips on macOS).
-        if system == "Darwin":  # macOS
-            try:
-                result = subprocess.run(
-                    ["sysctl", "-n", "machdep.cpu.brand_string"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
+        MA principle: Extracted helper (27 lines) - focused Intel/AMD detection.
+
+        Returns:
+            NPUInfo if NPU detected, None otherwise
+        """
+        try:
+            result = subprocess.run(["lscpu"], capture_output=True, text=True, timeout=5)
+
+            if result.returncode != 0:
+                return None
+
+            cpu_info = result.stdout.lower()
+
+            # Intel Core Ultra has built-in NPU (Meteor Lake architecture)
+            if "core ultra" in cpu_info or "meteor lake" in cpu_info:
+                logger.info("Detected Intel NPU (Core Ultra)")
+                return NPUInfo(
+                    vendor="Intel",
+                    model="Intel AI Boost",
+                    tops=10,  # Core Ultra NPUs typically 10-16 TOPS
                 )
 
-                if result.returncode == 0 and "Apple" in result.stdout:
-                    logger.info("Detected Apple Neural Engine")
-                    return NPUInfo(
-                        vendor="Apple",
-                        model="Apple Neural Engine",
-                        tops=15,  # Apple M-series NPUs.
-                    )
-            except (FileNotFoundError, subprocess.TimeoutExpired):
-                # sysctl not available or failed.
-                pass
+            # AMD Ryzen AI has built-in NPU (7040/8040 series)
+            if "ryzen ai" in cpu_info or "7040" in cpu_info or "8040" in cpu_info:
+                logger.info("Detected AMD NPU (Ryzen AI)")
+                return NPUInfo(
+                    vendor="AMD",
+                    model="Ryzen AI",
+                    tops=16,  # Ryzen AI NPUs typically 16-50 TOPS
+                )
+
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+
+        return None
+
+    @staticmethod
+    def _detect_apple_neural_engine() -> NPUInfo | None:
+        """Detect Apple Neural Engine via sysctl.
+
+        MA principle: Extracted helper (19 lines) - focused Apple detection.
+
+        Returns:
+            NPUInfo if Neural Engine detected, None otherwise
+        """
+        try:
+            result = subprocess.run(
+                ["sysctl", "-n", "machdep.cpu.brand_string"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+
+            if result.returncode == 0 and "Apple" in result.stdout:
+                logger.info("Detected Apple Neural Engine")
+                return NPUInfo(
+                    vendor="Apple",
+                    model="Apple Neural Engine",
+                    tops=15,  # Apple M-series NPUs
+                )
+
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
 
         return None
 

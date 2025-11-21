@@ -242,14 +242,13 @@ build_status_display() {
     local OS_VER=$(echo "$SYS_INFO" | cut -d'|' -f4)
 
     # Display (MA principle: focused, scannable lines)
-    cat << EOF
-${BOLD}${BLUE}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION}${RESET}
-${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}
-${DIM}├─ Env${RESET}: Python ${PY_VER} │ venv:${VENV} │ ${ARCH} (opt:${OPT})
-${DIM}├─ QA ${RESET}: mypy:${MYPY_STATUS} │ ruff:${RUFF_STATUS} │ MA:${MA_STATUS} ${MA_VIOLATIONS}
-${DIM}├─ TST${RESET}: ${TEST_STATS} │ Coverage:${COVERAGE}% │ Grade:${GRADE}
-${DIM}└─ OS ${RESET}: ${OS} ${OS_VER} │ $(date +"%H:%M:%S")
-EOF
+    # Use echo -e to interpret ANSI escape sequences
+    echo -e "${DIM}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION}${RESET}"
+    echo -e "${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}"
+    echo -e "${DIM}├─ Env${RESET}: Python ${PY_VER} │ venv:${VENV} │ ${ARCH} (opt:${OPT})"
+    echo -e "${DIM}├─ QA ${RESET}: mypy:${MYPY_STATUS} │ ruff:${RUFF_STATUS} │ MA:${MA_STATUS} ${MA_VIOLATIONS}"
+    echo -e "${DIM}├─ TST${RESET}: ${TEST_STATS} │ Coverage:${COVERAGE}% │ Grade:${GRADE}"
+    echo -e "${DIM}└─ OS ${RESET}: ${OS} ${OS_VER} │ $(date +"%H:%M:%S")"
 }
 
 # ============================================================================
