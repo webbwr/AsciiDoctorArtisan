@@ -299,111 +299,172 @@ class DialogManager:
 
         self.editor.status_manager.show_message("info", "Anthropic Status", status)
 
+    def _check_wsl_environment(self) -> bool:
+        """
+        Check if running in Windows Subsystem for Linux.
+
+        MA principle: Extracted from _open_telemetry_file (8 lines).
+
+        Returns:
+            True if running in WSL, False otherwise
+        """
+        try:
+            with open("/proc/version") as f:
+                return "microsoft" in f.read().lower()
+        except (FileNotFoundError, PermissionError, OSError):
+            return False
+
+    def _open_file_windows(self, file_path: "Path") -> None:
+        """
+        Open file with Windows notepad.
+
+        MA principle: Extracted from _open_telemetry_file (10 lines).
+
+        Args:
+            file_path: Path to file to open
+        """
+        result = subprocess.run(
+            ["notepad", str(file_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logger.info(f"Notepad command succeeded: {result}")
+
+    def _open_file_macos(self, file_path: "Path") -> None:
+        """
+        Open file with macOS default application.
+
+        MA principle: Extracted from _open_telemetry_file (10 lines).
+
+        Args:
+            file_path: Path to file to open
+        """
+        result = subprocess.run(
+            ["open", str(file_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        logger.info(f"Open command succeeded: {result}")
+
+    def _open_file_wsl(self, file_path: "Path") -> None:
+        """
+        Open file in WSL using Windows notepad.
+
+        MA principle: Extracted from _open_telemetry_file (30 lines).
+
+        Args:
+            file_path: Path to file to open
+        """
+        try:
+            # Convert Linux path to Windows path
+            win_path_result = subprocess.run(
+                ["wslpath", "-w", str(file_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            win_path = win_path_result.stdout.strip()
+
+            # Open with Windows notepad
+            result = subprocess.run(
+                ["/mnt/c/Windows/System32/notepad.exe", win_path],
+                check=False,  # Don't check return code
+                capture_output=True,
+                text=True,
+            )
+            logger.info("WSL notepad.exe command succeeded")
+        except Exception as wsl_error:
+            logger.warning(f"WSL notepad failed: {wsl_error}, falling back to less")
+            # Fall back to less (simple viewer)
+            subprocess.run(
+                [
+                    "x-terminal-emulator",
+                    "-e",
+                    "less",
+                    str(file_path),
+                ]
+            )
+
+    def _open_file_linux(self, file_path: "Path") -> None:
+        """
+        Open file on Linux with xdg-open or fallback to less.
+
+        MA principle: Extracted from _open_telemetry_file (21 lines).
+
+        Args:
+            file_path: Path to file to open
+        """
+        try:
+            result = subprocess.run(
+                ["xdg-open", str(file_path)],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            logger.info(f"xdg-open command succeeded: {result}")
+        except FileNotFoundError:
+            # xdg-open not available, use less as fallback
+            logger.info("xdg-open not found, using less as viewer")
+            subprocess.run(
+                [
+                    "x-terminal-emulator",
+                    "-e",
+                    "less",
+                    str(file_path),
+                ]
+            )
+
+    def _handle_file_open_error(self, error: Exception, file_path: "Path") -> None:
+        """
+        Handle file opening errors with user-friendly dialogs.
+
+        MA principle: Extracted from _open_telemetry_file (13 lines).
+
+        Args:
+            error: Exception that occurred
+            file_path: Path to file that failed to open
+        """
+        if isinstance(error, subprocess.CalledProcessError):
+            error_msg = f"Failed to open file: {error}\nStderr: {error.stderr}"
+            logger.error(error_msg)
+            QMessageBox.warning(
+                self.editor,
+                "Open File Failed",
+                f"Could not open telemetry file:\n{file_path}\n\nError: {error.stderr or str(error)}",
+            )
+        else:
+            error_msg = f"Unexpected error opening file: {type(error).__name__}: {error}"
+            logger.error(error_msg, exc_info=True)
+            QMessageBox.warning(self.editor, "Open File Failed", f"Unexpected error:\n{str(error)}")
+
     def _open_telemetry_file(self, telemetry_file: "Path") -> None:
         """
         Open telemetry file in default application.
 
+        MA principle: Reduced from 105→35 lines by extracting 6 platform-specific helpers.
+
         Args:
             telemetry_file: Path to telemetry file to open
-
         """
         logger.info(f"Opening telemetry file: {telemetry_file}")
         try:
             system = platform.system()
             if system == "Windows":
-                # Use default text editor on Windows
-                result = subprocess.run(
-                    ["notepad", str(telemetry_file)],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                logger.info(f"Notepad command succeeded: {result}")
+                self._open_file_windows(telemetry_file)
             elif system == "Darwin":  # macOS
-                # Opens with default application
-                result = subprocess.run(
-                    ["open", str(telemetry_file)],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                logger.info(f"Open command succeeded: {result}")
+                self._open_file_macos(telemetry_file)
             else:  # Linux/Unix
-                # Check if running in WSL
-                is_wsl = False
-                try:
-                    with open("/proc/version") as f:
-                        is_wsl = "microsoft" in f.read().lower()
-                except (FileNotFoundError, PermissionError, OSError):
-                    pass
-
-                if is_wsl:
-                    # WSL: Use Windows notepad.exe with wslpath conversion
-                    try:
-                        # Convert Linux path to Windows path
-                        win_path_result = subprocess.run(
-                            ["wslpath", "-w", str(telemetry_file)],
-                            capture_output=True,
-                            text=True,
-                            check=True,
-                        )
-                        win_path = win_path_result.stdout.strip()
-
-                        # Open with Windows notepad
-                        result = subprocess.run(
-                            ["/mnt/c/Windows/System32/notepad.exe", win_path],
-                            check=False,  # Don't check return code
-                            capture_output=True,
-                            text=True,
-                        )
-                        logger.info("WSL notepad.exe command succeeded")
-                    except Exception as wsl_error:
-                        logger.warning(f"WSL notepad failed: {wsl_error}, falling back to less")
-                        # Fall back to less (simple viewer)
-                        subprocess.run(
-                            [
-                                "x-terminal-emulator",
-                                "-e",
-                                "less",
-                                str(telemetry_file),
-                            ]
-                        )
+                if self._check_wsl_environment():
+                    self._open_file_wsl(telemetry_file)
                 else:
-                    # Try xdg-open first, fall back to less
-                    try:
-                        result = subprocess.run(
-                            ["xdg-open", str(telemetry_file)],
-                            check=True,
-                            capture_output=True,
-                            text=True,
-                        )
-                        logger.info(f"xdg-open command succeeded: {result}")
-                    except FileNotFoundError:
-                        # xdg-open not available, use less as fallback
-                        logger.info("xdg-open not found, using less as viewer")
-                        subprocess.run(
-                            [
-                                "x-terminal-emulator",
-                                "-e",
-                                "less",
-                                str(telemetry_file),
-                            ]
-                        )
+                    self._open_file_linux(telemetry_file)
 
-            # File opened successfully - no status message needed
+            # File opened successfully
             logger.info(f"Successfully opened telemetry file: {telemetry_file.name}")
-        except subprocess.CalledProcessError as e:
-            error_msg = f"Failed to open file: {e}\nStderr: {e.stderr}"
-            logger.error(error_msg)
-            QMessageBox.warning(
-                self.editor,
-                "Open File Failed",
-                f"Could not open telemetry file:\n{telemetry_file}\n\nError: {e.stderr or str(e)}",
-            )
-        except Exception as e:
-            error_msg = f"Unexpected error opening file: {type(e).__name__}: {e}"
-            logger.error(error_msg, exc_info=True)
-            QMessageBox.warning(self.editor, "Open File Failed", f"Unexpected error:\n{str(e)}")
+        except (subprocess.CalledProcessError, Exception) as e:
+            self._handle_file_open_error(e, telemetry_file)
 
     def _change_telemetry_directory(
         self, telemetry_file: "Path | None", telemetry_dir: "Path | None", msg_box: QMessageBox
