@@ -26,6 +26,7 @@ from PySide6.QtCore import Signal, Slot
 from asciidoc_artisan.core import GitResult, GitStatus
 from asciidoc_artisan.workers.base_worker import BaseWorker
 from asciidoc_artisan.workers.git_command_executor import GitCommandExecutor
+from asciidoc_artisan.workers.git_error_handler import GitErrorHandler
 from asciidoc_artisan.workers.git_status_parser import GitStatusParser
 
 logger = logging.getLogger(__name__)
@@ -68,10 +69,11 @@ class GitWorker(BaseWorker):
     detailed_status_ready = Signal(dict)  # v1.9.0+
 
     def __init__(self) -> None:
-        """Initialize GitWorker with parser and executor instances."""
+        """Initialize GitWorker with parser, executor, and error handler instances."""
         super().__init__()
         self._parser = GitStatusParser()
         self._executor = GitCommandExecutor()
+        self._error_handler = GitErrorHandler()
 
     def _check_and_handle_cancellation(self) -> bool:
         """Check for cancellation and emit result if cancelled. Returns True if cancelled."""
@@ -101,71 +103,27 @@ class GitWorker(BaseWorker):
         return self._executor.execute_git_subprocess(command, working_dir, timeout)
 
     def _create_success_result(self, stdout: str, stderr: str, exit_code: int) -> GitResult:
-        """Create success result."""
-        return GitResult(
-            success=True,
-            stdout=stdout,
-            stderr=stderr,
-            exit_code=exit_code,
-            user_message="Git command successful.",
-        )
+        """Create success result (delegates to git_error_handler)."""
+        return self._error_handler.create_success_result(stdout, stderr, exit_code)
 
     def _create_error_result(self, stdout: str, stderr: str, exit_code: int | None, command: list[str]) -> GitResult:
-        """Create error result with analyzed message."""
-        user_message = self._analyze_git_error(stderr, command)
-        return GitResult(
-            success=False,
-            stdout=stdout,
-            stderr=stderr,
-            exit_code=exit_code,
-            user_message=user_message,
-        )
+        """Create error result (delegates to git_error_handler)."""
+        return self._error_handler.create_error_result(stdout, stderr, exit_code, command)
 
     def _emit_timeout_error(self, command: list[str], timeout: int) -> None:
-        """Emit timeout error result."""
-        timeout_msg = (
-            f"Git operation timed out after {timeout}s. "
-            f"Command: {' '.join(command)}. "
-            "Check network connection or try again."
-        )
-        logger.error(timeout_msg)
-        self.command_complete.emit(
-            GitResult(
-                success=False,
-                stdout="",
-                stderr=timeout_msg,
-                exit_code=None,
-                user_message="Git operation timed out",
-            )
-        )
+        """Emit timeout error result (delegates to git_error_handler)."""
+        result = self._error_handler.create_timeout_error(command, timeout)
+        self.command_complete.emit(result)
 
     def _emit_not_found_error(self) -> None:
-        """Emit Git not found error result."""
-        error_msg = "Git command not found. Ensure Git is installed and in system PATH."
-        logger.error(error_msg)
-        self.command_complete.emit(
-            GitResult(
-                success=False,
-                stdout="",
-                stderr=error_msg,
-                exit_code=None,
-                user_message=error_msg,
-            )
-        )
+        """Emit Git not found error result (delegates to git_error_handler)."""
+        result = self._error_handler.create_not_found_error()
+        self.command_complete.emit(result)
 
     def _emit_general_error(self, e: Exception, stdout: str, stderr: str, exit_code: int | None) -> None:
-        """Emit general exception error result."""
-        error_msg = f"Unexpected error running Git command: {e}"
-        logger.exception("Unexpected Git error")
-        self.command_complete.emit(
-            GitResult(
-                success=False,
-                stdout=stdout,
-                stderr=stderr or str(e),
-                exit_code=exit_code,
-                user_message=error_msg,
-            )
-        )
+        """Emit general exception error result (delegates to git_error_handler)."""
+        result = self._error_handler.create_general_error(e, stdout, stderr, exit_code)
+        self.command_complete.emit(result)
 
     @Slot(list, str)
     def run_git_command(self, command: list[str], working_dir: str) -> None:
@@ -238,32 +196,8 @@ class GitWorker(BaseWorker):
             self._emit_general_error(e, stdout, stderr, exit_code)
 
     def _analyze_git_error(self, stderr: str, command: list[str]) -> str:
-        """
-        Analyze Git error messages and provide user-friendly explanations.
-
-        Args:
-            stderr: Git command standard error output
-            command: Git command that was executed
-
-        Returns:
-            Human-readable error message for status bar display
-
-        Examples:
-            >>> worker._analyze_git_error("authentication failed", ["git", "push"])
-            "Git Authentication Failed. Check credentials (SSH key/token/helper)."
-        """
-        stderr_lower = stderr.lower()
-
-        if "authentication failed" in stderr_lower:
-            return "Git Authentication Failed. Check credentials (SSH key/token/helper)."
-        elif "not a git repository" in stderr_lower:
-            return "Directory is not a Git repository."
-        elif "resolve host" in stderr_lower:
-            return "Could not connect to Git host. Check internet and repository URL."
-        elif "nothing to commit" in stderr_lower:
-            return "Nothing to commit."
-        else:
-            return f"Git command failed: {stderr[:200]}"
+        """Analyze Git error messages (delegates to git_error_handler)."""
+        return self._error_handler.analyze_git_error(stderr, command)
 
     @Slot(str)
     def get_repository_status(self, working_dir: str) -> None:
