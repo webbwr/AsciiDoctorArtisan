@@ -163,19 +163,18 @@ class FileHandler(QObject):
         # Load file - launch async operation
         asyncio.ensure_future(self._load_file_async(path))
 
-    async def _load_file_async(self, file_path: Path) -> None:  # noqa: C901
+    def _validate_file_size(self, file_path: Path) -> bool:
         """
-        Load file content into editor asynchronously.
+        Validate file size before loading.
+
+        MA principle: Extracted from _load_file_async (24 lines).
 
         Args:
-            file_path: Path to file to load
+            file_path: Path to file to validate
 
-        v1.7.0: Migrated to async I/O for non-blocking file operations
+        Returns:
+            True if file size is acceptable, False otherwise
         """
-        start_time = time.perf_counter()
-        self.is_opening_file = True
-
-        # File size validation (Security: Prevent memory exhaustion - DoS prevention)
         try:
             file_size = file_path.stat().st_size
             file_size_mb = file_size / (1024 * 1024)
@@ -187,20 +186,28 @@ class FileHandler(QObject):
                     f"Large files may cause the application to freeze or crash."
                 )
                 self.status_manager.show_message("critical", "File Too Large", error_msg)
-                self.is_opening_file = False
                 logger.warning(f"Rejected file {file_path.name}: {file_size_mb:.1f}MB > {MAX_FILE_SIZE_MB}MB")
-                return
+                return False
 
             # Log file size for monitoring
             if file_size_mb > 10:
                 logger.info(f"Opening large file: {file_path.name} ({file_size_mb:.1f}MB)")
 
+            return True
+
         except Exception as e:
             logger.error(f"Failed to check file size for {file_path}: {e}")
-            self.is_opening_file = False
-            return
+            return False
 
-        # Optional memory profiling (enabled via environment variable)
+    def _take_memory_snapshot(self, snapshot_name: str) -> None:
+        """
+        Take memory profiling snapshot if enabled.
+
+        MA principle: Extracted from _load_file_async (9 lines).
+
+        Args:
+            snapshot_name: Name for the snapshot
+        """
         import os
 
         if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
@@ -208,7 +215,88 @@ class FileHandler(QObject):
 
             profiler = get_profiler()
             if profiler.is_running:
-                profiler.take_snapshot(f"before_load_{file_path.name}")
+                profiler.take_snapshot(snapshot_name)
+
+    def _update_editor_and_state(self, file_path: Path, content: str) -> None:
+        """
+        Load content into editor and update internal state.
+
+        MA principle: Extracted from _load_file_async (8 lines).
+
+        Args:
+            file_path: Path to loaded file
+            content: File content
+        """
+        self.editor.setPlainText(content)
+        self.current_file_path = file_path
+        self.unsaved_changes = False
+
+    def _update_ui_after_load(self, file_path: Path) -> None:
+        """
+        Update UI components after file load.
+
+        MA principle: Extracted from _load_file_async (8 lines).
+
+        Args:
+            file_path: Path to loaded file
+        """
+        self.status_manager.update_window_title()
+        if hasattr(self.window, "status_bar"):
+            self.window.status_bar.showMessage(f"Opened: {file_path.name}")
+
+    def _finalize_file_load(self, file_path: Path, start_time: float) -> None:
+        """
+        Finalize file load: save settings, emit signals, record metrics.
+
+        MA principle: Extracted from _load_file_async (18 lines).
+
+        Args:
+            file_path: Path to loaded file
+            start_time: Load operation start time
+        """
+        # Save as last directory
+        settings = self.settings_manager.load_settings()
+        settings.last_directory = str(file_path.parent)
+        self.settings_manager.save_settings(settings)
+
+        # Emit signal
+        self.file_opened.emit(file_path)
+
+        # Update document metrics (version, word count, grade level)
+        self.status_manager.update_document_metrics()
+
+        # Start watching file for external changes (v1.7.0)
+        self.async_manager.watch_file(file_path)
+
+        # Record metrics
+        if METRICS_AVAILABLE and get_metrics_collector:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            metrics = get_metrics_collector()
+            metrics.record_operation("file_open", duration_ms)
+
+        logger.info(f"Opened file: {file_path} (async)")
+
+    async def _load_file_async(self, file_path: Path) -> None:
+        """
+        Load file content into editor asynchronously.
+
+        MA principle: Reduced from 105→28 lines by extracting 5 focused helpers (73% reduction).
+
+        Args:
+            file_path: Path to file to load
+
+        v1.7.0: Migrated to async I/O for non-blocking file operations
+        """
+        start_time = time.perf_counter()
+        self.is_opening_file = True
+
+        # Validate file size (Security: Prevent memory exhaustion - DoS prevention)
+        if not self._validate_file_size(file_path):
+            self.is_opening_file = False
+            return
+
+        # Optional memory profiling before load
+        self._take_memory_snapshot(f"before_load_{file_path.name}")
 
         try:
             # Read file asynchronously (v1.7.0)
@@ -218,49 +306,17 @@ class FileHandler(QObject):
                 # Error already handled by async_manager signal
                 return
 
-            # Load into editor
-            self.editor.setPlainText(content)
+            # Load content and update state
+            self._update_editor_and_state(file_path, content)
 
-            # Update state
-            self.current_file_path = file_path
-            self.unsaved_changes = False
+            # Update UI components
+            self._update_ui_after_load(file_path)
 
-            # Update UI
-            self.status_manager.update_window_title()
-            if hasattr(self.window, "status_bar"):
-                self.window.status_bar.showMessage(f"Opened: {file_path.name}")
+            # Finalize: save settings, emit signals, record metrics
+            self._finalize_file_load(file_path, start_time)
 
-            # Save as last directory
-            settings = self.settings_manager.load_settings()
-            settings.last_directory = str(file_path.parent)
-            self.settings_manager.save_settings(settings)
-
-            # Emit signal
-            self.file_opened.emit(file_path)
-
-            # Update document metrics (version, word count, grade level)
-            self.status_manager.update_document_metrics()
-
-            # Start watching file for external changes (v1.7.0)
-            self.async_manager.watch_file(file_path)
-
-            # Record metrics
-            if METRICS_AVAILABLE and get_metrics_collector:
-                duration_ms = (time.perf_counter() - start_time) * 1000
-                metrics = get_metrics_collector()
-                metrics.record_operation("file_open", duration_ms)
-
-            logger.info(f"Opened file: {file_path} (async)")
-
-            # Optional memory profiling
-            import os
-
-            if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
-                from asciidoc_artisan.core import get_profiler
-
-                profiler = get_profiler()
-                if profiler.is_running:
-                    profiler.take_snapshot(f"after_load_{file_path.name}")
+            # Optional memory profiling after load
+            self._take_memory_snapshot(f"after_load_{file_path.name}")
 
         except Exception as e:
             logger.error(f"Failed to open file {file_path}: {e}")
