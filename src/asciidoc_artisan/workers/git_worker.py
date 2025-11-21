@@ -274,6 +274,8 @@ class GitWorker(BaseWorker):
         """
         Get Git repository status and emit status_ready signal.
 
+        MA principle: Reduced from 79→29 lines by extracting 2 helpers (63% reduction).
+
         Retrieves current branch, modified/staged/untracked file counts,
         and ahead/behind commit counts relative to remote branch.
 
@@ -302,14 +304,34 @@ class GitWorker(BaseWorker):
             self.reset_cancellation()
             return
 
+        # Validate working directory
+        if not self._validate_working_directory(working_dir):
+            logger.warning(f"Invalid Git working directory: {working_dir}")
+            return
+
+        logger.debug(f"Getting Git status for {working_dir}")
+
+        # Execute git status command
+        process = self._execute_git_status_command(working_dir)
+        self._emit_status_or_default(process)
+
+    def _execute_git_status_command(self, working_dir: str) -> subprocess.CompletedProcess[str] | None:
+        """
+        MA principle: Extracted helper (26 lines) - focused git status command execution.
+
+        Execute git status command with security and timeout protections.
+
+        Args:
+            working_dir: Git repository root directory
+
+        Returns:
+            CompletedProcess if successful, None on error
+
+        Security:
+            - Uses subprocess with shell=False to prevent command injection
+            - 2 second timeout to avoid blocking
+        """
         try:
-            # Validate working directory
-            if not self._validate_working_directory(working_dir):
-                logger.warning(f"Invalid Git working directory: {working_dir}")
-                return
-
-            logger.debug(f"Getting Git status for {working_dir}")
-
             # Run git status with porcelain v2 format (machine-readable)
             # Security: shell=False prevents command injection
             process = subprocess.run(
@@ -323,31 +345,41 @@ class GitWorker(BaseWorker):
                 errors="replace",
                 timeout=2,  # Quick timeout for status checks
             )
-
-            if process.returncode == 0:
-                status = self._parse_git_status_v2(process.stdout)
-                logger.debug(
-                    f"Git status parsed: branch={status.branch}, "
-                    f"modified={status.modified_count}, staged={status.staged_count}, "
-                    f"ahead/behind={status.ahead_count}/{status.behind_count}"
-                )
-                self.status_ready.emit(status)
-            else:
-                logger.warning(f"Git status failed (code {process.returncode})")
-                # Emit default status on error (not a git repo, etc.)
-                self.status_ready.emit(GitStatus())
+            return process
 
         except subprocess.TimeoutExpired:
             logger.warning("Git status timed out after 2s")
-            # Emit default status on timeout
-            self.status_ready.emit(GitStatus())
         except FileNotFoundError:
             logger.warning("Git command not found")
-            # Emit default status when git not found
-            self.status_ready.emit(GitStatus())
         except Exception as e:
-            logger.exception(f"Unexpected error getting Git status: {e}")
-            # Emit default status on error
+            logger.exception(f"Unexpected error executing git status: {e}")
+
+        return None
+
+    def _emit_status_or_default(self, process: subprocess.CompletedProcess[str] | None) -> None:
+        """
+        MA principle: Extracted helper (16 lines) - focused status emission.
+
+        Parse process result and emit status_ready signal.
+
+        Args:
+            process: CompletedProcess from git status command, or None on error
+
+        Emits:
+            status_ready: GitStatus with parsed data, or default GitStatus on error
+        """
+        if process and process.returncode == 0:
+            status = self._parse_git_status_v2(process.stdout)
+            logger.debug(
+                f"Git status parsed: branch={status.branch}, "
+                f"modified={status.modified_count}, staged={status.staged_count}, "
+                f"ahead/behind={status.ahead_count}/{status.behind_count}"
+            )
+            self.status_ready.emit(status)
+        else:
+            if process:
+                logger.warning(f"Git status failed (code {process.returncode})")
+            # Emit default status on error (not a git repo, timeout, etc.)
             self.status_ready.emit(GitStatus())
 
     def _parse_branch_head(self, line: str) -> str:
