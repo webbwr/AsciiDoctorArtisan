@@ -1,76 +1,39 @@
 """
-===============================================================================
-FILE OPERATIONS MANAGER - File Open/Save with Format Conversion
-===============================================================================
+File Operations Manager - Coordinates file open/save with format conversion.
 
-FILE PURPOSE:
-This file manages all file operations: opening, saving, importing, and
-exporting files in different formats (AsciiDoc, Markdown, Word, PDF, HTML).
+Manages file operations by delegating to specialized handlers:
+- FileOpenHandler: File dialogs, PDF/Pandoc/native loading
+- FileSaveHandler: Save dialogs, AsciiDoc/HTML direct saves
+- FormatConversionHelper: Pandoc integration, temp file management
+- PathFormatUtils: Format detection, path resolution
 
-WHAT THIS FILE DOES:
-1. Opens files with automatic format conversion (PDF → AsciiDoc, DOCX → AsciiDoc)
-2. Saves files in multiple formats (AsciiDoc, Markdown, Word, PDF, HTML)
-3. Integrates with Pandoc for format conversion
-4. Uses worker threads for heavy operations (doesn't freeze UI)
-5. Handles large files efficiently (streaming for 50MB+ files)
+Architecture:
+- Thin coordination layer with delegation pattern
+- Reentrancy guards prevent concurrent Pandoc operations
+- Worker threads for format conversion (non-blocking UI)
+- Large file optimization (streaming for 50MB+ files)
 
-FOR BEGINNERS - WHAT ARE FILE OPERATIONS?:
-File operations are actions involving files on your computer:
-- Open: Read a file from disk into the editor
-- Save: Write the editor content back to disk
-- Import: Convert one format to another (PDF → AsciiDoc)
-- Export: Save in a different format (AsciiDoc → Word)
+Format Support:
+- Input: AsciiDoc, PDF, DOCX, Markdown, HTML, LaTeX, RST, Org, Textile
+- Output: AsciiDoc, HTML, DOCX, PDF, Markdown, LaTeX
+- PDF import via PyMuPDF text extraction
+- DOCX/Markdown/HTML via Pandoc conversion
 
-ANALOGY:
-Think of a translator app:
-- Open: Read a document in English
-- Import: Translate Japanese document to English (PDF → AsciiDoc)
-- Save: Save your English document
-- Export: Translate your English to Spanish and save (AsciiDoc → Word)
+Key Features:
+- Atomic file writes (prevents corruption)
+- Windows-compatible dialogs
+- Unsaved changes prompts
+- Format auto-detection by extension
+- AI-enhanced conversion support (Ollama)
 
-WHY THIS FILE WAS EXTRACTED:
-Before v1.5.0, all this code was in main_window.py (making it 1,700+ lines!).
-We extracted file operations to:
-- Make main_window.py smaller and easier to understand (now 561 lines)
-- Group related functionality together (Single Responsibility Principle)
-- Make testing easier (can test file operations separately)
-- Reduce coupling (main window doesn't need to know about Pandoc details)
-
-KEY CONCEPTS:
-
-1. FORMAT CONVERSION:
-   - PDF → AsciiDoc: Extract text from PDF using PyMuPDF (fast!)
-   - DOCX/MD/HTML → AsciiDoc: Use Pandoc to convert
-   - AsciiDoc → DOCX/MD/HTML/PDF: Use Pandoc to export
-
-2. WORKER THREADS:
-   - File conversion is slow (2-10 seconds for large files)
-   - We use PandocWorker (background thread) so UI stays responsive
-   - User can cancel long operations
-
-3. LARGE FILE HANDLING:
-   - Files over 1MB (LARGE_FILE_THRESHOLD_BYTES) are handled specially
-   - We stream data instead of loading everything at once
-   - Prevents memory crashes on 50MB+ files
-
-4. REENTRANCY GUARDS:
-   - _is_processing_pandoc flag prevents concurrent operations
-   - Can't start new conversion while one is running
-   - Prevents race conditions and corruption
-
-SPECIFICATIONS IMPLEMENTED:
+Specifications:
 - FR-001 to FR-010: File operations (New, Open, Save, Save As)
-- FR-011: Multi-format support (AsciiDoc, Markdown, DOCX, PDF, HTML)
-- FR-012: PDF import via text extraction
-- FR-025 to FR-027: Pandoc integration for conversion
+- FR-011: Multi-format support
+- FR-012: PDF import
+- FR-025 to FR-027: Pandoc integration
 - NFR-011: Large file support (50MB+)
 
-REFACTORING HISTORY:
-- v1.0: All code in main_window.py (1,700+ lines)
-- v1.5.0 Phase 7: Extracted to file_operations_manager.py (556 lines)
-- Result: Main window reduced by 67%
-
-VERSION: 1.5.0 (Major refactoring)
+MA Compliance: Reduced from 865→306 lines via 4 class extractions (65% reduction).
 """
 
 # === STANDARD LIBRARY IMPORTS ===
