@@ -1,16 +1,8 @@
 """
 Settings Manager - Handles application settings persistence and restoration.
 
-This module provides the SettingsManager class which manages:
-- Settings file location (platform-specific)
-- Default settings creation
-- Settings loading from disk
-- Settings saving to disk
-- UI state restoration (window geometry, splitter, fonts)
-- AI conversion preference checking
-
-Extracted from main_window.py as part of Phase 1 refactoring to reduce
-the god class anti-pattern and improve modularity.
+Manages: Platform-specific file location, defaults, load/save, UI state restoration (geometry, splitter, fonts), AI conversion preference.
+Extracted from main_window.py (Phase 1) to reduce god class anti-pattern, improve modularity.
 """
 
 import logging
@@ -38,24 +30,7 @@ AI_CLIENT_AVAILABLE = False
 
 
 class SettingsManager:
-    """
-    Manages application settings persistence and UI state restoration.
-
-    This class handles all settings-related operations including:
-    - Platform-specific settings file location
-    - Default settings creation
-    - Loading/saving settings from/to disk
-    - Restoring UI state from settings
-    - AI conversion preference checking
-
-    Usage:
-        ```python
-        manager = SettingsManager()
-        settings = manager.load_settings()
-        # ... use settings ...
-        manager.save_settings(settings, window)
-        ```
-    """
+    """Manages application settings persistence and UI state restoration. Handles: platform-specific file location, defaults, load/save, UI restoration, AI preference."""
 
     def __init__(self) -> None:
         """Initialize the settings manager."""
@@ -69,20 +44,7 @@ class SettingsManager:
         self._pending_save_data: dict[str, Any] | None = None
 
     def get_settings_path(self) -> Path:
-        """
-        Get platform-specific settings file path.
-
-        Returns path to settings JSON file, creating parent directories if needed.
-        Falls back to home directory if config directory cannot be created.
-
-        Returns:
-            Path to settings file
-
-        Platform-specific locations:
-            - Windows: %APPDATA%\\AsciiDoc Artisan\\AsciiDoc Artisan.json
-            - Linux/WSL: ~/.config/AsciiDoc Artisan/AsciiDoc Artisan.json
-            - macOS: ~/Library/Application Support/AsciiDoc Artisan/AsciiDoc Artisan.json
-        """
+        """Get platform-specific settings file path. Creates parent dirs if needed, falls back to home if fails. Locations: Windows %APPDATA%, Linux ~/.config, macOS ~/Library/Application Support."""
         if platform.system() == "Windows":
             config_dir_str = os.environ.get("APPDATA")
             if config_dir_str:
@@ -106,21 +68,7 @@ class SettingsManager:
         return config_dir / SETTINGS_FILENAME  # type: ignore[no-any-return]  # Path / str returns Any in some contexts
 
     def create_default_settings(self) -> Settings:
-        """
-        Create default settings object.
-
-        Sets platform-appropriate defaults for initial application state.
-
-        Returns:
-            Settings object with default values
-
-        Defaults:
-            - last_directory: Documents folder (Windows) or home (Unix)
-            - dark_mode: True
-            - auto_save_enabled: True
-            - auto_save_interval: 300 seconds (5 minutes)
-            - All other fields: None or False
-        """
+        """Create default settings object. Defaults: last_directory (Documents/home), dark_mode (True), auto_save_enabled (True), auto_save_interval (300s), others None/False."""
         if platform.system() == "Windows":
             docs_path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DocumentsLocation)
             last_dir = docs_path or str(Path.home() / "Documents")
@@ -142,19 +90,7 @@ class SettingsManager:
         )
 
     def load_settings(self) -> Settings:
-        """
-        Load settings from disk.
-
-        Reads settings JSON file and deserializes into Settings object.
-        Falls back to defaults if file doesn't exist or is invalid.
-
-        Returns:
-            Settings object (either loaded or default)
-
-        Side effects:
-            - Validates last_directory exists, resets to home if not
-            - Logs warnings/errors for file issues
-        """
+        """Load settings from disk. Reads JSON, deserializes to Settings object. Falls back to defaults if missing/invalid. Validates last_directory, logs errors."""
         logger.info(f"Loading settings from: {self._settings_path}")
 
         if not self._settings_path.is_file():
@@ -184,32 +120,7 @@ class SettingsManager:
         window: QMainWindow,
         current_file_path: Path | None = None,
     ) -> bool:
-        """
-        Schedule deferred settings save (non-blocking).
-
-        Updates settings object with current UI state and schedules save
-        after a short delay (100ms). This prevents UI blocking and coalesces
-        rapid save requests.
-
-        For immediate save (e.g., on app exit), use save_settings_immediate().
-
-        Args:
-            settings: Settings object to save
-            window: Main window to extract state from
-            current_file_path: Current document path (optional)
-
-        Returns:
-            True (save is scheduled, not yet complete)
-
-        Updates from window state:
-            - last_directory: Parent directory of current file
-            - last_file: Current file path
-            - dark_mode: Dark mode toggle state
-            - maximized: Window maximization state
-            - window_geometry: Window position/size (if not maximized)
-            - splitter_sizes: Editor/preview splitter sizes
-            - font_size: Editor font size
-        """
+        """Schedule deferred settings save (non-blocking). Updates settings from UI state, schedules save after 100ms delay (prevents blocking, coalesces rapid requests). For immediate save (app exit), use save_settings_immediate(). Updates: last_directory/file, dark_mode, maximized, window_geometry, splitter_sizes, font_size. Returns True (scheduled, not complete)."""
         # Update settings from current state
         if current_file_path:
             settings.last_directory = str(current_file_path.parent)
@@ -257,11 +168,7 @@ class SettingsManager:
         return True
 
     def _do_deferred_save(self) -> None:
-        """
-        Perform the actual deferred save.
-
-        Called by QTimer after 100ms delay. Saves pending data to disk.
-        """
+        """Perform actual deferred save. Called by QTimer after 100ms delay, saves pending data to disk."""
         if self._pending_save_data is None:
             return
 
@@ -285,20 +192,7 @@ class SettingsManager:
         window: QMainWindow,
         current_file_path: Path | None = None,
     ) -> bool:
-        """
-        Save settings immediately (blocking).
-
-        Use this for critical operations like app shutdown where settings
-        must be saved before exiting.
-
-        Args:
-            settings: Settings object to save
-            window: Main window to extract state from
-            current_file_path: Current document path (optional)
-
-        Returns:
-            True if save successful, False otherwise
-        """
+        """Save settings immediately (blocking). Use for critical operations (app shutdown) where settings must be saved before exiting. Returns True if successful, False otherwise."""
         # Update settings from current state (same as save_settings)
         if current_file_path:
             settings.last_directory = str(current_file_path.parent)
@@ -341,22 +235,7 @@ class SettingsManager:
             return False
 
     def restore_ui_settings(self, window: QMainWindow, splitter: QSplitter, settings: Settings) -> None:
-        """
-        Restore UI state from settings.
-
-        Applies saved splitter sizes and font size to the window.
-        Uses QTimer for splitter to ensure layout is complete first.
-
-        Args:
-            window: Main window to restore state to
-            splitter: Splitter widget to restore sizes
-            settings: Settings object with saved state
-
-        Side effects:
-            - Sets splitter sizes (delayed 100ms)
-            - Sets editor font size
-            - Logs restoration actions
-        """
+        """Restore UI state from settings. Applies saved splitter sizes and font size. Uses QTimer for splitter (100ms delay) to ensure layout complete. Side effects: Sets splitter sizes (delayed), font size, logs actions."""
         # Restore splitter sizes (delayed to ensure layout complete)
         # Support both 2-pane (legacy) and 3-pane (with chat) layouts
         if settings.splitter_sizes:
@@ -389,17 +268,7 @@ class SettingsManager:
                 logger.info(f"Restoring font size: {settings.font_size}")
 
     def parse_window_geometry(self, settings: Settings) -> QRect | None:
-        """
-        Parse window geometry from settings into QRect.
-
-        Args:
-            settings: Settings object with window_geometry dict
-
-        Returns:
-            QRect if valid geometry data exists, None otherwise
-
-        Validates that all required keys (x, y, width, height) are present.
-        """
+        """Parse window geometry from settings into QRect. Returns QRect if valid geometry (x, y, width, height) exists, None otherwise."""
         if not settings.window_geometry:
             return None
 
@@ -411,28 +280,7 @@ class SettingsManager:
 
     @staticmethod
     def get_ai_conversion_preference(settings: Settings) -> bool:
-        """
-        Get AI conversion preference with availability check.
-
-        PERFORMANCE NOTE: AI conversion is disabled by default for file imports
-        because Ollama conversions can take 30-60 seconds per file. Users should
-        manually trigger AI conversion when needed via the menu.
-
-        Returns True only if:
-        - Ollama is enabled in settings
-        - A model is selected
-        - Ollama library can be imported
-        - DISABLED: Always returns False for now (performance)
-
-        Args:
-            settings: Settings object with ollama_enabled and ollama_model fields
-
-        Returns:
-            False to use fast Pandoc conversion (AI conversion disabled for imports)
-
-        Requirements:
-            FR-055: AI-Enhanced Conversion option (updated for Ollama)
-        """
+        """Get AI conversion preference with availability check. PERFORMANCE: Disabled by default (Ollama takes 30-60s per file). Always returns False to use fast Pandoc conversion. Users manually trigger AI via menu. Requirements: FR-055 (AI-Enhanced Conversion, Ollama)."""
         # PERFORMANCE FIX: Disable automatic AI conversion on file open
         # Ollama takes 30-60 seconds per file, making file opening too slow
         # Users can manually trigger AI conversion when needed
