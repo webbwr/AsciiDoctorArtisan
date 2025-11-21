@@ -1,12 +1,7 @@
 """
 Git Handler - Manage Git version control operations.
 
-This module handles all Git-related operations:
-- Select Git repository
-- Trigger Git commands (commit, pull, push)
-- Handle Git results from worker
-- Validate Git repository state
-
+Handles: Select repository, trigger commands (commit, pull, push), handle results from worker, validate repository state.
 Extracted from main_window.py to improve maintainability and testability.
 """
 
