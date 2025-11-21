@@ -384,14 +384,41 @@ class CreatePullRequestDialog(QDialog):
         self._init_ui()
 
     def _init_ui(self) -> None:
-        """Initialize the create pull request UI."""
+        """
+        Initialize the create pull request UI.
+
+        MA principle: Reduced from 63→19 lines by extracting 4 helpers (70% reduction).
+        """
         self.setWindowTitle("Create Pull Request")
         self.setMinimumSize(500, 350)
         self.setModal(True)
 
         layout = QVBoxLayout(self)
 
-        # Form layout for input fields
+        # Add UI components
+        form_layout = self._setup_form_fields()
+        layout.addLayout(form_layout)
+
+        body_label, self.body_input = self._setup_body_field()
+        layout.addWidget(body_label)
+        layout.addWidget(self.body_input)
+
+        self.draft_checkbox, required_label = self._setup_dialog_options()
+        layout.addWidget(self.draft_checkbox)
+        layout.addWidget(required_label)
+
+        button_box = self._setup_action_buttons()
+        layout.addWidget(button_box)
+
+    def _setup_form_fields(self) -> QFormLayout:
+        """
+        Create form fields for PR creation.
+
+        MA principle: Extracted from _init_ui (22 lines).
+
+        Returns:
+            QFormLayout with title, base, and head branch fields
+        """
         form_layout = QFormLayout()
 
         # Title field (required)
@@ -414,37 +441,60 @@ class CreatePullRequestDialog(QDialog):
         self.head_input.setToolTip("Source branch containing your changes")
         form_layout.addRow("Head branch:", self.head_input)
 
-        layout.addLayout(form_layout)
+        return form_layout
 
-        # Body field (optional)
+    def _setup_body_field(self) -> tuple[QLabel, QPlainTextEdit]:
+        """
+        Create description field for PR body.
+
+        MA principle: Extracted from _init_ui (12 lines).
+
+        Returns:
+            Tuple of (label, text_edit) for PR description
+        """
         body_label = QLabel("Description:")
         body_label.setToolTip("Detailed description of your changes (optional)")
-        layout.addWidget(body_label)
 
-        self.body_input = QPlainTextEdit()
-        self.body_input.setPlaceholderText(
+        body_input = QPlainTextEdit()
+        body_input.setPlaceholderText(
             "Describe your changes...\n\nWhat does this PR do?\nWhy is this change needed?\nHow has this been tested?"
         )
-        self.body_input.setMinimumHeight(150)
-        self.body_input.setToolTip("Detailed PR description (optional)")
-        layout.addWidget(self.body_input)
+        body_input.setMinimumHeight(150)
+        body_input.setToolTip("Detailed PR description (optional)")
 
-        # Draft PR checkbox
-        self.draft_checkbox = QCheckBox("Create as draft PR")
-        self.draft_checkbox.setToolTip("Draft PRs can't be merged until marked as ready for review")
-        layout.addWidget(self.draft_checkbox)
+        return body_label, body_input
 
-        # Required field note
+    def _setup_dialog_options(self) -> tuple[QCheckBox, QLabel]:
+        """
+        Create dialog options (draft checkbox and required note).
+
+        MA principle: Extracted from _init_ui (8 lines).
+
+        Returns:
+            Tuple of (draft_checkbox, required_label)
+        """
+        draft_checkbox = QCheckBox("Create as draft PR")
+        draft_checkbox.setToolTip("Draft PRs can't be merged until marked as ready for review")
+
         required_label = QLabel("* Required field")
         required_label.setStyleSheet("QLabel { color: gray; font-size: 9pt; }")
-        layout.addWidget(required_label)
 
-        # Dialog buttons
+        return draft_checkbox, required_label
+
+    def _setup_action_buttons(self) -> QDialogButtonBox:
+        """
+        Create action buttons for PR creation dialog.
+
+        MA principle: Extracted from _init_ui (6 lines).
+
+        Returns:
+            QDialogButtonBox with Create PR and Cancel buttons
+        """
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.button(QDialogButtonBox.Ok).setText("Create PR")
         button_box.accepted.connect(self._validate_and_accept)
         button_box.rejected.connect(self.reject)
-        layout.addWidget(button_box)
+        return button_box
 
     def _validate_and_accept(self) -> None:
         """Validate inputs and accept dialog if valid."""
