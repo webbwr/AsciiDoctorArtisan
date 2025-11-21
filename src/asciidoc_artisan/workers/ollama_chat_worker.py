@@ -142,6 +142,8 @@ class OllamaChatWorker(QObject):
         """
         Process the queued chat message on the worker thread.
 
+        MA principle: Reduced from 63→30 lines by extracting 2 helpers (52% reduction).
+
         Processes the queued chat message, calls Ollama API, and emits
         results via signals. Handles streaming, errors, and cancellation.
 
@@ -164,42 +166,63 @@ class OllamaChatWorker(QObject):
             # Call Ollama API
             response_text = self._call_ollama_api(messages)
 
-            # Check for cancellation
-            if self._should_cancel:
-                logger.info("Operation cancelled by user")
-                self.operation_cancelled.emit()
-                return
+            # Check for cancellation and emit response
+            self._handle_chat_success(response_text)
 
-            # Create ChatMessage for response
-            response_message = ChatMessage(
-                role="assistant",
-                content=response_text,
-                timestamp=time.time(),
-                model=self._current_model,
-                context_mode=self._context_mode,
-            )
-
-            self.chat_response_ready.emit(response_message)
-            logger.info(f"Chat response completed ({len(response_text)} chars)")
-
-        except subprocess.TimeoutExpired:
-            error_msg = "Request timed out. Try a shorter message or simpler question."
-            logger.error(f"Ollama API timeout: {error_msg}")
-            self.chat_error.emit(error_msg)
-
-        except subprocess.CalledProcessError as e:
-            error_msg = self._parse_ollama_error(e)
-            logger.error(f"Ollama API error: {error_msg}")
-            self.chat_error.emit(error_msg)
-
-        except Exception as e:
-            error_msg = f"Unexpected error: {str(e)}"
-            logger.exception("Unexpected error in chat worker")
-            self.chat_error.emit(error_msg)
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, Exception) as e:
+            self._handle_chat_error(e)
 
         finally:
             self._is_processing = False
             self._user_message = None
+
+    def _handle_chat_success(self, response_text: str) -> None:
+        """
+        MA principle: Extracted helper (17 lines) - focused success handling.
+
+        Create response message and emit chat_response_ready signal.
+
+        Args:
+            response_text: Response text from Ollama API
+        """
+        # Check for cancellation
+        if self._should_cancel:
+            logger.info("Operation cancelled by user")
+            self.operation_cancelled.emit()
+            return
+
+        # Create ChatMessage for response
+        response_message = ChatMessage(
+            role="assistant",
+            content=response_text,
+            timestamp=time.time(),
+            model=self._current_model,
+            context_mode=self._context_mode,
+        )
+
+        self.chat_response_ready.emit(response_message)
+        logger.info(f"Chat response completed ({len(response_text)} chars)")
+
+    def _handle_chat_error(self, error: Exception) -> None:
+        """
+        MA principle: Extracted helper (13 lines) - focused error handling.
+
+        Parse error and emit chat_error signal with appropriate message.
+
+        Args:
+            error: Exception raised during chat processing
+        """
+        if isinstance(error, subprocess.TimeoutExpired):
+            error_msg = "Request timed out. Try a shorter message or simpler question."
+            logger.error(f"Ollama API timeout: {error_msg}")
+        elif isinstance(error, subprocess.CalledProcessError):
+            error_msg = self._parse_ollama_error(error)
+            logger.error(f"Ollama API error: {error_msg}")
+        else:
+            error_msg = f"Unexpected error: {str(error)}"
+            logger.exception("Unexpected error in chat worker")
+
+        self.chat_error.emit(error_msg)
 
     def _build_system_prompt(self) -> str:
         """
