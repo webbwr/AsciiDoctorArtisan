@@ -410,9 +410,137 @@ class PDFExtractor:
         return cell
 
     @staticmethod
-    def _format_table_as_asciidoc(table: list[list[str]]) -> str:  # noqa: C901
+    def _filter_empty_rows(table: list[list[str]]) -> list[list[str]]:
+        """
+        Remove rows that are completely empty.
+
+        MA principle: Extracted from _format_table_as_asciidoc (8 lines).
+
+        Args:
+            table: List of rows to filter
+
+        Returns:
+            List of non-empty rows
+        """
+        filtered = []
+        for row in table:
+            if row and any(cell for cell in row):
+                filtered.append(row)
+        return filtered
+
+    @staticmethod
+    def _normalize_table_rows(table: list[list[str]], max_cols: int) -> list[list[str]]:
+        """
+        Normalize rows to have same column count.
+
+        MA principle: Extracted from _format_table_as_asciidoc (11 lines).
+
+        Args:
+            table: List of rows to normalize
+            max_cols: Target column count
+
+        Returns:
+            List of rows with equal column counts
+        """
+        normalized = []
+        for row in table:
+            # Convert None to empty string and strip whitespace
+            cells = [str(cell).strip() if cell is not None else "" for cell in row]
+            # Pad short rows with empty cells
+            while len(cells) < max_cols:
+                cells.append("")
+            normalized.append(cells)
+        return normalized
+
+    @staticmethod
+    def _detect_header_row(normalized_table: list[list[str]]) -> bool:
+        """
+        Detect if first row is a header row using heuristics.
+
+        MA principle: Extracted from _format_table_as_asciidoc (13 lines).
+
+        Args:
+            normalized_table: Normalized table with equal column counts
+
+        Returns:
+            True if first row appears to be a header
+        """
+        first_row = normalized_table[0]
+        has_header = True  # Assume header by default
+
+        # Compare first row with second row if available
+        if len(normalized_table) > 1:
+            # Calculate average cell length in first row
+            avg_first = sum(len(cell) for cell in first_row) / len(first_row)
+            # Very short first row is probably not a header
+            if avg_first < 2:
+                has_header = False
+
+        return has_header
+
+    @staticmethod
+    def _build_column_spec(max_cols: int) -> str:
+        """
+        Build AsciiDoc column specification string.
+
+        MA principle: Extracted from _format_table_as_asciidoc (14 lines).
+
+        Args:
+            max_cols: Number of columns in table
+
+        Returns:
+            AsciiDoc column specification string
+        """
+        if max_cols > 1:
+            # Small tables get explicit column specs
+            if max_cols <= 3:
+                return '[cols="1,1,1", options="header"]'
+            elif max_cols <= 5:
+                # Generate equal width spec for each column
+                col_spec = ",".join(["1"] * max_cols)
+                return f'[cols="{col_spec}", options="header"]'
+            else:
+                # Many columns so let AsciiDoc auto-size
+                return '[options="header"]'
+        else:
+            # Single column table
+            return '[options="header"]'
+
+    @staticmethod
+    def _format_table_rows(normalized_table: list[list[str]], has_header: bool) -> list[str]:
+        """
+        Format table rows with AsciiDoc pipe delimiters.
+
+        MA principle: Extracted from _format_table_as_asciidoc (12 lines).
+
+        Args:
+            normalized_table: Normalized table data
+            has_header: Whether first row is a header
+
+        Returns:
+            List of formatted row strings
+        """
+        lines = []
+        for row_num, row in enumerate(normalized_table):
+            # Clean whitespace and truncate long cells
+            cells = [PDFExtractor._clean_cell(cell) for cell in row]
+
+            # Format row with pipe delimiters
+            line = "| " + " | ".join(cells)
+            lines.append(line)
+
+            # Add visual gap after header row
+            if row_num == 0 and has_header and len(normalized_table) > 1:
+                lines.append("")
+
+        return lines
+
+    @staticmethod
+    def _format_table_as_asciidoc(table: list[list[str]]) -> str:
         """
         Format extracted table as AsciiDoc table syntax with improved formatting.
+
+        MA principle: Reduced from 102→30 lines by extracting 5 processing helpers (71% reduction).
 
         Enhancements (v1.1):
         - GPU-accelerated when PyMuPDF is used
@@ -432,83 +560,24 @@ class PDFExtractor:
         if not table:
             return ""
 
-        # Remove rows that are completely empty.
-        filtered_table = []
-        for row in table:
-            # Keep row if it has at least one non-empty cell.
-            if row and any(cell for cell in row):
-                filtered_table.append(row)
-
+        # Filter and normalize table
+        filtered_table = PDFExtractor._filter_empty_rows(table)
         if not filtered_table:
             return ""
 
-        # Find widest row to determine column count.
         max_cols = max(len(row) for row in filtered_table)
+        normalized_table = PDFExtractor._normalize_table_rows(filtered_table, max_cols)
 
-        # Make all rows have same column count.
-        normalized_table = []
-        for row in filtered_table:
-            # Convert None to empty string and strip whitespace.
-            cells = [str(cell).strip() if cell is not None else "" for cell in row]
-            # Pad short rows with empty cells.
-            while len(cells) < max_cols:
-                cells.append("")
-            normalized_table.append(cells)
+        # Detect header and build markup
+        has_header = PDFExtractor._detect_header_row(normalized_table)
 
-        # Note: normalized_table guaranteed non-empty because filtered_table is
-        # non-empty (checked above) and we preserve row count in transformation.
+        # Build AsciiDoc table
+        lines = [
+            PDFExtractor._build_column_spec(max_cols),
+            "|===",
+        ]
 
-        # Detect if first row is a header row.
-        # Heuristic: header rows are usually shorter.
-        first_row = normalized_table[0]
-        # Assume header by default.
-        has_header = True
-
-        # Compare first row with second row if available.
-        if len(normalized_table) > 1:
-            # Calculate average cell length in first row.
-            avg_first = sum(len(cell) for cell in first_row) / len(first_row)
-            # Very short first row is probably not a header.
-            if avg_first < 2:
-                has_header = False
-
-        # Build AsciiDoc table markup.
-        lines = []
-
-        # Add column width specification for better formatting.
-        if max_cols > 1:
-            # Small tables get explicit column specs.
-            if max_cols <= 3:
-                lines.append('[cols="1,1,1", options="header"]')
-            elif max_cols <= 5:
-                # Generate equal width spec for each column.
-                col_spec = ",".join(["1"] * max_cols)
-                lines.append(f'[cols="{col_spec}", options="header"]')
-            else:
-                # Many columns so let AsciiDoc auto-size.
-                lines.append('[options="header"]')
-        else:
-            # Single column table.
-            lines.append('[options="header"]')
-
-        # Start table content.
-        lines.append("|===")
-
-        # Add each row with cleaned cell content.
-        for row_num, row in enumerate(normalized_table):
-            # Clean whitespace and truncate long cells.
-            # This function is performance critical.
-            cells = [PDFExtractor._clean_cell(cell) for cell in row]
-
-            # Format row with pipe delimiters.
-            line = "| " + " | ".join(cells)
-            lines.append(line)
-
-            # Add visual gap after header row.
-            if row_num == 0 and has_header and len(normalized_table) > 1:
-                lines.append("")
-
-        # End table content.
+        lines.extend(PDFExtractor._format_table_rows(normalized_table, has_header))
         lines.append("|===\n")
 
         return "\n".join(lines)
