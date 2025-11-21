@@ -546,74 +546,116 @@ class DialogManager:
                 f"Could not change telemetry directory:\n{str(e)}",
             )
 
-    def show_telemetry_status(self) -> None:  # noqa: C901
-        """Show telemetry configuration and data collection status."""
+    def _get_telemetry_file_info(self) -> tuple["Path | None", "Path | None"]:
+        """
+        Get telemetry file and directory paths.
 
-        status = "Telemetry Status:\n\n"
+        MA principle: Extracted from show_telemetry_status (7 lines).
 
-        # Get telemetry file path from collector
-        telemetry_file = None
-        telemetry_dir = None
+        Returns:
+            Tuple of (telemetry_file, telemetry_dir) or (None, None)
+        """
         if hasattr(self.editor, "telemetry_collector"):
             telemetry_file = self.editor.telemetry_collector.telemetry_file
-            telemetry_dir = telemetry_file.parent
+            return telemetry_file, telemetry_file.parent
+        return None, None
 
-        # Check if telemetry is enabled
-        if self.editor._settings.telemetry_enabled:
-            status += "✅ Telemetry: Enabled\n"
+    def _build_enabled_status_message(self, telemetry_file: "Path | None", telemetry_dir: "Path | None") -> str:
+        """
+        Build status message for enabled telemetry.
 
-            # Show session ID
-            if self.editor._settings.telemetry_session_id:
-                session_id = self.editor._settings.telemetry_session_id
-                status += f"Session ID: {session_id}\n\n"
-            else:
-                status += "⚠️ No session ID generated yet\n\n"
+        MA principle: Extracted from show_telemetry_status (32 lines).
 
-            # Show storage location
-            if telemetry_file:
-                status += "Storage Location:\n"
-                status += f"  File: {telemetry_file}\n"
-                status += f"  Directory: {telemetry_dir}\n\n"
+        Args:
+            telemetry_file: Telemetry file path
+            telemetry_dir: Telemetry directory path
 
-            # Data collection info
-            status += "Data Collected:\n"
-            status += "• Application version and startup/shutdown times\n"
-            status += "• Feature usage (e.g., export formats, AI chat)\n"
-            status += "• Performance metrics (document size, render time)\n"
-            status += "• Error events and stack traces\n\n"
+        Returns:
+            Formatted status message string
+        """
+        status = "✅ Telemetry: Enabled\n"
 
-            status += "Privacy:\n"
-            status += "• No document content is collected\n"
-            status += "• No personal information is collected\n"
-            status += "• Data is stored locally only\n"
-            status += "• No data is sent to external servers\n\n"
-
-            status += "To disable telemetry:\n"
-            status += "Go to Tools → Telemetry (toggle off)\n"
+        # Show session ID
+        if self.editor._settings.telemetry_session_id:
+            session_id = self.editor._settings.telemetry_session_id
+            status += f"Session ID: {session_id}\n\n"
         else:
-            status += "⚠️ Telemetry: Disabled\n\n"
+            status += "⚠️ No session ID generated yet\n\n"
 
-            # Show storage location even when disabled
-            if telemetry_file:
-                status += "Storage Location:\n"
-                status += f"  File: {telemetry_file}\n"
-                status += f"  Directory: {telemetry_dir}\n\n"
+        # Show storage location
+        if telemetry_file:
+            status += "Storage Location:\n"
+            status += f"  File: {telemetry_file}\n"
+            status += f"  Directory: {telemetry_dir}\n\n"
 
-            status += "Telemetry helps improve the application by collecting:\n"
-            status += "• Anonymous usage statistics\n"
-            status += "• Performance metrics\n"
-            status += "• Error reports\n\n"
+        # Data collection info
+        status += "Data Collected:\n"
+        status += "• Application version and startup/shutdown times\n"
+        status += "• Feature usage (e.g., export formats, AI chat)\n"
+        status += "• Performance metrics (document size, render time)\n"
+        status += "• Error events and stack traces\n\n"
 
-            status += "Privacy guarantees:\n"
-            status += "• No document content is collected\n"
-            status += "• No personal information is collected\n"
-            status += "• Data is stored locally only\n"
-            status += "• No data is sent to external servers\n\n"
+        status += "Privacy:\n"
+        status += "• No document content is collected\n"
+        status += "• No personal information is collected\n"
+        status += "• Data is stored locally only\n"
+        status += "• No data is sent to external servers\n\n"
 
-            status += "To enable telemetry:\n"
-            status += "Go to Tools → Telemetry (toggle on)\n"
+        status += "To disable telemetry:\n"
+        status += "Go to Tools → Telemetry (toggle off)\n"
 
-        # Create custom dialog with "Open Directory" and "Change Directory" buttons
+        return status
+
+    def _build_disabled_status_message(self, telemetry_file: "Path | None", telemetry_dir: "Path | None") -> str:
+        """
+        Build status message for disabled telemetry.
+
+        MA principle: Extracted from show_telemetry_status (24 lines).
+
+        Args:
+            telemetry_file: Telemetry file path
+            telemetry_dir: Telemetry directory path
+
+        Returns:
+            Formatted status message string
+        """
+        status = "⚠️ Telemetry: Disabled\n\n"
+
+        # Show storage location even when disabled
+        if telemetry_file:
+            status += "Storage Location:\n"
+            status += f"  File: {telemetry_file}\n"
+            status += f"  Directory: {telemetry_dir}\n\n"
+
+        status += "Telemetry helps improve the application by collecting:\n"
+        status += "• Anonymous usage statistics\n"
+        status += "• Performance metrics\n"
+        status += "• Error reports\n\n"
+
+        status += "Privacy guarantees:\n"
+        status += "• No document content is collected\n"
+        status += "• No personal information is collected\n"
+        status += "• Data is stored locally only\n"
+        status += "• No data is sent to external servers\n\n"
+
+        status += "To enable telemetry:\n"
+        status += "Go to Tools → Telemetry (toggle on)\n"
+
+        return status
+
+    def _create_telemetry_status_dialog(
+        self, status: str, telemetry_file: "Path | None", telemetry_dir: "Path | None"
+    ) -> None:
+        """
+        Create and display telemetry status dialog with action buttons.
+
+        MA principle: Extracted from show_telemetry_status (20 lines).
+
+        Args:
+            status: Formatted status message
+            telemetry_file: Telemetry file path
+            telemetry_dir: Telemetry directory path
+        """
         msg_box = QMessageBox(self.editor)
         msg_box.setWindowTitle("Telemetry Status")
         msg_box.setIcon(QMessageBox.Icon.Information)
@@ -632,6 +674,25 @@ class DialogManager:
         )
 
         msg_box.exec()
+
+    def show_telemetry_status(self) -> None:
+        """
+        Show telemetry configuration and data collection status.
+
+        MA principle: Reduced from 86→18 lines by extracting 4 message-building helpers.
+        """
+        # Get file information
+        telemetry_file, telemetry_dir = self._get_telemetry_file_info()
+
+        # Build status message
+        status = "Telemetry Status:\n\n"
+        if self.editor._settings.telemetry_enabled:
+            status += self._build_enabled_status_message(telemetry_file, telemetry_dir)
+        else:
+            status += self._build_disabled_status_message(telemetry_file, telemetry_dir)
+
+        # Create and show dialog
+        self._create_telemetry_status_dialog(status, telemetry_file, telemetry_dir)
 
     def show_ollama_settings(self) -> None:
         """Show Ollama AI settings dialog with model selection."""
