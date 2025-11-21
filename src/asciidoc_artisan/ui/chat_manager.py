@@ -285,21 +285,26 @@ class ChatManager(QObject):
             logger.error(f"Unknown backend: {self._current_backend}")
             self.status_message.emit(f"Error: Unknown AI backend '{self._current_backend}'")
 
-    def _load_ollama_models(self) -> None:  # noqa: C901
-        """Load available Ollama models."""
+    def _execute_ollama_list_command(self) -> tuple[list[str], bool]:
+        """
+        Execute 'ollama list' and parse available models.
+
+        MA principle: Extracted from _load_ollama_models (38 lines).
+
+        Returns:
+            Tuple of (model_list, ollama_available)
+        """
         models: list[str] = []
         ollama_available = False
 
         try:
-            # Try to detect installed models using subprocess
-            # Use run (not Popen) because we need to wait for the result (3 sec max)
             # SECURITY: List form prevents command injection attacks (no shell=True!)
             result = subprocess.run(
                 ["ollama", "list"],  # Safe: list form, no shell
-                capture_output=True,  # Captures both stdout and stderr
-                text=True,  # Get strings, not bytes
+                capture_output=True,
+                text=True,
                 timeout=3,  # Prevent hang if Ollama is frozen
-                check=False,  # Don't raise exception on non-zero exit (we check manually)
+                check=False,  # Don't raise exception on non-zero exit
             )
 
             if result.returncode == 0:
@@ -310,9 +315,7 @@ class ChatManager(QObject):
                     for line in lines[1:]:
                         parts = line.split()
                         if parts:
-                            # Model name is first column (e.g., "gnokit/improve-grammer")
-                            model_name = parts[0]
-                            models.append(model_name)
+                            models.append(parts[0])  # Model name is first column
 
                 if models:
                     logger.info(f"Ollama detected: {len(models)} model(s) available")
@@ -320,7 +323,6 @@ class ChatManager(QObject):
                 else:
                     logger.warning("Ollama running but no models installed")
                     self.status_message.emit("Ollama: No models installed (run 'ollama pull qwen2.5-coder:7b')")
-                    # Auto-download default model if none installed
                     self._auto_download_default_model()
             else:
                 logger.warning(f"Ollama command failed: {result.stderr.strip()}")
@@ -328,28 +330,56 @@ class ChatManager(QObject):
         except FileNotFoundError:
             logger.info("Ollama not found in PATH")
             self.status_message.emit("Ollama not installed (see docs/OLLAMA_CHAT_GUIDE.md)")
-
         except subprocess.TimeoutExpired:
             logger.warning("Ollama list command timed out")
             self.status_message.emit("Ollama not responding")
-
         except Exception as e:
             logger.warning(f"Error detecting Ollama models: {e}")
 
-        # Fallback to default models if detection failed
-        if not models:
-            models = [
-                "gnokit/improve-grammer",
-                "deepseek-coder",
-                "codellama",
-            ]
-            if not ollama_available:
-                logger.info("Using default Ollama model list (Ollama not detected)")
+        return models, ollama_available
 
-        # Add current model if not in list
+    def _get_fallback_models(self) -> list[str]:
+        """
+        Get default Ollama model list.
+
+        MA principle: Extracted from _load_ollama_models (3 lines).
+
+        Returns:
+            Default model list
+        """
+        return ["gnokit/improve-grammer", "deepseek-coder", "codellama"]
+
+    def _ensure_current_model_in_list(self, models: list[str]) -> None:
+        """
+        Add current model to list if not already present.
+
+        MA principle: Extracted from _load_ollama_models (4 lines).
+
+        Args:
+            models: Model list to update
+        """
         if self._settings.ollama_model and self._settings.ollama_model not in models:
             models.insert(0, self._settings.ollama_model)
 
+    def _load_ollama_models(self) -> None:
+        """
+        Load available Ollama models.
+
+        MA principle: Reduced from 67→22 lines by extracting 3 helpers (67% reduction).
+        """
+        # Execute ollama list command
+        models, ollama_available = self._execute_ollama_list_command()
+
+        # Fallback to defaults if detection failed
+        if not models:
+            models = self._get_fallback_models()
+            if not ollama_available:
+                logger.info("Using default Ollama model list (Ollama not detected)")
+
+        # Ensure current model is in list
+        self._ensure_current_model_in_list(models)
+
+        # Update chat bar
         self._chat_bar.set_models(models)
         logger.debug(f"Loaded {len(models)} Ollama models into chat bar")
 
@@ -428,12 +458,84 @@ class ChatManager(QObject):
         self._settings.ollama_chat_history = history_dicts
         self.settings_changed.emit()
 
-    def _validate_model(self, model: str) -> bool:  # noqa: C901
+    def _validate_claude_model(self, model: str) -> bool:
+        """
+        Validate Claude model against available models list.
+
+        MA principle: Extracted from _validate_model (10 lines).
+
+        Args:
+            model: Model name to validate
+
+        Returns:
+            True if model is available, False otherwise
+        """
+        try:
+            from ..claude import ClaudeClient
+
+            is_valid = model in ClaudeClient.AVAILABLE_MODELS
+            logger.debug(f"Claude model validation: {model} -> {is_valid}")
+            return is_valid
+        except Exception as e:
+            logger.error(f"Error validating Claude model: {e}")
+            return False
+
+    def _validate_ollama_model(self, model: str) -> bool:
+        """
+        Validate Ollama model via subprocess.
+
+        MA principle: Extracted from _validate_model (41 lines).
+
+        Args:
+            model: Model name to validate
+
+        Returns:
+            True if model is available, False otherwise
+        """
+        try:
+            # Check if model exists via ollama list
+            result = subprocess.run(
+                ["ollama", "list"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                check=False,
+            )
+
+            if result.returncode == 0:
+                # Parse output and check if model is in list
+                lines = result.stdout.strip().split("\n")
+                if len(lines) > 1:  # Skip header
+                    for line in lines[1:]:
+                        parts = line.split()
+                        if parts and parts[0] == model:
+                            logger.debug(f"Ollama model validated: {model}")
+                            return True
+
+                # Model not found in list
+                logger.debug(f"Model not found in ollama list: {model}")
+                return False
+            else:
+                logger.warning(f"ollama list failed: {result.stderr.strip()}")
+                return False
+
+        except FileNotFoundError:
+            logger.warning("Ollama not found in PATH")
+            return False
+        except subprocess.TimeoutExpired:
+            logger.warning("Model validation timed out")
+            # Assume valid to avoid blocking
+            return True
+        except Exception as e:
+            logger.warning(f"Error validating Ollama model: {e}")
+            # Assume valid to avoid blocking
+            return True
+
+    def _validate_model(self, model: str) -> bool:
         """
         Validate that a model exists for the active backend.
 
-        For Ollama: Runs `ollama list` to check if model is installed
-        For Claude: Checks against AVAILABLE_MODELS list
+        MA principle: Reduced from 74→20 lines by extracting 2 backend validators (73% reduction).
 
         Args:
             model: Model name to validate
@@ -445,60 +547,9 @@ class ChatManager(QObject):
             return False
 
         if self._current_backend == "claude":
-            # Validate Claude model against available models
-            try:
-                from ..claude import ClaudeClient
-
-                is_valid = model in ClaudeClient.AVAILABLE_MODELS
-                logger.debug(f"Claude model validation: {model} -> {is_valid}")
-                return is_valid
-            except Exception as e:
-                logger.error(f"Error validating Claude model: {e}")
-                return False
-
+            return self._validate_claude_model(model)
         elif self._current_backend == "ollama":
-            # Validate Ollama model via subprocess
-            try:
-                # Check if model exists via ollama list
-                result = subprocess.run(
-                    ["ollama", "list"],
-                    capture_output=True,
-                    text=True,
-                    timeout=2,
-                    check=False,
-                )
-
-                if result.returncode == 0:
-                    # Parse output and check if model is in list
-                    lines = result.stdout.strip().split("\n")
-                    if len(lines) > 1:  # Skip header
-                        for line in lines[1:]:
-                            parts = line.split()
-                            if parts and parts[0] == model:
-                                logger.debug(f"Ollama model validated: {model}")
-                                return True
-
-                    # Model not found in list
-                    logger.debug(f"Model not found in ollama list: {model}")
-                    return False
-                else:
-                    logger.warning(f"ollama list failed: {result.stderr.strip()}")
-                    return False
-
-            except FileNotFoundError:
-                logger.warning("Ollama not found in PATH")
-                return False
-
-            except subprocess.TimeoutExpired:
-                logger.warning("Model validation timed out")
-                # If validation times out, assume model is valid to avoid blocking
-                return True
-
-            except Exception as e:
-                logger.warning(f"Error validating Ollama model: {e}")
-                # On error, assume model is valid to avoid blocking
-                return True
-
+            return self._validate_ollama_model(model)
         else:
             logger.error(f"Unknown backend: {self._current_backend}")
             return False
@@ -544,10 +595,15 @@ class ChatManager(QObject):
         else:
             return False
 
-    def _update_visibility(self) -> None:
-        """Update chat UI visibility based on settings and active backend."""
-        chat_visible = self._should_show_chat()
+    def _build_backend_status_log(self) -> str:
+        """
+        Build backend status string for logging.
 
+        MA principle: Extracted from _update_visibility (14 lines).
+
+        Returns:
+            Backend status string with configuration details
+        """
         backend_status = f"backend={self._current_backend}"
         if self._current_backend == "ollama":
             backend_status += (
@@ -558,50 +614,77 @@ class ChatManager(QObject):
 
             creds = SecureCredentials()
             backend_status += f", has_api_key={creds.has_anthropic_key()}, claude_model={self._settings.claude_model}"
+        return backend_status
 
+    def _show_chat_pane(self, parent: Any) -> None:
+        """
+        Show chat pane with proportional sizing.
+
+        MA principle: Extracted from _update_visibility (20 lines).
+
+        Args:
+            parent: Parent widget with splitter
+        """
+        from PySide6.QtCore import QTimer
+
+        def show_chat() -> None:
+            try:
+                # Proportional sizing: 40% editor, 40% preview, 20% chat
+                window_width = parent.width()
+                editor_width = int(window_width * 0.4)
+                preview_width = int(window_width * 0.4)
+                chat_width = int(window_width * 0.2)
+                parent.splitter.setSizes([editor_width, preview_width, chat_width])
+                logger.info(f"Chat pane shown (proportional): {editor_width}, {preview_width}, {chat_width}")
+            except RuntimeError:
+                # Parent widget was deleted (common in tests)
+                logger.debug("Parent widget deleted before show_chat callback")
+
+        QTimer.singleShot(150, show_chat)
+
+    def _hide_chat_pane(self, parent: Any) -> None:
+        """
+        Hide chat pane and redistribute space.
+
+        MA principle: Extracted from _update_visibility (6 lines).
+
+        Args:
+            parent: Parent widget with splitter
+        """
+        window_width = parent.width()
+        editor_width = int(window_width * 0.5)
+        preview_width = int(window_width * 0.5)
+        parent.splitter.setSizes([editor_width, preview_width, 0])
+        logger.info(f"Chat pane hidden (redistributed): {editor_width}, {preview_width}, 0")
+
+    def _update_visibility(self) -> None:
+        """
+        Update chat UI visibility based on settings and active backend.
+
+        MA principle: Reduced from 61→24 lines by extracting 3 helpers (61% reduction).
+        """
+        chat_visible = self._should_show_chat()
+
+        # Log visibility update with backend details
+        backend_status = self._build_backend_status_log()
         logger.info(
             f"Chat visibility update: {backend_status}, "
             f"ai_chat_enabled={self._settings.ai_chat_enabled}, "
             f"chat_visible={chat_visible}"
         )
 
-        # Get reference to chat container from parent
+        # Update chat container visibility
         parent = self.parent()
         if parent and hasattr(parent, "chat_container"):
-            # Control entire chat pane visibility
             parent.chat_container.setVisible(chat_visible)
 
-            # Update splitter sizes to show/hide chat pane with proportional sizing
+            # Update splitter sizes
             if hasattr(parent, "splitter") and len(parent.splitter.sizes()) == 3:
                 sizes = parent.splitter.sizes()
                 if chat_visible and sizes[2] == 0:
-                    # Show chat with proportional sizing: 2/5 editor, 2/5 preview, 1/5 chat
-                    # Use QTimer to delay until layout is stable
-                    from PySide6.QtCore import QTimer
-
-                    def show_chat() -> None:
-                        try:
-                            # Check if parent still exists (may be deleted in tests)
-                            window_width = parent.width()
-                            editor_width = int(window_width * 0.4)
-                            preview_width = int(window_width * 0.4)
-                            chat_width = int(window_width * 0.2)
-                            parent.splitter.setSizes([editor_width, preview_width, chat_width])
-                            logger.info(
-                                f"Chat pane shown (proportional): {editor_width}, {preview_width}, {chat_width}"
-                            )
-                        except RuntimeError:
-                            # Parent widget was deleted (common in tests)
-                            logger.debug("Parent widget deleted before show_chat callback")
-
-                    QTimer.singleShot(150, show_chat)
+                    self._show_chat_pane(parent)
                 elif not chat_visible and sizes[2] > 0:
-                    # Hide chat and redistribute: 1/2 editor, 1/2 preview
-                    window_width = parent.width()
-                    editor_width = int(window_width * 0.5)
-                    preview_width = int(window_width * 0.5)
-                    parent.splitter.setSizes([editor_width, preview_width, 0])
-                    logger.info(f"Chat pane hidden (redistributed): {editor_width}, {preview_width}, 0")
+                    self._hide_chat_pane(parent)
 
         self.visibility_changed.emit(chat_visible, chat_visible)
         logger.info(f"Chat pane visibility set: {chat_visible}")
