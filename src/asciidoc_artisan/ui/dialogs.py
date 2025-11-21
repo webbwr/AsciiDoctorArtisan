@@ -475,7 +475,7 @@ class OllamaSettingsDialog(QDialog):
 
         # Handle both old API (dict with "models" key) and new API (direct list)
         if isinstance(response, dict):
-            models_data = response.get("models", [])
+            models_data: list[Any] = response.get("models", [])
             logger.info(f"Using dict API - found {len(models_data)} models")
         elif hasattr(response, "models"):
             models_data = response.models if isinstance(response.models, list) else list(response.models)

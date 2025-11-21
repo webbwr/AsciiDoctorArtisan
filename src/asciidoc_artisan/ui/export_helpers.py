@@ -247,12 +247,12 @@ ul, ol {
         """
         # Combine all CSS sections
         css_parts = [
-            ExportHelpers._get_page_css(),
-            ExportHelpers._get_body_css(),
-            ExportHelpers._get_code_css(),
-            ExportHelpers._get_table_css(),
-            ExportHelpers._get_misc_css(),
-            ExportHelpers._get_print_media_css(),
+            PDFHelper._get_page_css(),
+            PDFHelper._get_body_css(),
+            PDFHelper._get_code_css(),
+            PDFHelper._get_table_css(),
+            PDFHelper._get_misc_css(),
+            PDFHelper._get_print_media_css(),
         ]
         print_css = f"<style>\n{chr(10).join(css_parts)}\n</style>"
 

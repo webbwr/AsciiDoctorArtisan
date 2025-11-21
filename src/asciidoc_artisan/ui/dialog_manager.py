@@ -467,7 +467,7 @@ class DialogManager:
             win_path = win_path_result.stdout.strip()
 
             # Open with Windows notepad
-            result = subprocess.run(
+            subprocess.run(
                 ["/mnt/c/Windows/System32/notepad.exe", win_path],
                 check=False,  # Don't check return code
                 capture_output=True,
