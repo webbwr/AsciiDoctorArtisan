@@ -156,6 +156,8 @@ class ActionManager:
         """
         Initialize Action Manager - Set Up References to Main Window.
 
+        MA principle: Reduced from 77→6 lines by extracting reference setup and type declarations (92% reduction).
+
         WHY THIS INIT EXISTS:
         Actions need to call methods on the main window (like new_file(),
         save_file(), etc.). We store a reference to the main window so
@@ -184,83 +186,97 @@ class ActionManager:
             self._sync_scrolling: Reference to scroll sync state
             self.new_act, self.save_act, etc.: 50+ QAction variables (created later)
         """
-        # === STORE REFERENCES ===
-        # These references allow actions to call main window methods
-        self.window = main_window  # Main application window
-        self.editor = main_window.editor  # Text editor widget (for undo/redo/cut/copy/paste)
-        self._settings = main_window._settings  # Application settings
-        self._sync_scrolling = main_window._sync_scrolling  # Scroll sync state (for toggling)
+        self._setup_references(main_window)
+        self._declare_all_actions()
 
-        # === DECLARE ALL ACTION VARIABLES ===
-        # These are declared (but not created yet - that happens in create_actions())
-        # Declaring them here helps type checkers and IDEs
+    def _setup_references(self, main_window: "AsciiDocEditor") -> None:
+        """
+        Setup references to main window components.
 
+        MA principle: Extracted helper (8 lines) - focused reference initialization.
+        """
+        self.window = main_window
+        self.editor = main_window.editor
+        self._settings = main_window._settings
+        self._sync_scrolling = main_window._sync_scrolling
+
+    def _declare_all_actions(self) -> None:
+        """
+        Declare all action type hints for IDE/mypy support.
+
+        MA principle: Extracted helper (75 lines) - focused type annotation declarations.
+
+        These are declared (but not created yet - that happens in create_actions()).
+        Declaring them here helps type checkers and IDEs.
+        """
         # File menu actions (11 actions - includes template action v2.0.0)
-        self.new_act: QAction  # New file (Ctrl+N)
-        self.new_from_template_act: QAction  # New from template (v2.0.0)
-        self.open_act: QAction  # Open file (Ctrl+O)
-        self.save_act: QAction  # Save file (Ctrl+S)
-        self.save_as_act: QAction  # Save As dialog (Ctrl+Shift+S)
-        self.save_as_adoc_act: QAction  # Export to AsciiDoc format
-        self.save_as_md_act: QAction  # Export to Markdown format
-        self.save_as_docx_act: QAction  # Export to Word DOCX format
-        self.save_as_html_act: QAction  # Export to HTML format
-        self.save_as_pdf_act: QAction  # Export to PDF format
-        self.exit_act: QAction  # Exit application (Ctrl+Q)
+        self.new_act: QAction
+        self.new_from_template_act: QAction
+        self.open_act: QAction
+        self.save_act: QAction
+        self.save_as_act: QAction
+        self.save_as_adoc_act: QAction
+        self.save_as_md_act: QAction
+        self.save_as_docx_act: QAction
+        self.save_as_html_act: QAction
+        self.save_as_pdf_act: QAction
+        self.exit_act: QAction
 
         # Edit menu actions (11 actions - includes Find/Replace actions v1.8.0)
-        self.undo_act: QAction  # Undo last action (Ctrl+Z)
-        self.redo_act: QAction  # Redo last undone action (Ctrl+Y)
-        self.cut_act: QAction  # Cut selected text (Ctrl+X)
-        self.copy_act: QAction  # Copy selected text (Ctrl+C)
-        self.paste_act: QAction  # Paste from clipboard (Ctrl+V)
-        self.convert_paste_act: QAction  # Paste and convert format (Ctrl+Shift+V)
-        self.find_act: QAction  # Find text in document (Ctrl+F) - v1.8.0
-        self.replace_act: QAction  # Find and replace (Ctrl+H) - v1.8.0
-        self.find_next_act: QAction  # Find next match (F3) - v1.8.0
-        self.find_previous_act: QAction  # Find previous match (Shift+F3) - v1.8.0
+        self.undo_act: QAction
+        self.redo_act: QAction
+        self.cut_act: QAction
+        self.copy_act: QAction
+        self.paste_act: QAction
+        self.convert_paste_act: QAction
+        self.find_act: QAction
+        self.replace_act: QAction
+        self.find_next_act: QAction
+        self.find_previous_act: QAction
 
         # View menu actions (7 actions)
-        self.zoom_in_act: QAction  # Increase font size (Ctrl++)
-        self.zoom_out_act: QAction  # Decrease font size (Ctrl+-)
-        self.dark_mode_act: QAction  # Toggle dark/light theme (F11)
-        self.sync_scrolling_act: QAction  # Toggle scroll synchronization
-        self.maximize_window_act: QAction  # Maximize application window (F11)
-        self.maximize_editor_act: QAction  # Maximize editor pane
-        self.maximize_preview_act: QAction  # Maximize preview pane
+        self.zoom_in_act: QAction
+        self.zoom_out_act: QAction
+        self.dark_mode_act: QAction
+        self.sync_scrolling_act: QAction
+        self.maximize_window_act: QAction
+        self.maximize_editor_act: QAction
+        self.maximize_preview_act: QAction
 
         # Git menu actions (6 actions, +status and quick commit in v1.9.0)
-        self.set_repo_act: QAction  # Set Git repository path
-        self.git_status_act: QAction  # Show Git status (v1.9.0)
-        self.git_commit_act: QAction  # Commit changes to Git
-        self.git_pull_act: QAction  # Pull changes from remote
-        self.git_push_act: QAction  # Push changes to remote
-        self.quick_commit_act: QAction  # Quick commit (v1.9.0)
+        self.set_repo_act: QAction
+        self.git_status_act: QAction
+        self.git_commit_act: QAction
+        self.git_pull_act: QAction
+        self.git_push_act: QAction
+        self.quick_commit_act: QAction
 
         # GitHub submenu actions (5 actions) - v1.6.0
-        self.github_create_pr_act: QAction  # Create pull request
-        self.github_list_prs_act: QAction  # List pull requests
-        self.github_create_issue_act: QAction  # Create issue
-        self.github_list_issues_act: QAction  # List issues
-        self.github_repo_info_act: QAction  # View repository info
+        self.github_create_pr_act: QAction
+        self.github_list_prs_act: QAction
+        self.github_create_issue_act: QAction
+        self.github_list_issues_act: QAction
+        self.github_repo_info_act: QAction
 
-        # Tools menu actions (10 actions - includes v2.0.0 settings)
-        self.validate_install_act: QAction  # Validate installation and update dependencies
-        self.autocomplete_settings_act: QAction  # Configure auto-complete settings (v2.0.0)
-        self.syntax_check_settings_act: QAction  # Configure syntax checking settings (v2.0.0)
-        self.toggle_chat_pane_act: QAction  # Toggle chat pane visibility
-        self.toggle_theme_act: QAction  # Toggle dark/light theme
-        self.pandoc_status_act: QAction  # Show Pandoc installation status
-        self.pandoc_formats_act: QAction  # Show supported formats
-        self.ollama_status_act: QAction  # Show Ollama AI status (shows ✓ when active)
-        self.anthropic_status_act: QAction  # Show Anthropic AI status (shows ✓ when active)
-        self.telemetry_status_act: QAction  # Show Telemetry status and configuration
-        self.ollama_settings_act: QAction  # Configure Ollama AI settings
-        self.anthropic_settings_act: QAction  # Configure Anthropic API key
-        self.app_settings_act: QAction  # Edit application settings
+        # Tools menu actions (13 actions - includes v2.0.0 settings)
+        self.validate_install_act: QAction
+        self.autocomplete_settings_act: QAction
+        self.syntax_check_settings_act: QAction
+        self.toggle_chat_pane_act: QAction
+        self.toggle_spell_check_act: QAction
+        self.toggle_theme_act: QAction
+        self.pandoc_status_act: QAction
+        self.pandoc_formats_act: QAction
+        self.ollama_status_act: QAction
+        self.anthropic_status_act: QAction
+        self.telemetry_status_act: QAction
+        self.ollama_settings_act: QAction
+        self.anthropic_settings_act: QAction
+        self.font_settings_act: QAction
+        self.app_settings_act: QAction
 
         # Help menu actions (1 action)
-        self.about_act: QAction  # Show About dialog
+        self.about_act: QAction
 
     # === HELPER METHODS ===
     # These methods reduce code duplication (DRY principle)
