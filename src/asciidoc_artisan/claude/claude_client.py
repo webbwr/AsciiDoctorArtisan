@@ -420,6 +420,8 @@ class ClaudeClient:
         """
         Fetch list of available models from Anthropic API.
 
+        MA principle: Reduced from 78→39 lines by extracting formatting helper (50% reduction).
+
         Makes a request to the /v1/models endpoint to get the actual list
         of models available to this API key.
 
@@ -441,38 +443,13 @@ class ClaudeClient:
             )
 
         try:
-            import json
-
             # Make request to models endpoint
             logger.debug("Fetching available models from Anthropic API")
-
-            # Use the underlying HTTP client to make the request
             response = client._client.get("/v1/models")
-
-            # Format the response nicely
             models_data = response.json()
 
-            # Extract model IDs
-            if "data" in models_data:
-                model_ids = [model.get("id", "unknown") for model in models_data["data"]]
-                formatted_output = f"Available Models ({len(model_ids)}):\n\n"
-                for model_id in model_ids:
-                    formatted_output += f"• {model_id}\n"
-
-                logger.info(f"Fetched {len(model_ids)} models from API")
-                return ClaudeResult(
-                    success=True,
-                    content=formatted_output,
-                    model="models-api",
-                )
-            else:
-                # Fallback format
-                formatted_json = json.dumps(models_data, indent=2)
-                return ClaudeResult(
-                    success=True,
-                    content=f"Models API Response:\n\n{formatted_json}",
-                    model="models-api",
-                )
+            # Format and return response
+            return self._format_models_response(models_data)
 
         except APIConnectionError as e:
             logger.error(f"API connection error fetching models: {e}")
@@ -493,4 +470,40 @@ class ClaudeClient:
             return ClaudeResult(
                 success=False,
                 error=f"Unexpected error: {str(e)}",
+            )
+
+    def _format_models_response(self, models_data: dict[str, Any]) -> ClaudeResult:
+        """
+        Format models API response into a user-friendly string.
+
+        MA principle: Extracted helper (31 lines) - focused response formatting.
+
+        Args:
+            models_data: Raw JSON response from /v1/models endpoint
+
+        Returns:
+            ClaudeResult with formatted model list
+        """
+        import json
+
+        # Extract model IDs if data field exists
+        if "data" in models_data:
+            model_ids = [model.get("id", "unknown") for model in models_data["data"]]
+            formatted_output = f"Available Models ({len(model_ids)}):\n\n"
+            for model_id in model_ids:
+                formatted_output += f"• {model_id}\n"
+
+            logger.info(f"Fetched {len(model_ids)} models from API")
+            return ClaudeResult(
+                success=True,
+                content=formatted_output,
+                model="models-api",
+            )
+        else:
+            # Fallback format - dump raw JSON
+            formatted_json = json.dumps(models_data, indent=2)
+            return ClaudeResult(
+                success=True,
+                content=f"Models API Response:\n\n{formatted_json}",
+                model="models-api",
             )
