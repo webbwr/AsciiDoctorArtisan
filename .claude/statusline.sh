@@ -107,9 +107,10 @@ parse_ma_violations() {
     local MA_OUTPUT="$1"
 
     # Extract violation counts using grep and awk for robustness
-    local P0=$(echo "$MA_OUTPUT" | grep "P0 (Critical):" | head -1 | awk -F': ' '{print $2}' | awk '{print $1}' | tr -d '\n')
-    local P1=$(echo "$MA_OUTPUT" | grep "P1 (High):" | head -1 | awk -F': ' '{print $2}' | awk '{print $1}' | tr -d '\n')
-    local TOTAL=$(echo "$MA_OUTPUT" | grep "Total Violations:" | head -1 | awk '{print $NF}' | tr -d '\n')
+    # Format: "  - P0 (Critical): 0 (>100 lines or complexity >15)"
+    local P0=$(echo "$MA_OUTPUT" | grep -E "^\s*-\s*P0 \(Critical\):" | head -1 | awk -F': ' '{print $2}' | awk '{print $1}' | tr -d '\n\r ')
+    local P1=$(echo "$MA_OUTPUT" | grep -E "^\s*-\s*P1 \(High\):" | head -1 | awk -F': ' '{print $2}' | awk '{print $1}' | tr -d '\n\r ')
+    local TOTAL=$(echo "$MA_OUTPUT" | grep "Total Violations:" | head -1 | awk '{print $NF}' | tr -d '\n\r ')
 
     # Default to 0 if extraction failed
     [ -z "$P0" ] && P0="0"
@@ -173,46 +174,77 @@ get_cached_qa_status() {
 }
 
 # ============================================================================
+# Display Formatting Functions (MA Principle)
+# ============================================================================
+
+# MA Principle: Extract Git info gathering (10 lines)
+get_git_info() {
+    local BRANCH=$(git branch --show-current 2>/dev/null || echo "no-git")
+    local STATUS=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    local AHEAD=$(git rev-list --count @{upstream}..HEAD 2>/dev/null || echo "0")
+    local BEHIND=$(git rev-list --count HEAD..@{upstream} 2>/dev/null || echo "0")
+    echo "${BRANCH}|${STATUS}|${AHEAD}|${BEHIND}"
+}
+
+# MA Principle: Extract Python env detection (8 lines)
+get_python_env() {
+    local VERSION=$(python3 --version 2>/dev/null | cut -d' ' -f2)
+    local VENV="✗"
+    if [ -n "$VIRTUAL_ENV" ] || ([ -d "venv" ] && [ -f "venv/bin/python" ]); then
+        VENV="✓"
+    fi
+    echo "${VERSION}|${VENV}"
+}
+
+# MA Principle: Extract system info (8 lines)
+get_system_info() {
+    local ARCH=$(uname -m)
+    local OPT="✓"
+    [[ "$ARCH" != "arm64" && "$ARCH" != "x86_64" ]] && OPT="—"
+    local OS=$(uname -s)
+    local VER=$(uname -r | cut -d. -f1-2)
+    echo "${ARCH}|${OPT}|${OS}|${VER}"
+}
+
+# MA Principle: Extract display lines (24 lines)
+build_status_display() {
+    # Parse all info
+    local GIT_INFO=$(get_git_info)
+    local PY_INFO=$(get_python_env)
+    local SYS_INFO=$(get_system_info)
+
+    local GIT_BRANCH=$(echo "$GIT_INFO" | cut -d'|' -f1)
+    local GIT_STATUS=$(echo "$GIT_INFO" | cut -d'|' -f2)
+    local GIT_AHEAD=$(echo "$GIT_INFO" | cut -d'|' -f3)
+    local GIT_BEHIND=$(echo "$GIT_INFO" | cut -d'|' -f4)
+
+    local PY_VER=$(echo "$PY_INFO" | cut -d'|' -f1)
+    local VENV=$(echo "$PY_INFO" | cut -d'|' -f2)
+
+    local ARCH=$(echo "$SYS_INFO" | cut -d'|' -f1)
+    local OPT=$(echo "$SYS_INFO" | cut -d'|' -f2)
+    local OS=$(echo "$SYS_INFO" | cut -d'|' -f3)
+    local OS_VER=$(echo "$SYS_INFO" | cut -d'|' -f4)
+
+    # Display (MA principle: focused, scannable lines)
+    cat << EOF
+${BOLD}${BLUE}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION}${RESET}
+${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}
+${DIM}├─ Env${RESET}: Python ${PY_VER} │ venv:${VENV} │ ${ARCH} (opt:${OPT})
+${DIM}├─ QA ${RESET}: mypy:${MYPY_STATUS} │ ruff:${RUFF_STATUS} │ MA:${MA_STATUS} ${MA_VIOLATIONS}
+${DIM}├─ TST${RESET}: ${TEST_STATS} │ Coverage:${COVERAGE}%
+${DIM}└─ OS ${RESET}: ${OS} ${OS_VER} │ $(date +"%H:%M:%S")
+EOF
+}
+
+# ============================================================================
 # Main Status Line Generation
 # ============================================================================
 
-# Git information
-GIT_BRANCH=$(git branch --show-current 2>/dev/null || echo "no-git")
-GIT_STATUS=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
-GIT_AHEAD=$(git rev-list --count @{upstream}..HEAD 2>/dev/null || echo "0")
-GIT_BEHIND=$(git rev-list --count HEAD..@{upstream} 2>/dev/null || echo "0")
-
-# System information
-CPU_ARCH=$(uname -m)
-OS_VERSION=$(uname -r | cut -d. -f1-2)
-OS_NAME=$(uname -s)
-
-# Python environment
-PYTHON_VERSION=$(python3 --version 2>/dev/null | cut -d' ' -f2)
-if [ -n "$VIRTUAL_ENV" ] || ([ -d "venv" ] && [ -f "venv/bin/python" ]); then
-    VENV_ACTIVE="✓"
-else
-    VENV_ACTIVE="✗"
-fi
-
-# Architecture optimization status
-if [[ "$CPU_ARCH" == "arm64" || "$CPU_ARCH" == "x86_64" ]]; then
-    ARCH_INFO="$CPU_ARCH"; OPTIMIZED="✓"
-else
-    ARCH_INFO="$CPU_ARCH"; OPTIMIZED="—"
-fi
-
-# Get metrics using extracted functions
+# Gather metrics
 COVERAGE=$(get_coverage)
 TEST_STATS=$(get_test_statistics)
 get_cached_qa_status
 
-# Build status line with all information
-cat << EOF
-${BOLD}${BLUE}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION}${RESET}
-${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}
-${DIM}├─ Env${RESET}: Python ${PYTHON_VERSION} │ venv:${VENV_ACTIVE} │ ${ARCH_INFO} (opt:${OPTIMIZED})
-${DIM}├─ QA ${RESET}: Tests:${TEST_STATS} │ mypy:${MYPY_STATUS} │ ruff:${RUFF_STATUS} │ MA:${MA_STATUS}
-${DIM}│       ${MA_VIOLATIONS}${RESET}
-${DIM}└─ OS ${RESET}: ${OS_NAME} ${OS_VERSION} │ $(date +"%H:%M:%S")
-EOF
+# Build and display status
+build_status_display

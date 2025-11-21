@@ -51,7 +51,7 @@
 
 ## Quick Reference
 
-107 functional requirements implemented (FR-001 to FR-107)
+111 functional requirements (FR-001 to FR-108 + FR-067a/b/c)
 
 **Test Suite Status (Nov 13, 2025):**
 - ✅ 2,205 tests passing (99.86%)
@@ -267,6 +267,10 @@
 **FR-106: Preview** - Live preview, 300ms debounce, AsciiDoc → HTML
 **FR-107: Instantiation** - `TemplateEngine.render()`, <200ms, opens new doc
 
+### Development Standards (FR-108)
+
+**FR-108: MA (間) Principle** - Japanese negative space: ≤50 lines/function, ≤10 complexity, ≤4 params, ≥2% whitespace, ≤15% comments (v2.0.8, planned)
+
 ### Results
 
 - ✅ 71 new tests (100% pass)
@@ -280,8 +284,8 @@
 
 ## Summary
 
-**Total:** 107 specs (100% implemented)
-**Version:** v2.0.0 (Nov 9, 2025)
+**Total:** 108 specs (107 implemented, 1 planned)
+**Version:** v2.0.8 (Nov 21, 2025)
 
 **Quality (v2.0.0+):**
 - ✅ 100% type coverage (mypy --strict: 0 errors, 95 files, Python 3.12+ syntax)
@@ -507,15 +511,21 @@ Complete implementation status for all 107 functional requirements.
 | FR-106 | Live Preview | ✅ | 300ms debounce | ✓ |
 | FR-107 | Instantiation | ✅ | <200ms render | ✓ |
 
+### Development Standards (FR-108)
+
+| FR | Feature | Status | Implementation | Tests |
+|----|---------|--------|----------------|-------|
+| FR-108 | MA (間) Principle | 📋 | Japanese negative space, code quality | Planned |
+
 ---
 
 ## Implementation Summary
 
-**Total Requirements:** 107
-**Implemented:** 107 (100%)
+**Total Requirements:** 108
+**Implemented:** 107
 **Partial:** 0
 **Not Implemented:** 0
-**Planned:** 0
+**Planned:** 1 (FR-108: MA Principle)
 
 **Quality Metrics:**
 - Test Coverage: 96.4%

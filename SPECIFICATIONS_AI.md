@@ -10,12 +10,12 @@ specification:
   format_version: "2.0-ai-actionable"
 
 metadata:
-  total_requirements: 107
+  total_requirements: 108
   sub_requirements: 3  # FR-067a, FR-067b, FR-067c
-  total_fr_definitions: 110
+  total_fr_definitions: 111
   implemented: 107
   partial: 0
-  planned: 0
+  planned: 1  # FR-108 (MA Principle)
   scope: "Feature-complete, maintenance mode"
   future_work: "Out of scope (LSP, plugins, collaboration deferred)"
 
@@ -5639,6 +5639,282 @@ Template rendering engine. Handlebars syntax, conditionals, loops. <200ms for ty
   - Unit: Variable processing (3 tests)
   - Integration: Template integration (2 tests)
   - Performance: <200ms template load (2 tests)
+
+---
+
+## FR-108: MA (間) Principle
+
+**Category:** Development Standards | **Priority:** High | **Status:** 📋 Planned | **Version:** 2.0.8
+**Implementation:** `docs/developer/ma-principle.md`, `scripts/analyze_ma_violations.py`
+
+Japanese aesthetic principle of negative space applied to code and documentation. Remove unnecessary complexity, embrace intentional whitespace, achieve minimal sufficiency.
+
+**Acceptance:** ≤10 cyclomatic complexity | ≤15% comment ratio | ≥2% whitespace ratio | ≤50 lines/function | ≤4 params
+**Metrics:** Function length, complexity, nesting depth, comment ratio, whitespace, parameter count
+**Tests:** Automated linting rules, manual code review checklist
+
+### Description
+
+MA (間, pronounced "ma") is the Japanese concept of negative space—the intentional void that gives meaning to what surrounds it. In software development, MA translates to:
+
+- **Less is more**: Remove unnecessary complexity, comments, and features
+- **Intentional gaps**: Use whitespace purposefully to separate logical sections
+- **Minimal sufficiency**: Implement only what's needed, nothing more
+- **Graceful silence**: Don't over-communicate through excessive logging or comments
+- **Focused simplicity**: One purpose per function/class, done well
+
+### Acceptance Criteria
+
+**Code Quality:**
+- [ ] No function exceeds 50 lines (excluding docstrings)
+- [ ] No function exceeds cyclomatic complexity of 10
+- [ ] No function has more than 4 parameters
+- [ ] No nesting deeper than 3 levels
+- [ ] Comment ratio ≤15% (excluding docstrings)
+- [ ] Whitespace ratio ≥2% (blank lines between logical sections)
+
+**Documentation:**
+- [ ] Comments explain "why", not "what"
+- [ ] No redundant docstrings that restate function signatures
+- [ ] README uses whitespace to separate sections
+- [ ] Maximum 88 characters per line
+- [ ] Grade 5.0 or lower (Flesch-Kincaid readability)
+
+**UI/UX:**
+- [ ] Maximum 5 colors in UI theme
+- [ ] Maximum 2 font families
+- [ ] Maximum 7±2 interactive elements per view
+- [ ] Whitespace ratio ≥30% of screen area
+- [ ] Maximum 3-level menu hierarchy
+
+### Metrics and Thresholds
+
+```yaml
+code:
+  max_function_length: 50      # Lines (excluding docstrings)
+  max_class_length: 300        # Lines (excluding docstrings)
+  max_parameters: 4            # Function parameters
+  max_nesting: 3               # Nested blocks (if/for/while)
+  max_complexity: 10           # Cyclomatic complexity
+  max_comment_ratio: 0.15      # Comments / total lines
+  min_whitespace_ratio: 0.02   # Blank lines / total lines
+
+documentation:
+  max_comment_ratio: 0.15      # Code comments
+  min_whitespace_ratio: 0.02   # Blank lines in docs
+  max_line_length: 88          # Characters per line
+  max_reading_grade: 5.0       # Flesch-Kincaid grade level
+
+ui:
+  max_colors: 5                # UI color palette
+  max_fonts: 2                 # Font families
+  max_interactive_elements: 7  # Per view (Miller's Law)
+  min_whitespace_ratio: 0.30   # Screen area
+```
+
+### Test Requirements
+
+- **Minimum Tests:** 8
+- **Coverage Target:** 100% (automated checks)
+- **Test Types:**
+  - Lint: Function length checks (1 test)
+  - Lint: Complexity checks (1 test)
+  - Lint: Comment ratio checks (1 test)
+  - Lint: Whitespace ratio checks (1 test)
+  - Integration: Full codebase scan (1 test)
+  - Integration: Documentation scan (1 test)
+  - Manual: Code review checklist (1 verification)
+  - Manual: UI review checklist (1 verification)
+
+### Implementation Guidance
+
+**Phase 1: Documentation (Week 1)**
+1. Create `docs/developer/ma-principle.md` ✅ (completed)
+2. Add MA principle to SPECIFICATIONS_AI.md (this FR)
+3. Create verification checklist
+4. Document MA patterns and anti-patterns
+
+**Phase 2: Automation (Week 2)**
+1. Create `scripts/analyze_ma_violations.py`
+   - Scan Python files for violations
+   - Generate violation report with file:line references
+   - Exit code 1 if violations exceed threshold
+2. Add pre-commit hook for MA checks
+3. Integrate with CI/CD pipeline
+
+**Phase 3: Remediation (Weeks 3-4)**
+1. Run analysis on entire codebase
+2. Prioritize violations (P0: >100 lines, P1: >50 lines, P2: complexity >10)
+3. Refactor high-priority violations
+4. Update tests to maintain coverage
+5. Document patterns used in refactoring
+
+**Code Pattern Example:**
+
+```python
+# ✅ Good MA - Breathing room, focused, minimal
+def process_document(content: str) -> str:
+    """Process document content."""
+    # Validate input
+    if not content:
+        return ""
+
+    # Parse content
+    blocks = parse_blocks(content)
+
+    # Transform blocks
+    transformed = [transform(block) for block in blocks]
+
+    # Return result
+    return join_blocks(transformed)
+
+# ❌ Bad MA - Cramped, no whitespace, poor separation
+def process_document(content: str) -> str:
+    """Process document content."""
+    if not content:
+        return ""
+    blocks = parse_blocks(content)
+    transformed = [transform(block) for block in blocks]
+    return join_blocks(transformed)
+```
+
+**Security Considerations:**
+- MA principle reduces attack surface by removing unnecessary code
+- Fewer lines = fewer bugs = fewer vulnerabilities
+- Clear, simple code is easier to audit for security issues
+
+**Performance:**
+- Simpler code often performs better (fewer branches, better CPU cache utilization)
+- Reduced complexity improves JIT optimization opportunities
+- MA-compliant code typically has lower memory footprint
+
+### Verification Steps
+
+**Automated Checks:**
+```bash
+# Run MA violation analysis
+python3 scripts/analyze_ma_violations.py
+
+# Expected output: List of violations with priorities
+# Exit code 0 if all checks pass, 1 if violations found
+
+# Run pre-commit hook
+pre-commit run ma-principle-check --all-files
+```
+
+**Manual Review:**
+1. Open random Python file from `src/asciidoc_artisan/`
+2. Verify no function >50 lines (excluding docstrings)
+3. Verify whitespace between logical sections
+4. Verify comments explain "why", not "what"
+5. Check cyclomatic complexity: `radon cc <file> -s`
+6. Review UI for visual breathing room
+
+**Success Criteria:**
+- 95%+ of functions comply with MA metrics
+- Zero P0 violations (>100 lines or complexity >15)
+- <5 P1 violations (<50 lines or complexity >10)
+- Documentation passes Grade 5.0 readability
+- UI maintains 30%+ whitespace ratio
+
+### Dependencies
+
+This FR affects and is complemented by:
+- **All FRs**: MA principle applies to all feature implementations
+- **FR-001 to FR-107**: Existing features should be reviewed for MA compliance
+- **SOLID principles**: MA complements Single Responsibility (SRP)
+- **YAGNI**: "You Aren't Gonna Need It" aligns with MA's minimal sufficiency
+- **KISS**: "Keep It Simple, Stupid" shares MA's simplicity focus
+
+### Examples
+
+**Example 1: Function Length Violation**
+```python
+# ❌ Before (78 lines, violates MA)
+def handle_git_commit(...):
+    # 78 lines of logic
+
+# ✅ After (split into focused functions)
+def handle_git_commit(...):
+    validated = _validate_commit_inputs(...)
+    staged = _stage_files(...)
+    return _execute_commit(staged)
+
+def _validate_commit_inputs(...): ...  # 15 lines
+def _stage_files(...): ...              # 12 lines
+def _execute_commit(...): ...           # 18 lines
+```
+
+**Example 2: Complexity Violation**
+```python
+# ❌ Before (cyclomatic complexity 12)
+def process_file(path):
+    if path.exists():
+        if path.is_file():
+            if path.suffix == ".adoc":
+                if path.stat().st_size > 0:
+                    # nested processing...
+
+# ✅ After (complexity 4, early returns)
+def process_file(path):
+    if not path.exists():
+        return None
+    if not path.is_file():
+        return None
+    if path.suffix != ".adoc":
+        return None
+    if path.stat().st_size == 0:
+        return None
+
+    return _process_asciidoc(path)
+```
+
+**Example 3: Whitespace Ratio**
+```python
+# ❌ Before (0% whitespace ratio - cramped)
+def calculate_metrics(data):
+    total = sum(data)
+    avg = total / len(data)
+    variance = sum((x - avg) ** 2 for x in data) / len(data)
+    std_dev = variance ** 0.5
+    return {"total": total, "avg": avg, "std_dev": std_dev}
+
+# ✅ After (8% whitespace ratio - breathing room)
+def calculate_metrics(data):
+    # Calculate basic stats
+    total = sum(data)
+    avg = total / len(data)
+
+    # Calculate variance
+    variance = sum((x - avg) ** 2 for x in data) / len(data)
+    std_dev = variance ** 0.5
+
+    # Return results
+    return {"total": total, "avg": avg, "std_dev": std_dev}
+```
+
+### Related Principles
+
+**MA complements existing principles:**
+- **SOLID**: MA reinforces Single Responsibility (one purpose per function)
+- **YAGNI**: MA's minimal sufficiency = "You Aren't Gonna Need It"
+- **KISS**: MA's simplicity = "Keep It Simple, Stupid"
+- **DRY**: MA opposes over-abstraction that violates DRY
+- **Zen of Python**: "Simple is better than complex", "Readability counts"
+
+**MA adds unique value:**
+- **Intentional whitespace**: Not covered by SOLID/YAGNI/KISS
+- **Aesthetic considerations**: Code as art, not just function
+- **Cognitive load reduction**: Visual breathing room reduces mental fatigue
+- **Cultural wisdom**: 1000+ years of Japanese aesthetic philosophy
+
+### References
+
+- `docs/developer/ma-principle.md` - Comprehensive MA guide (21KB)
+- Zen of Python: `python3 -c "import this"`
+- Clean Code by Robert C. Martin (Uncle Bob)
+- The Art of Readable Code by Boswell & Foucher
+- Japanese aesthetics: Wabi-sabi (侘寂), Ma (間), Yugen (幽玄)
 
 ---
 

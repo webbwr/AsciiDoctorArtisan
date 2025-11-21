@@ -492,62 +492,61 @@ def detect_gpu() -> GPUInfo:
     """
     logger.info("Detecting GPU capabilities...")
 
-    # macOS detection (Metal framework)
+    # Detect based on platform
     if platform.system() == "Darwin":
-        logger.info("Detected macOS - checking for Metal GPU support")
+        return _detect_macos_gpu()
 
-        # Check for macOS GPU (Metal)
-        has_macos_gpu, macos_gpu_name, metal_version = check_macos_gpu()
+    return _detect_linux_windows_gpu()
 
-        if not has_macos_gpu:
-            # No GPU detected on macOS
-            return GPUInfo(
-                has_gpu=False,
-                can_use_webengine=False,
-                reason="No Metal-compatible GPU detected on macOS",
-            )
 
-        # GPU detected - check for Neural Engine (NPU)
-        has_npu, npu_name = check_apple_neural_engine()
-        npu_type = "apple_neural_engine" if has_npu else None
+def _detect_macos_gpu() -> GPUInfo:
+    """Detect GPU on macOS (Metal framework)."""
+    logger.info("Detected macOS - checking for Metal GPU support")
 
-        # Detect compute capabilities
-        compute_capabilities = detect_compute_capabilities()
-
-        # macOS with Metal GPU - fully supported!
-        # QtWebEngineView uses Metal natively (no --use-gl=desktop needed)
+    # Check for Metal GPU
+    has_macos_gpu, macos_gpu_name, metal_version = check_macos_gpu()
+    if not has_macos_gpu:
         return GPUInfo(
-            has_gpu=True,
-            gpu_type="apple",
-            gpu_name=macos_gpu_name,
-            driver_version=metal_version,
-            render_device="Metal",
-            can_use_webengine=True,  # macOS uses Metal natively
-            reason=f"Hardware acceleration available: {macos_gpu_name} (Metal {metal_version or 'supported'})",
-            has_npu=has_npu,
-            npu_type=npu_type,
-            npu_name=npu_name,
-            compute_capabilities=compute_capabilities,
-            metal_version=metal_version,
+            has_gpu=False,
+            can_use_webengine=False,
+            reason="No Metal-compatible GPU detected on macOS",
         )
 
-    # Linux/Windows detection (DRI devices)
-    # Check for DRI devices (required for GPU access in Linux).
-    has_dri, render_device = check_dri_devices()
+    # Detect additional capabilities
+    has_npu, npu_name = check_apple_neural_engine()
+    compute_capabilities = detect_compute_capabilities()
 
+    # macOS with Metal GPU - fully supported
+    return GPUInfo(
+        has_gpu=True,
+        gpu_type="apple",
+        gpu_name=macos_gpu_name,
+        driver_version=metal_version,
+        render_device="Metal",
+        can_use_webengine=True,
+        reason=f"Hardware acceleration available: {macos_gpu_name} (Metal {metal_version or 'supported'})",
+        has_npu=has_npu,
+        npu_type="apple_neural_engine" if has_npu else None,
+        npu_name=npu_name,
+        compute_capabilities=compute_capabilities,
+        metal_version=metal_version,
+    )
+
+
+def _detect_linux_windows_gpu() -> GPUInfo:
+    """Detect GPU on Linux/Windows (DRI devices)."""
+    # Check for DRI devices
+    has_dri, render_device = check_dri_devices()
     if not has_dri:
-        # No GPU passthrough - cannot use hardware acceleration.
         return GPUInfo(
             has_gpu=False,
             can_use_webengine=False,
             reason="/dev/dri not found - GPU passthrough not configured",
         )
 
-    # Check OpenGL renderer (hardware vs software).
+    # Check OpenGL renderer
     is_hardware, renderer_name = check_opengl_renderer()
-
     if not is_hardware:
-        # Software rendering detected - GPU not usable.
         return GPUInfo(
             has_gpu=False,
             render_device=render_device,
@@ -555,40 +554,9 @@ def detect_gpu() -> GPUInfo:
             reason=f"Software rendering detected: {renderer_name}",
         )
 
-    # Detect GPU type (NVIDIA, AMD, or Intel).
-    has_nvidia, nvidia_name, nvidia_driver = check_nvidia_gpu()
-    has_amd, amd_name = check_amd_gpu()
-    has_intel, intel_name = check_intel_gpu()
-
-    # Determine which GPU vendor is present (prioritize NVIDIA).
-    if has_nvidia:
-        gpu_type = "nvidia"
-        gpu_name = nvidia_name
-        driver_version = nvidia_driver
-    elif has_amd:
-        gpu_type = "amd"
-        gpu_name = amd_name
-        driver_version = None
-    elif has_intel:
-        gpu_type = "intel"
-        gpu_name = intel_name
-        driver_version = None
-    else:
-        # GPU present but vendor unknown.
-        gpu_type = "unknown"
-        gpu_name = renderer_name
-        driver_version = None
-
-    # GPU acceleration works in WSLg with proper drivers.
-    # WSLg environment: GPU acceleration is automatically available.
-    can_use = True
-    reason = f"Hardware acceleration available: {gpu_name}"
-
-    # Detect NPU (neural processing unit).
+    # Detect GPU vendor and capabilities
+    gpu_type, gpu_name, driver_version = _detect_gpu_vendor(renderer_name)
     has_npu, npu_name = check_intel_npu()
-    npu_type = "intel_npu" if has_npu else None
-
-    # Detect compute capabilities (CUDA, OpenCL, Vulkan, etc.).
     compute_capabilities = detect_compute_capabilities()
 
     return GPUInfo(
@@ -597,13 +565,42 @@ def detect_gpu() -> GPUInfo:
         gpu_name=gpu_name,
         driver_version=driver_version,
         render_device=render_device,
-        can_use_webengine=can_use,
-        reason=reason,
+        can_use_webengine=True,
+        reason=f"Hardware acceleration available: {gpu_name}",
         has_npu=has_npu,
-        npu_type=npu_type,
+        npu_type="intel_npu" if has_npu else None,
         npu_name=npu_name,
         compute_capabilities=compute_capabilities,
     )
+
+
+def _detect_gpu_vendor(renderer_name: str) -> tuple[str, str, str | None]:
+    """
+    Detect GPU vendor (NVIDIA, AMD, Intel).
+
+    Args:
+        renderer_name: Fallback renderer name
+
+    Returns:
+        Tuple of (gpu_type, gpu_name, driver_version)
+    """
+    # Check for NVIDIA (highest priority)
+    has_nvidia, nvidia_name, nvidia_driver = check_nvidia_gpu()
+    if has_nvidia:
+        return ("nvidia", nvidia_name, nvidia_driver)
+
+    # Check for AMD
+    has_amd, amd_name = check_amd_gpu()
+    if has_amd:
+        return ("amd", amd_name, None)
+
+    # Check for Intel
+    has_intel, intel_name = check_intel_gpu()
+    if has_intel:
+        return ("intel", intel_name, None)
+
+    # Unknown vendor
+    return ("unknown", renderer_name, None)
 
 
 def log_gpu_info(gpu_info: GPUInfo) -> None:

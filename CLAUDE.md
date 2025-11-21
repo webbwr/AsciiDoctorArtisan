@@ -380,3 +380,4 @@ Entry: `src/main.py`
 - ✅ API Consistency: Updated all step definitions to match current chat panel and settings manager APIs
 - ✅ Test Documentation: Comprehensive E2E_TEST_STATUS.md with suite status, investigation notes, workarounds
 - ✅ Code Quality: Fixed 5 unused variables, applied ruff formatting, pre-commit hooks passing
+- alwaays apply japanese MA principal against all documentation and codeing

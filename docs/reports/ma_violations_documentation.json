@@ -1,0 +1,4688 @@
+{
+  "summary": {
+    "total_files": 81,
+    "total_violations": 471,
+    "p0_violations": 0,
+    "p1_violations": 0,
+    "p2_violations": 471
+  },
+  "files": [
+    {
+      "file": "docs/NEXT_STEPS.md",
+      "lines": 432,
+      "violations": [
+        {
+          "line": 414,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 137,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (137 chars)"
+        },
+        {
+          "line": 421,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 127,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (127 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/RELEASE_NOTES_v2.0.8.md",
+      "lines": 221,
+      "violations": [
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 212,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (212 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/README.md",
+      "lines": 57,
+      "violations": [
+        {
+          "line": 57,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 118,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (118 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/DOCUMENTATION_STANDARDS.md",
+      "lines": 498,
+      "violations": [
+        {
+          "line": 7,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 62,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 75,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 12,
+          "threshold": 10,
+          "message": "Paragraph has 12 lines (max: 10)"
+        },
+        {
+          "line": 218,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 12,
+          "threshold": 10,
+          "message": "Paragraph has 12 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/user/ollama-chat.md",
+      "lines": 190,
+      "violations": [
+        {
+          "line": 44,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 78,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 100,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 109,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (109 chars)"
+        },
+        {
+          "line": 120,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 108,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (108 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/user/performance-tips.md",
+      "lines": 577,
+      "violations": [
+        {
+          "line": 43,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 187,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (187 chars)"
+        },
+        {
+          "line": 82,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 166,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (166 chars)"
+        },
+        {
+          "line": 122,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 165,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (165 chars)"
+        },
+        {
+          "line": 367,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 199,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (199 chars)"
+        },
+        {
+          "line": 522,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 118,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (118 chars)"
+        },
+        {
+          "line": 525,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 119,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (119 chars)"
+        },
+        {
+          "line": 528,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 103,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (103 chars)"
+        },
+        {
+          "line": 531,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 534,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 111,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (111 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/user/FAQ.md",
+      "lines": 609,
+      "violations": [
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 159,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (159 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/user/github-integration.md",
+      "lines": 815,
+      "violations": [
+        {
+          "line": 744,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 805,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 155,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (155 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/spec_alignment_analysis_v2.0.8.md",
+      "lines": 491,
+      "violations": [
+        {
+          "line": 92,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 159,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 110,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (110 chars)"
+        },
+        {
+          "line": 207,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 367,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 103,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (103 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/README.md",
+      "lines": 19,
+      "violations": [
+        {
+          "line": 7,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 114,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (114 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/security-audit.md",
+      "lines": 227,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 177,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (177 chars)"
+        },
+        {
+          "line": 217,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 229,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (229 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/SPECIFICATION_GAP_FIXES_v2.0.8.md",
+      "lines": 452,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 281,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 450,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 451,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/documentation-review.md",
+      "lines": 727,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 287,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (287 chars)"
+        },
+        {
+          "line": 499,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 138,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (138 chars)"
+        },
+        {
+          "line": 579,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 140,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (140 chars)"
+        },
+        {
+          "line": 687,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 178,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (178 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/qa-audit.md",
+      "lines": 373,
+      "violations": [
+        {
+          "line": 14,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 206,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (206 chars)"
+        },
+        {
+          "line": 217,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 354,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 145,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (145 chars)"
+        },
+        {
+          "line": 366,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/tasks_1-3_completion_summary.md",
+      "lines": 275,
+      "violations": [
+        {
+          "line": 177,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/memory-optimization.md",
+      "lines": 306,
+      "violations": [
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 250,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (250 chars)"
+        },
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 146,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (146 chars)"
+        },
+        {
+          "line": 294,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 190,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (190 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/HOUSECLEANING_REPORT_2025-11-21.md",
+      "lines": 433,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 136,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (136 chars)"
+        },
+        {
+          "line": 109,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 103,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (103 chars)"
+        },
+        {
+          "line": 148,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 16,
+          "threshold": 10,
+          "message": "Paragraph has 16 lines (max: 10)"
+        },
+        {
+          "line": 194,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 17,
+          "threshold": 10,
+          "message": "Paragraph has 17 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/SPECIFICATIONS_HU_GAP_ANALYSIS_v2.0.8.md",
+      "lines": 456,
+      "violations": [
+        {
+          "line": 44,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 47,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 109,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (109 chars)"
+        },
+        {
+          "line": 63,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 124,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 103,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (103 chars)"
+        },
+        {
+          "line": 128,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 101,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (101 chars)"
+        },
+        {
+          "line": 136,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 176,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 158,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (158 chars)"
+        },
+        {
+          "line": 178,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 110,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (110 chars)"
+        },
+        {
+          "line": 188,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 200,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 229,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 230,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 231,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 109,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (109 chars)"
+        },
+        {
+          "line": 235,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 236,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 266,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 163,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (163 chars)"
+        },
+        {
+          "line": 381,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 154,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 20,
+          "threshold": 10,
+          "message": "Paragraph has 20 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/reports/SPECIFICATION_GAPS_ANALYSIS_v2.0.8.md",
+      "lines": 596,
+      "violations": [
+        {
+          "line": 34,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 19,
+          "threshold": 10,
+          "message": "Paragraph has 19 lines (max: 10)"
+        },
+        {
+          "line": 69,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 84,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 16,
+          "threshold": 10,
+          "message": "Paragraph has 16 lines (max: 10)"
+        },
+        {
+          "line": 112,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 23,
+          "threshold": 10,
+          "message": "Paragraph has 23 lines (max: 10)"
+        },
+        {
+          "line": 539,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 19,
+          "threshold": 10,
+          "message": "Paragraph has 19 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/sessions/SESSION_2025-11-18.md",
+      "lines": 305,
+      "violations": [
+        {
+          "line": 30,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 31,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 32,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 33,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 101,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 170,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 171,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 300,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 227,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (227 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/sessions/SESSION_2025-11-18_PHASE4F_FINAL.md",
+      "lines": 353,
+      "violations": [
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 246,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (246 chars)"
+        },
+        {
+          "line": 54,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 146,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (146 chars)"
+        },
+        {
+          "line": 321,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 243,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (243 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/testing/FR_TEST_MAPPING.md",
+      "lines": 481,
+      "violations": [
+        {
+          "line": 25,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 198,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (198 chars)"
+        },
+        {
+          "line": 258,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 268,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 290,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 316,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 103,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (103 chars)"
+        },
+        {
+          "line": 341,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 347,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 143,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (143 chars)"
+        },
+        {
+          "line": 362,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 376,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 125,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (125 chars)"
+        },
+        {
+          "line": 389,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/testing/PYTEST_MARKERS_GUIDE.md",
+      "lines": 490,
+      "violations": [
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 110,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (110 chars)"
+        },
+        {
+          "line": 209,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 212,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 231,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 249,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 283,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 381,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 391,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 119,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (119 chars)"
+        },
+        {
+          "line": 392,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 126,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (126 chars)"
+        },
+        {
+          "line": 393,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 123,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (123 chars)"
+        },
+        {
+          "line": 394,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 124,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (124 chars)"
+        },
+        {
+          "line": 405,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 111,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (111 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/testing/MAIN_WINDOW_COVERAGE_ANALYSIS.md",
+      "lines": 242,
+      "violations": [
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 220,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (220 chars)"
+        },
+        {
+          "line": 15,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 151,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (151 chars)"
+        },
+        {
+          "line": 108,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 115,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (115 chars)"
+        },
+        {
+          "line": 115,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 149,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (149 chars)"
+        },
+        {
+          "line": 221,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 163,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (163 chars)"
+        },
+        {
+          "line": 236,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 155,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (155 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/testing/QT_THREADING_LIMITATIONS.md",
+      "lines": 461,
+      "violations": [
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 262,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (262 chars)"
+        },
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 102,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (102 chars)"
+        },
+        {
+          "line": 120,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 120,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (120 chars)"
+        },
+        {
+          "line": 122,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 124,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (124 chars)"
+        },
+        {
+          "line": 439,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 445,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 121,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (121 chars)"
+        },
+        {
+          "line": 131,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 13,
+          "threshold": 10,
+          "message": "Paragraph has 13 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/planning/DOCUMENTATION_UPDATE_PLAN.md",
+      "lines": 633,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 115,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (115 chars)"
+        },
+        {
+          "line": 575,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 31,
+          "threshold": 10,
+          "message": "Paragraph has 31 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/planning/E2E_TEST_PLAN.md",
+      "lines": 492,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 276,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 22,
+          "threshold": 10,
+          "message": "Paragraph has 22 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.5_PLAN.md",
+      "lines": 286,
+      "violations": [
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 211,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (211 chars)"
+        },
+        {
+          "line": 98,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 166,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (166 chars)"
+        },
+        {
+          "line": 103,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/completed/README.md",
+      "lines": 18,
+      "violations": [
+        {
+          "line": 7,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 145,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (145 chars)"
+        },
+        {
+          "line": 8,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 114,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (114 chars)"
+        },
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 119,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (119 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/completed/issue-16-test-parametrization-analysis.md",
+      "lines": 505,
+      "violations": [
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 166,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (166 chars)"
+        },
+        {
+          "line": 108,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 338,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 219,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (219 chars)"
+        },
+        {
+          "line": 411,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 503,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 249,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (249 chars)"
+        },
+        {
+          "line": 505,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 115,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (115 chars)"
+        },
+        {
+          "line": 100,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 145,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 16,
+          "threshold": 10,
+          "message": "Paragraph has 16 lines (max: 10)"
+        },
+        {
+          "line": 192,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 16,
+          "threshold": 10,
+          "message": "Paragraph has 16 lines (max: 10)"
+        },
+        {
+          "line": 238,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 14,
+          "threshold": 10,
+          "message": "Paragraph has 14 lines (max: 10)"
+        },
+        {
+          "line": 387,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/completed/PHASE_4E_COMPLETION.md",
+      "lines": 211,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 313,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (313 chars)"
+        },
+        {
+          "line": 205,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 313,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (313 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/completed/PHASE_4F_INITIAL_FINDINGS.md",
+      "lines": 301,
+      "violations": [
+        {
+          "line": 7,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 19,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 32,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 143,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (143 chars)"
+        },
+        {
+          "line": 34,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 35,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 108,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (108 chars)"
+        },
+        {
+          "line": 36,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 166,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (166 chars)"
+        },
+        {
+          "line": 37,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 125,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (125 chars)"
+        },
+        {
+          "line": 38,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 53,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 115,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (115 chars)"
+        },
+        {
+          "line": 57,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 101,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (101 chars)"
+        },
+        {
+          "line": 58,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 109,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (109 chars)"
+        },
+        {
+          "line": 60,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 102,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 125,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 200,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 224,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (224 chars)"
+        },
+        {
+          "line": 258,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 181,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (181 chars)"
+        },
+        {
+          "line": 267,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 137,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (137 chars)"
+        },
+        {
+          "line": 298,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 299,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 300,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 117,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (117 chars)"
+        },
+        {
+          "line": 301,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/completed/issue-15-duplication-reduction.md",
+      "lines": 504,
+      "violations": [
+        {
+          "line": 14,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 211,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (211 chars)"
+        },
+        {
+          "line": 27,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 156,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (156 chars)"
+        },
+        {
+          "line": 159,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 127,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (127 chars)"
+        },
+        {
+          "line": 502,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 221,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (221 chars)"
+        },
+        {
+          "line": 110,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 303,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 13,
+          "threshold": 10,
+          "message": "Paragraph has 13 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/architecture.md",
+      "lines": 948,
+      "violations": [
+        {
+          "line": 30,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 235,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (235 chars)"
+        },
+        {
+          "line": 48,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 120,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (120 chars)"
+        },
+        {
+          "line": 54,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 64,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 117,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (117 chars)"
+        },
+        {
+          "line": 137,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 116,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (116 chars)"
+        },
+        {
+          "line": 217,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 290,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 688,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 138,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (138 chars)"
+        },
+        {
+          "line": 880,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 144,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (144 chars)"
+        },
+        {
+          "line": 937,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 336,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (336 chars)"
+        },
+        {
+          "line": 939,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 211,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (211 chars)"
+        },
+        {
+          "line": 73,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 28,
+          "threshold": 10,
+          "message": "Paragraph has 28 lines (max: 10)"
+        },
+        {
+          "line": 430,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 27,
+          "threshold": 10,
+          "message": "Paragraph has 27 lines (max: 10)"
+        },
+        {
+          "line": 462,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 21,
+          "threshold": 10,
+          "message": "Paragraph has 21 lines (max: 10)"
+        },
+        {
+          "line": 492,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 25,
+          "threshold": 10,
+          "message": "Paragraph has 25 lines (max: 10)"
+        },
+        {
+          "line": 522,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 16,
+          "threshold": 10,
+          "message": "Paragraph has 16 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/security-implementation.md",
+      "lines": 390,
+      "violations": [
+        {
+          "line": 3,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 114,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (114 chars)"
+        },
+        {
+          "line": 7,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 186,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (186 chars)"
+        },
+        {
+          "line": 207,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 214,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 209,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (209 chars)"
+        },
+        {
+          "line": 216,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 201,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (201 chars)"
+        },
+        {
+          "line": 222,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 207,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (207 chars)"
+        },
+        {
+          "line": 224,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 199,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (199 chars)"
+        },
+        {
+          "line": 230,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 209,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (209 chars)"
+        },
+        {
+          "line": 232,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 202,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (202 chars)"
+        },
+        {
+          "line": 238,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 210,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (210 chars)"
+        },
+        {
+          "line": 240,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 202,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (202 chars)"
+        },
+        {
+          "line": 82,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 14,
+          "threshold": 10,
+          "message": "Paragraph has 14 lines (max: 10)"
+        },
+        {
+          "line": 160,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 14,
+          "threshold": 10,
+          "message": "Paragraph has 14 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/configuration.md",
+      "lines": 309,
+      "violations": [
+        {
+          "line": 3,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 108,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (108 chars)"
+        },
+        {
+          "line": 235,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/test-optimization.md",
+      "lines": 320,
+      "violations": [
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 161,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (161 chars)"
+        },
+        {
+          "line": 320,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/contributing.md",
+      "lines": 497,
+      "violations": [
+        {
+          "line": 60,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 21,
+          "threshold": 10,
+          "message": "Paragraph has 21 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/testing.md",
+      "lines": 988,
+      "violations": [
+        {
+          "line": 50,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 310,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 313,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 103,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (103 chars)"
+        },
+        {
+          "line": 315,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 61,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 36,
+          "threshold": 10,
+          "message": "Paragraph has 36 lines (max: 10)"
+        },
+        {
+          "line": 682,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 13,
+          "threshold": 10,
+          "message": "Paragraph has 13 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/DEFENSIVE_CODE_AUDIT.md",
+      "lines": 499,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 244,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (244 chars)"
+        },
+        {
+          "line": 20,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 178,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (178 chars)"
+        },
+        {
+          "line": 81,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 110,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (110 chars)"
+        },
+        {
+          "line": 183,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 135,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (135 chars)"
+        },
+        {
+          "line": 199,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 106,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (106 chars)"
+        },
+        {
+          "line": 219,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 230,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 116,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (116 chars)"
+        },
+        {
+          "line": 249,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 375,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 386,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/performance-profiling.md",
+      "lines": 469,
+      "violations": [
+        {
+          "line": 5,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 107,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 105,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (105 chars)"
+        },
+        {
+          "line": 153,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 455,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/security-guide.md",
+      "lines": 362,
+      "violations": [
+        {
+          "line": 3,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 135,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (135 chars)"
+        },
+        {
+          "line": 7,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 192,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (192 chars)"
+        },
+        {
+          "line": 14,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 19,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 43,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 209,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (209 chars)"
+        },
+        {
+          "line": 45,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 201,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (201 chars)"
+        },
+        {
+          "line": 47,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 207,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (207 chars)"
+        },
+        {
+          "line": 49,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 199,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (199 chars)"
+        },
+        {
+          "line": 55,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 202,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (202 chars)"
+        },
+        {
+          "line": 125,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 153,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (153 chars)"
+        },
+        {
+          "line": 279,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/spec-driven-coding-guide.md",
+      "lines": 710,
+      "violations": [
+        {
+          "line": 21,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 265,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (265 chars)"
+        },
+        {
+          "line": 194,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 652,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 156,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (156 chars)"
+        },
+        {
+          "line": 653,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 108,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (108 chars)"
+        },
+        {
+          "line": 704,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/test-coverage.md",
+      "lines": 432,
+      "violations": [
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 119,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (119 chars)"
+        },
+        {
+          "line": 294,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/TESTING_README.md",
+      "lines": 769,
+      "violations": [
+        {
+          "line": 22,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 23,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 30,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 105,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (105 chars)"
+        },
+        {
+          "line": 31,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 102,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (102 chars)"
+        },
+        {
+          "line": 115,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 121,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 127,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 128,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 106,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (106 chars)"
+        },
+        {
+          "line": 130,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 150,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 152,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 148,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (148 chars)"
+        },
+        {
+          "line": 214,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 113,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (113 chars)"
+        },
+        {
+          "line": 234,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 146,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (146 chars)"
+        },
+        {
+          "line": 302,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 175,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (175 chars)"
+        },
+        {
+          "line": 642,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 696,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 101,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (101 chars)"
+        },
+        {
+          "line": 743,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/developer/ma-principle.md",
+      "lines": 832,
+      "violations": [
+        {
+          "line": 26,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 284,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (284 chars)"
+        },
+        {
+          "line": 30,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 110,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (110 chars)"
+        },
+        {
+          "line": 807,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 176,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (176 chars)"
+        },
+        {
+          "line": 809,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 497,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 527,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 656,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.0/TEST_ISSUES_AGGREGATE.md",
+      "lines": 229,
+      "violations": [
+        {
+          "line": 37,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 98,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 120,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 113,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (113 chars)"
+        },
+        {
+          "line": 145,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 146,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 229,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.0/V2_0_0_PROGRESS.md",
+      "lines": 220,
+      "violations": [
+        {
+          "line": 220,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 204,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (204 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.0/v2.0.0_MASTER_PLAN.md",
+      "lines": 611,
+      "violations": [
+        {
+          "line": 19,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 112,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (112 chars)"
+        },
+        {
+          "line": 114,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 132,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 236,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 308,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 309,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 591,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 228,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 25,
+          "threshold": 10,
+          "message": "Paragraph has 25 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.0/v2.0.0_AUTOCOMPLETE_PLAN.md",
+      "lines": 902,
+      "violations": [
+        {
+          "line": 102,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 478,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 486,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 113,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 15,
+          "threshold": 10,
+          "message": "Paragraph has 15 lines (max: 10)"
+        },
+        {
+          "line": 246,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 420,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 13,
+          "threshold": 10,
+          "message": "Paragraph has 13 lines (max: 10)"
+        },
+        {
+          "line": 436,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 12,
+          "threshold": 10,
+          "message": "Paragraph has 12 lines (max: 10)"
+        },
+        {
+          "line": 450,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 12,
+          "threshold": 10,
+          "message": "Paragraph has 12 lines (max: 10)"
+        },
+        {
+          "line": 464,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 13,
+          "threshold": 10,
+          "message": "Paragraph has 13 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.0/v2.0.0_TEMPLATES_PLAN.md",
+      "lines": 863,
+      "violations": [
+        {
+          "line": 215,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 21,
+          "threshold": 10,
+          "message": "Paragraph has 21 lines (max: 10)"
+        },
+        {
+          "line": 351,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 381,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 558,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.0/v2.0.0_INTEGRATION_GUIDE.md",
+      "lines": 398,
+      "violations": [
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 120,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (120 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.0/v2.0.0_SYNTAX_CHECKING_PLAN.md",
+      "lines": 841,
+      "violations": [
+        {
+          "line": 362,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 503,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 514,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 185,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 17,
+          "threshold": 10,
+          "message": "Paragraph has 17 lines (max: 10)"
+        },
+        {
+          "line": 499,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 19,
+          "threshold": 10,
+          "message": "Paragraph has 19 lines (max: 10)"
+        },
+        {
+          "line": 544,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 13,
+          "threshold": 10,
+          "message": "Paragraph has 13 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/coverage-planning/phase-4e-ui-coverage-plan.md",
+      "lines": 253,
+      "violations": [
+        {
+          "line": 229,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 208,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (208 chars)"
+        },
+        {
+          "line": 231,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 178,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (178 chars)"
+        },
+        {
+          "line": 233,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 124,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (124 chars)"
+        },
+        {
+          "line": 235,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 111,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (111 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/coverage-planning/phase-4c-coverage-plan.md",
+      "lines": 211,
+      "violations": [
+        {
+          "line": 28,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 72,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 73,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 74,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 99,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 101,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 112,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 236,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (236 chars)"
+        },
+        {
+          "line": 184,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 102,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (102 chars)"
+        },
+        {
+          "line": 200,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 204,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 209,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/ui-test-fixes-summary.md",
+      "lines": 378,
+      "violations": [
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 113,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (113 chars)"
+        },
+        {
+          "line": 36,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 77,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 98,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 111,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 133,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 175,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 184,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 101,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (101 chars)"
+        },
+        {
+          "line": 227,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 229,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 230,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 231,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 241,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 325,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 372,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 110,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (110 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/PHASE4_NEXT_SESSION.md",
+      "lines": 186,
+      "violations": [
+        {
+          "line": 18,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 103,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (103 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/dialog-init-failures-analysis.md",
+      "lines": 407,
+      "violations": [
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 191,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (191 chars)"
+        },
+        {
+          "line": 34,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 211,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (211 chars)"
+        },
+        {
+          "line": 50,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 211,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (211 chars)"
+        },
+        {
+          "line": 62,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 189,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (189 chars)"
+        },
+        {
+          "line": 359,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/ui-test-failures-analysis.md",
+      "lines": 226,
+      "violations": [
+        {
+          "line": 17,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 193,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (193 chars)"
+        },
+        {
+          "line": 96,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 106,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (106 chars)"
+        },
+        {
+          "line": 106,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 110,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 187,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 212,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 226,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/README.md",
+      "lines": 109,
+      "violations": [
+        {
+          "line": 83,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/test-issues-log.md",
+      "lines": 311,
+      "violations": [
+        {
+          "line": 10,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 115,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (115 chars)"
+        },
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 133,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (133 chars)"
+        },
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 135,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (135 chars)"
+        },
+        {
+          "line": 16,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 19,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 114,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (114 chars)"
+        },
+        {
+          "line": 25,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 102,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (102 chars)"
+        },
+        {
+          "line": 30,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 125,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (125 chars)"
+        },
+        {
+          "line": 31,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 129,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (129 chars)"
+        },
+        {
+          "line": 32,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 33,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 102,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (102 chars)"
+        },
+        {
+          "line": 40,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 112,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (112 chars)"
+        },
+        {
+          "line": 41,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 46,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 52,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 53,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 56,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 115,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (115 chars)"
+        },
+        {
+          "line": 58,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 60,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 63,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 68,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 144,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (144 chars)"
+        },
+        {
+          "line": 75,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 132,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (132 chars)"
+        },
+        {
+          "line": 81,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 91,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 108,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (108 chars)"
+        },
+        {
+          "line": 188,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 115,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (115 chars)"
+        },
+        {
+          "line": 212,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 213,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 218,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 107,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (107 chars)"
+        },
+        {
+          "line": 232,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 238,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 117,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (117 chars)"
+        },
+        {
+          "line": 242,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 106,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (106 chars)"
+        },
+        {
+          "line": 245,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 248,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 105,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (105 chars)"
+        },
+        {
+          "line": 254,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 260,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 106,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (106 chars)"
+        },
+        {
+          "line": 261,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 119,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (119 chars)"
+        },
+        {
+          "line": 263,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 131,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (131 chars)"
+        },
+        {
+          "line": 281,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 282,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/skipped-test-analysis.md",
+      "lines": 231,
+      "violations": [
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 162,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (162 chars)"
+        },
+        {
+          "line": 16,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 112,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (112 chars)"
+        },
+        {
+          "line": 76,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 151,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (151 chars)"
+        },
+        {
+          "line": 95,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 185,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 147,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (147 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/mock-assertion-analysis.md",
+      "lines": 124,
+      "violations": [
+        {
+          "line": 13,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 36,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 42,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 67,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 97,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 114,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (114 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/gpu-test-failures-analysis.md",
+      "lines": 456,
+      "violations": [
+        {
+          "line": 9,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 199,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (199 chars)"
+        },
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 111,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (111 chars)"
+        },
+        {
+          "line": 15,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 90,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 92,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (92 chars)"
+        },
+        {
+          "line": 369,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 118,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (118 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/assertion-failures-analysis.md",
+      "lines": 140,
+      "violations": [
+        {
+          "line": 14,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 39,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 105,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (105 chars)"
+        },
+        {
+          "line": 67,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/2025-11-16-test-investigations/PHASE4_SESSION_2025-11-17.md",
+      "lines": 275,
+      "violations": [
+        {
+          "line": 11,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 194,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (194 chars)"
+        },
+        {
+          "line": 44,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 104,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (104 chars)"
+        },
+        {
+          "line": 81,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 192,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 201,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 262,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 275,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (275 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/historical/THREADING_ARCHITECTURE_ANALYSIS.md",
+      "lines": 1124,
+      "violations": [
+        {
+          "line": 10,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 265,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (265 chars)"
+        },
+        {
+          "line": 95,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 142,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 147,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 97,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (97 chars)"
+        },
+        {
+          "line": 164,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 272,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 167,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (167 chars)"
+        },
+        {
+          "line": 459,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 121,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (121 chars)"
+        },
+        {
+          "line": 561,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 993,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 210,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (210 chars)"
+        },
+        {
+          "line": 295,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        },
+        {
+          "line": 651,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 32,
+          "threshold": 10,
+          "message": "Paragraph has 32 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/snapshots/PHASE_2_TEST_EXPANSION_SUMMARY.md",
+      "lines": 341,
+      "violations": [
+        {
+          "line": 4,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 131,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (131 chars)"
+        },
+        {
+          "line": 327,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 188,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (188 chars)"
+        },
+        {
+          "line": 329,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 332,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 110,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (110 chars)"
+        },
+        {
+          "line": 334,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 184,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (184 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/snapshots/DOCUMENTATION_SCORECARD_2025-11-06.md",
+      "lines": 914,
+      "violations": [
+        {
+          "line": 14,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 230,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (230 chars)"
+        },
+        {
+          "line": 38,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 39,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 64,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 101,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (101 chars)"
+        },
+        {
+          "line": 91,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 95,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (95 chars)"
+        },
+        {
+          "line": 99,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 321,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 335,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 349,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 100,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (100 chars)"
+        },
+        {
+          "line": 351,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 91,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (91 chars)"
+        },
+        {
+          "line": 358,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 371,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 414,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 416,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 461,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 475,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 500,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 505,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 511,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 516,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 527,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 536,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 106,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (106 chars)"
+        },
+        {
+          "line": 558,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 99,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (99 chars)"
+        },
+        {
+          "line": 571,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 94,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (94 chars)"
+        },
+        {
+          "line": 584,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 102,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (102 chars)"
+        },
+        {
+          "line": 595,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 98,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (98 chars)"
+        },
+        {
+          "line": 604,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 106,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (106 chars)"
+        },
+        {
+          "line": 808,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 817,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 891,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 280,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (280 chars)"
+        },
+        {
+          "line": 906,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 209,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (209 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/snapshots/TEST_SUITE_FIXES_GUIDE.md",
+      "lines": 279,
+      "violations": [
+        {
+          "line": 246,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/snapshots/CHECKPOINT_2025-11-12.md",
+      "lines": 181,
+      "violations": [
+        {
+          "line": 129,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 105,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (105 chars)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/snapshots/2025-11-06-master-summary.md",
+      "lines": 546,
+      "violations": [
+        {
+          "line": 12,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 324,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (324 chars)"
+        },
+        {
+          "line": 182,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 233,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 96,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (96 chars)"
+        },
+        {
+          "line": 255,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 441,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 121,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (121 chars)"
+        },
+        {
+          "line": 457,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 89,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (89 chars)"
+        },
+        {
+          "line": 458,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 93,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (93 chars)"
+        },
+        {
+          "line": 49,
+          "type": "paragraph_length",
+          "severity": "P2",
+          "metric": "lines",
+          "actual": 11,
+          "threshold": 10,
+          "message": "Paragraph has 11 lines (max: 10)"
+        }
+      ]
+    },
+    {
+      "file": "docs/archive/v2.0.1/TEST_FIX_SUMMARY.md",
+      "lines": 295,
+      "violations": [
+        {
+          "line": 7,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 185,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (185 chars)"
+        },
+        {
+          "line": 81,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 91,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 90,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (90 chars)"
+        },
+        {
+          "line": 293,
+          "type": "line_length",
+          "severity": "P2",
+          "metric": "characters",
+          "actual": 212,
+          "threshold": 88,
+          "message": "Line exceeds 88 characters (212 chars)"
+        }
+      ]
+    }
+  ]
+}

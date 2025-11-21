@@ -111,31 +111,17 @@ class PDFHelper:
         return False
 
     @staticmethod
-    def add_print_css_to_html(html_content: str) -> str:
-        """
-        Add print-optimized CSS to HTML content for better PDF output.
-
-        Injects CSS rules for:
-        - Page margins and sizes
-        - Font sizing and readability
-        - Code block formatting
-        - Table styling
-        - Print-specific optimizations
-
-        Args:
-            html_content: HTML content to enhance
-
-        Returns:
-            HTML content with injected CSS
-        """
-        print_css = """
-<style>
-@page {
+    def _get_page_css() -> str:
+        """Get @page CSS rules."""
+        return """@page {
     size: A4;
     margin: 2cm;
-}
+}"""
 
-body {
+    @staticmethod
+    def _get_body_css() -> str:
+        """Get body and heading CSS rules."""
+        return """body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 11pt;
     line-height: 1.6;
@@ -151,9 +137,12 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 { font-size: 24pt; }
 h2 { font-size: 20pt; }
-h3 { font-size: 16pt; }
+h3 { font-size: 16pt; }"""
 
-pre, code {
+    @staticmethod
+    def _get_code_css() -> str:
+        """Get code and pre CSS rules."""
+        return """pre, code {
     font-family: 'Courier New', Courier, monospace;
     font-size: 9pt;
     background: #f5f5f5;
@@ -168,9 +157,12 @@ pre {
 
 code {
     padding: 2px 4px;
-}
+}"""
 
-table {
+    @staticmethod
+    def _get_table_css() -> str:
+        """Get table CSS rules."""
+        return """table {
     border-collapse: collapse;
     width: 100%;
     margin: 1em 0;
@@ -186,9 +178,12 @@ th, td {
 th {
     background-color: #f0f0f0;
     font-weight: bold;
-}
+}"""
 
-img {
+    @staticmethod
+    def _get_misc_css() -> str:
+        """Get miscellaneous element CSS rules."""
+        return """img {
     max-width: 100%;
     page-break-inside: avoid;
 }
@@ -208,9 +203,12 @@ blockquote {
 ul, ol {
     margin: 0.5em 0;
     padding-left: 2em;
-}
+}"""
 
-@media print {
+    @staticmethod
+    def _get_print_media_css() -> str:
+        """Get @media print CSS rules."""
+        return """@media print {
     body {
         background: white;
     }
@@ -224,16 +222,46 @@ ul, ol {
     pre, code, blockquote, table {
         border-color: #999;
     }
-}
-</style>
-"""
+}"""
+
+    @staticmethod
+    def add_print_css_to_html(html_content: str) -> str:
+        """
+        Add print-optimized CSS to HTML content for better PDF output.
+
+        Injects CSS rules for:
+        - Page margins and sizes
+        - Font sizing and readability
+        - Code block formatting
+        - Table styling
+        - Print-specific optimizations
+
+        Args:
+            html_content: HTML content to enhance
+
+        Returns:
+            HTML content with injected CSS
+
+        MA principle: Reduced from 107 lines to ~20 lines by splitting
+        CSS generation into 6 category-specific helper methods.
+        """
+        # Combine all CSS sections
+        css_parts = [
+            ExportHelpers._get_page_css(),
+            ExportHelpers._get_body_css(),
+            ExportHelpers._get_code_css(),
+            ExportHelpers._get_table_css(),
+            ExportHelpers._get_misc_css(),
+            ExportHelpers._get_print_media_css(),
+        ]
+        print_css = f"<style>\n{chr(10).join(css_parts)}\n</style>"
+
         # Insert CSS before closing </head> tag or at start of <body>
         if "</head>" in html_content:
             return html_content.replace("</head>", f"{print_css}</head>")
         elif "<body>" in html_content:
             return html_content.replace("<body>", f"<body>{print_css}")
         else:
-            # No head or body tags, prepend CSS
             return print_css + html_content
 
 

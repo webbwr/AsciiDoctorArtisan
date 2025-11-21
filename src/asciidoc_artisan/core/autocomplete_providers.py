@@ -91,195 +91,201 @@ class SyntaxProvider:
         # Default: return all syntax items
         return self.completions
 
+    def _get_heading_items(self) -> list[CompletionItem]:
+        """Get heading completion items (levels 1-5)."""
+        return [
+            CompletionItem(
+                "= Document Title",
+                CompletionKind.SYNTAX,
+                "Level 1 heading (document title)",
+                "# Document Title\n\nTop-level heading, typically used once per document.",
+                "= ",
+                "h1",
+            ),
+            CompletionItem(
+                "== Section",
+                CompletionKind.SYNTAX,
+                "Level 2 heading (major section)",
+                "## Major Section\n\nMain document sections.",
+                "== ",
+                "h2",
+            ),
+            CompletionItem(
+                "=== Subsection",
+                CompletionKind.SYNTAX,
+                "Level 3 heading (subsection)",
+                "### Subsection\n\nSubsections within major sections.",
+                "=== ",
+                "h3",
+            ),
+            CompletionItem(
+                "==== Sub-subsection",
+                CompletionKind.SYNTAX,
+                "Level 4 heading (sub-subsection)",
+                "#### Sub-subsection\n\nDetailed subsections.",
+                "==== ",
+                "h4",
+            ),
+            CompletionItem(
+                "===== Paragraph",
+                CompletionKind.SYNTAX,
+                "Level 5 heading (paragraph title)",
+                "##### Paragraph Title\n\nSmallest heading level.",
+                "===== ",
+                "h5",
+            ),
+        ]
+
+    def _get_list_items(self) -> list[CompletionItem]:
+        """Get list completion items."""
+        return [
+            CompletionItem(
+                "* Unordered list item",
+                CompletionKind.SYNTAX,
+                "Unordered list item (bullet)",
+                "* Item\n* Another item\n* Yet another",
+                "* ",
+                "list1",
+            ),
+            CompletionItem(
+                "- Unordered list item (dash)",
+                CompletionKind.SYNTAX,
+                "Unordered list item (dash style)",
+                "- Item\n- Another item",
+                "- ",
+                "list2",
+            ),
+            CompletionItem(
+                ". Ordered list item",
+                CompletionKind.SYNTAX,
+                "Ordered list item (numbered)",
+                ". First\n. Second\n. Third",
+                ". ",
+                "list3",
+            ),
+        ]
+
+    def _get_block_items(self) -> list[CompletionItem]:
+        """Get block and admonition completion items."""
+        return [
+            CompletionItem(
+                "[source,python]",
+                CompletionKind.SYNTAX,
+                "Source code block",
+                "[source,python]\n----\ndef hello():\n    print('hi')\n----",
+                "[source,python]\n----\n\n----",
+                "block1",
+            ),
+            CompletionItem(
+                "[example]",
+                CompletionKind.SYNTAX,
+                "Example block",
+                "[example]\n====\nExample content here\n====",
+                "[example]\n====\n\n====",
+                "block2",
+            ),
+            CompletionItem(
+                "[NOTE]",
+                CompletionKind.SYNTAX,
+                "Note admonition",
+                "[NOTE]\n====\nImportant note here\n====",
+                "[NOTE]\n====\n\n====",
+                "block3",
+            ),
+            CompletionItem(
+                "[TIP]",
+                CompletionKind.SYNTAX,
+                "Tip admonition",
+                "[TIP]\n====\nHelpful tip here\n====",
+                "[TIP]\n====\n\n====",
+                "block4",
+            ),
+            CompletionItem(
+                "[WARNING]",
+                CompletionKind.SYNTAX,
+                "Warning admonition",
+                "[WARNING]\n====\nWarning message here\n====",
+                "[WARNING]\n====\n\n====",
+                "block5",
+            ),
+            CompletionItem(
+                "[IMPORTANT]",
+                CompletionKind.SYNTAX,
+                "Important admonition",
+                "[IMPORTANT]\n====\nImportant information\n====",
+                "[IMPORTANT]\n====\n\n====",
+                "block6",
+            ),
+            CompletionItem(
+                "[CAUTION]",
+                CompletionKind.SYNTAX,
+                "Caution admonition",
+                "[CAUTION]\n====\nBe careful about this\n====",
+                "[CAUTION]\n====\n\n====",
+                "block7",
+            ),
+        ]
+
+    def _get_inline_items(self) -> list[CompletionItem]:
+        """Get inline formatting completion items."""
+        return [
+            CompletionItem("*bold*", CompletionKind.SYNTAX, "Bold text", "*bold* for **strong** text", "*", "inline1"),
+            CompletionItem(
+                "_italic_", CompletionKind.SYNTAX, "Italic text", "_italic_ for *emphasized* text", "_", "inline2"
+            ),
+            CompletionItem(
+                "`monospace`", CompletionKind.SYNTAX, "Monospace text", "`code` for inline code", "`", "inline3"
+            ),
+        ]
+
+    def _get_link_items(self) -> list[CompletionItem]:
+        """Get link and image completion items."""
+        return [
+            CompletionItem(
+                "link:URL[text]",
+                CompletionKind.SYNTAX,
+                "External link",
+                "link:https://example.com[Example Site]",
+                "link:",
+                "link1",
+            ),
+            CompletionItem(
+                "https://URL[text]",
+                CompletionKind.SYNTAX,
+                "URL with label",
+                "https://example.com[Link Text]",
+                "https://",
+                "link2",
+            ),
+            CompletionItem(
+                "image::path[]",
+                CompletionKind.SYNTAX,
+                "Block image",
+                "image::path/to/image.png[Alt text]",
+                "image::",
+                "image1",
+            ),
+            CompletionItem(
+                "image:path[]", CompletionKind.SYNTAX, "Inline image", "image:icon.png[Icon,16,16]", "image:", "image2"
+            ),
+        ]
+
     def _build_completion_items(self) -> list[CompletionItem]:
         """
         Build static list of syntax completions.
 
         Returns:
             List of all syntax completion items
+
+        MA principle: Reduced from 183 lines to ~12 lines by splitting into
+        5 category-specific helper methods.
         """
         return [
-            # Headings (Level 1-5)
-            CompletionItem(
-                text="= Document Title",
-                kind=CompletionKind.SYNTAX,
-                detail="Level 1 heading (document title)",
-                documentation="# Document Title\n\nTop-level heading, typically used once per document.",
-                insert_text="= ",
-                sort_text="h1",
-            ),
-            CompletionItem(
-                text="== Section",
-                kind=CompletionKind.SYNTAX,
-                detail="Level 2 heading (major section)",
-                documentation="## Major Section\n\nMain document sections.",
-                insert_text="== ",
-                sort_text="h2",
-            ),
-            CompletionItem(
-                text="=== Subsection",
-                kind=CompletionKind.SYNTAX,
-                detail="Level 3 heading (subsection)",
-                documentation="### Subsection\n\nSubsections within major sections.",
-                insert_text="=== ",
-                sort_text="h3",
-            ),
-            CompletionItem(
-                text="==== Sub-subsection",
-                kind=CompletionKind.SYNTAX,
-                detail="Level 4 heading (sub-subsection)",
-                documentation="#### Sub-subsection\n\nDetailed subsections.",
-                insert_text="==== ",
-                sort_text="h4",
-            ),
-            CompletionItem(
-                text="===== Paragraph",
-                kind=CompletionKind.SYNTAX,
-                detail="Level 5 heading (paragraph title)",
-                documentation="##### Paragraph Title\n\nSmallest heading level.",
-                insert_text="===== ",
-                sort_text="h5",
-            ),
-            # Lists
-            CompletionItem(
-                text="* Unordered list item",
-                kind=CompletionKind.SYNTAX,
-                detail="Unordered list item (bullet)",
-                documentation="* Item\n* Another item\n* Yet another",
-                insert_text="* ",
-                sort_text="list1",
-            ),
-            CompletionItem(
-                text="- Unordered list item (dash)",
-                kind=CompletionKind.SYNTAX,
-                detail="Unordered list item (dash style)",
-                documentation="- Item\n- Another item",
-                insert_text="- ",
-                sort_text="list2",
-            ),
-            CompletionItem(
-                text=". Ordered list item",
-                kind=CompletionKind.SYNTAX,
-                detail="Ordered list item (numbered)",
-                documentation=". First\n. Second\n. Third",
-                insert_text=". ",
-                sort_text="list3",
-            ),
-            # Blocks
-            CompletionItem(
-                text="[source,python]",
-                kind=CompletionKind.SYNTAX,
-                detail="Source code block",
-                documentation="[source,python]\n----\ndef hello():\n    print('hi')\n----",
-                insert_text="[source,python]\n----\n\n----",
-                sort_text="block1",
-            ),
-            CompletionItem(
-                text="[example]",
-                kind=CompletionKind.SYNTAX,
-                detail="Example block",
-                documentation="[example]\n====\nExample content here\n====",
-                insert_text="[example]\n====\n\n====",
-                sort_text="block2",
-            ),
-            CompletionItem(
-                text="[NOTE]",
-                kind=CompletionKind.SYNTAX,
-                detail="Note admonition",
-                documentation="[NOTE]\n====\nImportant note here\n====",
-                insert_text="[NOTE]\n====\n\n====",
-                sort_text="block3",
-            ),
-            CompletionItem(
-                text="[TIP]",
-                kind=CompletionKind.SYNTAX,
-                detail="Tip admonition",
-                documentation="[TIP]\n====\nHelpful tip here\n====",
-                insert_text="[TIP]\n====\n\n====",
-                sort_text="block4",
-            ),
-            CompletionItem(
-                text="[WARNING]",
-                kind=CompletionKind.SYNTAX,
-                detail="Warning admonition",
-                documentation="[WARNING]\n====\nWarning message here\n====",
-                insert_text="[WARNING]\n====\n\n====",
-                sort_text="block5",
-            ),
-            CompletionItem(
-                text="[IMPORTANT]",
-                kind=CompletionKind.SYNTAX,
-                detail="Important admonition",
-                documentation="[IMPORTANT]\n====\nImportant information\n====",
-                insert_text="[IMPORTANT]\n====\n\n====",
-                sort_text="block6",
-            ),
-            CompletionItem(
-                text="[CAUTION]",
-                kind=CompletionKind.SYNTAX,
-                detail="Caution admonition",
-                documentation="[CAUTION]\n====\nBe careful about this\n====",
-                insert_text="[CAUTION]\n====\n\n====",
-                sort_text="block7",
-            ),
-            # Inline formatting
-            CompletionItem(
-                text="*bold*",
-                kind=CompletionKind.SYNTAX,
-                detail="Bold text",
-                documentation="*bold* for **strong** text",
-                insert_text="*",
-                sort_text="inline1",
-            ),
-            CompletionItem(
-                text="_italic_",
-                kind=CompletionKind.SYNTAX,
-                detail="Italic text",
-                documentation="_italic_ for *emphasized* text",
-                insert_text="_",
-                sort_text="inline2",
-            ),
-            CompletionItem(
-                text="`monospace`",
-                kind=CompletionKind.SYNTAX,
-                detail="Monospace text",
-                documentation="`code` for inline code",
-                insert_text="`",
-                sort_text="inline3",
-            ),
-            # Links and images
-            CompletionItem(
-                text="link:URL[text]",
-                kind=CompletionKind.SYNTAX,
-                detail="External link",
-                documentation="link:https://example.com[Example Site]",
-                insert_text="link:",
-                sort_text="link1",
-            ),
-            CompletionItem(
-                text="https://URL[text]",
-                kind=CompletionKind.SYNTAX,
-                detail="URL with label",
-                documentation="https://example.com[Link Text]",
-                insert_text="https://",
-                sort_text="link2",
-            ),
-            CompletionItem(
-                text="image::path[]",
-                kind=CompletionKind.SYNTAX,
-                detail="Block image",
-                documentation="image::path/to/image.png[Alt text]",
-                insert_text="image::",
-                sort_text="image1",
-            ),
-            CompletionItem(
-                text="image:path[]",
-                kind=CompletionKind.SYNTAX,
-                detail="Inline image",
-                documentation="image:icon.png[Icon,16,16]",
-                insert_text="image:",
-                sort_text="image2",
-            ),
+            *self._get_heading_items(),
+            *self._get_list_items(),
+            *self._get_block_items(),
+            *self._get_inline_items(),
+            *self._get_link_items(),
         ]
 
     def _get_heading_completions(self, context: CompletionContext) -> list[CompletionItem]:
