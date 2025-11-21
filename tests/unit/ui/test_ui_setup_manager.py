@@ -71,7 +71,7 @@ class TestUISetupManagerBasics:
         assert hasattr(manager, "_create_editor_pane")
         assert hasattr(manager, "_create_preview_pane")
         assert hasattr(manager, "_create_chat_pane")
-        assert hasattr(manager, "_create_toolbar")
+        assert hasattr(manager, "_toolbar_factory")  # MA: Extracted to ToolbarFactory
         assert callable(manager._create_editor_pane)
         assert callable(manager._create_preview_pane)
 
@@ -291,14 +291,15 @@ class TestChatPaneCreation:
 
 @pytest.mark.unit
 class TestToolbarCreation:
-    """Test suite for _create_toolbar method."""
+    """Test suite for toolbar creation (now via ToolbarFactory)."""
 
     def test_creates_toolbar_widget(self, mock_editor):
         from asciidoc_artisan.ui.ui_setup_manager import UISetupManager
 
         manager = UISetupManager(mock_editor)
 
-        toolbar = manager._create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
+        # MA: Toolbar creation extracted to ToolbarFactory
+        toolbar = manager._toolbar_factory.create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
 
         # Should create toolbar widget
         assert toolbar is not None
@@ -308,7 +309,8 @@ class TestToolbarCreation:
 
         manager = UISetupManager(mock_editor)
 
-        toolbar = manager._create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
+        # MA: Toolbar creation extracted to ToolbarFactory
+        toolbar = manager._toolbar_factory.create_toolbar("Test", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
 
         # Should have fixed height
         assert toolbar.height() == 30
@@ -318,7 +320,8 @@ class TestToolbarCreation:
 
         manager = UISetupManager(mock_editor)
 
-        manager._create_toolbar("Editor", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
+        # MA: Toolbar creation extracted to ToolbarFactory
+        manager._toolbar_factory.create_toolbar("Editor", "#4ade80", "editor", "rgba(74, 222, 128, 0.2)")
 
         # Should store label reference
         assert hasattr(mock_editor, "editor_label")
@@ -328,7 +331,8 @@ class TestToolbarCreation:
 
         manager = UISetupManager(mock_editor)
 
-        manager._create_toolbar("Preview", "#4a9eff", "preview", "rgba(74, 158, 255, 0.2)")
+        # MA: Toolbar creation extracted to ToolbarFactory
+        manager._toolbar_factory.create_toolbar("Preview", "#4a9eff", "preview", "rgba(74, 158, 255, 0.2)")
 
         # Should store max button reference
         assert hasattr(mock_editor, "preview_max_btn")
