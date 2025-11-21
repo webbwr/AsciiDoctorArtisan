@@ -79,7 +79,10 @@ import os  # For environment variables and file operations
 import platform  # For detecting OS (Windows, Linux, Mac)
 import tempfile  # For creating temporary files (deleted automatically)
 from pathlib import Path  # Modern way to handle file paths (better than strings)
-from typing import Any  # Type hints to catch bugs early
+from typing import TYPE_CHECKING, Any  # Type hints to catch bugs early
+
+if TYPE_CHECKING:
+    from PySide6.QtWidgets import QDialog, QFormLayout, QVBoxLayout
 
 # === QT CORE IMPORTS ===
 # Qt's core functionality (not GUI widgets)
@@ -1664,7 +1667,7 @@ class AsciiDocEditor(QMainWindow):
         """Show font settings dialog (delegates to DialogManager)."""
         self.dialog_manager.show_font_settings()
 
-    def _create_settings_dialog(self, title: str) -> tuple:
+    def _create_settings_dialog(self, title: str) -> tuple[QDialog, QVBoxLayout, QFormLayout]:
         """
         Create settings dialog with standard layout.
 
@@ -1684,7 +1687,7 @@ class AsciiDocEditor(QMainWindow):
         form = QFormLayout()
         return dialog, layout, form
 
-    def _add_help_label(self, layout, help_text: str) -> None:
+    def _add_help_label(self, layout: QVBoxLayout, help_text: str) -> None:
         """
         Add help text label to dialog layout.
 
@@ -1700,7 +1703,7 @@ class AsciiDocEditor(QMainWindow):
         help_label.setStyleSheet("color: gray; font-size: 10px;")
         layout.addWidget(help_label)
 
-    def _add_dialog_buttons(self, layout, dialog) -> None:
+    def _add_dialog_buttons(self, layout: QVBoxLayout, dialog: QDialog) -> None:
         """
         Add OK/Cancel buttons to dialog.
 

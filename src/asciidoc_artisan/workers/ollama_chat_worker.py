@@ -192,6 +192,8 @@ class OllamaChatWorker(QObject):
             return
 
         # Create ChatMessage for response
+        # Type narrowing: _current_model is guaranteed to be str (validated in _process_chat)
+        assert self._current_model is not None
         response_message = ChatMessage(
             role="assistant",
             content=response_text,

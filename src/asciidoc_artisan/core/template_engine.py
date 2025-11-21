@@ -422,7 +422,7 @@ class TemplateEngine:
 
         return metadata
 
-    def _extract_required_fields(self, metadata: dict) -> tuple[str, str, str]:
+    def _extract_required_fields(self, metadata: dict[str, Any]) -> tuple[str, str, str]:
         """
         Extract and validate required template fields.
 
@@ -449,7 +449,7 @@ class TemplateEngine:
 
         return name, category, description
 
-    def _parse_variables(self, var_defs: list) -> list[TemplateVariable]:
+    def _parse_variables(self, var_defs: list[Any]) -> list[TemplateVariable]:
         """
         Parse variable definitions from metadata.
 

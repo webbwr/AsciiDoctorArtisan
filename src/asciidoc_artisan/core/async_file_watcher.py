@@ -272,6 +272,8 @@ class AsyncFileWatcher(QObject):
         self._file_exists = True
 
         # Update state with new file metadata
+        # Type narrowing: _file_path is guaranteed to be Path (checked in _check_file)
+        assert self._file_path is not None
         try:
             stat = self._file_path.stat()
             self._last_mtime = stat.st_mtime
@@ -296,6 +298,8 @@ class AsyncFileWatcher(QObject):
         if not file_exists:
             return False
 
+        # Type narrowing: _file_path is guaranteed to be Path (checked in _check_file)
+        assert self._file_path is not None
         try:
             stat = self._file_path.stat()
             current_mtime = stat.st_mtime

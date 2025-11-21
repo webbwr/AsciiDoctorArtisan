@@ -515,7 +515,7 @@ class InstallationValidatorDialog(QDialog):
             True if dark mode enabled, False otherwise
         """
         if self.parent_editor and hasattr(self.parent_editor, "_settings"):
-            return self.parent_editor._settings.dark_mode
+            return bool(self.parent_editor._settings.dark_mode)
         return False
 
     def _get_theme_colors(self, dark_mode: bool) -> dict[str, str]:
