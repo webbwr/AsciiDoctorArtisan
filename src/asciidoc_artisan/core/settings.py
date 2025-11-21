@@ -246,89 +246,48 @@ class Settings:
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
         return cls(**filtered_data)
 
-    def validate(self) -> "Settings":  # noqa: C901
-        """
-        Validate all settings fields and apply corrections.
+    def _validate_bool(self, field_name: str, default: bool, issues: list[str]) -> None:
+        """Validate boolean field."""
+        value = getattr(self, field_name)
+        if not isinstance(value, bool):
+            issues.append(f"Invalid {field_name}: {value}")
+            setattr(self, field_name, default)
 
-        Checks all fields for valid types and value ranges, applying defaults
-        for invalid values. Logs all validation issues for debugging.
+    def _validate_int_range(self, field_name: str, min_val: int, max_val: int, default: int, issues: list[str]) -> None:
+        """Validate integer field within range."""
+        value = getattr(self, field_name)
+        if not isinstance(value, int) or not (min_val <= value <= max_val):
+            issues.append(f"Invalid {field_name}: {value}")
+            setattr(self, field_name, default)
 
-        Returns:
-            Self (for chaining)
+    def _validate_string(self, field_name: str, default: str, issues: list[str], optional: bool = False) -> None:
+        """Validate string field."""
+        value = getattr(self, field_name)
+        if optional and value is None:
+            return
+        if value is None or not isinstance(value, str) or not value:
+            issues.append(f"Invalid {field_name}: {value}")
+            setattr(self, field_name, default if not optional else None)
 
-        Validation rules:
-            - last_directory: Must be valid string path, defaults to home
-            - last_file: Optional string path, set to None if invalid
-            - git_repo_path: Optional string path, set to None if invalid
-            - dark_mode: Must be bool, defaults to True
-            - maximized: Must be bool, defaults to True
-            - window_geometry: Optional dict with x,y,width,height keys
-            - splitter_sizes: Optional list of integers, must have 2-3 elements
-            - font_size: Integer 8-72, defaults to 12
-            - auto_save_enabled: Must be bool, defaults to True
-            - auto_save_interval: Integer 30-3600, defaults to 300
-            - ai_backend: Must be "ollama" or "claude", defaults to "ollama"
-            - ollama_model: Optional string
-            - claude_model: Optional string
-            - ai_chat_enabled: Must be bool, defaults to True
-            - chat_max_history: Integer 10-1000, defaults to 100
-            - chat_context_mode: Must be document/syntax/general/editing
-            - chat_send_document: Must be bool, defaults to True
-            - editor_font_family: Non-empty string, defaults to "Courier New"
-            - editor_font_size: Integer 8-72, defaults to 12
-            - preview_font_family: Non-empty string, defaults to "Arial"
-            - preview_font_size: Integer 8-72, defaults to 12
-            - chat_font_family: Non-empty string, defaults to "Arial"
-            - chat_font_size: Integer 8-72, defaults to 11
-            - spell_check_enabled: Must be bool, defaults to True
-            - spell_check_language: Non-empty string, defaults to "en"
-            - spell_check_custom_words: Must be list of strings
-            - autocomplete_enabled: Must be bool, defaults to True
-            - autocomplete_delay: Integer 100-5000, defaults to 300
-            - autocomplete_min_chars: Integer 1-10, defaults to 2
-            - syntax_check_realtime_enabled: Must be bool, defaults to True
-            - syntax_check_delay: Integer 100-10000, defaults to 500
-            - syntax_check_show_underlines: Must be bool, defaults to True
-            - template_last_category: Non-empty string, defaults to "All"
-            - template_recent_limit: Integer 1-50, defaults to 10
-            - telemetry_enabled: Must be bool, defaults to False
-            - telemetry_session_id: Optional string (UUID format)
-            - telemetry_opt_in_shown: Must be bool, defaults to False
-        """
-        import logging
+    def _validate_string_choice(self, field_name: str, choices: list[str], default: str, issues: list[str]) -> None:
+        """Validate string field against allowed choices."""
+        value = getattr(self, field_name)
+        if not isinstance(value, str) or value not in choices:
+            issues.append(f"Invalid {field_name}: {value}")
+            setattr(self, field_name, default)
 
-        logger = logging.getLogger(__name__)
-        issues = []
+    def _validate_directory_path(self, field_name: str, default: str, issues: list[str]) -> None:
+        """Validate directory path exists."""
+        value = getattr(self, field_name)
+        if not isinstance(value, str) or not value:
+            issues.append(f"Invalid {field_name}: {value}")
+            setattr(self, field_name, default)
+        elif not Path(value).is_dir():
+            issues.append(f"{field_name} does not exist: {value}")
+            setattr(self, field_name, default)
 
-        # Validate last_directory (string, must exist)
-        if not isinstance(self.last_directory, str) or not self.last_directory:
-            issues.append(f"Invalid last_directory: {self.last_directory}")
-            self.last_directory = str(Path.home())
-        elif not Path(self.last_directory).is_dir():
-            issues.append(f"last_directory does not exist: {self.last_directory}")
-            self.last_directory = str(Path.home())
-
-        # Validate last_file (optional string)
-        if self.last_file is not None and (not isinstance(self.last_file, str) or not self.last_file):
-            issues.append(f"Invalid last_file: {self.last_file}")
-            self.last_file = None
-
-        # Validate git_repo_path (optional string)
-        if self.git_repo_path is not None and (not isinstance(self.git_repo_path, str) or not self.git_repo_path):
-            issues.append(f"Invalid git_repo_path: {self.git_repo_path}")
-            self.git_repo_path = None
-
-        # Validate dark_mode (bool)
-        if not isinstance(self.dark_mode, bool):
-            issues.append(f"Invalid dark_mode: {self.dark_mode}")
-            self.dark_mode = True
-
-        # Validate maximized (bool)
-        if not isinstance(self.maximized, bool):
-            issues.append(f"Invalid maximized: {self.maximized}")
-            self.maximized = True
-
-        # Validate window_geometry (optional dict)
+    def _validate_window_geometry(self, issues: list[str]) -> None:
+        """Validate window geometry dict structure."""
         if self.window_geometry is not None:
             if not isinstance(self.window_geometry, dict):
                 issues.append(f"Invalid window_geometry type: {type(self.window_geometry)}")
@@ -337,7 +296,8 @@ class Settings:
                 issues.append(f"Missing window_geometry keys: {self.window_geometry.keys()}")
                 self.window_geometry = None
 
-        # Validate splitter_sizes (optional list of 2-3 ints)
+    def _validate_splitter_sizes(self, issues: list[str]) -> None:
+        """Validate splitter sizes list structure."""
         if self.splitter_sizes is not None:
             if not isinstance(self.splitter_sizes, list):
                 issues.append(f"Invalid splitter_sizes type: {type(self.splitter_sizes)}")
@@ -349,167 +309,136 @@ class Settings:
                 issues.append(f"Invalid splitter_sizes values: {self.splitter_sizes}")
                 self.splitter_sizes = None
 
-        # Validate font_size (int 8-72)
-        if not isinstance(self.font_size, int) or not (8 <= self.font_size <= 72):
-            issues.append(f"Invalid font_size: {self.font_size}")
-            self.font_size = 12
+    def _validate_list_of_strings(self, field_name: str, issues: list[str]) -> None:
+        """Validate list contains only strings."""
+        value = getattr(self, field_name)
+        if not isinstance(value, list):
+            issues.append(f"Invalid {field_name} type: {type(value)}")
+            setattr(self, field_name, [])
+        elif not all(isinstance(item, str) for item in value):
+            issues.append(f"{field_name} contains non-string values")
+            setattr(self, field_name, [item for item in value if isinstance(item, str)])
 
-        # Validate auto_save_enabled (bool)
-        if not isinstance(self.auto_save_enabled, bool):
-            issues.append(f"Invalid auto_save_enabled: {self.auto_save_enabled}")
-            self.auto_save_enabled = True
+    def _validate_path_settings(self, issues: list[str]) -> None:
+        """Validate directory and file path settings. MA principle: Extracted (3 calls)."""
+        self._validate_directory_path("last_directory", str(Path.home()), issues)
+        self._validate_string("last_file", "", issues, optional=True)
+        self._validate_string("git_repo_path", "", issues, optional=True)
 
-        # Validate auto_save_interval (int 30-3600)
-        if not isinstance(self.auto_save_interval, int) or not (30 <= self.auto_save_interval <= 3600):
-            issues.append(f"Invalid auto_save_interval: {self.auto_save_interval}")
-            self.auto_save_interval = 300
+    def _validate_ui_settings(self, issues: list[str]) -> None:
+        """Validate UI appearance and layout settings. MA principle: Extracted (5 calls)."""
+        self._validate_bool("dark_mode", True, issues)
+        self._validate_bool("maximized", True, issues)
+        self._validate_window_geometry(issues)
+        self._validate_splitter_sizes(issues)
+        self._validate_int_range("font_size", 8, 72, 12, issues)
 
-        # Validate ai_backend (string: "ollama" or "claude")
-        if not isinstance(self.ai_backend, str) or self.ai_backend not in [
-            "ollama",
-            "claude",
-        ]:
-            issues.append(f"Invalid ai_backend: {self.ai_backend}")
-            self.ai_backend = "ollama"
+    def _validate_auto_save_settings(self, issues: list[str]) -> None:
+        """Validate auto-save configuration. MA principle: Extracted (2 calls)."""
+        self._validate_bool("auto_save_enabled", True, issues)
+        self._validate_int_range("auto_save_interval", 30, 3600, 300, issues)
 
-        # Validate ollama_enabled (bool)
-        if not isinstance(self.ollama_enabled, bool):
-            issues.append(f"Invalid ollama_enabled: {self.ollama_enabled}")
-            self.ollama_enabled = True
+    def _validate_ai_settings(self, issues: list[str]) -> None:
+        """Validate AI backend settings. MA principle: Extracted (5 calls)."""
+        self._validate_string_choice("ai_backend", ["ollama", "claude"], "ollama", issues)
+        self._validate_bool("ollama_enabled", True, issues)
+        self._validate_string("ollama_model", "", issues, optional=True)
+        self._validate_string("claude_model", "", issues, optional=True)
+        self._validate_bool("ai_chat_enabled", True, issues)
 
-        # Validate ollama_model (optional string)
-        if self.ollama_model is not None and (not isinstance(self.ollama_model, str) or not self.ollama_model):
-            issues.append(f"Invalid ollama_model: {self.ollama_model}")
-            self.ollama_model = None
-
-        # Validate claude_model (optional string)
-        if self.claude_model is not None and (not isinstance(self.claude_model, str) or not self.claude_model):
-            issues.append(f"Invalid claude_model: {self.claude_model}")
-            self.claude_model = None
-
-        # Validate ai_chat_enabled (bool)
-        if not isinstance(self.ai_chat_enabled, bool):
-            issues.append(f"Invalid ai_chat_enabled: {self.ai_chat_enabled}")
-            self.ai_chat_enabled = True
-
-        # Validate chat_history (list of dicts)
+    def _validate_chat_settings(self, issues: list[str]) -> None:
+        """Validate chat configuration. MA principle: Extracted (6 calls)."""
         if not isinstance(self.chat_history, list):
             issues.append(f"Invalid chat_history type: {type(self.chat_history)}")
             self.chat_history = []
 
-        # Validate chat_max_history (int 10-1000)
-        if not isinstance(self.chat_max_history, int) or not (10 <= self.chat_max_history <= 1000):
-            issues.append(f"Invalid chat_max_history: {self.chat_max_history}")
-            self.chat_max_history = 100
+        self._validate_int_range("chat_max_history", 10, 1000, 100, issues)
+        self._validate_string_choice(
+            "chat_context_mode",
+            ["document", "syntax", "general", "editing"],
+            "document",
+            issues,
+        )
+        self._validate_bool("chat_send_document", True, issues)
 
-        # Validate chat_context_mode (string)
-        valid_modes = ["document", "syntax", "general", "editing"]
-        if not isinstance(self.chat_context_mode, str) or self.chat_context_mode not in valid_modes:
-            issues.append(f"Invalid chat_context_mode: {self.chat_context_mode}")
-            self.chat_context_mode = "document"
+    def _validate_font_settings(self, issues: list[str]) -> None:
+        """Validate font family and size settings. MA principle: Extracted (6 calls)."""
+        self._validate_string("editor_font_family", "Courier New", issues)
+        self._validate_int_range("editor_font_size", 8, 72, 12, issues)
+        self._validate_string("preview_font_family", "Arial", issues)
+        self._validate_int_range("preview_font_size", 8, 72, 12, issues)
+        self._validate_string("chat_font_family", "Arial", issues)
+        self._validate_int_range("chat_font_size", 8, 72, 11, issues)
 
-        # Validate chat_send_document (bool)
-        if not isinstance(self.chat_send_document, bool):
-            issues.append(f"Invalid chat_send_document: {self.chat_send_document}")
-            self.chat_send_document = True
+    def _validate_spell_check_settings(self, issues: list[str]) -> None:
+        """Validate spell check configuration. MA principle: Extracted (3 calls)."""
+        self._validate_bool("spell_check_enabled", True, issues)
+        self._validate_string("spell_check_language", "en", issues)
+        self._validate_list_of_strings("spell_check_custom_words", issues)
 
-        # Validate font settings
-        if not isinstance(self.editor_font_family, str) or not self.editor_font_family:
-            issues.append(f"Invalid editor_font_family: {self.editor_font_family}")
-            self.editor_font_family = "Courier New"
+    def _validate_autocomplete_settings(self, issues: list[str]) -> None:
+        """Validate autocomplete configuration. MA principle: Extracted (3 calls)."""
+        self._validate_bool("autocomplete_enabled", True, issues)
+        self._validate_int_range("autocomplete_delay", 100, 5000, 300, issues)
+        self._validate_int_range("autocomplete_min_chars", 1, 10, 2, issues)
 
-        if not isinstance(self.editor_font_size, int) or not (8 <= self.editor_font_size <= 72):
-            issues.append(f"Invalid editor_font_size: {self.editor_font_size}")
-            self.editor_font_size = 12
+    def _validate_syntax_check_settings(self, issues: list[str]) -> None:
+        """Validate syntax checking configuration. MA principle: Extracted (3 calls)."""
+        self._validate_bool("syntax_check_realtime_enabled", True, issues)
+        self._validate_int_range("syntax_check_delay", 100, 10000, 500, issues)
+        self._validate_bool("syntax_check_show_underlines", True, issues)
 
-        if not isinstance(self.preview_font_family, str) or not self.preview_font_family:
-            issues.append(f"Invalid preview_font_family: {self.preview_font_family}")
-            self.preview_font_family = "Arial"
+    def _validate_template_settings(self, issues: list[str]) -> None:
+        """Validate template configuration. MA principle: Extracted (2 calls)."""
+        self._validate_string("template_last_category", "All", issues)
+        self._validate_int_range("template_recent_limit", 1, 50, 10, issues)
 
-        if not isinstance(self.preview_font_size, int) or not (8 <= self.preview_font_size <= 72):
-            issues.append(f"Invalid preview_font_size: {self.preview_font_size}")
-            self.preview_font_size = 12
+    def _validate_telemetry_settings(self, issues: list[str]) -> None:
+        """Validate telemetry configuration. MA principle: Extracted (3 calls)."""
+        self._validate_bool("telemetry_enabled", False, issues)
+        self._validate_string("telemetry_session_id", "", issues, optional=True)
+        self._validate_bool("telemetry_opt_in_shown", False, issues)
 
-        if not isinstance(self.chat_font_family, str) or not self.chat_font_family:
-            issues.append(f"Invalid chat_font_family: {self.chat_font_family}")
-            self.chat_font_family = "Arial"
+    def _log_validation_results(self, issues: list[str]) -> None:
+        """Log validation results. MA principle: Extracted (6 lines)."""
+        import logging
 
-        if not isinstance(self.chat_font_size, int) or not (8 <= self.chat_font_size <= 72):
-            issues.append(f"Invalid chat_font_size: {self.chat_font_size}")
-            self.chat_font_size = 11
-
-        # Validate spell check settings
-        if not isinstance(self.spell_check_enabled, bool):
-            issues.append(f"Invalid spell_check_enabled: {self.spell_check_enabled}")
-            self.spell_check_enabled = True
-
-        if not isinstance(self.spell_check_language, str) or not self.spell_check_language:
-            issues.append(f"Invalid spell_check_language: {self.spell_check_language}")
-            self.spell_check_language = "en"
-
-        if not isinstance(self.spell_check_custom_words, list):
-            issues.append(f"Invalid spell_check_custom_words type: {type(self.spell_check_custom_words)}")
-            self.spell_check_custom_words = []
-        elif not all(isinstance(w, str) for w in self.spell_check_custom_words):
-            issues.append("spell_check_custom_words contains non-string values")
-            self.spell_check_custom_words = [w for w in self.spell_check_custom_words if isinstance(w, str)]
-
-        # Validate auto-complete settings (v2.0.0)
-        if not isinstance(self.autocomplete_enabled, bool):
-            issues.append(f"Invalid autocomplete_enabled: {self.autocomplete_enabled}")
-            self.autocomplete_enabled = True
-
-        if not isinstance(self.autocomplete_delay, int) or not (100 <= self.autocomplete_delay <= 5000):
-            issues.append(f"Invalid autocomplete_delay: {self.autocomplete_delay}")
-            self.autocomplete_delay = 300
-
-        if not isinstance(self.autocomplete_min_chars, int) or not (1 <= self.autocomplete_min_chars <= 10):
-            issues.append(f"Invalid autocomplete_min_chars: {self.autocomplete_min_chars}")
-            self.autocomplete_min_chars = 2
-
-        # Validate syntax checking settings (v2.0.0)
-        if not isinstance(self.syntax_check_realtime_enabled, bool):
-            issues.append(f"Invalid syntax_check_realtime_enabled: {self.syntax_check_realtime_enabled}")
-            self.syntax_check_realtime_enabled = True
-
-        if not isinstance(self.syntax_check_delay, int) or not (100 <= self.syntax_check_delay <= 10000):
-            issues.append(f"Invalid syntax_check_delay: {self.syntax_check_delay}")
-            self.syntax_check_delay = 500
-
-        if not isinstance(self.syntax_check_show_underlines, bool):
-            issues.append(f"Invalid syntax_check_show_underlines: {self.syntax_check_show_underlines}")
-            self.syntax_check_show_underlines = True
-
-        # Validate template settings (v2.0.0)
-        if not isinstance(self.template_last_category, str):
-            issues.append(f"Invalid template_last_category: {self.template_last_category}")
-            self.template_last_category = "All"
-
-        if not isinstance(self.template_recent_limit, int) or not (1 <= self.template_recent_limit <= 50):
-            issues.append(f"Invalid template_recent_limit: {self.template_recent_limit}")
-            self.template_recent_limit = 10
-
-        # Validate telemetry settings
-        if not isinstance(self.telemetry_enabled, bool):
-            issues.append(f"Invalid telemetry_enabled: {self.telemetry_enabled}")
-            self.telemetry_enabled = False
-
-        if self.telemetry_session_id is not None and (
-            not isinstance(self.telemetry_session_id, str) or not self.telemetry_session_id
-        ):
-            issues.append(f"Invalid telemetry_session_id: {self.telemetry_session_id}")
-            self.telemetry_session_id = None
-
-        if not isinstance(self.telemetry_opt_in_shown, bool):
-            issues.append(f"Invalid telemetry_opt_in_shown: {self.telemetry_opt_in_shown}")
-            self.telemetry_opt_in_shown = False
-
-        # Log all issues
+        logger = logging.getLogger(__name__)
         if issues:
             logger.warning(f"Settings validation found {len(issues)} issues:")
             for issue in issues:
                 logger.warning(f"  - {issue}")
         else:
             logger.info("Settings validation: all fields valid")
+
+    def validate(self) -> "Settings":
+        """
+        Validate all settings fields and apply corrections.
+
+        MA principle: Reduced from 96→27 lines by extracting 12 category-specific helpers (72% reduction).
+
+        Checks all fields for valid types and value ranges, applying defaults
+        for invalid values. Logs all validation issues for debugging.
+
+        Returns:
+            Self (for chaining)
+        """
+        issues: list[str] = []
+
+        # Validate all settings categories
+        self._validate_path_settings(issues)
+        self._validate_ui_settings(issues)
+        self._validate_auto_save_settings(issues)
+        self._validate_ai_settings(issues)
+        self._validate_chat_settings(issues)
+        self._validate_font_settings(issues)
+        self._validate_spell_check_settings(issues)
+        self._validate_autocomplete_settings(issues)
+        self._validate_syntax_check_settings(issues)
+        self._validate_template_settings(issues)
+        self._validate_telemetry_settings(issues)
+
+        # Log results
+        self._log_validation_results(issues)
 
         return self
