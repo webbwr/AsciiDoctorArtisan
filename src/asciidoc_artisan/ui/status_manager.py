@@ -22,6 +22,7 @@ from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME, GitStatus
 from asciidoc_artisan.ui.document_metrics_calculator import DocumentMetricsCalculator
 from asciidoc_artisan.ui.git_status_formatter import GitStatusFormatter
+from asciidoc_artisan.ui.status_bar_widget_factory import StatusBarWidgetFactory
 
 logger = logging.getLogger(__name__)
 
@@ -80,58 +81,20 @@ class StatusManager:
             self._formatter_instance = GitStatusFormatter()
         return self._formatter_instance
 
+    @property
+    def _widget_factory(self) -> StatusBarWidgetFactory:
+        """
+        Lazy-initialized status bar widget factory.
+
+        MA principle: Delegates widget creation to StatusBarWidgetFactory (extracted class).
+        """
+        if not hasattr(self, "_factory_instance"):
+            self._factory_instance = StatusBarWidgetFactory(self)
+        return self._factory_instance
+
     def initialize_widgets(self) -> None:
-        """Initialize status bar widgets after status bar is created."""
-        # Create cancel button (left side, shown only during operations)
-        self.cancel_button = QPushButton("✕ Cancel")
-        self.cancel_button.setMaximumWidth(80)
-        self.cancel_button.setToolTip("Cancel current operation")
-        self.cancel_button.clicked.connect(self._on_cancel_clicked)
-        self.cancel_button.hide()  # Hidden by default
-
-        # Add cancel button to left side of status bar
-        self.editor.status_bar.addWidget(self.cancel_button)
-
-        # Create permanent status bar widgets (right side)
-        self.word_count_label = QLabel("Words: 0")
-        self.version_label = QLabel("")
-        self.grade_level_label = QLabel("Grade: --")
-        self.git_status_label = QLabel("")
-        self.ai_status_label = QLabel("")
-
-        # Style all labels consistently with matched fonts and alignment
-        # Word count: wider for larger numbers
-        self.word_count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.word_count_label.setMinimumWidth(100)
-        self.word_count_label.setToolTip("Document word count (excludes code blocks and comments)")
-
-        # Version: narrower, often short
-        self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.version_label.setMinimumWidth(60)
-        self.version_label.setToolTip("Document version (extracted from :version: or :revnumber: attributes)")
-
-        # Grade level: medium width
-        self.grade_level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.grade_level_label.setMinimumWidth(90)
-        self.grade_level_label.setToolTip("Reading grade level (Flesch-Kincaid readability score)")
-
-        # Git status: brief branch indicator
-        self.git_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.git_status_label.setMinimumWidth(80)
-        self.git_status_label.setToolTip("Git repository status (click for details)")
-
-        # AI status: wider for model names
-        self.ai_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.ai_status_label.setMinimumWidth(150)
-        # Tooltip set dynamically in set_ai_model()
-
-        # Add widgets to status bar (right side, permanent)
-        # Order: Version | Word Count | Grade Level | Git | AI Status
-        self.editor.status_bar.addPermanentWidget(self.version_label)
-        self.editor.status_bar.addPermanentWidget(self.word_count_label)
-        self.editor.status_bar.addPermanentWidget(self.grade_level_label)
-        self.editor.status_bar.addPermanentWidget(self.git_status_label)
-        self.editor.status_bar.addPermanentWidget(self.ai_status_label)
+        """Initialize status bar widgets (delegates to widget_factory)."""
+        self._widget_factory.initialize_widgets()
 
     def update_window_title(self) -> None:
         """Update the window title based on current file and save status."""
