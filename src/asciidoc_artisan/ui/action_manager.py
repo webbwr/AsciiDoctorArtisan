@@ -200,16 +200,8 @@ class ActionManager:
         self._settings = main_window._settings
         self._sync_scrolling = main_window._sync_scrolling
 
-    def _declare_all_actions(self) -> None:
-        """
-        Declare all action type hints for IDE/mypy support.
-
-        MA principle: Extracted helper (75 lines) - focused type annotation declarations.
-
-        These are declared (but not created yet - that happens in create_actions()).
-        Declaring them here helps type checkers and IDEs.
-        """
-        # File menu actions (11 actions - includes template action v2.0.0)
+    def _declare_file_actions(self) -> None:
+        """Declare File menu action type hints."""
         self.new_act: QAction
         self.new_from_template_act: QAction
         self.open_act: QAction
@@ -222,7 +214,8 @@ class ActionManager:
         self.save_as_pdf_act: QAction
         self.exit_act: QAction
 
-        # Edit menu actions (11 actions - includes Find/Replace actions v1.8.0)
+    def _declare_edit_actions(self) -> None:
+        """Declare Edit menu action type hints."""
         self.undo_act: QAction
         self.redo_act: QAction
         self.cut_act: QAction
@@ -234,7 +227,8 @@ class ActionManager:
         self.find_next_act: QAction
         self.find_previous_act: QAction
 
-        # View menu actions (7 actions)
+    def _declare_view_actions(self) -> None:
+        """Declare View menu action type hints."""
         self.zoom_in_act: QAction
         self.zoom_out_act: QAction
         self.dark_mode_act: QAction
@@ -243,7 +237,8 @@ class ActionManager:
         self.maximize_editor_act: QAction
         self.maximize_preview_act: QAction
 
-        # Git menu actions (6 actions, +status and quick commit in v1.9.0)
+    def _declare_git_actions(self) -> None:
+        """Declare Git menu action type hints."""
         self.set_repo_act: QAction
         self.git_status_act: QAction
         self.git_commit_act: QAction
@@ -251,14 +246,16 @@ class ActionManager:
         self.git_push_act: QAction
         self.quick_commit_act: QAction
 
-        # GitHub submenu actions (5 actions) - v1.6.0
+    def _declare_github_actions(self) -> None:
+        """Declare GitHub submenu action type hints."""
         self.github_create_pr_act: QAction
         self.github_list_prs_act: QAction
         self.github_create_issue_act: QAction
         self.github_list_issues_act: QAction
         self.github_repo_info_act: QAction
 
-        # Tools menu actions (13 actions - includes v2.0.0 settings)
+    def _declare_tools_actions(self) -> None:
+        """Declare Tools menu action type hints."""
         self.validate_install_act: QAction
         self.autocomplete_settings_act: QAction
         self.syntax_check_settings_act: QAction
@@ -275,8 +272,26 @@ class ActionManager:
         self.font_settings_act: QAction
         self.app_settings_act: QAction
 
-        # Help menu actions (1 action)
+    def _declare_help_actions(self) -> None:
+        """Declare Help menu action type hints."""
         self.about_act: QAction
+
+    def _declare_all_actions(self) -> None:
+        """
+        Declare all action type hints for IDE/mypy support.
+
+        MA principle: Reduced from 67→11 lines by extracting menu-specific helpers (84% reduction).
+
+        These are declared (but not created yet - that happens in create_actions()).
+        Declaring them here helps type checkers and IDEs.
+        """
+        self._declare_file_actions()
+        self._declare_edit_actions()
+        self._declare_view_actions()
+        self._declare_git_actions()
+        self._declare_github_actions()
+        self._declare_tools_actions()
+        self._declare_help_actions()
 
     # === HELPER METHODS ===
     # These methods reduce code duplication (DRY principle)
