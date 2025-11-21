@@ -106,6 +106,9 @@ from PySide6.QtGui import (
     QKeySequence,  # Keyboard shortcut class (like Ctrl+S, Ctrl+C)
 )
 
+# === LOCAL IMPORTS ===
+from asciidoc_artisan.ui.action_factory import ActionFactory
+
 # === TYPE CHECKING (Avoid Circular Imports) ===
 # This is a trick to avoid importing main_window at runtime (would cause circular import)
 # We only need the type for type hints, not the actual class
@@ -199,6 +202,7 @@ class ActionManager:
         self.editor = main_window.editor
         self._settings = main_window._settings
         self._sync_scrolling = main_window._sync_scrolling
+        self._factory = ActionFactory(main_window)
 
     def _declare_file_actions(self) -> None:
         """Declare File menu action type hints."""
@@ -305,107 +309,8 @@ class ActionManager:
         checkable: bool = False,
         checked: bool = False,
     ) -> QAction:
-        """
-        Create QAction with Common Parameters - THE KEY DRY PATTERN METHOD.
-
-        WHY THIS METHOD IS CRITICAL:
-        This is the single most important method in this file! Before this
-        helper existed, creating each action required 5-10 lines of code.
-        With 50+ actions, that was 250+ lines of repetitive code.
-
-        This helper reduces each action creation to ONE line!
-
-        BEFORE (5-10 lines per action):
-            action = QAction("&New", self.window)
-            action.setStatusTip("Create a new file")
-            action.setShortcut(QKeySequence.StandardKey.New)
-            action.triggered.connect(self.window.new_file)
-            self.new_act = action
-
-        AFTER (1 line per action):
-            self.new_act = self._create_action("&New", "Create a new file",
-                                                self.window.new_file,
-                                                QKeySequence.StandardKey.New)
-
-        Result: 97% reduction in QAction instantiation code!
-
-        WHAT THIS METHOD DOES:
-        1. Creates a QAction object with the given text
-        2. Sets the status tip (shown in status bar when hovering)
-        3. Connects the action to its handler function (what runs when clicked)
-        4. (Optional) Sets keyboard shortcut (Ctrl+N, Ctrl+S, etc.)
-        5. (Optional) Makes action checkable (like a toggle switch)
-        6. Returns the fully configured action
-
-        FOR BEGINNERS - WHAT ARE THE PARAMETERS?:
-
-        text - The label shown in the menu
-          - Use "&" before a letter to make it the keyboard mnemonic
-          - "&New" shows as "New" with "N" underlined (Alt+N triggers it)
-
-        status_tip - Help text shown in status bar when hovering over menu item
-          - Example: "Create a new file"
-
-        triggered - The function to call when action is clicked/triggered
-          - Example: self.window.new_file (the method that creates new files)
-
-        shortcut - (Optional) Keyboard shortcut
-          - Can be StandardKey (Ctrl+N, Ctrl+S - cross-platform)
-          - Or custom string ("F11", "Ctrl+Shift+V")
-
-        checkable - (Optional) Whether action is a toggle (on/off)
-          - False = normal button (like "New", "Save")
-          - True = toggle switch (like "Dark Mode", "Sync Scrolling")
-
-        checked - (Optional) Initial state for checkable actions
-          - Only used if checkable=True
-          - True = starts checked (on)
-          - False = starts unchecked (off)
-
-        PARAMETERS:
-            text: Action text with & for mnemonic (e.g., "&New" → Alt+N)
-            status_tip: Status bar tip text (shown when hovering)
-            triggered: Callable to run when action activated
-            shortcut: Keyboard shortcut (StandardKey or string), optional
-            checkable: Whether action is checkable (toggle), default False
-            checked: Initial checked state, default False
-
-        RETURNS:
-            Fully configured QAction instance ready to use
-        """
-        # === STEP 1: CREATE ACTION ===
-        # Create QAction object with text and parent window
-        # Parent window ensures action is deleted when window closes
-        action = QAction(text, self.window)
-
-        # === STEP 2: SET STATUS TIP ===
-        # Status tip shows in status bar when user hovers over menu item
-        action.setStatusTip(status_tip)
-
-        # === STEP 3: CONNECT TO HANDLER ===
-        # When action is triggered (clicked or keyboard shortcut), call the handler
-        # This is the "signal/slot" pattern in Qt (like pub/sub in JavaScript)
-        action.triggered.connect(triggered)
-
-        # === STEP 4: SET KEYBOARD SHORTCUT (Optional) ===
-        if shortcut is not None:
-            # Check if shortcut is a StandardKey (cross-platform standard like Ctrl+N)
-            if isinstance(shortcut, QKeySequence.StandardKey):
-                # StandardKey automatically adapts to platform (Cmd on Mac, Ctrl elsewhere)
-                action.setShortcut(QKeySequence(shortcut))
-            else:
-                # Custom shortcut string (like "F11" or "Ctrl+Shift+V")
-                action.setShortcut(shortcut)
-
-        # === STEP 5: MAKE CHECKABLE (Optional) ===
-        # Checkable actions are toggles (on/off switches) like checkboxes
-        if checkable:
-            action.setCheckable(True)  # Make it a toggle
-            action.setChecked(checked)  # Set initial state (on or off)
-
-        # === STEP 6: RETURN CONFIGURED ACTION ===
-        # Action is now fully set up and ready to use!
-        return action
+        """Create QAction with common parameters (delegates to action_factory)."""
+        return self._factory.create_action_internal(text, status_tip, triggered, shortcut, checkable, checked)
 
     def create_action(
         self,
@@ -418,51 +323,8 @@ class ActionManager:
         checkable: bool = False,
         checked: bool = False,
     ) -> QAction:
-        """
-        Public API to create a single QAction.
-
-        This is a convenience wrapper around _create_action() with additional
-        parameters for icon, tooltip, and enabled state. Useful for creating
-        custom actions or extending the application.
-
-        Args:
-            text: Action text (e.g., "New File")
-            triggered: Callback function to run when action is triggered
-            shortcut: Optional keyboard shortcut
-            icon: Optional QIcon for the action
-            tooltip: Optional tooltip text (also used as status tip)
-            enabled: Whether action is enabled (default: True)
-            checkable: Whether action is checkable/toggleable (default: False)
-            checked: Initial checked state if checkable (default: False)
-
-        Returns:
-            Configured QAction instance
-        """
-        # Use tooltip as status_tip if provided, otherwise use text
-        status_tip = tooltip if tooltip else text
-
-        # Create action using private helper
-        action = self._create_action(
-            text=text,
-            status_tip=status_tip,
-            triggered=triggered,
-            shortcut=shortcut,
-            checkable=checkable,
-            checked=checked,
-        )
-
-        # Set icon if provided
-        if icon is not None:
-            action.setIcon(icon)
-
-        # Set tooltip if provided (in addition to status tip)
-        if tooltip is not None:
-            action.setToolTip(tooltip)
-
-        # Set enabled state
-        action.setEnabled(enabled)
-
-        return action
+        """Public API to create a single QAction (delegates to action_factory)."""
+        return self._factory.create_action(text, triggered, shortcut, icon, tooltip, enabled, checkable, checked)
 
     def _create_file_actions(self) -> None:
         """Create File menu actions (11 actions)."""
