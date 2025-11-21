@@ -25,6 +25,7 @@ from PySide6.QtCore import Signal, Slot
 
 from asciidoc_artisan.core import GitResult, GitStatus
 from asciidoc_artisan.workers.base_worker import BaseWorker
+from asciidoc_artisan.workers.git_command_executor import GitCommandExecutor
 from asciidoc_artisan.workers.git_status_parser import GitStatusParser
 
 logger = logging.getLogger(__name__)
@@ -67,9 +68,10 @@ class GitWorker(BaseWorker):
     detailed_status_ready = Signal(dict)  # v1.9.0+
 
     def __init__(self) -> None:
-        """Initialize GitWorker with parser instance."""
+        """Initialize GitWorker with parser and executor instances."""
         super().__init__()
         self._parser = GitStatusParser()
+        self._executor = GitCommandExecutor()
 
     def _check_and_handle_cancellation(self) -> bool:
         """Check for cancellation and emit result if cancelled. Returns True if cancelled."""
@@ -89,26 +91,14 @@ class GitWorker(BaseWorker):
         return False
 
     def _get_timeout_for_command(self, command: list[str]) -> int:
-        """Determine timeout based on operation type (network vs local)."""
-        network_ops = {"pull", "push", "fetch", "clone"}
-        is_network_op = any(op in command for op in network_ops)
-        return 60 if is_network_op else 30
+        """Determine timeout (delegates to git_command_executor)."""
+        return self._executor.get_timeout_for_command(command)
 
     def _execute_git_subprocess(
         self, command: list[str], working_dir: str, timeout: int
     ) -> subprocess.CompletedProcess[str]:
-        """Execute Git subprocess with security controls."""
-        return subprocess.run(
-            command,
-            cwd=working_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-            shell=False,  # Critical: prevents command injection
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout,
-        )
+        """Execute Git subprocess (delegates to git_command_executor)."""
+        return self._executor.execute_git_subprocess(command, working_dir, timeout)
 
     def _create_success_result(self, stdout: str, stderr: str, exit_code: int) -> GitResult:
         """Create success result."""
@@ -322,45 +312,8 @@ class GitWorker(BaseWorker):
         self._emit_status_or_default(process)
 
     def _execute_git_status_command(self, working_dir: str) -> subprocess.CompletedProcess[str] | None:
-        """
-        MA principle: Extracted helper (26 lines) - focused git status command execution.
-
-        Execute git status command with security and timeout protections.
-
-        Args:
-            working_dir: Git repository root directory
-
-        Returns:
-            CompletedProcess if successful, None on error
-
-        Security:
-            - Uses subprocess with shell=False to prevent command injection
-            - 2 second timeout to avoid blocking
-        """
-        try:
-            # Run git status with porcelain v2 format (machine-readable)
-            # Security: shell=False prevents command injection
-            process = subprocess.run(
-                ["git", "status", "--porcelain=v2", "--branch"],
-                cwd=working_dir,
-                capture_output=True,
-                text=True,
-                check=False,
-                shell=False,
-                encoding="utf-8",
-                errors="replace",
-                timeout=2,  # Quick timeout for status checks
-            )
-            return process
-
-        except subprocess.TimeoutExpired:
-            logger.warning("Git status timed out after 2s")
-        except FileNotFoundError:
-            logger.warning("Git command not found")
-        except Exception as e:
-            logger.exception(f"Unexpected error executing git status: {e}")
-
-        return None
+        """Execute git status command (delegates to git_command_executor)."""
+        return self._executor.execute_git_status_command(working_dir)
 
     def _emit_status_or_default(self, process: subprocess.CompletedProcess[str] | None) -> None:
         """
@@ -468,41 +421,11 @@ class GitWorker(BaseWorker):
             logger.exception(f"Unexpected error getting detailed Git status: {e}")
 
     def _execute_detailed_status_command(self, working_dir: str) -> subprocess.CompletedProcess[str] | None:
-        """
-        Execute git status command for detailed repository status.
-
-        MA principle: Extracted helper (28 lines) - focused command execution.
-
-        Args:
-            working_dir: Working directory path
-
-        Returns:
-            CompletedProcess if successful, None otherwise
-        """
+        """Execute detailed status command (delegates to git_command_executor)."""
         if not self._validate_working_directory(working_dir):
             logger.warning(f"Invalid Git working directory: {working_dir}")
             return None
-
-        logger.debug(f"Getting detailed Git status for {working_dir}")
-
-        # Get basic status (branch + file lists)
-        status_result = subprocess.run(
-            ["git", "status", "--porcelain=v2", "--branch"],
-            cwd=working_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-            shell=False,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        )
-
-        if status_result.returncode != 0:
-            logger.warning(f"Git status failed (code {status_result.returncode})")
-            return None
-
-        return status_result
+        return self._executor.execute_detailed_status_command(working_dir)
 
     def _emit_detailed_status(
         self,
@@ -570,48 +493,8 @@ class GitWorker(BaseWorker):
     def _execute_git_diff_numstat(
         self, working_dir: str, staged: bool
     ) -> tuple[subprocess.CompletedProcess[str] | None, bool]:
-        """
-        MA principle: Extracted helper (23 lines) - focused git diff command execution.
-
-        Execute git diff --numstat to get line change counts.
-
-        Args:
-            working_dir: Repository root directory
-            staged: If True, get staged changes (--cached), else working tree changes
-
-        Returns:
-            Tuple of (CompletedProcess or None, timeout_occurred)
-            - First element: CompletedProcess if successful, None on error
-            - Second element: True if timeout occurred, False otherwise
-
-        Security:
-            - Uses subprocess with shell=False to prevent command injection
-            - 3 second timeout to avoid blocking
-        """
-        try:
-            cmd = ["git", "diff", "--numstat"]
-            if staged:
-                cmd.append("--cached")
-
-            result = subprocess.run(
-                cmd,
-                cwd=working_dir,
-                capture_output=True,
-                text=True,
-                check=False,
-                shell=False,
-                encoding="utf-8",
-                errors="replace",
-                timeout=3,
-            )
-            return result, False
-
-        except subprocess.TimeoutExpired:
-            logger.warning("Git diff --numstat timed out after 3s")
-            return None, True
-        except Exception as e:
-            logger.warning(f"Failed to get line counts: {e}")
-            return None, False
+        """Execute git diff --numstat (delegates to git_command_executor)."""
+        return self._executor.execute_git_diff_numstat(working_dir, staged)
 
     def _parse_numstat_output(self, stdout: str) -> dict[str, dict[str, int]]:
         """Parse numstat output (delegates to git_status_parser)."""
