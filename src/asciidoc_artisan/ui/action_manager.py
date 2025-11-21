@@ -109,6 +109,7 @@ from PySide6.QtGui import (
 # === LOCAL IMPORTS ===
 from asciidoc_artisan.ui.action_creators import ActionCreators
 from asciidoc_artisan.ui.action_factory import ActionFactory
+from asciidoc_artisan.ui.menu_builder import MenuBuilder
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
 # This is a trick to avoid importing main_window at runtime (would cause circular import)
@@ -205,6 +206,7 @@ class ActionManager:
         self._sync_scrolling = main_window._sync_scrolling
         self._factory = ActionFactory(main_window)
         self._creators = ActionCreators(self)
+        self._menu_builder = MenuBuilder(self)
 
     def _declare_file_actions(self) -> None:
         """Declare File menu action type hints."""
@@ -435,100 +437,28 @@ class ActionManager:
         logger.debug("Actions created successfully")
 
     def _create_file_menu(self, menubar: Any) -> None:
-        """Create and populate File menu."""
-        file_menu = menubar.addMenu("&File")
-        file_menu.addAction(self.new_act)
-        file_menu.addAction(self.new_from_template_act)
-        file_menu.addAction(self.open_act)
-        file_menu.addSeparator()
-        file_menu.addAction(self.save_act)
-        file_menu.addAction(self.save_as_act)
-        export_menu = file_menu.addMenu("&Export As")
-        export_menu.addAction(self.save_as_adoc_act)
-        export_menu.addAction(self.save_as_md_act)
-        export_menu.addAction(self.save_as_docx_act)
-        export_menu.addAction(self.save_as_html_act)
-        export_menu.addAction(self.save_as_pdf_act)
-        file_menu.addSeparator()
-        file_menu.addAction(self.exit_act)
+        """Create menu (delegates to menu_builder)."""
+        self._menu_builder.create_file_menu(menubar)
 
     def _create_edit_menu(self, menubar: Any) -> None:
-        """Create and populate Edit menu."""
-        edit_menu = menubar.addMenu("&Edit")
-        edit_menu.addAction(self.undo_act)
-        edit_menu.addAction(self.redo_act)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.cut_act)
-        edit_menu.addAction(self.copy_act)
-        edit_menu.addAction(self.paste_act)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.convert_paste_act)
-        edit_menu.addSeparator()
-        edit_menu.addAction(self.find_act)
-        edit_menu.addAction(self.replace_act)
-        edit_menu.addAction(self.find_next_act)
-        edit_menu.addAction(self.find_previous_act)
+        """Create menu (delegates to menu_builder)."""
+        self._menu_builder.create_edit_menu(menubar)
 
     def _create_view_menu(self, menubar: Any) -> None:
-        """Create and populate View menu."""
-        view_menu = menubar.addMenu("&View")
-        view_menu.addAction(self.zoom_in_act)
-        view_menu.addAction(self.zoom_out_act)
-        view_menu.addSeparator()
-        view_menu.addAction(self.dark_mode_act)
-        view_menu.addAction(self.sync_scrolling_act)
-        view_menu.addSeparator()
-        view_menu.addAction(self.maximize_window_act)
-        view_menu.addAction(self.maximize_editor_act)
-        view_menu.addAction(self.maximize_preview_act)
+        """Create menu (delegates to menu_builder)."""
+        self._menu_builder.create_view_menu(menubar)
 
     def _create_git_menu(self, menubar: Any) -> None:
-        """Create and populate Git menu with GitHub submenu."""
-        git_menu = menubar.addMenu("&Git")
-        git_menu.addAction(self.set_repo_act)
-        git_menu.addAction(self.git_status_act)
-        git_menu.addSeparator()
-        git_menu.addAction(self.git_commit_act)
-        git_menu.addAction(self.quick_commit_act)
-        git_menu.addAction(self.git_pull_act)
-        git_menu.addAction(self.git_push_act)
-        git_menu.addSeparator()
-        github_submenu = git_menu.addMenu("Git&Hub")
-        github_submenu.addAction(self.github_create_pr_act)
-        github_submenu.addAction(self.github_list_prs_act)
-        github_submenu.addSeparator()
-        github_submenu.addAction(self.github_create_issue_act)
-        github_submenu.addAction(self.github_list_issues_act)
-        github_submenu.addSeparator()
-        github_submenu.addAction(self.github_repo_info_act)
+        """Create menu (delegates to menu_builder)."""
+        self._menu_builder.create_git_menu(menubar)
 
     def _create_tools_menu(self, menubar: Any) -> None:
-        """Create and populate Tools menu with AI Settings submenu."""
-        tools_menu = menubar.addMenu("&Tools")
-        tools_menu.addAction(self.validate_install_act)
-        tools_menu.addSeparator()
-        ai_settings_menu = tools_menu.addMenu("&AI Settings")
-        ai_settings_menu.addAction(self.ollama_settings_act)
-        ai_settings_menu.addAction(self.anthropic_settings_act)
-        tools_menu.addAction(self.app_settings_act)
-        tools_menu.addAction(self.autocomplete_settings_act)
-        tools_menu.addAction(self.toggle_chat_pane_act)
-        tools_menu.addAction(self.font_settings_act)
-        tools_menu.addAction(self.toggle_spell_check_act)
-        tools_menu.addAction(self.syntax_check_settings_act)
-        tools_menu.addAction(self.toggle_telemetry_act)
-        tools_menu.addAction(self.toggle_theme_act)
+        """Create menu (delegates to menu_builder)."""
+        self._menu_builder.create_tools_menu(menubar)
 
     def _create_help_menu(self, menubar: Any) -> None:
-        """Create and populate Help menu."""
-        help_menu = menubar.addMenu("&Help")
-        help_menu.addAction(self.about_act)
-        help_menu.addSeparator()
-        help_menu.addAction(self.anthropic_status_act)
-        help_menu.addAction(self.ollama_status_act)
-        help_menu.addAction(self.pandoc_formats_act)
-        help_menu.addAction(self.pandoc_status_act)
-        help_menu.addAction(self.telemetry_status_act)
+        """Create menu (delegates to menu_builder)."""
+        self._menu_builder.create_help_menu(menubar)
 
     def create_menus(self) -> None:
         """
