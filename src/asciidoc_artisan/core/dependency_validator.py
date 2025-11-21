@@ -60,108 +60,112 @@ class DependencyValidator:
         """Initialize the dependency validator."""
         self.dependencies: list[Dependency] = []
 
+    def _get_python_modules_to_check(self) -> list[tuple[str, DependencyType, str, str]]:
+        """
+        Get list of Python modules to validate.
+
+        MA principle: Extracted from validate_all (40 lines).
+
+        Returns:
+            List of (name, type, min_version, install_cmd) tuples
+        """
+        return [
+            ("PySide6", DependencyType.REQUIRED, "6.9.0", "pip install 'PySide6>=6.9.0'"),
+            ("asciidoc3", DependencyType.REQUIRED, "3.2.0", "pip install 'asciidoc3>=3.2.0'"),
+            ("keyring", DependencyType.REQUIRED, "24.0.0", "pip install 'keyring>=24.0.0'"),
+            ("psutil", DependencyType.REQUIRED, "5.9.0", "pip install 'psutil>=5.9.0'"),
+            ("pypandoc", DependencyType.OPTIONAL, "1.13", "pip install 'pypandoc>=1.13'"),
+            ("pymupdf", DependencyType.OPTIONAL, "1.23.0", "pip install 'pymupdf>=1.23.0'"),
+            ("ollama", DependencyType.OPTIONAL, "0.4.0", "pip install 'ollama>=0.4.0'"),
+            ("anthropic", DependencyType.OPTIONAL, "0.72.0", "pip install 'anthropic>=0.72.0'"),
+        ]
+
+    def _get_system_binaries_to_check(self) -> list[tuple[str, DependencyType, str]]:
+        """
+        Get list of system binaries to validate.
+
+        MA principle: Extracted from validate_all (48 lines).
+
+        Returns:
+            List of (name, type, install_cmd) tuples
+        """
+        return [
+            (
+                "pandoc",
+                DependencyType.OPTIONAL,
+                "Install from: https://pandoc.org/installing.html\n"
+                "macOS: brew install pandoc\n"
+                "Ubuntu/Debian: sudo apt install pandoc\n"
+                "Windows: Download installer from pandoc.org",
+            ),
+            (
+                "wkhtmltopdf",
+                DependencyType.OPTIONAL,
+                "Install from: https://wkhtmltopdf.org/downloads.html\n"
+                "macOS: brew install wkhtmltopdf\n"
+                "Ubuntu/Debian: sudo apt install wkhtmltopdf\n"
+                "Windows: Download installer from wkhtmltopdf.org",
+            ),
+            (
+                "git",
+                DependencyType.OPTIONAL,
+                "Install from: https://git-scm.com/downloads\n"
+                "macOS: brew install git\n"
+                "Ubuntu/Debian: sudo apt install git\n"
+                "Windows: Download installer from git-scm.com",
+            ),
+            (
+                "gh",
+                DependencyType.OPTIONAL,
+                "Install from: https://cli.github.com/\n"
+                "macOS: brew install gh\n"
+                "Ubuntu/Debian: See https://github.com/cli/cli/blob/trunk/docs/install_linux.md\n"
+                "Windows: Download installer from cli.github.com",
+            ),
+            (
+                "ollama",
+                DependencyType.OPTIONAL,
+                "Install from: https://ollama.com/download\n"
+                "macOS: Download from ollama.com/download\n"
+                "Linux: curl -fsSL https://ollama.com/install.sh | sh\n"
+                "Windows: Download installer from ollama.com",
+            ),
+        ]
+
+    def _validate_python_modules(self) -> None:
+        """
+        Validate all Python modules.
+
+        MA principle: Extracted from validate_all (8 lines).
+        """
+        for name, dep_type, min_version, install_cmd in self._get_python_modules_to_check():
+            self._check_python_module(name, dep_type, min_version=min_version, install_cmd=install_cmd)
+
+    def _validate_system_binaries(self) -> None:
+        """
+        Validate all system binaries.
+
+        MA principle: Extracted from validate_all (8 lines).
+        """
+        for name, dep_type, install_cmd in self._get_system_binaries_to_check():
+            self._check_system_binary(name, dep_type, install_cmd=install_cmd)
+
     def validate_all(self) -> list[Dependency]:
         """
         Validate all dependencies.
+
+        MA principle: Reduced from 105→13 lines by extracting 4 data-driven helpers.
 
         Returns:
             List of Dependency objects with their validation status
         """
         logger.info("Starting dependency validation...")
 
-        # Check Python modules (required)
-        self._check_python_module(
-            "PySide6",
-            DependencyType.REQUIRED,
-            min_version="6.9.0",
-            install_cmd="pip install 'PySide6>=6.9.0'",
-        )
-        self._check_python_module(
-            "asciidoc3",
-            DependencyType.REQUIRED,
-            min_version="3.2.0",
-            install_cmd="pip install 'asciidoc3>=3.2.0'",
-        )
+        # Validate Python modules
+        self._validate_python_modules()
 
-        # Check Python modules (optional but commonly used)
-        self._check_python_module(
-            "pypandoc",
-            DependencyType.OPTIONAL,
-            min_version="1.13",
-            install_cmd="pip install 'pypandoc>=1.13'",
-        )
-        self._check_python_module(
-            "pymupdf",
-            DependencyType.OPTIONAL,
-            min_version="1.23.0",
-            install_cmd="pip install 'pymupdf>=1.23.0'",
-        )
-        self._check_python_module(
-            "keyring",
-            DependencyType.REQUIRED,
-            min_version="24.0.0",
-            install_cmd="pip install 'keyring>=24.0.0'",
-        )
-        self._check_python_module(
-            "psutil",
-            DependencyType.REQUIRED,
-            min_version="5.9.0",
-            install_cmd="pip install 'psutil>=5.9.0'",
-        )
-        self._check_python_module(
-            "ollama",
-            DependencyType.OPTIONAL,
-            min_version="0.4.0",
-            install_cmd="pip install 'ollama>=0.4.0'",
-        )
-        self._check_python_module(
-            "anthropic",
-            DependencyType.OPTIONAL,
-            min_version="0.72.0",
-            install_cmd="pip install 'anthropic>=0.72.0'",
-        )
-
-        # Check system binaries (optional)
-        self._check_system_binary(
-            "pandoc",
-            DependencyType.OPTIONAL,
-            install_cmd="Install from: https://pandoc.org/installing.html\n"
-            "macOS: brew install pandoc\n"
-            "Ubuntu/Debian: sudo apt install pandoc\n"
-            "Windows: Download installer from pandoc.org",
-        )
-        self._check_system_binary(
-            "wkhtmltopdf",
-            DependencyType.OPTIONAL,
-            install_cmd="Install from: https://wkhtmltopdf.org/downloads.html\n"
-            "macOS: brew install wkhtmltopdf\n"
-            "Ubuntu/Debian: sudo apt install wkhtmltopdf\n"
-            "Windows: Download installer from wkhtmltopdf.org",
-        )
-        self._check_system_binary(
-            "git",
-            DependencyType.OPTIONAL,
-            install_cmd="Install from: https://git-scm.com/downloads\n"
-            "macOS: brew install git\n"
-            "Ubuntu/Debian: sudo apt install git\n"
-            "Windows: Download installer from git-scm.com",
-        )
-        self._check_system_binary(
-            "gh",
-            DependencyType.OPTIONAL,
-            install_cmd="Install from: https://cli.github.com/\n"
-            "macOS: brew install gh\n"
-            "Ubuntu/Debian: See https://github.com/cli/cli/blob/trunk/docs/install_linux.md\n"
-            "Windows: Download installer from cli.github.com",
-        )
-        self._check_system_binary(
-            "ollama",
-            DependencyType.OPTIONAL,
-            install_cmd="Install from: https://ollama.com/download\n"
-            "macOS: Download from ollama.com/download\n"
-            "Linux: curl -fsSL https://ollama.com/install.sh | sh\n"
-            "Windows: Download installer from ollama.com",
-        )
+        # Validate system binaries
+        self._validate_system_binaries()
 
         logger.info(f"Dependency validation complete: {len(self.dependencies)} checked")
         return self.dependencies
