@@ -1,39 +1,16 @@
 """
 Syntax checker for AsciiDoc Artisan (v2.0.0+).
 
-This module provides real-time syntax error detection with quick fixes.
-It uses a rule-based validation system where different validators check
-for syntax errors, semantic issues, and style violations.
+Real-time syntax error detection with quick fixes. Rule-based validation (50+ rules: E001-E050 errors, W001-W050 warnings, I001-I050 info).
+Features: Incremental validation, quick fix suggestions, <100ms for 1000-line docs, smart caching.
 
-Key features:
-- 50+ error rules (E001-E050, W001-W050, I001-I050)
-- Incremental validation (only changed lines)
-- Quick fix suggestions with lightbulb UI
-- <100ms validation for 1000-line documents
-- Smart caching for anchors, attributes, etc.
-
-Architecture:
-    Document → ValidationContext → SyntaxChecker.validate()
-    → Apply rules → Collect errors → Return sorted list
-
-Error Catalog:
-    - E001-E050: Syntax errors (red underlines)
-    - W001-W050: Warnings (yellow underlines)
-    - I001-I050: Info/Style (blue underlines)
+Architecture: Document → ValidationContext → SyntaxChecker.validate() → Apply rules → Collect errors → Sorted list
 
 Example:
-    ```python
-    from asciidoc_artisan.core.syntax_checker import SyntaxChecker
-    from asciidoc_artisan.core.models import SyntaxErrorModel
-
     checker = SyntaxChecker()
-    document = "= My Document\\n\\n[source]\\nNo closing delimiter"
-
     errors = checker.validate(document)
     for error in errors:
         print(f"{error.code}: {error.message} (line {error.line})")
-    # Output: E001: Unclosed source block (line 2)
-    ```
 """
 
 import re
@@ -44,67 +21,17 @@ from asciidoc_artisan.core.models import SyntaxErrorModel
 
 
 class ValidationContext:
-    """
-    Context for validation with caching.
-
-    Stores document text and caches expensive operations like anchor
-    extraction and attribute parsing. This improves performance when
-    multiple validators need the same information.
-
-    Attributes:
-        document: Full document text
-        lines: Document split into lines
-        changed_lines: Lines that changed (None = validate all)
-
-    Cached Properties:
-        anchors: All anchor IDs in document
-        attributes: All document attributes (:key: value)
-        includes: All include directives
-
-    Performance:
-        - Lazy evaluation: properties computed on first access
-        - Shared across validators: single parse for all rules
-        - 10-20x faster than re-parsing for each validator
-
-    Example:
-        ```python
-        context = ValidationContext(
-            document="= Title\\n:author: John\\n\\n[[intro]]\\n== Introduction",
-            changed_lines=None  # Validate all
-        )
-
-        # First access: parses document
-        anchors = context.anchors  # ['intro']
-
-        # Second access: returns cached result
-        anchors2 = context.anchors  # Same list, no parsing
-        ```
-    """
+    """Validation context with caching. Stores document text, caches anchors/attributes/includes. Lazy eval: 10-20x faster than re-parsing."""
 
     def __init__(self, document: str, changed_lines: list[int] | None = None) -> None:
-        """
-        Initialize validation context.
-
-        Args:
-            document: Full document text
-            changed_lines: Line numbers that changed (0-indexed, None = all)
-        """
+        """Initialize validation context with document text and optional changed lines (0-indexed, None = all)."""
         self.document = document
         self.lines = document.splitlines()
         self.changed_lines = changed_lines
 
     @cached_property
     def anchors(self) -> list[str]:
-        """
-        Extract all anchor IDs from document.
-
-        Matches patterns:
-        - [[anchor-id]]
-        - [#anchor-id]
-
-        Returns:
-            List of anchor IDs (cached after first access)
-        """
+        """Extract all anchor IDs from document. Matches [[id]] and [#id] patterns. Cached after first access."""
         # Match [[id]] and [#id] patterns
         pattern = r"\[\[([^\]]+)\]\]|\[#([^\]]+)\]"
         matches = re.findall(pattern, self.document)
@@ -113,102 +40,34 @@ class ValidationContext:
 
     @cached_property
     def attributes(self) -> dict[str, str]:
-        """
-        Extract all document attributes.
-
-        Matches pattern: :key: value
-
-        Returns:
-            Dictionary mapping attribute names to values (cached after first access)
-        """
+        """Extract all document attributes. Matches :key: value pattern. Cached after first access."""
         pattern = r"^:([^:]+):\s*(.*)$"
         matches = re.findall(pattern, self.document, re.MULTILINE)
         return {key.strip(): value.strip() for key, value in matches}
 
     @cached_property
     def includes(self) -> list[str]:
-        """
-        Extract all include directives.
-
-        Matches pattern: include::path[]
-
-        Returns:
-            List of include file paths (cached after first access)
-        """
+        """Extract all include directives. Matches include::path[] pattern. Cached after first access."""
         pattern = r"include::([^\[]+)\["
         return re.findall(pattern, self.document)
 
     def should_validate_line(self, line_number: int) -> bool:
-        """
-        Check if line should be validated (for incremental validation).
-
-        Args:
-            line_number: Line number (0-indexed)
-
-        Returns:
-            True if line should be validated
-        """
+        """Check if line should be validated. For incremental validation: returns True if line changed or changed_lines is None."""
         if self.changed_lines is None:
             return True  # Validate all lines
         return line_number in self.changed_lines
 
 
 class ValidationRule(Protocol):
-    """
-    Protocol for validation rules.
-
-    Rules check for specific error types (syntax, semantic, style) and
-    return a list of detected errors. Each rule is independent and
-    stateless.
-
-    Example implementation:
-        ```python
-        class UnclosedBlockRule:
-            def validate(self, context: ValidationContext) -> List[SyntaxErrorModel]:
-                errors = []
-                # Check for unclosed blocks...
-                if unclosed_block_found:
-                    errors.append(SyntaxErrorModel(
-                        code="E001",
-                        severity=ErrorSeverity.ERROR,
-                        message="Unclosed source block",
-                        line=line_num,
-                        column=0,
-                        length=len(line),
-                        fixes=[...]
-                    ))
-                return errors
-        ```
-    """
+    """Protocol for validation rules. Rules check for syntax/semantic/style errors, return list of SyntaxErrorModel. Independent and stateless."""
 
     def validate(self, context: ValidationContext) -> list[SyntaxErrorModel]:
-        """
-        Validate document and return errors.
-
-        Args:
-            context: Document context with caching
-
-        Returns:
-            List of detected syntax errors
-        """
+        """Validate document and return errors. Args: context (with caching). Returns: list of SyntaxErrorModel."""
         ...
 
 
 class SyntaxChecker:
-    """
-    Core syntax checking engine with rule-based validation.
-
-    Manages validation rules and orchestrates error detection.
-    Supports incremental validation for performance.
-
-    Attributes:
-        rules: List of registered validation rules
-
-    Performance:
-        - <100ms for 1000-line document
-        - <10ms for incremental (1 line changed)
-        - Parallel rule execution (future enhancement)
-    """
+    """Core syntax checking engine. Manages validation rules, orchestrates error detection. Performance: <100ms for 1000-line doc, <10ms incremental."""
 
     def __init__(self) -> None:
         """Initialize syntax checker with built-in rules."""
@@ -216,17 +75,7 @@ class SyntaxChecker:
         self._setup_built_in_rules()
 
     def _setup_built_in_rules(self) -> None:
-        """
-        Initialize built-in validation rules.
-
-        Rules are loaded from syntax_validators module. This method
-        is called automatically during initialization.
-
-        Loads 11 built-in rules (Phase 2):
-        - 3 syntax error rules (E001-E003)
-        - 6 warning rules (W001-W005, W029)
-        - 2 info/style rules (I002-I003)
-        """
+        """Initialize built-in validation rules. Loads 11 rules from syntax_validators: 3 errors (E001-E003), 6 warnings (W001-W005, W029), 2 info (I002-I003)."""
         # Import built-in rules (Phase 2)
         try:
             from asciidoc_artisan.core.syntax_validators import BUILT_IN_RULES
@@ -239,72 +88,18 @@ class SyntaxChecker:
             logging.warning("syntax_validators module not found, no built-in rules loaded")
 
     def add_rule(self, rule: ValidationRule) -> None:
-        """
-        Register a custom validation rule.
-
-        Rules are executed in registration order. Add most critical
-        rules first for better performance (fail-fast).
-
-        Args:
-            rule: Validation rule instance
-
-        Example:
-            ```python
-            class MyCustomRule:
-                def validate(self, context):
-                    # Custom validation logic
-                    return []
-
-            checker.add_rule(MyCustomRule())
-            ```
-        """
+        """Register a custom validation rule. Rules executed in registration order. Add critical rules first for fail-fast performance."""
         self.rules.append(rule)
 
     def remove_rule(self, rule: ValidationRule) -> None:
-        """
-        Unregister a validation rule.
-
-        Args:
-            rule: Rule instance to remove
-
-        Raises:
-            ValueError: If rule not registered
-        """
+        """Unregister a validation rule. Raises ValueError if rule not registered."""
         if rule in self.rules:
             self.rules.remove(rule)
         else:
             raise ValueError("Rule not registered")
 
     def validate(self, document: str, changed_lines: list[int] | None = None) -> list[SyntaxErrorModel]:
-        """
-        Validate document and return all errors.
-
-        This is the main entry point for validation. It:
-        1. Creates validation context with caching
-        2. Applies all registered rules
-        3. Collects and sorts errors
-        4. Returns complete error list
-
-        Args:
-            document: Full document text
-            changed_lines: Lines that changed (None = validate all)
-
-        Returns:
-            Sorted list of syntax errors (by line, then column)
-
-        Performance:
-            - Full document (1000 lines): <100ms
-            - Incremental (1 line): <10ms
-
-        Example:
-            ```python
-            # Full validation
-            errors = checker.validate(document)
-
-            # Incremental validation (only line 10 changed)
-            errors = checker.validate(document, changed_lines=[10])
-            ```
-        """
+        """Main validation entry point. Creates context, applies rules, collects/sorts errors. Returns sorted list. Perf: <100ms full doc, <10ms incremental."""
         # Create context with caching
         context = ValidationContext(document, changed_lines)
 
@@ -330,66 +125,15 @@ class SyntaxChecker:
         return all_errors
 
     def validate_incremental(self, document: str, changed_lines: list[int]) -> list[SyntaxErrorModel]:
-        """
-        Validate only changed lines (incremental validation).
-
-        This is an optimization for real-time validation. Instead of
-        validating the entire document, only changed lines are checked.
-
-        Args:
-            document: Full document text
-            changed_lines: List of changed line numbers (0-indexed)
-
-        Returns:
-            Errors found in changed lines
-
-        Performance:
-            - 10-20x faster than full validation
-            - <10ms for typical single-line change
-
-        Note:
-            Some validators may still need full document context
-            (e.g., cross-reference checking). The context provides
-            cached access to anchors, attributes, etc.
-
-        Example:
-            ```python
-            # User edits line 10
-            errors = checker.validate_incremental(document, changed_lines=[10])
-            ```
-        """
+        """Validate only changed lines. Optimization for real-time validation: 10-20x faster than full, <10ms typical. Some validators still access full context (cached)."""
         return self.validate(document, changed_lines=changed_lines)
 
     def get_rules_count(self) -> int:
-        """
-        Get number of registered rules.
-
-        Returns:
-            Number of validation rules
-
-        Example:
-            ```python
-            count = checker.get_rules_count()
-            print(f"Active rules: {count}")
-            # Output: Active rules: 25
-            ```
-        """
+        """Get number of registered rules."""
         return len(self.rules)
 
     def get_rule_names(self) -> list[str]:
-        """
-        Get names of all registered rules.
-
-        Returns:
-            List of rule class names
-
-        Example:
-            ```python
-            names = checker.get_rule_names()
-            print("Rules:", ", ".join(names))
-            # Output: Rules: UnclosedBlockRule, InvalidAttributeRule, ...
-            ```
-        """
+        """Get names of all registered rules. Returns list of rule class names."""
         return [rule.__class__.__name__ for rule in self.rules]
 
 
@@ -397,82 +141,21 @@ class SyntaxChecker:
 
 
 def extract_anchors(document: str) -> list[str]:
-    """
-    Extract all anchor IDs from document.
-
-    Standalone function for simple anchor extraction without full context.
-
-    Args:
-        document: Document text
-
-    Returns:
-        List of anchor IDs
-
-    Example:
-        ```python
-        doc = "[[intro]]\\n== Introduction\\n\\n[[summary]]\\n== Summary"
-        anchors = extract_anchors(doc)
-        # Returns: ['intro', 'summary']
-        ```
-    """
+    """Extract all anchor IDs from document. Standalone function for simple extraction without full context. Matches [[id]] and [#id] patterns."""
     pattern = r"\[\[([^\]]+)\]\]|\[#([^\]]+)\]"
     matches = re.findall(pattern, document)
     return [m[0] or m[1] for m in matches]
 
 
 def extract_attributes(document: str) -> dict[str, str]:
-    """
-    Extract all document attributes.
-
-    Standalone function for simple attribute extraction.
-
-    Args:
-        document: Document text
-
-    Returns:
-        Dictionary mapping attribute names to values
-
-    Example:
-        ```python
-        doc = ":author: John Doe\\n:version: 1.0\\n:toc:"
-        attrs = extract_attributes(doc)
-        # Returns: {'author': 'John Doe', 'version': '1.0', 'toc': ''}
-        ```
-    """
+    """Extract all document attributes. Standalone function for simple extraction. Matches :key: value pattern. Returns dict."""
     pattern = r"^:([^:]+):\s*(.*)$"
     matches = re.findall(pattern, document, re.MULTILINE)
     return {key.strip(): value.strip() for key, value in matches}
 
 
 def is_inside_code_block(lines: list[str], line_number: int) -> bool:
-    """
-    Check if line is inside a code block.
-
-    Code blocks are enclosed in ---- delimiters. This is useful
-    for validators that should skip code content.
-
-    Args:
-        lines: Document lines
-        line_number: Line to check (0-indexed)
-
-    Returns:
-        True if line is inside code block
-
-    Example:
-        ```python
-        lines = [
-            "[source,python]",
-            "----",
-            "def hello():",  # Inside code block
-            "    print('hi')",  # Inside code block
-            "----",
-            "Normal text"  # Outside code block
-        ]
-
-        is_inside_code_block(lines, 2)  # True
-        is_inside_code_block(lines, 5)  # False
-        ```
-    """
+    """Check if line is inside code block. Code blocks use ---- delimiters. Useful for validators that skip code content. Returns True if inside block."""
     if line_number < 0 or line_number >= len(lines):
         return False
 
