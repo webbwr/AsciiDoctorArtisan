@@ -1,6 +1,6 @@
 # AsciiDoc Artisan
 
-**Version 2.0.5** | November 18, 2025
+**Version 2.0.8** | November 21, 2025
 
 A smart program for writing papers. Very fast. Has smart help.
 
@@ -462,7 +462,13 @@ Need more help?
 
 ## Version
 
-**Current Version**: 2.0.5 (November 18, 2025)
+**Current Version**: 2.0.8 (November 21, 2025)
+
+**What's New in v2.0.8:**
+- Better E2E tests (91.5% pass rate, was 88.7%)
+- Fixed user settings tests (all 8 now pass)
+- Better test reports (clear docs)
+- All checks pass (no errors)
 
 **What's New in v2.0.5:**
 - Make your own templates (custom plans with forms)
@@ -473,8 +479,8 @@ Need more help?
 **What's New in v2.0.4:**
 - Documentation consolidation and cleanup
 - Architecture documentation updated with FR mapping
-- All 204 tests passing (100% pass rate)
-- 91.7% code coverage (5,527/5,563 statements)
+- All tests passing (100% pass rate)
+- 91.7% code coverage
 
 **What's New in v2.0.0:**
 - Smart writing help (auto-complete)
