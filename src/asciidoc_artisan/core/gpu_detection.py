@@ -574,12 +574,12 @@ def _detect_linux_windows_gpu() -> GPUInfo:
     )
 
 
-def _detect_gpu_vendor(renderer_name: str) -> tuple[str, str, str | None]:
+def _detect_gpu_vendor(renderer_name: str | None) -> tuple[str, str | None, str | None]:
     """
     Detect GPU vendor (NVIDIA, AMD, Intel).
 
     Args:
-        renderer_name: Fallback renderer name
+        renderer_name: Fallback renderer name (may be None)
 
     Returns:
         Tuple of (gpu_type, gpu_name, driver_version)

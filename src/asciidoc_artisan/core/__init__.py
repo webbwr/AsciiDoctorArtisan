@@ -115,10 +115,10 @@ from .settings import Settings  # Application settings (theme, font, recent file
 # Think of them as "bookmarks" - first visit loads the module, later visits are instant
 
 # Stores constants (APP_NAME, EDITOR_FONT_SIZE, etc.) after first access
-_CONSTANTS_CACHE = {}
+_CONSTANTS_CACHE: dict[str, Any] = {}
 
 # Stores classes and functions (MemoryProfiler, ResourceMonitor, etc.) after first access
-_MODULE_CACHE = {}
+_MODULE_CACHE: dict[str, Any] = {}
 
 # === LAZY IMPORT CONFIGURATION ===
 # Maps attribute names to their source modules for lazy loading
@@ -202,7 +202,7 @@ _LAZY_IMPORT_MAP = {
 }
 
 
-def _lazy_import(name: str, module_name: str, cache: dict) -> Any:
+def _lazy_import(name: str, module_name: str, cache: dict[str, Any]) -> Any:
     """
     Helper to lazily import an attribute from a module.
 

@@ -275,6 +275,7 @@ class EditorState:
             has_chat: Whether chat pane exists in layout
             chat_visible: Whether chat pane is visible
         """
+        assert self.saved_splitter_sizes is not None, "saved_splitter_sizes must not be None"
         total = sum(self.saved_splitter_sizes)
         if total > 0:
             # Sizes are valid so restore them
@@ -299,6 +300,7 @@ class EditorState:
             has_chat: Whether chat pane exists in layout
             chat_visible: Whether chat pane is visible
         """
+        assert self.saved_splitter_sizes is not None, "saved_splitter_sizes must not be None"
         total = sum(self.saved_splitter_sizes)
         if total > 0 and has_chat:
             # Need to add chat pane to saved sizes
