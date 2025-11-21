@@ -58,15 +58,7 @@ class FileHandler(QObject):
         settings_manager: Any,
         status_manager: Any,
     ) -> None:
-        """
-        Initialize FileHandler.
-
-        Args:
-            editor: The text editor widget
-            parent_window: Main window (for dialogs)
-            settings_manager: Settings manager instance
-            status_manager: Status manager instance
-        """
+        """Initialize FileHandler with editor, parent window, and managers."""
         super().__init__(parent_window)
         self.editor = editor
         self.window = parent_window
@@ -93,12 +85,7 @@ class FileHandler(QObject):
         self.editor.textChanged.connect(self._on_text_changed)
 
     def start_auto_save(self, interval_ms: int = 300000) -> None:
-        """
-        Start auto-save timer.
-
-        Args:
-            interval_ms: Auto-save interval in milliseconds (default: 5 minutes)
-        """
+        """Start auto-save timer (default: 5 minutes)."""
         self.auto_save_timer.start(interval_ms)
         logger.info(f"Auto-save enabled: {interval_ms / 1000 / 60:.1f} minutes")
 
@@ -125,12 +112,7 @@ class FileHandler(QObject):
 
     @Slot()
     def open_file(self, file_path: str | None = None) -> None:
-        """
-        Open a file.
-
-        Args:
-            file_path: Path to file to open. If None, shows file dialog.
-        """
+        """Open file (shows dialog if path not provided)."""
         # Check for unsaved changes
         if self.unsaved_changes:
             if not self.prompt_save_before_action("opening a new file"):
@@ -164,17 +146,7 @@ class FileHandler(QObject):
         asyncio.ensure_future(self._load_file_async(path))
 
     def _validate_file_size(self, file_path: Path) -> bool:
-        """
-        Validate file size before loading.
-
-        MA principle: Extracted from _load_file_async (24 lines).
-
-        Args:
-            file_path: Path to file to validate
-
-        Returns:
-            True if file size is acceptable, False otherwise
-        """
+        """Validate file size before loading (MA: extracted 24 lines)."""
         try:
             file_size = file_path.stat().st_size
             file_size_mb = file_size / (1024 * 1024)
@@ -200,14 +172,7 @@ class FileHandler(QObject):
             return False
 
     def _take_memory_snapshot(self, snapshot_name: str) -> None:
-        """
-        Take memory profiling snapshot if enabled.
-
-        MA principle: Extracted from _load_file_async (9 lines).
-
-        Args:
-            snapshot_name: Name for the snapshot
-        """
+        """Take memory profiling snapshot if enabled (MA: extracted 9 lines)."""
         import os
 
         if os.environ.get("ASCIIDOC_ARTISAN_PROFILE_MEMORY"):
@@ -218,42 +183,19 @@ class FileHandler(QObject):
                 profiler.take_snapshot(snapshot_name)
 
     def _update_editor_and_state(self, file_path: Path, content: str) -> None:
-        """
-        Load content into editor and update internal state.
-
-        MA principle: Extracted from _load_file_async (8 lines).
-
-        Args:
-            file_path: Path to loaded file
-            content: File content
-        """
+        """Load content into editor and update state (MA: extracted 8 lines)."""
         self.editor.setPlainText(content)
         self.current_file_path = file_path
         self.unsaved_changes = False
 
     def _update_ui_after_load(self, file_path: Path) -> None:
-        """
-        Update UI components after file load.
-
-        MA principle: Extracted from _load_file_async (8 lines).
-
-        Args:
-            file_path: Path to loaded file
-        """
+        """Update UI components after file load (MA: extracted 8 lines)."""
         self.status_manager.update_window_title()
         if hasattr(self.window, "status_bar"):
             self.window.status_bar.showMessage(f"Opened: {file_path.name}")
 
     def _finalize_file_load(self, file_path: Path, start_time: float) -> None:
-        """
-        Finalize file load: save settings, emit signals, record metrics.
-
-        MA principle: Extracted from _load_file_async (18 lines).
-
-        Args:
-            file_path: Path to loaded file
-            start_time: Load operation start time
-        """
+        """Finalize file load: save settings, emit signals, record metrics (MA: extracted 18 lines)."""
         # Save as last directory
         settings = self.settings_manager.load_settings()
         settings.last_directory = str(file_path.parent)
@@ -277,16 +219,7 @@ class FileHandler(QObject):
         logger.info(f"Opened file: {file_path} (async)")
 
     async def _load_file_async(self, file_path: Path) -> None:
-        """
-        Load file content into editor asynchronously.
-
-        MA principle: Reduced from 105→28 lines by extracting 5 focused helpers (73% reduction).
-
-        Args:
-            file_path: Path to file to load
-
-        v1.7.0: Migrated to async I/O for non-blocking file operations
-        """
+        """Load file asynchronously (MA: 105→28 lines, 5 helpers, 73% reduction). v1.7.0: async I/O."""
         start_time = time.perf_counter()
         self.is_opening_file = True
 
@@ -326,18 +259,7 @@ class FileHandler(QObject):
 
     @Slot()
     def save_file(self, save_as: bool = False) -> bool:
-        """
-        Save the current file.
-
-        Args:
-            save_as: If True, always show save dialog
-
-        Returns:
-            True if operation started successfully, False otherwise
-
-        Note: v1.7.0 - This now launches async save operation.
-              Actual success is reported via file_saved signal.
-        """
+        """Save file (v1.7.0: async operation, success via file_saved signal)."""
         # Determine save path
         if save_as or not self.current_file_path:
             settings = self.settings_manager.load_settings()
@@ -367,15 +289,7 @@ class FileHandler(QObject):
         return True  # Operation started
 
     async def _save_file_async(self, save_path: Path, content: str) -> None:
-        """
-        Save file content asynchronously.
-
-        Args:
-            save_path: Path to save to
-            content: File content
-
-        v1.7.0: Migrated to async I/O for non-blocking file operations
-        """
+        """Save file asynchronously (v1.7.0: async I/O)."""
         start_time = time.perf_counter()
 
         try:
@@ -425,15 +339,7 @@ class FileHandler(QObject):
             self.save_file(save_as=False)
 
     def prompt_save_before_action(self, action: str) -> bool:
-        """
-        Prompt user to save before performing an action.
-
-        Args:
-            action: Description of action (e.g., "opening a new file")
-
-        Returns:
-            True if user wants to continue, False to cancel
-        """
+        """Prompt user to save before action (returns True to continue, False to cancel)."""
         import os
 
         # Skip prompts in test environment to prevent blocking
@@ -476,51 +382,20 @@ class FileHandler(QObject):
     # === ASYNC OPERATION SIGNAL HANDLERS (v1.7.0) ===
 
     def _on_async_read_complete(self, file_path: Path, content: str) -> None:
-        """
-        Handle async read complete signal.
-
-        Args:
-            file_path: Path to file that was read
-            content: File content
-
-        v1.7.0: Async I/O signal handler
-        """
+        """Handle async read complete signal (v1.7.0)."""
         logger.debug(f"Async read complete: {file_path}")
 
     def _on_async_write_complete(self, file_path: Path) -> None:
-        """
-        Handle async write complete signal.
-
-        Args:
-            file_path: Path to file that was written
-
-        v1.7.0: Async I/O signal handler
-        """
+        """Handle async write complete signal (v1.7.0)."""
         logger.debug(f"Async write complete: {file_path}")
 
     def _on_async_operation_failed(self, operation: str, file_path: Path, error: str) -> None:
-        """
-        Handle async operation failure signal.
-
-        Args:
-            operation: Operation type (read, write, etc.)
-            file_path: Path to file that failed
-            error: Error message
-
-        v1.7.0: Async I/O signal handler
-        """
+        """Handle async operation failure signal (v1.7.0)."""
         logger.error(f"Async {operation} failed for {file_path}: {error}")
         # Error message already shown by async operation handlers
 
     def _on_file_changed_externally(self, file_path: Path) -> None:
-        """
-        Handle file changed externally signal.
-
-        Args:
-            file_path: Path to file that changed
-
-        v1.7.0: File watcher signal handler
-        """
+        """Handle file changed externally signal (v1.7.0: file watcher)."""
         logger.info(f"File changed externally: {file_path}")
 
         # Emit signal for main window to handle
