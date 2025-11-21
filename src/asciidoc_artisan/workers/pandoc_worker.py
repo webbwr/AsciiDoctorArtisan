@@ -643,19 +643,19 @@ class PandocWorker(QObject):
             logger.error(f"Ollama conversion failed: {e}")
             return None
 
-    def _create_conversion_prompt(self, source: str, from_format: str, to_format: str) -> str:
+    def _get_format_display_names(self, from_format: str, to_format: str) -> tuple[str, str]:
         """
-        Create a prompt for Ollama to convert between document formats.
+        Get display names for format codes.
+
+        MA principle: Extracted helper (17 lines) - focused name mapping.
 
         Args:
-            source: Source document content
-            from_format: Source format
-            to_format: Target format
+            from_format: Source format code
+            to_format: Target format code
 
         Returns:
-            Formatted prompt for Ollama
+            Tuple of (from_name, to_name)
         """
-        # Map format names to readable names
         format_names = {
             "markdown": "Markdown",
             "md": "Markdown",
@@ -671,9 +671,23 @@ class PandocWorker(QObject):
         from_name = format_names.get(from_format.lower(), from_format)
         to_name = format_names.get(to_format.lower(), to_format)
 
-        # Create format-specific instructions
+        return from_name, to_name
+
+    def _get_format_instructions(self, to_format: str, to_name: str) -> str:
+        """
+        Get format-specific conversion instructions.
+
+        MA principle: Extracted helper (32 lines) - focused instruction generation.
+
+        Args:
+            to_format: Target format code
+            to_name: Target format display name
+
+        Returns:
+            Format-specific instructions string
+        """
         if to_format.lower() in ["asciidoc", "adoc"]:
-            format_instructions = """
+            return """
 AsciiDoc formatting rules:
 - Use = for document title (level 0)
 - Use == for level 1 headings, === for level 2, etc.
@@ -687,7 +701,7 @@ AsciiDoc formatting rules:
 - Use link:url[text] for links
 """
         elif to_format.lower() in ["markdown", "md"]:
-            format_instructions = """
+            return """
 Markdown formatting rules:
 - Use # for h1, ## for h2, ### for h3, etc.
 - Use **bold** for bold, *italic* for italic
@@ -700,8 +714,27 @@ Markdown formatting rules:
 - Use [text](url) for links
 """
         else:
-            format_instructions = f"Follow standard {to_name} formatting conventions."
+            return f"Follow standard {to_name} formatting conventions."
 
+    def _create_conversion_prompt(self, source: str, from_format: str, to_format: str) -> str:
+        """
+        Create a prompt for Ollama to convert between document formats.
+
+        MA principle: Reduced from 68→25 lines by extracting 2 helpers (63% reduction).
+
+        Args:
+            source: Source document content
+            from_format: Source format
+            to_format: Target format
+
+        Returns:
+            Formatted prompt for Ollama
+        """
+        # Get display names and instructions
+        from_name, to_name = self._get_format_display_names(from_format, to_format)
+        format_instructions = self._get_format_instructions(to_format, to_name)
+
+        # Build prompt
         prompt = f"""You are a document format conversion expert. Convert the \
 following {from_name} document to {to_name} format.
 
