@@ -3,6 +3,7 @@
 Simple readability checker for documentation files.
 Calculates Flesch-Kincaid Grade Level.
 """
+
 import re
 import sys
 from pathlib import Path
@@ -32,14 +33,14 @@ def count_syllables(word: str) -> int:
 def calculate_flesch_kincaid_grade(text: str) -> float:
     """Calculate Flesch-Kincaid Grade Level."""
     # Remove markdown formatting
-    text = re.sub(r'[#*`_\[\](){}]', '', text)
+    text = re.sub(r"[#*`_\[\](){}]", "", text)
 
     # Split into sentences (simple heuristic)
-    sentences = re.split(r'[.!?]+', text)
+    sentences = re.split(r"[.!?]+", text)
     sentences = [s.strip() for s in sentences if s.strip()]
 
     # Split into words
-    words = re.findall(r'\b[a-zA-Z]+\b', text)
+    words = re.findall(r"\b[a-zA-Z]+\b", text)
 
     if not sentences or not words:
         return 0.0
@@ -69,7 +70,7 @@ def main():
         sys.exit(1)
 
     try:
-        text = file_path.read_text(encoding='utf-8')
+        text = file_path.read_text(encoding="utf-8")
         grade = calculate_flesch_kincaid_grade(text)
         print(f"Grade Level: {grade:.1f}")
     except Exception as e:

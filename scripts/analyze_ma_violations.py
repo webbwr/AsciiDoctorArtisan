@@ -14,7 +14,6 @@ This script scans Python files for violations of the MA principle:
 import argparse
 import ast
 import json
-import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path

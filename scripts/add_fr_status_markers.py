@@ -31,7 +31,7 @@ def find_frs_needing_status(content: str) -> list[tuple[int, str]]:
     Returns:
         List of (line_number, fr_heading) tuples for FRs missing status
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     frs_needing_status = []
 
     i = 0
@@ -39,7 +39,7 @@ def find_frs_needing_status(content: str) -> list[tuple[int, str]]:
         line = lines[i]
 
         # Check if this is an FR heading
-        fr_match = re.match(r'^## (FR-[0-9]+[a-z]?): (.+)$', line)
+        fr_match = re.match(r"^## (FR-[0-9]+[a-z]?): (.+)$", line)
         if fr_match:
             fr_id = fr_match.group(1)
             fr_name = fr_match.group(2)
@@ -49,15 +49,15 @@ def find_frs_needing_status(content: str) -> list[tuple[int, str]]:
             has_status = False
             for j in range(i + 1, min(i + 11, len(lines))):
                 # Check for standalone **Status:** line
-                if re.match(r'^\*\*Status:\*\*', lines[j]):
+                if re.match(r"^\*\*Status:\*\*", lines[j]):
                     has_status = True
                     break
                 # Check for inline status (e.g., **Category:** ... | **Status:** ...)
-                if '**Status:**' in lines[j]:
+                if "**Status:**" in lines[j]:
                     has_status = True
                     break
                 # Stop if we hit another FR or major section
-                if re.match(r'^## ', lines[j]) and j > i + 1:
+                if re.match(r"^## ", lines[j]) and j > i + 1:
                     break
 
             if not has_status:
@@ -78,7 +78,7 @@ def add_status_markers(content: str, dry_run: bool = False) -> tuple[str, int]:
     Returns:
         (modified_content, count_added) tuple
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     count_added = 0
 
     i = 0
@@ -86,26 +86,24 @@ def add_status_markers(content: str, dry_run: bool = False) -> tuple[str, int]:
         line = lines[i]
 
         # Check if this is an FR heading
-        fr_match = re.match(r'^## (FR-[0-9]+[a-z]?): (.+)$', line)
+        fr_match = re.match(r"^## (FR-[0-9]+[a-z]?): (.+)$", line)
         if fr_match:
             fr_id = fr_match.group(1)
             fr_name = fr_match.group(2)
 
             # Look ahead for **Status:** line (standalone or inline)
             has_status = False
-            status_line_idx = None
             for j in range(i + 1, min(i + 11, len(lines))):
                 # Check for standalone **Status:** line
-                if re.match(r'^\*\*Status:\*\*', lines[j]):
+                if re.match(r"^\*\*Status:\*\*", lines[j]):
                     has_status = True
-                    status_line_idx = j
                     break
                 # Check for inline status (e.g., **Category:** ... | **Status:** ...)
-                if '**Status:**' in lines[j]:
+                if "**Status:**" in lines[j]:
                     has_status = True
                     break
                 # Stop if we hit another FR or major section
-                if re.match(r'^## ', lines[j]) and j > i + 1:
+                if re.match(r"^## ", lines[j]) and j > i + 1:
                     break
 
             if not has_status:
@@ -116,22 +114,22 @@ def add_status_markers(content: str, dry_run: bool = False) -> tuple[str, int]:
                 insert_idx = i + 1
 
                 # Skip blank line after heading
-                if insert_idx < len(lines) and lines[insert_idx].strip() == '':
+                if insert_idx < len(lines) and lines[insert_idx].strip() == "":
                     insert_idx += 1
 
                 # Skip **Category:** line
-                if insert_idx < len(lines) and re.match(r'^\*\*Category:\*\*', lines[insert_idx]):
+                if insert_idx < len(lines) and re.match(r"^\*\*Category:\*\*", lines[insert_idx]):
                     insert_idx += 1
 
                 # Skip **Priority:** line
-                if insert_idx < len(lines) and re.match(r'^\*\*Priority:\*\*', lines[insert_idx]):
+                if insert_idx < len(lines) and re.match(r"^\*\*Priority:\*\*", lines[insert_idx]):
                     insert_idx += 1
 
                 # Insert status marker here
                 status_line = "**Status:** ✅ Implemented"
 
                 if dry_run:
-                    print(f"Would add status to {fr_id}: {fr_name} (line {i+1})")
+                    print(f"Would add status to {fr_id}: {fr_name} (line {i + 1})")
                 else:
                     lines.insert(insert_idx, status_line)
 
@@ -142,7 +140,7 @@ def add_status_markers(content: str, dry_run: bool = False) -> tuple[str, int]:
     if dry_run:
         return content, count_added
     else:
-        return '\n'.join(lines), count_added
+        return "\n".join(lines), count_added
 
 
 def main():
@@ -150,18 +148,14 @@ def main():
     parser = argparse.ArgumentParser(
         description="Add explicit status markers to FRs in SPECIFICATIONS_AI.md",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
+        epilog=__doc__,
     )
+    parser.add_argument("--dry-run", action="store_true", help="Show changes without modifying file")
     parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Show changes without modifying file'
-    )
-    parser.add_argument(
-        '--file',
+        "--file",
         type=Path,
-        default=Path('SPECIFICATIONS_AI.md'),
-        help='Path to SPECIFICATIONS_AI.md (default: ./SPECIFICATIONS_AI.md)'
+        default=Path("SPECIFICATIONS_AI.md"),
+        help="Path to SPECIFICATIONS_AI.md (default: ./SPECIFICATIONS_AI.md)",
     )
 
     args = parser.parse_args()
@@ -173,7 +167,7 @@ def main():
         sys.exit(1)
 
     print(f"Reading {spec_file}...")
-    content = spec_file.read_text(encoding='utf-8')
+    content = spec_file.read_text(encoding="utf-8")
 
     # Find FRs needing status
     frs_needing = find_frs_needing_status(content)
@@ -200,12 +194,12 @@ def main():
         modified_content, count = add_status_markers(content, dry_run=False)
 
         # Write back to file
-        spec_file.write_text(modified_content, encoding='utf-8')
+        spec_file.write_text(modified_content, encoding="utf-8")
         print(f"✅ Added {count} status markers to {spec_file}")
         print(f"\nTo verify: grep -E '^\\*\\*Status:\\*\\*' {spec_file} | wc -l")
 
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

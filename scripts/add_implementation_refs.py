@@ -49,7 +49,7 @@ def add_implementation_references(content: str, dry_run: bool = False) -> tuple[
 
     for fr_id, impl_path in IMPLEMENTATION_MAP.items():
         # Find FR section
-        pattern = rf'(## {fr_id}:.*?\n\n\*\*Category:.*?\n)'
+        pattern = rf"(## {fr_id}:.*?\n\n\*\*Category:.*?\n)"
         match = re.search(pattern, modified_content, re.DOTALL)
 
         if not match:
@@ -78,11 +78,7 @@ def add_implementation_references(content: str, dry_run: bool = False) -> tuple[
         if dry_run:
             print(f"Would add to {fr_id}: {impl_line.strip()}")
         else:
-            modified_content = (
-                modified_content[:category_line_end] +
-                impl_line +
-                modified_content[category_line_end:]
-            )
+            modified_content = modified_content[:category_line_end] + impl_line + modified_content[category_line_end:]
 
         count_added += 1
 
@@ -93,19 +89,9 @@ def main():
     """Main entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Add missing implementation references to SPECIFICATIONS_AI.md"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be changed without modifying file"
-    )
-    parser.add_argument(
-        "--file",
-        default="SPECIFICATIONS_AI.md",
-        help="Path to specifications file"
-    )
+    parser = argparse.ArgumentParser(description="Add missing implementation references to SPECIFICATIONS_AI.md")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be changed without modifying file")
+    parser.add_argument("--file", default="SPECIFICATIONS_AI.md", help="Path to specifications file")
 
     args = parser.parse_args()
 

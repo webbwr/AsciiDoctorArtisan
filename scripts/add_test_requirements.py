@@ -18,8 +18,8 @@ TEST_REQUIREMENTS = {
             "Unit: Context detection (5 tests)",
             "Unit: Provider registration (4 tests)",
             "Integration: Editor integration (4 tests)",
-            "Performance: <50ms for 1K completions (2 tests)"
-        ]
+            "Performance: <50ms for 1K completions (2 tests)",
+        ],
     },
     "FR-086": {
         "min_tests": 12,
@@ -28,8 +28,8 @@ TEST_REQUIREMENTS = {
             "Unit: Show/hide popup (4 tests)",
             "Unit: Item navigation (4 tests)",
             "Integration: Editor integration (2 tests)",
-            "UI: Arrow keys, Enter, Esc (2 tests)"
-        ]
+            "UI: Arrow keys, Enter, Esc (2 tests)",
+        ],
     },
     "FR-087": {
         "min_tests": 10,
@@ -37,8 +37,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Completion types (5 tests)",
             "Unit: Context detection (3 tests)",
-            "Integration: Engine integration (2 tests)"
-        ]
+            "Integration: Engine integration (2 tests)",
+        ],
     },
     "FR-088": {
         "min_tests": 8,
@@ -46,8 +46,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Match algorithm (4 tests)",
             "Unit: Scoring logic (2 tests)",
-            "Performance: <10ms for 1K items (2 tests)"
-        ]
+            "Performance: <10ms for 1K items (2 tests)",
+        ],
     },
     "FR-089": {
         "min_tests": 8,
@@ -55,8 +55,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Cache hit/miss (3 tests)",
             "Unit: Cache invalidation (3 tests)",
-            "Performance: Cache benefit verification (2 tests)"
-        ]
+            "Performance: Cache benefit verification (2 tests)",
+        ],
     },
     "FR-090": {
         "min_tests": 6,
@@ -64,8 +64,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Provider registration (3 tests)",
             "Unit: Priority handling (2 tests)",
-            "Integration: Engine integration (1 test)"
-        ]
+            "Integration: Engine integration (1 test)",
+        ],
     },
     "FR-091": {
         "min_tests": 12,
@@ -74,8 +74,8 @@ TEST_REQUIREMENTS = {
             "Unit: Validation logic (5 tests)",
             "Unit: Error detection (3 tests)",
             "Integration: Editor integration (2 tests)",
-            "Performance: <100ms for 1K lines (2 tests)"
-        ]
+            "Performance: <100ms for 1K lines (2 tests)",
+        ],
     },
     "FR-092": {
         "min_tests": 10,
@@ -84,8 +84,8 @@ TEST_REQUIREMENTS = {
             "Unit: Highlight logic (4 tests)",
             "Unit: Error colors (3 tests)",
             "Integration: Editor integration (2 tests)",
-            "UI: Visual indicators (1 test)"
-        ]
+            "UI: Visual indicators (1 test)",
+        ],
     },
     "FR-093": {
         "min_tests": 8,
@@ -94,8 +94,8 @@ TEST_REQUIREMENTS = {
             "Unit: Navigation logic (3 tests)",
             "Unit: Error position tracking (2 tests)",
             "Integration: Editor integration (2 tests)",
-            "UI: F8 key handling (1 test)"
-        ]
+            "UI: F8 key handling (1 test)",
+        ],
     },
     "FR-094": {
         "min_tests": 10,
@@ -104,8 +104,8 @@ TEST_REQUIREMENTS = {
             "Unit: Error list management (4 tests)",
             "Unit: Panel show/hide (2 tests)",
             "Integration: Checker integration (2 tests)",
-            "UI: Click navigation (2 tests)"
-        ]
+            "UI: Click navigation (2 tests)",
+        ],
     },
     "FR-095": {
         "min_tests": 12,
@@ -113,8 +113,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Rule definitions (6 tests)",
             "Unit: Validation logic (4 tests)",
-            "Integration: Checker integration (2 tests)"
-        ]
+            "Integration: Checker integration (2 tests)",
+        ],
     },
     "FR-096": {
         "min_tests": 8,
@@ -123,8 +123,8 @@ TEST_REQUIREMENTS = {
             "Unit: Fix suggestions (4 tests)",
             "Unit: Fix application (2 tests)",
             "Integration: Editor integration (1 test)",
-            "UI: Context menu (1 test)"
-        ]
+            "UI: Context menu (1 test)",
+        ],
     },
     "FR-097": {
         "min_tests": 6,
@@ -132,8 +132,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Rule enable/disable (3 tests)",
             "Unit: Severity configuration (2 tests)",
-            "Integration: Settings persistence (1 test)"
-        ]
+            "Integration: Settings persistence (1 test)",
+        ],
     },
     "FR-098": {
         "min_tests": 5,
@@ -141,8 +141,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Performance: Batch validation (2 tests)",
             "Performance: Incremental checking (2 tests)",
-            "Performance: Large document handling (1 test)"
-        ]
+            "Performance: Large document handling (1 test)",
+        ],
     },
     "FR-099": {
         "min_tests": 6,
@@ -150,8 +150,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Error recovery logic (3 tests)",
             "Unit: Partial validation (2 tests)",
-            "Integration: Checker integration (1 test)"
-        ]
+            "Integration: Checker integration (1 test)",
+        ],
     },
     "FR-100": {
         "min_tests": 15,
@@ -160,8 +160,8 @@ TEST_REQUIREMENTS = {
             "Unit: Template load/save (5 tests)",
             "Unit: Template management (4 tests)",
             "Integration: Manager integration (3 tests)",
-            "File I/O: Template file operations (3 tests)"
-        ]
+            "File I/O: Template file operations (3 tests)",
+        ],
     },
     "FR-101": {
         "min_tests": 10,
@@ -169,8 +169,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Variable substitution (5 tests)",
             "Unit: Handlebars parsing (3 tests)",
-            "Integration: Engine integration (2 tests)"
-        ]
+            "Integration: Engine integration (2 tests)",
+        ],
     },
     "FR-102": {
         "min_tests": 8,
@@ -179,8 +179,8 @@ TEST_REQUIREMENTS = {
             "Unit: Add/remove templates (3 tests)",
             "Unit: Template validation (2 tests)",
             "Integration: Manager integration (2 tests)",
-            "File I/O: Custom template storage (1 test)"
-        ]
+            "File I/O: Custom template storage (1 test)",
+        ],
     },
     "FR-103": {
         "min_tests": 10,
@@ -189,8 +189,8 @@ TEST_REQUIREMENTS = {
             "Unit: Preview rendering (4 tests)",
             "Unit: Preview updates (2 tests)",
             "Integration: Browser integration (2 tests)",
-            "UI: Preview pane display (2 tests)"
-        ]
+            "UI: Preview pane display (2 tests)",
+        ],
     },
     "FR-104": {
         "min_tests": 8,
@@ -198,8 +198,8 @@ TEST_REQUIREMENTS = {
         "types": [
             "Unit: Metadata read/write (4 tests)",
             "Unit: Metadata validation (2 tests)",
-            "Integration: Manager integration (2 tests)"
-        ]
+            "Integration: Manager integration (2 tests)",
+        ],
     },
     "FR-105": {
         "min_tests": 8,
@@ -208,8 +208,8 @@ TEST_REQUIREMENTS = {
             "Unit: Category logic (3 tests)",
             "Unit: Category filtering (2 tests)",
             "Integration: Browser integration (2 tests)",
-            "UI: Category filters (1 test)"
-        ]
+            "UI: Category filters (1 test)",
+        ],
     },
     "FR-106": {
         "min_tests": 6,
@@ -218,8 +218,8 @@ TEST_REQUIREMENTS = {
             "Unit: Export/import logic (2 tests)",
             "Unit: Template validation (2 tests)",
             "Integration: Manager integration (1 test)",
-            "File I/O: Template file operations (1 test)"
-        ]
+            "File I/O: Template file operations (1 test)",
+        ],
     },
     "FR-107": {
         "min_tests": 12,
@@ -228,8 +228,8 @@ TEST_REQUIREMENTS = {
             "Unit: Template rendering (5 tests)",
             "Unit: Variable processing (3 tests)",
             "Integration: Template integration (2 tests)",
-            "Performance: <200ms template load (2 tests)"
-        ]
+            "Performance: <200ms template load (2 tests)",
+        ],
     },
 }
 
@@ -253,10 +253,10 @@ def format_test_requirements(fr_id: str) -> str:
         "",
         f"- **Minimum Tests:** {req['min_tests']}",
         f"- **Coverage Target:** {req['coverage']}",
-        "- **Test Types:**"
+        "- **Test Types:**",
     ]
 
-    for test_type in req['types']:
+    for test_type in req["types"]:
         lines.append(f"  - {test_type}")
 
     return "\n".join(lines)
@@ -277,7 +277,7 @@ def add_test_requirements(content: str, dry_run: bool = False) -> tuple[str, int
 
     for fr_id in TEST_REQUIREMENTS.keys():
         # Find FR section - look for the Examples section if it exists, or --- if not
-        pattern = rf'(## {fr_id}:.*?)(\n### Examples|\n---)'
+        pattern = rf"(## {fr_id}:.*?)(\n### Examples|\n---)"
         match = re.search(pattern, modified_content, re.DOTALL)
 
         if not match:
@@ -296,11 +296,7 @@ def add_test_requirements(content: str, dry_run: bool = False) -> tuple[str, int
         if dry_run:
             print(f"Would add test requirements to {fr_id}")
         else:
-            modified_content = (
-                modified_content[:insert_pos] +
-                test_req_section + "\n" +
-                modified_content[insert_pos:]
-            )
+            modified_content = modified_content[:insert_pos] + test_req_section + "\n" + modified_content[insert_pos:]
 
         count_added += 1
 
@@ -311,19 +307,9 @@ def main():
     """Main entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Add missing test requirements to SPECIFICATIONS_AI.md"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be changed without modifying file"
-    )
-    parser.add_argument(
-        "--file",
-        default="SPECIFICATIONS_AI.md",
-        help="Path to specifications file"
-    )
+    parser = argparse.ArgumentParser(description="Add missing test requirements to SPECIFICATIONS_AI.md")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be changed without modifying file")
+    parser.add_argument("--file", default="SPECIFICATIONS_AI.md", help="Path to specifications file")
 
     args = parser.parse_args()
 
