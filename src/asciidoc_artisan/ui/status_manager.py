@@ -22,6 +22,7 @@ from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME, GitStatus
 from asciidoc_artisan.ui.document_metrics_calculator import DocumentMetricsCalculator
 from asciidoc_artisan.ui.git_status_formatter import GitStatusFormatter
+from asciidoc_artisan.ui.status_bar_label_updater import StatusBarLabelUpdater
 from asciidoc_artisan.ui.status_bar_widget_factory import StatusBarWidgetFactory
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,17 @@ class StatusManager:
         if not hasattr(self, "_factory_instance"):
             self._factory_instance = StatusBarWidgetFactory(self)
         return self._factory_instance
+
+    @property
+    def _label_updater(self) -> StatusBarLabelUpdater:
+        """
+        Lazy-initialized status bar label updater.
+
+        MA principle: Delegates label updates to StatusBarLabelUpdater (extracted class).
+        """
+        if not hasattr(self, "_updater_instance"):
+            self._updater_instance = StatusBarLabelUpdater(self)
+        return self._updater_instance
 
     def initialize_widgets(self) -> None:
         """Initialize status bar widgets (delegates to widget_factory)."""
@@ -193,83 +205,20 @@ class StatusManager:
         return self._metrics_calculator.calculate_grade_level(text)
 
     def _update_version_label(self, text: str) -> None:
-        """
-        Update version label with document version.
-
-        MA principle: Extracted from update_document_metrics (17 lines).
-
-        Args:
-            text: Document text
-        """
-        version = self.extract_document_version(text)
-        if version:
-            self.version_label.setText(f"v{version}")
-            self.version_label.setToolTip(
-                f"Document Version: {version}\n"
-                "Detected from AsciiDoc attributes (:version:, :revnumber:, :rev:) or version text"
-            )
-        else:
-            self.version_label.setText("None")
-            self.version_label.setToolTip(
-                "No document version detected\n"
-                "Add version using AsciiDoc attributes:\n"
-                "  :version: 1.0.0\n"
-                "  :revnumber: 1.0"
-            )
+        """Update version label (delegates to label_updater)."""
+        self._label_updater.update_version_label(text)
 
     def _update_word_count_label(self, text: str, word_count: int) -> None:
-        """
-        Update word count label with document statistics.
-
-        MA principle: Extracted from update_document_metrics (11 lines).
-
-        Args:
-            text: Document text
-            word_count: Word count
-        """
-        char_count = len(text)
-        line_count = len(text.splitlines())
-        self.word_count_label.setText(f"Words: {word_count}")
-        self.word_count_label.setToolTip(
-            f"Document Statistics:\n"
-            f"  Words: {word_count:,}\n"
-            f"  Characters: {char_count:,}\n"
-            f"  Lines: {line_count:,}\n"
-            "(Excludes code blocks and comments)"
-        )
+        """Update word count label (delegates to label_updater)."""
+        self._label_updater.update_word_count_label(text, word_count)
 
     def _interpret_grade_level(self, grade: float) -> tuple[str, str]:
         """Interpret grade level (delegates to metrics_calculator)."""
         return self._metrics_calculator.interpret_grade_level(grade)
 
     def _update_grade_level_label(self, text: str, word_count: int) -> None:
-        """
-        Update grade level label with readability metrics.
-
-        MA principle: Extracted from update_document_metrics (21 lines).
-
-        Args:
-            text: Document text
-            word_count: Word count
-        """
-        if word_count > 0:
-            grade = self.calculate_grade_level(text)
-            self.grade_level_label.setText(f"Grade: {grade}")
-
-            difficulty, audience = self._interpret_grade_level(grade)
-
-            self.grade_level_label.setToolTip(
-                f"Reading Grade Level: {grade}\n"
-                f"Difficulty: {difficulty}\n"
-                f"Target Audience: {audience}\n\n"
-                "Based on Flesch-Kincaid readability formula\n"
-                "(Average sentence length + syllables per word)"
-            )
-        else:
-            self.grade_level_label.setText("Grade: --")
-            self.grade_level_label.setToolTip(
-                "Reading Grade Level: Not available\n(Document has no content to analyze)"
-            )
+        """Update grade level label (delegates to label_updater)."""
+        self._label_updater.update_grade_level_label(text, word_count)
 
     def update_document_metrics(self) -> None:
         """
