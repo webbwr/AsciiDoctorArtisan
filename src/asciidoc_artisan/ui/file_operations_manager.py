@@ -101,6 +101,7 @@ from asciidoc_artisan.core import (
 from asciidoc_artisan.core.large_file_handler import (  # Streaming I/O for large files
     LargeFileHandler,
 )
+from asciidoc_artisan.ui.file_save_handler import FileSaveHandler
 from asciidoc_artisan.ui.format_conversion_helper import FormatConversionHelper
 from asciidoc_artisan.ui.path_format_utils import PathFormatUtils
 
@@ -178,8 +179,9 @@ class FileOperationsManager:
         # When Pandoc worker finishes, we need to know which file we were working on
         self._pending_file_path: Path | None = None
 
-        # Helper instances (MA principle: delegate conversion logic)
+        # Helper instances (MA principle: delegate logic to focused classes)
         self._format_helper = FormatConversionHelper(editor)
+        self._save_handler = FileSaveHandler(editor, PathFormatUtils)
 
     def open_file(self) -> None:
         """
@@ -316,35 +318,8 @@ class FileOperationsManager:
         return self._execute_save_and_update(file_path)
 
     def _show_save_dialog(self) -> tuple[Path, str] | None:
-        """
-        Show save dialog and return selected path and format.
-
-        MA principle: Extracted from save_file (19 lines).
-
-        Returns:
-            Tuple of (file_path, format_type) if user selected, None if cancelled
-        """
-        suggested_name = self.editor._current_file_path.name if self.editor._current_file_path else DEFAULT_FILENAME
-        suggested_path = Path(self.editor._settings.last_directory) / suggested_name
-
-        file_path_str, selected_filter = QFileDialog.getSaveFileName(
-            self.editor,
-            "Save File",
-            str(suggested_path),
-            SUPPORTED_SAVE_FILTER,
-            options=(
-                QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
-            ),
-        )
-
-        if not file_path_str:
-            return None
-
-        file_path = Path(file_path_str)
-        logger.info(f"Save As dialog - file_path: {file_path}, selected_filter: {selected_filter}")
-
-        format_type, file_path = self._determine_save_format(file_path, selected_filter)
-        return file_path, format_type
+        """Show save dialog and return selected path and format (delegates to save_handler)."""
+        return self._save_handler.show_save_dialog()
 
     def _handle_export_format(self, file_path: Path, format_type: str) -> bool:
         """
@@ -369,112 +344,20 @@ class FileOperationsManager:
         return self.save_as_format_internal(file_path, format_type, use_ai_for_export)
 
     def _prepare_regular_save_path(self) -> Path:
-        """
-        Prepare file path for regular save operation.
-
-        MA principle: Extracted from save_file (8 lines).
-
-        Returns:
-            File path with .adoc extension
-        """
-        file_path = self.editor._current_file_path
-        assert file_path is not None, "file_path should not be None in save mode"
-
-        if file_path.suffix.lower() not in [".adoc", ".asciidoc"]:
-            file_path = file_path.with_suffix(".adoc")
-            logger.info(f"Converting save format from {self.editor._current_file_path.suffix} to .adoc")
-
-        return file_path
+        """Prepare file path for regular save operation (delegates to save_handler)."""
+        return self._save_handler.prepare_regular_save_path()
 
     def _execute_save_and_update(self, file_path: Path) -> bool:
-        """
-        Execute atomic save and update editor state.
-
-        MA principle: Extracted from save_file (17 lines).
-
-        Args:
-            file_path: Target file path
-
-        Returns:
-            True if saved successfully, False otherwise
-        """
-        content = self.editor.editor.toPlainText()
-
-        if atomic_save_text(file_path, content, encoding="utf-8"):
-            self.editor._current_file_path = file_path
-            self.editor._settings.last_directory = str(file_path.parent)
-            self.editor._unsaved_changes = False
-            self.editor.status_manager.update_window_title()
-            self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
-            logger.info(f"Saved file: {file_path}")
-            return True
-        else:
-            self.editor.status_manager.show_message(
-                "critical",
-                "Save Error",
-                f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.",
-            )
-            return False
+        """Execute atomic save and update editor state (delegates to save_handler)."""
+        return self._save_handler.execute_save_and_update(file_path)
 
     def _save_as_adoc(self, file_path: Path, content: str) -> bool:
-        """
-        Save content as AsciiDoc format.
-
-        Args:
-            file_path: Target file path
-            content: Content to save
-
-        Returns:
-            True if saved successfully, False otherwise
-
-        MA principle: Extracted from save_as_format_internal (14 lines).
-        """
-        if atomic_save_text(file_path, content, encoding="utf-8"):
-            self.editor._current_file_path = file_path
-            self.editor._settings.last_directory = str(file_path.parent)
-            self.editor._unsaved_changes = False
-            self.editor.status_manager.update_window_title()
-            self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
-            return True
-        else:
-            self.editor.status_manager.show_message(
-                "critical", "Save Error", f"Failed to save AsciiDoc file: {file_path}"
-            )
-            return False
+        """Save content as AsciiDoc format (delegates to save_handler)."""
+        return self._save_handler.save_as_adoc(file_path, content)
 
     def _save_as_html(self, file_path: Path, content: str) -> bool:
-        """
-        Save content as HTML format.
-
-        Args:
-            file_path: Target file path
-            content: AsciiDoc content to convert and save
-
-        Returns:
-            True if saved successfully, False otherwise
-
-        MA principle: Extracted from save_as_format_internal (20 lines).
-        """
-        self.editor.status_bar.showMessage("Saving as HTML...")
-        try:
-            if self.editor._asciidoc_api is None:
-                raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
-
-            infile = io.StringIO(content)
-            outfile = io.StringIO()
-            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
-            html_content = outfile.getvalue()
-
-            if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                self.editor.status_bar.showMessage(MSG_SAVED_HTML.format(file_path))
-                logger.info(f"Successfully saved as HTML: {file_path}")
-                return True
-            else:
-                raise OSError(f"Atomic save failed for {file_path}")
-        except Exception as e:
-            logger.exception(f"Failed to save HTML file: {e}")
-            self.editor.status_manager.show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
-            return False
+        """Save content as HTML format (delegates to save_handler)."""
+        return self._save_handler.save_as_html(file_path, content)
 
     def _determine_source_format(self) -> str:
         """Determine source format from current file extension (delegates to format_helper)."""
