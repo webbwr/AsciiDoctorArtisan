@@ -26,6 +26,7 @@ import logging
 import re
 import subprocess
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -45,6 +46,32 @@ except ImportError:
     METRICS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ConversionRequest:
+    """
+    Configuration for a document conversion operation.
+
+    MA principle: Config object to reduce parameter count (8→3 params in
+    _try_ai_conversion_with_fallback).
+
+    Attributes:
+        source: Document content (str/bytes) or Path to file
+        to_format: Target format (e.g., 'html', 'pdf', 'docx')
+        from_format: Source format (e.g., 'asciidoc', 'markdown')
+        context: Context string for logging/signals
+        output_file: Output file path (for binary formats like PDF/DOCX)
+        use_ai_conversion: Whether AI-enhanced conversion is requested
+    """
+
+    source: str | bytes | Path
+    to_format: str
+    from_format: str
+    context: str
+    output_file: Path | None
+    use_ai_conversion: bool
+
 
 # Pre-compiled regex patterns for post-processing (hot path optimization, v1.9.1)
 # Compiling at module level is 2-3x faster than compiling on each conversion
@@ -107,25 +134,17 @@ class PandocWorker(QObject):
 
     def _try_ai_conversion_with_fallback(
         self,
-        source: str | bytes | Path,
-        to_format: str,
-        from_format: str,
-        context: str,
-        output_file: Path | None,
+        request: ConversionRequest,
         start_time: float,
-        use_ai_conversion: bool,
     ) -> tuple[str | None, str | bytes | Path, str]:
         """
         Attempt AI conversion with automatic fallback to source.
 
+        MA principle: Reduced from 8→3 params using ConversionRequest config object (62% reduction).
+
         Args:
-            source: Document content or Path to file
-            to_format: Target format
-            from_format: Source format
-            context: Context string for logging/signals
-            output_file: Output file path (for binary formats)
+            request: Conversion configuration (source, formats, context, output_file, use_ai_conversion)
             start_time: Conversion start time (for metrics)
-            use_ai_conversion: Whether AI conversion is requested
 
         Returns:
             Tuple of (result_or_none, updated_source, conversion_method)
@@ -136,18 +155,18 @@ class PandocWorker(QObject):
         conversion_method = "pandoc"
 
         # Try Ollama AI conversion first if requested
-        if use_ai_conversion and self.ollama_enabled and self.ollama_model:
+        if request.use_ai_conversion and self.ollama_enabled and self.ollama_model:
             # Get source content as string
-            if isinstance(source, Path):
-                source_content = source.read_text(encoding="utf-8")
-            elif isinstance(source, bytes):
-                source_content = source.decode("utf-8", errors="replace")
+            if isinstance(request.source, Path):
+                source_content = request.source.read_text(encoding="utf-8")
+            elif isinstance(request.source, bytes):
+                source_content = request.source.decode("utf-8", errors="replace")
             else:
-                source_content = str(source)
+                source_content = str(request.source)
 
             # Try Ollama conversion
             try:
-                ollama_result = self._try_ollama_conversion(source_content, from_format, to_format)
+                ollama_result = self._try_ollama_conversion(source_content, request.from_format, request.to_format)
 
                 if ollama_result:
                     # Ollama conversion succeeded
@@ -155,10 +174,10 @@ class PandocWorker(QObject):
                     logger.info("Using Ollama AI conversion result")
 
                     # Handle output
-                    if output_file and to_format in ["pdf", "docx"]:
+                    if request.output_file and request.to_format in ["pdf", "docx"]:
                         # For binary formats, save the text and convert with Pandoc
                         # (Ollama can't directly create PDF/DOCX binaries)
-                        logger.info(f"Ollama produced {to_format} markup, using Pandoc for binary output")
+                        logger.info(f"Ollama produced {request.to_format} markup, using Pandoc for binary output")
                         # Continue to Pandoc with Ollama's result as source
                         return None, ollama_result, "ollama_pandoc"
                     else:
@@ -169,7 +188,7 @@ class PandocWorker(QObject):
                             metrics = get_metrics_collector()
                             metrics.record_operation(f"conversion_{conversion_method}", duration_ms)
 
-                        return ollama_result, source, conversion_method
+                        return ollama_result, request.source, conversion_method
 
                 else:
                     logger.warning("Ollama conversion returned no result, falling back to Pandoc")
@@ -178,7 +197,7 @@ class PandocWorker(QObject):
                 logger.warning(f"Ollama conversion failed, falling back to Pandoc: {e}")
                 # Continue to Pandoc fallback
 
-        return None, source, conversion_method
+        return None, request.source, conversion_method
 
     def _detect_pdf_engine(self) -> str:
         """
@@ -493,15 +512,15 @@ class PandocWorker(QObject):
         start_time = time.perf_counter()
 
         # Try AI conversion with fallback
-        ai_result, source, conversion_method = self._try_ai_conversion_with_fallback(
-            source,
-            to_format,
-            from_format,
-            context,
-            output_file,
-            start_time,
-            use_ai_conversion,
+        request = ConversionRequest(
+            source=source,
+            to_format=to_format,
+            from_format=from_format,
+            context=context,
+            output_file=output_file,
+            use_ai_conversion=use_ai_conversion,
         )
+        ai_result, source, conversion_method = self._try_ai_conversion_with_fallback(request, start_time)
 
         # If AI conversion completed successfully, we're done
         if ai_result is not None:
