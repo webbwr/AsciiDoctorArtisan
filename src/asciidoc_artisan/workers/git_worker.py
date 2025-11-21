@@ -1,20 +1,12 @@
 """
 Git Worker - Background thread for Git operations.
 
-This module provides the GitWorker class which executes Git commands
-in a background QThread to prevent UI blocking during version control
-operations.
+Executes Git commands in QThread to prevent UI blocking. Delegates to:
+- GitStatusParser: Parse git status output
+- GitCommandExecutor: Execute subprocess commands
+- GitErrorHandler: Error analysis and result creation
 
-Implements:
-- FR-031 to FR-040: Git integration requirements
-- NFR-005: Long-running operations in background threads
-- NFR-008: Safe Git operations (no force flags)
-- NFR-010: Parameterized subprocess calls (no shell injection)
-
-Security:
-- Never uses shell=True to prevent command injection
-- All arguments passed as list to subprocess.run()
-- No destructive force commands without user confirmation
+Security: shell=False, validated paths, no force flags (FR-031-040, NFR-005/008/010).
 """
 
 import logging
@@ -34,34 +26,14 @@ logger = logging.getLogger(__name__)
 
 class GitWorker(BaseWorker):
     """
-    Background worker for Git command execution.
-
-    Runs Git commands in a separate QThread to prevent UI blocking.
-    Emits command_complete signal with GitResult when operation finishes.
+    Background worker for Git command execution in QThread.
 
     Signals:
-        command_complete: Emitted with GitResult after command execution
-        status_ready: Emitted with GitStatus for real-time status updates (v1.9.0+)
-        detailed_status_ready: Emitted with detailed file-level status (v1.9.0+)
-            Format: Dict with keys: branch (str), modified (List[Dict]), staged (List[Dict]), untracked (List[Dict])
+        command_complete: GitResult after command execution
+        status_ready: GitStatus for real-time updates (v1.9.0+)
+        detailed_status_ready: Dict with branch, modified/staged/untracked file lists (v1.9.0+)
 
-    Example:
-        ```python
-        git_worker = GitWorker()
-        git_thread = QThread()
-        git_worker.moveToThread(git_thread)
-        git_thread.start()
-
-        git_worker.command_complete.connect(self._on_git_complete)
-        git_worker.status_ready.connect(self._on_status_update)
-
-        git_worker.run_git_command(
-            ["git", "add", "document.adoc"],
-            "/path/to/repo"
-        )
-
-        git_worker.get_repository_status("/path/to/repo")
-        ```
+    MA principle: Reduced from 904→333 lines via 3 extractions + docstring condensation (63.2% reduction).
     """
 
     command_complete = Signal(GitResult)
@@ -128,24 +100,9 @@ class GitWorker(BaseWorker):
     @Slot(list, str)
     def run_git_command(self, command: list[str], working_dir: str) -> None:
         """
-        Execute a Git command in the specified working directory.
+        Execute Git command in worker thread (non-blocking).
 
-        This method runs in the worker thread. Never blocks the UI.
-
-        Args:
-            command: Git command as list (e.g., ["git", "commit", "-m", "message"])
-            working_dir: Absolute path to Git repository root
-
-        Emits:
-            command_complete: GitResult with success/failure and output
-
-        Security:
-            - Uses subprocess with shell=False to prevent command injection (NFR-010)
-            - Validates working directory exists before execution
-            - No destructive force flags without user confirmation (NFR-008)
-
-        MA principle: Reduced from 121 lines to ~45 lines by extracting error
-        handling and subprocess execution into focused helper methods.
+        Emits command_complete with GitResult. Security: shell=False, validated paths (NFR-010).
         """
         # Check for cancellation
         if self._check_and_handle_cancellation():
@@ -202,31 +159,9 @@ class GitWorker(BaseWorker):
     @Slot(str)
     def get_repository_status(self, working_dir: str) -> None:
         """
-        Get Git repository status and emit status_ready signal.
+        Get repository status (branch, file counts, ahead/behind) and emit status_ready.
 
-        MA principle: Reduced from 79→29 lines by extracting 2 helpers (63% reduction).
-
-        Retrieves current branch, modified/staged/untracked file counts,
-        and ahead/behind commit counts relative to remote branch.
-
-        This method runs in the worker thread and is non-blocking.
-
-        Args:
-            working_dir: Absolute path to Git repository root
-
-        Emits:
-            status_ready: GitStatus with repository status information
-
-        Security:
-            - Uses subprocess with shell=False to prevent command injection
-            - 2 second timeout to avoid blocking
-            - Graceful error handling (returns empty status on failure)
-
-        Implementation:
-            Uses `git status --porcelain=v2 --branch` for machine-readable output.
-            Parses v2 format which includes:
-            - Branch headers (# branch.oid, # branch.head, # branch.upstream, # branch.ab)
-            - File status (1/2 prefix for tracked/untracked, XY status codes)
+        Uses git status --porcelain=v2. Non-blocking, 2s timeout, shell=False.
         """
         # Check for cancellation
         if self._check_cancellation():
@@ -251,15 +186,9 @@ class GitWorker(BaseWorker):
 
     def _emit_status_or_default(self, process: subprocess.CompletedProcess[str] | None) -> None:
         """
+        Parse process result and emit status_ready signal (or default on error).
+
         MA principle: Extracted helper (16 lines) - focused status emission.
-
-        Parse process result and emit status_ready signal.
-
-        Args:
-            process: CompletedProcess from git status command, or None on error
-
-        Emits:
-            status_ready: GitStatus with parsed data, or default GitStatus on error
         """
         if process and process.returncode == 0:
             status = self._parse_git_status_v2(process.stdout)
@@ -298,32 +227,9 @@ class GitWorker(BaseWorker):
     @Slot(str)
     def get_detailed_repository_status(self, working_dir: str) -> None:
         """
-        Get detailed Git repository status with file-level information (v1.9.0+).
+        Get detailed status (branch, file lists with line counts) and emit detailed_status_ready.
 
-        MA principle: Reduced from 87→39 lines by extracting command execution helper (55% reduction).
-
-        Retrieves detailed status including:
-        - Current branch name
-        - Modified files with line change counts
-        - Staged files with line change counts
-        - Untracked files
-
-        This method runs in the worker thread and is non-blocking.
-
-        Args:
-            working_dir: Absolute path to Git repository root
-
-        Emits:
-            detailed_status_ready: Dict with keys:
-                - branch (str): Current branch name
-                - modified (List[Dict]): Modified files [{path, status, lines_added, lines_deleted}]
-                - staged (List[Dict]): Staged files (same format)
-                - untracked (List[Dict]): Untracked files [{path}]
-
-        Security:
-            - Uses subprocess with shell=False to prevent command injection
-            - 5 second timeout to avoid blocking
-            - Graceful error handling
+        Emits Dict with branch/modified/staged/untracked. Non-blocking, 5s timeout, shell=False.
         """
         if self._check_cancellation():
             logger.info("Detailed Git status operation cancelled")
@@ -372,12 +278,6 @@ class GitWorker(BaseWorker):
         Emit detailed status signal with file information.
 
         MA principle: Extracted helper (16 lines) - focused status emission.
-
-        Args:
-            branch: Current branch name
-            modified_files: List of modified files
-            staged_files: List of staged files
-            untracked_files: List of untracked files
         """
         detailed_status = {
             "branch": branch,
@@ -403,14 +303,6 @@ class GitWorker(BaseWorker):
         Add line change counts to file list using git diff --numstat.
 
         MA principle: Reduced from 67→19 lines by extracting 3 helpers (72% reduction).
-
-        Args:
-            working_dir: Repository root directory
-            files: List of file dicts (will be modified in place)
-            staged: If True, get staged changes (--cached), else working tree changes
-
-        Returns:
-            Updated file list with lines_added and lines_deleted keys
         """
         result, timeout = self._execute_git_diff_numstat(working_dir, staged)
         if result and result.returncode == 0:
