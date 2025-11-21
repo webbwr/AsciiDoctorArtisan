@@ -64,6 +64,11 @@ def app(qtbot: QtBot, qapp: QApplication, tmp_path: Path, monkeypatch) -> Genera
 
     # Create app with temp settings
     window = AsciiDocEditor()
+
+    # Disable telemetry opt-in dialog for E2E tests (prevents QTimer issues)
+    window._settings.telemetry_opt_in_shown = True
+    window._settings.telemetry_enabled = False
+
     qtbot.addWidget(window)
     window.show()
     qtbot.waitExposed(window, timeout=5000)
