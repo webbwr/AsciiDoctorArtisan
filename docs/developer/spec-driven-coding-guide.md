@@ -706,5 +706,5 @@ Specification-driven coding with Claude Code means:
 ---
 
 **Version:** 1.0
-**Last Updated:** November 15, 2025
-**For:** AsciiDoc Artisan v2.0.2+
+**Last Updated:** November 21, 2025
+**For:** AsciiDoc Artisan v2.0.8

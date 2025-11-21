@@ -11,6 +11,8 @@ specification:
 
 metadata:
   total_requirements: 107
+  sub_requirements: 3  # FR-067a, FR-067b, FR-067c
+  total_fr_definitions: 110
   implemented: 107
   partial: 0
   planned: 0
