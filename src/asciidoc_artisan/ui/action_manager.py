@@ -615,7 +615,23 @@ class ActionManager:
         )
 
     def _create_tools_actions(self) -> None:
-        """Create Tools menu actions (14 actions)."""
+        """
+        Create Tools menu actions (16 actions).
+
+        MA principle: Reduced from 67→21 lines by extracting 5 action group helpers (69% reduction).
+        """
+        self._create_validation_settings_actions()
+        self._create_service_status_actions()
+        self._create_service_settings_actions()
+        self._create_ui_toggle_actions()
+        self._create_general_settings_actions()
+
+    def _create_validation_settings_actions(self) -> None:
+        """
+        Create validation and editor settings actions.
+
+        MA principle: Extracted helper (18 lines) - validation and editor config actions.
+        """
         self.validate_install_act = self._create_action(
             "&Validate Installation...",
             "Check installation requirements and update dependencies",
@@ -634,6 +650,13 @@ class ActionManager:
         self.toggle_theme_act = self._create_action(
             "Toggle &Theme (Dark/Light)", "Switch between dark and light theme", self.window._toggle_dark_mode
         )
+
+    def _create_service_status_actions(self) -> None:
+        """
+        Create service status check actions.
+
+        MA principle: Extracted helper (19 lines) - status check actions for services.
+        """
         self.pandoc_status_act = self._create_action(
             "&Pandoc Status", "Check Pandoc installation status", self.window._show_pandoc_status
         )
@@ -651,6 +674,13 @@ class ActionManager:
             "Check telemetry configuration and data collection status",
             self.window._show_telemetry_status,
         )
+
+    def _create_service_settings_actions(self) -> None:
+        """
+        Create AI service settings actions.
+
+        MA principle: Extracted helper (13 lines) - AI service configuration actions.
+        """
         self.ollama_settings_act = self._create_action(
             "&Ollama Settings...", "Configure Ollama AI integration and select model", self.window._show_ollama_settings
         )
@@ -659,15 +689,19 @@ class ActionManager:
             "Configure Anthropic API key for AI conversations",
             self.window._show_anthropic_settings,
         )
+
+    def _create_ui_toggle_actions(self) -> None:
+        """
+        Create UI toggle actions.
+
+        MA principle: Extracted helper (18 lines) - UI feature toggle actions.
+        """
         self.toggle_chat_pane_act = self._create_action(
             "&Chat Pane",
             "Show or hide AI chat pane",
             lambda: self.window.chat_manager.toggle_panel_visibility(),
             checkable=True,
             checked=self._settings.ai_chat_enabled or self._settings.ollama_chat_enabled,
-        )
-        self.font_settings_act = self._create_action(
-            "&Font Settings...", "Customize fonts for editor, preview, and chat panes", self.window._show_font_settings
         )
         self.toggle_spell_check_act = self._create_action(
             "&Spell Check",
@@ -677,6 +711,16 @@ class ActionManager:
         )
         self.toggle_telemetry_act = self._create_action(
             "&Telemetry", "Enable or disable telemetry collection", self.window.toggle_telemetry
+        )
+
+    def _create_general_settings_actions(self) -> None:
+        """
+        Create general settings actions.
+
+        MA principle: Extracted helper (11 lines) - general application settings actions.
+        """
+        self.font_settings_act = self._create_action(
+            "&Font Settings...", "Customize fonts for editor, preview, and chat panes", self.window._show_font_settings
         )
         self.app_settings_act = self._create_action(
             "Application &Settings...", "View and edit all application settings", self.window._show_app_settings
