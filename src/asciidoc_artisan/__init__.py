@@ -166,9 +166,130 @@ __version__ = "2.0.8"
 # === LAZY IMPORT MAGIC METHOD ===
 # This is a Python "magic method" (special method with __ prefix and suffix)
 # __getattr__ is called when someone tries to access an attribute that doesn't exist yet
+def _import_core_constants(name: str) -> Any | None:
+    """
+    Import core constants on demand.
+
+    MA principle: Extracted helper (20 lines) - focused constant import logic.
+
+    Args:
+        name: Constant name to import
+
+    Returns:
+        Constant value if name matches, None otherwise
+    """
+    if name in (
+        "APP_NAME",
+        "DEFAULT_FILENAME",
+        "EDITOR_FONT_SIZE",
+        "SETTINGS_FILENAME",
+        "SUPPORTED_OPEN_FILTER",
+        "SUPPORTED_SAVE_FILTER",
+    ):
+        from .core import (  # noqa: F401
+            APP_NAME,
+            DEFAULT_FILENAME,
+            EDITOR_FONT_SIZE,
+            SETTINGS_FILENAME,
+            SUPPORTED_OPEN_FILTER,
+            SUPPORTED_SAVE_FILTER,
+        )
+
+        return locals()[name]
+    return None
+
+
+def _import_core_models(name: str) -> Any | None:
+    """
+    Import core data models on demand.
+
+    MA principle: Extracted helper (9 lines) - focused model import logic.
+
+    Args:
+        name: Model class name to import
+
+    Returns:
+        Model class if name matches, None otherwise
+    """
+    if name in ("GitResult", "Settings"):
+        from .core import GitResult, Settings  # noqa: F401
+
+        return locals()[name]
+    return None
+
+
+def _import_core_security(name: str) -> Any | None:
+    """
+    Import core security functions on demand.
+
+    MA principle: Extracted helper (13 lines) - focused security import logic.
+
+    Args:
+        name: Security function name to import
+
+    Returns:
+        Security function if name matches, None otherwise
+    """
+    if name in ("atomic_save_json", "atomic_save_text", "sanitize_path"):
+        from .core import (  # noqa: F401
+            atomic_save_json,
+            atomic_save_text,
+            sanitize_path,
+        )
+
+        return locals()[name]
+    return None
+
+
+def _import_ui_components(name: str) -> Any | None:
+    """
+    Import UI components on demand.
+
+    MA principle: Extracted helper (13 lines) - focused UI import logic.
+
+    Args:
+        name: UI component name to import
+
+    Returns:
+        UI component if name matches, None otherwise
+    """
+    if name == "AsciiDocEditor":
+        from .ui import AsciiDocEditor
+
+        return AsciiDocEditor
+
+    if name == "PreferencesDialog":
+        from .ui import PreferencesDialog
+
+        return PreferencesDialog
+
+    return None
+
+
+def _import_workers(name: str) -> Any | None:
+    """
+    Import worker classes on demand.
+
+    MA principle: Extracted helper (9 lines) - focused worker import logic.
+
+    Args:
+        name: Worker class name to import
+
+    Returns:
+        Worker class if name matches, None otherwise
+    """
+    if name in ("GitWorker", "PandocWorker", "PreviewWorker"):
+        from .workers import GitWorker, PandocWorker, PreviewWorker  # noqa: F401
+
+        return locals()[name]
+    return None
+
+
 def __getattr__(name: str) -> Any:
     """
     Lazy Import Handler - Only Load Modules When Actually Used.
+
+    MA principle: Reduced from 64→23 lines by extracting 5 import helpers (64% reduction).
 
     WHY THIS EXISTS:
     Normal imports happen immediately when Python loads this file:
@@ -200,69 +321,28 @@ def __getattr__(name: str) -> Any:
     RAISES:
         AttributeError: If name is not in our public API
     """
-    # === CORE CONSTANTS (String values) ===
-    if name in (
-        "APP_NAME",  # "AsciiDoc Artisan"
-        "DEFAULT_FILENAME",  # "Untitled.adoc"
-        "EDITOR_FONT_SIZE",  # 12
-        "SETTINGS_FILENAME",  # "AsciiDocArtisan.json"
-        "SUPPORTED_OPEN_FILTER",  # File dialog filter string
-        "SUPPORTED_SAVE_FILTER",  # File dialog filter string
-    ):
-        # Import ALL constants at once (they're in same file)
-        from .core import (  # noqa: F401
-            APP_NAME,
-            DEFAULT_FILENAME,
-            EDITOR_FONT_SIZE,
-            SETTINGS_FILENAME,
-            SUPPORTED_OPEN_FILTER,
-            SUPPORTED_SAVE_FILTER,
-        )
+    # Try each import category
+    result = _import_core_constants(name)
+    if result is not None:
+        return result
 
-        # Return the one they asked for
-        # locals() = dictionary of local variables
-        # locals()[name] = get variable with this name
-        return locals()[name]
+    result = _import_core_models(name)
+    if result is not None:
+        return result
 
-    # === CORE DATA MODELS (Classes) ===
-    if name in ("GitResult", "Settings"):
-        from .core import GitResult, Settings  # noqa: F401
+    result = _import_core_security(name)
+    if result is not None:
+        return result
 
-        return locals()[name]
+    result = _import_ui_components(name)
+    if result is not None:
+        return result
 
-    # === CORE SECURITY FUNCTIONS ===
-    if name in ("atomic_save_json", "atomic_save_text", "sanitize_path"):
-        # Save JSON/text files atomically (no corruption)
-        # Clean file paths (prevent attacks)
-        from .core import (  # noqa: F401
-            atomic_save_json,
-            atomic_save_text,
-            sanitize_path,
-        )
+    result = _import_workers(name)
+    if result is not None:
+        return result
 
-        return locals()[name]
-
-    # === UI COMPONENTS (Main Application Window) ===
-    if name == "AsciiDocEditor":
-        from .ui import AsciiDocEditor  # The main window class
-
-        return AsciiDocEditor
-
-    # === UI COMPONENTS (Dialogs) ===
-    if name == "PreferencesDialog":
-        from .ui import PreferencesDialog  # Settings dialog
-
-        return PreferencesDialog
-
-    # === WORKER CLASSES (Background Threads) ===
-    if name in ("GitWorker", "PandocWorker", "PreviewWorker"):
-        from .workers import GitWorker, PandocWorker, PreviewWorker  # noqa: F401
-
-        return locals()[name]
-
-    # === UNKNOWN ATTRIBUTE ===
-    # If we get here, they asked for something not in our public API
-    # Raise AttributeError (same as Python does for missing attributes)
+    # Unknown attribute - not in our public API
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
