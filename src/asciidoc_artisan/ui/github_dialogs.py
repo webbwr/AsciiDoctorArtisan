@@ -230,14 +230,36 @@ class BaseListDialog(QDialog):
         raise NotImplementedError
 
     def _init_ui(self) -> None:
-        """Initialize the list dialog UI."""
+        """
+        Initialize the list dialog UI.
+
+        MA principle: Reduced from 54→15 lines by extracting 3 helpers (72% reduction).
+        """
         self.setWindowTitle(self._get_window_title())
         self.setMinimumSize(700, 400)
         self.setModal(False)
 
         layout = QVBoxLayout(self)
 
-        # Filter controls
+        # Add UI components
+        filter_layout = self._setup_filter_controls()
+        layout.addLayout(filter_layout)
+
+        self.table = self._setup_table_widget()
+        layout.addWidget(self.table)
+
+        button_box = self._setup_dialog_buttons()
+        layout.addWidget(button_box)
+
+    def _setup_filter_controls(self) -> QHBoxLayout:
+        """
+        Create filter controls for the dialog.
+
+        MA principle: Extracted from _init_ui (22 lines).
+
+        Returns:
+            QHBoxLayout with filter controls
+        """
         filter_layout = QHBoxLayout()
         filter_layout.addWidget(QLabel("State:"))
 
@@ -256,19 +278,27 @@ class BaseListDialog(QDialog):
         refresh_btn.clicked.connect(self._refresh_clicked)
         filter_layout.addWidget(refresh_btn)
 
-        layout.addLayout(filter_layout)
+        return filter_layout
 
-        # Table widget
-        self.table = QTableWidget()
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(["Number", "Title", "Author", "Status", "Created", "URL"])
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table.doubleClicked.connect(self._row_double_clicked)
-        self.table.setToolTip(f"Double-click to open {self._get_tooltip_prefix()[:-1]} in browser")
+    def _setup_table_widget(self) -> QTableWidget:
+        """
+        Create and configure table widget.
+
+        MA principle: Extracted from _init_ui (18 lines).
+
+        Returns:
+            Configured QTableWidget
+        """
+        table = QTableWidget()
+        table.setColumnCount(6)
+        table.setHorizontalHeaderLabels(["Number", "Title", "Author", "Status", "Created", "URL"])
+        table.setSelectionBehavior(QTableWidget.SelectRows)
+        table.setEditTriggers(QTableWidget.NoEditTriggers)
+        table.doubleClicked.connect(self._row_double_clicked)
+        table.setToolTip(f"Double-click to open {self._get_tooltip_prefix()[:-1]} in browser")
 
         # Configure column widths
-        header = self.table.horizontalHeader()
+        header = table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Number
         header.setSectionResizeMode(1, QHeaderView.Stretch)  # Title
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Author
@@ -276,12 +306,20 @@ class BaseListDialog(QDialog):
         header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Created
         header.setSectionResizeMode(5, QHeaderView.Stretch)  # URL
 
-        layout.addWidget(self.table)
+        return table
 
-        # Dialog buttons
+    def _setup_dialog_buttons(self) -> QDialogButtonBox:
+        """
+        Create dialog button box.
+
+        MA principle: Extracted from _init_ui (4 lines).
+
+        Returns:
+            QDialogButtonBox with close button
+        """
         button_box = QDialogButtonBox(QDialogButtonBox.Close)
         button_box.rejected.connect(self.close)
-        layout.addWidget(button_box)
+        return button_box
 
     def _populate_table(self) -> None:
         """Populate table with current data. Subclasses can override."""
