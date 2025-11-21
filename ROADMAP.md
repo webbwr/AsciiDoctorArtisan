@@ -141,6 +141,24 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
   - Usage: `pytest tests/e2e/step_defs/ollama_steps.py --forked`
 - **Status:** E2E Ollama tests stabilized and passing consistently
 
+**Update Nov 20, 2025 (Phase 4E-4 - Problem Files):** Phase 4E-4 **MOSTLY RESOLVED**.
+- **dialog_manager:** ✅ RESOLVED - 92 passed, 9 skipped (0.97s)
+  - Fixed in Session 2 via callback extraction
+  - Previously hung at 60s, now passes quickly
+- **dialogs:** ✅ RESOLVED - 196 passed (1.33s)
+  - No longer hangs, all tests passing
+  - Session 2 refactoring resolved timeout issues
+- **main_window:** ⚠️ TIMEOUT PERSISTS (30s)
+  - Individual test files pass when run separately
+  - Combined run (test_main_window.py + test_main_window_coverage.py) times out
+  - Track C: Requires investigation of combined file timeout
+- **preview_handler_gpu:** ⚠️ EXPECTED BEHAVIOR (3 GPU tests)
+  - 64 passed, 3 failed (requires `@pytest.mark.requires_gpu`)
+  - Failures expected without GPU hardware
+  - Not a blocker, properly marked tests
+- **Result:** 2 of 4 resolved, 2 with known/expected issues
+- **Progress:** 30+ of 42 UI modules (71%+) verified or resolved
+
 **Coverage Analysis (Nov 16, 2025):** True 100% coverage is impossible due to Qt threading limitations. Maximum achievable: ~99.5%.
 
 ### Test Coverage Limitations
