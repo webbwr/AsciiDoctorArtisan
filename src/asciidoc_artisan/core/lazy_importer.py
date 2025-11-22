@@ -1,25 +1,8 @@
 """
-Lazy Importer - Deferred module loading for faster startup.
+Lazy Importer - Deferred module loading for faster startup (NFR-002: <3s target, 50-70% improvement).
 
-Implements:
-- NFR-002: Application startup time optimization (<3s target, 50-70% improvement achieved)
-
-This module provides lazy import utilities:
-- Defer heavy module imports until needed
-- Profile import times
-- Identify slow imports
-- Reduce startup time
-
-Implements Phase 6.1 of Performance Optimization Plan:
-- Lazy imports
-- Import profiling
-- 50-70% faster startup
-
-Design Goals:
-- Fast startup (defer heavy imports)
-- Simple API (drop-in replacement)
-- Track import times
-- Identify bottlenecks
+Utilities: Defer heavy imports until needed, profile import times, identify slow imports, reduce startup time.
+Phase 6.1: Lazy imports, import profiling, 50-70% faster startup. Design: Fast startup, simple API (drop-in replacement), track import times, identify bottlenecks.
 """
 
 import importlib
@@ -35,11 +18,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(slots=True)
 class ImportStats:
-    """
-    Import statistics.
-
-    Uses __slots__ for memory efficiency.
-    """
+    """Import statistics with __slots__ for memory efficiency. Fields: module_name, import_time, deferred, first_access_time, access_count."""
 
     module_name: str
     import_time: float
@@ -49,32 +28,10 @@ class ImportStats:
 
 
 class LazyModule:
-    """
-    Lazy module loader.
-
-    Defers module import until first attribute access.
-
-    Example:
-        # Instead of:
-        import pandas as pd
-
-        # Use:
-        pd = LazyModule('pandas')
-
-        # pandas not imported yet
-
-        # First use triggers import
-        df = pd.DataFrame(...)  # Import happens here
-    """
+    """Lazy module loader - defers import until first attribute access. Example: pd = LazyModule('pandas'); df = pd.DataFrame(...) # Import happens here."""
 
     def __init__(self, module_name: str, package: str | None = None):
-        """
-        Initialize lazy module.
-
-        Args:
-            module_name: Module to import
-            package: Package for relative imports
-        """
+        """Initialize lazy module. Args: module_name (module to import), package (for relative imports)."""
         self._module_name = module_name
         self._package = package
         self._module: Any | None = None
@@ -122,23 +79,7 @@ class LazyModule:
 
 
 class ImportProfiler:
-    """
-    Profile import times.
-
-    Track how long each import takes to identify slow imports.
-
-    Example:
-        profiler = ImportProfiler()
-
-        with profiler.profile():
-            import pandas
-            import numpy
-            import matplotlib
-
-        stats = profiler.get_statistics()
-        for module, time_ms in stats['slowest']:
-            print(f"{module}: {time_ms:.2f}ms")
-    """
+    """Profile import times to identify slow imports. Example: profiler = ImportProfiler(); with profiler.profile(): import pandas; stats = profiler.get_statistics(); for module, time_ms in stats['slowest']: print(f\"{module}: {time_ms:.2f}ms\")."""
 
     def __init__(self) -> None:
         """Initialize import profiler."""
@@ -228,11 +169,7 @@ class ImportProfiler:
 
 
 class ImportTracker:
-    """
-    Track all imports for analysis.
-
-    Singleton that tracks both eager and lazy imports.
-    """
+    """Track all imports for analysis (singleton tracking both eager and lazy imports)."""
 
     _instance: Optional["ImportTracker"] = None
     _initialized: bool
@@ -254,23 +191,11 @@ class ImportTracker:
         self._lazy_modules: set[str] = set()
 
     def register_lazy_import(self, module_name: str) -> None:
-        """
-        Register lazy import.
-
-        Args:
-            module_name: Module name
-        """
+        """Register lazy import. Args: module_name."""
         self._lazy_modules.add(module_name)
 
     def record_import(self, module_name: str, import_time: float, deferred: bool = False) -> None:
-        """
-        Record import.
-
-        Args:
-            module_name: Module name
-            import_time: Import time in seconds
-            deferred: Whether import was deferred
-        """
+        """Record import. Args: module_name, import_time (seconds), deferred (whether import was deferred)."""
         if module_name not in self._imports:
             self._imports[module_name] = ImportStats(
                 module_name=module_name, import_time=import_time, deferred=deferred
@@ -281,12 +206,7 @@ class ImportTracker:
             stats.access_count += 1
 
     def get_statistics(self) -> dict[str, Any]:
-        """
-        Get import statistics.
-
-        Returns:
-            Dictionary with stats
-        """
+        """Get import statistics. Returns: Dictionary with stats (total_imports, eager/lazy counts, times, time_saved)."""
         eager_imports = [s for s in self._imports.values() if not s.deferred]
         lazy_imports = [s for s in self._imports.values() if s.deferred]
 
@@ -328,48 +248,12 @@ _import_tracker = ImportTracker()
 
 
 def lazy_import(module_name: str, package: str | None = None) -> LazyModule:
-    """
-    Create lazy module.
-
-    Args:
-        module_name: Module to import
-        package: Package for relative imports
-
-    Returns:
-        LazyModule instance
-
-    Example:
-        pandas = lazy_import('pandas')
-        numpy = lazy_import('numpy')
-
-        # Not imported yet
-
-        # Import happens on first use
-        df = pandas.DataFrame(...)
-    """
+    """Create lazy module. Args: module_name, package (relative imports). Returns: LazyModule. Example: pandas = lazy_import('pandas'); df = pandas.DataFrame(...) # Import happens here."""
     return LazyModule(module_name, package)
 
 
 def profile_imports(func: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Decorator to profile imports.
-
-    Args:
-        func: Function to profile
-
-    Returns:
-        Wrapped function
-
-    Example:
-        @profile_imports
-        def main():
-            import pandas
-            import numpy
-            # ...
-
-        main()
-        # Prints import report at end
-    """
+    """Decorator to profile imports. Args: func (function to profile). Returns: Wrapped function. Example: @profile_imports def main(): import pandas; main() # Prints import report at end."""
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         profiler = ImportProfiler()
@@ -384,12 +268,7 @@ def profile_imports(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def get_import_statistics() -> dict[str, Any]:
-    """
-    Get global import statistics.
-
-    Returns:
-        Dictionary with stats
-    """
+    """Get global import statistics. Returns: Dictionary with stats."""
     return _import_tracker.get_statistics()
 
 
@@ -399,18 +278,7 @@ def print_import_report() -> None:
 
 
 class ImportOptimizer:
-    """
-    Optimize imports in a module.
-
-    Analyze and suggest improvements for imports.
-
-    Example:
-        optimizer = ImportOptimizer()
-        suggestions = optimizer.analyze_module('my_module')
-
-        for suggestion in suggestions:
-            print(suggestion)
-    """
+    """Optimize imports in a module (analyze and suggest improvements). Example: optimizer = ImportOptimizer(); suggestions = optimizer.analyze_module('my_module'); for suggestion in suggestions: print(suggestion)."""
 
     def __init__(self) -> None:
         """Initialize optimizer."""
@@ -430,15 +298,7 @@ class ImportOptimizer:
         }
 
     def analyze_module(self, module_name: str) -> list[str]:
-        """
-        Analyze module imports.
-
-        Args:
-            module_name: Module to analyze
-
-        Returns:
-            List of suggestions
-        """
+        """Analyze module imports. Args: module_name. Returns: List of suggestions."""
         suggestions = []
 
         try:
@@ -460,10 +320,5 @@ class ImportOptimizer:
         return suggestions
 
     def get_heavy_modules(self) -> set[str]:
-        """
-        Get list of known heavy modules.
-
-        Returns:
-            Set of module names
-        """
+        """Get list of known heavy modules. Returns: Set of module names."""
         return self._heavy_modules.copy()
