@@ -1,35 +1,10 @@
 """
-Telemetry Collector - Privacy-First Usage Analytics.
+Telemetry Collector - Privacy-First Usage Analytics (opt-in, local-only, NO cloud upload).
 
-This module provides opt-in telemetry collection for understanding user behavior
-and improving the application. All data is stored locally and NO data is sent to
-external servers without explicit user consent.
-
-Privacy Principles:
-- Opt-in only (disabled by default)
-- Local storage only (no cloud upload)
-- Anonymous session IDs (UUIDs)
-- NO personal data (names, emails, IP addresses)
-- NO document content
-- NO file paths
-- Easy opt-out anytime
-
-Collected Data:
-- Feature usage (menu clicks, dialogs opened)
-- Error patterns (exception types, NO stack traces with user data)
-- Performance metrics (startup time, render latency)
-- System info (OS, Python version, GPU type)
-
-Data Storage:
-- Location: ~/.config/AsciiDocArtisan/telemetry.json
-- Format: JSON
-- Max size: 10MB (auto-rotation)
-- Retention: 30 days
-
-Example:
-    >>> collector = TelemetryCollector()
-    >>> collector.track_event("menu_click", {"menu": "File", "action": "Open"})
-    >>> collector.track_performance("startup_time", 1.05)
+Privacy: Opt-in only (disabled default), anonymous UUIDs, NO personal data/content/paths, easy opt-out.
+Collects: Feature usage (menu/dialogs), error patterns (types only), performance metrics, system info (OS/Python/GPU).
+Storage: ~/.config/AsciiDocArtisan/telemetry.json, JSON format, 10MB max (auto-rotate), 30-day retention.
+Example: collector = TelemetryCollector(); collector.track_event("menu_click", {"menu": "File", "action": "Open"}); collector.track_performance("startup_time", 1.05).
 """
 
 import json
@@ -56,15 +31,7 @@ EVENT_FEATURE_USE = "feature_use"
 
 @dataclass
 class TelemetryEvent:
-    """
-    Represents a single telemetry event.
-
-    Attributes:
-        event_type: Type of event (menu_click, error, performance, etc.)
-        timestamp: ISO format timestamp (UTC)
-        session_id: Anonymous session identifier (UUID)
-        data: Event-specific data (NO personal information)
-    """
+    """Single telemetry event. Attributes: event_type (menu_click/error/performance/etc.), timestamp (ISO UTC), session_id (anonymous UUID), data (NO personal info)."""
 
     event_type: str
     timestamp: str
@@ -77,22 +44,7 @@ class TelemetryEvent:
 
 
 class TelemetryCollector:
-    """
-    Privacy-first telemetry collector with local-only storage.
-
-    Features:
-    - Opt-in only (must be explicitly enabled)
-    - Local JSON storage (no cloud upload)
-    - Anonymous session IDs
-    - NO personal data collection
-    - Auto-rotation (max 10MB)
-    - 30-day retention
-
-    Example:
-        >>> collector = TelemetryCollector(enabled=True)
-        >>> collector.track_event("menu_click", {"menu": "File", "action": "Save"})
-        >>> collector.track_performance("render_time", 0.05)
-    """
+    """Privacy-first telemetry with local-only storage. Features: Opt-in only, local JSON, anonymous IDs, NO personal data, auto-rotation (10MB max), 30-day retention. Example: collector = TelemetryCollector(enabled=True); collector.track_event("menu_click", {"menu": "File"}); collector.track_performance("render_time", 0.05)."""
 
     def __init__(
         self,
@@ -100,14 +52,7 @@ class TelemetryCollector:
         session_id: str | None = None,
         data_dir: Path | None = None,
     ) -> None:
-        """
-        Initialize TelemetryCollector.
-
-        Args:
-            enabled: Whether telemetry is enabled (default: False, opt-in only)
-            session_id: Existing session ID or None to generate new one
-            data_dir: Directory for telemetry data (default: app data directory)
-        """
+        """Initialize TelemetryCollector. Args: enabled (default False, opt-in), session_id (existing or generate new), data_dir (default app data dir)."""
         self.enabled = enabled
         self.session_id = session_id or str(uuid.uuid4())
         self.session_start_time = time.time()
@@ -142,16 +87,7 @@ class TelemetryCollector:
         logger.info(f"TelemetryCollector initialized (enabled={enabled}, session_id={self.session_id[:8]}...)")
 
     def track_event(self, event_type: str, data: dict[str, Any] | None = None) -> None:
-        """
-        Track a telemetry event.
-
-        Args:
-            event_type: Type of event (menu_click, dialog_open, etc.)
-            data: Event-specific data (NO personal information!)
-
-        Example:
-            >>> collector.track_event("menu_click", {"menu": "File", "action": "Open"})
-        """
+        """Track telemetry event. Args: event_type (menu_click/dialog_open/etc.), data (NO personal info). Example: collector.track_event("menu_click", {"menu": "File", "action": "Open"})."""
         if not self.enabled:
             return
 
@@ -181,17 +117,7 @@ class TelemetryCollector:
         error_message: str,
         context: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Track an error event.
-
-        Args:
-            error_type: Type of error (ValueError, FileNotFoundError, etc.)
-            error_message: Error message (sanitized, NO file paths or user data)
-            context: Additional context (NO personal information)
-
-        Example:
-            >>> collector.track_error("ValueError", "Invalid parameter", {"function": "save_file"})
-        """
+        """Track error event. Args: error_type (ValueError/FileNotFoundError/etc.), error_message (sanitized, NO paths/user data), context (NO personal info). Example: collector.track_error("ValueError", "Invalid parameter", {"function": "save_file"})."""
         if not self.enabled:
             return
 
@@ -204,18 +130,7 @@ class TelemetryCollector:
         self.track_event(EVENT_ERROR, data)
 
     def track_performance(self, metric_name: str, value: float, unit: str = "seconds") -> None:
-        """
-        Track a performance metric.
-
-        Args:
-            metric_name: Name of metric (startup_time, render_time, etc.)
-            value: Metric value
-            unit: Unit of measurement (default: seconds)
-
-        Example:
-            >>> collector.track_performance("startup_time", 1.05)
-            >>> collector.track_performance("render_time", 0.05, "seconds")
-        """
+        """Track performance metric. Args: metric_name (startup_time/render_time/etc.), value, unit (default: seconds). Example: collector.track_performance("startup_time", 1.05); collector.track_performance("render_time", 0.05, "seconds")."""
         if not self.enabled:
             return
 
@@ -224,12 +139,7 @@ class TelemetryCollector:
         self.track_event(EVENT_PERFORMANCE, data)
 
     def track_startup(self, startup_time: float) -> None:
-        """
-        Track application startup with system info.
-
-        Args:
-            startup_time: Time taken to start app (seconds)
-        """
+        """Track app startup with system info. Args: startup_time (seconds)."""
         if not self.enabled:
             return
 
@@ -292,15 +202,7 @@ class TelemetryCollector:
         return self.telemetry_file.stat().st_size
 
     def _rotate_events(self, events: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """
-        Rotate events by keeping only recent events (30 days).
-
-        Args:
-            events: List of all events
-
-        Returns:
-            List of events within retention period
-        """
+        """Rotate events by keeping only recent events (30-day retention). Args: events (all events). Returns: List of events within retention period."""
         # Calculate cutoff date (30 days ago)
         cutoff_time = time.time() - (30 * 24 * 60 * 60)
 
@@ -319,21 +221,7 @@ class TelemetryCollector:
         return recent_events
 
     def _sanitize_data(self, data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Sanitize data to remove personal information.
-
-        Removes:
-        - File paths
-        - Email addresses
-        - IP addresses
-        - User names
-
-        Args:
-            data: Raw data dictionary
-
-        Returns:
-            Sanitized data dictionary
-        """
+        """Sanitize data to remove personal information (file paths, emails, IPs, user names). Args: data (raw dict). Returns: Sanitized dict."""
         sanitized: dict[str, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
@@ -349,15 +237,7 @@ class TelemetryCollector:
         return sanitized
 
     def _sanitize_message(self, message: str) -> str:
-        """
-        Sanitize a message to remove file paths and personal data.
-
-        Args:
-            message: Raw message
-
-        Returns:
-            Sanitized message
-        """
+        """Sanitize message to remove file paths and personal data. Args: message (raw). Returns: Sanitized message (max 500 chars)."""
         # Replace common file path patterns
         sanitized = message
         if "/" in sanitized or "\\" in sanitized:
@@ -370,12 +250,7 @@ class TelemetryCollector:
         return sanitized[:500]  # Limit message length
 
     def get_statistics(self) -> dict[str, Any]:
-        """
-        Get telemetry statistics.
-
-        Returns:
-            Dictionary with statistics
-        """
+        """Get telemetry statistics. Returns: Dict with total_events, session_id, enabled, event_counts, file_size, file_path."""
         events = self._load_events()
 
         # Count events by type
