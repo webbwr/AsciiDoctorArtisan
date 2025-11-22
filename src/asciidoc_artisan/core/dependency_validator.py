@@ -1,16 +1,8 @@
 """
 Dependency Validator - Validates system and Python dependencies at startup.
 
-This module checks for required and optional dependencies and provides
-clear feedback to the user about what's installed and what's missing.
-
-Checks:
-- System binaries (pandoc, wkhtmltopdf, git, gh, ollama)
-- Python modules (PySide6, asciidoc3, pypandoc, etc.)
-- Dependency versions where applicable
-- Provides installation instructions for missing dependencies
-
-v2.0.1: Created for comprehensive startup validation
+Checks system binaries (pandoc, wkhtmltopdf, git, gh, ollama), Python modules (PySide6, asciidoc3, pypandoc, etc.), versions, and provides installation instructions for missing dependencies.
+v2.0.1: Created for comprehensive startup validation.
 """
 
 import logging
@@ -23,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class DependencyType(Enum):
-    """Dependency type classification."""
+    """Dependency type classification. Values: REQUIRED (must be present), OPTIONAL (nice to have), PYTHON (module), SYSTEM (binary)."""
 
     REQUIRED = "required"  # Must be present for app to work
     OPTIONAL = "optional"  # Nice to have, but app works without it
@@ -32,7 +24,7 @@ class DependencyType(Enum):
 
 
 class DependencyStatus(Enum):
-    """Dependency status after validation."""
+    """Dependency validation status. Values: INSTALLED, MISSING, VERSION_MISMATCH, ERROR."""
 
     INSTALLED = "installed"
     MISSING = "missing"
@@ -42,7 +34,7 @@ class DependencyStatus(Enum):
 
 @dataclass
 class Dependency:
-    """Represents a single dependency."""
+    """Single dependency. Fields: name, dep_type, status, version, min_version, install_instructions, error_message."""
 
     name: str
     dep_type: DependencyType
@@ -61,14 +53,7 @@ class DependencyValidator:
         self.dependencies: list[Dependency] = []
 
     def _get_python_modules_to_check(self) -> list[tuple[str, DependencyType, str, str]]:
-        """
-        Get list of Python modules to validate.
-
-        MA principle: Extracted from validate_all (40 lines).
-
-        Returns:
-            List of (name, type, min_version, install_cmd) tuples
-        """
+        """Get list of Python modules to validate (MA: extracted from validate_all, 40 lines). Returns: List of (name, type, min_version, install_cmd) tuples."""
         return [
             ("PySide6", DependencyType.REQUIRED, "6.9.0", "pip install 'PySide6>=6.9.0'"),
             ("asciidoc3", DependencyType.REQUIRED, "3.2.0", "pip install 'asciidoc3>=3.2.0'"),
@@ -81,14 +66,7 @@ class DependencyValidator:
         ]
 
     def _get_system_binaries_to_check(self) -> list[tuple[str, DependencyType, str]]:
-        """
-        Get list of system binaries to validate.
-
-        MA principle: Extracted from validate_all (48 lines).
-
-        Returns:
-            List of (name, type, install_cmd) tuples
-        """
+        """Get list of system binaries to validate (MA: extracted from validate_all, 48 lines). Returns: List of (name, type, install_cmd) tuples."""
         return [
             (
                 "pandoc",
@@ -133,32 +111,17 @@ class DependencyValidator:
         ]
 
     def _validate_python_modules(self) -> None:
-        """
-        Validate all Python modules.
-
-        MA principle: Extracted from validate_all (8 lines).
-        """
+        """Validate all Python modules (MA: extracted from validate_all, 8 lines)."""
         for name, dep_type, min_version, install_cmd in self._get_python_modules_to_check():
             self._check_python_module(name, dep_type, min_version=min_version, install_cmd=install_cmd)
 
     def _validate_system_binaries(self) -> None:
-        """
-        Validate all system binaries.
-
-        MA principle: Extracted from validate_all (8 lines).
-        """
+        """Validate all system binaries (MA: extracted from validate_all, 8 lines)."""
         for name, dep_type, install_cmd in self._get_system_binaries_to_check():
             self._check_system_binary(name, dep_type, install_cmd=install_cmd)
 
     def validate_all(self) -> list[Dependency]:
-        """
-        Validate all dependencies.
-
-        MA principle: Reduced from 105→13 lines by extracting 4 data-driven helpers.
-
-        Returns:
-            List of Dependency objects with their validation status
-        """
+        """Validate all dependencies (MA: 105→13 lines via 4 data-driven helpers). Returns: List of Dependency objects with validation status."""
         logger.info("Starting dependency validation...")
 
         # Validate Python modules
@@ -177,15 +140,7 @@ class DependencyValidator:
         min_version: str | None = None,
         install_cmd: str | None = None,
     ) -> None:
-        """
-        Check if a Python module is available and meets version requirements.
-
-        Args:
-            module_name: Name of the module to import
-            dep_type: Type of dependency (REQUIRED or OPTIONAL)
-            min_version: Minimum required version (optional)
-            install_cmd: Installation command to suggest
-        """
+        """Check if Python module is available and meets version requirements. Args: module_name, dep_type (REQUIRED/OPTIONAL), min_version, install_cmd."""
         try:
             # Import the module
             module = __import__(module_name)
@@ -239,14 +194,7 @@ class DependencyValidator:
         dep_type: DependencyType,
         install_cmd: str | None = None,
     ) -> None:
-        """
-        Check if a system binary is available in PATH.
-
-        Args:
-            binary_name: Name of the binary to check
-            dep_type: Type of dependency (usually OPTIONAL for system binaries)
-            install_cmd: Installation instructions to suggest
-        """
+        """Check if system binary is available in PATH. Args: binary_name, dep_type (usually OPTIONAL), install_cmd (installation instructions)."""
         # Check if binary exists in PATH
         binary_path = shutil.which(binary_name)
 
@@ -280,15 +228,7 @@ class DependencyValidator:
             logger.info(f"○ Optional system binary '{binary_name}' not found in PATH")
 
     def _get_binary_version(self, binary_name: str) -> str | None:
-        """
-        Get the version of a system binary.
-
-        Args:
-            binary_name: Name of the binary
-
-        Returns:
-            Version string or None if unable to determine
-        """
+        """Get version of system binary. Args: binary_name. Returns: Version string or None if unable to determine."""
         try:
             # Try common version flags
             for flag in ["--version", "-v", "-V", "version"]:
@@ -319,16 +259,7 @@ class DependencyValidator:
         return None
 
     def _version_meets_requirement(self, current: str, minimum: str) -> bool:
-        """
-        Check if current version meets minimum requirement.
-
-        Args:
-            current: Current version string (e.g., "1.2.3")
-            minimum: Minimum required version (e.g., "1.2.0")
-
-        Returns:
-            True if current >= minimum, False otherwise
-        """
+        """Check if current version meets minimum requirement. Args: current (e.g., "1.2.3"), minimum (e.g., "1.2.0"). Returns: True if current >= minimum."""
         try:
             # Parse version strings (handle semantic versioning: X.Y.Z)
             current_parts = [int(x) for x in current.split(".")[:3]]
@@ -348,12 +279,7 @@ class DependencyValidator:
             return True
 
     def get_missing_required(self) -> list[Dependency]:
-        """
-        Get list of missing required dependencies.
-
-        Returns:
-            List of missing required dependencies
-        """
+        """Get list of missing required dependencies. Returns: List of missing required dependencies."""
         return [
             dep
             for dep in self.dependencies
@@ -361,12 +287,7 @@ class DependencyValidator:
         ]
 
     def get_missing_optional(self) -> list[Dependency]:
-        """
-        Get list of missing optional dependencies.
-
-        Returns:
-            List of missing optional dependencies
-        """
+        """Get list of missing optional dependencies. Returns: List of missing optional dependencies."""
         return [
             dep
             for dep in self.dependencies
@@ -374,21 +295,11 @@ class DependencyValidator:
         ]
 
     def has_critical_issues(self) -> bool:
-        """
-        Check if there are any critical dependency issues.
-
-        Returns:
-            True if required dependencies are missing or have version issues
-        """
+        """Check for critical dependency issues. Returns: True if required dependencies are missing or have version issues."""
         return len(self.get_missing_required()) > 0
 
     def get_validation_summary(self) -> str:
-        """
-        Get a human-readable validation summary.
-
-        Returns:
-            Formatted summary string
-        """
+        """Get human-readable validation summary. Returns: Formatted summary string with total/installed/missing counts."""
         total = len(self.dependencies)
         installed = len([d for d in self.dependencies if d.status == DependencyStatus.INSTALLED])
         missing_required = len(self.get_missing_required())
@@ -417,12 +328,7 @@ class DependencyValidator:
 
 # Convenience function for quick validation
 def validate_dependencies() -> DependencyValidator:
-    """
-    Validate all dependencies and return validator instance.
-
-    Returns:
-        DependencyValidator instance with validation results
-    """
+    """Validate all dependencies and return validator instance. Returns: DependencyValidator with validation results."""
     validator = DependencyValidator()
     validator.validate_all()
     return validator
