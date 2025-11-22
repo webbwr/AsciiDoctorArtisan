@@ -1,16 +1,8 @@
 """
 Application settings data model and persistence.
 
-This module contains the Settings dataclass which stores all user preferences
-and application state that should persist across sessions.
-
-Settings are serialized to JSON in platform-appropriate configuration directories:
-- Linux/WSL: ~/.config/AsciiDoc Artisan/AsciiDocArtisan.json
-- Windows: %APPDATA%/AsciiDoc Artisan/AsciiDocArtisan.json
-- macOS: ~/Library/Application Support/AsciiDoc Artisan/AsciiDocArtisan.json
-
-Specification Reference: Lines 478-520 (Data Model - Settings)
-Security: API keys are explicitly NOT stored here (FR-061)
+Settings dataclass stores user preferences, persists to JSON in platform-appropriate dirs (Linux: ~/.config/AsciiDoc Artisan/AsciiDocArtisan.json, Windows: %APPDATA%/AsciiDoc Artisan/AsciiDocArtisan.json, macOS: ~/Library/Application Support/AsciiDoc Artisan/AsciiDocArtisan.json).
+Security: API keys NOT stored here (FR-061).
 """
 
 from dataclasses import asdict, dataclass, field
@@ -22,76 +14,7 @@ from .constants import EDITOR_FONT_SIZE
 
 @dataclass
 class Settings:
-    """
-    Application settings with persistence support.
-
-    Attributes match the specification in SPECIFICATIONS.md (v1.8.0).
-
-    All 35 fields (13 original + 5 chat settings + 6 font settings + 3 spell check + 8 v2.0.0):
-
-    Core Settings:
-    - last_directory: Last directory used for file operations
-    - last_file: Last opened document path
-    - git_repo_path: Detected Git repository root
-    - dark_mode: Theme preference (True = dark, False = light)
-    - maximized: Window maximization state
-    - window_geometry: Window size/position when not maximized
-    - splitter_sizes: Editor and preview pane widths
-    - font_size: Persisted editor font size (deprecated, use editor_font_size)
-    - auto_save_enabled: Auto-save feature toggle
-    - auto_save_interval: Auto-save interval in seconds
-
-    Font Settings (v1.7.0):
-    - editor_font_family: Editor font family (default: "Courier New")
-    - editor_font_size: Editor font size in points (default: 12)
-    - preview_font_family: Preview pane font family (default: "Arial")
-    - preview_font_size: Preview pane font size in points (default: 12)
-    - chat_font_family: Chat pane font family (default: "Arial")
-    - chat_font_size: Chat pane font size in points (default: 11)
-
-    AI Settings:
-    - ai_conversion_enabled: Deprecated (cloud AI removed in v1.2.0)
-    - ai_backend: Selected AI backend ("ollama" or "claude", default: "ollama")
-    - ollama_enabled: Enable Ollama AI integration (v1.1+)
-    - ollama_model: Selected Ollama AI model name (v1.1+)
-    - claude_model: Selected Claude AI model name (v1.10.0+)
-
-    Chat Settings (v1.7.0):
-    - ai_chat_enabled: Enable AI chat interface (works with both backends)
-    - chat_history: List of saved chat messages (backend-agnostic)
-    - chat_max_history: Maximum messages to store (default: 100)
-    - chat_context_mode: Default interaction mode (document/syntax/general/editing)
-    - chat_send_document: Include document content in context
-
-    Spell Check Settings (v1.8.0):
-    - spell_check_enabled: Enable spell checking (default: True)
-    - spell_check_language: Language code (default: "en")
-    - spell_check_custom_words: Custom dictionary words
-
-    Auto-Complete Settings (v2.0.0):
-    - autocomplete_enabled: Enable auto-complete (default: True)
-    - autocomplete_delay: Debounce delay in milliseconds (default: 300)
-    - autocomplete_min_chars: Minimum characters to trigger (default: 2)
-
-    Syntax Checking Settings (v2.0.0):
-    - syntax_check_realtime_enabled: Enable real-time syntax checking (default: True)
-    - syntax_check_delay: Debounce delay in milliseconds (default: 500)
-    - syntax_check_show_underlines: Show error underlines (default: True)
-
-    Template Settings (v2.0.0):
-    - template_last_category: Last selected category (default: "All")
-    - template_recent_limit: Maximum recent templates (default: 10)
-
-    Telemetry Settings (v1.8.0):
-    - telemetry_enabled: Enable privacy-first telemetry (default: False, opt-in only)
-    - telemetry_session_id: Persistent anonymous session ID (UUID)
-    - telemetry_opt_in_shown: Whether opt-in dialog has been shown
-
-    Security Note:
-        Settings are stored locally only. No data is sent to cloud services.
-        Use Ollama for local AI features (see docs/OLLAMA_SETUP.md).
-        Telemetry is local-only (NO cloud upload) and completely optional.
-    """
+    """Application settings with persistence (35 fields: 13 core, 6 font, 5 AI, 5 chat, 3 spell, 3 autocomplete, 3 syntax, 2 template, 3 telemetry). Core: last_directory/file, git_repo_path, dark_mode, maximized, window_geometry, splitter_sizes, font_size (deprecated), auto_save (enabled/interval). Font: editor/preview/chat (family/size). AI: ai_backend (ollama/claude), ollama_enabled/model, claude_model. Chat: ai_chat_enabled, history, max_history, context_mode, send_document. Spell: enabled, language, custom_words. Autocomplete: enabled, delay, min_chars. Syntax: realtime_enabled, delay, show_underlines. Template: last_category, recent_limit. Telemetry: enabled (opt-in), session_id (UUID), opt_in_shown. Security: Local storage only, no cloud uploads, Ollama for local AI."""
 
     last_directory: str = field(default_factory=lambda: str(Path.home()))
     last_file: str | None = None
@@ -158,34 +81,12 @@ class Settings:
     telemetry_opt_in_shown: bool = False  # Whether opt-in dialog has been shown
 
     def to_dict(self) -> dict[str, Any]:
-        """
-        Convert settings to dictionary for JSON serialization.
-
-        Returns:
-            Dictionary representation suitable for json.dumps()
-        """
+        """Convert settings to dictionary for JSON serialization. Returns dict suitable for json.dumps()."""
         return asdict(self)
 
     @staticmethod
     def _migrate_claude_model(model: str | None) -> str | None:
-        """
-        Migrate deprecated Claude 3.5 model names to Claude 4 equivalents.
-
-        This ensures backward compatibility when users upgrade from versions
-        that used Claude 3.5 models (pre-v1.9.1).
-
-        Args:
-            model: Model identifier (may be old or new format)
-
-        Returns:
-            Migrated model identifier, or None if input was None
-
-        Example:
-            >>> Settings._migrate_claude_model("claude-3-5-sonnet-20241022")
-            'claude-sonnet-4-20250514'
-            >>> Settings._migrate_claude_model("claude-sonnet-4-20250514")
-            'claude-sonnet-4-20250514'
-        """
+        """Migrate deprecated Claude 3.5 model names to Claude 4 equivalents (backward compatibility for pre-v1.9.1). Args: model (old/new format). Returns: Migrated model or None. Example: 'claude-3-5-sonnet-20241022' → 'claude-sonnet-4-20250514'."""
         if not model:
             return model
 
@@ -206,22 +107,7 @@ class Settings:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Settings":
-        """
-        Create Settings instance from dictionary.
-
-        Filters out unknown keys to maintain forward/backward compatibility
-        when deserializing settings from older or newer versions.
-
-        Performs migrations:
-        - ollama_chat_* settings → chat_* settings (v1.10.0+)
-        - Claude 3.5 model names → Claude 4 model names (v1.9.1+)
-
-        Args:
-            data: Dictionary from JSON deserialization
-
-        Returns:
-            Settings instance with valid fields populated
-        """
+        """Create Settings from dict with forward/backward compatibility (filters unknown keys). Migrations: ollama_chat_* → chat_* (v1.10.0+), Claude 3.5 → Claude 4 (v1.9.1+). Args: data (JSON dict). Returns: Settings with valid fields."""
         # Migrate deprecated ollama_chat_* settings to new chat_* settings (v1.10.0)
         if "ollama_chat_enabled" in data and "ai_chat_enabled" not in data:
             data["ai_chat_enabled"] = data["ollama_chat_enabled"]
@@ -412,17 +298,7 @@ class Settings:
             logger.info("Settings validation: all fields valid")
 
     def validate(self) -> "Settings":
-        """
-        Validate all settings fields and apply corrections.
-
-        MA principle: Reduced from 96→27 lines by extracting 12 category-specific helpers (72% reduction).
-
-        Checks all fields for valid types and value ranges, applying defaults
-        for invalid values. Logs all validation issues for debugging.
-
-        Returns:
-            Self (for chaining)
-        """
+        """Validate all settings fields and apply corrections (MA: 96→27 lines, 12 helpers, 72% reduction). Checks types, ranges, applies defaults for invalid values, logs issues. Returns: Self (chaining)."""
         issues: list[str] = []
 
         # Validate all settings categories
