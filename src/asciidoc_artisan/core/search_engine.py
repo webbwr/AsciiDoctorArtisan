@@ -1,25 +1,9 @@
 """
-Search Engine - Text search and replace functionality for AsciiDoc Artisan.
+Search Engine - Fast text search and replace for AsciiDoc Artisan.
 
-This module provides fast, flexible text search with support for:
-- Case-sensitive and case-insensitive search
-- Whole word matching
-- Regular expression patterns
-- Find all occurrences
-- Replace single or all matches
-
-Performance targets:
-- Search operations complete in <50ms for documents up to 10,000 lines
-- Memory-efficient iteration over large documents
-- Incremental search support for live-as-you-type
-
-Example:
-    >>> engine = SearchEngine("Hello world, hello Python!")
-    >>> results = engine.find_all("hello", case_sensitive=False)
-    >>> len(results)
-    2
-    >>> results[0].start
-    0
+Features: Case-sensitive/insensitive search, whole word matching, regex patterns, find all, replace single/all.
+Performance: <50ms for 10K lines, memory-efficient iteration, incremental live-search support.
+Example: engine = SearchEngine("Hello world, hello Python!"); results = engine.find_all("hello", case_sensitive=False); len(results) == 2.
 """
 
 import bisect
@@ -33,16 +17,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SearchMatch:
-    """
-    Represents a single search match in the text.
-
-    Attributes:
-        start: Character offset where match starts (0-indexed)
-        end: Character offset where match ends (exclusive)
-        text: The matched text
-        line: Line number where match occurs (1-indexed)
-        column: Column number where match starts (0-indexed)
-    """
+    """Single search match. Attributes: start (char offset, 0-indexed), end (exclusive), text (matched), line (1-indexed), column (0-indexed)."""
 
     start: int
     end: int
@@ -60,27 +35,10 @@ class SearchMatch:
 
 
 class SearchEngine:
-    """
-    High-performance text search engine with multiple search modes.
-
-    This class provides efficient text search with support for various
-    search options including case sensitivity, whole word matching, and
-    regular expressions.
-
-    Example:
-        >>> engine = SearchEngine("Line 1\\nLine 2\\nLine 3")
-        >>> matches = engine.find_all("Line", case_sensitive=True)
-        >>> len(matches)
-        3
-    """
+    """High-performance text search with case sensitivity, whole word matching, regex. Example: engine = SearchEngine("Line 1\\nLine 2\\nLine 3"); matches = engine.find_all("Line", case_sensitive=True); len(matches) == 3."""
 
     def __init__(self, text: str) -> None:
-        """
-        Initialize SearchEngine with text to search.
-
-        Args:
-            text: The text to search within
-        """
+        """Initialize SearchEngine. Args: text (text to search within)."""
         self._text = text
         self._lines: list[str] | None = None  # Lazy-loaded line cache
         self._line_offsets: list[int] | None = None  # Lazy-loaded offset index
@@ -91,39 +49,19 @@ class SearchEngine:
         return self._text
 
     def set_text(self, text: str) -> None:
-        """
-        Update the text to search.
-
-        Args:
-            text: New text to search within
-        """
+        """Update text to search. Args: text (new text). Invalidates line cache and offset index."""
         self._text = text
         self._lines = None  # Invalidate line cache
         self._line_offsets = None  # Invalidate offset index
 
     def _get_lines(self) -> list[str]:
-        """
-        Get cached list of lines (lazy-loaded).
-
-        Returns:
-            List of lines in the text
-        """
+        """Get cached list of lines (lazy-loaded). Returns: List of lines in text."""
         if self._lines is None:
             self._lines = self._text.splitlines(keepends=True)
         return self._lines
 
     def _build_line_offsets(self) -> list[int]:
-        """
-        Build line offset index for fast O(log n) line lookup.
-
-        Returns:
-            List of cumulative character offsets for each line start.
-            Index i contains the offset where line i starts.
-
-        Example:
-            For text "abc\\ndef\\n":
-            Returns [0, 4] (line 0 at offset 0, line 1 at offset 4)
-        """
+        """Build line offset index for fast O(log n) line lookup. Returns: List of cumulative char offsets for each line start (index i = offset where line i starts). Example: "abc\\ndef\\n" → [0, 4]."""
         if self._line_offsets is None:
             lines = self._get_lines()
             offsets = [0]  # First line always starts at offset 0
@@ -144,21 +82,7 @@ class SearchEngine:
         whole_word: bool = False,
         use_regex: bool = False,
     ) -> Pattern[str]:
-        """
-        Create compiled regex pattern from search options.
-
-        Args:
-            search_text: Text or pattern to search for
-            case_sensitive: Whether search is case-sensitive
-            whole_word: Whether to match whole words only
-            use_regex: Whether search_text is a regex pattern
-
-        Returns:
-            Compiled regex pattern
-
-        Raises:
-            re.error: If regex pattern is invalid
-        """
+        """Create compiled regex pattern from search options. Args: search_text (text/pattern), case_sensitive, whole_word, use_regex. Returns: Compiled pattern. Raises: re.error if regex invalid."""
         # Build pattern
         if use_regex:
             pattern = search_text
@@ -175,19 +99,7 @@ class SearchEngine:
         return re.compile(pattern, flags)
 
     def _offset_to_line_col(self, offset: int) -> tuple[int, int]:
-        """
-        Convert character offset to line and column numbers using binary search.
-
-        Performance: O(log n) instead of O(n) through binary search on offset index.
-
-        Args:
-            offset: Character offset in text (0-indexed)
-
-        Returns:
-            Tuple of (line_number, column_number)
-            - line_number is 1-indexed
-            - column_number is 0-indexed within the line
-        """
+        """Convert char offset to line/col using binary search (O(log n) perf). Args: offset (0-indexed). Returns: (line_number (1-indexed), column_number (0-indexed))."""
         offsets = self._build_line_offsets()
         lines = self._get_lines()
 
@@ -213,28 +125,7 @@ class SearchEngine:
         whole_word: bool = False,
         use_regex: bool = False,
     ) -> list[SearchMatch]:
-        """
-        Find all occurrences of search_text in the document.
-
-        Args:
-            search_text: Text or pattern to search for
-            case_sensitive: Whether search is case-sensitive (default: True)
-            whole_word: Whether to match whole words only (default: False)
-            use_regex: Whether search_text is a regex pattern (default: False)
-
-        Returns:
-            List of SearchMatch objects, in order of appearance
-
-        Raises:
-            ValueError: If search_text is empty
-            re.error: If use_regex=True and pattern is invalid
-
-        Example:
-            >>> engine = SearchEngine("Hello world, hello Python!")
-            >>> results = engine.find_all("hello", case_sensitive=False)
-            >>> len(results)
-            2
-        """
+        """Find all occurrences of search_text. Args: search_text (text/pattern), case_sensitive (default True), whole_word (default False), use_regex (default False). Returns: List of SearchMatch (in order). Raises: ValueError if empty, re.error if invalid regex. Example: engine.find_all("hello", case_sensitive=False) finds 2 matches."""
         if not search_text:
             raise ValueError("Search text cannot be empty")
 
@@ -280,29 +171,7 @@ class SearchEngine:
         use_regex: bool = False,
         wrap_around: bool = True,
     ) -> SearchMatch | None:
-        """
-        Find next occurrence after start_offset.
-
-        Args:
-            search_text: Text or pattern to search for
-            start_offset: Character offset to start searching from (default: 0)
-            case_sensitive: Whether search is case-sensitive (default: True)
-            whole_word: Whether to match whole words only (default: False)
-            use_regex: Whether search_text is a regex pattern (default: False)
-            wrap_around: Whether to wrap to beginning if no match found (default: True)
-
-        Returns:
-            SearchMatch if found, None otherwise
-
-        Example:
-            >>> engine = SearchEngine("Hello world, hello Python!")
-            >>> match = engine.find_next("hello", case_sensitive=False)
-            >>> match.start
-            0
-            >>> match = engine.find_next("hello", start_offset=1, case_sensitive=False)
-            >>> match.start
-            13
-        """
+        """Find next occurrence after start_offset. Args: search_text, start_offset (default 0), case_sensitive (default True), whole_word (default False), use_regex (default False), wrap_around (default True). Returns: SearchMatch or None. Example: engine.find_next("hello", start_offset=1, case_sensitive=False) → match at offset 13."""
         if not search_text:
             raise ValueError("Search text cannot be empty")
 
@@ -344,20 +213,7 @@ class SearchEngine:
         use_regex: bool = False,
         wrap_around: bool = True,
     ) -> SearchMatch | None:
-        """
-        Find previous occurrence before start_offset.
-
-        Args:
-            search_text: Text or pattern to search for
-            start_offset: Character offset to search backwards from
-            case_sensitive: Whether search is case-sensitive (default: True)
-            whole_word: Whether to match whole words only (default: False)
-            use_regex: Whether search_text is a regex pattern (default: False)
-            wrap_around: Whether to wrap to end if no match found (default: True)
-
-        Returns:
-            SearchMatch if found, None otherwise
-        """
+        """Find previous occurrence before start_offset. Args: search_text, start_offset, case_sensitive (default True), whole_word (default False), use_regex (default False), wrap_around (default True). Returns: SearchMatch or None."""
         if not search_text:
             raise ValueError("Search text cannot be empty")
 
