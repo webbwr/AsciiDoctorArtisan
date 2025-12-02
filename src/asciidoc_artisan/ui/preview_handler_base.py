@@ -14,137 +14,58 @@ WHAT THIS FILE DOES:
 4. Scroll synchronization (keep editor and preview in sync)
 5. Statistics tracking (how long renders take, for adaptive behavior)
 
-FOR BEGINNERS - WHAT IS A PREVIEW?:
-The preview window shows what your AsciiDoc document looks like when formatted.
-As you type in the editor, the preview updates to show the result.
-
-ANALOGY:
-Think of a cooking show where you see the chef cooking AND the finished dish:
-- Editor = the chef chopping vegetables (raw AsciiDoc text)
-- Preview = the finished dish on the plate (formatted HTML)
-- This file = the camera operator deciding when to show the finished dish
-
-WHY ABSTRACT BASE CLASS?:
-We have TWO types of preview:
-1. GPU Preview (QWebEngineView) - fast, hardware-accelerated (10-50x faster)
-2. Software Preview (QTextBrowser) - slower, but works everywhere
-
-Both need the same basic features (debouncing, CSS, scroll sync). Instead of
-duplicating code, we put common logic HERE (base class) and each preview
-type adds its specific implementation (concrete classes).
-
-KEY CONCEPTS:
-
-1. DEBOUNCING:
-   Without debouncing: Preview updates on EVERY KEYSTROKE (slow, CPU-intensive)
-   With debouncing: Wait 200-1000ms after typing stops, THEN update preview
-
-   Why? If you type "Hello World" quickly:
-   - Without debouncing: Renders 11 times (H, He, Hel, Hell, Hello, ...)
-   - With debouncing: Renders once when you stop typing ("Hello World")
-
-2. ADAPTIVE DEBOUNCING:
-   - Small documents: Update fast (200ms delay)
-   - Large documents: Update slow (1000ms delay)
-   - Slow renders: Increase delay automatically
-   - Fast renders: Decrease delay automatically
-
-3. CSS GENERATION:
-   - Dark theme: Dark background, light text
-   - Light theme: Light background, dark text
-   - CSS is cached (don't regenerate every time)
-
-4. CONTENT SECURITY POLICY (CSP):
-   - Prevents XSS attacks (malicious JavaScript in preview)
-   - Blocks external resources, form submissions, plugins
-
-SPECIFICATIONS IMPLEMENTED:
-- FR-013 to FR-020: Preview rendering and synchronization
-- NFR-008: Preview update debouncing (adaptive)
-- NFR-009: Scroll synchronization
-- SEC-001: Content Security Policy (XSS protection)
+MA principle: Reduced from 665→560 lines by extracting preview_constants.py.
 
 ARCHITECTURE:
 PreviewHandlerBase (this file - abstract base)
     ├── PreviewHandlerGPU (QWebEngineView - GPU accelerated)
     └── PreviewHandlerCPU (QTextBrowser - software fallback)
 
-REFACTORING HISTORY:
-- v1.0: All preview logic in main_window.py
-- v1.4.0: Extracted to preview_handler.py (GPU), preview_handler_gpu.py
-- v1.5.0: Refactored to base class pattern (DRY - eliminate duplication)
-
 VERSION: 1.5.0 (Base class refactoring)
 """
 
 # === STANDARD LIBRARY IMPORTS ===
-import logging  # For recording what the program does
-import time  # For timing render performance
-from abc import abstractmethod  # For creating abstract base classes
-from typing import Any  # Type hints
+import logging
+import time
+from abc import abstractmethod
+from typing import Any
 
 # === QT FRAMEWORK IMPORTS ===
-from PySide6.QtCore import (
-    QObject,  # Base class for Qt objects (signal/slot support)
-    QTimer,  # Timer for debouncing preview updates
-    Signal,  # Qt signal class (publish/subscribe pattern)
-    Slot,  # Qt slot decorator (marks methods that receive signals)
-)
-from PySide6.QtWidgets import (
-    QPlainTextEdit,  # Text editor widget
-    QWidget,  # Base widget class
+from PySide6.QtCore import QObject, QTimer, Signal, Slot
+from PySide6.QtWidgets import QPlainTextEdit, QWidget
+
+# === LOCAL IMPORTS ===
+from asciidoc_artisan.ui.preview_constants import (
+    CSP_POLICY,
+    ERROR_COLORS_DARK,
+    ERROR_COLORS_LIGHT,
+    FALLBACK_CSS,
+    PREVIEW_FAST_INTERVAL_MS,
+    PREVIEW_INSTANT_MS,
+    PREVIEW_NORMAL_INTERVAL_MS,
+    PREVIEW_SLOW_INTERVAL_MS,
 )
 
 # === OPTIONAL IMPORTS (Adaptive Debouncer) ===
-# Try to import adaptive debouncer - graceful degradation if not available
 try:
     from asciidoc_artisan.core.adaptive_debouncer import (
-        AdaptiveDebouncer,  # Adaptive delay calculator
-        DebounceConfig,  # Configuration for debouncing
+        AdaptiveDebouncer,
+        DebounceConfig,
     )
 
-    ADAPTIVE_DEBOUNCER_AVAILABLE = True  # Flag: Feature available
+    ADAPTIVE_DEBOUNCER_AVAILABLE = True
 except ImportError:
-    # If import fails, set to None and disable feature
     AdaptiveDebouncer = None
     DebounceConfig = None
-    ADAPTIVE_DEBOUNCER_AVAILABLE = False  # Flag: Feature disabled
+    ADAPTIVE_DEBOUNCER_AVAILABLE = False
 
 # === LOGGING SETUP ===
 logger = logging.getLogger(__name__)
 
 
-# === DEBOUNCE INTERVAL CONSTANTS ===
-# These define how long to wait before updating preview
-# Shorter intervals = faster updates but more CPU usage
-PREVIEW_INSTANT_MS = 0  # Instant for tiny documents (<1KB) - zero latency!
-PREVIEW_FAST_INTERVAL_MS = 25  # 25ms for small documents (2x faster)
-PREVIEW_NORMAL_INTERVAL_MS = 100  # 100ms for medium documents (was 150ms)
-PREVIEW_SLOW_INTERVAL_MS = 250  # 250ms for large documents (was 300ms)
-
-# === CONTENT SECURITY POLICY (CSP) ===
-# Security rules for preview HTML to prevent XSS attacks
-# Applied to all HTML rendered in preview widget
-CSP_POLICY = (
-    "default-src 'self'; "  # Only load resources from same origin
-    "script-src 'unsafe-eval'; "  # Allow Qt runJavaScript() for scroll sync
-    "object-src 'none'; "  # Block plugins (Flash, Java applets, etc.)
-    "style-src 'unsafe-inline'; "  # Allow inline CSS (required for AsciiDoc)
-    "img-src 'self' data:; "  # Images from same origin or data URIs only
-    "base-uri 'self'; "  # Restrict base URL (prevent base tag attacks)
-    "form-action 'none'"  # Block all form submissions (no forms in preview)
-)
-
-
 class PreviewHandlerBase(QObject):
     """
     Preview Handler Base - Abstract Base Class for All Preview Handlers.
-
-    FOR BEGINNERS - ABSTRACT BASE CLASS:
-    An abstract base class is like a template or blueprint. It says:
-    "All preview handlers MUST have these features" but doesn't specify
-    exactly HOW to implement them. Concrete classes (GPU/CPU handlers)
-    provide the specific implementation.
 
     WHAT THIS CLASS PROVIDES:
     - Debouncing logic (wait before updating preview)
@@ -155,14 +76,9 @@ class PreviewHandlerBase(QObject):
     - Statistics tracking (render times, document sizes)
 
     WHAT SUBCLASSES MUST IMPLEMENT:
-    - handle_preview_complete() - Update widget with rendered HTML
-    - sync_editor_to_preview() - Scroll preview to match editor
-    - sync_preview_to_editor() - Scroll editor to match preview
-
-    WHY ABSTRACT BASE CLASS?:
-    GPU and CPU previews need the same debouncing, CSS, and coordination
-    logic. Instead of duplicating code, we put it here. Each preview type
-    just adds its widget-specific operations.
+    - _set_preview_html() - Update widget with rendered HTML
+    - _scroll_preview_to_percentage() - Scroll preview to match editor
+    - _get_preview_scroll_percentage() - Get preview scroll position
 
     SIGNALS:
     - preview_updated: Fired when preview HTML changes
@@ -170,9 +86,8 @@ class PreviewHandlerBase(QObject):
     """
 
     # === QT SIGNALS ===
-    # These are "events" that other parts of the app can listen to
-    preview_updated = Signal(str)  # Emits HTML when preview updates
-    preview_error = Signal(str)  # Emits error message when render fails
+    preview_updated = Signal(str)
+    preview_error = Signal(str)
 
     def __init__(self, editor: QPlainTextEdit, preview: QWidget, parent_window: QObject):
         """
@@ -192,7 +107,7 @@ class PreviewHandlerBase(QObject):
         self.sync_scrolling_enabled = True
         self.is_syncing_scroll = False
         self._css_cache: str | None = None
-        self._custom_css: str = ""  # Custom CSS for font settings
+        self._custom_css: str = ""
 
         # Preview timer (adaptive based on document size)
         self.preview_timer = QTimer()
@@ -216,11 +131,7 @@ class PreviewHandlerBase(QObject):
         self.editor.textChanged.connect(self._on_text_changed)
 
     def _on_cursor_position_changed(self) -> None:
-        """
-        Handle cursor position changes (v1.6.0 for predictive rendering).
-
-        Tracks cursor line and notifies preview worker for prediction.
-        """
+        """Handle cursor position changes (v1.6.0 for predictive rendering)."""
         cursor = self.editor.textCursor()
         self._current_cursor_line = cursor.blockNumber()
 
@@ -243,11 +154,7 @@ class PreviewHandlerBase(QObject):
         """
         Handle text changed in editor.
 
-        Uses adaptive timing based on:
-        - Document size
-        - System CPU load
-        - Recent render times
-        - User typing speed
+        Uses adaptive timing based on document size, CPU load, render times.
         """
         # Cancel any pending update
         self.preview_timer.stop()
@@ -257,21 +164,11 @@ class PreviewHandlerBase(QObject):
 
         # Use adaptive debouncing if available
         if self._use_adaptive_debouncing and self._adaptive_debouncer:
-            # Notify debouncer of text change (for typing detection)
             self._adaptive_debouncer.on_text_changed()
-
-            # Calculate adaptive delay
             delay = self._adaptive_debouncer.calculate_delay(document_size=text_size)
         else:
-            # Fall back to simple size-based delay with aggressive optimization
-            if text_size < 1000:  # < 1KB - instant rendering!
-                delay = PREVIEW_INSTANT_MS
-            elif text_size < 10000:  # < 10KB
-                delay = PREVIEW_FAST_INTERVAL_MS
-            elif text_size < 100000:  # < 100KB
-                delay = PREVIEW_NORMAL_INTERVAL_MS
-            else:  # >= 100KB
-                delay = PREVIEW_SLOW_INTERVAL_MS
+            # Fall back to simple size-based delay
+            delay = self._calculate_simple_delay(text_size)
 
         # Request predictive pre-rendering during debounce (v1.6.0)
         if hasattr(self.window, "preview_worker"):
@@ -283,14 +180,27 @@ class PreviewHandlerBase(QObject):
         # Start timer with calculated delay
         self.preview_timer.start(delay)
 
+    def _calculate_simple_delay(self, text_size: int) -> int:
+        """Calculate simple size-based delay.
+
+        Args:
+            text_size: Document size in characters
+
+        Returns:
+            Delay in milliseconds
+        """
+        if text_size < 1000:
+            return PREVIEW_INSTANT_MS
+        elif text_size < 10000:
+            return PREVIEW_FAST_INTERVAL_MS
+        elif text_size < 100000:
+            return PREVIEW_NORMAL_INTERVAL_MS
+        else:
+            return PREVIEW_SLOW_INTERVAL_MS
+
     @Slot()
     def update_preview(self) -> None:
-        """
-        Update preview with current editor content.
-
-        Emits request_preview_render signal to worker thread.
-        Tracks render start time for adaptive debouncing.
-        """
+        """Update preview with current editor content."""
         source_text = self.editor.toPlainText()
 
         # Track render start time
@@ -306,40 +216,34 @@ class PreviewHandlerBase(QObject):
         """
         Handle completed preview rendering from worker (template method).
 
-        This is a concrete implementation that coordinates common logic
-        and delegates widget-specific operations to abstract methods.
-
         Args:
             html: Rendered HTML content
         """
-        # Calculate render time (COMMON)
+        # Calculate render time
         if self._last_render_start is not None:
             render_time = time.time() - self._last_render_start
 
-            # Update adaptive debouncer (COMMON)
+            # Update adaptive debouncer
             if self._adaptive_debouncer:
                 self._adaptive_debouncer.on_render_complete(render_time)
 
             logger.debug(f"Render completed in {render_time:.3f}s")
 
-        # Add CSS styling (COMMON)
+        # Add CSS styling
         styled_html = self._wrap_with_css(html)
 
-        # Update widget (WIDGET-SPECIFIC - delegate to subclass)
+        # Update widget (delegate to subclass)
         self._set_preview_html(styled_html)
 
-        # Emit signal (COMMON)
+        # Emit signal
         self.preview_updated.emit(html)
 
-        # Log success (COMMON)
         logger.debug(f"Preview updated successfully ({self.__class__.__name__})")
 
     @abstractmethod
     def _set_preview_html(self, html: str) -> None:
         """
         Set HTML in preview widget (widget-specific implementation).
-
-        Subclasses must implement this to update their specific widget type.
 
         Args:
             html: Styled HTML content to display
@@ -350,17 +254,37 @@ class PreviewHandlerBase(QObject):
         """
         Handle preview rendering error with security headers.
 
-        MA principle: Reduced from 51→21 lines by extracting helper (59% reduction).
-
-        Security:
-            - Applies CSP to error display HTML to prevent XSS
-            - Same security policy as preview content
-
         Args:
             error: Error message
         """
         colors = self._get_error_display_colors()
-        error_html = f"""
+        error_html = self._build_error_html(error, colors)
+        self.preview.setHtml(error_html)
+        self.preview_error.emit(error)
+
+    def _get_error_display_colors(self) -> dict[str, str]:
+        """Get color scheme for error display based on theme.
+
+        Returns:
+            Dictionary with color keys: bg, text, heading, pre_bg
+        """
+        dark_mode = False
+        if hasattr(self.window, "_settings") and hasattr(self.window._settings, "dark_mode"):
+            dark_mode = self.window._settings.dark_mode
+
+        return ERROR_COLORS_DARK if dark_mode else ERROR_COLORS_LIGHT
+
+    def _build_error_html(self, error: str, colors: dict[str, str]) -> str:
+        """Build error display HTML.
+
+        Args:
+            error: Error message
+            colors: Color scheme dictionary
+
+        Returns:
+            Complete HTML for error display
+        """
+        return f"""
         <!DOCTYPE html>
         <html>
         <head>
@@ -390,46 +314,10 @@ class PreviewHandlerBase(QObject):
         </body>
         </html>
         """
-        self.preview.setHtml(error_html)
-        # Emit signal
-        self.preview_error.emit(error)
-
-    def _get_error_display_colors(self) -> dict[str, str]:
-        """Get color scheme for error display based on theme.
-
-        MA principle: Extracted helper (17 lines) - focused color selection.
-
-        Returns:
-            Dictionary with color keys: bg, text, heading, pre_bg
-        """
-        # Check dark mode setting
-        dark_mode = False
-        if hasattr(self.window, "_settings") and hasattr(self.window._settings, "dark_mode"):
-            dark_mode = self.window._settings.dark_mode
-
-        if dark_mode:
-            return {
-                "bg": "#3a2a1a",
-                "text": "#ffcc99",
-                "heading": "#ff6666",
-                "pre_bg": "#2a2a2a",
-            }
-        else:
-            return {
-                "bg": "#fff3cd",
-                "text": "#856404",
-                "heading": "#dc3545",
-                "pre_bg": "#f8f9fa",
-            }
 
     def _wrap_with_css(self, html: str) -> str:
         """
         Wrap HTML content with CSS styling and security headers.
-
-        Security:
-            - Content Security Policy (CSP) prevents XSS attacks
-            - Restricts script execution, plugin loading, and external resources
-            - Allows inline CSS for AsciiDoc styling requirements
 
         Args:
             html: HTML body content
@@ -458,8 +346,7 @@ class PreviewHandlerBase(QObject):
         """
 
     def get_preview_css(self) -> str:
-        """
-        Get preview CSS (cached for performance).
+        """Get preview CSS (cached for performance).
 
         Returns:
             CSS content as string (includes custom CSS for fonts)
@@ -467,24 +354,20 @@ class PreviewHandlerBase(QObject):
         if self._css_cache is None:
             self._css_cache = self._generate_preview_css()
 
-        # Append custom CSS (for font settings)
         if self._custom_css:
             return self._css_cache + "\n" + self._custom_css
 
         return self._css_cache
 
     def set_custom_css(self, css: str) -> None:
-        """
-        Set custom CSS for preview (e.g., font settings).
+        """Set custom CSS for preview (e.g., font settings).
 
         Args:
             css: Custom CSS string to append to preview CSS
         """
         self._custom_css = css
-        # Clear cache to force regeneration with new custom CSS
         self._css_cache = None
-        # Trigger preview update to apply new CSS
-        self.preview_timer.start(100)  # Schedule update in 100ms
+        self.preview_timer.start(100)
         logger.debug("Custom CSS applied to preview")
 
     def clear_css_cache(self) -> None:
@@ -493,30 +376,18 @@ class PreviewHandlerBase(QObject):
         logger.debug("CSS cache cleared")
 
     def _generate_preview_css(self) -> str:
-        """
-        Generate preview CSS by delegating to ThemeManager.
+        """Generate preview CSS by delegating to ThemeManager.
 
         Returns:
             CSS content as string
         """
-        # Delegate to ThemeManager for single source of truth
         if hasattr(self.window, "theme_manager"):
-            return self.window.theme_manager.get_preview_css()  # type: ignore[no-any-return]  # ThemeManager returns Any
+            return self.window.theme_manager.get_preview_css()  # type: ignore[no-any-return]
 
-        # Fallback CSS if ThemeManager not available (shouldn't happen in production)
-        return """
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                line-height: 1.6;
-                max-width: 900px;
-                margin: 0 auto;
-                padding: 20px;
-            }
-        """
+        return FALLBACK_CSS
 
     def enable_sync_scrolling(self, enabled: bool) -> None:
-        """
-        Enable or disable synchronized scrolling.
+        """Enable or disable synchronized scrolling.
 
         Args:
             enabled: True to enable, False to disable
@@ -525,28 +396,21 @@ class PreviewHandlerBase(QObject):
         logger.info(f"Sync scrolling {'enabled' if enabled else 'disabled'}")
 
     def sync_editor_to_preview(self, editor_value: int) -> None:
-        """
-        Sync preview scroll position to editor (template method).
-
-        Implements common scrolling logic with widget-specific delegation.
+        """Sync preview scroll position to editor (template method).
 
         Args:
             editor_value: Editor scroll bar value (0-max)
         """
-        # Guard checks (COMMON)
         if not self.sync_scrolling_enabled or self.is_syncing_scroll:
             return
 
         self.is_syncing_scroll = True
         try:
-            # Calculate scroll percentage (COMMON)
             editor_scrollbar = self.editor.verticalScrollBar()
             editor_max = editor_scrollbar.maximum()
 
             if editor_max > 0:
                 scroll_percentage = editor_value / editor_max
-
-                # Apply scroll (WIDGET-SPECIFIC - delegate to subclass)
                 self._scroll_preview_to_percentage(scroll_percentage)
 
         finally:
@@ -554,10 +418,7 @@ class PreviewHandlerBase(QObject):
 
     @abstractmethod
     def _scroll_preview_to_percentage(self, percentage: float) -> None:
-        """
-        Scroll preview widget to percentage (widget-specific implementation).
-
-        Subclasses must implement this to scroll their specific widget type.
+        """Scroll preview widget to percentage (widget-specific).
 
         Args:
             percentage: Scroll position as percentage (0.0 to 1.0)
@@ -565,25 +426,19 @@ class PreviewHandlerBase(QObject):
         pass
 
     def sync_preview_to_editor(self, preview_value: int) -> None:
-        """
-        Sync editor scroll position to preview (template method).
-
-        Implements common logic with widget-specific scroll retrieval.
+        """Sync editor scroll position to preview (template method).
 
         Args:
-            preview_value: Preview scroll value (widget-specific units, may be unused)
+            preview_value: Preview scroll value (widget-specific units)
         """
-        # Guard checks (COMMON)
         if not self.sync_scrolling_enabled or self.is_syncing_scroll:
             return
 
         self.is_syncing_scroll = True
         try:
-            # Get scroll percentage from widget (WIDGET-SPECIFIC)
             scroll_percentage = self._get_preview_scroll_percentage()
 
             if scroll_percentage is not None:
-                # Scroll editor (COMMON)
                 editor_scrollbar = self.editor.verticalScrollBar()
                 editor_max = editor_scrollbar.maximum()
                 editor_value = int(editor_max * scroll_percentage)
@@ -594,11 +449,7 @@ class PreviewHandlerBase(QObject):
 
     @abstractmethod
     def _get_preview_scroll_percentage(self) -> float | None:
-        """
-        Get current scroll percentage from preview widget.
-
-        Subclasses must implement this to retrieve scroll position from
-        their specific widget type.
+        """Get current scroll percentage from preview widget.
 
         Returns:
             Scroll percentage (0.0 to 1.0), or None if not available
@@ -606,12 +457,7 @@ class PreviewHandlerBase(QObject):
         pass
 
     def clear_preview(self) -> None:
-        """
-        Clear preview content with security headers.
-
-        Security:
-            - Applies CSP even to cleared/empty preview state
-        """
+        """Clear preview content with security headers."""
         clear_html = f"""
         <!DOCTYPE html>
         <html>
@@ -628,17 +474,11 @@ class PreviewHandlerBase(QObject):
         logger.debug("Preview cleared")
 
     def get_preview_html(self) -> str:
-        """
-        Get current preview HTML (async).
-
-        Note: This is async, use with callback.
-        """
-        # Would need to implement async retrieval
+        """Get current preview HTML (async - use with callback)."""
         return ""
 
     def set_adaptive_debouncing(self, enabled: bool) -> None:
-        """
-        Enable or disable adaptive debouncing.
+        """Enable or disable adaptive debouncing.
 
         Args:
             enabled: True to enable, False to disable
@@ -647,14 +487,13 @@ class PreviewHandlerBase(QObject):
         logger.info(f"Adaptive debouncing {'enabled' if enabled else 'disabled'}")
 
     def get_debouncer_stats(self) -> dict[str, Any]:
-        """
-        Get adaptive debouncer statistics.
+        """Get adaptive debouncer statistics.
 
         Returns:
             Dictionary with stats, or empty dict if not available
         """
         if self._adaptive_debouncer:
-            return self._adaptive_debouncer.get_statistics()  # type: ignore[no-any-return]  # AdaptiveDebouncer returns Any
+            return self._adaptive_debouncer.get_statistics()  # type: ignore[no-any-return]
         return {}
 
     def reset_debouncer(self) -> None:
