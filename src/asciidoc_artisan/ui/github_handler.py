@@ -1,6 +1,8 @@
 """
 GitHub Handler - Manage GitHub operations via gh CLI.
 
+MA principle: Reduced from 434→~320 lines by extracting github_result_handler.py.
+
 This module handles all GitHub-related operations:
 - Create and list pull requests
 - Create and list issues
@@ -14,7 +16,7 @@ import logging
 import shutil
 from typing import Any
 
-from PySide6.QtCore import QObject, Qt, Signal
+from PySide6.QtCore import QObject, Signal
 
 from asciidoc_artisan.core import GitHubResult
 from asciidoc_artisan.ui.base_vcs_handler import BaseVCSHandler
@@ -24,6 +26,7 @@ from asciidoc_artisan.ui.github_dialogs import (
     IssueListDialog,
     PullRequestListDialog,
 )
+from asciidoc_artisan.ui.github_result_handler import GitHubResultHandler
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +64,11 @@ class GitHubHandler(BaseVCSHandler, QObject):
         # GitHub-specific state
         self.current_dialog: Any | None = None
 
-        # Cached data for list dialogs
-        self.cached_prs: list[dict[str, Any]] = []
-        self.cached_issues: list[dict[str, Any]] = []
+        # Result handler (extracted per MA principle)
+        self._result_handler = GitHubResultHandler(
+            status_manager=status_manager,
+            parent_window=parent_window,
+        )
 
     def initialize(self) -> None:
         """
@@ -266,17 +271,17 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
         # Handle success
         if result.success:
-            # Update UI based on operation type
+            # Update UI based on operation type (delegated to result handler)
             if result.operation == "pr_create":
-                self._handle_pr_created(result)
+                self._result_handler.handle_pr_created(result)
             elif result.operation == "pr_list":
-                self._handle_pr_list(result)
+                self._result_handler.handle_pr_list(result, self.current_dialog)
             elif result.operation == "issue_create":
-                self._handle_issue_created(result)
+                self._result_handler.handle_issue_created(result)
             elif result.operation == "issue_list":
-                self._handle_issue_list(result)
+                self._result_handler.handle_issue_list(result, self.current_dialog)
             elif result.operation == "repo_info":
-                self._handle_repo_info(result)
+                self._result_handler.handle_repo_info(result, self.last_operation)
 
             # Show success message (skip dialog for repo_info - already shown in status bar)
             if result.operation != "repo_info":
@@ -295,95 +300,6 @@ class GitHubHandler(BaseVCSHandler, QObject):
 
         # Clear state
         self.last_operation = ""
-
-    def _handle_pr_created(self, result: GitHubResult) -> None:
-        """Handle successful PR creation."""
-        if result.data and "url" in result.data:
-            pr_number = result.data.get("number", "?")
-            pr_url = result.data.get("url", "")
-            logger.info(f"PR #{pr_number} created: {pr_url}")
-
-    def _handle_pr_list(self, result: GitHubResult) -> None:
-        """Handle successful PR list retrieval."""
-        if result.data:
-            # Update cached data
-            self.cached_prs = result.data if isinstance(result.data, list) else []
-
-            # Update dialog if it's open
-            if self.current_dialog and isinstance(self.current_dialog, PullRequestListDialog):
-                self.current_dialog.set_pr_data(self.cached_prs)
-
-            logger.info(f"Loaded {len(self.cached_prs)} pull requests")
-
-    def _handle_issue_created(self, result: GitHubResult) -> None:
-        """Handle successful issue creation."""
-        if result.data and "url" in result.data:
-            issue_number = result.data.get("number", "?")
-            issue_url = result.data.get("url", "")
-            logger.info(f"Issue #{issue_number} created: {issue_url}")
-
-    def _handle_issue_list(self, result: GitHubResult) -> None:
-        """Handle successful issue list retrieval."""
-        if result.data:
-            # Update cached data
-            self.cached_issues = result.data if isinstance(result.data, list) else []
-
-            # Update dialog if it's open
-            if self.current_dialog and isinstance(self.current_dialog, IssueListDialog):
-                self.current_dialog.set_issue_data(self.cached_issues)
-
-            logger.info(f"Loaded {len(self.cached_issues)} issues")
-
-    def _handle_repo_info(self, result: GitHubResult) -> None:
-        """Handle successful repo info retrieval."""
-        if result.data:
-            # Extract repository information
-            repo_name = result.data.get("nameWithOwner", "Unknown")
-            description = result.data.get("description", "No description")
-            stars = result.data.get("stargazerCount", 0)
-            forks = result.data.get("forkCount", 0)
-            visibility = result.data.get("visibility", "Unknown")
-            url = result.data.get("url", "")
-
-            # Get default branch name from nested object
-            default_branch_ref = result.data.get("defaultBranchRef", {})
-            default_branch = default_branch_ref.get("name", "Unknown") if default_branch_ref else "Unknown"
-
-            # Log detailed information
-            logger.info(f"Repository: {repo_name}")
-            logger.info(f"  Description: {description}")
-            logger.info(f"  Default Branch: {default_branch}")
-            logger.info(f"  Visibility: {visibility}")
-            logger.info(f"  Stars: {stars}, Forks: {forks}")
-            logger.info(f"  URL: {url}")
-
-            # Update status bar with concise info
-            status_msg = f"GitHub: {repo_name} | {visibility} | ★{stars} ⑂{forks} | {default_branch}"
-            self.status_manager.show_status(status_msg, timeout=0)  # Permanent
-            logger.info(f"Status bar updated: {status_msg}")
-
-            # Show full repository information in a dialog
-            # (only if user explicitly requested it, not on silent startup)
-            if self.last_operation == "repo_info" and self.last_operation != "repo_info_silent":
-                from PySide6.QtWidgets import QMessageBox
-
-                info_text = f"""<b>Repository:</b> {repo_name}<br><br>
-<b>Description:</b> {description}<br><br>
-<b>Default Branch:</b> {default_branch}<br>
-<b>Visibility:</b> {visibility}<br>
-<b>Stars:</b> {stars} ★<br>
-<b>Forks:</b> {forks} ⑂<br><br>
-<b>URL:</b> <a href="{url}">{url}</a>"""
-
-                msg_box = QMessageBox(self.window)
-                msg_box.setWindowTitle("Repository Information")
-                msg_box.setTextFormat(Qt.RichText)
-                msg_box.setText(info_text)
-                msg_box.setIcon(QMessageBox.Icon.Information)
-                msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
-                msg_box.exec()
-
-                logger.info("Repository info dialog shown")
 
     def _check_repository_ready(self) -> bool:
         """
@@ -432,3 +348,24 @@ class GitHubHandler(BaseVCSHandler, QObject):
     def is_busy(self) -> bool:
         """Check if GitHub operation is in progress."""
         return self.is_processing
+
+    # Backward compatibility properties for cached data
+    @property
+    def cached_prs(self) -> list[dict[str, Any]]:
+        """Get cached PRs (backward compatibility)."""
+        return self._result_handler.cached_prs
+
+    @cached_prs.setter
+    def cached_prs(self, value: list[dict[str, Any]]) -> None:
+        """Set cached PRs (backward compatibility)."""
+        self._result_handler.cached_prs = value
+
+    @property
+    def cached_issues(self) -> list[dict[str, Any]]:
+        """Get cached issues (backward compatibility)."""
+        return self._result_handler.cached_issues
+
+    @cached_issues.setter
+    def cached_issues(self, value: list[dict[str, Any]]) -> None:
+        """Set cached issues (backward compatibility)."""
+        self._result_handler.cached_issues = value

@@ -383,7 +383,7 @@ class TestGitHubHandlerRepository:
         assert kwargs["working_dir"] == "/test/repo"
 
     def test_show_repo_info_logs_data(self, github_handler, caplog):
-        """Test _handle_repo_info logs repository information."""
+        """Test _result_handler.handle_repo_info logs repository information."""
         import logging
 
         # Create mock result with repo data
@@ -395,9 +395,9 @@ class TestGitHubHandlerRepository:
             operation="repo_view",
         )
 
-        # Test that _handle_repo_info logs the data
+        # Test that result handler logs the data (use silent to avoid dialog)
         with caplog.at_level(logging.INFO):
-            github_handler._handle_repo_info(result)
+            github_handler._result_handler.handle_repo_info(result, "repo_info_silent")
 
         # Verify logging occurred
         assert "Repository: test/repo" in caplog.text
@@ -856,7 +856,7 @@ class TestGitHubHandlerResultDispatching:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test handle_github_result dispatches to _handle_pr_list (line 297)."""
+        """Test handle_github_result dispatches to result handler for pr_list."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -876,10 +876,10 @@ class TestGitHubHandlerResultDispatching:
             data=[{"number": 1, "title": "Test PR"}],
         )
 
-        with patch.object(handler, "_handle_pr_list") as mock_handler:
+        with patch.object(handler._result_handler, "handle_pr_list") as mock_handler:
             handler.handle_github_result(result)
 
-            mock_handler.assert_called_once_with(result)
+            mock_handler.assert_called_once_with(result, handler.current_dialog)
 
     def test_handle_result_dispatches_issue_create(
         self,
@@ -888,7 +888,7 @@ class TestGitHubHandlerResultDispatching:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test handle_github_result dispatches to _handle_issue_created (line 299)."""
+        """Test handle_github_result dispatches to result handler for issue_create."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -907,7 +907,7 @@ class TestGitHubHandlerResultDispatching:
             data={"number": 42, "url": "https://github.com/org/repo/issues/42"},
         )
 
-        with patch.object(handler, "_handle_issue_created") as mock_handler:
+        with patch.object(handler._result_handler, "handle_issue_created") as mock_handler:
             handler.handle_github_result(result)
 
             mock_handler.assert_called_once_with(result)
@@ -919,7 +919,7 @@ class TestGitHubHandlerResultDispatching:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test handle_github_result dispatches to _handle_issue_list (line 301)."""
+        """Test handle_github_result dispatches to result handler for issue_list."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -938,10 +938,10 @@ class TestGitHubHandlerResultDispatching:
             data=[{"number": 1, "title": "Test Issue"}],
         )
 
-        with patch.object(handler, "_handle_issue_list") as mock_handler:
+        with patch.object(handler._result_handler, "handle_issue_list") as mock_handler:
             handler.handle_github_result(result)
 
-            mock_handler.assert_called_once_with(result)
+            mock_handler.assert_called_once_with(result, handler.current_dialog)
 
     def test_handle_result_dispatches_repo_info(
         self,
@@ -950,7 +950,7 @@ class TestGitHubHandlerResultDispatching:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test handle_github_result dispatches to _handle_repo_info (line 303)."""
+        """Test handle_github_result dispatches to result handler for repo_info."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -961,6 +961,7 @@ class TestGitHubHandlerResultDispatching:
             mock_git_handler,
         )
         handler.is_processing = True
+        handler.last_operation = "repo_info"
 
         result = GitHubResult(
             success=True,
@@ -969,10 +970,10 @@ class TestGitHubHandlerResultDispatching:
             data={"name": "test-repo", "description": "Test"},
         )
 
-        with patch.object(handler, "_handle_repo_info") as mock_handler:
+        with patch.object(handler._result_handler, "handle_repo_info") as mock_handler:
             handler.handle_github_result(result)
 
-            mock_handler.assert_called_once_with(result)
+            mock_handler.assert_called_once_with(result, "repo_info")
 
 
 @pytest.mark.fr_034
@@ -991,7 +992,7 @@ class TestGitHubHandlerResultHandlers:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test _handle_pr_list updates cached PRs (lines 336-346)."""
+        """Test result handler updates cached PRs."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -1009,7 +1010,7 @@ class TestGitHubHandlerResultHandlers:
 
         result = GitHubResult(success=True, operation="pr_list", user_message="Success", data=pr_data)
 
-        handler._handle_pr_list(result)
+        handler._result_handler.handle_pr_list(result, None)
 
         # Verify cache updated
         assert handler.cached_prs == pr_data
@@ -1022,7 +1023,8 @@ class TestGitHubHandlerResultHandlers:
         mock_git_handler,
         qapp,
     ):
-        """Test _handle_pr_list updates open dialog (lines 341-344)."""
+        """Test result handler updates open dialog."""
+        from asciidoc_artisan.ui.github_dialogs import PullRequestListDialog
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -1033,20 +1035,18 @@ class TestGitHubHandlerResultHandlers:
             mock_git_handler,
         )
 
-        # Create mock dialog
-        mock_dialog = Mock()
+        # Create mock dialog that passes isinstance check
+        mock_dialog = Mock(spec=PullRequestListDialog)
         mock_dialog.set_pr_data = Mock()
         handler.current_dialog = mock_dialog
 
-        # Mock isinstance to return True for PullRequestListDialog
-        with patch("asciidoc_artisan.ui.github_handler.isinstance", return_value=True):
-            pr_data = [{"number": 1, "title": "Test PR"}]
-            result = GitHubResult(success=True, operation="pr_list", user_message="Success", data=pr_data)
+        pr_data = [{"number": 1, "title": "Test PR"}]
+        result = GitHubResult(success=True, operation="pr_list", user_message="Success", data=pr_data)
 
-            handler._handle_pr_list(result)
+        handler._result_handler.handle_pr_list(result, mock_dialog)
 
-            # Verify dialog updated
-            mock_dialog.set_pr_data.assert_called_once_with(pr_data)
+        # Verify dialog updated
+        mock_dialog.set_pr_data.assert_called_once_with(pr_data)
 
     def test_handle_issue_created_logs_url(
         self,
@@ -1056,7 +1056,7 @@ class TestGitHubHandlerResultHandlers:
         mock_git_handler,
         caplog,
     ):
-        """Test _handle_issue_created logs issue URL (lines 350-353)."""
+        """Test result handler logs issue URL."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -1075,7 +1075,7 @@ class TestGitHubHandlerResultHandlers:
         )
 
         with caplog.at_level("INFO"):
-            handler._handle_issue_created(result)
+            handler._result_handler.handle_issue_created(result)
 
             # Verify logged
             assert "Issue #42 created" in caplog.text
@@ -1088,7 +1088,7 @@ class TestGitHubHandlerResultHandlers:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test _handle_issue_list updates cached issues (lines 357-365)."""
+        """Test result handler updates cached issues."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -1111,7 +1111,7 @@ class TestGitHubHandlerResultHandlers:
             data=issue_data,
         )
 
-        handler._handle_issue_list(result)
+        handler._result_handler.handle_issue_list(result, None)
 
         # Verify cache updated
         assert handler.cached_issues == issue_data
@@ -1123,7 +1123,8 @@ class TestGitHubHandlerResultHandlers:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test _handle_issue_list updates open dialog (lines 362-363)."""
+        """Test result handler updates open dialog."""
+        from asciidoc_artisan.ui.github_dialogs import IssueListDialog
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -1134,25 +1135,23 @@ class TestGitHubHandlerResultHandlers:
             mock_git_handler,
         )
 
-        # Create mock dialog
-        mock_dialog = Mock()
+        # Create mock dialog that passes isinstance check
+        mock_dialog = Mock(spec=IssueListDialog)
         mock_dialog.set_issue_data = Mock()
         handler.current_dialog = mock_dialog
 
-        # Mock isinstance to return True for IssueListDialog
-        with patch("asciidoc_artisan.ui.github_handler.isinstance", return_value=True):
-            issue_data = [{"number": 1, "title": "Test Issue"}]
-            result = GitHubResult(
-                success=True,
-                operation="issue_list",
-                user_message="Success",
-                data=issue_data,
-            )
+        issue_data = [{"number": 1, "title": "Test Issue"}]
+        result = GitHubResult(
+            success=True,
+            operation="issue_list",
+            user_message="Success",
+            data=issue_data,
+        )
 
-            handler._handle_issue_list(result)
+        handler._result_handler.handle_issue_list(result, mock_dialog)
 
-            # Verify dialog updated
-            mock_dialog.set_issue_data.assert_called_once_with(issue_data)
+        # Verify dialog updated
+        mock_dialog.set_issue_data.assert_called_once_with(issue_data)
 
 
 @pytest.mark.fr_034
@@ -1172,7 +1171,7 @@ class TestGitHubHandlerRepoInfoDialog:
         mock_git_handler,
         qapp,
     ):
-        """Test _handle_repo_info shows QMessageBox (lines 404-422)."""
+        """Test result handler shows QMessageBox for repo info."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -1182,31 +1181,28 @@ class TestGitHubHandlerRepoInfoDialog:
             mock_status_manager,
             mock_git_handler,
         )
-        handler.last_operation = "repo_info"  # Not silent
 
         repo_data = {
-            "name": "test-repo",
+            "nameWithOwner": "org/test-repo",
             "description": "A test repository",
-            "default_branch": "main",
+            "defaultBranchRef": {"name": "main"},
             "visibility": "public",
-            "stargazers_count": 42,
-            "forks_count": 7,
-            "html_url": "https://github.com/org/test-repo",
+            "stargazerCount": 42,
+            "forkCount": 7,
+            "url": "https://github.com/org/test-repo",
         }
 
         result = GitHubResult(success=True, operation="repo_info", user_message="Success", data=repo_data)
 
-        # Mock QMessageBox (imported locally in _handle_repo_info)
-        with patch("PySide6.QtWidgets.QMessageBox") as mock_msgbox:
-            mock_box_instance = Mock()
-            mock_msgbox.return_value = mock_box_instance
+        # Mock _show_repo_info_dialog since QMessageBox is imported locally
+        with patch.object(handler._result_handler, "_show_repo_info_dialog") as mock_dialog:
+            handler._result_handler.handle_repo_info(result, "repo_info")
 
-            handler._handle_repo_info(result)
-
-            # Verify QMessageBox created and shown
-            mock_msgbox.assert_called_once_with(mock_parent_window)
-            mock_box_instance.setWindowTitle.assert_called_once_with("Repository Information")
-            mock_box_instance.exec.assert_called_once()
+            # Verify dialog method called with correct params
+            mock_dialog.assert_called_once()
+            call_kwargs = mock_dialog.call_args.kwargs
+            assert call_kwargs["repo_name"] == "org/test-repo"
+            assert call_kwargs["visibility"] == "public"
 
     def test_handle_repo_info_skips_dialog_when_silent(
         self,
@@ -1215,7 +1211,7 @@ class TestGitHubHandlerRepoInfoDialog:
         mock_status_manager,
         mock_git_handler,
     ):
-        """Test _handle_repo_info skips dialog for silent operations."""
+        """Test result handler skips dialog for silent operations."""
         from asciidoc_artisan.ui.github_handler import GitHubHandler
         from asciidoc_artisan.workers.github_cli_worker import GitHubResult
 
@@ -1225,26 +1221,25 @@ class TestGitHubHandlerRepoInfoDialog:
             mock_status_manager,
             mock_git_handler,
         )
-        handler.last_operation = "repo_info_silent"  # Silent operation
 
         repo_data = {
-            "name": "test-repo",
+            "nameWithOwner": "org/test-repo",
             "description": "Test",
-            "default_branch": "main",
+            "defaultBranchRef": {"name": "main"},
             "visibility": "public",
-            "stargazers_count": 0,
-            "forks_count": 0,
-            "html_url": "https://github.com/org/test-repo",
+            "stargazerCount": 0,
+            "forkCount": 0,
+            "url": "https://github.com/org/test-repo",
         }
 
         result = GitHubResult(success=True, operation="repo_info", user_message="Success", data=repo_data)
 
-        # Mock QMessageBox - should NOT be called (imported locally in _handle_repo_info)
-        with patch("PySide6.QtWidgets.QMessageBox") as mock_msgbox:
-            handler._handle_repo_info(result)
+        # Mock _show_repo_info_dialog - should NOT be called for silent operation
+        with patch.object(handler._result_handler, "_show_repo_info_dialog") as mock_dialog:
+            handler._result_handler.handle_repo_info(result, "repo_info_silent")
 
-            # Verify QMessageBox NOT created
-            mock_msgbox.assert_not_called()
+            # Verify dialog NOT shown
+            mock_dialog.assert_not_called()
 
 
 @pytest.mark.fr_034
