@@ -164,7 +164,7 @@ def test_handler_initialization(handler, editor, preview):
     assert handler.preview is preview
     assert handler.sync_scrolling_enabled is True
     assert handler.is_syncing_scroll is False
-    assert handler._css_cache is None
+    assert handler._css_manager._css_cache is None  # CSS manager holds cache
     assert isinstance(handler.preview_timer, QTimer)
 
 
@@ -232,7 +232,7 @@ def test_css_generation(handler, mock_window, dark_mode, expected_text_color, ex
     """
     mock_window._settings.dark_mode = dark_mode
     if dark_mode:
-        handler._css_cache = None  # Clear cache for dark mode test
+        handler._css_manager._css_cache = None  # Clear cache for dark mode test
 
     css = handler.get_preview_css()
 
@@ -282,7 +282,7 @@ def test_css_cache_clearing(handler):
 def test_wrap_with_css(handler):
     """Test HTML wrapping with CSS."""
     body_html = "<p>Content</p>"
-    wrapped = handler._wrap_with_css(body_html)
+    wrapped = handler._css_manager.wrap_with_css(body_html)
 
     assert "<!DOCTYPE html>" in wrapped
     assert "<html>" in wrapped
@@ -622,11 +622,11 @@ def test_set_custom_css_integration(editor, preview, mock_window, qtbot):
     custom_css = "/* custom */ body { font-size: 16px; }"
     handler.set_custom_css(custom_css)
 
-    # Verify custom CSS is stored
-    assert handler._custom_css == custom_css
+    # Verify custom CSS is stored (now in CSS manager)
+    assert handler._css_manager._custom_css == custom_css
 
-    # Verify CSS cache is cleared
-    assert handler._css_cache is None
+    # Verify CSS cache is cleared (now in CSS manager)
+    assert handler._css_manager._css_cache is None
 
     # Verify preview timer is scheduled
     assert handler.preview_timer.isActive()

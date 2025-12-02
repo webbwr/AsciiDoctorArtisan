@@ -9,19 +9,20 @@ It contains shared logic for updating the preview window as you type.
 
 WHAT THIS FILE DOES:
 1. Debouncing (wait before updating preview - don't update on every keystroke!)
-2. CSS generation (styling for dark/light themes)
-3. Coordinates with PreviewWorker (background thread for rendering)
-4. Scroll synchronization (keep editor and preview in sync)
-5. Statistics tracking (how long renders take, for adaptive behavior)
+2. Coordinates with PreviewWorker (background thread for rendering)
+3. Scroll synchronization (keep editor and preview in sync)
+4. Statistics tracking (how long renders take, for adaptive behavior)
 
-MA principle: Reduced from 665→560 lines by extracting preview_constants.py.
+MA principle: Reduced from 665→503→~380 lines by extracting:
+- preview_constants.py (constants)
+- preview_css_manager.py (CSS generation, caching, error HTML)
 
 ARCHITECTURE:
 PreviewHandlerBase (this file - abstract base)
     ├── PreviewHandlerGPU (QWebEngineView - GPU accelerated)
     └── PreviewHandlerCPU (QTextBrowser - software fallback)
 
-VERSION: 1.5.0 (Base class refactoring)
+VERSION: 2.0.9 (MA refactoring - CSS manager extraction)
 """
 
 # === STANDARD LIBRARY IMPORTS ===
@@ -36,15 +37,12 @@ from PySide6.QtWidgets import QPlainTextEdit, QWidget
 
 # === LOCAL IMPORTS ===
 from asciidoc_artisan.ui.preview_constants import (
-    CSP_POLICY,
-    ERROR_COLORS_DARK,
-    ERROR_COLORS_LIGHT,
-    FALLBACK_CSS,
     PREVIEW_FAST_INTERVAL_MS,
     PREVIEW_INSTANT_MS,
     PREVIEW_NORMAL_INTERVAL_MS,
     PREVIEW_SLOW_INTERVAL_MS,
 )
+from asciidoc_artisan.ui.preview_css_manager import PreviewCSSManager
 
 # === OPTIONAL IMPORTS (Adaptive Debouncer) ===
 try:
@@ -106,8 +104,9 @@ class PreviewHandlerBase(QObject):
         # Preview state
         self.sync_scrolling_enabled = True
         self.is_syncing_scroll = False
-        self._css_cache: str | None = None
-        self._custom_css: str = ""
+
+        # CSS manager (extracted per MA principle)
+        self._css_manager = PreviewCSSManager(parent_window)  # type: ignore[arg-type]
 
         # Preview timer (adaptive based on document size)
         self.preview_timer = QTimer()
@@ -229,8 +228,8 @@ class PreviewHandlerBase(QObject):
 
             logger.debug(f"Render completed in {render_time:.3f}s")
 
-        # Add CSS styling
-        styled_html = self._wrap_with_css(html)
+        # Add CSS styling (delegated to CSS manager)
+        styled_html = self._css_manager.wrap_with_css(html)
 
         # Update widget (delegate to subclass)
         self._set_preview_html(styled_html)
@@ -257,134 +256,24 @@ class PreviewHandlerBase(QObject):
         Args:
             error: Error message
         """
-        colors = self._get_error_display_colors()
-        error_html = self._build_error_html(error, colors)
+        error_html = self._css_manager.build_error_html(error)
         self.preview.setHtml(error_html)
         self.preview_error.emit(error)
 
-    def _get_error_display_colors(self) -> dict[str, str]:
-        """Get color scheme for error display based on theme.
-
-        Returns:
-            Dictionary with color keys: bg, text, heading, pre_bg
-        """
-        dark_mode = False
-        if hasattr(self.window, "_settings") and hasattr(self.window._settings, "dark_mode"):
-            dark_mode = self.window._settings.dark_mode
-
-        return ERROR_COLORS_DARK if dark_mode else ERROR_COLORS_LIGHT
-
-    def _build_error_html(self, error: str, colors: dict[str, str]) -> str:
-        """Build error display HTML.
-
-        Args:
-            error: Error message
-            colors: Color scheme dictionary
-
-        Returns:
-            Complete HTML for error display
-        """
-        return f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="{CSP_POLICY}">
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    padding: 20px;
-                    background-color: {colors["bg"]};
-                    color: {colors["text"]};
-                }}
-                h2 {{ color: {colors["heading"]}; }}
-                pre {{
-                    background-color: {colors["pre_bg"]};
-                    padding: 10px;
-                    border-radius: 5px;
-                    overflow-x: auto;
-                    color: {colors["text"]};
-                }}
-            </style>
-        </head>
-        <body>
-            <h2>Preview Error</h2>
-            <p>Could not render preview:</p>
-            <pre>{error}</pre>
-        </body>
-        </html>
-        """
-
-    def _wrap_with_css(self, html: str) -> str:
-        """
-        Wrap HTML content with CSS styling and security headers.
-
-        Args:
-            html: HTML body content
-
-        Returns:
-            Complete HTML with CSS and CSP security headers
-        """
-        css = self.get_preview_css()
-
-        logger.debug("Applying Content Security Policy to preview HTML")
-
-        return f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="{CSP_POLICY}">
-            <style>
-                {css}
-            </style>
-        </head>
-        <body>
-            {html}
-        </body>
-        </html>
-        """
+    # === CSS DELEGATION METHODS (backward compatibility) ===
 
     def get_preview_css(self) -> str:
-        """Get preview CSS (cached for performance).
-
-        Returns:
-            CSS content as string (includes custom CSS for fonts)
-        """
-        if self._css_cache is None:
-            self._css_cache = self._generate_preview_css()
-
-        if self._custom_css:
-            return self._css_cache + "\n" + self._custom_css
-
-        return self._css_cache
+        """Get preview CSS (delegated to CSS manager)."""
+        return self._css_manager.get_preview_css()
 
     def set_custom_css(self, css: str) -> None:
-        """Set custom CSS for preview (e.g., font settings).
-
-        Args:
-            css: Custom CSS string to append to preview CSS
-        """
-        self._custom_css = css
-        self._css_cache = None
+        """Set custom CSS for preview (delegated to CSS manager)."""
+        self._css_manager.set_custom_css(css)
         self.preview_timer.start(100)
-        logger.debug("Custom CSS applied to preview")
 
     def clear_css_cache(self) -> None:
-        """Clear CSS cache (call when theme changes)."""
-        self._css_cache = None
-        logger.debug("CSS cache cleared")
-
-    def _generate_preview_css(self) -> str:
-        """Generate preview CSS by delegating to ThemeManager.
-
-        Returns:
-            CSS content as string
-        """
-        if hasattr(self.window, "theme_manager"):
-            return self.window.theme_manager.get_preview_css()  # type: ignore[no-any-return]
-
-        return FALLBACK_CSS
+        """Clear CSS cache (delegated to CSS manager)."""
+        self._css_manager.clear_cache()
 
     def enable_sync_scrolling(self, enabled: bool) -> None:
         """Enable or disable synchronized scrolling.
@@ -458,18 +347,7 @@ class PreviewHandlerBase(QObject):
 
     def clear_preview(self) -> None:
         """Clear preview content with security headers."""
-        clear_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="{CSP_POLICY}">
-        </head>
-        <body>
-            <p>Preview cleared</p>
-        </body>
-        </html>
-        """
+        clear_html = self._css_manager.build_clear_html()
         self.preview.setHtml(clear_html)
         logger.debug("Preview cleared")
 
