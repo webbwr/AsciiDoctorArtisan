@@ -8,9 +8,9 @@ Manages file dialogs, format detection, and conversion routing (PDF/Pandoc/nativ
 import logging
 import platform
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
 
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFileDialog, QWidget
 
 from asciidoc_artisan.core import SUPPORTED_OPEN_FILTER
 from asciidoc_artisan.core.large_file_handler import LargeFileHandler
@@ -82,19 +82,19 @@ class FileOpenHandler:
         """
         # Check reentrancy guard
         if self.mgr._is_processing_pandoc:
-            self.mgr.status_manager.show_message("warning", "Busy", "Already processing a file conversion.")  # type: ignore[attr-defined]
+            self.mgr.status_manager.show_message("warning", "Busy", "Already processing a file conversion.")
             return
 
         # Check unsaved changes
         if self.mgr._unsaved_changes:
-            if not self.mgr.status_manager.prompt_save_before_action("opening a new file"):  # type: ignore[attr-defined]
+            if not self.mgr.status_manager.prompt_save_before_action("opening a new file"):
                 return
 
         # Show file dialog
         file_path_str, _ = QFileDialog.getOpenFileName(
-            self.mgr,  # type: ignore[arg-type]
+            cast(QWidget, self.mgr),
             "Open File",
-            self.mgr._settings.last_directory,  # type: ignore[attr-defined]
+            self.mgr._settings.last_directory,
             SUPPORTED_OPEN_FILTER,
             options=(
                 QFileDialog.Option.DontUseNativeDialog if platform.system() != "Windows" else QFileDialog.Option(0)
@@ -105,7 +105,7 @@ class FileOpenHandler:
             return
 
         file_path = Path(file_path_str)
-        self.mgr._settings.last_directory = str(file_path.parent)  # type: ignore[attr-defined]
+        self.mgr._settings.last_directory = str(file_path.parent)
 
         # Route to appropriate handler based on extension
         try:
@@ -118,7 +118,7 @@ class FileOpenHandler:
                 self.open_native_file(file_path)
         except Exception as e:
             logger.exception(f"Failed to open file: {file_path}")
-            self.mgr.status_manager.show_message("critical", "Error", f"Failed to open file:\n{e}")  # type: ignore[attr-defined]
+            self.mgr.status_manager.show_message("critical", "Error", f"Failed to open file:\n{e}")
 
     def open_pdf_with_extraction(self, file_path: Path) -> None:
         """
@@ -132,7 +132,7 @@ class FileOpenHandler:
         from asciidoc_artisan.document_converter import pdf_extractor
 
         if not pdf_extractor.is_available():
-            self.mgr.status_manager.show_message(  # type: ignore[attr-defined]
+            self.mgr.status_manager.show_message(
                 "warning",
                 "PDF Support Unavailable",
                 "PDF text extraction requires PyMuPDF.\n\n"
@@ -142,12 +142,12 @@ class FileOpenHandler:
             )
             return
 
-        self.mgr.status_bar.showMessage(f"Extracting text from PDF: {file_path.name}...")  # type: ignore[attr-defined]
+        self.mgr.status_bar.showMessage(f"Extracting text from PDF: {file_path.name}...")
 
         success, asciidoc_text, error_msg = pdf_extractor.convert_to_asciidoc(file_path)
 
         if not success:
-            self.mgr.status_manager.show_message(  # type: ignore[attr-defined]
+            self.mgr.status_manager.show_message(
                 "critical",
                 "PDF Extraction Failed",
                 f"Failed to extract text from PDF:\n\n{error_msg}\n\n"
@@ -156,8 +156,8 @@ class FileOpenHandler:
             return
 
         # Load extracted content into editor
-        self.mgr.file_load_manager.load_content_into_editor(asciidoc_text, file_path)  # type: ignore[attr-defined]
-        self.mgr.status_bar.showMessage(f"PDF imported successfully: {file_path.name}", 5000)  # type: ignore[attr-defined]
+        self.mgr.file_load_manager.load_content_into_editor(asciidoc_text, file_path)
+        self.mgr.status_bar.showMessage(f"PDF imported successfully: {file_path.name}", 5000)
 
     def open_with_pandoc_conversion(self, file_path: Path, suffix: str) -> None:
         """
@@ -169,7 +169,7 @@ class FileOpenHandler:
 
         MA principle: Extracted from FileOperationsManager (55 lines).
         """
-        if not self.mgr.ui_state_manager.check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):  # type: ignore[attr-defined]
+        if not self.mgr.ui_state_manager.check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
             return
 
         format_map = {
@@ -187,17 +187,17 @@ class FileOpenHandler:
         input_format, file_type = format_map.get(suffix, ("markdown", "text"))
 
         # Use settings preference for AI conversion
-        use_ai_for_import = self.mgr._settings_manager.get_ai_conversion_preference(self.mgr._settings)  # type: ignore[attr-defined]
+        use_ai_for_import = self.mgr._settings_manager.get_ai_conversion_preference(self.mgr._settings)
 
         self.mgr._is_processing_pandoc = True
         self.mgr._pending_file_path = file_path
         self.mgr._update_ui_state()
 
-        self.mgr.editor.setPlainText(f"// Converting {file_path.name} to AsciiDoc...\n// Please wait...")  # type: ignore[attr-defined]
-        self.mgr.preview.setHtml(  # type: ignore[attr-defined]
+        self.mgr.editor.setPlainText(f"// Converting {file_path.name} to AsciiDoc...\n// Please wait...")
+        self.mgr.preview.setHtml(
             "<h3>Converting document...</h3><p>The preview will update when conversion is complete.</p>"
         )
-        self.mgr.status_bar.showMessage(f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc...")  # type: ignore[attr-defined]
+        self.mgr.status_bar.showMessage(f"Converting '{file_path.name}' from {suffix.upper()[1:]} to AsciiDoc...")
 
         file_content: str | bytes
         if file_type == "binary":
@@ -209,7 +209,7 @@ class FileOpenHandler:
             f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})"
         )
 
-        self.mgr.request_pandoc_conversion.emit(  # type: ignore[attr-defined]
+        self.mgr.request_pandoc_conversion.emit(
             file_content,
             "asciidoc",
             input_format,
@@ -232,10 +232,10 @@ class FileOpenHandler:
 
         if category in ["medium", "large"]:
             logger.info(f"Loading {category} file with optimizations")
-            success, content, error = self.mgr.large_file_handler.load_file_optimized(file_path)  # type: ignore[attr-defined]
+            success, content, error = self.mgr.large_file_handler.load_file_optimized(file_path)
             if not success:
                 raise Exception(error)
         else:
             content = file_path.read_text(encoding="utf-8")
 
-        self.mgr.file_load_manager.load_content_into_editor(content, file_path)  # type: ignore[attr-defined]
+        self.mgr.file_load_manager.load_content_into_editor(content, file_path)

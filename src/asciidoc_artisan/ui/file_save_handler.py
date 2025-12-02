@@ -9,9 +9,9 @@ import io
 import logging
 import platform
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
 
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFileDialog, QWidget
 
 from asciidoc_artisan.core import (
     DEFAULT_FILENAME,
@@ -85,10 +85,10 @@ class FileSaveHandler:
         MA principle: Extracted from save_file (19 lines).
         """
         suggested_name = self.editor._current_file_path.name if self.editor._current_file_path else DEFAULT_FILENAME
-        suggested_path = Path(self.editor._settings.last_directory) / suggested_name  # type: ignore[attr-defined]
+        suggested_path = Path(self.editor._settings.last_directory) / suggested_name
 
         file_path_str, selected_filter = QFileDialog.getSaveFileName(
-            self.editor,  # type: ignore[arg-type]
+            cast(QWidget, self.editor),
             "Save File",
             str(suggested_path),
             SUPPORTED_SAVE_FILTER,
@@ -136,18 +136,18 @@ class FileSaveHandler:
 
         MA principle: Extracted from save_file (17 lines).
         """
-        content = self.editor.editor.toPlainText()  # type: ignore[attr-defined]
+        content = self.editor.editor.toPlainText()
 
         if atomic_save_text(file_path, content, encoding="utf-8"):
             self.editor._current_file_path = file_path
-            self.editor._settings.last_directory = str(file_path.parent)  # type: ignore[attr-defined]
+            self.editor._settings.last_directory = str(file_path.parent)
             self.editor._unsaved_changes = False
-            self.editor.status_manager.update_window_title()  # type: ignore[attr-defined]
-            self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))  # type: ignore[attr-defined]
+            self.editor.status_manager.update_window_title()
+            self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
             logger.info(f"Saved file: {file_path}")
             return True
         else:
-            self.editor.status_manager.show_message(  # type: ignore[attr-defined]
+            self.editor.status_manager.show_message(
                 "critical",
                 "Save Error",
                 f"Failed to save file: {file_path}\nThe file may be in use or the directory may be read-only.",
@@ -169,13 +169,13 @@ class FileSaveHandler:
         """
         if atomic_save_text(file_path, content, encoding="utf-8"):
             self.editor._current_file_path = file_path
-            self.editor._settings.last_directory = str(file_path.parent)  # type: ignore[attr-defined]
+            self.editor._settings.last_directory = str(file_path.parent)
             self.editor._unsaved_changes = False
-            self.editor.status_manager.update_window_title()  # type: ignore[attr-defined]
-            self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))  # type: ignore[attr-defined]
+            self.editor.status_manager.update_window_title()
+            self.editor.status_bar.showMessage(MSG_SAVED_ASCIIDOC.format(file_path))
             return True
         else:
-            self.editor.status_manager.show_message(  # type: ignore[attr-defined]
+            self.editor.status_manager.show_message(
                 "critical", "Save Error", f"Failed to save AsciiDoc file: {file_path}"
             )
             return False
@@ -193,23 +193,23 @@ class FileSaveHandler:
 
         MA principle: Extracted from save_as_format_internal (20 lines).
         """
-        self.editor.status_bar.showMessage("Saving as HTML...")  # type: ignore[attr-defined]
+        self.editor.status_bar.showMessage("Saving as HTML...")
         try:
             if self.editor._asciidoc_api is None:
                 raise RuntimeError(ERR_ASCIIDOC_NOT_INITIALIZED)
 
             infile = io.StringIO(content)
             outfile = io.StringIO()
-            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")  # type: ignore[attr-defined]
+            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
             html_content = outfile.getvalue()
 
             if atomic_save_text(file_path, html_content, encoding="utf-8"):
-                self.editor.status_bar.showMessage(MSG_SAVED_HTML.format(file_path))  # type: ignore[attr-defined]
+                self.editor.status_bar.showMessage(MSG_SAVED_HTML.format(file_path))
                 logger.info(f"Successfully saved as HTML: {file_path}")
                 return True
             else:
                 raise OSError(f"Atomic save failed for {file_path}")
         except Exception as e:
             logger.exception(f"Failed to save HTML file: {e}")
-            self.editor.status_manager.show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")  # type: ignore[attr-defined]
+            self.editor.status_manager.show_message("critical", "Save Error", f"Failed to save HTML file:\n{e}")
             return False

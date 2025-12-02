@@ -17,7 +17,7 @@ CYAN='\033[36m'
 
 # Project information
 PROJECT_NAME="AsciiDocArtisan"
-PROJECT_VERSION="2.0.8"
+PROJECT_VERSION="2.0.9"
 
 # MA Principle: Extract coverage detection (37→15 lines)
 get_coverage() {

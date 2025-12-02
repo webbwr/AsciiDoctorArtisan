@@ -99,15 +99,15 @@ class FormatConversionHelper:
 
             infile = io.StringIO(content)
             outfile = io.StringIO()
-            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")  # type: ignore[attr-defined]
+            self.editor._asciidoc_api.execute(infile, outfile, backend="html5")
             html_content = outfile.getvalue()
 
-            temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"  # type: ignore[attr-defined]
+            temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}.html"
             temp_source_file.write_text(html_content, encoding="utf-8")
             return temp_source_file
         except Exception as e:
             logger.exception(f"Failed to convert AsciiDoc to HTML: {e}")
-            self.editor.status_manager.show_message(  # type: ignore[attr-defined]
+            self.editor.status_manager.show_message(
                 "critical", "Conversion Error", f"Failed to convert AsciiDoc to HTML:\n{e}"
             )
             return None
@@ -127,14 +127,12 @@ class FormatConversionHelper:
         """
         ext_map = {"markdown": ".md", "docx": ".docx", "html": ".html"}
         temp_ext = ext_map.get(source_format, ".txt")
-        temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"  # type: ignore[attr-defined]
+        temp_source_file = Path(self.editor._temp_dir.name) / f"temp_{uuid.uuid4().hex}{temp_ext}"
         try:
             temp_source_file.write_text(content, encoding="utf-8")
             return temp_source_file
         except Exception as e:
-            self.editor.status_manager.show_message(  # type: ignore[attr-defined]
-                "critical", "Save Error", f"Failed to create temporary file:\n{e}"
-            )
+            self.editor.status_manager.show_message("critical", "Save Error", f"Failed to create temporary file:\n{e}")
             return None
 
     def emit_pandoc_conversion(
@@ -157,11 +155,11 @@ class FormatConversionHelper:
 
         MA principle: Extracted from save_as_format_internal (32 lines).
         """
-        self.editor.status_bar.showMessage(f"Saving as {format_type.upper()}...")  # type: ignore[attr-defined]
+        self.editor.status_bar.showMessage(f"Saving as {format_type.upper()}...")
 
         # Set export manager pending paths for result handling
-        self.editor.export_manager.pending_export_path = file_path  # type: ignore[attr-defined]
-        self.editor.export_manager.pending_export_format = format_type  # type: ignore[attr-defined]
+        self.editor.export_manager.pending_export_path = file_path
+        self.editor.export_manager.pending_export_format = format_type
 
         if format_type in ["pdf", "docx"]:
             # Use Pandoc for PDF and DOCX conversion - pass output file directly
@@ -170,7 +168,7 @@ class FormatConversionHelper:
                 f"source: {temp_source_file} ({source_format}), "
                 f"output: {file_path}"
             )
-            self.editor.request_pandoc_conversion.emit(  # type: ignore[attr-defined]
+            self.editor.request_pandoc_conversion.emit(
                 temp_source_file,
                 format_type,
                 source_format,
@@ -183,7 +181,7 @@ class FormatConversionHelper:
             logger.info(
                 f"Emitting pandoc conversion request for {format_type} - source: {temp_source_file} ({source_format})"
             )
-            self.editor.request_pandoc_conversion.emit(  # type: ignore[attr-defined]
+            self.editor.request_pandoc_conversion.emit(
                 temp_source_file,
                 format_type,
                 source_format,
