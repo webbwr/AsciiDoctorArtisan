@@ -24,8 +24,8 @@ from asciidoc_artisan.document_converter import (
 class TestPandocIntegrationInitialization:
     """Test PandocIntegration initialization."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_init_pandoc_found(self, mock_run, mock_which):
         """Test initialization when pandoc is found."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -40,7 +40,7 @@ class TestPandocIntegrationInitialization:
         assert integration.pandoc_version is not None
         assert "pandoc 3.1.2" in integration.pandoc_version
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
     def test_init_pandoc_not_found(self, mock_which):
         """Test initialization when pandoc is not found."""
         mock_which.return_value = None
@@ -49,8 +49,8 @@ class TestPandocIntegrationInitialization:
 
         assert integration.pandoc_path is None
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_init_pandoc_version_check_fails(self, mock_run, mock_which):
         """Test initialization when version check fails."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -68,8 +68,8 @@ class TestPandocIntegrationInitialization:
 class TestCheckInstallation:
     """Test check_installation method."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_check_installation_success(self, mock_run, mock_which):
         """Test successful pandoc detection."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -84,7 +84,7 @@ class TestCheckInstallation:
         assert success is True
         assert "available" in message.lower() or integration.pandoc_version is not None
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
     def test_check_installation_not_found(self, mock_which):
         """Test when pandoc binary not found."""
         mock_which.return_value = None
@@ -95,8 +95,8 @@ class TestCheckInstallation:
         assert success is False
         assert "not found" in message.lower()
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_check_installation_timeout(self, mock_run, mock_which):
         """Test when version check times out."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -114,8 +114,8 @@ class TestCheckInstallation:
 class TestGetSupportedFormats:
     """Test _get_supported_formats method."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_get_supported_formats_success(self, mock_run, mock_which):
         """Test successful format detection."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -135,8 +135,8 @@ class TestGetSupportedFormats:
         assert "markdown" in integration.supported_formats["input"]
         assert "asciidoc" in integration.supported_formats["output"]
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_get_supported_formats_failure(self, mock_run, mock_which):
         """Test format detection when queries fail."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -187,8 +187,8 @@ class TestStaticMethods:
 class TestIsFormatSupported:
     """Test is_format_supported method."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_is_format_supported_input(self, mock_run, mock_which):
         """Test format support checking for input."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -204,8 +204,8 @@ class TestIsFormatSupported:
         assert integration.is_format_supported("markdown", "input") is True
         assert integration.is_format_supported("html", "input") is False
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_is_format_supported_output(self, mock_run, mock_which):
         """Test format support checking for output."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -233,8 +233,8 @@ class TestIsFormatSupported:
 class TestEnsurePandocAvailable:
     """Test ensure_pandoc_available function."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_ensure_pandoc_available_success(self, mock_run, mock_which):
         """Test when pandoc is available."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -244,7 +244,7 @@ class TestEnsurePandocAvailable:
 
         assert success is True
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
     def test_ensure_pandoc_available_not_found(self, mock_which):
         """Test when pandoc is not available."""
         mock_which.return_value = None
@@ -322,8 +322,8 @@ class TestPDFExtractorHelpers:
 class TestEdgeCases:
     """Test edge cases and error handling."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_extension_map_coverage(self, mock_run, mock_which):
         """Test extension to format mapping."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -351,8 +351,8 @@ class TestEdgeCases:
 class TestPypandocImportError:
     """Test pypandoc import error handling."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_check_installation_pypandoc_import_error(self, mock_run, mock_which):
         """Test when pypandoc is not installed."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -374,8 +374,8 @@ class TestPypandocImportError:
 class TestAutoInstallPypandoc:
     """Test auto_install_pypandoc method."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_auto_install_no_pandoc(self, mock_run, mock_which):
         """Test auto-install when pandoc not found."""
         mock_which.return_value = None
@@ -386,8 +386,8 @@ class TestAutoInstallPypandoc:
         assert success is False
         assert "pandoc binary not found" in message
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_auto_install_success(self, mock_run, mock_which):
         """Test successful pypandoc installation."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -423,8 +423,8 @@ class TestAutoInstallPypandoc:
             assert isinstance(success, bool)
             assert isinstance(message, str)
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_auto_install_pip_failure(self, mock_run, mock_which):
         """Test when pip install fails."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -442,8 +442,8 @@ class TestAutoInstallPypandoc:
         # Message contains "Failed to install pypandoc" + error details
         assert any(word in message.lower() for word in ["failed", "error", "pypandoc"])
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_auto_install_exception(self, mock_run, mock_which):
         """Test exception handling during auto-install."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -468,8 +468,8 @@ class TestAutoInstallPypandoc:
 class TestConvertFile:
     """Test convert_file method."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_convert_file_pypandoc_unavailable(self, mock_run, mock_which):
         """Test convert_file when pypandoc not available."""
         mock_which.return_value = None
@@ -480,8 +480,8 @@ class TestConvertFile:
         assert success is False
         assert "pypandoc not available" in error
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_convert_file_success(self, mock_run, mock_which, tmp_path):
         """Test successful file conversion."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -507,8 +507,8 @@ class TestConvertFile:
             # Since pypandoc is available, should succeed
             assert integration.pypandoc_available
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_convert_file_docx(self, mock_run, mock_which, tmp_path):
         """Test DOCX file conversion (reads as binary)."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -527,8 +527,8 @@ class TestConvertFile:
         # Will fail since pypandoc not really available, but that's expected
         assert isinstance(success, bool)
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_convert_file_exception(self, mock_run, mock_which, tmp_path):
         """Test exception handling in convert_file."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -595,8 +595,8 @@ class TestPDFExtractorExtraction:
 class TestGetSupportedFormatsException:
     """Test exception handling in _get_supported_formats."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_get_supported_formats_timeout(self, mock_run, mock_which):
         """Test timeout during format detection."""
         mock_which.return_value = "/usr/bin/pandoc"
@@ -621,8 +621,8 @@ class TestGetSupportedFormatsException:
 class TestAutoInstallPypandocEdgeCases:
     """Test auto_install_pypandoc edge cases."""
 
-    @patch("asciidoc_artisan.document_converter.shutil.which")
-    @patch("asciidoc_artisan.document_converter.subprocess.run")
+    @patch("asciidoc_artisan.pandoc_integration.shutil.which")
+    @patch("asciidoc_artisan.pandoc_integration.subprocess.run")
     def test_auto_install_pypandoc_installation_failure(self, mock_run, mock_which):
         """Test pypandoc installation failure."""
         mock_which.return_value = "/usr/bin/pandoc"

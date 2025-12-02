@@ -396,7 +396,7 @@ class TestPDFExtraction:
         pdf_file.write_bytes(b"%PDF-1.4 fake")
 
         # Patch where pdf_extractor is imported (inside the method)
-        with patch("asciidoc_artisan.document_converter.pdf_extractor") as mock_pdf:
+        with patch("asciidoc_artisan.pdf_extractor.pdf_extractor") as mock_pdf:
             mock_pdf.is_available.return_value = True
             mock_pdf.convert_to_asciidoc.return_value = (True, "= Test", None)
 
@@ -413,7 +413,7 @@ class TestPDFExtraction:
         pdf_file = tmp_path / "test.pdf"
 
         # Patch where pdf_extractor is imported (inside the method)
-        with patch("asciidoc_artisan.document_converter.pdf_extractor") as mock_pdf:
+        with patch("asciidoc_artisan.pdf_extractor.pdf_extractor") as mock_pdf:
             mock_pdf.is_available.return_value = False
 
             manager._open_pdf_with_extraction(pdf_file)
@@ -430,7 +430,7 @@ class TestPDFExtraction:
         pdf_file = tmp_path / "test.pdf"
 
         # Patch where pdf_extractor is imported (inside the method)
-        with patch("asciidoc_artisan.document_converter.pdf_extractor") as mock_pdf:
+        with patch("asciidoc_artisan.pdf_extractor.pdf_extractor") as mock_pdf:
             mock_pdf.is_available.return_value = True
             mock_pdf.convert_to_asciidoc.return_value = (True, "= Extracted Text", None)
 
@@ -979,7 +979,7 @@ class TestFileOperationsCoverageEdgeCases:
 
         # Mock pdf_extractor to return failure
         with patch(
-            "asciidoc_artisan.document_converter.pdf_extractor.convert_to_asciidoc",
+            "asciidoc_artisan.pdf_extractor.pdf_extractor.convert_to_asciidoc",
             return_value=(False, "", "Encryption error"),
         ):
             manager._open_pdf_with_extraction(file_path)
