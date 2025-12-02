@@ -399,3 +399,5 @@ Entry: `src/main.py`
 - ✅ Refactoring Plan: Comprehensive plan at .claude/plans/refactoring-plan.md
 - ✅ Test Updates: 84 action manager tests updated with new fixtures
 - Always apply Japanese MA principle (間) against all documentation and coding
+- when running app use pyhon -00 switch
+- when running app use pyhon -oo switch

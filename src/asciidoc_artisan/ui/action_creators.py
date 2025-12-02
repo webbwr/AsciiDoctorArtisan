@@ -164,28 +164,28 @@ class ActionCreators:
         self.parent.zoom_in_act = self.parent._create_action(
             "Zoom &In",
             "Zoom in editor and preview (make text larger)",
-            self.parent.window.zoom_in,
+            lambda: self.parent.window._zoom(1),
             shortcut=QKeySequence.StandardKey.ZoomIn,
         )
         self.parent.zoom_out_act = self.parent._create_action(
             "Zoom &Out",
             "Zoom out editor and preview (make text smaller)",
-            self.parent.window.zoom_out,
+            lambda: self.parent.window._zoom(-1),
             shortcut=QKeySequence.StandardKey.ZoomOut,
         )
         self.parent.zoom_reset_act = self.parent._create_action(
-            "&Reset Zoom", "Reset zoom to 100% (normal size)", self.parent.window.zoom_reset
+            "&Reset Zoom", "Reset zoom to 100% (normal size)", lambda: self.parent.window._zoom(0)
         )
         self.parent.dark_mode_act = self.parent._create_action(
             "&Toggle Dark Mode",
             "Switch between light and dark themes",
-            self.parent.window.toggle_dark_mode,
+            self.parent.window._toggle_dark_mode,
             shortcut="F11",
         )
         self.parent.sync_scrolling_act = self.parent._create_action(
             "Sync &Scrolling",
             "Synchronize scrolling between editor and preview",
-            self.parent.window.toggle_sync_scrolling,
+            self.parent.window._toggle_sync_scrolling,
             checkable=True,
             checked=self.parent._sync_scrolling,
         )
@@ -257,7 +257,7 @@ class ActionCreators:
         self.parent.github_repo_info_act = self.parent._create_action(
             "View &Repository...",
             "Open GitHub repository in browser",
-            self.parent.window.github_handler.view_repository,
+            self.parent.window.github_handler.get_repo_info,
         )
 
     def create_tools_actions(self) -> None:
@@ -278,7 +278,7 @@ class ActionCreators:
         self.parent.toggle_theme_act = self.parent._create_action(
             "&Toggle Theme",
             "Switch between light and dark themes",
-            self.parent.window.toggle_dark_mode,
+            self.parent.window._toggle_dark_mode,
         )
 
     def create_validation_settings_actions(self) -> None:
@@ -292,7 +292,7 @@ class ActionCreators:
             "Enable live AsciiDoc validation (F8 to jump to errors)",
             self.parent.window.show_syntax_check_settings,
             checkable=True,
-            checked=self.parent._settings.syntax_check_enabled,
+            checked=self.parent._settings.syntax_check_realtime_enabled,
         )
         self.parent.autocomplete_settings_act = self.parent._create_action(
             "Enable &Auto-complete",
@@ -356,13 +356,14 @@ class ActionCreators:
         Create UI toggle actions.
 
         MA principle: Extracted helper (21 lines) - UI visibility actions.
+        Uses lambda to defer chat_manager access (not created during action creation).
         """
         self.parent.toggle_chat_pane_act = self.parent._create_action(
             "Show/Hide &Chat Pane",
             "Toggle visibility of AI chat sidebar",
-            self.parent.window.chat_manager.toggle_panel_visibility,
+            lambda: self.parent.window.chat_manager.toggle_panel_visibility(),
             checkable=True,
-            checked=self.parent._settings.chat_pane_visible,
+            checked=self.parent._settings.ai_chat_enabled,
         )
         self.parent.toggle_telemetry_act = self.parent._create_action(
             "&Usage Analytics...",
