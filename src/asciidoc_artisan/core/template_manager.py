@@ -1,7 +1,9 @@
 """
 Template manager for AsciiDoc Artisan (v2.0.0+).
 
-MA principle: Reduced from 539→480 lines by extracting template_serializer.py.
+MA principle: Reduced from 539→480→~400 lines by extracting:
+- template_serializer.py (serialization)
+- recent_templates_tracker.py (recent list tracking)
 
 This module provides template file management with CRUD operations:
 - Load templates from directories (built-in + custom)
@@ -41,10 +43,10 @@ Example:
     ```
 """
 
-import json
 from pathlib import Path
 
 from asciidoc_artisan.core.models import Template
+from asciidoc_artisan.core.recent_templates_tracker import RecentTemplatesTracker
 from asciidoc_artisan.core.template_engine import TemplateEngine
 from asciidoc_artisan.core.template_serializer import (
     sanitize_template_filename,
@@ -87,12 +89,13 @@ class TemplateManager:
         self.built_in_dir = self._get_built_in_dir()
         self.custom_dir = self._get_custom_dir()
         self.templates: dict[str, Template] = {}
-        self.recent: list[str] = []
-        self.max_recent = 10
 
-        # Load templates and recent list
+        # Recent templates tracker (extracted per MA principle)
+        self._recent_tracker = RecentTemplatesTracker(self.custom_dir)
+        self.max_recent = self._recent_tracker.max_recent
+
+        # Load templates
         self._load_templates()
-        self._load_recent()
 
     def _get_built_in_dir(self) -> Path:
         """
@@ -377,10 +380,8 @@ class TemplateManager:
             file_path.unlink()
             del self.templates[name]
 
-            # Remove from recent list
-            if name in self.recent:
-                self.recent.remove(name)
-                self._save_recent()
+            # Remove from recent list (delegated to tracker)
+            self._recent_tracker.remove(name)
 
             return True
         except Exception as e:
@@ -406,18 +407,7 @@ class TemplateManager:
             # Returns: [Template("Technical Article"), ...]
             ```
         """
-        # Remove if already in list
-        if template_name in self.recent:
-            self.recent.remove(template_name)
-
-        # Add to front
-        self.recent.insert(0, template_name)
-
-        # Limit size
-        self.recent = self.recent[: self.max_recent]
-
-        # Persist to disk
-        self._save_recent()
+        self._recent_tracker.add(template_name)
 
     def get_recent_templates(self) -> list[Template]:
         """
@@ -433,29 +423,10 @@ class TemplateManager:
                 print(f"Last used: {recent[0].name}")
             ```
         """
-        templates = []
-        for name in self.recent:
-            if name in self.templates:
-                templates.append(self.templates[name])
-        return templates
+        return self._recent_tracker.get_templates(self.templates)
 
-    def _load_recent(self) -> None:
-        """Load recent templates list from disk."""
-        recent_file = self.custom_dir / "recent.json"
-        if recent_file.exists():
-            try:
-                with open(recent_file) as f:
-                    self.recent = json.load(f)
-            except Exception:
-                self.recent = []
-
-    def _save_recent(self) -> None:
-        """Save recent templates list to disk."""
-        recent_file = self.custom_dir / "recent.json"
-        try:
-            with open(recent_file, "w") as f:
-                json.dump(self.recent, f)
-        except Exception as e:
-            import logging
-
-            logging.error(f"Failed to save recent templates: {e}")
+    # Backward compatibility property for direct recent list access
+    @property
+    def recent(self) -> list[str]:
+        """Get recent template names (backward compatibility)."""
+        return self._recent_tracker.recent

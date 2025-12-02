@@ -423,7 +423,8 @@ class TestEdgeCases:
 
     def test_empty_recent_list(self, manager):
         """Test getting recent templates when list is empty."""
-        manager.recent = []
+        # Clear the tracker's recent list
+        manager._recent_tracker.clear()
         recent = manager.get_recent_templates()
 
         assert recent == []
@@ -742,61 +743,72 @@ class TestSerializeTemplate:
 @pytest.mark.fr_105
 @pytest.mark.unit
 class TestRecentPersistence:
-    """Test saving and loading recent templates."""
+    """Test saving and loading recent templates via tracker."""
 
-    def test_load_recent_from_disk(self, manager, tmp_path, monkeypatch):
-        """Test loading recent list from disk."""
+    def test_load_recent_from_disk(self, tmp_path):
+        """Test loading recent list from disk via RecentTemplatesTracker."""
         import json
 
-        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+        from asciidoc_artisan.core.recent_templates_tracker import (
+            RecentTemplatesTracker,
+        )
 
         # Create recent.json
         recent_file = tmp_path / "recent.json"
         recent_file.write_text(json.dumps(["Template 1", "Template 2"]))
 
-        # Load it
-        manager._load_recent()
+        # Create tracker - it loads on init
+        tracker = RecentTemplatesTracker(tmp_path)
 
-        assert manager.recent == ["Template 1", "Template 2"]
+        assert tracker.recent == ["Template 1", "Template 2"]
 
-    def test_load_recent_missing_file(self, manager, tmp_path, monkeypatch):
+    def test_load_recent_missing_file(self, tmp_path):
         """Test loading recent when file doesn't exist."""
-        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+        from asciidoc_artisan.core.recent_templates_tracker import (
+            RecentTemplatesTracker,
+        )
 
-        manager._load_recent()
+        # Create tracker with empty directory
+        tracker = RecentTemplatesTracker(tmp_path)
 
         # Should not crash, recent stays empty
-        assert isinstance(manager.recent, list)
+        assert isinstance(tracker.recent, list)
+        assert tracker.recent == []
 
-    def test_load_recent_corrupt_file(self, manager, tmp_path, monkeypatch):
+    def test_load_recent_corrupt_file(self, tmp_path):
         """Test loading recent with corrupt JSON."""
-        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+        from asciidoc_artisan.core.recent_templates_tracker import (
+            RecentTemplatesTracker,
+        )
 
         # Create corrupt file
         recent_file = tmp_path / "recent.json"
         recent_file.write_text("not json{{{")
 
-        manager._load_recent()
+        # Create tracker - should fall back to empty list
+        tracker = RecentTemplatesTracker(tmp_path)
 
-        # Should fall back to empty list
-        assert manager.recent == []
+        assert tracker.recent == []
 
-    def test_save_recent_to_disk(self, manager, tmp_path, monkeypatch):
-        """Test saving recent list to disk."""
+    def test_save_recent_to_disk(self, tmp_path):
+        """Test saving recent list to disk via tracker."""
         import json
 
-        monkeypatch.setattr(manager, "custom_dir", tmp_path)
+        from asciidoc_artisan.core.recent_templates_tracker import (
+            RecentTemplatesTracker,
+        )
 
-        manager.recent = ["Template A", "Template B"]
-        manager._save_recent()
+        tracker = RecentTemplatesTracker(tmp_path)
+        tracker.add("Template A")
+        tracker.add("Template B")
 
         # Verify file was created
         recent_file = tmp_path / "recent.json"
         assert recent_file.exists()
 
-        # Verify content
+        # Verify content (most recent first)
         data = json.loads(recent_file.read_text())
-        assert data == ["Template A", "Template B"]
+        assert data == ["Template B", "Template A"]
 
 
 @pytest.mark.fr_100
@@ -1114,23 +1126,25 @@ class TestCRUDExceptionHandling:
 class TestRecentSaveError:
     """Test error handling in recent template persistence."""
 
-    def test_save_recent_write_error(self, manager, tmp_path, monkeypatch):
-        """Test _save_recent error handling (tests line 455-458)."""
-        # Add to recent
-        manager.add_to_recent("test_template")
+    def test_save_recent_write_error(self, tmp_path):
+        """Test tracker's _save error handling."""
+        from asciidoc_artisan.core.recent_templates_tracker import (
+            RecentTemplatesTracker,
+        )
 
-        # Mock custom_dir to be unwritable
-        unwritable_dir = tmp_path / "unwritable"
-        unwritable_dir.mkdir()
-        unwritable_dir.chmod(0o444)
+        # Create tracker
+        tracker = RecentTemplatesTracker(tmp_path)
+        tracker.add("test_template")
 
-        monkeypatch.setattr(manager, "custom_dir", unwritable_dir)
+        # Make directory unwritable
+        (tmp_path / "recent.json").unlink(missing_ok=True)
+        tmp_path.chmod(0o444)
 
         # Should not crash, just log error
-        manager._save_recent()
+        tracker._save()
 
         # Clean up
-        unwritable_dir.chmod(0o755)
+        tmp_path.chmod(0o755)
 
 
 @pytest.mark.unit
