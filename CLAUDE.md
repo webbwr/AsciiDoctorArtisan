@@ -10,12 +10,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
 
-**Codebase:** 40,887 lines across 123 files
+**Codebase:** 42,083 lines across 157 files
 
 **Architecture:**
 - Single-window Qt app: split editor/preview, GPU-accelerated rendering
 - Multi-threaded: UI main thread, Git/Pandoc/Preview on QThread workers
-- Modular: 1,903-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
+- Modular: 1,425-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
 - MA Principle: Delegation pattern (action_manager, file_operations_manager)
 - Package: `asciidoc_artisan.{core, ui, workers, conversion, git, claude}`
 
@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,216 unit tests + 71 E2E scenarios, mypy --strict (0 errors, 123 files), 88-char line limit
+**Quality:** 5,216 unit tests + 71 E2E scenarios, mypy --strict (0 errors, 157 files), 88-char line limit
 
 ## Critical Patterns — Read First!
 
@@ -398,6 +398,7 @@ Entry: `src/main.py`
 - ✅ Action Management: Aligned naming across action_creators, action_manager, menu_builder
 - ✅ Refactoring Plan: Comprehensive plan at .claude/plans/refactoring-plan.md
 - ✅ Test Updates: 84 action manager tests updated with new fixtures
-- Always apply Japanese MA principle (間) against all documentation and coding
-- when running app use pyhon -00 switch
-- when running app use pyhon -oo switch
+- ✅ File Open Handler Fix: Fixed attribute access bugs after MA refactoring (self.mgr.X → self.mgr.editor.X)
+- ✅ Unit Test Patches: Updated 59 tests for correct module paths after handler extractions
+- ✅ Codebase Growth: 40,887 → 42,083 lines, 123 → 157 files (MA principle extractions)
+- ✅ main_window.py Reduction: 1,903 → 1,425 lines (25% reduction via delegation)
