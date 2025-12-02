@@ -73,7 +73,7 @@ orjson==3.10.11
 qasync==0.28.0
 
 # Async file operations (v1.6.0+ - non-blocking I/O)
-aiofiles==24.1.0
+aiofiles==25.1.0
 
 # Data validation and settings (v1.7.0+ - type safety)
 pydantic==2.10.5
