@@ -36,7 +36,7 @@ pymupdf==1.26.5
 # ============================================================================
 
 # Secure Credential Storage (OS keyring)
-keyring==25.6.0
+keyring==25.7.0
 
 # System Resource Monitoring
 psutil==7.1.3
