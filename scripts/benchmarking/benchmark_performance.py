@@ -56,7 +56,7 @@ def benchmark_numba():
     print("Testing JIT compilation speed...")
 
     try:
-        from numba import jit
+        from numba import jit  # noqa: F401
 
         print("✓ Numba available")
 
@@ -106,8 +106,8 @@ def benchmark_gpu():
     print("Checking QWebEngineView availability...")
 
     try:
-        from PySide6.QtWebEngineCore import QWebEngineSettings
-        from PySide6.QtWebEngineWidgets import QWebEngineView
+        from PySide6.QtWebEngineCore import QWebEngineSettings  # noqa: F401
+        from PySide6.QtWebEngineWidgets import QWebEngineView  # noqa: F401
 
         print("✓ QWebEngineView available (GPU-accelerated)")
         print("✓ Preview rendering: 2-5x faster")
