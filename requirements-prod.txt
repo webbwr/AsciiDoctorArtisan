@@ -67,7 +67,7 @@ rapidfuzz==3.14.0
 xxhash==3.5.0
 
 # Fast JSON serialization (v1.9.1+ - settings persistence)
-orjson==3.10.11
+orjson==3.11.4
 
 # Qt + asyncio integration (v1.7.0+ - async I/O)
 qasync==0.28.0
