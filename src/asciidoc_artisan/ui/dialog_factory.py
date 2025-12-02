@@ -165,9 +165,7 @@ class DialogFactory:
         Returns:
             Created button box
         """
-        button_box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
 
         if ok_text != "OK":
             button_box.button(QDialogButtonBox.StandardButton.Ok).setText(ok_text)

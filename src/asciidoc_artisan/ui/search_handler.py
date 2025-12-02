@@ -240,9 +240,7 @@ class SearchHandler:
         Returns:
             Match count if matches found, None if no matches
         """
-        matches = self.ctx.search_engine.find_all(
-            search_text, case_sensitive=self.ctx.find_bar.is_case_sensitive()
-        )
+        matches = self.ctx.search_engine.find_all(search_text, case_sensitive=self.ctx.find_bar.is_case_sensitive())
         match_count = len(matches)
 
         if match_count == 0:
