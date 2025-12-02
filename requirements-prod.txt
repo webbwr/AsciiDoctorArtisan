@@ -61,7 +61,7 @@ MarkupSafe==2.1.3
 
 # Fast fuzzy string matching (v2.0.0+ - auto-complete)
 # Rust-based implementation for intelligent completion ranking
-rapidfuzz==3.14.0
+rapidfuzz==3.14.3
 
 # Fast non-cryptographic hashing (v1.9.1+ - incremental rendering)
 xxhash==3.5.0
