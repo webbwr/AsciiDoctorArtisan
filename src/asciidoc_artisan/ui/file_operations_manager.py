@@ -37,36 +37,20 @@ MA Compliance: Reduced from 865→306 lines via 4 class extractions (65% reducti
 """
 
 # === STANDARD LIBRARY IMPORTS ===
-import io  # For in-memory file-like objects (BytesIO, StringIO)
 import logging  # For recording what the program does
-import platform  # For detecting Windows/Linux/Mac
-import uuid  # For generating unique IDs (temp files)
 from pathlib import Path  # Modern file path handling (better than strings)
-from typing import TYPE_CHECKING  # Type hints
+from typing import TYPE_CHECKING, cast  # Type hints
 
 # === QT FRAMEWORK IMPORTS ===
-from PySide6.QtWidgets import QFileDialog  # File open/save dialogs
-
 # === CORE IMPORTS (Constants and Utilities) ===
-from asciidoc_artisan.core import (
-    DEFAULT_FILENAME,  # "Untitled.adoc"
-    DOCX_FILTER,  # "Word Documents (*.docx)"
-    ERR_ASCIIDOC_NOT_INITIALIZED,  # Error message
-    HTML_FILTER,  # "HTML Files (*.html *.htm)"
-    MD_FILTER,  # "Markdown Files (*.md)"
-    MSG_SAVED_ASCIIDOC,  # "Saved as AsciiDoc"
-    MSG_SAVED_HTML,  # "Saved as HTML"
-    PDF_FILTER,  # "PDF Files (*.pdf)"
-    SUPPORTED_OPEN_FILTER,  # Combined filter for Open dialog
-    SUPPORTED_SAVE_FILTER,  # Combined filter for Save dialog
-    atomic_save_text,  # Safe file write (prevents corruption)
+from asciidoc_artisan.ui.file_open_handler import FileOpenHandler, FileOpsContext
+from asciidoc_artisan.ui.file_save_handler import EditorContext, FileSaveHandler
+from asciidoc_artisan.ui.format_conversion_helper import (
+    EditorContext as FormatEditorContext,
 )
-from asciidoc_artisan.core.large_file_handler import (  # Streaming I/O for large files
-    LargeFileHandler,
+from asciidoc_artisan.ui.format_conversion_helper import (
+    FormatConversionHelper,
 )
-from asciidoc_artisan.ui.file_open_handler import FileOpenHandler
-from asciidoc_artisan.ui.file_save_handler import FileSaveHandler
-from asciidoc_artisan.ui.format_conversion_helper import FormatConversionHelper
 from asciidoc_artisan.ui.path_format_utils import PathFormatUtils
 
 # === TYPE CHECKING (Avoid Circular Imports) ===
@@ -144,9 +128,10 @@ class FileOperationsManager:
         self._pending_file_path: Path | None = None
 
         # Helper instances (MA principle: delegate logic to focused classes)
-        self._format_helper = FormatConversionHelper(editor)
-        self._save_handler = FileSaveHandler(editor, PathFormatUtils)
-        self._open_handler = FileOpenHandler(self)
+        # Use cast() to satisfy mypy - editor has all required protocol attributes
+        self._format_helper = FormatConversionHelper(cast(FormatEditorContext, editor))
+        self._save_handler = FileSaveHandler(cast(EditorContext, editor), PathFormatUtils)
+        self._open_handler = FileOpenHandler(cast(FileOpsContext, self))
 
     def open_file(self) -> None:
         """Open file with format conversion support (delegates to open_handler)."""
@@ -248,7 +233,9 @@ class FileOperationsManager:
         use_ai: bool,
     ) -> None:
         """Emit Pandoc conversion request signal (delegates to format_helper)."""
-        return self._format_helper.emit_pandoc_conversion(temp_source_file, format_type, source_format, file_path, use_ai)
+        return self._format_helper.emit_pandoc_conversion(
+            temp_source_file, format_type, source_format, file_path, use_ai
+        )
 
     def save_as_format_internal(self, file_path: Path, format_type: str, use_ai: bool | None = None) -> bool:
         """

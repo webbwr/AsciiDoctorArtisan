@@ -39,10 +39,8 @@ from typing import (  # For type hints without circular imports
 )
 
 # === QT FRAMEWORK IMPORTS ===
-from PySide6.QtCore import Qt  # Qt constants and enums (Key codes, etc.)
 from PySide6.QtGui import (
     QAction,  # Menu item class (represents one menu action like "New" or "Save")
-    QKeySequence,  # Keyboard shortcut class (like Ctrl+S, Ctrl+C)
 )
 
 # === LOCAL IMPORTS ===
@@ -158,6 +156,7 @@ class ActionManager:
         self.syntax_check_settings_act: QAction
         self.toggle_chat_pane_act: QAction
         self.toggle_spell_check_act: QAction
+        self.toggle_telemetry_act: QAction
         self.toggle_theme_act: QAction
         self.pandoc_status_act: QAction
         self.pandoc_formats_act: QAction
@@ -220,55 +219,55 @@ class ActionManager:
         return self._factory.create_action(text, triggered, shortcut, icon, tooltip, enabled, checkable, checked)
 
     def _create_file_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_file_actions()
 
     def _create_edit_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_edit_actions()
 
     def _create_find_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_find_actions()
 
     def _create_view_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_view_actions()
 
     def _create_git_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_git_actions()
 
     def _create_github_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_github_actions()
 
     def _create_tools_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_tools_actions()
 
     def _create_validation_settings_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_validation_settings_actions()
 
     def _create_service_status_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_service_status_actions()
 
     def _create_service_settings_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_service_settings_actions()
 
     def _create_ui_toggle_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_ui_toggle_actions()
 
     def _create_general_settings_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_general_settings_actions()
 
     def _create_help_actions(self) -> None:
-        """Create actions (delegates to action_creators).""" 
+        """Create actions (delegates to action_creators)."""
         self._creators.create_help_actions()
 
     def create_actions(self) -> None:
@@ -287,7 +286,13 @@ class ActionManager:
         self._create_view_actions()
         self._create_git_actions()
         self._create_github_actions()
+        # Tools menu has multiple action creator methods
         self._create_tools_actions()
+        self._create_validation_settings_actions()
+        self._create_service_status_actions()
+        self._create_service_settings_actions()
+        self._create_ui_toggle_actions()
+        self._create_general_settings_actions()
         self._create_help_actions()
         logger.debug("Actions created successfully")
 

@@ -16,8 +16,7 @@ The StatusManager provides centralized UI feedback management.
 import logging
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton
+from PySide6.QtWidgets import QLabel, QPushButton
 
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME, GitStatus
 from asciidoc_artisan.ui.document_metrics_calculator import DocumentMetricsCalculator

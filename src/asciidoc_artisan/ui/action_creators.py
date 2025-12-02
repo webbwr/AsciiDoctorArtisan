@@ -160,7 +160,7 @@ class ActionCreators:
         )
 
     def create_view_actions(self) -> None:
-        """Create View menu actions (7 actions)."""
+        """Create View menu actions (8 actions)."""
         self.parent.zoom_in_act = self.parent._create_action(
             "Zoom &In",
             "Zoom in editor and preview (make text larger)",
@@ -189,34 +189,51 @@ class ActionCreators:
             checkable=True,
             checked=self.parent._sync_scrolling,
         )
+        self.parent.maximize_window_act = self.parent._create_action(
+            "Ma&ximize Window",
+            "Maximize the application window",
+            self.parent.window._toggle_maximize_window,
+        )
         self.parent.maximize_editor_act = self.parent._create_action(
             "&Maximize Editor",
             "Maximize editor pane (hide preview and sidebar)",
-            self.parent.window._toggle_maximize_editor,
+            lambda: self.parent.window._toggle_pane_maximize("editor"),
         )
         self.parent.maximize_preview_act = self.parent._create_action(
             "Maximize &Preview",
             "Maximize preview pane (hide editor and sidebar)",
-            self.parent.window._toggle_maximize_preview,
+            lambda: self.parent.window._toggle_pane_maximize("preview"),
         )
 
     def create_git_actions(self) -> None:
-        """Create Git menu actions (4 actions)."""
-        self.parent.set_git_repo_act = self.parent._create_action(
+        """Create Git menu actions (6 actions)."""
+        self.parent.set_repo_act = self.parent._create_action(
             "&Set Repository...",
             "Set the Git repository for version control",
-            self.parent.window.git_handler.set_git_repo,
+            self.parent.window.git_handler.select_repository,
+        )
+        self.parent.git_status_act = self.parent._create_action(
+            "Git &Status",
+            "View current Git repository status",
+            self.parent.window._show_git_status,
         )
         self.parent.git_commit_act = self.parent._create_action(
             "&Commit Changes...",
             "Commit changes to Git repository (Ctrl+Shift+G shows dialog)",
             self.parent.window.git_handler.commit_changes,
+            shortcut="Ctrl+Shift+G",
+        )
+        self.parent.quick_commit_act = self.parent._create_action(
+            "&Quick Commit...",
+            "Quick commit with inline message entry (Ctrl+G)",
+            self.parent.window._show_quick_commit,
+            shortcut="Ctrl+G",
         )
         self.parent.git_pull_act = self.parent._create_action(
-            "&Pull", "Pull latest changes from remote repository", self.parent.window.git_handler.pull
+            "&Pull", "Pull latest changes from remote repository", self.parent.window.git_handler.pull_changes
         )
         self.parent.git_push_act = self.parent._create_action(
-            "P&ush", "Push local commits to remote repository", self.parent.window.git_handler.push
+            "P&ush", "Push local commits to remote repository", self.parent.window.git_handler.push_changes
         )
 
     def create_github_actions(self) -> None:
@@ -227,7 +244,9 @@ class ActionCreators:
             self.parent.window.github_handler.create_pull_request,
         )
         self.parent.github_list_prs_act = self.parent._create_action(
-            "&List Pull Requests...", "View all GitHub pull requests", self.parent.window.github_handler.list_pull_requests
+            "&List Pull Requests...",
+            "View all GitHub pull requests",
+            self.parent.window.github_handler.list_pull_requests,
         )
         self.parent.github_create_issue_act = self.parent._create_action(
             "Create &Issue...", "Create a new GitHub issue", self.parent.window.github_handler.create_issue
@@ -235,19 +254,31 @@ class ActionCreators:
         self.parent.github_list_issues_act = self.parent._create_action(
             "List &Issues...", "View all GitHub issues", self.parent.window.github_handler.list_issues
         )
-        self.parent.github_view_repo_act = self.parent._create_action(
-            "View &Repository...", "Open GitHub repository in browser", self.parent.window.github_handler.view_repository
+        self.parent.github_repo_info_act = self.parent._create_action(
+            "View &Repository...",
+            "Open GitHub repository in browser",
+            self.parent.window.github_handler.view_repository,
         )
 
     def create_tools_actions(self) -> None:
-        """Create Tools menu actions (12 actions)."""
-        self.parent.spell_check_act = self.parent._create_action(
+        """Create Tools menu actions - validation toggle."""
+        self.parent.toggle_spell_check_act = self.parent._create_action(
             "&Spell Check (F7)",
             "Toggle spell check highlighting",
-            self.parent.window._toggle_spell_check,
+            self.parent.window.spell_check_manager.toggle_spell_check,
             shortcut="F7",
             checkable=True,
             checked=self.parent._settings.spell_check_enabled,
+        )
+        self.parent.validate_install_act = self.parent._create_action(
+            "&Validate Installation...",
+            "Check all dependencies are properly installed",
+            self.parent.window._show_installation_validator,
+        )
+        self.parent.toggle_theme_act = self.parent._create_action(
+            "&Toggle Theme",
+            "Switch between light and dark themes",
+            self.parent.window.toggle_dark_mode,
         )
 
     def create_validation_settings_actions(self) -> None:
@@ -256,17 +287,17 @@ class ActionCreators:
 
         MA principle: Extracted helper (23 lines) - validation configuration actions.
         """
-        self.parent.enable_syntax_check_act = self.parent._create_action(
+        self.parent.syntax_check_settings_act = self.parent._create_action(
             "Ena&ble Syntax Checking",
             "Enable live AsciiDoc validation (F8 to jump to errors)",
-            self.parent.window._enable_syntax_check,
+            self.parent.window.show_syntax_check_settings,
             checkable=True,
             checked=self.parent._settings.syntax_check_enabled,
         )
-        self.parent.enable_autocomplete_act = self.parent._create_action(
+        self.parent.autocomplete_settings_act = self.parent._create_action(
             "Enable &Auto-complete",
             "Enable syntax auto-completion (Ctrl+Space)",
-            self.parent.window._toggle_autocomplete,
+            self.parent.window.show_autocomplete_settings,
             checkable=True,
             checked=self.parent._settings.autocomplete_enabled,
         )
@@ -277,15 +308,30 @@ class ActionCreators:
 
         MA principle: Extracted helper (22 lines) - service availability actions.
         """
-        self.parent.check_pandoc_act = self.parent._create_action(
+        self.parent.pandoc_status_act = self.parent._create_action(
             "Check &Pandoc Installation",
             "Verify Pandoc is installed and working (required for format conversion)",
-            self.parent.window._check_pandoc_status,
+            self.parent.window._show_pandoc_status,
         )
-        self.parent.check_ollama_act = self.parent._create_action(
+        self.parent.pandoc_formats_act = self.parent._create_action(
+            "Pandoc &Formats...",
+            "View supported Pandoc conversion formats",
+            self.parent.window._show_pandoc_status,  # Same dialog shows formats
+        )
+        self.parent.ollama_status_act = self.parent._create_action(
             "Check &Ollama Service",
             "Verify Ollama AI service is running (optional for AI features)",
-            self.parent.window._check_ollama_status,
+            self.parent.window._show_ollama_status,
+        )
+        self.parent.anthropic_status_act = self.parent._create_action(
+            "Check &Anthropic API",
+            "Verify Anthropic Claude API is accessible",
+            self.parent.window._show_anthropic_status,
+        )
+        self.parent.telemetry_status_act = self.parent._create_action(
+            "&Telemetry Status...",
+            "View telemetry data collection status",
+            self.parent.window._show_telemetry_status,
         )
 
     def create_service_settings_actions(self) -> None:
@@ -299,6 +345,11 @@ class ActionCreators:
             "Configure Ollama AI models for document conversion",
             self.parent.window._show_ollama_settings,
         )
+        self.parent.anthropic_settings_act = self.parent._create_action(
+            "&Anthropic AI Settings...",
+            "Configure Anthropic Claude API settings",
+            self.parent.window._show_anthropic_settings,
+        )
 
     def create_ui_toggle_actions(self) -> None:
         """
@@ -306,17 +357,17 @@ class ActionCreators:
 
         MA principle: Extracted helper (21 lines) - UI visibility actions.
         """
-        self.parent.chat_pane_act = self.parent._create_action(
+        self.parent.toggle_chat_pane_act = self.parent._create_action(
             "Show/Hide &Chat Pane",
             "Toggle visibility of AI chat sidebar",
-            self.parent.window._toggle_chat_pane,
+            self.parent.window.chat_manager.toggle_panel_visibility,
             checkable=True,
             checked=self.parent._settings.chat_pane_visible,
         )
-        self.parent.telemetry_act = self.parent._create_action(
+        self.parent.toggle_telemetry_act = self.parent._create_action(
             "&Usage Analytics...",
             "Enable/disable anonymous usage statistics (no personal data)",
-            self.parent.window._configure_telemetry,
+            self.parent.window.toggle_telemetry,
         )
 
     def create_general_settings_actions(self) -> None:

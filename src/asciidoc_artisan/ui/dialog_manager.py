@@ -16,16 +16,11 @@ main window complexity and improve modularity.
 
 import logging
 import os
-import platform
-import subprocess
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QFileDialog, QMessageBox
-
-from asciidoc_artisan.core.constants import is_pandoc_available
+from PySide6.QtWidgets import QMessageBox
 
 # Optional imports - may not be installed
 try:

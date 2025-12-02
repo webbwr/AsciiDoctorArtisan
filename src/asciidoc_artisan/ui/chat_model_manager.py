@@ -38,9 +38,7 @@ class ChatModelManager(QObject):
     status_message = Signal(str)
     settings_changed = Signal()
 
-    def __init__(
-        self, settings: "AppSettings", chat_bar: "ChatBarWidget", current_backend_getter: Any
-    ) -> None:
+    def __init__(self, settings: "AppSettings", chat_bar: "ChatBarWidget", current_backend_getter: Any) -> None:
         """
         Initialize ChatModelManager.
 

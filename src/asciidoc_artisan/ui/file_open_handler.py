@@ -205,7 +205,9 @@ class FileOpenHandler:
         else:
             file_content = file_path.read_text(encoding="utf-8")
 
-        logger.info(f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})")
+        logger.info(
+            f"Starting conversion of {file_path.name} from {input_format} to asciidoc (AI: {use_ai_for_import})"
+        )
 
         self.mgr.request_pandoc_conversion.emit(  # type: ignore[attr-defined]
             file_content,

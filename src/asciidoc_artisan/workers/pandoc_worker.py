@@ -76,7 +76,6 @@ class ConversionRequest:
     use_ai_conversion: bool
 
 
-
 class PandocWorker(QObject):
     """
     Background worker for document format conversion.
@@ -117,9 +116,7 @@ class PandocWorker(QObject):
         self.ollama_model: str | None = None
         self.ollama_enabled: bool = False
         self._ollama_handler = OllamaConversionHandler(
-            ollama_enabled=False,
-            ollama_model=None,
-            progress_signal=self.progress_update
+            ollama_enabled=False, ollama_model=None, progress_signal=self.progress_update
         )
         self._args_builder = PandocArgsBuilder()
         self._asciidoc_enhancer = AsciiDocEnhancer()

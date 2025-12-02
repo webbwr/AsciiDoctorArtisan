@@ -159,7 +159,6 @@ class ChatManager(QObject):
         """Load available models (delegates to chat_model_manager)."""
         self._model_manager.load_available_models()
 
-
     def _load_chat_history(self) -> None:
         """Load chat history from settings and display in panel."""
         # Use new backend-agnostic setting (with fallback to deprecated)
@@ -205,7 +204,6 @@ class ChatManager(QObject):
     def _validate_model(self, model: str) -> bool:
         """Validate model (delegates to chat_model_manager)."""
         return self._model_manager.validate_model(model)
-
 
     def _handle_user_message(self, message: str, model: str, context_mode: str) -> None:
         """Handle user message from chat bar (test wrapper for _on_message_sent)."""

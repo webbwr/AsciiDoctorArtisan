@@ -34,9 +34,7 @@ class GitErrorHandler:
             user_message="Git command successful.",
         )
 
-    def create_error_result(
-        self, stdout: str, stderr: str, exit_code: int | None, command: list[str]
-    ) -> GitResult:
+    def create_error_result(self, stdout: str, stderr: str, exit_code: int | None, command: list[str]) -> GitResult:
         """Create error result with analyzed message."""
         user_message = self.analyze_git_error(stderr, command)
         return GitResult(

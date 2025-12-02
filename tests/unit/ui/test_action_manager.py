@@ -23,6 +23,10 @@ def main_window(qapp):
     window._settings.dark_mode = False  # Boolean, not Mock
     window._settings.ai_chat_enabled = False  # Boolean, not Mock
     window._settings.ollama_chat_enabled = False  # Boolean, not Mock
+    window._settings.spell_check_enabled = False
+    window._settings.syntax_check_enabled = False
+    window._settings.autocomplete_enabled = False
+    window._settings.chat_pane_visible = False
 
     window._sync_scrolling = False  # Scroll sync state
 
@@ -38,25 +42,36 @@ def main_window(qapp):
     window.find_bar.show_replace_and_focus = Mock()
     window._handle_find_next = Mock()
     window._handle_find_previous = Mock()
-    window._zoom = Mock()
-    window._toggle_dark_mode = Mock()
-    window._toggle_sync_scrolling = Mock()
+
+    # View actions
+    window.zoom_in = Mock()
+    window.zoom_out = Mock()
+    window.zoom_reset = Mock()
+    window.toggle_dark_mode = Mock()
+    window.toggle_sync_scrolling = Mock()
     window._toggle_maximize_window = Mock()
     window._toggle_pane_maximize = Mock()
-    window._select_git_repository = Mock()
+
+    # Git handler with methods
+    window.git_handler = Mock()
+    window.git_handler.select_repository = Mock()
+    window.git_handler.commit_changes = Mock()
+    window.git_handler.pull_changes = Mock()
+    window.git_handler.push_changes = Mock()
     window._show_git_status = Mock()
-    window._trigger_git_commit = Mock()
-    window._trigger_git_pull = Mock()
-    window._trigger_git_push = Mock()
     window._show_quick_commit = Mock()
-    window._trigger_github_create_pr = Mock()
-    window._trigger_github_list_prs = Mock()
-    window._trigger_github_create_issue = Mock()
-    window._trigger_github_list_issues = Mock()
-    window._trigger_github_repo_info = Mock()
+
+    # GitHub handler with methods
+    window.github_handler = Mock()
+    window.github_handler.create_pull_request = Mock()
+    window.github_handler.list_pull_requests = Mock()
+    window.github_handler.create_issue = Mock()
+    window.github_handler.list_issues = Mock()
+    window.github_handler.view_repository = Mock()
+
+    # Tools actions
     window._show_installation_validator = Mock()
     window._show_pandoc_status = Mock()
-    window._show_supported_formats = Mock()
     window._show_ollama_status = Mock()
     window._show_anthropic_status = Mock()
     window._show_telemetry_status = Mock()
@@ -773,7 +788,7 @@ class TestMenuStructure:
         assert view_menu is not None
         action_texts = [action.text() for action in view_menu.actions() if action.text()]
         assert "Zoom &In" in action_texts
-        assert "&Dark Mode" in action_texts
+        assert "&Toggle Dark Mode" in action_texts
 
     def test_git_menu_contains_commit_and_push_actions(self, main_window):
         """Test that Git menu contains Commit and Push actions."""
@@ -792,7 +807,7 @@ class TestMenuStructure:
 
         assert git_menu is not None
         action_texts = [action.text() for action in git_menu.actions() if action.text()]
-        assert "&Commit..." in action_texts
+        assert "&Commit Changes..." in action_texts
         assert "P&ush" in action_texts
 
     def test_tools_menu_contains_settings_action(self, main_window):
@@ -895,14 +910,14 @@ class TestSpecificActions:
         # StandardKey.Save is Ctrl+S on Windows/Linux, Cmd+S on Mac
         assert "S" in shortcut_str
 
-    def test_dark_mode_action_is_checkable(self, main_window):
-        """Test that Dark Mode action is checkable (toggle)."""
+    def test_dark_mode_action_has_shortcut(self, main_window):
+        """Test that Dark Mode action has F11 shortcut."""
         from asciidoc_artisan.ui.action_manager import ActionManager
 
         manager = ActionManager(main_window)
         manager.create_actions()
 
-        assert manager.dark_mode_act.isCheckable() is True
+        assert "F11" in manager.dark_mode_act.shortcut().toString()
 
     def test_sync_scrolling_action_is_checkable(self, main_window):
         """Test that Synchronized Scrolling action is checkable."""
@@ -964,35 +979,33 @@ class TestActionShortcuts:
         assert "Shift" in shortcut_str or "⇧" in shortcut_str
 
     def test_f_key_shortcuts(self, main_window):
-        """Test that F-key shortcuts (F3, F7, F11) are set correctly."""
+        """Test that F-key shortcuts (F7, F11) are set correctly."""
         from asciidoc_artisan.ui.action_manager import ActionManager
 
         manager = ActionManager(main_window)
         manager.create_actions()
 
-        # F11 for Dark Mode
+        # F11 for Dark Mode toggle
         assert "F11" in manager.dark_mode_act.shortcut().toString()
 
-        # F11 for Maximize Window
-        assert "F11" in manager.maximize_window_act.shortcut().toString()
+        # F7 for Spell Check toggle
+        assert "F7" in manager.toggle_spell_check_act.shortcut().toString()
 
     def test_ctrl_shift_shortcuts(self, main_window):
-        """Test that Ctrl+Shift shortcuts are set for Git actions."""
+        """Test that Ctrl+Shift+G shortcut is set for Git commit action."""
         from asciidoc_artisan.ui.action_manager import ActionManager
 
         manager = ActionManager(main_window)
         manager.create_actions()
 
-        # Git actions use Ctrl+Shift combinations
-        git_shortcuts = [
-            manager.git_status_act.shortcut().toString(),
-            manager.git_commit_act.shortcut().toString(),
-            manager.git_pull_act.shortcut().toString(),
-            manager.git_push_act.shortcut().toString(),
-        ]
+        # Git commit uses Ctrl+Shift+G
+        commit_shortcut = manager.git_commit_act.shortcut().toString()
+        assert "G" in commit_shortcut
+        assert "Shift" in commit_shortcut or "⇧" in commit_shortcut
 
-        # All should contain Shift
-        assert all("Shift" in s or "⇧" in s for s in git_shortcuts)
+        # Quick commit uses Ctrl+G
+        quick_shortcut = manager.quick_commit_act.shortcut().toString()
+        assert "G" in quick_shortcut
 
     def test_find_actions_have_correct_shortcuts(self, main_window):
         """Test that Find/Replace actions have correct shortcuts."""
@@ -1014,21 +1027,19 @@ class TestActionShortcuts:
         assert "F3" in find_next_shortcut
 
     def test_git_actions_have_shortcuts(self, main_window):
-        """Test that all Git actions have keyboard shortcuts."""
+        """Test that commit Git actions have keyboard shortcuts."""
         from asciidoc_artisan.ui.action_manager import ActionManager
 
         manager = ActionManager(main_window)
         manager.create_actions()
 
+        # Only commit actions have shortcuts
         git_actions_with_shortcuts = [
-            manager.git_status_act,
-            manager.git_commit_act,
-            manager.git_pull_act,
-            manager.git_push_act,
-            manager.quick_commit_act,
+            manager.git_commit_act,  # Ctrl+Shift+G
+            manager.quick_commit_act,  # Ctrl+G
         ]
 
-        # All should have non-empty shortcuts
+        # These should have non-empty shortcuts
         assert all(not action.shortcut().isEmpty() for action in git_actions_with_shortcuts)
 
     def test_github_actions_have_no_shortcuts(self, main_window):
@@ -1267,11 +1278,11 @@ class TestEdgeCasesExtended:
         manager = ActionManager(main_window)
         manager.create_actions()
 
-        # Dark mode action is checkable
-        initial_state = manager.dark_mode_act.isChecked()
-        manager.dark_mode_act.setChecked(not initial_state)
+        # Sync scrolling action is checkable
+        initial_state = manager.sync_scrolling_act.isChecked()
+        manager.sync_scrolling_act.setChecked(not initial_state)
 
-        assert manager.dark_mode_act.isChecked() == (not initial_state)
+        assert manager.sync_scrolling_act.isChecked() == (not initial_state)
 
     def test_disabled_action_still_exists(self, main_window):
         """Test that disabled actions are still valid QAction objects."""

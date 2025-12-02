@@ -33,7 +33,9 @@ class OllamaConversionHandler:
     - Conversion prompt generation
     """
 
-    def __init__(self, ollama_enabled: bool, ollama_model: str | None, progress_signal: ProgressSignal | None = None) -> None:
+    def __init__(
+        self, ollama_enabled: bool, ollama_model: str | None, progress_signal: ProgressSignal | None = None
+    ) -> None:
         """
         Initialize the Ollama conversion handler.
 

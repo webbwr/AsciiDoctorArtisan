@@ -85,9 +85,7 @@ class PandocExecutor:
             )
         return f"File saved to: {output_file}"
 
-    def convert_path_source_to_text(
-        self, source: Path, to_format: str, from_format: str, extra_args: list[str]
-    ) -> str:
+    def convert_path_source_to_text(self, source: Path, to_format: str, from_format: str, extra_args: list[str]) -> str:
         """
         Convert Path source to text output.
 
@@ -138,9 +136,7 @@ class PandocExecutor:
         finally:
             os.unlink(tmp_path)
 
-    def convert_str_source_to_text(
-        self, source: str, to_format: str, from_format: str, extra_args: list[str]
-    ) -> str:
+    def convert_str_source_to_text(self, source: str, to_format: str, from_format: str, extra_args: list[str]) -> str:
         """
         Convert string source to text output.
 

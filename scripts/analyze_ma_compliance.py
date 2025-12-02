@@ -308,9 +308,9 @@ def generate_report(
     report_lines = [
         "# MA (間) Principle Compliance Report",
         "",
-        f"**Project:** AsciiDoc Artisan",
+        "**Project:** AsciiDoc Artisan",
         f"**Date:** {datetime.now().strftime('%B %d, %Y')}",
-        f"**Analysis Type:** MA (間) Principle Compliance Audit",
+        "**Analysis Type:** MA (間) Principle Compliance Audit",
         f"**Status:** {status}",
         "",
         "---",

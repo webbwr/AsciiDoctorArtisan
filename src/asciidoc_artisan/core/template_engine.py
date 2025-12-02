@@ -63,7 +63,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from asciidoc_artisan.core.models import Template, TemplateVariable
+from asciidoc_artisan.core.models import Template
 from asciidoc_artisan.core.template_parser import TemplateParser
 
 

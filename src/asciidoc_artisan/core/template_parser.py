@@ -8,7 +8,6 @@ Template Format: --- (YAML front matter) name/category/description/variables (na
 """
 
 import re
-from pathlib import Path
 from typing import Any
 
 from asciidoc_artisan.core.models import Template, TemplateVariable
