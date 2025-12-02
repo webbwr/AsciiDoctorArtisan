@@ -120,9 +120,12 @@ class TestOpenFile:
     """Test suite for open_file method.
 
     FR-006: Open Files
+
+    Note: open_file() delegates to FileOpenHandler._open_handler after MA refactoring.
+    Patches must target asciidoc_artisan.ui.file_open_handler module.
     """
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
+    @patch("asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName")
     def test_open_file_prompts_save_if_unsaved_changes(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -137,7 +140,7 @@ class TestOpenFile:
         mock_editor.status_manager.prompt_save_before_action.assert_called_once()
         mock_dialog.assert_not_called()
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
+    @patch("asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName")
     def test_open_file_blocked_when_processing(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -150,7 +153,7 @@ class TestOpenFile:
         mock_editor.status_manager.show_message.assert_called_once()
         mock_dialog.assert_not_called()
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
+    @patch("asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName")
     def test_open_file_cancelled_dialog_returns_early(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -163,7 +166,7 @@ class TestOpenFile:
         # Should not attempt to load any file
         mock_editor.file_load_manager.load_content_into_editor.assert_not_called()
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
+    @patch("asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName")
     def test_open_pdf_calls_pdf_extraction(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -173,11 +176,12 @@ class TestOpenFile:
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf")
         mock_dialog.return_value = (str(pdf_file), "")
 
-        with patch.object(manager, "_open_pdf_with_extraction") as mock_pdf:
+        # Patch on the handler, not the manager (MA refactoring moved methods)
+        with patch.object(manager._open_handler, "open_pdf_with_extraction") as mock_pdf:
             manager.open_file()
             mock_pdf.assert_called_once_with(pdf_file)
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
+    @patch("asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName")
     def test_open_docx_calls_pandoc_conversion(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -187,11 +191,12 @@ class TestOpenFile:
         docx_file.write_text("fake docx")
         mock_dialog.return_value = (str(docx_file), "")
 
-        with patch.object(manager, "_open_with_pandoc_conversion") as mock_pandoc:
+        # Patch on the handler, not the manager (MA refactoring moved methods)
+        with patch.object(manager._open_handler, "open_with_pandoc_conversion") as mock_pandoc:
             manager.open_file()
             mock_pandoc.assert_called_once()
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName")
+    @patch("asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName")
     def test_open_asciidoc_loads_directly(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -201,7 +206,8 @@ class TestOpenFile:
         adoc_file.write_text("= Test\n\nContent")
         mock_dialog.return_value = (str(adoc_file), "")
 
-        with patch.object(manager, "_open_native_file") as mock_native:
+        # Patch on the handler, not the manager (MA refactoring moved methods)
+        with patch.object(manager._open_handler, "open_native_file") as mock_native:
             manager.open_file()
             mock_native.assert_called_once_with(adoc_file)
 
@@ -212,6 +218,9 @@ class TestSaveFile:
     """Test suite for save_file method.
 
     FR-007: Save Files
+
+    Note: save_file() delegates to FileSaveHandler after MA refactoring.
+    Patches must target asciidoc_artisan.ui.file_save_handler module.
     """
 
     def test_save_file_uses_current_path_when_available(self, mock_editor, tmp_path):
@@ -223,7 +232,7 @@ class TestSaveFile:
         mock_editor._current_file_path = current_file
 
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=True,
         ):
             result = manager.save_file(save_as=False)
@@ -232,7 +241,7 @@ class TestSaveFile:
         assert result is True
         assert mock_editor._unsaved_changes is False
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
+    @patch("asciidoc_artisan.ui.file_save_handler.QFileDialog.getSaveFileName")
     def test_save_file_shows_dialog_when_save_as(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -242,7 +251,7 @@ class TestSaveFile:
         mock_dialog.return_value = (str(save_file), "")
 
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=True,
         ):
             result = manager.save_file(save_as=True)
@@ -251,7 +260,7 @@ class TestSaveFile:
         mock_dialog.assert_called_once()
         assert result is True
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
+    @patch("asciidoc_artisan.ui.file_save_handler.QFileDialog.getSaveFileName")
     def test_save_file_cancelled_dialog_returns_false(self, mock_dialog, mock_editor):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -264,7 +273,7 @@ class TestSaveFile:
         # Should return False
         assert result is False
 
-    @patch("asciidoc_artisan.ui.file_operations_manager.QFileDialog.getSaveFileName")
+    @patch("asciidoc_artisan.ui.file_save_handler.QFileDialog.getSaveFileName")
     def test_save_file_delegates_to_export_for_non_adoc(self, mock_dialog, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
 
@@ -287,7 +296,7 @@ class TestSaveFile:
         mock_editor._unsaved_changes = True
 
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=True,
         ):
             manager.save_file()
@@ -314,7 +323,7 @@ class TestSaveAsFormatInternal:
         adoc_file = tmp_path / "test.adoc"
 
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=True,
         ) as mock_save:
             result = manager.save_as_format_internal(adoc_file, "adoc")
@@ -331,7 +340,7 @@ class TestSaveAsFormatInternal:
         html_file = tmp_path / "test.html"
 
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=True,
         ):
             result = manager.save_as_format_internal(html_file, "html")
@@ -352,7 +361,7 @@ class TestSaveAsFormatInternal:
         temp_dir.mkdir()
         mock_editor._temp_dir.name = str(temp_dir)
 
-        with patch("asciidoc_artisan.ui.file_operations_manager.atomic_save_text"):
+        with patch("asciidoc_artisan.ui.file_save_handler.atomic_save_text"):
             manager.save_as_format_internal(docx_file, "docx")
 
         # Should emit pandoc conversion signal
@@ -370,7 +379,7 @@ class TestSaveAsFormatInternal:
         temp_dir.mkdir()
         mock_editor._temp_dir.name = str(temp_dir)
 
-        with patch("asciidoc_artisan.ui.file_operations_manager.atomic_save_text"):
+        with patch("asciidoc_artisan.ui.file_save_handler.atomic_save_text"):
             manager.save_as_format_internal(pdf_file, "pdf")
 
         # Should emit pandoc conversion signal for PDF
@@ -385,6 +394,9 @@ class TestPDFExtraction:
 
     FR-006: Open Files
     FR-013: Import PDF
+
+    Note: PDF extraction is handled by FileOpenHandler after MA refactoring.
+    Tests call manager._open_handler.open_pdf_with_extraction().
     """
 
     def test_pdf_extraction_checks_availability(self, mock_editor, tmp_path):
@@ -395,12 +407,12 @@ class TestPDFExtraction:
         pdf_file = tmp_path / "test.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake")
 
-        # Patch where pdf_extractor is imported (inside the method)
-        with patch("asciidoc_artisan.pdf_extractor.pdf_extractor") as mock_pdf:
+        # Patch where pdf_extractor is imported (lazy import inside method)
+        with patch("asciidoc_artisan.document_converter.pdf_extractor") as mock_pdf:
             mock_pdf.is_available.return_value = True
             mock_pdf.convert_to_asciidoc.return_value = (True, "= Test", None)
 
-            manager._open_pdf_with_extraction(pdf_file)
+            manager._open_handler.open_pdf_with_extraction(pdf_file)
 
             # Should check if PDF extractor is available
             mock_pdf.is_available.assert_called_once()
@@ -412,11 +424,11 @@ class TestPDFExtraction:
 
         pdf_file = tmp_path / "test.pdf"
 
-        # Patch where pdf_extractor is imported (inside the method)
-        with patch("asciidoc_artisan.pdf_extractor.pdf_extractor") as mock_pdf:
+        # Patch where pdf_extractor is imported (lazy import inside method)
+        with patch("asciidoc_artisan.document_converter.pdf_extractor") as mock_pdf:
             mock_pdf.is_available.return_value = False
 
-            manager._open_pdf_with_extraction(pdf_file)
+            manager._open_handler.open_pdf_with_extraction(pdf_file)
 
             # Should show error message
             mock_editor.status_manager.show_message.assert_called_once()
@@ -429,12 +441,12 @@ class TestPDFExtraction:
 
         pdf_file = tmp_path / "test.pdf"
 
-        # Patch where pdf_extractor is imported (inside the method)
-        with patch("asciidoc_artisan.pdf_extractor.pdf_extractor") as mock_pdf:
+        # Patch where pdf_extractor is imported (lazy import inside method)
+        with patch("asciidoc_artisan.document_converter.pdf_extractor") as mock_pdf:
             mock_pdf.is_available.return_value = True
             mock_pdf.convert_to_asciidoc.return_value = (True, "= Extracted Text", None)
 
-            manager._open_pdf_with_extraction(pdf_file)
+            manager._open_handler.open_pdf_with_extraction(pdf_file)
 
             # Should load extracted content into editor
             mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
@@ -451,6 +463,9 @@ class TestPandocConversion:
     FR-006: Open Files
     FR-012: Import DOCX
     FR-014: Import Markdown
+
+    Note: Pandoc conversion is handled by FileOpenHandler after MA refactoring.
+    Tests call manager._open_handler.open_with_pandoc_conversion().
     """
 
     def test_pandoc_conversion_checks_availability(self, mock_editor, tmp_path):
@@ -461,7 +476,7 @@ class TestPandocConversion:
         docx_file = tmp_path / "test.docx"
         docx_file.write_bytes(b"fake docx")
 
-        manager._open_with_pandoc_conversion(docx_file, ".docx")
+        manager._open_handler.open_with_pandoc_conversion(docx_file, ".docx")
 
         # Should check Pandoc availability
         mock_editor.ui_state_manager.check_pandoc_availability.assert_called_once()
@@ -474,7 +489,7 @@ class TestPandocConversion:
         docx_file = tmp_path / "test.docx"
         docx_file.write_bytes(b"fake docx")
 
-        manager._open_with_pandoc_conversion(docx_file, ".docx")
+        manager._open_handler.open_with_pandoc_conversion(docx_file, ".docx")
 
         # Should set processing flag
         assert manager._is_processing_pandoc is True
@@ -488,7 +503,7 @@ class TestPandocConversion:
         md_file = tmp_path / "test.md"
         md_file.write_text("# Test Markdown")
 
-        manager._open_with_pandoc_conversion(md_file, ".md")
+        manager._open_handler.open_with_pandoc_conversion(md_file, ".md")
 
         # Should emit pandoc conversion signal
         mock_editor.request_pandoc_conversion.emit.assert_called_once()
@@ -575,10 +590,10 @@ class TestFileOperationsErrorHandling:
         test_file = tmp_path / "test.adoc"
         test_file.write_text("test content")
 
-        # Mock QFileDialog to return the file path
+        # Mock QFileDialog to return the file path (in file_open_handler after MA refactoring)
         # Mock Path.read_text to raise an exception
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.QFileDialog.getOpenFileName",
+            "asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName",
             return_value=(str(test_file), ""),
         ):
             with patch("pathlib.Path.read_text", side_effect=Exception("Read error")):
@@ -599,7 +614,7 @@ class TestFileOperationsErrorHandling:
 
         # Mock atomic_save_text to return False (save failure)
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=False,
         ):
             result = manager.save_file()
@@ -621,7 +636,7 @@ class TestFileOperationsErrorHandling:
 
         # Mock atomic_save_text to return False
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=False,
         ):
             result = manager.save_as_format_internal(target_file, "adoc")
@@ -677,7 +692,7 @@ class TestFormatConversionErrors:
         # Mock execute to succeed but atomic_save_text to raise IOError
         mock_editor._asciidoc_api.execute.return_value = "<html>test</html>"
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             side_effect=IOError("Disk full"),
         ):
             result = manager.save_as_format_internal(target_file, "html")
@@ -903,7 +918,7 @@ class TestNonAsciidocExtensionConversion:
 
         # Mock atomic_save_text to return True
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=True,
         ) as mock_save:
             result = manager.save_file()
@@ -937,7 +952,7 @@ class TestFileOperationsCoverageEdgeCases:
 
         # Mock atomic_save_text to return False
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=False,
         ):
             result = manager.save_as_format_internal(file_path, "html", use_ai=False)
@@ -958,7 +973,7 @@ class TestFileOperationsCoverageEdgeCases:
 
         # Mock atomic_save_text
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.atomic_save_text",
+            "asciidoc_artisan.ui.file_save_handler.atomic_save_text",
             return_value=True,
         ):
             result = manager.save_as_format_internal(file_path, "adoc", use_ai=False)
@@ -977,12 +992,12 @@ class TestFileOperationsCoverageEdgeCases:
         manager = FileOperationsManager(mock_editor)
         file_path = tmp_path / "test.pdf"
 
-        # Mock pdf_extractor to return failure
+        # Mock pdf_extractor to return failure (lazy import inside method)
         with patch(
-            "asciidoc_artisan.pdf_extractor.pdf_extractor.convert_to_asciidoc",
+            "asciidoc_artisan.document_converter.pdf_extractor.convert_to_asciidoc",
             return_value=(False, "", "Encryption error"),
         ):
-            manager._open_pdf_with_extraction(file_path)
+            manager._open_handler.open_pdf_with_extraction(file_path)
 
             # Should show error dialog
             mock_editor.status_manager.show_message.assert_called_once()
@@ -1001,7 +1016,7 @@ class TestFileOperationsCoverageEdgeCases:
         # Mock check_pandoc_availability to return False
         mock_editor.ui_state_manager.check_pandoc_availability = Mock(return_value=False)
 
-        manager._open_with_pandoc_conversion(file_path, ".docx")
+        manager._open_handler.open_with_pandoc_conversion(file_path, ".docx")
 
         # Should return early without emitting signal
         mock_editor.request_pandoc_conversion.emit.assert_not_called()
@@ -1017,13 +1032,13 @@ class TestFileOperationsCoverageEdgeCases:
         # Mock large file handler to return error
         mock_editor.large_file_handler.load_file_optimized = Mock(return_value=(False, None, "Memory error"))
 
-        # Mock get_file_size_category to return "large"
+        # Mock get_file_size_category to return "large" (in file_open_handler after MA refactoring)
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.LargeFileHandler.get_file_size_category",
+            "asciidoc_artisan.ui.file_open_handler.LargeFileHandler.get_file_size_category",
             return_value="large",
         ):
             with pytest.raises(Exception, match="Memory error"):
-                manager._open_native_file(file_path)
+                manager._open_handler.open_native_file(file_path)
 
     def test_load_asciidoc_normal_file_loads_content(self, mock_editor, tmp_path):
         """Test normal file loading calls load_content_into_editor (line 675)."""
@@ -1034,12 +1049,12 @@ class TestFileOperationsCoverageEdgeCases:
         content = "= Test Document\n\nContent"
         file_path.write_text(content, encoding="utf-8")
 
-        # Mock get_file_size_category to return "small"
+        # Mock get_file_size_category to return "small" (in file_open_handler after MA refactoring)
         with patch(
-            "asciidoc_artisan.ui.file_operations_manager.LargeFileHandler.get_file_size_category",
+            "asciidoc_artisan.ui.file_open_handler.LargeFileHandler.get_file_size_category",
             return_value="small",
         ):
-            manager._open_native_file(file_path)
+            manager._open_handler.open_native_file(file_path)
 
             # Should load content into editor
             mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
