@@ -79,7 +79,7 @@ import os  # For environment variables and file operations
 import platform  # For detecting OS (Windows, Linux, Mac)
 import tempfile  # For creating temporary files (deleted automatically)
 from pathlib import Path  # Modern way to handle file paths (better than strings)
-from typing import Any  # Type hints to catch bugs early
+from typing import Any, cast  # Type hints to catch bugs early
 
 # === QT CORE IMPORTS ===
 # Qt's core functionality (not GUI widgets)
@@ -129,7 +129,6 @@ from asciidoc_artisan.core.large_file_handler import (  # Handles files >10MB
 )
 from asciidoc_artisan.core.search_engine import (
     SearchEngine,
-    SearchMatch,
 )  # Text search (v1.8.0)
 from asciidoc_artisan.core.syntax_checker import (
     SyntaxChecker,
@@ -185,6 +184,8 @@ from asciidoc_artisan.ui.preview_handler_gpu import (  # Preview factory
 from asciidoc_artisan.ui.scroll_manager import (  # Syncs editor/preview scroll
     ScrollManager,
 )
+from asciidoc_artisan.ui.search_handler import SearchHandler  # Find/Replace operations (MA)
+from asciidoc_artisan.ui.settings_dialog_helper import SettingsDialogHelper  # Settings dialogs (MA)
 from asciidoc_artisan.ui.settings_manager import SettingsManager  # Loads/saves settings
 from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager  # Spell checking
 from asciidoc_artisan.ui.status_manager import StatusManager  # Status bar updates
@@ -559,15 +560,20 @@ class AsciiDocEditor(QMainWindow):
         # Initialize search engine with current editor text
         self.search_engine = SearchEngine(self.editor.toPlainText())
 
-        # Connect find bar signals to search handlers
-        self.find_bar.search_requested.connect(self._handle_search_requested)
-        self.find_bar.find_next_requested.connect(self._handle_find_next)
-        self.find_bar.find_previous_requested.connect(self._handle_find_previous)
-        self.find_bar.closed.connect(self._handle_find_closed)
+        # Initialize search handler (MA principle: extracted from main_window)
+        from asciidoc_artisan.ui.search_handler import SearchContext
+
+        self.search_handler = SearchHandler(cast(SearchContext, self))
+
+        # Connect find bar signals to search handler
+        self.find_bar.search_requested.connect(self.search_handler.handle_search_requested)
+        self.find_bar.find_next_requested.connect(self.search_handler.handle_find_next)
+        self.find_bar.find_previous_requested.connect(self.search_handler.handle_find_previous)
+        self.find_bar.closed.connect(self.search_handler.handle_find_closed)
 
         # Connect replace signals (v1.8.0)
-        self.find_bar.replace_requested.connect(self._handle_replace)
-        self.find_bar.replace_all_requested.connect(self._handle_replace_all)
+        self.find_bar.replace_requested.connect(self.search_handler.handle_replace)
+        self.find_bar.replace_all_requested.connect(self.search_handler.handle_replace_all)
 
         # Update search engine text when editor content changes
         self.editor.textChanged.connect(lambda: self.search_engine.set_text(self.editor.toPlainText()))
@@ -741,6 +747,11 @@ class AsciiDocEditor(QMainWindow):
         # Load settings
         self.syntax_checker_manager.enabled = self._settings.syntax_check_realtime_enabled
         self.syntax_checker_manager.check_delay = self._settings.syntax_check_delay
+
+        # Initialize settings dialog helper (MA principle: extracted dialogs)
+        from asciidoc_artisan.ui.settings_dialog_helper import SettingsContext
+
+        self.settings_dialog_helper = SettingsDialogHelper(self, cast(SettingsContext, self))
 
         logger.info("SyntaxCheckerManager initialized")
 
@@ -1246,353 +1257,24 @@ class AsciiDocEditor(QMainWindow):
         self.pandoc_result_handler.handle_pandoc_error_result(error, context)
 
     # ========================================================================
-    # Find & Search Handlers (v1.8.0)
+    # Find & Search Handlers (v1.8.0) - Delegated to SearchHandler (MA)
     # ========================================================================
 
-    @Slot(str, bool)
-    def _handle_search_requested(self, search_text: str, case_sensitive: bool) -> None:
-        """Handle search text changes from find bar (live search).
-
-        Args:
-            search_text: Text to search for
-            case_sensitive: Whether search is case-sensitive
-        """
-        if not search_text:
-            # Clear highlighting if search is empty
-            self._clear_search_highlighting()
-            self.find_bar.update_match_count(0, 0)
-            return
-
-        try:
-            # Find all matches
-            matches = self.search_engine.find_all(search_text, case_sensitive=case_sensitive)
-
-            # Update match count in find bar
-            if matches:
-                # Find which match is closest to current cursor position
-                cursor = self.editor.textCursor()
-                current_pos = cursor.position()
-
-                # Find first match at or after cursor position
-                current_match_index = 0
-                for i, match in enumerate(matches):
-                    if match.start >= current_pos:
-                        current_match_index = i
-                        break
-                else:
-                    # If no match after cursor, use last match (wrapping)
-                    current_match_index = len(matches) - 1
-
-                self.find_bar.update_match_count(current_match_index + 1, len(matches))
-
-                # Highlight all matches
-                self._highlight_search_matches(matches)
-
-                # Select current match
-                if matches:
-                    self._select_match(matches[current_match_index])
-            else:
-                self.find_bar.update_match_count(0, 0)
-                self.find_bar.set_not_found_style()
-                self._clear_search_highlighting()
-
-        except Exception as e:
-            logger.error(f"Search error: {e}")
-            self.find_bar.update_match_count(0, 0)
-
-    @Slot()
     def _handle_find_next(self) -> None:
-        """Navigate to next search match."""
-        search_text = self.find_bar.get_search_text()
-        if not search_text:
-            return
+        """Navigate to next search match (delegates to SearchHandler)."""
+        self.search_handler.handle_find_next()
 
-        try:
-            cursor = self.editor.textCursor()
-            current_pos = cursor.position()
-
-            # Find next match after current position
-            match = self.search_engine.find_next(
-                search_text,
-                start_offset=current_pos,
-                case_sensitive=self.find_bar.is_case_sensitive(),
-                wrap_around=True,
-            )
-
-            if match:
-                self._select_match(match)
-                # Update counter
-                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
-                match_index = matches.index(match) if match in matches else 0
-                self.find_bar.update_match_count(match_index + 1, len(matches))
-
-        except Exception as e:
-            logger.error(f"Find next error: {e}")
-
-    @Slot()
     def _handle_find_previous(self) -> None:
-        """Navigate to previous search match."""
-        search_text = self.find_bar.get_search_text()
-        if not search_text:
-            return
-
-        try:
-            cursor = self.editor.textCursor()
-            current_pos = cursor.selectionStart()  # Start of current selection
-
-            # Find previous match before current position
-            match = self.search_engine.find_previous(
-                search_text,
-                start_offset=current_pos,
-                case_sensitive=self.find_bar.is_case_sensitive(),
-                wrap_around=True,
-            )
-
-            if match:
-                self._select_match(match)
-                # Update counter
-                matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
-                match_index = matches.index(match) if match in matches else 0
-                self.find_bar.update_match_count(match_index + 1, len(matches))
-
-        except Exception as e:
-            logger.error(f"Find previous error: {e}")
-
-    @Slot()
-    def _handle_find_closed(self) -> None:
-        """Handle find bar being closed."""
-        self._clear_search_highlighting()
-        self.editor.setFocus()  # Return focus to editor
-        logger.debug("Find bar closed, focus returned to editor")
-
-    @Slot(str)
-    def _handle_replace(self, replace_text: str) -> None:
-        """Replace current match and find next.
-
-        Args:
-            replace_text: Text to replace with
-        """
-        search_text = self.find_bar.get_search_text()
-        if not search_text:
-            return
-
-        try:
-            # Get current selection
-            cursor = self.editor.textCursor()
-            if not cursor.hasSelection():
-                # No selection, find next match first
-                self._handle_find_next()
-                cursor = self.editor.textCursor()
-                if not cursor.hasSelection():
-                    return
-
-            # Verify selection matches search text
-            selected_text = cursor.selectedText()
-            case_sensitive = self.find_bar.is_case_sensitive()
-
-            # Check if selection matches search text
-            if case_sensitive:
-                matches = selected_text == search_text
-            else:
-                matches = selected_text.lower() == search_text.lower()
-
-            if matches:
-                # Replace the selected text
-                cursor.insertText(replace_text)
-                self.editor.setTextCursor(cursor)
-
-                # Update search engine with new text
-                self.search_engine.set_text(self.editor.toPlainText())
-
-                # Find next occurrence
-                self._handle_find_next()
-
-                logger.info(f"Replaced '{search_text}' with '{replace_text}'")
-            else:
-                # Selection doesn't match, just find next
-                self._handle_find_next()
-
-        except Exception as e:
-            logger.error(f"Replace error: {e}")
-
-    @Slot(str)
-    def _handle_replace_all(self, replace_text: str) -> None:
-        """
-        Replace all occurrences after confirmation.
-
-        MA principle: Reduced from 58→20 lines by extracting 3 helpers (66% reduction).
-
-        Args:
-            replace_text: Text to replace with
-        """
-        search_text = self.find_bar.get_search_text()
-        if not search_text:
-            return
-
-        try:
-            # Count matches and early return if none
-            match_count = self._count_replace_matches(search_text)
-            if match_count is None:
-                return
-
-            # Confirm replacement with user
-            if not self._confirm_replace_all(search_text, replace_text, match_count):
-                return
-
-            # Execute replacement and update UI
-            self._execute_replace_all(search_text, replace_text)
-
-        except Exception as e:
-            logger.error(f"Replace all error: {e}")
-            self.status_manager.show_status(f"Replace failed: {e}", 3000)
-
-    def _count_replace_matches(self, search_text: str) -> int | None:
-        """
-        Count matches for replacement.
-
-        MA principle: Extracted from _handle_replace_all (9 lines).
-
-        Args:
-            search_text: Text to search for
-
-        Returns:
-            Match count if matches found, None if no matches
-        """
-        matches = self.search_engine.find_all(search_text, case_sensitive=self.find_bar.is_case_sensitive())
-        match_count = len(matches)
-
-        if match_count == 0:
-            self.status_manager.show_status("No matches to replace", 2000)
-            return None
-
-        return match_count
-
-    def _confirm_replace_all(self, search_text: str, replace_text: str, match_count: int) -> bool:
-        """
-        Show confirmation dialog for replace all operation.
-
-        MA principle: Extracted from _handle_replace_all (11 lines).
-
-        Args:
-            search_text: Text being searched
-            replace_text: Replacement text
-            match_count: Number of matches to replace
-
-        Returns:
-            True if user confirmed, False otherwise
-        """
-        from PySide6.QtWidgets import QMessageBox
-
-        reply = QMessageBox.question(
-            self,
-            "Replace All",
-            f"Replace {match_count} occurrence(s) of '{search_text}' with '{replace_text}'?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-
-        return reply == QMessageBox.StandardButton.Yes
-
-    def _execute_replace_all(self, search_text: str, replace_text: str) -> None:
-        """
-        Execute replace all and update editor state.
-
-        MA principle: Extracted from _handle_replace_all (24 lines).
-
-        Args:
-            search_text: Text to search for
-            replace_text: Text to replace with
-        """
-        # Perform replace all
-        new_text, count = self.search_engine.replace_all(
-            search_text,
-            replace_text,
-            case_sensitive=self.find_bar.is_case_sensitive(),
-        )
-
-        # Update editor with new text
-        cursor = self.editor.textCursor()
-        cursor_pos = cursor.position()  # Save cursor position
-
-        self.editor.setPlainText(new_text)
-
-        # Restore cursor position (approximately)
-        cursor.setPosition(min(cursor_pos, len(new_text)))
-        self.editor.setTextCursor(cursor)
-
-        # Clear highlights and update status
-        self._clear_search_highlighting()
-        self.find_bar.update_match_count(0, 0)
-        self.status_manager.show_status(f"Replaced {count} occurrence(s)", 3000)
-
-        logger.info(f"Replaced all: {count} occurrences of '{search_text}' with '{replace_text}'")
-
-    def _select_match(self, match: SearchMatch) -> None:
-        """Select a search match in the editor.
-
-        Args:
-            match: SearchMatch object with start/end positions
-        """
-        from PySide6.QtGui import QTextCursor
-
-        cursor = self.editor.textCursor()
-        cursor.setPosition(match.start)
-        cursor.setPosition(match.end, QTextCursor.MoveMode.KeepAnchor)
-        self.editor.setTextCursor(cursor)
-        self.editor.ensureCursorVisible()
-
-    def _highlight_search_matches(self, matches: list[SearchMatch]) -> None:
-        """Highlight all search matches in the editor.
-
-        Args:
-            matches: List of SearchMatch objects
-        """
-        from PySide6.QtWidgets import QTextEdit
-
-        # Create extra selections for each match
-        search_selections = []
-        for match in matches:
-            selection = QTextEdit.ExtraSelection()
-            cursor = self.editor.textCursor()
-            cursor.setPosition(match.start)
-            from PySide6.QtGui import QTextCursor
-
-            cursor.setPosition(match.end, QTextCursor.MoveMode.KeepAnchor)
-
-            # Yellow highlight for matches
-            from PySide6.QtGui import QColor
-
-            selection.format.setBackground(QColor(255, 255, 0, 80))  # Light yellow
-            selection.cursor = cursor
-            search_selections.append(selection)
-
-        # Store search selections for combination with spell check
-        self.editor.search_selections = search_selections
-
-        # Combine with spell check selections and apply
-        self._apply_combined_selections()
+        """Navigate to previous search match (delegates to SearchHandler)."""
+        self.search_handler.handle_find_previous()
 
     def _clear_search_highlighting(self) -> None:
-        """Clear all search highlighting from the editor."""
-        # Clear search selections
-        self.editor.search_selections = []
-
-        # Combine with spell check selections and apply
-        self._apply_combined_selections()
-
-        self.find_bar.clear_not_found_style()
+        """Clear all search highlighting (delegates to SearchHandler)."""
+        self.search_handler.clear_search_highlighting()
 
     def _apply_combined_selections(self) -> None:
-        """Combine search and spell check selections and apply to editor."""
-        # Make a copy of search selections to avoid modifying original
-        combined = list(getattr(self.editor, "search_selections", []))
-
-        # Add spell check selections if they exist
-        spell_sels = getattr(self.editor, "spell_check_selections", [])
-        combined.extend(spell_sels)
-
-        # Apply combined selections
-        self.editor.setExtraSelections(combined)
+        """Combine search and spell check selections (delegates to SearchHandler)."""
+        self.search_handler.apply_combined_selections()
 
     def _update_ui_state(self) -> None:
         """Update UI element states (delegates to UIStateManager)."""
@@ -1664,173 +1346,13 @@ class AsciiDocEditor(QMainWindow):
         """Show font settings dialog (delegates to DialogManager)."""
         self.dialog_manager.show_font_settings()
 
-    def _create_settings_dialog(self, title: str) -> tuple[Any, Any, Any]:  # (QDialog, QVBoxLayout, QFormLayout)
-        """
-        Create settings dialog with standard layout.
-
-        MA principle: Extracted from show_autocomplete_settings (7 lines).
-
-        Args:
-            title: Dialog window title
-
-        Returns:
-            Tuple of (dialog, layout, form)
-        """
-        from PySide6.QtWidgets import QDialog, QFormLayout, QVBoxLayout
-
-        dialog = QDialog(self)
-        dialog.setWindowTitle(title)
-        layout = QVBoxLayout(dialog)
-        form = QFormLayout()
-        return dialog, layout, form
-
-    def _add_help_label(self, layout: Any, help_text: str) -> None:  # layout: QVBoxLayout
-        """
-        Add help text label to dialog layout.
-
-        MA principle: Extracted from show_autocomplete_settings (5 lines).
-
-        Args:
-            layout: QVBoxLayout to add label to
-            help_text: Help text content
-        """
-        from PySide6.QtWidgets import QLabel
-
-        help_label = QLabel(help_text)
-        help_label.setStyleSheet("color: gray; font-size: 10px;")
-        layout.addWidget(help_label)
-
-    def _add_dialog_buttons(self, layout: Any, dialog: Any) -> None:  # layout: QVBoxLayout, dialog: QDialog
-        """
-        Add OK/Cancel buttons to dialog.
-
-        MA principle: Extracted from show_autocomplete_settings (4 lines).
-
-        Args:
-            layout: QVBoxLayout to add buttons to
-            dialog: QDialog to connect accept/reject signals
-        """
-        from PySide6.QtWidgets import QDialogButtonBox
-
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        buttons.accepted.connect(dialog.accept)
-        buttons.rejected.connect(dialog.reject)
-        layout.addWidget(buttons)
-
     def show_autocomplete_settings(self) -> None:
-        """
-        Show auto-complete settings dialog (v2.0.0).
-
-        MA principle: Reduced from 79→38 lines by extracting 3 helper methods.
-
-        Allows user to configure:
-        - Enable/disable auto-complete
-        - Debounce delay (100-1000ms)
-        - Minimum characters to trigger (1-5)
-        """
-        from PySide6.QtWidgets import QCheckBox, QSpinBox
-
-        # Create dialog with standard layout
-        dialog, layout, form = self._create_settings_dialog("Auto-Complete Settings")
-
-        # Form controls
-        enabled_cb = QCheckBox()
-        enabled_cb.setChecked(self.autocomplete_manager.enabled)
-        form.addRow("&Enabled:", enabled_cb)
-
-        delay_spin = QSpinBox()
-        delay_spin.setRange(100, 1000)
-        delay_spin.setValue(self.autocomplete_manager.auto_delay)
-        delay_spin.setSuffix(" ms")
-        form.addRow("&Delay:", delay_spin)
-
-        min_chars_spin = QSpinBox()
-        min_chars_spin.setRange(1, 5)
-        min_chars_spin.setValue(self.autocomplete_manager.min_chars)
-        form.addRow("&Min Characters:", min_chars_spin)
-
-        layout.addLayout(form)
-
-        # Add help text and buttons
-        self._add_help_label(
-            layout,
-            "Delay: Time to wait after typing before showing suggestions\n"
-            "Min Characters: Minimum characters needed to trigger auto-complete",
-        )
-        self._add_dialog_buttons(layout, dialog)
-
-        # Handle acceptance
-        if dialog.exec():
-            self.autocomplete_manager.enabled = enabled_cb.isChecked()
-            self.autocomplete_manager.auto_delay = delay_spin.value()
-            self.autocomplete_manager.min_chars = min_chars_spin.value()
-
-            self._settings.autocomplete_enabled = enabled_cb.isChecked()
-            self._settings.autocomplete_delay = delay_spin.value()
-            self._settings.autocomplete_min_chars = min_chars_spin.value()
-            self._settings.save()
-
-            logger.info(
-                f"Auto-complete settings updated: enabled={enabled_cb.isChecked()}, "
-                f"delay={delay_spin.value()}ms, min_chars={min_chars_spin.value()}"
-            )
+        """Show auto-complete settings dialog (delegates to SettingsDialogHelper)."""
+        self.settings_dialog_helper.show_autocomplete_settings()
 
     def show_syntax_check_settings(self) -> None:
-        """
-        Show syntax checking settings dialog (v2.0.0).
-
-        MA principle: Reduced from 78→37 lines by extracting 3 helper methods.
-
-        Allows user to configure:
-        - Enable/disable syntax checking
-        - Check delay (100-2000ms)
-        - Show/hide error underlines
-        """
-        from PySide6.QtWidgets import QCheckBox, QSpinBox
-
-        # Create dialog with standard layout
-        dialog, layout, form = self._create_settings_dialog("Syntax Checking Settings")
-
-        # Form controls
-        enabled_cb = QCheckBox()
-        enabled_cb.setChecked(self.syntax_checker_manager.enabled)
-        form.addRow("&Enabled:", enabled_cb)
-
-        delay_spin = QSpinBox()
-        delay_spin.setRange(100, 2000)
-        delay_spin.setValue(self.syntax_checker_manager.check_delay)
-        delay_spin.setSuffix(" ms")
-        form.addRow("&Check Delay:", delay_spin)
-
-        underlines_cb = QCheckBox()
-        underlines_cb.setChecked(self.syntax_checker_manager.show_underlines)
-        form.addRow("&Show Underlines:", underlines_cb)
-
-        layout.addLayout(form)
-
-        # Add help text and buttons
-        self._add_help_label(
-            layout,
-            "Check Delay: Time to wait after typing before checking syntax\n"
-            "Show Underlines: Display red squiggly lines under errors",
-        )
-        self._add_dialog_buttons(layout, dialog)
-
-        # Handle acceptance
-        if dialog.exec():
-            self.syntax_checker_manager.enabled = enabled_cb.isChecked()
-            self.syntax_checker_manager.check_delay = delay_spin.value()
-            self.syntax_checker_manager.show_underlines = underlines_cb.isChecked()
-
-            self._settings.syntax_check_realtime_enabled = enabled_cb.isChecked()
-            self._settings.syntax_check_delay = delay_spin.value()
-            self._settings.syntax_check_show_underlines = underlines_cb.isChecked()
-            self._settings.save()
-
-            logger.info(
-                f"Syntax checking settings updated: enabled={enabled_cb.isChecked()}, "
-                f"delay={delay_spin.value()}ms, underlines={underlines_cb.isChecked()}"
-            )
+        """Show syntax checking settings dialog (delegates to SettingsDialogHelper)."""
+        self.settings_dialog_helper.show_syntax_check_settings()
 
     def _show_message(self, level: str, title: str, text: str) -> None:
         """Show message box (delegates to DialogManager)."""

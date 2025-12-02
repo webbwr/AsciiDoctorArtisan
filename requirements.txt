@@ -1,28 +1,28 @@
 # AsciiDoc Artisan Python Dependencies
-# Version: 1.4.0-beta
-# Last updated: 2025-10-27
+# Version: 2.0.9
+# Last updated: 2025-12-02
 # Python 3.11+ required
 
 # ============================================================================
 # CORE DEPENDENCIES (Required for all installations)
 # ============================================================================
 
-# Core Qt bindings for GUI (PySide6 6.9.0+ required for latest features)
-PySide6>=6.9.0
+# Core Qt bindings for GUI (PySide6 6.10+ required for latest features)
+PySide6>=6.10.0
 
 # AsciiDoc rendering engine
 asciidoc3>=3.2.0
 
 # Document conversion (DOCX, clipboard, etc.)
 # Note: Requires Pandoc system binary (install via: sudo apt install pandoc)
-pypandoc>=1.13
+pypandoc>=1.16
 
 # PDF text extraction (v1.1 GPU optimization)
 # PyMuPDF provides 3-5x faster PDF extraction with GPU acceleration
-pymupdf>=1.23.0
+pymupdf>=1.26.0
 
 # Secure credential storage (OS keyring integration)
-keyring>=24.0.0
+keyring>=25.7.0
 # Keyring backend for WSL2/Linux systems without native keyring
 keyrings.alt>=5.0.0
 
@@ -30,43 +30,43 @@ keyrings.alt>=5.0.0
 psutil>=5.9.0
 
 # Async file operations (v1.6.0 - non-blocking I/O)
-aiofiles>=24.1.0
+aiofiles>=25.1.0
 
 # Fast non-cryptographic hashing (v1.9.1 - 10x faster block hashing)
 # Used for incremental rendering block IDs (hot path optimization)
-xxhash>=3.4.0
+xxhash>=3.6.0
 
 # Fast JSON serialization (v1.9.1 - 3-5x faster JSON operations)
 # Native C implementation, used for settings and data persistence
-orjson>=3.10.0
+orjson>=3.11.0
 
 # Qt + asyncio integration (v1.7.0 Task 4 - Enhanced Async I/O)
 qasync>=0.28.0
 
 # Data validation and settings (v1.7.0 - enhanced type safety)
-pydantic>=2.0.0
+pydantic>=2.12.0
 
 # Fuzzy string matching (v2.0.0 - auto-complete fuzzy matching)
 # Rust-based implementation, 10x faster than fuzzywuzzy
 # Used for intelligent auto-completion ranking
-rapidfuzz>=3.14.0
+rapidfuzz>=3.14.3
 
 # AI document conversion and chat (Ollama integration v1.2+, chat v1.7.0)
 # Note: Requires Ollama system binary for local AI features
 # Install: curl https://ollama.ai/install.sh | sh (Linux/Mac)
 # Download: https://ollama.ai/download (Windows)
 # Models: ollama pull phi3:mini (recommended for AsciiDoc Artisan)
-ollama>=0.4.0
+ollama>=0.6.0
 
 # Anthropic Claude AI API integration (v1.10.0+ - cloud AI features)
 # Note: Requires Anthropic API key from console.anthropic.com
 # Provides cloud-based AI assistance with Claude models
 # API key stored securely in OS keyring
-anthropic>=0.72.0
+anthropic>=0.75.0
 
 # Spell checking (v1.8.0 - integrated spell checker)
 # Pure Python spell checker with built-in dictionaries
-pyspellchecker>=0.8.0
+pyspellchecker>=0.8.4
 
 # ============================================================================
 # DEVELOPMENT DEPENDENCIES (Optional - for testing and code quality)
@@ -82,18 +82,17 @@ pytest-forked>=1.6.0  # Process isolation for Qt threading issues (v1.9.2+)
 pytest-rerunfailures>=16.0.0  # Retry flaky tests (v2.0.5+)
 
 # Code formatting and linting
-black>=23.0.0
-ruff>=0.1.0
+ruff>=0.14.0
 isort>=5.12.0
 
 # Type checking
-mypy>=1.5.0
+mypy>=1.19.0
 types-setuptools>=68.0.0
 types-aiofiles>=24.1.0
 types-PyYAML>=6.0.0
 
 # Pre-commit hooks
-pre-commit>=3.0.0
+pre-commit>=4.0.0
 
 # ============================================================================
 # NOTES
@@ -111,7 +110,7 @@ pre-commit>=3.0.0
 #
 # For production use, see requirements-production.txt for pinned versions
 #
-hypothesis>=6.100.0  # Property-based testing (QA-7)
+hypothesis>=6.148.0  # Property-based testing (QA-7)
 pytest-benchmark>=5.0.0  # Performance regression testing (QA-8)
 pytest-regressions>=2.8.0  # Visual regression testing (QA-9)
 numpy>=1.24.0  # Image processing for visual regression tests (QA-9)

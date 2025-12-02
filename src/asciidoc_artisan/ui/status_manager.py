@@ -16,6 +16,7 @@ The StatusManager provides centralized UI feedback management.
 import logging
 from typing import TYPE_CHECKING
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QLabel, QPushButton
 
 from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME, GitStatus
@@ -59,6 +60,10 @@ class StatusManager:
         # Git status color tracking for theme changes
         self._current_git_color: str | None = None
         self._current_git_text: str | None = None
+
+        # Debounced metrics update timer (MA principle: reduce CPU during rapid typing)
+        self._metrics_timer: QTimer | None = None
+        self._metrics_debounce_ms = 200  # 200ms debounce delay
 
     @property
     def _metrics_calculator(self) -> DocumentMetricsCalculator:
@@ -119,6 +124,12 @@ class StatusManager:
         """Initialize status bar widgets (delegates to widget_factory)."""
         self._widget_factory.initialize_widgets()
 
+        # Initialize debounce timer for metrics updates
+        self._metrics_timer = QTimer()
+        self._metrics_timer.setSingleShot(True)
+        self._metrics_timer.setInterval(self._metrics_debounce_ms)
+        self._metrics_timer.timeout.connect(self._do_update_document_metrics)
+
     def update_window_title(self) -> None:
         """Update the window title based on current file and save status."""
         title = APP_NAME
@@ -175,8 +186,25 @@ class StatusManager:
 
     def update_document_metrics(self) -> None:
         """
-        Update all document metrics in status bar.
+        Schedule debounced document metrics update.
 
+        MA principle: Debouncing reduces CPU usage during rapid typing.
+        Metrics calculation is deferred by 200ms after last call.
+        """
+        if self._metrics_timer is not None:
+            # Timer exists - restart it (debounce)
+            if self._metrics_timer.isActive():
+                self._metrics_timer.stop()
+            self._metrics_timer.start()
+        else:
+            # Timer not initialized - update immediately (fallback)
+            self._do_update_document_metrics()
+
+    def _do_update_document_metrics(self) -> None:
+        """
+        Actually update all document metrics in status bar.
+
+        Called by debounce timer after typing pause.
         MA principle: Reduced from 72→17 lines by extracting 4 helpers (76% reduction).
         """
         # Skip if widgets not yet initialized

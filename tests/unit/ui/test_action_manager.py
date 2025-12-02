@@ -24,9 +24,8 @@ def main_window(qapp):
     window._settings.ai_chat_enabled = False  # Boolean, not Mock
     window._settings.ollama_chat_enabled = False  # Boolean, not Mock
     window._settings.spell_check_enabled = False
-    window._settings.syntax_check_enabled = False
+    window._settings.syntax_check_realtime_enabled = False
     window._settings.autocomplete_enabled = False
-    window._settings.chat_pane_visible = False
 
     window._sync_scrolling = False  # Scroll sync state
 
@@ -44,11 +43,9 @@ def main_window(qapp):
     window._handle_find_previous = Mock()
 
     # View actions
-    window.zoom_in = Mock()
-    window.zoom_out = Mock()
-    window.zoom_reset = Mock()
-    window.toggle_dark_mode = Mock()
-    window.toggle_sync_scrolling = Mock()
+    window._zoom = Mock()
+    window._toggle_dark_mode = Mock()
+    window._toggle_sync_scrolling = Mock()
     window._toggle_maximize_window = Mock()
     window._toggle_pane_maximize = Mock()
 
@@ -67,7 +64,7 @@ def main_window(qapp):
     window.github_handler.list_pull_requests = Mock()
     window.github_handler.create_issue = Mock()
     window.github_handler.list_issues = Mock()
-    window.github_handler.view_repository = Mock()
+    window.github_handler.get_repo_info = Mock()
 
     # Tools actions
     window._show_installation_validator = Mock()
