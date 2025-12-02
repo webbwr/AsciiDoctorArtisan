@@ -6,14 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **AsciiDoc Artisan** — Cross-platform desktop AsciiDoc editor with live preview (PySide6/Qt)
 
-**Version:** 2.0.8 (Nov 21, 2025) | **Status:** Production-ready | **Startup:** 0.586s
+**Version:** 2.0.9 (Dec 2, 2025) | **Status:** Production-ready | **Startup:** 0.586s
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
+
+**Codebase:** 40,887 lines across 123 files
 
 **Architecture:**
 - Single-window Qt app: split editor/preview, GPU-accelerated rendering
 - Multi-threaded: UI main thread, Git/Pandoc/Preview on QThread workers
-- Modular: 1,798-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
+- Modular: 1,903-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
+- MA Principle: Delegation pattern (action_manager, file_operations_manager)
 - Package: `asciidoc_artisan.{core, ui, workers, conversion, git, claude}`
 
 **v2.0 Features:**
@@ -21,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,548 tests (5,516 passing, 22 skipped, 99.42% pass) + 71 E2E scenarios (65 passing, 91.5%), mypy --strict (0 errors), 88-char line limit
+**Quality:** 5,216 unit tests + 71 E2E scenarios, mypy --strict (0 errors, 123 files), 88-char line limit
 
 ## Critical Patterns — Read First!
 
@@ -363,9 +366,17 @@ Entry: `src/main.py`
 
 ---
 
-*AsciiDoc Artisan v2.0.8 | Production-ready | 5,548 tests (5,516 passing, 22 skipped) + 71 E2E scenarios (65 passing, 91.5%) | mypy --strict*
+*AsciiDoc Artisan v2.0.9 | Production-ready | 5,216 unit tests + 71 E2E scenarios | mypy --strict (0 errors)*
 
-**Recent Improvements (Nov 21, 2025 - v2.0.8):**
+**Recent Improvements (Dec 2, 2025 - v2.0.9):**
+- ✅ MA Principle Applied: 10+ core modules refactored with delegation pattern
+- ✅ Type Safety: Fixed 4 mypy errors using cast() for protocol satisfaction
+- ✅ Action Management: Aligned naming across action_creators, action_manager, menu_builder
+- ✅ Refactoring Plan: Comprehensive plan at .claude/plans/refactoring-plan.md
+- ✅ Test Updates: 84 action manager tests updated with new fixtures
+- ✅ Codebase: 40,887 lines across 123 files
+
+**Previous (Nov 21, 2025 - v2.0.8):**
 - ✅ E2E Test Fixes: User preferences tests 8/8 passing individually (was 6/8)
 - ✅ Test Pass Rate: Improved from 88.7% (63/71) to 91.5% (65/71)
 - ✅ Telemetry Fix: Disabled opt-in dialog in E2E fixture (prevents QTimer crashes)
@@ -380,4 +391,11 @@ Entry: `src/main.py`
 - ✅ API Consistency: Updated all step definitions to match current chat panel and settings manager APIs
 - ✅ Test Documentation: Comprehensive E2E_TEST_STATUS.md with suite status, investigation notes, workarounds
 - ✅ Code Quality: Fixed 5 unused variables, applied ruff formatting, pre-commit hooks passing
-- alwaays apply japanese MA principal against all documentation and codeing
+
+**v2.0.9 (Dec 2, 2025):**
+- ✅ MA Principle Applied: 10+ core modules refactored with delegation pattern
+- ✅ Type Safety: Fixed 4 mypy errors using cast() for protocol satisfaction
+- ✅ Action Management: Aligned naming across action_creators, action_manager, menu_builder
+- ✅ Refactoring Plan: Comprehensive plan at .claude/plans/refactoring-plan.md
+- ✅ Test Updates: 84 action manager tests updated with new fixtures
+- Always apply Japanese MA principle (間) against all documentation and coding

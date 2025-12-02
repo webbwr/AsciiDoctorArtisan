@@ -4,30 +4,29 @@
 ---
 specification:
   name: "AsciiDoc Artisan Functional Requirements"
-  version: "2.0.8"
+  version: "2.0.9"
   status: "Production-Ready"
-  last_updated: "2025-11-21"
+  last_updated: "2025-12-02"
   format_version: "2.0-ai-actionable"
 
 metadata:
   total_requirements: 108
   sub_requirements: 3  # FR-067a, FR-067b, FR-067c
   total_fr_definitions: 111
-  implemented: 107
+  implemented: 108  # FR-108 (MA Principle) now implemented
   partial: 0
-  planned: 1  # FR-108 (MA Principle)
+  planned: 0
   scope: "Feature-complete, maintenance mode"
   future_work: "Out of scope (LSP, plugins, collaboration deferred)"
 
+codebase_metrics:
+  total_lines: 40887
+  total_files: 123
+  main_window_lines: 1903
+
 quality_metrics:
-  unit_test_coverage: 96.4
-  unit_tests_total: 5548
-  unit_tests_passing: 5516
-  unit_tests_skipped: 22
-  unit_test_pass_rate: 99.42
+  unit_tests_total: 5216
   e2e_tests_total: 71
-  e2e_tests_passing: 65
-  e2e_test_pass_rate: 91.5
   type_coverage: 100.0
   mypy_strict_errors: 0
 

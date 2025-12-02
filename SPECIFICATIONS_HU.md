@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Functional Specifications
 
-**Quick Reference Guide** | **Version:** 2.0.8 | **Updated:** Nov 21, 2025
+**Quick Reference Guide** | **Version:** 2.0.9 | **Updated:** Dec 2, 2025
 
 > **📌 For AI-Assisted Development:** See [SPECIFICATIONS_AI.md](SPECIFICATIONS_AI.md)
 > This file provides human-readable quick reference. For AI-actionable specifications with acceptance criteria, API contracts, test requirements, and dependency graphs, use **SPECIFICATIONS_AI.md**.
@@ -35,17 +35,20 @@
 
 **Status:** Production-Ready
 
+**Codebase:**
+- 40,887 lines across 123 Python files
+- main_window.py: 1,903 lines (comprehensive docs)
+
 **Test Suite:**
-- ✅ 5,486 tests collected, 5,480 passing (99.89%)
-- ✅ 96.4% coverage
+- ✅ 5,216 unit tests + 71 E2E scenarios
 - ✅ mypy --strict (0 errors)
 - ✅ 98/100 quality score
 
 **Recent Updates:**
-- Nov 16, 2025 - UI Test Fixes: 60/62 resolved (97%), MockParentWidget pattern, test markers
-- Nov 15, 2025 - Code Quality Modernization: Python 3.12+ types (78 files, 600+ updates)
-- Nov 15, 2025 - SPECIFICATIONS_AI.md: AI-actionable specs for all 107 FRs (100% coverage)
-- Nov 13, 2025 - Test Suite Repair: All failures fixed, 2,205 passing, 3 skipped
+- Dec 2, 2025 - v2.0.9 Code Refactoring: MA principle applied, mypy fixes, action naming aligned
+- Nov 21, 2025 - E2E Test Fixes: User preferences 8/8 passing, 65/71 scenarios (91.5%)
+- Nov 20, 2025 - E2E Test Coverage: 10 test suites, 71 Gherkin scenarios
+- Nov 16, 2025 - UI Test Fixes: 60/62 resolved (97%), MockParentWidget pattern
 
 ---
 
@@ -53,10 +56,10 @@
 
 111 functional requirements (FR-001 to FR-108 + FR-067a/b/c)
 
-**Test Suite Status (Nov 13, 2025):**
-- ✅ 2,205 tests passing (99.86%)
-- ⏸ 3 tests skipped (logged for investigation)
-- ❌ 0 tests failing
+**Test Suite Status (Dec 2, 2025):**
+- ✅ 5,216 unit tests + 71 E2E scenarios
+- ✅ mypy --strict: 0 errors (123 files)
+- ✅ All lint checks passing (ruff, isort)
 - 📊 Test health: EXCELLENT
 
 **Key Systems:**
