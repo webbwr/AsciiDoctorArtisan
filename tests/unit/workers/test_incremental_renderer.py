@@ -975,7 +975,7 @@ class TestCachePutReplacement:
 class TestDocumentBlockComputeIdFallback:
     """Test DocumentBlock.compute_id() with xxhash fallback."""
 
-    @patch("asciidoc_artisan.workers.incremental_renderer.HAS_XXHASH", False)
+    @patch("asciidoc_artisan.workers.block_splitter.HAS_XXHASH", False)
     def test_compute_id_md5_fallback(self):
         """Test compute_id() falls back to MD5 when xxhash unavailable."""
         block = DocumentBlock(id="", start_line=0, end_line=1, content="Test content", level=0)
@@ -986,7 +986,7 @@ class TestDocumentBlockComputeIdFallback:
         assert len(block_id) == BLOCK_HASH_LENGTH
         assert block_id.isalnum()
 
-    @patch("asciidoc_artisan.workers.incremental_renderer.HAS_XXHASH", False)
+    @patch("asciidoc_artisan.workers.block_splitter.HAS_XXHASH", False)
     def test_compute_id_md5_consistency(self):
         """Test MD5 fallback produces consistent IDs."""
         content = "= Title\n\nTest content"

@@ -1,6 +1,8 @@
 """
 Incremental Preview Renderer - Optimized rendering with block-based caching.
 
+MA principle: Reduced from 624→195 lines by extracting render_cache.py and block_splitter.py.
+
 Implements:
 - NFR-001: Preview update latency optimization (1078x speedup achieved)
 - NFR-003: Large file handling (efficient incremental rendering)
@@ -16,435 +18,50 @@ Implements Phase 3.1 of Performance Optimization Plan:
 - Incremental rendering for large documents
 - 3-5x faster preview updates
 - Reduced CPU usage for minor edits
-
-Performance Optimizations (v1.1):
-- Optimized block detection and comparison using native Python
-- Efficient string operations with C-compiled methods
-
-Block Structure:
-    Documents are split into blocks at section boundaries:
-    - Level 0 heading (= Title)
-    - Level 1 heading (== Section)
-    - Level 2 heading (=== Subsection)
-    - Paragraphs between headings
 """
 
-import gc
-import hashlib
 import logging
-import re
-import sys
 import threading
-from collections import OrderedDict
-from dataclasses import dataclass
 from typing import Any
 
-# Fast hashing with xxHash (10x faster than MD5, hot path optimization)
-try:
-    import xxhash
-
-    HAS_XXHASH = True
-except ImportError:
-    HAS_XXHASH = False
+from asciidoc_artisan.workers.block_splitter import (
+    DocumentBlock,
+    DocumentBlockSplitter,
+    count_leading_equals,
+)
+from asciidoc_artisan.workers.render_cache import (
+    ALL_INTERNED_STRINGS,
+    BLOCK_HASH_LENGTH,
+    COMMON_ATTRIBUTES,
+    COMMON_CSS,
+    COMMON_HTML,
+    COMMON_TOKENS,
+    INTERNED_TOKENS,
+    MAX_CACHE_SIZE,
+    BlockCache,
+)
 
 logger = logging.getLogger(__name__)
 
-# Cache settings - Optimized for memory efficiency
-MAX_CACHE_SIZE = 200  # Max blocks in cache (reduced from 500 for lower memory usage)
-BLOCK_HASH_LENGTH = 12  # Hash length for block IDs (reduced from 16, still unique enough)
-
-# String interning for common tokens - Reduces memory usage (Phase 1 + Phase 2)
-# Phase 1: Basic AsciiDoc syntax tokens
-COMMON_TOKENS = [
-    "=",
-    "==",
-    "===",
-    "====",
-    "=====",  # Headings
-    "*",
-    "**",
-    "_",
-    "__",
-    "`",
-    "``",  # Formatting
-    ":",
-    "::",
-    ":::",
-    "::::",  # Lists and attributes
-    "//",
-    "////",  # Comments
-    "----",
-    "....",
-    "____",  # Blocks
-    "[",
-    "]",
-    "{",
-    "}",
-    "(",
-    ")",  # Delimiters
-    "<<",
-    ">>",
-    "->",
-    "<-",  # Links and arrows
+# Re-export for backward compatibility
+__all__ = [
+    # From render_cache
+    "MAX_CACHE_SIZE",
+    "BLOCK_HASH_LENGTH",
+    "COMMON_TOKENS",
+    "COMMON_ATTRIBUTES",
+    "COMMON_HTML",
+    "COMMON_CSS",
+    "ALL_INTERNED_STRINGS",
+    "INTERNED_TOKENS",
+    "BlockCache",
+    # From block_splitter
+    "DocumentBlock",
+    "count_leading_equals",
+    "DocumentBlockSplitter",
+    # Main renderer
+    "IncrementalPreviewRenderer",
 ]
-
-# Phase 2: Common AsciiDoc attributes
-COMMON_ATTRIBUTES = [
-    ":author:",
-    ":version:",
-    ":revnumber:",
-    ":rev:",
-    ":title:",
-    ":date:",
-    ":doctype:",
-    ":toc:",
-    ":icons:",
-    ":numbered:",
-    ":stem:",
-    ":source-highlighter:",
-    ":imagesdir:",
-    ":includedir:",
-    ":docinfo:",
-]
-
-# Phase 2: Common HTML tags and attributes
-COMMON_HTML = [
-    "<div>",
-    "</div>",
-    "<span>",
-    "</span>",
-    "<p>",
-    "</p>",
-    "<h1>",
-    "</h1>",
-    "<h2>",
-    "</h2>",
-    "<h3>",
-    "</h3>",
-    "<ul>",
-    "</ul>",
-    "<ol>",
-    "</ol>",
-    "<li>",
-    "</li>",
-    "<code>",
-    "</code>",
-    "<pre>",
-    "</pre>",
-    "<table>",
-    "</table>",
-    "<tr>",
-    "</tr>",
-    "<td>",
-    "</td>",
-    "<th>",
-    "</th>",
-    "<a>",
-    "</a>",
-    "<img>",
-    "<br>",
-    "<hr>",
-    "class=",
-    "id=",
-    "style=",
-    "href=",
-    "src=",
-    "alt=",
-]
-
-# Phase 2: Common CSS properties
-COMMON_CSS = [
-    "color:",
-    "background-color:",
-    "font-size:",
-    "margin:",
-    "padding:",
-    "text-align:",
-    "font-family:",
-    "font-weight:",
-    "display:",
-    "border:",
-    "width:",
-    "height:",
-    "position:",
-    "top:",
-    "left:",
-]
-
-# Combine all and intern
-ALL_INTERNED_STRINGS = COMMON_TOKENS + COMMON_ATTRIBUTES + COMMON_HTML + COMMON_CSS
-INTERNED_TOKENS = {token: sys.intern(token) for token in ALL_INTERNED_STRINGS}
-
-
-@dataclass(slots=True)
-class DocumentBlock:
-    """
-    A section of the AsciiDoc document.
-
-    Uses __slots__ for memory efficiency (reduces memory by ~40%).
-    Many instances created (one per document section).
-
-    Attributes:
-        id: Unique ID (hash of content)
-        start_line: Starting line number
-        end_line: Ending line number
-        content: Raw AsciiDoc content
-        rendered_html: Cached rendered HTML
-        level: Heading level (0=title, 1=section, etc.)
-    """
-
-    id: str
-    start_line: int
-    end_line: int
-    content: str
-    rendered_html: str | None = None
-    level: int = 0
-
-    def compute_id(self) -> str:
-        """
-        Compute hash ID from content using xxHash (10x faster than MD5).
-
-        Hot path optimization: Called 100s-1000s times per document render.
-        xxHash is non-cryptographic but 10x faster than MD5 for this use case.
-        Falls back to MD5 if xxhash not available.
-        """
-        if HAS_XXHASH:
-            # xxHash: 10x faster than MD5, sufficient for block IDs
-            content_hash = xxhash.xxh64(self.content).hexdigest()
-        else:
-            # Fallback to MD5 (slower but always available)
-            content_hash = hashlib.md5(self.content.encode("utf-8")).hexdigest()
-
-        result: str = content_hash[:BLOCK_HASH_LENGTH]
-        return result
-
-
-class BlockCache:
-    """
-    LRU cache for rendered blocks with thread safety.
-
-    Stores rendered HTML for document blocks with automatic eviction
-    when cache size exceeds MAX_CACHE_SIZE. Uses threading.Lock to
-    prevent race conditions during concurrent access from worker threads.
-    """
-
-    def __init__(self, max_size: int = MAX_CACHE_SIZE):
-        """
-        Initialize block cache with thread-safe locking.
-
-        Args:
-            max_size: Maximum number of blocks to cache
-        """
-        self.max_size = max_size
-        self._cache: OrderedDict[str, str] = OrderedDict()
-        self._lock = threading.Lock()
-        self._hits = 0
-        self._misses = 0
-
-    def get(self, block_id: str) -> str | None:
-        """
-        Get rendered HTML from cache (thread-safe).
-
-        Args:
-            block_id: Block ID to retrieve
-
-        Returns:
-            Rendered HTML if cached, None otherwise
-        """
-        with self._lock:
-            if block_id in self._cache:
-                # Move to end (most recently used)
-                self._cache.move_to_end(block_id)
-                self._hits += 1
-                return self._cache[block_id]
-
-            self._misses += 1
-            return None
-
-    def put(self, block_id: str, html: str) -> None:
-        """
-        Store rendered HTML in cache with LRU eviction (thread-safe).
-
-        Args:
-            block_id: Block ID
-            html: Rendered HTML
-        """
-        with self._lock:
-            # Remove if already exists (will re-add at end)
-            if block_id in self._cache:
-                del self._cache[block_id]
-
-            # Add to end (most recently used)
-            self._cache[block_id] = html
-
-            # Evict oldest if over size limit
-            while len(self._cache) > self.max_size:
-                self._cache.popitem(last=False)
-
-    def clear(self) -> None:
-        """Clear all cached blocks and trigger garbage collection (thread-safe)."""
-        with self._lock:
-            self._cache.clear()
-            self._hits = 0
-            self._misses = 0
-            # Trigger garbage collection to free memory immediately
-            gc.collect()
-            logger.debug("Cache cleared and garbage collected")
-
-    def get_stats(self) -> dict[str, int | float]:
-        """
-        Get cache statistics (thread-safe).
-
-        Returns:
-            Dictionary with size, hits, misses, hit_rate
-        """
-        with self._lock:
-            total = self._hits + self._misses
-            hit_rate = (self._hits / total * 100) if total > 0 else 0.0
-
-            return {
-                "size": len(self._cache),
-                "hits": self._hits,
-                "misses": self._misses,
-                "hit_rate": round(hit_rate, 2),
-            }
-
-
-def count_leading_equals(line: str) -> int:
-    """
-    Count leading '=' characters for heading detection.
-
-    Uses native Python iteration which is C-optimized and faster
-    than JIT compilation for string operations.
-
-    Args:
-        line: Line to check
-
-    Returns:
-        Number of leading '=' characters (0 if not a heading)
-    """
-    if not line or len(line) == 0:
-        return 0
-
-    count = 0
-    for char in line:
-        if char == "=":
-            count += 1
-        elif char in (" ", "\t"):
-            # Found space after equals - valid heading
-            if count > 0:
-                return count
-            break
-        else:
-            # Not a heading
-            break
-
-    return 0
-
-
-class DocumentBlockSplitter:
-    """
-    Split AsciiDoc document into blocks for incremental rendering.
-
-    Optimized (v1.6 Tier 3):
-    - State machine for heading detection (30% faster)
-    - Minimized string allocations
-    - Structure caching for repeated scans
-    - Early exit optimizations
-
-    Splits on:
-    - Document title (= Title)
-    - Section headings (== Section)
-    - Subsection headings (=== Subsection)
-    - Paragraph breaks
-    """
-
-    # Regex patterns for block boundaries (used as fallback)
-    TITLE_PATTERN = re.compile(r"^=\s+\S+", re.MULTILINE)
-    SECTION_PATTERN = re.compile(r"^==\s+\S+", re.MULTILINE)
-    SUBSECTION_PATTERN = re.compile(r"^===\s+\S+", re.MULTILINE)
-    HEADING_PATTERN = re.compile(r"^(={1,6})\s+(.+)$", re.MULTILINE)
-
-    @staticmethod
-    def split(source_text: str) -> list[DocumentBlock]:
-        """
-        Split document into blocks (optimized).
-
-        Performance optimizations (v1.6):
-        - Fast-path empty check in heading detection
-        - Reduced string operations
-        - Direct line range extraction
-
-        Args:
-            source_text: Full AsciiDoc source
-
-        Returns:
-            List of DocumentBlock objects
-        """
-        if not source_text.strip():
-            return []
-
-        lines = source_text.split("\n")
-        blocks: list[DocumentBlock] = []
-        current_block_start = 0
-        current_level = 0
-
-        # Optimized heading detection loop
-        for line_num, line in enumerate(lines):
-            # Fast path: Check first character before expensive operations
-            if line and line[0] == "=":
-                heading_level = count_leading_equals(line)
-
-                if heading_level > 0:
-                    # Found a heading - save previous block
-                    if line_num > current_block_start:
-                        block = DocumentBlockSplitter._create_block_from_range(
-                            lines, current_block_start, line_num - 1, current_level
-                        )
-                        blocks.append(block)
-
-                    # Start new block at this heading
-                    current_level = heading_level
-                    current_block_start = line_num
-
-        # Add final block
-        if current_block_start < len(lines):
-            block = DocumentBlockSplitter._create_block_from_range(
-                lines, current_block_start, len(lines) - 1, current_level
-            )
-            blocks.append(block)
-
-        logger.debug(f"Split document into {len(blocks)} blocks")
-        return blocks
-
-    @staticmethod
-    def _create_block(lines: list[str], start_line: int, end_line: int, level: int) -> DocumentBlock:
-        """Create DocumentBlock from lines."""
-        content = "\n".join(lines)
-        block = DocumentBlock(
-            id="",
-            start_line=start_line,
-            end_line=end_line,
-            content=content,
-            level=level,
-        )
-        block.id = block.compute_id()
-        return block
-
-    @staticmethod
-    def _create_block_from_range(lines: list[str], start_line: int, end_line: int, level: int) -> DocumentBlock:
-        """Create DocumentBlock from line range (optimized)."""
-        # Extract content directly from line range
-        content = "\n".join(lines[start_line : end_line + 1])
-        block = DocumentBlock(
-            id="",
-            start_line=start_line,
-            end_line=end_line,
-            content=content,
-            level=level,
-        )
-        block.id = block.compute_id()
-        return block
 
 
 class IncrementalPreviewRenderer:

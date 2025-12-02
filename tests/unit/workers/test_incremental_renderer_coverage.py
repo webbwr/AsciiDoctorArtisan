@@ -23,7 +23,10 @@ class TestIncrementalRendererCoverage:
     """Tests to achieve 100% coverage for IncrementalRenderer."""
 
     def test_xxhash_import_error_fallback(self):
-        """Test ImportError when xxhash is not available (lines 47-48)."""
+        """Test ImportError when xxhash is not available (lines 47-48).
+
+        Note: HAS_XXHASH is now in block_splitter.py after MA refactoring.
+        """
         # Mock sys.modules to simulate xxhash not being installed
         original_xxhash = sys.modules.get("xxhash")
 
@@ -34,19 +37,18 @@ class TestIncrementalRendererCoverage:
 
             # Mock the import to raise ImportError
             with patch.dict(sys.modules, {"xxhash": None}):
-                # Force reimport of incremental_renderer to trigger import logic
+                # Force reimport of block_splitter to trigger import logic
                 import importlib
 
-                from asciidoc_artisan.workers import incremental_renderer
+                from asciidoc_artisan.workers import block_splitter
 
-                importlib.reload(incremental_renderer)
+                importlib.reload(block_splitter)
 
                 # Verify HAS_XXHASH is False when xxhash not available
-                # This covers lines 47-48
-                assert not incremental_renderer.HAS_XXHASH
+                assert not block_splitter.HAS_XXHASH
 
                 # Test that DocumentBlock can still compute IDs using MD5 fallback
-                block = incremental_renderer.DocumentBlock(
+                block = block_splitter.DocumentBlock(
                     id="",
                     start_line=0,
                     end_line=5,
@@ -63,9 +65,9 @@ class TestIncrementalRendererCoverage:
             # Reload to restore normal state
             import importlib
 
-            from asciidoc_artisan.workers import incremental_renderer
+            from asciidoc_artisan.workers import block_splitter
 
-            importlib.reload(incremental_renderer)
+            importlib.reload(block_splitter)
 
     def test_create_block_legacy_method(self):
         """Test unused _create_block method (lines 427-428, 435-436)."""
