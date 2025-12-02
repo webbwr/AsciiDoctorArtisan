@@ -9,6 +9,10 @@ import pytest
 
 from asciidoc_artisan.core.template_engine import TemplateEngine
 from asciidoc_artisan.core.template_manager import TemplateManager
+from asciidoc_artisan.core.template_serializer import (
+    sanitize_template_filename,
+    serialize_template,
+)
 
 
 @pytest.fixture
@@ -653,24 +657,24 @@ class TestGetCategories:
 class TestSanitizeFilename:
     """Test filename sanitization."""
 
-    def test_sanitize_filename_spaces(self, manager):
+    def test_sanitize_filename_spaces(self):
         """Test spaces converted to hyphens."""
-        result = manager._sanitize_filename("Technical Article")
+        result = sanitize_template_filename("Technical Article")
         assert result == "technical-article"
 
-    def test_sanitize_filename_lowercase(self, manager):
+    def test_sanitize_filename_lowercase(self):
         """Test conversion to lowercase."""
-        result = manager._sanitize_filename("UPPERCASE")
+        result = sanitize_template_filename("UPPERCASE")
         assert result == "uppercase"
 
-    def test_sanitize_filename_special_chars(self, manager):
+    def test_sanitize_filename_special_chars(self):
         """Test removal of special characters."""
-        result = manager._sanitize_filename("Test! @#Template$")
+        result = sanitize_template_filename("Test! @#Template$")
         assert result == "test-template"
 
-    def test_sanitize_filename_multiple_spaces(self, manager):
+    def test_sanitize_filename_multiple_spaces(self):
         """Test multiple spaces."""
-        result = manager._sanitize_filename("Test  Multiple   Spaces")
+        result = sanitize_template_filename("Test  Multiple   Spaces")
         assert result == "test--multiple---spaces"
 
 
@@ -683,7 +687,7 @@ class TestSanitizeFilename:
 class TestSerializeTemplate:
     """Test template serialization."""
 
-    def test_serialize_template_basic(self, manager):
+    def test_serialize_template_basic(self):
         """Test serializing template to YAML format."""
         from asciidoc_artisan.core.models import Template, TemplateVariable
 
@@ -705,7 +709,7 @@ class TestSerializeTemplate:
             content="= {{title}}",
         )
 
-        result = manager._serialize_template(template)
+        result = serialize_template(template)
 
         # Check format
         assert result.startswith("---\n")
@@ -713,7 +717,7 @@ class TestSerializeTemplate:
         assert "category: article" in result
         assert "= {{title}}" in result
 
-    def test_serialize_template_no_author(self, manager):
+    def test_serialize_template_no_author(self):
         """Test serializing template without author."""
         from asciidoc_artisan.core.models import Template
 
@@ -727,7 +731,7 @@ class TestSerializeTemplate:
             content="Content",
         )
 
-        result = manager._serialize_template(template)
+        result = serialize_template(template)
         assert "---" in result
 
 
@@ -1018,11 +1022,11 @@ class TestCRUDExceptionHandling:
             content="= Test\nContent",
         )
 
-        # Mock _serialize_template to raise exception
+        # Mock serialize_template to raise exception
         def mock_serialize(t):
             raise IOError("Disk full")
 
-        monkeypatch.setattr(manager, "_serialize_template", mock_serialize)
+        monkeypatch.setattr("asciidoc_artisan.core.template_manager.serialize_template", mock_serialize)
 
         # Should return False on error
         result = manager.create_template(template)
@@ -1139,8 +1143,8 @@ class TestRecentSaveError:
 class TestYamlImportError:
     """Test yaml import error handling."""
 
-    def test_serialize_template_no_yaml(self, manager, monkeypatch):
-        """Test _serialize_template without yaml installed (tests line 509-510)."""
+    def test_serialize_template_no_yaml(self, monkeypatch):
+        """Test serialize_template without yaml installed (tests line 509-510)."""
         from asciidoc_artisan.core.models import Template
 
         template = Template(name="test", category="document", description="Test", content="= Test")
@@ -1152,7 +1156,7 @@ class TestYamlImportError:
         with patch.dict(sys.modules, {"yaml": None}):
             # Should raise ImportError
             with pytest.raises(ImportError, match="PyYAML is required"):
-                manager._serialize_template(template)
+                serialize_template(template)
 
 
 @pytest.mark.unit
@@ -1165,8 +1169,8 @@ class TestYamlImportError:
 class TestSerializeVersion:
     """Test template serialization version handling."""
 
-    def test_serialize_template_non_default_version(self, manager):
-        """Test _serialize_template with non-default version (tests line 523)."""
+    def test_serialize_template_non_default_version(self):
+        """Test serialize_template with non-default version (tests line 523)."""
         from asciidoc_artisan.core.models import Template
 
         # Create template with version != "1.0"
@@ -1179,5 +1183,5 @@ class TestSerializeVersion:
         )
 
         # Should include version in serialization
-        serialized = manager._serialize_template(template)
+        serialized = serialize_template(template)
         assert "version: '2.0'" in serialized or 'version: "2.0"' in serialized

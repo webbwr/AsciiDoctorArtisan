@@ -1,6 +1,8 @@
 """
 Template manager for AsciiDoc Artisan (v2.0.0+).
 
+MA principle: Reduced from 539→480 lines by extracting template_serializer.py.
+
 This module provides template file management with CRUD operations:
 - Load templates from directories (built-in + custom)
 - Create, read, update, delete templates
@@ -41,10 +43,13 @@ Example:
 
 import json
 from pathlib import Path
-from typing import Any
 
 from asciidoc_artisan.core.models import Template
 from asciidoc_artisan.core.template_engine import TemplateEngine
+from asciidoc_artisan.core.template_serializer import (
+    sanitize_template_filename,
+    serialize_template,
+)
 
 
 class TemplateManager:
@@ -271,7 +276,7 @@ class TemplateManager:
         target_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate filename from template name
-        filename = self._sanitize_filename(template.name) + ".adoc"
+        filename = sanitize_template_filename(template.name) + ".adoc"
         file_path = target_dir / filename
 
         # Check if file already exists
@@ -283,7 +288,7 @@ class TemplateManager:
 
         # Write template file
         try:
-            content = self._serialize_template(template)
+            content = serialize_template(template)
             file_path.write_text(content, encoding="utf-8")
 
             # Add to templates dict
@@ -322,7 +327,7 @@ class TemplateManager:
             return False
 
         try:
-            content = self._serialize_template(template)
+            content = serialize_template(template)
             Path(template.file_path).write_text(content, encoding="utf-8")
 
             # Update in templates dict
@@ -454,86 +459,3 @@ class TemplateManager:
             import logging
 
             logging.error(f"Failed to save recent templates: {e}")
-
-    def _sanitize_filename(self, name: str) -> str:
-        """
-        Sanitize template name for use as filename.
-
-        Args:
-            name: Template name
-
-        Returns:
-            Safe filename (lowercase, hyphens, no spaces)
-
-        Example:
-            ```python
-            filename = _sanitize_filename("Technical Article")
-            # Returns: "technical-article"
-            ```
-        """
-        # Convert to lowercase, replace spaces with hyphens
-        safe_name = name.lower().replace(" ", "-")
-
-        # Remove non-alphanumeric characters (except hyphens)
-        safe_name = "".join(c for c in safe_name if c.isalnum() or c == "-")
-
-        return safe_name
-
-    def _serialize_template(self, template: Template) -> str:
-        """
-        Serialize template to file format.
-
-        Args:
-            template: Template to serialize
-
-        Returns:
-            Template content with YAML front matter
-
-        Format:
-            ---
-            name: Template Name
-            category: article
-            description: Description
-            variables:
-              - name: title
-                description: Title
-                required: true
-            ---
-            = {{title}}
-            Content...
-        """
-        try:
-            import yaml
-        except ImportError:
-            raise ImportError("PyYAML is required for template serialization")
-
-        # Build YAML front matter
-        metadata: dict[str, Any] = {
-            "name": template.name,
-            "category": template.category,
-            "description": template.description,
-        }
-
-        if template.author:
-            metadata["author"] = template.author
-
-        if template.version != "1.0":
-            metadata["version"] = template.version
-
-        if template.variables:
-            metadata["variables"] = [
-                {
-                    "name": v.name,
-                    "description": v.description,
-                    "required": v.required,
-                    "default": v.default,
-                    "type": v.type,
-                }
-                for v in template.variables
-            ]
-
-        # Serialize to YAML
-        yaml_text = yaml.dump(metadata, default_flow_style=False, sort_keys=False)
-
-        # Combine with content
-        return f"---\n{yaml_text}---\n{template.content}"
