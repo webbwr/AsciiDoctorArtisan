@@ -14,9 +14,9 @@
 # PySide6-Essentials includes core Qt modules
 # GPU acceleration is automatic with proper graphics drivers installed
 
-PySide6==6.10.0
+PySide6==6.10.1
 PySide6-Addons==6.10.1
-PySide6-Essentials==6.10.0
+PySide6-Essentials==6.10.1
 
 # ============================================================================
 # DOCUMENT PROCESSING
