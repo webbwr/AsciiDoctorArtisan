@@ -4,8 +4,8 @@
 ---
 specification:
   name: "AsciiDoc Artisan Functional Requirements"
-  version: "2.0.9"
-  status: "Production-Ready"
+  version: "2.1.0"
+  status: "Public Release"
   last_updated: "2025-12-03"
   format_version: "2.0-ai-actionable"
 

@@ -1,7 +1,7 @@
 # AsciiDoc Artisan Documentation
 
 **Last Updated:** December 3, 2025
-**Version:** 2.0.9
+**Version:** 2.1.0
 
 **Complete documentation index:** [../DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)
 

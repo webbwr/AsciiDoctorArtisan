@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Development Roadmap
 
-**Updated:** Dec 3, 2025 | **Horizon:** 18-24 months | **Current:** v2.0.9 ✅ | **Next:** Maintenance
+**Updated:** Dec 3, 2025 | **Horizon:** 18-24 months | **Current:** v2.1.0 ✅ Public Release | **Next:** Maintenance
 
 ---
 
@@ -24,9 +24,10 @@
 | v2.0.7 | ✅ | Nov 20 2025 | E2E Test Coverage | 10 test suites, 63/71 scenarios (88.7%), user preferences, ~3,500 lines |
 | v2.0.8 | ✅ | Nov 21 2025 | E2E Test Fixes | User preferences 8/8 passing, telemetry dialog fix, 65/71 scenarios (91.5%) |
 | v2.0.9 | ✅ | Dec 3 2025 | Feature Release | LSP, Multi-core rendering, MA extractions, 171 files |
+| v2.1.0 | ✅ | Dec 3 2025 | **Public Release** | Production stable, full LSP, comprehensive docs |
 | v3.0.0 | 🚫 | Deferred | Next-Gen | Plugins, Marketplace, Collaboration |
 
-**Test Status:** ✅ 5,285 unit tests + 71 E2E scenarios | **Codebase:** 44,935 lines across 171 files
+**Test Status:** ✅ 5,285 unit tests + 71 E2E scenarios | **Codebase:** 44,935 lines across 171 files | **Status:** Public Release
 
 ---
 
@@ -43,7 +44,7 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 
 ---
 
-## Current State (v2.0.9) ✅
+## Current State (v2.1.0) ✅ Public Release
 
 ### Architecture
 - Modular design: manager pattern, 171 modules

@@ -7,6 +7,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-12-03 - Public Release
+
+### Highlights
+**First public release** of AsciiDoc Artisan - a production-stable, feature-complete AsciiDoc editor.
+
+### Added
+- **Language Server Protocol (LSP)** - Full LSP implementation for IDE integration
+  - `textDocument/completion` - Context-aware auto-complete
+  - `textDocument/publishDiagnostics` - Real-time syntax validation
+  - `textDocument/hover` - AsciiDoc element documentation
+  - `textDocument/documentSymbol` - Document outline and navigation
+  - `textDocument/definition` - Cross-reference navigation
+  - 6 provider modules, 1,359 lines, 54 tests
+  - Start with: `python -m asciidoc_artisan.lsp`
+
+- **Multi-core Rendering** - ParallelBlockRenderer with ThreadPoolExecutor
+  - 2-4x speedup on 4+ core systems
+  - Thread-local AsciiDoc instances for thread safety
+  - Block-based parallelization for independent units
+
+- **Architecture Documentation** - New `docs/ARCHITECTURE.md`
+  - Complete system design with ASCII diagrams
+  - FR-to-code mapping for all 109 requirements
+  - Threading model and security patterns
+
+### Changed
+- **Development Status** - Beta → Production/Stable in PyPI classifiers
+- **Package** - Added `lsp` subpackage to `asciidoc_artisan`
+- **Documentation** - Consolidated architecture docs, unified version numbers
+
+### Metrics
+- **Codebase**: 44,935 lines across 171 files
+- **Tests**: 5,285 unit + 71 E2E scenarios
+- **Type Safety**: mypy --strict, 0 errors
+- **Requirements**: 109 FRs, 100% implemented
+
+### Dependencies
+- Added: `pygls>=2.0.0`, `lsprotocol>=2025.0.0`
+
+## [2.0.9] - 2025-12-03
+
+### Added
+- LSP server implementation (merged into 2.1.0)
+- Multi-core rendering (merged into 2.1.0)
+- MA principle extractions (5 modules)
+
+## [2.0.8] - 2025-11-21
+
+### Fixed
+- E2E test fixes: User preferences 8/8 passing
+- Telemetry dialog fix in E2E fixture
+- Settings persistence race condition
+
+### Metrics
+- 65/71 E2E scenarios passing (91.5%)
+
+## [2.0.7] - 2025-11-20
+
+### Added
+- E2E test coverage: 10 BDD test suites, 71 Gherkin scenarios
+- User preferences testing (8 scenarios)
+
+## [2.0.6] - 2025-11-19
+
+### Changed
+- Dialog callbacks extracted for testability
+- +36 tests passing, 22 skipped documented
+
+## [2.0.5] - 2025-11-18
+
+### Changed
+- main_window coverage: 86% (exceeded 80% target)
+- Defensive code audit completed
+
 ## [2.0.4] - 2025-11-18
 
 ### Documentation

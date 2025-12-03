@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Architecture
 
-**Version:** 2.0.9 | **Last Updated:** 2025-12-03
+**Version:** 2.1.0 | **Last Updated:** 2025-12-03 | **Public Release**
 
 > **See also:** [SPECIFICATIONS_AI.md](../SPECIFICATIONS_AI.md) for 109 functional requirements with acceptance criteria.
 

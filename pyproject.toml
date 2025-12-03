@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asciidoc-artisan"
-version = "2.0.9"
-description = "A modern AsciiDoc editor with live preview, auto-completion, syntax checking, and document templates"
+version = "2.1.0"
+description = "A modern AsciiDoc editor with live preview, LSP support, auto-completion, syntax checking, and document templates"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["asciidoc", "editor", "documentation", "markdown", "preview", "gpu", "hardware-acceleration"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
