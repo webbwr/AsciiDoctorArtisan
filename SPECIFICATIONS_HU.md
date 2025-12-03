@@ -28,6 +28,7 @@
 
 **Use this file when:** Reviewing features, checking implementation status, quick FR lookup
 **Use SPECIFICATIONS_AI.md when:** Implementing features, writing tests, AI-assisted development
+**Use docs/ARCHITECTURE.md when:** Understanding system design, code structure, FR-to-code mapping
 
 ---
 

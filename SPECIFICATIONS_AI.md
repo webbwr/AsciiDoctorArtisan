@@ -61,6 +61,7 @@ This specification follows **AI Specification-Driven Development** principles:
 - Follow Code Patterns for consistency
 - Reference Dependencies before starting work
 - Use Verification steps to confirm correctness
+- See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for system design and FR-to-code mapping
 
 ---
 

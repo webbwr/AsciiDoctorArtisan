@@ -2,15 +2,23 @@
 
 **Version:** 2.0.9 | **Last Updated:** 2025-12-03
 
+> **See also:** [SPECIFICATIONS_AI.md](../SPECIFICATIONS_AI.md) for 109 functional requirements with acceptance criteria.
+
 ## Design Philosophy
 
 **MA Principle (間)** — Japanese concept of negative space. Each module focuses on one thing. Target: <400 lines per file.
 
-**Key Metrics:**
+**Codebase Metrics** (aligned with SPECIFICATIONS_AI.md):
+- **Total:** 44,935 lines across 171 files
 - Core: 13,216 lines across 45+ files (avg ~290 lines/file)
 - Workers: 4,718 lines across 19 files (avg ~248 lines/file)
 - UI: 21,571 lines across 60+ files (avg ~360 lines/file)
 - LSP: 1,359 lines across 8 files (avg ~170 lines/file)
+
+**Quality Metrics:**
+- Unit tests: 5,285 + E2E: 71 scenarios
+- Type coverage: 100% (mypy --strict, 0 errors)
+- MA compliance: avg ~280 lines/file
 
 ## Package Structure
 
@@ -114,6 +122,8 @@ def start_operation(self) -> None:
 
 ## Multi-Core Rendering (v2.0.9)
 
+> **Related FRs:** FR-018 (Incremental Render), FR-069 (Worker Pool), FR-070 (Memory Management)
+
 ### ParallelBlockRenderer
 
 Uses `ThreadPoolExecutor` for CPU-bound AsciiDoc rendering:
@@ -142,6 +152,8 @@ Uses `ThreadPoolExecutor` for CPU-bound AsciiDoc rendering:
 - Graceful fallback on single-core
 
 ## LSP Architecture (v2.0.9)
+
+> **Related FR:** FR-109 (Language Server Protocol) — 54 tests
 
 ### Server Design
 
@@ -191,6 +203,8 @@ Uses `ThreadPoolExecutor` for CPU-bound AsciiDoc rendering:
 - **textDocument/definition**: Cross-reference navigation
 
 ## GPU Rendering Pipeline
+
+> **Related FRs:** FR-015 (Live Preview), FR-016 (GPU Acceleration), FR-020 (Preview Themes)
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌───────────────┐
@@ -304,6 +318,8 @@ User Action → GitManager → Reentrancy Check
 
 ## Security Model
 
+> **Related FRs:** FR-073 (Path Sanitization), FR-074 (Atomic Writes), FR-075 (Subprocess Safety), FR-076 (Secure Credentials), FR-077 (HTTPS)
+
 ### Subprocess Execution
 
 ```python
@@ -340,14 +356,16 @@ config["api_key"] = key  # NEVER
 
 ## Performance Characteristics
 
-| Operation | Target | Implementation |
-|-----------|--------|----------------|
-| Preview render | <100ms | Incremental block cache |
-| Syntax check | <100ms | Rule-based validation |
-| Auto-complete | <50ms | Pre-built completion lists |
-| File open | <500ms | Async file loading |
-| Startup | <600ms | Lazy imports, deferred init |
-| GPU detect | <100ms | 24hr cache |
+> **Related FRs:** FR-068 (Fast Startup), FR-069 (Worker Pool), FR-071 (Async I/O), FR-072 (Optimizations)
+
+| Operation | Target | Implementation | FR |
+|-----------|--------|----------------|-----|
+| Preview render | <100ms | Incremental block cache | FR-018 |
+| Syntax check | <100ms | Rule-based validation | FR-086 |
+| Auto-complete | <50ms | Pre-built completion lists | FR-100 |
+| File open | <500ms | Async file loading | FR-071 |
+| Startup | <600ms | Lazy imports, deferred init | FR-068 |
+| GPU detect | <100ms | 24hr cache | FR-016 |
 
 ## Extension Points
 
@@ -400,6 +418,32 @@ tests/
 - LSP providers: 98-100%
 - Overall: >96%
 
+## FR-to-Architecture Mapping
+
+| Category | FRs | Architecture Component |
+|----------|-----|------------------------|
+| Core Editing | FR-001–FR-005 | `core/`, `ui/main_window.py` |
+| File Operations | FR-006–FR-014 | `core/file_operations.py`, `workers/pandoc_worker.py` |
+| Preview | FR-015–FR-020 | `ui/preview_handler*.py`, `workers/preview_worker.py` |
+| Export | FR-021–FR-025 | `workers/pandoc_worker.py`, `core/document_converter.py` |
+| Git Integration | FR-026–FR-033 | `workers/git_worker.py`, `ui/git_*.py` |
+| GitHub CLI | FR-034–FR-038 | `workers/github_cli_worker.py` |
+| AI/Ollama | FR-039–FR-044 | `workers/ollama_*.py`, `ui/chat_*.py` |
+| Find & Replace | FR-045–FR-049 | `core/search_engine.py`, `ui/find_bar_widget.py` |
+| Spell Check | FR-050–FR-054 | `core/spell_checker.py`, `ui/spell_check_manager.py` |
+| UI/UX | FR-055–FR-067 | `ui/*_manager.py` |
+| Performance | FR-068–FR-072 | `workers/parallel_block_renderer.py`, `core/lazy_importer.py` |
+| Security | FR-073–FR-077 | `core/secure_credentials.py`, `core/file_operations.py` |
+| Auto-Complete | FR-095–FR-100 | `ui/autocomplete_*.py`, `lsp/completion_provider.py` |
+| Syntax Check | FR-086–FR-094 | `core/syntax_checker.py`, `lsp/diagnostics_provider.py` |
+| Templates | FR-101–FR-108 | `core/template_*.py`, `ui/template_browser.py` |
+| LSP | FR-109 | `lsp/*.py` |
+
 ---
 
 *AsciiDoc Artisan v2.0.9 — MA Principle Architecture*
+
+**Related Documentation:**
+- [SPECIFICATIONS_AI.md](../SPECIFICATIONS_AI.md) — 109 FRs with acceptance criteria
+- [SPECIFICATIONS_HU.md](../SPECIFICATIONS_HU.md) — Human quick reference
+- [ROADMAP.md](../ROADMAP.md) — Release timeline
