@@ -12,13 +12,14 @@ Phase 4A.1: 25 tests for pandoc_worker.py coverage gaps
 """
 
 import subprocess
+import time
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 
 from asciidoc_artisan.core.constants import is_pandoc_available
-from asciidoc_artisan.workers.pandoc_worker import PandocWorker
+from asciidoc_artisan.workers.pandoc_worker import ConversionRequest, PandocWorker
 
 # ==============================================================================
 # Ollama AI Integration Tests (7 tests)
@@ -57,28 +58,28 @@ class TestPandocWorkerOllamaIntegration:
 
     def test_ollama_conversion_success_binary_output_path(self, worker, qtbot):
         """Test Ollama conversion path for binary formats (PDF/DOCX)."""
-        # This tests the code path at pandoc_worker.py:160-167
-        # where Ollama produces markup for binary formats
+        # This tests the code path where Ollama produces markup for binary formats
         mock_response = {"response": "= PDF Content\n\nThis will be converted to PDF by Pandoc."}
 
         mock_ollama = Mock()
         mock_ollama.generate.return_value = mock_response
 
         with patch.dict("sys.modules", {"ollama": mock_ollama}):
+            # Create ConversionRequest for binary output
+            request = ConversionRequest(
+                source="# Markdown",
+                to_format="pdf",
+                from_format="markdown",
+                context="test",
+                output_file=Path("/tmp/test.pdf"),
+                use_ai_conversion=True,
+            )
+
             # Call _try_ai_conversion_with_fallback to test binary output path
-            with patch(
-                "asciidoc_artisan.workers.pandoc_worker.time.perf_counter",
-                return_value=1.0,
-            ):
-                result, source, method = worker._try_ai_conversion_with_fallback(
-                    source="# Markdown",
-                    to_format="pdf",
-                    from_format="markdown",
-                    context="test",
-                    output_file=Path("/tmp/test.pdf"),
-                    start_time=1.0,
-                    use_ai_conversion=True,
-                )
+            result, source, method = worker._try_ai_conversion_with_fallback(
+                request,
+                time.perf_counter(),
+            )
 
             # Should return None for result (will continue to Pandoc)
             # But source should be updated to Ollama's result

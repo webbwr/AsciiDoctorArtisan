@@ -13,20 +13,16 @@ from asciidoc_artisan.workers import PandocWorker
 
 @pytest.fixture
 def mock_pypandoc():
-    """Fixture that mocks pypandoc in sys.modules."""
+    """Fixture that mocks pypandoc in pandoc_executor module.
+
+    Patches the pypandoc module at the correct location where it is imported.
+    """
     mock_module = Mock()
     mock_module.convert_text = Mock(return_value="# Converted")
     mock_module.convert_file = Mock(return_value="# Converted from file")
 
-    original = sys.modules.get("pypandoc")
-    sys.modules["pypandoc"] = mock_module
-
-    yield mock_module
-
-    if original is not None:
-        sys.modules["pypandoc"] = original
-    else:
-        sys.modules.pop("pypandoc", None)
+    with patch("asciidoc_artisan.workers.pandoc_executor.pypandoc", mock_module):
+        yield mock_module
 
 
 @pytest.mark.fr_070
@@ -591,135 +587,90 @@ class TestOllamaConversion:
 
         assert result is None  # Should return None when no model
 
+    @patch.dict(sys.modules, {"ollama": Mock()})
     def test_ollama_conversion_success(self):
         """Test successful Ollama conversion."""
-        # Mock ollama at import time inside the method
-        with patch("builtins.__import__") as mock_import:
+        mock_ollama = sys.modules["ollama"]
+        mock_ollama.generate = Mock(return_value={"response": "= Converted by AI\n\nTest content"})
 
-            def import_side_effect(name, *args, **kwargs):
-                if name == "ollama":
-                    mock_ollama = type("ollama", (), {})()
-                    mock_ollama.generate = lambda **kwargs: {"response": "= Converted by AI\n\nTest content"}
-                    return mock_ollama
-                return __import__(name, *args, **kwargs)
+        worker = PandocWorker()
+        worker.set_ollama_config(enabled=True, model="llama2")
 
-            mock_import.side_effect = import_side_effect
+        result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
 
-            worker = PandocWorker()
-            worker.ollama_enabled = True
-            worker.ollama_model = "llama2"
+        assert result is not None
+        assert "Converted by AI" in result
 
-            result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
-
-            assert result is not None
-            assert "Converted by AI" in result
-
+    @patch.dict(sys.modules, {"ollama": Mock()})
     def test_ollama_conversion_empty_response(self):
         """Test Ollama empty response handling."""
-        with patch("builtins.__import__") as mock_import:
+        mock_ollama = sys.modules["ollama"]
+        mock_ollama.generate = Mock(return_value={"response": ""})
 
-            def import_side_effect(name, *args, **kwargs):
-                if name == "ollama":
-                    mock_ollama = type("ollama", (), {})()
-                    mock_ollama.generate = lambda **kwargs: {"response": ""}
-                    return mock_ollama
-                return __import__(name, *args, **kwargs)
+        worker = PandocWorker()
+        worker.set_ollama_config(enabled=True, model="llama2")
 
-            mock_import.side_effect = import_side_effect
+        result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
 
-            worker = PandocWorker()
-            worker.ollama_enabled = True
-            worker.ollama_model = "llama2"
+        assert result is None  # Empty response should return None
 
-            result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
-
-            assert result is None  # Empty response should return None
-
+    @patch.dict(sys.modules, {"ollama": Mock()})
     def test_ollama_conversion_no_response_key(self):
         """Test Ollama response without 'response' key."""
-        with patch("builtins.__import__") as mock_import:
+        mock_ollama = sys.modules["ollama"]
+        mock_ollama.generate = Mock(return_value={"error": "something"})
 
-            def import_side_effect(name, *args, **kwargs):
-                if name == "ollama":
-                    mock_ollama = type("ollama", (), {})()
-                    mock_ollama.generate = lambda **kwargs: {"error": "something"}
-                    return mock_ollama
-                return __import__(name, *args, **kwargs)
+        worker = PandocWorker()
+        worker.set_ollama_config(enabled=True, model="llama2")
 
-            mock_import.side_effect = import_side_effect
+        result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
 
-            worker = PandocWorker()
-            worker.ollama_enabled = True
-            worker.ollama_model = "llama2"
+        assert result is None  # Missing 'response' key should return None
 
-            result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
-
-            assert result is None  # Missing 'response' key should return None
-
+    @patch.dict(sys.modules, {"ollama": Mock()})
     def test_ollama_conversion_insufficient_output(self):
         """Test Ollama response too short."""
-        with patch("builtins.__import__") as mock_import:
+        mock_ollama = sys.modules["ollama"]
+        mock_ollama.generate = Mock(return_value={"response": "abc"})  # < 10 chars
 
-            def import_side_effect(name, *args, **kwargs):
-                if name == "ollama":
-                    mock_ollama = type("ollama", (), {})()
-                    mock_ollama.generate = lambda **kwargs: {"response": "abc"}  # < 10 chars
-                    return mock_ollama
-                return __import__(name, *args, **kwargs)
+        worker = PandocWorker()
+        worker.set_ollama_config(enabled=True, model="llama2")
 
-            mock_import.side_effect = import_side_effect
+        result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
 
-            worker = PandocWorker()
-            worker.ollama_enabled = True
-            worker.ollama_model = "llama2"
+        assert result is None  # Too short output should return None
 
-            result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
-
-            assert result is None  # Too short output should return None
-
+    @patch.dict(sys.modules, {"ollama": Mock()})
     def test_ollama_conversion_timeout(self):
         """Test Ollama timeout handling."""
-        with patch("builtins.__import__") as mock_import:
+        mock_ollama = sys.modules["ollama"]
+        mock_ollama.generate = Mock(side_effect=Exception("Request timed out"))
 
-            def import_side_effect(name, *args, **kwargs):
-                if name == "ollama":
-                    mock_ollama = type("ollama", (), {})()
+        worker = PandocWorker()
+        worker.set_ollama_config(enabled=True, model="llama2")
 
-                    def raise_timeout(**kwargs):
-                        raise Exception("Request timed out")
+        result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
 
-                    mock_ollama.generate = raise_timeout
-                    return mock_ollama
-                return __import__(name, *args, **kwargs)
-
-            mock_import.side_effect = import_side_effect
-
-            worker = PandocWorker()
-            worker.ollama_enabled = True
-            worker.ollama_model = "llama2"
-
-            result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
-
-            assert result is None  # Timeout should return None
+        assert result is None  # Timeout should return None
 
     def test_ollama_import_error(self):
         """Test handling of Ollama import failure."""
-        with patch("builtins.__import__") as mock_import:
+        # Remove ollama from sys.modules to simulate import failure
+        original = sys.modules.get("ollama")
+        sys.modules["ollama"] = None  # type: ignore[assignment]
 
-            def import_side_effect(name, *args, **kwargs):
-                if name == "ollama":
-                    raise ImportError("No ollama")
-                return __import__(name, *args, **kwargs)
-
-            mock_import.side_effect = import_side_effect
-
+        try:
             worker = PandocWorker()
-            worker.ollama_enabled = True
-            worker.ollama_model = "llama2"
+            worker.set_ollama_config(enabled=True, model="llama2")
 
             result = worker._try_ollama_conversion("# Test", "markdown", "asciidoc")
 
             assert result is None  # Import error should return None
+        finally:
+            if original is not None:
+                sys.modules["ollama"] = original
+            elif "ollama" in sys.modules:
+                del sys.modules["ollama"]
 
 
 @pytest.mark.fr_070
