@@ -419,35 +419,7 @@ class TestHighlights:
 class TestContextMenu:
     """Test context menu functionality."""
 
-    @pytest.mark.skip(reason="QMenu.exec() blocks in test environment - requires manual testing")
-    def test_show_context_menu_with_suggestions(self, main_window):
-        """Test context menu shows suggestions for misspelled word."""
-        from PySide6.QtCore import QPoint
-        from PySide6.QtGui import QContextMenuEvent
-
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-
-        manager = SpellCheckManager(main_window)
-        manager.enabled = True
-
-        # Set up editor with misspelled word
-        main_window.editor.setPlainText("Helo world")
-        manager._perform_spell_check()
-
-        # Create mock context menu event
-        event = Mock(spec=QContextMenuEvent)
-        event.pos.return_value = QPoint(0, 0)
-        event.globalPos.return_value = QPoint(100, 100)
-
-        # Mock cursor to select "Helo"
-        with patch.object(main_window.editor, "cursorForPosition") as mock_cursor_for_pos:
-            mock_cursor = Mock()
-            mock_cursor.selectedText.return_value = "Helo"
-            mock_cursor.selectionStart.return_value = 0
-            mock_cursor_for_pos.return_value = mock_cursor
-
-            # Should not crash or hang
-            manager.show_context_menu(event)
+    # NOTE: test_show_context_menu_with_suggestions removed - QMenu.exec() blocks in test environment
 
     def test_show_default_menu_when_disabled(self, main_window):
         """Test default context menu shown when spell check disabled."""
@@ -843,52 +815,8 @@ class TestHighlightRenderingEdgeCases:
 class TestContextMenuEdgeCases:
     """Test context menu edge cases."""
 
-    @pytest.mark.skip(reason="QMenu.exec() blocks in test environment - requires manual testing")
-    def test_context_menu_with_no_suggestions(self, main_window):
-        """Test context menu when word has no suggestions."""
-        from PySide6.QtCore import QPoint
-        from PySide6.QtGui import QContextMenuEvent
-
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-
-        manager = SpellCheckManager(main_window)
-        manager.enabled = True
-
-        main_window.editor.setPlainText("xyzabc")
-
-        event = Mock(spec=QContextMenuEvent)
-        event.pos.return_value = QPoint(0, 0)
-        event.globalPos.return_value = QPoint(100, 100)
-
-        # Should not crash even with no suggestions
-        with patch.object(main_window.editor, "cursorForPosition") as mock_cursor_for_pos:
-            mock_cursor = Mock()
-            mock_cursor.selectedText.return_value = "xyzabc"
-            mock_cursor.selectionStart.return_value = 0
-            mock_cursor_for_pos.return_value = mock_cursor
-
-            manager.show_context_menu(event)
-
-    @pytest.mark.skip(reason="QMenu.exec() blocks in test environment - requires manual testing")
-    def test_context_menu_at_document_start(self, main_window):
-        """Test context menu at start of document."""
-        from PySide6.QtCore import QPoint
-        from PySide6.QtGui import QContextMenuEvent
-
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-
-        manager = SpellCheckManager(main_window)
-        manager.enabled = True
-
-        main_window.editor.setPlainText("Helo world")
-
-        event = Mock(spec=QContextMenuEvent)
-        event.pos.return_value = QPoint(0, 0)
-        event.globalPos.return_value = QPoint(0, 0)
-
-        # Should not crash
-        with patch.object(main_window.editor, "cursorForPosition"):
-            manager.show_context_menu(event)
+    # NOTE: test_context_menu_with_no_suggestions removed - QMenu.exec() blocks in test environment
+    # NOTE: test_context_menu_at_document_start removed - QMenu.exec() blocks in test environment
 
     def test_context_menu_with_empty_text(self, main_window):
         """Test context menu with empty editor."""
@@ -1378,103 +1306,8 @@ class TestMenuTextUpdate:
 class TestContextMenuWithMockedExec:
     """Test context menu functionality with mocked QMenu.exec()."""
 
-    @pytest.mark.skip(reason="QAction requires QObject parent, mocking breaks type validation")
-    def test_show_context_menu_with_suggestions_mocked(self, main_window):
-        """Test context menu creates suggestions with mocked exec()."""
-        from PySide6.QtCore import QPoint
-        from PySide6.QtGui import QContextMenuEvent
-
-        from asciidoc_artisan.core.spell_checker import SpellError
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-
-        manager = SpellCheckManager(main_window)
-        manager.enabled = True
-
-        # Set up editor with misspelled word
-        main_window.editor.setPlainText("Helo world")
-
-        # Create error for "Helo"
-        manager.errors = [
-            SpellError(
-                word="Helo",
-                start=0,
-                end=4,
-                suggestions=["Hello", "Help", "Hero"],
-                line=1,
-                column=0,
-            )
-        ]
-
-        # Create mock event
-        event = Mock(spec=QContextMenuEvent)
-        event.pos.return_value = QPoint(10, 10)
-        event.globalPos.return_value = QPoint(100, 100)
-
-        # Mock cursor to select "Helo"
-        mock_cursor = Mock()
-        mock_cursor.selectedText.return_value = "Helo"
-        mock_cursor.selectionStart.return_value = 0
-
-        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
-            with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
-                mock_menu = Mock()
-                MockQMenu.return_value = mock_menu
-
-                # Call show_context_menu
-                manager.show_context_menu(event)
-
-                # Verify menu was created
-                MockQMenu.assert_called_once()
-
-                # Verify actions were added
-                assert mock_menu.addAction.call_count >= 5  # 3 suggestions + 2 actions
-                mock_menu.addSeparator.assert_called()
-
-                # Verify exec was called
-                mock_menu.exec.assert_called_once()
-
-    @pytest.mark.skip(reason="QAction requires QObject parent, mocking breaks type validation")
-    def test_show_context_menu_no_suggestions_mocked(self, main_window):
-        """Test context menu with no suggestions shows '(no suggestions)'."""
-        from PySide6.QtCore import QPoint
-        from PySide6.QtGui import QContextMenuEvent
-
-        from asciidoc_artisan.core.spell_checker import SpellError
-        from asciidoc_artisan.ui.spell_check_manager import SpellCheckManager
-
-        manager = SpellCheckManager(main_window)
-        manager.enabled = True
-
-        # Set up editor with misspelled word
-        main_window.editor.setPlainText("xyzabc test")
-
-        # Create error with no suggestions
-        manager.errors = [SpellError(word="xyzabc", start=0, end=6, suggestions=[], line=1, column=0)]
-
-        # Create mock event
-        event = Mock(spec=QContextMenuEvent)
-        event.pos.return_value = QPoint(10, 10)
-        event.globalPos.return_value = QPoint(100, 100)
-
-        # Mock cursor to select "xyzabc"
-        mock_cursor = Mock()
-        mock_cursor.selectedText.return_value = "xyzabc"
-        mock_cursor.selectionStart.return_value = 0
-
-        with patch.object(main_window.editor, "cursorForPosition", return_value=mock_cursor):
-            with patch("asciidoc_artisan.ui.spell_check_manager.QMenu") as MockQMenu:
-                mock_menu = Mock()
-                MockQMenu.return_value = mock_menu
-
-                # Call show_context_menu
-                manager.show_context_menu(event)
-
-                # Verify menu was created
-                MockQMenu.assert_called_once()
-
-                # Verify actions were added
-                assert mock_menu.addAction.call_count >= 3  # no suggestions + 2 actions
-                mock_menu.exec.assert_called_once()
+    # NOTE: test_show_context_menu_with_suggestions_mocked removed - QAction type validation issue
+    # NOTE: test_show_context_menu_no_suggestions_mocked removed - QAction type validation issue
 
     def test_show_context_menu_no_word_under_cursor(self, main_window):
         """Test context menu with no word shows default menu."""

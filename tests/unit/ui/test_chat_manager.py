@@ -176,7 +176,7 @@ class TestModelLoading:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
 
-        with patch.object(manager, "_load_ollama_models") as mock_load:
+        with patch.object(manager._model_manager, "_load_ollama_models") as mock_load:
             manager._load_available_models()
 
         mock_load.assert_called_once()
@@ -186,7 +186,7 @@ class TestModelLoading:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
 
-        with patch.object(manager, "_load_claude_models") as mock_load:
+        with patch.object(manager._model_manager, "_load_claude_models") as mock_load:
             manager._load_available_models()
 
         mock_load.assert_called_once()
@@ -198,7 +198,7 @@ class TestModelLoading:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0, stdout="NAME\nqwen2.5-coder:7b\ndeepseek-coder\n")
 
-            manager._load_ollama_models()
+            manager._model_manager._load_ollama_models()
 
         # Should load detected models
         mock_chat_bar.set_models.assert_called_once()
@@ -211,7 +211,7 @@ class TestModelLoading:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         with patch("subprocess.run", side_effect=FileNotFoundError):
-            manager._load_ollama_models()
+            manager._model_manager._load_ollama_models()
 
         # Should fall back to default models
         mock_chat_bar.set_models.assert_called_once()
@@ -223,7 +223,7 @@ class TestModelLoading:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("ollama", 3)):
-            manager._load_ollama_models()
+            manager._model_manager._load_ollama_models()
 
         # Should fall back to defaults
         mock_chat_bar.set_models.assert_called_once()
@@ -239,7 +239,7 @@ class TestModelLoading:
                 "claude-haiku-3-20250307",
             ]
 
-            manager._load_claude_models()
+            manager._model_manager._load_claude_models()
 
         # Should load Claude models
         mock_chat_bar.set_models.assert_called_once()
@@ -395,7 +395,7 @@ class TestVisibilityManagement:
         mock_settings.ollama_model = "qwen2.5-coder:7b"
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        result = manager._should_show_chat()
+        result = manager._backend_controller.should_show_chat()
 
         assert result is True
 
@@ -405,7 +405,7 @@ class TestVisibilityManagement:
         mock_settings.ollama_chat_enabled = False
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        result = manager._should_show_chat()
+        result = manager._backend_controller.should_show_chat()
 
         assert result is False
 
@@ -414,7 +414,7 @@ class TestVisibilityManagement:
         mock_settings.ollama_model = None
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        result = manager._should_show_chat()
+        result = manager._backend_controller.should_show_chat()
 
         assert result is False
 
@@ -433,10 +433,10 @@ class TestVisibilityManagement:
         manager.setParent(None)  # Clear Qt parent
         manager._parent = mock_parent  # Use internal reference
 
-        with patch.object(manager, "_should_show_chat", return_value=True):
+        with patch.object(manager._backend_controller, "should_show_chat", return_value=True):
             with patch.object(manager, "parent", return_value=mock_parent):
                 with qtbot.waitSignal(manager.visibility_changed, timeout=1000):
-                    manager._update_visibility()
+                    manager._backend_controller.update_visibility()
 
         # Should set chat_container visible
         mock_parent.chat_container.setVisible.assert_called_with(True)
@@ -456,10 +456,10 @@ class TestVisibilityManagement:
         manager.setParent(None)  # Clear Qt parent
         manager._parent = mock_parent  # Use internal reference
 
-        with patch.object(manager, "_should_show_chat", return_value=False):
+        with patch.object(manager._backend_controller, "should_show_chat", return_value=False):
             with patch.object(manager, "parent", return_value=mock_parent):
                 with qtbot.waitSignal(manager.visibility_changed, timeout=1000):
-                    manager._update_visibility()
+                    manager._backend_controller.update_visibility()
 
         # Should set chat_container hidden
         mock_parent.chat_container.setVisible.assert_called_with(False)
@@ -502,8 +502,8 @@ class TestSignalHandlers:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
 
-        # Mock successful validation
-        with patch.object(manager, "_validate_model", return_value=True):
+        # Mock successful validation on model_manager
+        with patch.object(manager._model_manager, "validate_model", return_value=True):
             with qtbot.waitSignal(manager.settings_changed, timeout=1000):
                 manager._on_model_changed("new-model")
 
@@ -514,8 +514,8 @@ class TestSignalHandlers:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
 
-        # Mock successful validation
-        with patch.object(manager, "_validate_model", return_value=True):
+        # Mock successful validation on model_manager
+        with patch.object(manager._model_manager, "validate_model", return_value=True):
             with qtbot.waitSignal(manager.settings_changed, timeout=1000):
                 manager._on_model_changed("claude-haiku-3-20250307")
 
@@ -574,7 +574,7 @@ class TestSettingsUpdate:
         new_settings.claude_model = "claude-sonnet-4-20250514"
 
         with patch.object(manager, "_load_available_models"):
-            with patch.object(manager, "_update_visibility"):
+            with patch.object(manager._backend_controller, "update_visibility"):
                 manager.update_settings(new_settings)
 
         assert manager._settings is new_settings
@@ -866,7 +866,7 @@ class TestTogglePanelVisibility:
         mock_parent.chat_container.isVisible.return_value = False
 
         with patch.object(manager, "parent", return_value=mock_parent):
-            with patch.object(manager, "_update_visibility"):
+            with patch.object(manager._backend_controller, "update_visibility"):
                 with qtbot.waitSignal(manager.settings_changed, timeout=1000):
                     manager.toggle_panel_visibility()
 
@@ -883,7 +883,7 @@ class TestTogglePanelVisibility:
         mock_parent.chat_container.isVisible.return_value = True
 
         with patch.object(manager, "parent", return_value=mock_parent):
-            with patch.object(manager, "_update_visibility"):
+            with patch.object(manager._backend_controller, "update_visibility"):
                 with qtbot.waitSignal(manager.settings_changed, timeout=1000):
                     manager.toggle_panel_visibility()
 
@@ -923,8 +923,8 @@ class TestInitializeEdgeCases:
 
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        with patch.object(manager, "_switch_backend") as mock_switch:
-            with patch.object(manager, "_update_visibility"):
+        with patch.object(manager._backend_controller, "switch_backend") as mock_switch:
+            with patch.object(manager._backend_controller, "update_visibility"):
                 manager.initialize()
 
         # Should switch to Claude
@@ -939,7 +939,7 @@ class TestInitializeEdgeCases:
 
         with patch.object(manager, "_load_available_models"):
             with patch.object(manager, "_load_chat_history"):
-                with patch.object(manager, "_update_visibility"):
+                with patch.object(manager._backend_controller, "update_visibility"):
                     with patch("asciidoc_artisan.core.SecureCredentials") as mock_creds_class:
                         mock_creds = Mock()
                         mock_creds.has_anthropic_key.return_value = False
@@ -962,8 +962,8 @@ class TestOllamaModelLoadingEdgeCases:
             # Ollama running but no models (just header line)
             mock_run.return_value = Mock(returncode=0, stdout="NAME\n")
 
-            with patch.object(manager, "_auto_download_default_model") as mock_download:
-                manager._load_ollama_models()
+            with patch.object(manager._model_manager, "_auto_download_default_model") as mock_download:
+                manager._model_manager._load_ollama_models()
 
             # Should trigger auto-download
             mock_download.assert_called_once()
@@ -973,7 +973,7 @@ class TestOllamaModelLoadingEdgeCases:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         with patch("subprocess.run", side_effect=RuntimeError("Unknown error")):
-            manager._load_ollama_models()
+            manager._model_manager._load_ollama_models()
 
         # Should fall back to default models
         mock_chat_bar.set_models.assert_called_once()
@@ -997,7 +997,7 @@ class TestClaudeModelLoadingEdgeCases:
             mock_client_class.AVAILABLE_MODELS = ["claude-sonnet-4-20250514"]
 
             with qtbot.waitSignal(manager.status_message, timeout=1000) as blocker:
-                manager._load_claude_models()
+                manager._model_manager._load_claude_models()
 
             # Should show models available message
             assert "available" in blocker.args[0].lower()
@@ -1010,7 +1010,7 @@ class TestClaudeModelLoadingEdgeCases:
         with patch("asciidoc_artisan.claude.ClaudeClient") as mock_client_class:
             mock_client_class.AVAILABLE_MODELS.copy.side_effect = ImportError("Module not found")
             with patch("asciidoc_artisan.core.SecureCredentials"):
-                manager._load_claude_models()
+                manager._model_manager._load_claude_models()
 
         # Should fall back to defaults
         mock_chat_bar.set_models.assert_called_once()
@@ -1025,7 +1025,7 @@ class TestClaudeModelLoadingEdgeCases:
         with patch("asciidoc_artisan.claude.ClaudeClient") as mock_client_class:
             mock_client_class.AVAILABLE_MODELS = ["claude-sonnet-4-20250514"]
             with patch("asciidoc_artisan.core.SecureCredentials"):
-                manager._load_claude_models()
+                manager._model_manager._load_claude_models()
 
         # Should add current model to list
         models = mock_chat_bar.set_models.call_args[0][0]
@@ -1168,8 +1168,8 @@ class TestShouldShowChatEdgeCases:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "ollama"
 
-        with patch.object(manager, "_switch_backend") as mock_switch:
-            result = manager._should_show_chat()
+        with patch.object(manager._backend_controller, "switch_backend") as mock_switch:
+            result = manager._backend_controller.should_show_chat()
 
         # Should auto-switch
         mock_switch.assert_called_once_with("claude")
@@ -1188,7 +1188,7 @@ class TestShouldShowChatEdgeCases:
             mock_creds.has_anthropic_key.return_value = True
             mock_creds_class.return_value = mock_creds
 
-            result = manager._should_show_chat()
+            result = manager._backend_controller.should_show_chat()
 
         assert result is True
 
@@ -1200,7 +1200,7 @@ class TestShouldShowChatEdgeCases:
         manager._current_backend = "unknown"
 
         with patch("asciidoc_artisan.core.SecureCredentials"):
-            result = manager._should_show_chat()
+            result = manager._backend_controller.should_show_chat()
 
         assert result is False
 
@@ -1221,10 +1221,10 @@ class TestUpdateVisibilityEdgeCases:
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
         manager._current_backend = "claude"
 
-        with patch.object(manager, "_should_show_chat", return_value=True):
+        with patch.object(manager._backend_controller, "should_show_chat", return_value=True):
             with patch.object(manager, "parent", return_value=None):
                 # Should not crash
-                manager._update_visibility()
+                manager._backend_controller.update_visibility()
 
     def test_update_visibility_show_chat_handles_runtime_error(
         self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot
@@ -1241,10 +1241,10 @@ class TestUpdateVisibilityEdgeCases:
         # Make width() raise RuntimeError (simulating deleted widget)
         mock_parent.width.side_effect = RuntimeError("C++ object deleted")
 
-        with patch.object(manager, "_should_show_chat", return_value=True):
+        with patch.object(manager._backend_controller, "should_show_chat", return_value=True):
             with patch.object(manager, "parent", return_value=mock_parent):
                 # Should not crash
-                manager._update_visibility()
+                manager._backend_controller.update_visibility()
 
 
 class TestUpdateSettingsEdgeCases:
@@ -1268,7 +1268,7 @@ class TestUpdateSettingsEdgeCases:
         new_settings.ollama_chat_context_mode = "syntax"
 
         with patch.object(manager, "_switch_backend") as mock_switch:
-            with patch.object(manager, "_update_visibility"):
+            with patch.object(manager._backend_controller, "update_visibility"):
                 manager.update_settings(new_settings)
 
         # Should switch backend
@@ -1293,7 +1293,7 @@ class TestUpdateSettingsEdgeCases:
         new_settings.ollama_chat_context_mode = "syntax"
 
         with patch.object(manager, "_load_available_models") as mock_load:
-            with patch.object(manager, "_update_visibility"):
+            with patch.object(manager._backend_controller, "update_visibility"):
                 manager.update_settings(new_settings)
 
         # Should reload models
@@ -1319,7 +1319,7 @@ class TestUpdateSettingsEdgeCases:
             mock_creds_class.return_value = mock_creds
 
             with patch.object(manager, "_load_available_models"):
-                with patch.object(manager, "_update_visibility"):
+                with patch.object(manager._backend_controller, "update_visibility"):
                     manager.update_settings(new_settings)
 
         # Should set Claude model

@@ -39,7 +39,7 @@ class TestStatusManager:
 
         manager = StatusManager(main_window)
         # Mock QMessageBox to prevent blocking on exec()
-        with patch("asciidoc_artisan.ui.status_manager.QMessageBox") as mock_msgbox:
+        with patch("asciidoc_artisan.ui.user_message_handler.QMessageBox") as mock_msgbox:
             # show_message signature: (level, title, text) from status_manager.py:123
             manager.show_message("info", "Test Title", "Test message")
             # Verify QMessageBox was created but don't let it block
@@ -179,7 +179,8 @@ class TestStatusManager:
         # Set document text (word count includes "=" as a word)
         main_window.editor.setPlainText(":version: 2.0.0\n\n= Document\n\nThis has five words.")
 
-        manager.update_document_metrics()
+        # Call _do_update_document_metrics directly to bypass debounce timer
+        manager._do_update_document_metrics()
 
         # Check version was extracted
         assert "2.0.0" in manager.version_label.text()
@@ -521,7 +522,7 @@ class TestStatusManagerCoverageEdgeCases:
         main_window.save_file = Mock(return_value=True)
 
         # Mock QMessageBox to return Save button
-        with patch("asciidoc_artisan.ui.status_manager.QMessageBox.question") as mock_q:
+        with patch("asciidoc_artisan.ui.user_message_handler.QMessageBox.question") as mock_q:
             mock_q.return_value = QMessageBox.StandardButton.Save
 
             # Unset pytest environment to allow prompt
@@ -541,7 +542,7 @@ class TestStatusManagerCoverageEdgeCases:
         main_window._unsaved_changes = True
 
         # Mock QMessageBox to return Discard button
-        with patch("asciidoc_artisan.ui.status_manager.QMessageBox.question") as mock_q:
+        with patch("asciidoc_artisan.ui.user_message_handler.QMessageBox.question") as mock_q:
             mock_q.return_value = QMessageBox.StandardButton.Discard
 
             # Unset pytest environment to allow prompt
@@ -560,7 +561,7 @@ class TestStatusManagerCoverageEdgeCases:
         main_window._unsaved_changes = True
 
         # Mock QMessageBox to return Cancel button
-        with patch("asciidoc_artisan.ui.status_manager.QMessageBox.question") as mock_q:
+        with patch("asciidoc_artisan.ui.user_message_handler.QMessageBox.question") as mock_q:
             mock_q.return_value = QMessageBox.StandardButton.Cancel
 
             # Unset pytest environment to allow prompt
@@ -728,7 +729,8 @@ class TestGradeLevelBranching:
         )
 
         main_window.editor.setPlainText(text)
-        manager.update_document_metrics()
+        # Call _do_update_document_metrics directly to bypass debounce timer
+        manager._do_update_document_metrics()
 
         # Verify tooltip contains middle school indicators
         tooltip = manager.grade_level_label.toolTip()
@@ -752,7 +754,8 @@ class TestGradeLevelBranching:
         )
 
         main_window.editor.setPlainText(text)
-        manager.update_document_metrics()
+        # Call _do_update_document_metrics directly to bypass debounce timer
+        manager._do_update_document_metrics()
 
         # Verify tooltip contains high school indicators
         tooltip = manager.grade_level_label.toolTip()
@@ -776,7 +779,8 @@ class TestGradeLevelBranching:
         )
 
         main_window.editor.setPlainText(text)
-        manager.update_document_metrics()
+        # Call _do_update_document_metrics directly to bypass debounce timer
+        manager._do_update_document_metrics()
 
         # Verify tooltip contains college indicators
         tooltip = manager.grade_level_label.toolTip()
@@ -803,7 +807,8 @@ class TestGradeLevelBranching:
         )
 
         main_window.editor.setPlainText(text)
-        manager.update_document_metrics()
+        # Call _do_update_document_metrics directly to bypass debounce timer
+        manager._do_update_document_metrics()
 
         # Verify tooltip contains graduate indicators
         tooltip = manager.grade_level_label.toolTip()
@@ -846,7 +851,8 @@ class TestAdditionalCoverage:
         text = "This is a document without version information."
         main_window.editor.setPlainText(text)
 
-        manager.update_document_metrics()
+        # Call _do_update_document_metrics directly to bypass debounce timer
+        manager._do_update_document_metrics()
 
         # Version label should show "None" (line 332 triggered)
         assert manager.version_label.text() == "None"

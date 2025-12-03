@@ -7,7 +7,7 @@ Tests the OllamaChatWorker class which handles background AI chat processing.
 import time
 
 import pytest
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, QThread
 
 from asciidoc_artisan.core.models import ChatMessage
 from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
@@ -15,11 +15,30 @@ from asciidoc_artisan.workers.ollama_chat_worker import OllamaChatWorker
 
 @pytest.fixture
 def chat_worker():
-    """Create a chat worker for testing."""
+    """Create a chat worker for testing (non-threaded, for unit tests)."""
     worker = OllamaChatWorker()
     yield worker
     # Cleanup - OllamaChatWorker is QObject-based, no thread management needed in fixture
     # Thread lifecycle is managed by the application's worker manager
+
+
+@pytest.fixture
+def threaded_chat_worker(qtbot):
+    """Create a chat worker on a background thread (for integration tests)."""
+    worker = OllamaChatWorker()
+    thread = QThread()
+    worker.moveToThread(thread)
+    thread.start()
+
+    # Wait for thread to start
+    qtbot.wait(100)
+
+    yield worker
+
+    # Cleanup
+    thread.quit()
+    thread.wait(5000)
+    worker.deleteLater()
 
 
 @pytest.fixture
@@ -211,39 +230,57 @@ class TestOllamaChatWorkerErrorHandling:
 
 @pytest.mark.integration
 class TestOllamaChatWorkerIntegration:
-    """Integration tests requiring Ollama."""
+    """Integration tests requiring Ollama service running.
 
-    @pytest.mark.skip(reason="Requires Ollama installation")
-    def test_actual_chat_response(self, chat_worker):
-        """Test actual chat with Ollama (requires installation)."""
-        response_received = False
+    Run with: pytest -m live_api tests/test_ollama_chat_worker.py
+
+    These tests use threaded_chat_worker fixture which moves the worker
+    to a background thread, simulating production usage.
+    """
+
+    @pytest.mark.live_api
+    def test_actual_chat_response(self, threaded_chat_worker, qtbot):
+        """Test actual chat with Ollama (requires Ollama service running)."""
+        response_received = []
 
         def on_response(message):
-            nonlocal response_received
-            response_received = True
-            assert isinstance(message, ChatMessage)
-            assert message.role == "assistant"
-            assert len(message.content) > 0
+            response_received.append(message)
 
-        chat_worker.chat_response_ready.connect(on_response)
-        chat_worker.send_message("Hello", "gnokit/improve-grammer", "general", [])
+        threaded_chat_worker.chat_response_ready.connect(on_response)
 
-        # Wait for response (with timeout)
-        chat_worker.wait(10000)  # 10 second timeout
-        assert response_received
+        # Set up waitSignal BEFORE sending message to avoid race condition
+        with qtbot.waitSignal(threaded_chat_worker.chat_response_ready, timeout=60000):
+            # Use phi3:latest as default model (commonly available)
+            # Qt will queue this call to the worker's thread
+            threaded_chat_worker.send_message("Hello", "phi3:latest", "general", [])
 
-    @pytest.mark.skip(reason="Requires Ollama installation")
-    def test_streaming_response(self, chat_worker):
-        """Test streaming responses (requires installation)."""
+        assert len(response_received) > 0
+        message = response_received[0]
+        assert isinstance(message, ChatMessage)
+        assert message.role == "assistant"
+        assert len(message.content) > 0
+
+    @pytest.mark.live_api
+    @pytest.mark.skip(reason="Streaming not yet implemented in OllamaChatWorker - signal defined but not emitted")
+    def test_streaming_response(self, threaded_chat_worker, qtbot):
+        """Test streaming responses (requires Ollama service running).
+
+        NOTE: This test is skipped because streaming is not yet implemented.
+        The chat_response_chunk signal is defined but the current implementation
+        uses non-streaming API calls. When streaming is implemented, enable this test.
+        """
         chunks_received = []
 
         def on_chunk(chunk):
             chunks_received.append(chunk)
 
-        chat_worker.chat_response_chunk.connect(on_chunk)
-        chat_worker.send_message("Tell me a story", "gnokit/improve-grammer", "general", [])
+        threaded_chat_worker.chat_response_chunk.connect(on_chunk)
 
-        chat_worker.wait(15000)  # 15 second timeout
+        # Set up waitSignal BEFORE sending message to avoid race condition
+        with qtbot.waitSignal(threaded_chat_worker.chat_response_ready, timeout=60000):
+            # Use phi3:latest as default model
+            threaded_chat_worker.send_message("Tell me a story", "phi3:latest", "general", [])
+
         assert len(chunks_received) > 0
 
 

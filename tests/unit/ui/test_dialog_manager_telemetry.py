@@ -59,7 +59,7 @@ class TestTelemetryFileOpening:
         telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
 
         # Execute
-        manager._open_telemetry_file(telemetry_file)
+        manager._telemetry_handler._open_telemetry_file(telemetry_file)
 
         # Verify
         mock_run.assert_called_once_with(
@@ -81,7 +81,7 @@ class TestTelemetryFileOpening:
         telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
 
         # Execute
-        manager._open_telemetry_file(telemetry_file)
+        manager._telemetry_handler._open_telemetry_file(telemetry_file)
 
         # Verify
         mock_run.assert_called_once_with(
@@ -110,7 +110,7 @@ class TestTelemetryFileOpening:
         telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
 
         # Execute
-        manager._open_telemetry_file(telemetry_file)
+        manager._telemetry_handler._open_telemetry_file(telemetry_file)
 
         # Verify xdg-open was called
         mock_run.assert_called_with(
@@ -148,7 +148,7 @@ class TestTelemetryFileOpening:
         telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
 
         # Execute
-        manager._open_telemetry_file(telemetry_file)
+        manager._telemetry_handler._open_telemetry_file(telemetry_file)
 
         # Verify wslpath was called
         assert any(call[0][0][0] == "wslpath" for call in mock_run.call_args_list), (
@@ -173,7 +173,7 @@ class TestTelemetryFileOpening:
         telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
 
         # Execute
-        manager._open_telemetry_file(telemetry_file)
+        manager._telemetry_handler._open_telemetry_file(telemetry_file)
 
         # Verify fallback to less was attempted
         assert mock_run.call_count >= 2, "Should attempt xdg-open then fallback"
@@ -190,7 +190,7 @@ class TestTelemetryFileOpening:
         telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
 
         # Execute
-        manager._open_telemetry_file(telemetry_file)
+        manager._telemetry_handler._open_telemetry_file(telemetry_file)
 
         # Verify error message shown
         mock_warning.assert_called_once()
@@ -209,7 +209,7 @@ class TestTelemetryFileOpening:
         telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
 
         # Execute
-        manager._open_telemetry_file(telemetry_file)
+        manager._telemetry_handler._open_telemetry_file(telemetry_file)
 
         # Verify error message shown
         mock_warning.assert_called_once()
@@ -240,7 +240,7 @@ class TestTelemetryDirectoryChange:
         mock_msg_box.done = Mock()
 
         # Execute
-        manager._change_telemetry_directory(old_file, tmp_path / "old", mock_msg_box, new_dir)
+        manager._telemetry_handler._change_telemetry_directory(old_file, tmp_path / "old", mock_msg_box, new_dir)
 
         # Verify
         assert new_dir.exists(), "New directory should be created"
@@ -261,7 +261,7 @@ class TestTelemetryDirectoryChange:
         mock_msg_box.done = Mock()
 
         # Execute - no existing file
-        manager._change_telemetry_directory(None, tmp_path / "old", mock_msg_box, new_dir)
+        manager._telemetry_handler._change_telemetry_directory(None, tmp_path / "old", mock_msg_box, new_dir)
 
         # Verify
         assert new_dir.exists(), "New directory should be created"
@@ -281,7 +281,7 @@ class TestTelemetryDirectoryChange:
 
         # Execute with invalid path (should raise exception)
         invalid_dir = Path("/invalid/readonly/path/that/cannot/be/created")
-        manager._change_telemetry_directory(old_file, tmp_path / "old", mock_msg_box, invalid_dir)
+        manager._telemetry_handler._change_telemetry_directory(old_file, tmp_path / "old", mock_msg_box, invalid_dir)
 
         # Verify error handling
         mock_critical.assert_called_once()
@@ -301,7 +301,7 @@ class TestTelemetryDirectoryChange:
         mock_msg_box.done = Mock()
 
         # Execute
-        manager._change_telemetry_directory(None, tmp_path / "old", mock_msg_box, new_dir)
+        manager._telemetry_handler._change_telemetry_directory(None, tmp_path / "old", mock_msg_box, new_dir)
 
         # Verify telemetry_collector was updated
         assert mock_telemetry_window.telemetry_collector.data_dir == new_dir

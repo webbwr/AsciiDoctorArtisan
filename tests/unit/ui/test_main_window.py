@@ -303,32 +303,7 @@ class TestKeyboardShortcuts:
 class TestCleanup:
     """Test suite for cleanup and shutdown."""
 
-    @pytest.mark.skip(reason="Complex async worker cleanup - better tested in integration tests")
-    def test_closeEvent_stops_workers(self, mock_workers, qapp):
-        from PySide6.QtGui import QCloseEvent
-
-        from asciidoc_artisan.ui.main_window import AsciiDocEditor
-
-        # Patch setup_workers_and_threads to prevent worker initialization
-        with patch("asciidoc_artisan.ui.worker_manager.WorkerManager.setup_workers_and_threads"):
-            window = AsciiDocEditor()
-
-            try:
-                # Mock worker_manager methods
-                if hasattr(window, "worker_manager"):
-                    window.worker_manager.cleanup_workers = Mock()
-                    window.worker_manager.shutdown = Mock()
-
-                # Trigger close event
-                event = QCloseEvent()
-                with patch.object(event, "accept"):
-                    window.closeEvent(event)
-
-                # Verify close event handler exists (basic functionality test)
-                assert hasattr(window, "closeEvent")
-            finally:
-                # Process any pending events
-                qapp.processEvents()
+    # NOTE: test_closeEvent_stops_workers removed - complex async worker cleanup, better tested in E2E
 
     def test_has_closeEvent_handler(self, mock_workers, qapp):
         from asciidoc_artisan.ui.main_window import AsciiDocEditor
@@ -361,7 +336,7 @@ class TestHandleSearchRequested:
         window.find_bar.clear_not_found_style = Mock()
 
         # Trigger search
-        window._handle_search_requested("test", case_sensitive=False)
+        window.search_handler.handle_search_requested("test", case_sensitive=False)
 
         # Verify match count was updated (should find 3 matches)
         window.find_bar.update_match_count.assert_called()
@@ -380,7 +355,7 @@ class TestHandleSearchRequested:
         window.find_bar.set_not_found_style = Mock()
 
         # Trigger search for non-existent text
-        window._handle_search_requested("xyz", case_sensitive=False)
+        window.search_handler.handle_search_requested("xyz", case_sensitive=False)
 
         # Verify no matches found
         window.find_bar.update_match_count.assert_called_with(0, 0)
@@ -397,7 +372,7 @@ class TestHandleSearchRequested:
         window.find_bar.update_match_count = Mock()
 
         # Trigger search with empty text
-        window._handle_search_requested("", case_sensitive=False)
+        window.search_handler.handle_search_requested("", case_sensitive=False)
 
         # Verify match count cleared
         window.find_bar.update_match_count.assert_called_with(0, 0)
@@ -413,7 +388,7 @@ class TestHandleSearchRequested:
         window.find_bar.update_match_count = Mock()
 
         # Trigger case-sensitive search for "test"
-        window._handle_search_requested("test", case_sensitive=True)
+        window.search_handler.handle_search_requested("test", case_sensitive=True)
 
         # Should find only 1 match (not "Test" or "TEST")
         call_args = window.find_bar.update_match_count.call_args[0]
@@ -430,7 +405,7 @@ class TestHandleSearchRequested:
         window.find_bar.update_match_count = Mock()
 
         # Trigger case-insensitive search for "test"
-        window._handle_search_requested("test", case_sensitive=False)
+        window.search_handler.handle_search_requested("test", case_sensitive=False)
 
         # Should find all 3 matches
         call_args = window.find_bar.update_match_count.call_args[0]
@@ -447,7 +422,7 @@ class TestHandleSearchRequested:
         window.find_bar.update_match_count = Mock()
 
         # Trigger search
-        window._handle_search_requested("foo", case_sensitive=False)
+        window.search_handler.handle_search_requested("foo", case_sensitive=False)
 
         # Verify search selections were created
         assert hasattr(window.editor, "search_selections")
@@ -467,7 +442,7 @@ class TestHandleSearchRequested:
         window.search_engine.find_all = Mock(side_effect=Exception("Search error"))
 
         # Trigger search - should not crash
-        window._handle_search_requested("test", case_sensitive=False)
+        window.search_handler.handle_search_requested("test", case_sensitive=False)
 
         # Should update match count to 0
         window.find_bar.update_match_count.assert_called_with(0, 0)
@@ -497,7 +472,7 @@ class TestHandleReplaceAll:
 
         # Mock QMessageBox.question to return Yes
         with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
-            window._handle_replace_all("baz")
+            window.search_handler.handle_replace_all("baz")
 
         # Verify text was replaced
         assert window.editor.toPlainText() == "baz bar baz"
@@ -521,7 +496,7 @@ class TestHandleReplaceAll:
 
         # Mock QMessageBox.question to return No
         with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.No):
-            window._handle_replace_all("baz")
+            window.search_handler.handle_replace_all("baz")
 
         # Verify text was NOT replaced
         assert window.editor.toPlainText() == original_text
@@ -541,7 +516,7 @@ class TestHandleReplaceAll:
         window.status_manager.show_status = Mock()
 
         # Trigger replace all
-        window._handle_replace_all("abc")
+        window.search_handler.handle_replace_all("abc")
 
         # Verify status message shown
         window.status_manager.show_status.assert_called()
@@ -557,7 +532,7 @@ class TestHandleReplaceAll:
         window.find_bar.get_search_text = Mock(return_value="")
 
         # Trigger replace all - should return early
-        window._handle_replace_all("replacement")
+        window.search_handler.handle_replace_all("replacement")
 
         # Text should be unchanged
         assert window.editor.toPlainText() == "test"
@@ -586,7 +561,7 @@ class TestHandleReplaceAll:
 
         # Mock QMessageBox.question to return Yes
         with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
-            window._handle_replace_all("x")
+            window.search_handler.handle_replace_all("x")
 
         # Cursor should still be valid (not past end of text)
         assert window.editor.textCursor().position() <= len(window.editor.toPlainText())
@@ -609,7 +584,7 @@ class TestHandleReplaceAll:
         window.search_engine.find_all = Mock(side_effect=Exception("Replace error"))
 
         # Trigger replace all - should not crash
-        window._handle_replace_all("replacement")
+        window.search_handler.handle_replace_all("replacement")
 
         # Should show error status
         window.status_manager.show_status.assert_called()
@@ -1618,7 +1593,7 @@ class TestFindNextPrevious:
         window.editor.setTextCursor(cursor)
 
         # Find next
-        window._handle_find_next()
+        window.search_handler.handle_find_next()
 
         # Verify cursor moved to first match
         assert window.editor.textCursor().hasSelection()
@@ -1641,7 +1616,7 @@ class TestFindNextPrevious:
         window.editor.setTextCursor(cursor)
 
         # Find previous
-        window._handle_find_previous()
+        window.search_handler.handle_find_previous()
 
         # Verify cursor moved
         assert window.editor.textCursor().hasSelection()
@@ -1660,7 +1635,7 @@ class TestFindNextPrevious:
         window.editor.setFocus = Mock()
 
         # Handle find closed
-        window._handle_find_closed()
+        window.search_handler.handle_find_closed()
 
         # Verify highlighting cleared
         assert window.editor.search_selections == []
@@ -1689,10 +1664,10 @@ class TestHandleReplace:
         window.editor.setTextCursor(cursor)
 
         # Mock _handle_find_next
-        window._handle_find_next = Mock()
+        window.search_handler.handle_find_next = Mock()
 
         # Replace
-        window._handle_replace("baz")
+        window.search_handler.handle_replace("baz")
 
         # Verify replacement
         assert "baz" in window.editor.toPlainText()
@@ -1710,7 +1685,7 @@ class TestHandleReplace:
         original_text = window.editor.toPlainText()
 
         # Replace
-        window._handle_replace("replacement")
+        window.search_handler.handle_replace("replacement")
 
         # Verify text unchanged
         assert window.editor.toPlainText() == original_text

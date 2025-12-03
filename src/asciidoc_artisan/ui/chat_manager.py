@@ -383,7 +383,7 @@ class ChatManager(QObject):
         self._chat_bar.set_context_mode(context_mode)
 
         # Update visibility
-        self._update_visibility()
+        self._backend_controller.update_visibility()
 
         logger.info(f"Chat settings updated (backend: {self._current_backend})")
 
@@ -399,7 +399,7 @@ class ChatManager(QObject):
         # Update both new and deprecated settings
         self._settings.ai_chat_enabled = new_visible
         self._settings.ollama_chat_enabled = new_visible
-        self._update_visibility()
+        self._backend_controller.update_visibility()
         self.settings_changed.emit()
 
         state = "shown" if new_visible else "hidden"

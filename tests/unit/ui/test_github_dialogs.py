@@ -73,7 +73,7 @@ class TestValidationHelpers:
         # Verify styling removed
         assert widget.styleSheet() == ""
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_validation.logger")
     def test_validate_required_text_empty_string(self, mock_logger, qtbot):
         """Test _validate_required_text rejects empty string."""
         widget = QLineEdit()
@@ -86,7 +86,7 @@ class TestValidationHelpers:
         assert "border: 1px solid red" in widget.styleSheet()
         mock_logger.warning.assert_called_once_with("Test Field is required")
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_validation.logger")
     def test_validate_required_text_whitespace_only(self, mock_logger, qtbot):
         """Test _validate_required_text rejects whitespace-only string."""
         widget = QLineEdit()
@@ -381,7 +381,7 @@ class TestCreatePullRequestDialog:
         data = dialog.get_pr_data()
         assert data["draft"] == "false"
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_validation.logger")
     def test_validation_whitespace_title(self, mock_logger, qtbot):
         """Test validation rejects title with only whitespace."""
         dialog = CreatePullRequestDialog()
@@ -396,7 +396,7 @@ class TestCreatePullRequestDialog:
         assert dialog.result() != QDialog.Accepted
         mock_logger.warning.assert_called_with("PR title is required")
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_pr_dialogs.logger")
     def test_validation_same_branches_logs_warning(self, mock_logger, qtbot):
         """Test validation logs warning when base == head."""
         dialog = CreatePullRequestDialog()
@@ -619,7 +619,7 @@ class TestPullRequestListDialog:
         assert dialog.state_filter.toolTip() != ""
         assert "filter" in dialog.state_filter.toolTip().lower()
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_base_dialog.logger")
     def test_filter_changed_logs_debug(self, mock_logger, qtbot):
         """Test filter change logs debug message."""
         dialog = PullRequestListDialog()
@@ -629,8 +629,8 @@ class TestPullRequestListDialog:
 
         mock_logger.debug.assert_called_with("Filter changed to: Closed")
 
-    @patch("asciidoc_artisan.ui.github_dialogs.QDesktopServices.openUrl")
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_base_dialog.QDesktopServices.openUrl")
+    @patch("asciidoc_artisan.ui.github_base_dialog.logger")
     def test_double_click_opens_url(self, mock_logger, mock_open_url, qtbot):
         """Test double-clicking row opens URL in browser."""
         dialog = PullRequestListDialog()
@@ -661,7 +661,7 @@ class TestPullRequestListDialog:
         mock_logger.info.assert_called_once()
         assert "Opening pull request in browser" in mock_logger.info.call_args[0][0]
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_base_dialog.logger")
     def test_refresh_button_clicked_logs_debug(self, mock_logger, qtbot):
         """Test refresh button click logs debug message."""
         dialog = PullRequestListDialog()
@@ -1031,7 +1031,7 @@ class TestCreateIssueDialog:
 
         assert dialog.body_input.toolTip() != ""
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_validation.logger")
     def test_validation_whitespace_title(self, mock_logger, qtbot):
         """Test validation rejects title with only whitespace."""
         dialog = CreateIssueDialog()
@@ -1224,7 +1224,7 @@ class TestIssueListDialog:
         assert dialog.state_filter.toolTip() != ""
         assert "filter" in dialog.state_filter.toolTip().lower()
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_base_dialog.logger")
     def test_filter_changed_logs_debug(self, mock_logger, qtbot):
         """Test filter change logs debug message."""
         dialog = IssueListDialog()
@@ -1234,8 +1234,8 @@ class TestIssueListDialog:
 
         mock_logger.debug.assert_called_with("Filter changed to: Closed")
 
-    @patch("asciidoc_artisan.ui.github_dialogs.QDesktopServices.openUrl")
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_base_dialog.QDesktopServices.openUrl")
+    @patch("asciidoc_artisan.ui.github_base_dialog.logger")
     def test_double_click_opens_url(self, mock_logger, mock_open_url, qtbot):
         """Test double-clicking row opens URL in browser."""
         dialog = IssueListDialog()
@@ -1266,7 +1266,7 @@ class TestIssueListDialog:
         mock_logger.info.assert_called_once()
         assert "Opening issue in browser" in mock_logger.info.call_args[0][0]
 
-    @patch("asciidoc_artisan.ui.github_dialogs.logger")
+    @patch("asciidoc_artisan.ui.github_base_dialog.logger")
     def test_refresh_button_clicked_logs_debug(self, mock_logger, qtbot):
         """Test refresh button click logs debug message."""
         dialog = IssueListDialog()

@@ -121,28 +121,40 @@ class TestPreferencesDialog:
         updated_settings = dialog.get_settings()
         assert updated_settings.ai_conversion_enabled is False
 
-    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-ant-test-key-123"}, clear=True)
-    def test_api_key_status_configured(self, mock_settings):
+    @patch("asciidoc_artisan.ui.preferences_dialog.SecureCredentials")
+    def test_api_key_status_configured(self, mock_creds_class, mock_settings):
         """Test API key status shows configured when key is set."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        mock_creds = MagicMock()
+        mock_creds.has_anthropic_key.return_value = True
+        mock_creds_class.return_value = mock_creds
 
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         assert status == "✓ Configured"
 
-    @patch.dict(os.environ, {}, clear=True)
-    def test_api_key_status_not_set(self, mock_settings):
+    @patch("asciidoc_artisan.ui.preferences_dialog.SecureCredentials")
+    def test_api_key_status_not_set(self, mock_creds_class, mock_settings):
         """Test API key status shows not set when key is missing."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        mock_creds = MagicMock()
+        mock_creds.has_anthropic_key.return_value = False
+        mock_creds_class.return_value = mock_creds
 
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         assert status == "✗ Not Set"
 
-    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": ""}, clear=True)
-    def test_api_key_status_empty_string(self, mock_settings):
+    @patch("asciidoc_artisan.ui.preferences_dialog.SecureCredentials")
+    def test_api_key_status_empty_string(self, mock_creds_class, mock_settings):
         """Test API key status shows not set for empty string."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        mock_creds = MagicMock()
+        mock_creds.has_anthropic_key.return_value = False
+        mock_creds_class.return_value = mock_creds
 
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
@@ -248,10 +260,10 @@ class TestDialogHelperFunctions:
         """Test helper function returns button layout."""
         from PySide6.QtWidgets import QDialog, QHBoxLayout
 
-        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+        from asciidoc_artisan.ui.dialog_factory import create_ok_cancel_buttons
 
         dialog = QDialog()
-        layout = _create_ok_cancel_buttons(dialog)
+        layout = create_ok_cancel_buttons(dialog)
 
         assert layout is not None
         assert isinstance(layout, QHBoxLayout)
@@ -299,24 +311,31 @@ class TestPreferencesDialogEdgeCases:
             dialog.ai_enabled_checkbox.setChecked(expected_state)
             assert dialog.ai_enabled_checkbox.isChecked() == expected_state
 
-    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-ant-" + "x" * 100}, clear=True)
-    def test_api_key_status_with_very_long_key(self, mock_settings):
+    @patch("asciidoc_artisan.ui.preferences_dialog.SecureCredentials")
+    def test_api_key_status_with_very_long_key(self, mock_creds_class, mock_settings):
         """Test API key status with very long key."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
 
+        mock_creds = MagicMock()
+        mock_creds.has_anthropic_key.return_value = True
+        mock_creds_class.return_value = mock_creds
+
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
         assert status == "✓ Configured"
 
-    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "   "}, clear=True)
-    def test_api_key_status_with_whitespace_only(self, mock_settings):
-        """Test API key status with whitespace-only key."""
+    @patch("asciidoc_artisan.ui.preferences_dialog.SecureCredentials")
+    def test_api_key_status_with_whitespace_only(self, mock_creds_class, mock_settings):
+        """Test API key status with whitespace-only key (treated as not set)."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
 
+        mock_creds = MagicMock()
+        mock_creds.has_anthropic_key.return_value = False  # Whitespace is not a valid key
+        mock_creds_class.return_value = mock_creds
+
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
-        # Whitespace key is still considered configured (env var exists)
-        assert status == "✓ Configured"
+        assert status == "✗ Not Set"
 
 
 @pytest.mark.fr_072
@@ -695,10 +714,10 @@ class TestLayoutVerification:
         """Test button layout has correct structure."""
         from PySide6.QtWidgets import QDialog
 
-        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+        from asciidoc_artisan.ui.dialog_factory import create_ok_cancel_buttons
 
         dialog = QDialog()
-        layout = _create_ok_cancel_buttons(dialog)
+        layout = create_ok_cancel_buttons(dialog)
 
         # Should have multiple buttons
         assert layout.count() >= 2
@@ -1043,7 +1062,7 @@ class TestSettingsEditorDialog:
         result = dialog._string_to_value("test", "str")
         assert result == "test"
 
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox")
+    @patch("asciidoc_artisan.ui.settings_editor_dialog.QMessageBox")
     def test_clear_all_settings_with_confirmation_yes(self, mock_qmessagebox, mock_settings):
         """Test clearing all settings when user confirms."""
         from PySide6.QtWidgets import QMessageBox
@@ -1063,7 +1082,7 @@ class TestSettingsEditorDialog:
         # Should save settings after clearing
         assert mock_manager.save_settings.called
 
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox")
+    @patch("asciidoc_artisan.ui.settings_editor_dialog.QMessageBox")
     def test_clear_all_settings_with_confirmation_no(self, mock_qmessagebox, mock_settings):
         """Test clearing all settings when user cancels."""
         from PySide6.QtWidgets import QMessageBox
@@ -1937,8 +1956,8 @@ class TestSettingsEditorDialogItemChanged:
 class TestSettingsEditorDialogClearAll:
     """Test SettingsEditorDialog clear all functionality."""
 
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.information")
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.settings_editor_dialog.QMessageBox.information")
+    @patch("asciidoc_artisan.ui.settings_editor_dialog.QMessageBox.question")
     def test_clear_all_with_parent_refresh(self, mock_question, mock_info, mock_settings, mock_parent_widget):
         """Test clear_all_settings with parent refresh."""
         from PySide6.QtWidgets import QMessageBox
@@ -1960,8 +1979,8 @@ class TestSettingsEditorDialogClearAll:
         # Cleanup
         dialog.deleteLater()
 
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.question")
-    @patch("asciidoc_artisan.ui.dialogs.QMessageBox.information")
+    @patch("asciidoc_artisan.ui.settings_editor_dialog.QMessageBox.question")
+    @patch("asciidoc_artisan.ui.settings_editor_dialog.QMessageBox.information")
     def test_clear_all_shows_success_message(self, mock_info, mock_question, mock_settings):
         """Test clear_all_settings shows success message."""
         from PySide6.QtWidgets import QMessageBox
@@ -2555,10 +2574,14 @@ class TestOllamaDialogChatSettings:
 class TestPreferencesDialogStyling:
     """Test PreferencesDialog styling and UI details."""
 
-    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}, clear=True)
-    def test_status_label_green_styling(self, mock_settings):
+    @patch("asciidoc_artisan.ui.preferences_dialog.SecureCredentials")
+    def test_status_label_green_styling(self, mock_creds_class, mock_settings):
         """Test status label has green styling for configured key."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        mock_creds = MagicMock()
+        mock_creds.has_anthropic_key.return_value = True
+        mock_creds_class.return_value = mock_creds
 
         dialog = PreferencesDialog(mock_settings)
 
@@ -2660,10 +2683,14 @@ class TestPreferencesDialogExecution:
         settings = dialog.get_settings()
         assert settings.ai_conversion_enabled is False
 
-    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-ant-" + "x" * 200}, clear=True)
-    def test_api_key_status_very_long_key(self, mock_settings):
+    @patch("asciidoc_artisan.ui.preferences_dialog.SecureCredentials")
+    def test_api_key_status_very_long_key(self, mock_creds_class, mock_settings):
         """Test API key status detection with very long key."""
         from asciidoc_artisan.ui.dialogs import PreferencesDialog
+
+        mock_creds = MagicMock()
+        mock_creds.has_anthropic_key.return_value = True
+        mock_creds_class.return_value = mock_creds
 
         dialog = PreferencesDialog(mock_settings)
         status = dialog._get_api_key_status()
@@ -2675,16 +2702,16 @@ class TestPreferencesDialogExecution:
 @pytest.mark.fr_072
 @pytest.mark.unit
 class TestHelperFunctionsDetailed:
-    """Test _create_ok_cancel_buttons() helper function."""
+    """Test create_ok_cancel_buttons() helper function."""
 
     def test_create_buttons_stretch_behavior(self, qapp):
         """Test button layout has stretch to push buttons right."""
         from PySide6.QtWidgets import QDialog
 
-        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+        from asciidoc_artisan.ui.dialog_factory import create_ok_cancel_buttons
 
         dialog = QDialog()
-        layout = _create_ok_cancel_buttons(dialog)
+        layout = create_ok_cancel_buttons(dialog)
 
         # Should have stretch as first item (count >= 3: stretch + OK + Cancel)
         assert layout.count() >= 3
@@ -2693,10 +2720,10 @@ class TestHelperFunctionsDetailed:
         """Test OK and Cancel buttons are properly connected."""
         from PySide6.QtWidgets import QDialog
 
-        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+        from asciidoc_artisan.ui.dialog_factory import create_ok_cancel_buttons
 
         dialog = QDialog()
-        layout = _create_ok_cancel_buttons(dialog)
+        layout = create_ok_cancel_buttons(dialog)
 
         # Get buttons from layout
         ok_button = None
@@ -2720,10 +2747,10 @@ class TestHelperFunctionsDetailed:
         """Test buttons have correct text labels."""
         from PySide6.QtWidgets import QDialog
 
-        from asciidoc_artisan.ui.dialogs import _create_ok_cancel_buttons
+        from asciidoc_artisan.ui.dialog_factory import create_ok_cancel_buttons
 
         dialog = QDialog()
-        layout = _create_ok_cancel_buttons(dialog)
+        layout = create_ok_cancel_buttons(dialog)
 
         # Find buttons and check text
         button_texts = []
