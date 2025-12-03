@@ -133,18 +133,46 @@ class ParallelBlockRenderer:
             logger.warning(f"Block {index} render failed: {exc}")
             return (index, f"<pre>{html.escape(block.content)}</pre>")
 
+    def _ensure_executor(self) -> None:
+        """Create executor if needed."""
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(max_workers=self._max_workers, thread_name_prefix="block_render")
+
+    def _submit_blocks(self, blocks: list[DocumentBlock]) -> dict[Any, tuple[int, DocumentBlock]]:
+        """Submit all blocks for parallel rendering."""
+        futures = {}
+        for idx, block in enumerate(blocks):
+            future = self._executor.submit(self._render_single_block, block, idx)  # type: ignore[union-attr]
+            futures[future] = (idx, block)
+        return futures
+
+    def _collect_results(self, futures: dict[Any, tuple[int, DocumentBlock]]) -> dict[int, str]:
+        """Collect results as they complete."""
+        results: dict[int, str] = {}
+        for future in as_completed(futures):
+            idx, block = futures[future]
+            try:
+                result_idx, rendered_html = future.result(timeout=10.0)
+                results[result_idx] = rendered_html
+            except Exception as exc:
+                logger.warning(f"Parallel render failed for block {idx}: {exc}")
+                results[idx] = f"<pre>{html.escape(block.content)}</pre>"
+        return results
+
+    def _build_ordered_results(
+        self, blocks: list[DocumentBlock], results: dict[int, str]
+    ) -> list[tuple[DocumentBlock, str]]:
+        """Reconstruct ordered results from parallel execution."""
+        ordered_results = []
+        for idx, block in enumerate(blocks):
+            rendered = results.get(idx, "")
+            block.rendered_html = rendered
+            ordered_results.append((block, rendered))
+        return ordered_results
+
     def render_blocks_parallel(self, blocks: list[DocumentBlock]) -> list[tuple[DocumentBlock, str]]:
-        """
-        Render multiple blocks in parallel.
-
-        Args:
-            blocks: List of blocks to render
-
-        Returns:
-            List of (block, rendered_html) tuples in original order
-        """
+        """Render multiple blocks in parallel. Returns (block, html) tuples in order."""
         if not self._enabled or len(blocks) < self.MIN_BLOCKS_FOR_PARALLEL:
-            # Fall back to sequential for small batches
             return self._render_sequential(blocks)
 
         import time
@@ -152,44 +180,17 @@ class ParallelBlockRenderer:
         start_time = time.perf_counter()
 
         try:
-            # Create executor if needed
-            if self._executor is None:
-                self._executor = ThreadPoolExecutor(max_workers=self._max_workers, thread_name_prefix="block_render")
+            self._ensure_executor()
+            futures = self._submit_blocks(blocks)
+            results = self._collect_results(futures)
+            ordered_results = self._build_ordered_results(blocks, results)
 
-            # Submit all blocks for parallel rendering with their indices
-            futures = {}
-            for idx, block in enumerate(blocks):
-                future = self._executor.submit(self._render_single_block, block, idx)
-                futures[future] = (idx, block)
-
-            # Collect results as they complete
-            results: dict[int, str] = {}
-            for future in as_completed(futures):
-                idx, block = futures[future]
-                try:
-                    result_idx, rendered_html = future.result(timeout=10.0)
-                    results[result_idx] = rendered_html
-                except Exception as exc:
-                    logger.warning(f"Parallel render failed for block {idx}: {exc}")
-                    results[idx] = f"<pre>{html.escape(block.content)}</pre>"
-
-            # Reconstruct ordered results
-            ordered_results = []
-            for idx, block in enumerate(blocks):
-                rendered = results.get(idx, "")
-                block.rendered_html = rendered
-                ordered_results.append((block, rendered))
-
-            # Update statistics
             elapsed = time.perf_counter() - start_time
             with self._stats_lock:
                 self._stats["parallel_renders"] += 1
                 self._stats["total_blocks_rendered"] += len(blocks)
 
-            logger.debug(
-                f"Parallel render: {len(blocks)} blocks in {elapsed * 1000:.1f}ms ({self._max_workers} workers)"
-            )
-
+            logger.debug(f"Parallel render: {len(blocks)} blocks in {elapsed * 1000:.1f}ms")
             return ordered_results
 
         except Exception as exc:
