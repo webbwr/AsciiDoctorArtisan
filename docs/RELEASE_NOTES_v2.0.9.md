@@ -41,6 +41,35 @@ renderer.get_parallel_stats()   # Get statistics
 renderer.shutdown()             # Clean up
 ```
 
+### Language Server Protocol (LSP) ✅
+
+New feature: Full LSP implementation for AsciiDoc documents.
+
+**Features:**
+- **Completion**: Context-aware auto-complete (headings, blocks, attributes, xrefs)
+- **Diagnostics**: Real-time syntax validation with error reporting
+- **Hover**: Documentation on hover for AsciiDoc elements
+- **Go-to-definition**: Navigate to anchors and cross-references
+- **Document symbols**: Outline view with heading hierarchy
+
+**Architecture (MA compliant):**
+- `server.py` (~200 lines) - Core LSP server with pygls
+- `completion_provider.py` (~250 lines) - Auto-complete logic
+- `diagnostics_provider.py` (~180 lines) - Syntax validation
+- `hover_provider.py` (~200 lines) - Hover documentation
+- `symbols_provider.py` (~200 lines) - Document outline
+
+**Usage:**
+```bash
+# Start LSP server (stdio mode for editors)
+python -m asciidoc_artisan.lsp
+
+# TCP mode for debugging
+python -m asciidoc_artisan.lsp --tcp --port 2087
+```
+
+**Tests:** 54 new tests with 100% pass rate
+
 ### MA Principle Refactoring ✅
 
 The MA principle emphasizes "negative space" in code - extracting focused, single-responsibility modules from larger classes. This release applies MA to 5 key modules:
@@ -73,13 +102,27 @@ Updated key dependencies for security and performance:
 
 ## Files Changed
 
-### New Files (6 total)
+### New Files (13 total)
+
+**LSP Server (7 files):**
+- `src/asciidoc_artisan/lsp/__init__.py` - Package exports
+- `src/asciidoc_artisan/lsp/__main__.py` - Module entry point
+- `src/asciidoc_artisan/lsp/server.py` (~200 lines) - Core LSP server
+- `src/asciidoc_artisan/lsp/completion_provider.py` (~250 lines) - Auto-complete
+- `src/asciidoc_artisan/lsp/diagnostics_provider.py` (~180 lines) - Validation
+- `src/asciidoc_artisan/lsp/hover_provider.py` (~200 lines) - Hover docs
+- `src/asciidoc_artisan/lsp/symbols_provider.py` (~200 lines) - Document outline
+- `src/asciidoc_artisan/lsp/document_state.py` (~80 lines) - State management
+
+**MA Extractions (5 files):**
 - `src/asciidoc_artisan/ui/github_result_handler.py` (217 lines)
 - `src/asciidoc_artisan/core/recent_templates_tracker.py` (131 lines)
 - `src/asciidoc_artisan/workers/pool_task_runner.py` (110 lines)
 - `src/asciidoc_artisan/ui/telemetry_consent_dialog.py` (115 lines)
 - `src/asciidoc_artisan/ui/preview_block_tracker.py` (98 lines)
-- `src/asciidoc_artisan/workers/parallel_block_renderer.py` (230 lines) - **NEW: Multi-core rendering**
+
+**Multi-core Rendering (1 file):**
+- `src/asciidoc_artisan/workers/parallel_block_renderer.py` (230 lines)
 
 ### Modified Files
 - `src/asciidoc_artisan/workers/incremental_renderer.py` - Integrate parallel renderer
@@ -130,11 +173,12 @@ class GitHubHandler:
 ## Test Status
 
 ### Overall Statistics
-- **Unit Tests:** 5,231 tests (15 new for ParallelBlockRenderer)
+- **Unit Tests:** 5,300+ tests (69 new: 15 parallel renderer + 54 LSP)
 - **E2E Tests:** 71 scenarios (65 passing, 91.5% pass rate)
 - **Coverage:** 96.4% statement coverage
 - **GitHub Handler Tests:** 49/49 passing (100%)
 - **Parallel Renderer Tests:** 15/15 passing (100%)
+- **LSP Tests:** 54/54 passing (100%)
 
 ### Codebase Metrics
 - **Total Lines:** 42,515

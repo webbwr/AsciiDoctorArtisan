@@ -68,6 +68,12 @@ anthropic>=0.75.0
 # Pure Python spell checker with built-in dictionaries
 pyspellchecker>=0.8.4
 
+# Language Server Protocol (v2.0.9 - LSP implementation)
+# Provides IDE-like features: completion, diagnostics, hover, go-to-definition
+# Used by: python -m asciidoc_artisan.lsp
+pygls>=2.0.0
+lsprotocol>=2025.0.0
+
 # ============================================================================
 # DEVELOPMENT DEPENDENCIES (Optional - for testing and code quality)
 # ============================================================================
