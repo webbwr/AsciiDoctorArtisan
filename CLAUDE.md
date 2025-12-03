@@ -6,11 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **AsciiDoc Artisan** — Cross-platform desktop AsciiDoc editor with live preview (PySide6/Qt)
 
-**Version:** 2.0.9 (Dec 2, 2025) | **Status:** Production-ready | **Startup:** 0.586s
+**Version:** 2.0.9 (Dec 3, 2025) | **Status:** Production-ready | **Startup:** 0.586s
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
 
-**Codebase:** 42,083 lines across 157 files
+**Codebase:** 42,515 lines across 162 files
 
 **Architecture:**
 - Single-window Qt app: split editor/preview, GPU-accelerated rendering
@@ -392,13 +392,19 @@ Entry: `src/main.py`
 - ✅ Test Documentation: Comprehensive E2E_TEST_STATUS.md with suite status, investigation notes, workarounds
 - ✅ Code Quality: Fixed 5 unused variables, applied ruff formatting, pre-commit hooks passing
 
-**v2.0.9 (Dec 2, 2025):**
-- ✅ MA Principle Applied: 10+ core modules refactored with delegation pattern
+**v2.0.9 (Dec 3, 2025):**
+- ✅ MA Principle Applied: 15+ modules refactored with delegation pattern
+- ✅ New Extractions (Dec 3): 5 modules split for MA compliance:
+  - `preview_css_manager.py` (207 lines) from preview_handler_base.py (503→381)
+  - `platform_file_opener.py` (208 lines) from telemetry_dialog_handler.py (495→342)
+  - `cancelable_runnable.py` (114 lines) from optimized_worker_pool.py (468→390)
+  - `recent_templates_tracker.py` (131 lines) from template_manager.py (462→432)
+  - `github_result_handler.py` (218 lines) from github_handler.py (434→371)
 - ✅ Type Safety: Fixed 4 mypy errors using cast() for protocol satisfaction
 - ✅ Action Management: Aligned naming across action_creators, action_manager, menu_builder
 - ✅ Refactoring Plan: Comprehensive plan at .claude/plans/refactoring-plan.md
 - ✅ Test Updates: 84 action manager tests updated with new fixtures
-- ✅ File Open Handler Fix: Fixed attribute access bugs after MA refactoring (self.mgr.X → self.mgr.editor.X)
-- ✅ Unit Test Patches: Updated 59 tests for correct module paths after handler extractions
-- ✅ Codebase Growth: 40,887 → 42,083 lines, 123 → 157 files (MA principle extractions)
+- ✅ File Open Handler Fix: Fixed attribute access bugs after MA refactoring
+- ✅ Unit Test Patches: Updated 59+ tests for correct module paths after handler extractions
+- ✅ Codebase Growth: 40,887 → 42,515 lines, 123 → 162 files (MA principle extractions)
 - ✅ main_window.py Reduction: 1,903 → 1,425 lines (25% reduction via delegation)
