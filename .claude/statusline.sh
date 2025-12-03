@@ -114,7 +114,7 @@ get_test_statistics() {
     # Final fallback: documented test count from CLAUDE.md
     if [ -z "$TOTAL_TESTS" ] || [ "$TOTAL_TESTS" = "?" ]; then
         TOTAL_TESTS=$(grep -o "[0-9,]* unit test" CLAUDE.md 2>/dev/null | head -1 | tr -d ',' | awk '{print $1}')
-        [[ ! "$TOTAL_TESTS" =~ ^[0-9]+$ ]] && TOTAL_TESTS="5285"
+        [[ ! "$TOTAL_TESTS" =~ ^[0-9]+$ ]] && TOTAL_TESTS="5254"
     fi
 
     # Try test_run_fast.log if still missing passed count

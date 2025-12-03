@@ -26,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,285 unit tests + 71 E2E scenarios, mypy --strict (0 errors), 88-char line limit
+**Quality:** 5,254 unit tests + 71 E2E scenarios, mypy --strict (0 errors), 88-char line limit
 
 ## Critical Patterns — Read First!
 
@@ -368,7 +368,7 @@ Entry: `src/main.py`
 
 ---
 
-*AsciiDoc Artisan v2.1.0 | Public Release | 5,285 unit tests + 71 E2E scenarios | mypy --strict (0 errors)*
+*AsciiDoc Artisan v2.1.0 | Public Release | 5,254 unit tests + 71 E2E scenarios | mypy --strict (0 errors)*
 
 **Recent Improvements (Dec 3, 2025 - v2.1.0):**
 - ✅ MA Principle Applied: 10+ core modules refactored with delegation pattern
