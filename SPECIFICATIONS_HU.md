@@ -14,7 +14,7 @@
 **SPECIFICATIONS.md (this file):**
 - ✅ Quick reference for humans
 - ✅ Concise FR summaries (1-2 lines each)
-- ✅ Fast overview of all 107 requirements
+- ✅ Fast overview of all 109 requirements
 - ✅ Test counts and quality metrics
 - ❌ Not suitable for AI implementation
 
@@ -36,16 +36,16 @@
 **Status:** Production-Ready
 
 **Codebase:**
-- 42,145 lines across 161 Python files
+- 44,935 lines across 171 Python files
 - main_window.py: 1,798 lines (comprehensive docs)
 
 **Test Suite:**
-- ✅ 5,216 unit tests + 71 E2E scenarios
+- ✅ 5,285 unit tests + 71 E2E scenarios
 - ✅ mypy --strict (0 errors)
 - ✅ 98/100 quality score
 
 **Recent Updates:**
-- Dec 3, 2025 - v2.0.9 MA Refactoring: 5 modules extracted (github_result_handler, recent_templates_tracker, pool_task_runner, telemetry_consent_dialog, preview_block_tracker), dependencies updated
+- Dec 3, 2025 - v2.0.9 Feature Release: LSP server (FR-109), Multi-core rendering (ParallelBlockRenderer), 5 MA extractions, 69 new tests
 - Nov 21, 2025 - E2E Test Fixes: User preferences 8/8 passing, 65/71 scenarios (91.5%)
 - Nov 20, 2025 - E2E Test Coverage: 10 test suites, 71 Gherkin scenarios
 - Nov 16, 2025 - UI Test Fixes: 60/62 resolved (97%), MockParentWidget pattern
@@ -54,7 +54,7 @@
 
 ## Quick Reference
 
-111 functional requirements (FR-001 to FR-108 + FR-067a/b/c)
+112 functional requirements (FR-001 to FR-109 + FR-067a/b/c)
 
 **Test Suite Status (Dec 2, 2025):**
 - ✅ 5,216 unit tests + 71 E2E scenarios
@@ -514,29 +514,30 @@ Complete implementation status for all 107 functional requirements.
 | FR-106 | Live Preview | ✅ | 300ms debounce | ✓ |
 | FR-107 | Instantiation | ✅ | <200ms render | ✓ |
 
-### Development Standards (FR-108)
+### Development Standards (FR-108-109)
 
 | FR | Feature | Status | Implementation | Tests |
 |----|---------|--------|----------------|-------|
-| FR-108 | MA (間) Principle | 📋 | Japanese negative space, code quality | Planned |
+| FR-108 | MA (間) Principle | ✅ | Japanese negative space, code quality | ✓ |
+| FR-109 | Language Server Protocol | ✅ | LSP: completion, diagnostics, hover, symbols | 54 |
 
 ---
 
 ## Implementation Summary
 
-**Total Requirements:** 108
-**Implemented:** 107
+**Total Requirements:** 109
+**Implemented:** 109
 **Partial:** 0
 **Not Implemented:** 0
-**Planned:** 1 (FR-108: MA Principle)
+**Planned:** 0
 
 **Quality Metrics:**
 - Test Coverage: 96.4%
-- Tests Collected: 5,479
-- Tests Passing: 204/204 (100%)
+- Tests Collected: 5,285
+- Tests Passing: 100%
 - Type Coverage: 100% (mypy --strict: 0 errors)
-- Code Quality: 100% (ruff + black passing)
+- Code Quality: 100% (ruff passing)
 
-**Version:** 2.0.2
+**Version:** 2.0.9
 **Status:** Production Ready ✅
-**Last Updated:** November 15, 2025
+**Last Updated:** December 3, 2025

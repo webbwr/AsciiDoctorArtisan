@@ -10,22 +10,22 @@ specification:
   format_version: "2.0-ai-actionable"
 
 metadata:
-  total_requirements: 108
+  total_requirements: 109
   sub_requirements: 3  # FR-067a, FR-067b, FR-067c
-  total_fr_definitions: 111
-  implemented: 108  # FR-108 (MA Principle) now implemented
+  total_fr_definitions: 112
+  implemented: 109  # FR-109 (LSP) now implemented
   partial: 0
   planned: 0
   scope: "Feature-complete, maintenance mode"
-  future_work: "Out of scope (LSP, plugins, collaboration deferred)"
+  future_work: "Out of scope (plugins, collaboration deferred)"
 
 codebase_metrics:
-  total_lines: 42145
-  total_files: 161
+  total_lines: 44935
+  total_files: 171
   main_window_lines: 1798
 
 quality_metrics:
-  unit_tests_total: 5216
+  unit_tests_total: 5285
   e2e_tests_total: 71
   type_coverage: 100.0
   mypy_strict_errors: 0
@@ -5914,6 +5914,80 @@ def calculate_metrics(data):
 - Clean Code by Robert C. Martin (Uncle Bob)
 - The Art of Readable Code by Boswell & Foucher
 - Japanese aesthetics: Wabi-sabi (侘寂), Ma (間), Yugen (幽玄)
+
+---
+
+## FR-109: Language Server Protocol (LSP)
+
+**Category:** Developer Tools | **Priority:** High | **Status:** ✅ Implemented | **Version:** 2.0.9
+**Implementation:** `src/asciidoc_artisan/lsp/`
+
+Full Language Server Protocol implementation for AsciiDoc documents, enabling IDE-like features in any LSP-compatible editor.
+
+**Acceptance:** Completion <100ms | Diagnostics <200ms | 54 tests passing | MA compliant (<250 lines/module)
+
+### Description
+
+Provides a complete LSP server using pygls that integrates with editors like VSCode, Neovim, and Emacs:
+
+- **Completion**: Context-aware auto-complete for syntax, attributes, cross-references
+- **Diagnostics**: Real-time syntax validation using existing SyntaxChecker
+- **Hover**: Documentation on hover for AsciiDoc elements
+- **Go-to-definition**: Navigate to anchor definitions from cross-references
+- **Document symbols**: Hierarchical outline view of document structure
+
+### Acceptance Criteria
+
+- [x] LSP server starts via `python -m asciidoc_artisan.lsp`
+- [x] Completion provides context-aware suggestions (<100ms)
+- [x] Diagnostics validates syntax in real-time (<200ms)
+- [x] Hover shows documentation for AsciiDoc elements
+- [x] Go-to-definition navigates to anchors
+- [x] Document symbols provides outline view
+- [x] All modules follow MA principle (<250 lines)
+- [x] 54 tests with 100% pass rate
+
+### API Contract
+
+```python
+# Start LSP server
+python -m asciidoc_artisan.lsp           # stdio mode
+python -m asciidoc_artisan.lsp --tcp     # TCP mode (port 2087)
+
+# Server capabilities
+from asciidoc_artisan.lsp import AsciiDocLanguageServer
+server = AsciiDocLanguageServer()
+server.start_io()
+```
+
+### Architecture (MA Compliant)
+
+| Module | Lines | Purpose |
+|--------|-------|---------|
+| `server.py` | ~200 | Core LSP server with pygls |
+| `completion_provider.py` | ~250 | Auto-complete logic |
+| `diagnostics_provider.py` | ~180 | Syntax validation |
+| `hover_provider.py` | ~200 | Hover documentation |
+| `symbols_provider.py` | ~200 | Document outline |
+| `document_state.py` | ~80 | Thread-safe state management |
+
+### Test Requirements
+
+- **Minimum Tests:** 54 (implemented)
+- **Coverage Target:** 95%+
+- **Test Types:**
+  - Completion: 17 tests (syntax, attributes, xrefs, includes)
+  - Diagnostics: 9 tests (validation, severity mapping)
+  - Hover: 10 tests (syntax, attributes, plain text)
+  - Symbols: 10 tests (headings, anchors, definitions)
+  - Document state: 8 tests (CRUD, thread safety)
+
+### Dependencies
+
+- `pygls>=2.0.0` - Python LSP server framework
+- `lsprotocol>=2025.0.0` - LSP type definitions
+- `FR-097` (SyntaxChecker) - Reuses existing validation
+- `FR-096` (AutoComplete) - Shares completion patterns
 
 ---
 

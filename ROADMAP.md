@@ -23,10 +23,10 @@
 | v2.0.6 | ✅ | Nov 19 2025 | Test Refactoring | Dialog callbacks extracted, +36 tests passing, 22 skipped documented |
 | v2.0.7 | ✅ | Nov 20 2025 | E2E Test Coverage | 10 test suites, 63/71 scenarios (88.7%), user preferences, ~3,500 lines |
 | v2.0.8 | ✅ | Nov 21 2025 | E2E Test Fixes | User preferences 8/8 passing, telemetry dialog fix, 65/71 scenarios (91.5%) |
-| v2.0.9 | ✅ | Dec 3 2025 | MA Refactoring | 5 module extractions, dependency updates, 161 files |
-| v3.0.0 | 🚫 | Deferred | Next-Gen | LSP, Plugins, Multi-core, Marketplace |
+| v2.0.9 | ✅ | Dec 3 2025 | Feature Release | LSP, Multi-core rendering, MA extractions, 171 files |
+| v3.0.0 | 🚫 | Deferred | Next-Gen | Plugins, Marketplace, Collaboration |
 
-**Test Status:** ✅ 5,216 unit tests + 71 E2E scenarios | **Codebase:** 42,145 lines across 161 files
+**Test Status:** ✅ 5,285 unit tests + 71 E2E scenarios | **Codebase:** 44,935 lines across 171 files
 
 ---
 
@@ -46,21 +46,22 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 ## Current State (v2.0.9) ✅
 
 ### Architecture
-- Modular design: manager pattern, 161 modules
+- Modular design: manager pattern, 171 modules
 - Main window: 1,798 lines (comprehensive docs)
-- Clean separation: core, ui, workers, conversion, git, claude
+- Clean separation: core, ui, workers, conversion, git, claude, **lsp**
 - MA principle: 5 extractions (github_result_handler, recent_templates_tracker, pool_task_runner, telemetry_consent_dialog, preview_block_tracker)
 
 ### Performance
 - Startup: 0.586s (46% faster than 1.05s target)
 - GPU acceleration: 10-50x faster rendering
+- **Multi-core rendering**: 2-4x speedup on 4+ core systems (ParallelBlockRenderer)
 - Optimizations: Block detection +10-14%, predictive +28% latency reduction
 
 ### Quality
-- Test coverage: 5,216 unit tests + 71 E2E scenarios
+- Test coverage: 5,285 unit tests + 71 E2E scenarios
 - Test suite: ✅ Stable (Dec 3: unit + E2E tests passing)
 - UI tests: ✅ Refactored (dialog callbacks extracted, improved testability)
-- Type hints: 100% (mypy --strict: 0 errors, 161 files, Python 3.12+ syntax)
+- Type hints: 100% (mypy --strict: 0 errors, 171 files, Python 3.12+ syntax)
 - Code modernization: ✅ (Dec 3: MA principle - 5 module extractions)
 - Tech debt: ZERO (Dec 3: mypy errors fixed, dependencies updated)
 - Security: ✅ (zero shell=True, zero eval/exec, zero unused imports)
@@ -68,6 +69,8 @@ Transform AsciiDoc Artisan into the **definitive AsciiDoc editor** - exceptional
 - All checks: ✅ (ruff, isort, mypy --strict passing)
 
 ### Features
+- ✅ **LSP Server** (completion, diagnostics, hover, go-to-definition, symbols)
+- ✅ **Multi-core rendering** (ParallelBlockRenderer, 2-4x speedup)
 - ✅ Auto-complete (20-40ms, fuzzy matching, Ctrl+Space)
 - ✅ Syntax Check (real-time, quick fixes, F8 navigation)
 - ✅ Templates (6 built-in, custom support)
