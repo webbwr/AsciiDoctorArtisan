@@ -557,22 +557,25 @@ AsciiDoctorArtisan/
 **Security updates:** Within 7-30 days (depending on severity)
 **Feature updates:** Quarterly
 
-**Current version:** 2.0.8 (November 21, 2025)
+**Current version:** 2.1.0 (December 3, 2025)
 
 ### What's coming next?
 
 See [ROADMAP.md](ROADMAP.md) for future plans.
 
-**Maintenance Mode (v2.0.x):**
+**Included in v2.1.0:**
+- LSP support (full Language Server Protocol)
+- Multi-core rendering (2-4x speedup)
+- Production stable
+
+**Maintenance Mode (v2.1.x):**
 - Bug fixes and stability
 - Security updates
-- Test coverage improvements
-- Documentation enhancements
+- Documentation updates
 
-**Future (v3.0+):** Deferred indefinitely
-- LSP support
+**Future (v3.0+):** Deferred
 - Plugin system
-- Multi-core rendering
+- Collaboration
 
 ---
 
@@ -589,8 +592,8 @@ We're here to help!
 
 ---
 
-**FAQ Version:** 1.0
-**Last Updated:** November 21, 2025
+**FAQ Version:** 2.1.0
+**Last Updated:** December 3, 2025
 **Questions Answered:** 50+
 **Status:** ✅ Comprehensive
 
