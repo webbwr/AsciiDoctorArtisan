@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - MA Principle: Delegation pattern, <400 lines/file target (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
 - Package: `asciidoc_artisan.{core, ui, workers, lsp, conversion, git, claude}`
 
-**v2.0.9 Features:**
+**v2.1.0 Features:**
 - LSP Server: Language Server Protocol for IDE integration (completion, diagnostics, hover)
 - Multi-core: ParallelBlockRenderer with ThreadPoolExecutor (2-4x speedup)
 - Auto-complete: Context-aware syntax, fuzzy matching, Ctrl+Space, <50ms for 1K items
@@ -368,9 +368,9 @@ Entry: `src/main.py`
 
 ---
 
-*AsciiDoc Artisan v2.0.9 | Production-ready | 5,216 unit tests + 71 E2E scenarios | mypy --strict (0 errors)*
+*AsciiDoc Artisan v2.1.0 | Public Release | 5,285 unit tests + 71 E2E scenarios | mypy --strict (0 errors)*
 
-**Recent Improvements (Dec 2, 2025 - v2.0.9):**
+**Recent Improvements (Dec 3, 2025 - v2.1.0):**
 - ✅ MA Principle Applied: 10+ core modules refactored with delegation pattern
 - ✅ Type Safety: Fixed 4 mypy errors using cast() for protocol satisfaction
 - ✅ Action Management: Aligned naming across action_creators, action_manager, menu_builder
@@ -394,7 +394,7 @@ Entry: `src/main.py`
 - ✅ Test Documentation: Comprehensive E2E_TEST_STATUS.md with suite status, investigation notes, workarounds
 - ✅ Code Quality: Fixed 5 unused variables, applied ruff formatting, pre-commit hooks passing
 
-**v2.0.9 (Dec 3, 2025):**
+**v2.1.0 (Dec 3, 2025):**
 - ✅ MA Principle Applied: 15+ modules refactored with delegation pattern
 - ✅ New Extractions (Dec 3): 5 modules split for MA compliance:
   - `preview_css_manager.py` (207 lines) from preview_handler_base.py (503→381)

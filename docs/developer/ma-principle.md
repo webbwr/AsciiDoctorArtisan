@@ -1,7 +1,7 @@
 # MA (間) Principle Guide
 
-**Project:** AsciiDoc Artisan v2.0.8
-**Date:** November 21, 2025
+**Project:** AsciiDoc Artisan v2.1.0
+**Date:** December 3, 2025
 **Status:** Active Development Principle
 **Audience:** Developers, Contributors, Designers
 

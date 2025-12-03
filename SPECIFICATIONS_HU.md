@@ -46,7 +46,7 @@
 - ✅ 98/100 quality score
 
 **Recent Updates:**
-- Dec 3, 2025 - v2.0.9 Feature Release: LSP server (FR-109), Multi-core rendering (ParallelBlockRenderer), 5 MA extractions, 69 new tests
+- Dec 3, 2025 - v2.1.0 Public Release: LSP server (FR-109), Multi-core rendering (ParallelBlockRenderer), documentation streamlined
 - Nov 21, 2025 - E2E Test Fixes: User preferences 8/8 passing, 65/71 scenarios (91.5%)
 - Nov 20, 2025 - E2E Test Coverage: 10 test suites, 71 Gherkin scenarios
 - Nov 16, 2025 - UI Test Fixes: 60/62 resolved (97%), MockParentWidget pattern
@@ -289,7 +289,7 @@
 ## Summary
 
 **Total:** 108 specs (107 implemented, 1 planned)
-**Version:** v2.0.9 (Dec 3, 2025)
+**Version:** v2.1.0 (Dec 3, 2025)
 
 **Quality (v2.0.0+):**
 - ✅ 100% type coverage (mypy --strict: 0 errors, 95 files, Python 3.12+ syntax)
@@ -539,6 +539,6 @@ Complete implementation status for all 107 functional requirements.
 - Type Coverage: 100% (mypy --strict: 0 errors)
 - Code Quality: 100% (ruff passing)
 
-**Version:** 2.0.9
-**Status:** Production Ready ✅
+**Version:** 2.1.0
+**Status:** Public Release ✅
 **Last Updated:** December 3, 2025

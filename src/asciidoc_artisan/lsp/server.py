@@ -112,8 +112,9 @@ class AsciiDocLanguageServer(LanguageServer):
         version = params.text_document.version
 
         # Apply changes (full sync mode - get full text)
+        text: str | None = None
         for change in params.content_changes:
-            if isinstance(change, lsp.TextDocumentContentChangeEvent_Type1):
+            if isinstance(change, lsp.TextDocumentContentChangeWholeDocument):
                 # Full document sync
                 self.document_state.update_document(uri, change.text, version)
                 text = change.text
@@ -124,7 +125,7 @@ class AsciiDocLanguageServer(LanguageServer):
         logger.debug(f"Document changed: {uri}")
 
         # Refresh diagnostics
-        if text:
+        if text is not None:
             self._publish_diagnostics(uri, text)
 
     def _on_did_close(self, params: lsp.DidCloseTextDocumentParams) -> None:
@@ -134,7 +135,7 @@ class AsciiDocLanguageServer(LanguageServer):
         logger.debug(f"Document closed: {uri}")
 
         # Clear diagnostics
-        self.publish_diagnostics(uri, [])
+        self.text_document_publish_diagnostics(lsp.PublishDiagnosticsParams(uri=uri, diagnostics=[]))
 
     def _on_did_save(self, params: lsp.DidSaveTextDocumentParams) -> None:
         """Handle document save - refresh diagnostics if text included."""
@@ -194,7 +195,7 @@ class AsciiDocLanguageServer(LanguageServer):
     def _publish_diagnostics(self, uri: str, text: str) -> None:
         """Run diagnostics and publish results."""
         diagnostics = self.diagnostics_provider.get_diagnostics(text)
-        self.publish_diagnostics(uri, diagnostics)
+        self.text_document_publish_diagnostics(lsp.PublishDiagnosticsParams(uri=uri, diagnostics=diagnostics))
 
     def get_capabilities(self) -> lsp.ServerCapabilities:
         """Return server capabilities for initialization."""

@@ -1,7 +1,7 @@
 # Security Policy
 
-**Version:** 2.0.8
-**Last Updated:** November 21, 2025
+**Version:** 2.1.0
+**Last Updated:** December 3, 2025
 **Reading Level:** Grade 5.0
 **Status:** Production Ready
 

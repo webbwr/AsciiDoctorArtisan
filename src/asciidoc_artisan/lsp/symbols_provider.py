@@ -11,6 +11,7 @@ Provides:
 
 import logging
 import re
+from typing import cast
 
 from lsprotocol import types as lsp
 
@@ -112,7 +113,8 @@ class AsciiDocSymbolsProvider:
             parent = stack[-1][1]
             if parent.children is None:
                 parent.children = []
-            parent.children.append(symbol)
+            # Cast to list since we initialized as [] above
+            cast(list[lsp.DocumentSymbol], parent.children).append(symbol)
         else:
             # Add as top-level
             symbols.append(symbol)

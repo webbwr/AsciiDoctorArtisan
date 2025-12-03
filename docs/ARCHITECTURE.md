@@ -120,7 +120,7 @@ def start_operation(self) -> None:
         self._is_processing = False  # Reset in signal handler
 ```
 
-## Multi-Core Rendering (v2.0.9)
+## Multi-Core Rendering (v2.1.0)
 
 > **Related FRs:** FR-018 (Incremental Render), FR-069 (Worker Pool), FR-070 (Memory Management)
 
@@ -151,7 +151,7 @@ Uses `ThreadPoolExecutor` for CPU-bound AsciiDoc rendering:
 - 2-4x speedup on multi-core systems
 - Graceful fallback on single-core
 
-## LSP Architecture (v2.0.9)
+## LSP Architecture (v2.1.0)
 
 > **Related FR:** FR-109 (Language Server Protocol) — 54 tests
 
@@ -441,7 +441,7 @@ tests/
 
 ---
 
-*AsciiDoc Artisan v2.0.9 — MA Principle Architecture*
+*AsciiDoc Artisan v2.1.0 — MA Principle Architecture*
 
 **Related Documentation:**
 - [SPECIFICATIONS_AI.md](../SPECIFICATIONS_AI.md) — 109 FRs with acceptance criteria

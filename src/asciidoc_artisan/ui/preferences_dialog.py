@@ -5,9 +5,10 @@ Extracted from dialogs.py for MA principle compliance.
 Handles AI conversion settings and API key status display.
 
 Implements FR-055: AI-Enhanced Conversion option configuration.
-"""
 
-import os
+Security: Uses SecureCredentials (OS keyring) for API key status.
+Never reads API keys from environment variables (process exposure risk).
+"""
 
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -19,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from asciidoc_artisan.core import Settings
+from asciidoc_artisan.core.secure_credentials import SecureCredentials
 from asciidoc_artisan.ui.dialog_factory import create_ok_cancel_buttons
 
 
@@ -76,7 +78,7 @@ class PreferencesDialog(QDialog):
 
         # Information Label
         info_label = QLabel(
-            "• Requires ANTHROPIC_API_KEY environment variable\n"
+            "• API key stored in OS keyring (secure)\n"
             "• May incur usage costs (see anthropic.com for pricing)\n"
             "• Falls back to Pandoc automatically if unavailable\n"
             "• See Help → AI Conversion Setup for more information"
@@ -93,13 +95,17 @@ class PreferencesDialog(QDialog):
 
     def _get_api_key_status(self) -> str:
         """
-        Check if ANTHROPIC_API_KEY is configured.
+        Check if Anthropic API key is configured in OS keyring.
+
+        Security: Uses SecureCredentials (OS keyring) instead of environment
+        variables. Environment variables are exposed to process listings,
+        child processes, and logs. Keyring provides OS-level encryption.
 
         Returns:
             "✓ Configured" if API key is set, "✗ Not Set" otherwise
         """
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if api_key and len(api_key) > 0:
+        credentials = SecureCredentials()
+        if credentials.has_anthropic_key():
             return "✓ Configured"
         return "✗ Not Set"
 
