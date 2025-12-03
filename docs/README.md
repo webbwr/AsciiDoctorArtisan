@@ -1,7 +1,7 @@
 # AsciiDoc Artisan Documentation
 
-**Last Updated:** November 18, 2025
-**Version:** 2.0.4
+**Last Updated:** December 3, 2025
+**Version:** 2.0.9
 
 **Complete documentation index:** [../DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)
 
@@ -22,13 +22,15 @@ Guides for end users of AsciiDoc Artisan.
 - [Performance Tips](user/performance-tips.md) - GPU acceleration
 - [User Testing Guide](user/user-testing-guide.md) - Testing and reporting
 
+### Architecture
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture with FR-to-code mapping
+
 ### Developer Documentation
 **Location:** [`developer/`](developer/)
 
 Technical documentation for contributors and developers.
 
 - [Contributing Guide](developer/contributing.md) - Code, tests, documentation
-- [Architecture](developer/architecture.md) - System design and patterns
 - [TESTING_README](developer/TESTING_README.md) - Complete testing guide
 - [Test Coverage](developer/test-coverage.md) - Coverage metrics and strategies
 - [Security Guide](developer/security-guide.md) - Security best practices

@@ -1,7 +1,7 @@
 # AsciiDoc Artisan - Documentation Index
 
-**Last Updated:** November 18, 2025
-**Version:** 2.0.4 ✅ Production Ready
+**Last Updated:** December 3, 2025
+**Version:** 2.0.9 ✅ Production Ready
 
 Complete guide to all project documentation with quick navigation.
 
@@ -16,7 +16,8 @@ Complete guide to all project documentation with quick navigation.
 
 ### For Developers
 - **[CLAUDE.md](CLAUDE.md)** - Complete developer guide and AI assistant instructions
-- **[SPECIFICATIONS_HU.md](SPECIFICATIONS_HU.md)** - Human-readable functional requirements (107 FRs)
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture with FR-to-code mapping
+- **[SPECIFICATIONS_HU.md](SPECIFICATIONS_HU.md)** - Human-readable functional requirements (109 FRs)
 - **[SPECIFICATIONS_AI.md](SPECIFICATIONS_AI.md)** - AI-optimized specs with test requirements
 - **[docs/developer/](docs/developer/)** - Developer guides and API documentation
 - **[docs/testing/](docs/testing/)** - Test framework and FR traceability guides
@@ -34,8 +35,8 @@ Complete guide to all project documentation with quick navigation.
 ```
 README.md                  - Project overview
 CLAUDE.md                  - Developer guide (11KB)
-SPECIFICATIONS_HU.md       - Human specs (24KB)
-SPECIFICATIONS_AI.md       - AI specs (156KB)
+SPECIFICATIONS_HU.md       - Human specs (24KB) - 109 FRs
+SPECIFICATIONS_AI.md       - AI specs (156KB) - 109 FRs with criteria
 CHANGELOG.md               - Version history (21KB)
 ROADMAP.md                 - Future planning (11KB)
 SECURITY.md                - Security policy
@@ -45,6 +46,7 @@ DOCUMENTATION_INDEX.md     - This file
 ### docs/ Directory Structure
 ```
 docs/
+├── ARCHITECTURE.md    - System architecture with FR mapping (NEW in v2.0.9)
 ├── user/              - User-facing guides and tutorials
 ├── developer/         - Developer documentation and API guides
 ├── testing/           - Test framework and traceability docs
@@ -201,21 +203,26 @@ Located in `docs/archive/snapshots/`:
 
 ## 📊 Documentation Stats
 
-**Total Documentation:** 56 markdown files across project
-**Active Documentation:** ~223KB (current)
+**Total Documentation:** 100+ markdown files across project
+**Active Documentation:** ~250KB (current)
 **Archived Documentation:** Historical versions in docs/archive/
 
 **Key Documents:**
-- SPECIFICATIONS_AI.md: 156KB - AI-optimized with test requirements
-- SPECIFICATIONS_HU.md: 24KB - Human-readable quick reference
+- SPECIFICATIONS_AI.md: 156KB - AI-optimized with test requirements (109 FRs)
+- SPECIFICATIONS_HU.md: 24KB - Human-readable quick reference (109 FRs)
+- docs/ARCHITECTURE.md: 18KB - System architecture with FR mapping (NEW)
 - CHANGELOG.md: 21KB - Complete version history
 - CLAUDE.md: 11KB - Developer guide
 - ROADMAP.md: 11KB - Future planning
 
+**Codebase (v2.0.9):**
+- 44,935 lines across 171 files
+- main_window.py: 1,798 lines
+
 **Test Suite:**
-- 5,498 total tests
-- 87/107 FRs with pytest markers (81% coverage)
-- 149 test files
+- 5,285 unit tests + 71 E2E scenarios
+- mypy --strict: 0 errors (100% type coverage)
+- 87/109 FRs with pytest markers
 
 ---
 
@@ -262,13 +269,14 @@ All documentation follows:
 
 ## 🔄 Keeping Documentation Updated
 
-**Current Status:** ✅ All documentation up-to-date (as of Nov 18, 2025)
+**Current Status:** ✅ All documentation up-to-date (as of Dec 3, 2025)
 
 **Update Schedule:**
 - README.md: Updated with each major release
 - CHANGELOG.md: Updated with every version bump
 - ROADMAP.md: Reviewed quarterly
 - CLAUDE.md: Updated when architecture changes
+- docs/ARCHITECTURE.md: Updated with major refactors
 - SPECIFICATIONS_HU.md: Updated when requirements change
 - SPECIFICATIONS_AI.md: Updated with SPECIFICATIONS_HU.md
 - FR_TEST_MAPPING.md: Updated when tests change
@@ -280,15 +288,13 @@ All documentation follows:
 - Snapshots → Archive immediately after creation
 
 **Recent Updates:**
-- **Nov 18**: Documentation consolidation (40% duplication removed, 203 lines net reduction)
-- **Nov 18**: Testing docs merged into unified TESTING_README.md
-- **Nov 18**: Updated version to v2.0.4, test count to 5,498 tests
+- **Dec 3**: v2.0.9 release - LSP server, multi-core rendering, docs/ARCHITECTURE.md
+- **Dec 3**: Documentation consolidation - architecture docs unified
+- **Nov 21**: v2.0.8 E2E test fixes (91.5% pass rate)
+- **Nov 20**: E2E test coverage (71 scenarios)
+- **Nov 18**: Documentation consolidation (40% duplication removed)
 - **Nov 15**: Pytest marker framework complete (87/107 FRs)
-- **Nov 15**: SPECIFICATIONS.md → SPECIFICATIONS_HU.md rename
-- **Nov 15**: SPECIFICATIONS_V2.md → SPECIFICATIONS_AI.md rename
-- **Nov 15**: Added docs/testing/ documentation
 - **Nov 13**: v2.0.1 test suite repair documentation archived
-- **Nov 9**: v2.0.0 planning docs moved to archive
 
 ---
 
@@ -330,5 +336,5 @@ All documentation follows:
 
 ---
 
-**Last Major Update:** Documentation consolidation + v2.0.4 update (November 18, 2025)
+**Last Major Update:** v2.0.9 documentation consolidation (December 3, 2025)
 **Next Review:** v2.1.0 planning (Q1 2026)

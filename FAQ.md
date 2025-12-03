@@ -1,7 +1,7 @@
 # Frequently Asked Questions (FAQ)
 
-**Version:** 2.0.8
-**Last Updated:** November 21, 2025
+**Version:** 2.0.9
+**Last Updated:** December 3, 2025
 **Status:** Comprehensive
 
 ---

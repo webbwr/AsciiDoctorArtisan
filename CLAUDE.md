@@ -10,21 +10,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3 3.2+, pypandoc 1.13+, pymupdf 1.23+
 
-**Codebase:** 42,515 lines across 162 files
+**Codebase:** 44,935 lines across 171 files
 
 **Architecture:**
 - Single-window Qt app: split editor/preview, GPU-accelerated rendering
 - Multi-threaded: UI main thread, Git/Pandoc/Preview on QThread workers
-- Modular: 1,425-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
-- MA Principle: Delegation pattern (action_manager, file_operations_manager)
-- Package: `asciidoc_artisan.{core, ui, workers, conversion, git, claude}`
+- Modular: 1,798-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
+- MA Principle: Delegation pattern, <400 lines/file target (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
+- Package: `asciidoc_artisan.{core, ui, workers, lsp, conversion, git, claude}`
 
-**v2.0 Features:**
+**v2.0.9 Features:**
+- LSP Server: Language Server Protocol for IDE integration (completion, diagnostics, hover)
+- Multi-core: ParallelBlockRenderer with ThreadPoolExecutor (2-4x speedup)
 - Auto-complete: Context-aware syntax, fuzzy matching, Ctrl+Space, <50ms for 1K items
 - Syntax checking: Real-time validation, color-coded errors, F8 navigation, <100ms for 1K lines
 - Templates: 6 built-in types, Handlebars variables, <200ms load
 
-**Quality:** 5,216 unit tests + 71 E2E scenarios, mypy --strict (0 errors, 157 files), 88-char line limit
+**Quality:** 5,285 unit tests + 71 E2E scenarios, mypy --strict (0 errors), 88-char line limit
 
 ## Critical Patterns — Read First!
 
@@ -406,5 +408,8 @@ Entry: `src/main.py`
 - ✅ Test Updates: 84 action manager tests updated with new fixtures
 - ✅ File Open Handler Fix: Fixed attribute access bugs after MA refactoring
 - ✅ Unit Test Patches: Updated 59+ tests for correct module paths after handler extractions
-- ✅ Codebase Growth: 40,887 → 42,515 lines, 123 → 162 files (MA principle extractions)
-- ✅ main_window.py Reduction: 1,903 → 1,425 lines (25% reduction via delegation)
+- ✅ Codebase Growth: 42,515 → 44,935 lines, 162 → 171 files
+- ✅ main_window.py: 1,798 lines (comprehensive docs included)
+- ✅ LSP Implementation: Full Language Server Protocol with 6 providers (1,359 lines, 54 tests)
+- ✅ Multi-core Rendering: ParallelBlockRenderer with ThreadPoolExecutor
+- ✅ Architecture Documentation: New docs/ARCHITECTURE.md with FR-to-code mapping
