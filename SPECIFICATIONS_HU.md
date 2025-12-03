@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Functional Specifications
 
-**Quick Reference Guide** | **Version:** 2.0.9 | **Updated:** Dec 2, 2025
+**Quick Reference Guide** | **Version:** 2.0.9 | **Updated:** Dec 3, 2025
 
 > **📌 For AI-Assisted Development:** See [SPECIFICATIONS_AI.md](SPECIFICATIONS_AI.md)
 > This file provides human-readable quick reference. For AI-actionable specifications with acceptance criteria, API contracts, test requirements, and dependency graphs, use **SPECIFICATIONS_AI.md**.
@@ -36,8 +36,8 @@
 **Status:** Production-Ready
 
 **Codebase:**
-- 40,887 lines across 123 Python files
-- main_window.py: 1,903 lines (comprehensive docs)
+- 42,145 lines across 161 Python files
+- main_window.py: 1,798 lines (comprehensive docs)
 
 **Test Suite:**
 - ✅ 5,216 unit tests + 71 E2E scenarios
@@ -45,7 +45,7 @@
 - ✅ 98/100 quality score
 
 **Recent Updates:**
-- Dec 2, 2025 - v2.0.9 Code Refactoring: MA principle applied, mypy fixes, action naming aligned
+- Dec 3, 2025 - v2.0.9 MA Refactoring: 5 modules extracted (github_result_handler, recent_templates_tracker, pool_task_runner, telemetry_consent_dialog, preview_block_tracker), dependencies updated
 - Nov 21, 2025 - E2E Test Fixes: User preferences 8/8 passing, 65/71 scenarios (91.5%)
 - Nov 20, 2025 - E2E Test Coverage: 10 test suites, 71 Gherkin scenarios
 - Nov 16, 2025 - UI Test Fixes: 60/62 resolved (97%), MockParentWidget pattern
@@ -288,7 +288,7 @@
 ## Summary
 
 **Total:** 108 specs (107 implemented, 1 planned)
-**Version:** v2.0.8 (Nov 21, 2025)
+**Version:** v2.0.9 (Dec 3, 2025)
 
 **Quality (v2.0.0+):**
 - ✅ 100% type coverage (mypy --strict: 0 errors, 95 files, Python 3.12+ syntax)
