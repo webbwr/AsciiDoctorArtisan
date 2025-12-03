@@ -503,7 +503,7 @@ class TestCheckDRIDevices:
 
     def test_dri_with_render_device(self, mocker):
         """Test detecting /dev/dri/renderD* device."""
-        mock_path = mocker.patch("asciidoc_artisan.core.gpu_detection.Path")
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
         mock_dri = MagicMock()
         mock_path.return_value = mock_dri
         mock_dri.exists.return_value = True
@@ -517,7 +517,7 @@ class TestCheckDRIDevices:
 
     def test_dri_with_card_device(self, mocker):
         """Test detecting /dev/dri/card* device."""
-        mock_path = mocker.patch("asciidoc_artisan.core.gpu_detection.Path")
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
         mock_dri = MagicMock()
         mock_path.return_value = mock_dri
         mock_dri.exists.return_value = True
@@ -532,7 +532,7 @@ class TestCheckDRIDevices:
 
     def test_dri_not_exists(self, mocker):
         """Test when /dev/dri doesn't exist."""
-        mock_path = mocker.patch("asciidoc_artisan.core.gpu_detection.Path")
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
         mock_dri = MagicMock()
         mock_path.return_value = mock_dri
         mock_dri.exists.return_value = False
@@ -543,7 +543,7 @@ class TestCheckDRIDevices:
 
     def test_dri_no_devices(self, mocker):
         """Test when /dev/dri exists but no devices."""
-        mock_path = mocker.patch("asciidoc_artisan.core.gpu_detection.Path")
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
         mock_dri = MagicMock()
         mock_path.return_value = mock_dri
         mock_dri.exists.return_value = True
@@ -748,7 +748,7 @@ class TestCheckIntelNPU:
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = FileNotFoundError("clinfo not found")
 
-        mock_path = mocker.patch("asciidoc_artisan.core.gpu_detection.Path")
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
         mock_accel = MagicMock()
         mock_path.return_value = mock_accel
         mock_accel.glob.return_value = [Path("/dev/accel0")]
@@ -762,7 +762,7 @@ class TestCheckIntelNPU:
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = FileNotFoundError("clinfo not found")
 
-        mock_path = mocker.patch("asciidoc_artisan.core.gpu_detection.Path")
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
         mock_accel = MagicMock()
         mock_path.return_value = mock_accel
         mock_accel.glob.return_value = []
@@ -830,7 +830,7 @@ class TestDetectComputeCapabilities:
 
         def mock_path_side_effect(path_str):
             mock_p = MagicMock()
-            if "/opt/rocm" in path_str:
+            if "/opt/rocm" in str(path_str):
                 mock_p.exists.return_value = True
             else:
                 mock_p.exists.return_value = False
