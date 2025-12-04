@@ -1,6 +1,6 @@
 # Tests
 
-**v2.1.0** | 5,254 unit tests + 71 E2E scenarios
+**v2.1.0** | 5,254 unit tests + 3 E2E tests
 
 ## Structure
 

@@ -18,7 +18,7 @@ First production-stable release with LSP support and multi-core rendering.
 |--------|-------|
 | Codebase | 44,201 lines / 171 files |
 | Unit Tests | 5,254 (100% pass) |
-| E2E Scenarios | 71 (91.5% pass) |
+| E2E Tests | 3 (100% pass) |
 | Type Coverage | 100% (mypy --strict) |
 | Requirements | 109 FRs implemented |
 | Startup | 0.586s |

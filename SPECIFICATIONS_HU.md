@@ -12,7 +12,7 @@
 |--------|-------|
 | Codebase | 44,201 lines / 171 files |
 | Unit Tests | 5,254 |
-| E2E Scenarios | 71 |
+| E2E Tests | 3 |
 | Type Coverage | 100% (mypy --strict) |
 | Startup | 0.586s |
 

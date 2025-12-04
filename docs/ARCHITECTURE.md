@@ -16,7 +16,7 @@
 - LSP: 1,359 lines across 8 files (avg ~170 lines/file)
 
 **Quality Metrics:**
-- Unit tests: 5,254 + E2E: 71 scenarios
+- Unit tests: 5,254 + E2E: 3 tests
 - Type coverage: 100% (mypy --strict, 0 errors)
 - MA compliance: avg ~280 lines/file
 

@@ -11,7 +11,7 @@
 
 ### Metrics
 - 44,201 lines / 171 files
-- 5,254 unit + 71 E2E tests
+- 5,254 unit + 3 E2E tests
 - mypy --strict (0 errors)
 
 ---
