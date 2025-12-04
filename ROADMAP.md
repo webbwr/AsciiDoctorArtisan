@@ -67,12 +67,20 @@
 
 **v3.0.0** features deferred indefinitely:
 - LSP enhancements
+
+**Rationale:** v2.x is feature-complete for core AsciiDoc editing. Future expansion contingent on user demand.
+
+---
+
+## Out of Scope
+
+These features are explicitly not planned:
 - Plugin architecture
 - Plugin marketplace
 - Collaborative editing
 - Cloud sync
 
-**Rationale:** v2.x is feature-complete for core AsciiDoc editing. Future expansion contingent on user demand.
+**Rationale:** AsciiDoc Artisan is a focused local-first editor. These features add complexity without serving the core use case.
 
 ---
 
