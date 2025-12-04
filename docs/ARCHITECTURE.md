@@ -2,13 +2,13 @@
 
 **Version:** 2.1.0 | **Last Updated:** 2025-12-03 | **Public Release**
 
-> **See also:** [SPECIFICATIONS_AI.md](../SPECIFICATIONS_AI.md) for 109 functional requirements with acceptance criteria.
+> **See also:** [SPECIFICATIONS.md](../SPECIFICATIONS.md) for 109 functional requirements.
 
 ## Design Philosophy
 
 **MA Principle (間)** — Japanese concept of negative space. Each module focuses on one thing. Target: <400 lines per file.
 
-**Codebase Metrics** (aligned with SPECIFICATIONS_AI.md):
+**Codebase Metrics** (aligned with SPECIFICATIONS.md):
 - **Total:** 44,201 lines across 171 files
 - Core: 13,216 lines across 45+ files (avg ~290 lines/file)
 - Workers: 4,718 lines across 19 files (avg ~248 lines/file)
@@ -444,6 +444,5 @@ tests/
 *AsciiDoc Artisan v2.1.0 — MA Principle Architecture*
 
 **Related Documentation:**
-- [SPECIFICATIONS_AI.md](../SPECIFICATIONS_AI.md) — 109 FRs with acceptance criteria
-- [SPECIFICATIONS_HU.md](../SPECIFICATIONS_HU.md) — Human quick reference
+- [SPECIFICATIONS.md](../SPECIFICATIONS.md) — 109 FRs with file locations
 - [ROADMAP.md](../ROADMAP.md) — Release timeline

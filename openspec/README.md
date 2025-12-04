@@ -15,7 +15,7 @@ openspec/
 └── README.md     (This file)
 ```
 
-See `SPECIFICATIONS_HU.md` for all the rules.
+See `SPECIFICATIONS.md` for all the rules.
 
 ## Add an Idea
 
@@ -104,7 +104,7 @@ Test it with the read test script.
 
 ## Need Help?
 
-- See `SPECIFICATIONS_HU.md`
+- See `SPECIFICATIONS.md`
 - Ask on GitHub
 
 ---

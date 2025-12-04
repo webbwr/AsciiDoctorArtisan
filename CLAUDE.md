@@ -96,8 +96,7 @@ src/asciidoc_artisan/
 
 | Doc | Purpose |
 |-----|---------|
-| SPECIFICATIONS_AI.md | 109 FRs, AI-actionable |
-| SPECIFICATIONS_HU.md | FR quick reference |
+| SPECIFICATIONS.md | 109 FRs with file locations |
 | docs/ARCHITECTURE.md | System design, FR mapping |
 | ROADMAP.md | Version history |
 

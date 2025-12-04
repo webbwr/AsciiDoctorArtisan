@@ -451,7 +451,7 @@ We thank these security researchers:
 - [Contributor Covenant](https://www.contributor-covenant.org/)
 
 **Project Resources:**
-- [SPECIFICATIONS_AI.md](SPECIFICATIONS_AI.md) - Security FRs (FR-069 to FR-072)
+- [SPECIFICATIONS.md](SPECIFICATIONS.md) - Security FRs (FR-069 to FR-072)
 - [docs/developer/security-guide.md](docs/developer/security-guide.md) - Developer security guide
 - [CONTRIBUTING.md](docs/developer/contributing.md) - Secure development practices
 

@@ -21,7 +21,7 @@
 | [FAQ](FAQ.md) | Common questions |
 | [CHANGELOG](CHANGELOG.md) | Version history |
 | [ROADMAP](ROADMAP.md) | Project status |
-| [SPECIFICATIONS_HU.md](SPECIFICATIONS_HU.md) | 109 FRs |
+| [SPECIFICATIONS.md](SPECIFICATIONS.md) | 109 FRs |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design |
 
 ---
