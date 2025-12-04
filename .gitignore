@@ -33,12 +33,7 @@ env/
 *.swo
 *~
 
-# Claude Code / AI agents (credentials & private artifacts)
-.claude/
-!.claude/skills/
-!.claude/settings.json
-!.claude/statusline.sh
-!.claude/README.md
+# Claude Code private artifacts
 .claude.json
 
 # OS files
