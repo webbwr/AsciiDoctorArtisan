@@ -1,7 +1,7 @@
 # Security Policy
 
 **Version:** 2.1.0
-**Last Updated:** December 3, 2025
+**Last Updated:** December 4, 2025
 **Reading Level:** Grade 5.0
 **Status:** Production Ready
 
@@ -26,12 +26,12 @@ We fix security bugs in these versions:
 
 | Version | Supported | Status | End of Support |
 |---------|-----------|--------|----------------|
-| 2.0.x | ✅ Yes | Current | Active |
-| 1.9.x | ✅ Yes | Maintenance | June 2026 |
-| 1.8.x | ✅ Yes | Security only | March 2026 |
-| < 1.8 | ❌ No | Unsupported | Ended |
+| 2.1.x | ✅ Yes | Current | Active |
+| 2.0.x | ✅ Yes | Maintenance | June 2026 |
+| 1.9.x | ⚠️ Limited | Security only | March 2026 |
+| < 1.9 | ❌ No | Unsupported | Ended |
 
-**Recommendation:** Always use the latest 2.0.x version for best security.
+**Recommendation:** Always use the latest 2.1.x version for best security.
 
 ---
 
@@ -313,7 +313,7 @@ Follow these tips to stay secure:
 ### Security Testing
 
 **Current Coverage:**
-- 5,548 unit tests (99.42% pass rate)
+- 5,254 unit tests (100% pass rate)
 - 71 E2E scenarios (91.5% pass rate)
 - Security-specific tests: 377 tests
 - Path sanitization: 11 tests
@@ -457,8 +457,8 @@ We thank these security researchers:
 
 ---
 
-**Security Policy Version:** 2.0
-**Last Updated:** November 21, 2025
+**Security Policy Version:** 2.1
+**Last Updated:** December 4, 2025
 **Reading Level:** Grade 5.0 (main sections)
 **Status:** ✅ Grandmaster Level
 

@@ -1,59 +1,31 @@
-# AsciiDoc Artisan Documentation
+# Documentation
 
-**Last Updated:** December 3, 2025
-**Version:** 2.1.0
+**v2.1.0** | Dec 4, 2025
 
-**Complete documentation index:** [../DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)
+## Navigation
 
-This directory contains all project documentation organized by audience and purpose.
+| Doc | Purpose |
+|-----|---------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design, FR mapping |
+| [user/](user/) | User guides |
+| [developer/](developer/) | Developer guides |
 
----
+## User Docs (`user/`)
 
-## Quick Navigation
+- [user-guide.md](user/user-guide.md) - Complete feature guide
+- [github-integration.md](user/github-integration.md) - PR/Issue management
+- [ollama-chat.md](user/ollama-chat.md) - AI chat
+- [performance-tips.md](user/performance-tips.md) - GPU, optimization
+- [troubleshooting.md](user/troubleshooting.md) - Common fixes
 
-### User Documentation
-**Location:** [`user/`](user/)
+## Developer Docs (`developer/`)
 
-Guides for end users of AsciiDoc Artisan.
-
-- [User Guide](user/user-guide.md) - Complete feature guide
-- [GitHub Integration](user/github-integration.md) - PR/Issue management
-- [Ollama Chat](user/ollama-chat.md) - AI chat assistant
-- [Performance Tips](user/performance-tips.md) - GPU acceleration
-- [User Testing Guide](user/user-testing-guide.md) - Testing and reporting
-
-### Architecture
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture with FR-to-code mapping
-
-### Developer Documentation
-**Location:** [`developer/`](developer/)
-
-Technical documentation for contributors and developers.
-
-- [Contributing Guide](developer/contributing.md) - Code, tests, documentation
-- [TESTING_README](developer/TESTING_README.md) - Complete testing guide
-- [Test Coverage](developer/test-coverage.md) - Coverage metrics and strategies
-- [Security Guide](developer/security-guide.md) - Security best practices
-- [Performance Profiling](developer/performance-profiling.md) - Profiling tools
-
-### Testing Documentation
-**Location:** [`testing/`](testing/)
-
-Test framework and functional requirement traceability.
-
-- [Pytest Markers Guide](testing/PYTEST_MARKERS_GUIDE.md) - Test markers reference
-- [FR Test Mapping](testing/FR_TEST_MAPPING.md) - Requirements traceability
+- [contributing.md](developer/contributing.md) - How to contribute
+- [testing.md](developer/testing.md) - Test guide
+- [ma-principle.md](developer/ma-principle.md) - Code organization
+- [security-guide.md](developer/security-guide.md) - Security practices
+- [performance-profiling.md](developer/performance-profiling.md) - Profiling
 
 ---
 
-## Archive
-
-**Location:** [`archive/`](archive/)
-
-Historical documentation, completed work, and analysis files preserved for reference.
-
-See [archive/README.md](archive/README.md) for archive organization.
-
----
-
-For complete documentation navigation, see [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) in the repository root.
+*See [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) for full index*

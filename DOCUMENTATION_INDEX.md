@@ -1,69 +1,52 @@
 # Docs Index
 
-**v2.1.0** | Dec 3, 2025
+**v2.1.0** | Dec 4, 2025
 
 ---
 
-## New Here?
+## Start Here
 
-- **Users:** Read [README](README.md) first
-- **Coders:** Read [CLAUDE.md](CLAUDE.md) first
-- **Helpers:** Read [ROADMAP](ROADMAP.md) first
-
----
-
-## All Files
-
-- [README](README.md) - How to start
-- [CLAUDE.md](CLAUDE.md) - How to code
-- [FAQ](FAQ.md) - Get answers
-- [CHANGELOG](CHANGELOG.md) - What changed
-- [ROADMAP](ROADMAP.md) - What is next
-- [SPECS](SPECIFICATIONS_HU.md) - All 109 features
-- [DESIGN](docs/ARCHITECTURE.md) - How it works
+- **Users:** [README](README.md)
+- **Developers:** [CLAUDE.md](CLAUDE.md)
+- **Contributors:** [docs/developer/contributing.md](docs/developer/contributing.md)
 
 ---
 
-## Find Help
+## Core Docs
 
-**I want to:**
-- Set it up → [README](README.md)
-- Use it → [FAQ](FAQ.md)
-- Code it → [CLAUDE.md](CLAUDE.md)
-- Test it → Run `make test`
-
-**Learn about:**
-- Stay safe → [SECURITY](SECURITY.md)
-- Run tests → [docs/testing/](docs/testing/)
-- See design → [DESIGN](docs/ARCHITECTURE.md)
-
----
-
-## Where Files Live
-
-- `docs/` - All help files
-- `docs/user/` - User help
-- `docs/developer/` - Coder help
-- `docs/testing/` - Test help
-- `docs/archive/` - Old files
+| Doc | Purpose |
+|-----|---------|
+| [README](README.md) | Quick start |
+| [CLAUDE.md](CLAUDE.md) | Developer guide |
+| [FAQ](FAQ.md) | Common questions |
+| [CHANGELOG](CHANGELOG.md) | Version history |
+| [ROADMAP](ROADMAP.md) | Project status |
+| [SPECIFICATIONS_HU.md](SPECIFICATIONS_HU.md) | 109 FRs |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design |
 
 ---
 
-## By The Numbers
+## By Category
 
-- 100+ doc files
+**User Docs:** `docs/user/`
+- [user-guide.md](docs/user/user-guide.md)
+- [troubleshooting.md](docs/user/troubleshooting.md)
+- [github-integration.md](docs/user/github-integration.md)
+
+**Developer Docs:** `docs/developer/`
+- [testing.md](docs/developer/testing.md)
+- [contributing.md](docs/developer/contributing.md)
+- [ma-principle.md](docs/developer/ma-principle.md)
+
+---
+
+## Metrics
+
+- 41 doc files
 - 44,201 lines of code
 - 5,254 tests
 - 109 features
 
 ---
 
-## Write Good Docs
-
-- Use grade 5 words
-- Keep lines short
-- Keep it simple
-
----
-
-**Need help?** [Ask on GitHub](https://github.com/webbwr/AsciiDoctorArtisan/issues)
+**Need help?** [GitHub Issues](https://github.com/webbwr/AsciiDoctorArtisan/issues)

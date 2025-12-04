@@ -1,121 +1,59 @@
-# Tests Directory
+# Tests
 
-This directory contains all test files for AsciiDoc Artisan.
+**v2.1.0** | 5,254 unit tests + 71 E2E scenarios
 
 ## Structure
 
 ```
 tests/
-├── __init__.py              # Package marker
-├── conftest.py              # Shared pytest fixtures
-├── unit/                    # Unit tests (test individual components)
-│   ├── core/               # Tests for core/ modules
-│   ├── ui/                 # Tests for UI components
-│   └── workers/            # Tests for worker threads
-├── integration/            # Integration tests (test component interactions)
-└── performance/            # Performance benchmarks and profiling
+├── conftest.py      # Shared fixtures
+├── unit/            # Unit tests
+│   ├── core/        # Core module tests
+│   ├── ui/          # UI component tests
+│   └── workers/     # Worker thread tests
+├── e2e/             # End-to-end tests (BDD)
+├── integration/     # Integration tests
+└── performance/     # Benchmarks
 ```
 
-## Test Categories
+## Run Tests
 
-### Unit Tests (`unit/`)
-Test individual components in isolation.
-
-- **core/**: Core functionality tests (file operations, LRU cache, resource monitoring, etc.)
-- **ui/**: UI component tests (dialogs, managers, handlers)
-- **workers/**: Worker thread tests (Git, Pandoc, preview rendering)
-
-### Integration Tests (`integration/`)
-Test how components work together.
-
-Examples:
-- `test_async_integration.py` - Async file operations integration
-- `test_memory_leaks.py` - Memory leak detection
-- `test_ui_integration.py` - Full UI workflow tests
-
-### Performance Tests (`performance/`)
-Benchmark performance and profile resource usage.
-
-Examples:
-- `test_performance_baseline.py` - Performance regression detection
-- `test_virtual_scroll_benchmark.py` - Virtual scrolling performance
-- `profile_*.py` - Profiling scripts
-
-## Running Tests
-
-### Run All Tests
 ```bash
-make test
-# or
-pytest tests/
+make test                    # All tests + coverage
+pytest tests/unit/           # Unit tests only
+pytest tests/e2e/            # E2E tests only
+pytest tests/unit/core/      # Specific module
+pytest -v tests/file.py      # Single file
 ```
 
-### Run Specific Category
+## Coverage
+
 ```bash
-pytest tests/unit/                  # All unit tests
-pytest tests/unit/core/             # Core module tests only
-pytest tests/integration/           # Integration tests only
-pytest tests/performance/           # Performance tests only
+make test                    # Generates htmlcov/
+open htmlcov/index.html      # View report
 ```
 
-### Run Individual Test File
-```bash
-pytest tests/unit/core/test_file_operations.py -v
-```
+**Current:** 96.4% coverage
 
-### Run With Coverage
-```bash
-pytest tests/ --cov=asciidoc_artisan --cov-report=html
-# Open htmlcov/index.html in browser
-```
+## Writing Tests
 
-## Writing New Tests
-
-### File Naming
-- Unit test: `test_<module_name>.py`
-- Integration test: `test_<feature>_integration.py`
-- Performance test: `test_<feature>_benchmark.py` or `profile_<feature>.py`
-
-### Test Structure
 ```python
-import pytest
+def test_feature_name():
+    # Arrange
+    expected = "result"
 
-class TestFeatureName:
-    """Test suite for FeatureName."""
+    # Act
+    actual = function_under_test()
 
-    def test_basic_functionality(self):
-        """Test basic feature functionality."""
-        # Arrange
-        expected = "result"
-
-        # Act
-        actual = function_under_test()
-
-        # Assert
-        assert actual == expected
+    # Assert
+    assert actual == expected
 ```
 
-### Using Fixtures
-Shared fixtures are in `conftest.py`:
-```python
-def test_with_temp_file(tmp_path):
-    """Test using temporary file (tmp_path fixture from pytest)."""
-    test_file = tmp_path / "test.txt"
-    test_file.write_text("content")
-    assert test_file.read_text() == "content"
-```
+## Markers
 
-## Coverage Goals
+- `@pytest.mark.requires_gpu` - Needs GPU hardware
+- `@pytest.mark.live_api` - Needs Ollama running
 
-**Target**: 100% coverage for critical modules
+---
 
-**Current Coverage**:
-- `core/file_operations.py`: 100%
-- `core/lru_cache.py`: 100%
-- `core/resource_monitor.py`: 100%
-- `core/constants.py`: 100%
-- `core/async_file_ops.py`: 100%
-- `core/async_file_handler.py`: 91%
-- `core/async_file_watcher.py`: 98%
-
-Run `make test` to see full coverage report.
+*See [docs/developer/testing.md](../docs/developer/testing.md) for full guide*

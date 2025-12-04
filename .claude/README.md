@@ -58,7 +58,7 @@ Run the statusline script directly:
 
 **Status Line:**
 ```
-┏━━ AsciiDocArtisan v2.0.0
+┏━━ AsciiDocArtisan v2.1.0
 ├─ Git: main │ ±3 │ ↑1 ↓0
 ├─ Env: Python 3.13.3 │ venv:✓ │ Apple Silicon (opt:✓)
 ├─ QA : Tests:82 (95%) │ mypy:✓ │ ruff:✓
@@ -127,7 +127,7 @@ make test  # Generates htmlcov/index.html
 
 - Created: 2025-11-09
 - Claude Code Version: Compatible with claude-cli 1.x+
-- Project: AsciiDoc Artisan v2.0.0
+- Project: AsciiDoc Artisan v2.1.0
 
 ## See Also
 

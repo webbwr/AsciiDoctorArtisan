@@ -1,151 +1,49 @@
-# AsciiDoc Artisan v2.1.0 Release Notes
+# AsciiDoc Artisan v2.1.0
 
-**Release Date:** December 3, 2025
-**Type:** Public Release (First Stable)
-**Status:** Production Ready
+**Release Date:** December 4, 2025 | **Type:** Public Release | **Status:** Production Ready
 
----
+## Highlights
 
-## Overview
+First production-stable release with LSP support and multi-core rendering.
 
-AsciiDoc Artisan v2.1.0 is the **first public release** of a production-stable, feature-complete AsciiDoc editor. This release marks the transition from beta to stable, with full Language Server Protocol support, multi-core rendering, and comprehensive documentation.
+### Features
 
-## Key Features
-
-### Language Server Protocol (LSP)
-
-Full LSP implementation enables IDE integration with any LSP-compatible editor:
-
-| Feature | Description |
-|---------|-------------|
-| `textDocument/completion` | Context-aware auto-complete for syntax, attributes, xrefs |
-| `textDocument/publishDiagnostics` | Real-time syntax validation with error highlighting |
-| `textDocument/hover` | Documentation on hover for AsciiDoc elements |
-| `textDocument/documentSymbol` | Document outline with heading hierarchy |
-| `textDocument/definition` | Go-to-definition for cross-references |
-
-**Start the LSP server:**
-```bash
-python -m asciidoc_artisan.lsp
-```
-
-**Implementation:** 6 provider modules, 1,359 lines, 54 tests
-
-### Multi-core Rendering
-
-ParallelBlockRenderer leverages ThreadPoolExecutor for 2-4x speedup:
-
-- Thread-local AsciiDoc instances for thread safety
-- Block-based parallelization for independent units
-- Graceful fallback on single-core systems
-- Automatic CPU core detection
-
-### Architecture Documentation
-
-New `docs/ARCHITECTURE.md` provides comprehensive system design:
-
-- ASCII diagrams for threading model and data flow
-- FR-to-code mapping for all 109 functional requirements
-- Security patterns and performance characteristics
-- Extension points for workers, LSP features, and UI managers
+- **LSP Server** - IDE integration (completion, diagnostics, hover, symbols)
+- **Multi-core Rendering** - 2-4x speedup on 4+ core systems
+- **GPU Acceleration** - 10-50x faster preview (NVIDIA/AMD/Intel)
 
 ## Metrics
 
 | Metric | Value |
 |--------|-------|
-| Codebase | 44,201 lines across 171 files |
-| Unit Tests | 5,254 passing |
-| E2E Scenarios | 71 (65 passing, 91.5%) |
-| Type Coverage | 100% (mypy --strict, 0 errors) |
-| Requirements | 109 FRs, 100% implemented |
-| Startup Time | 0.586s |
+| Codebase | 44,201 lines / 171 files |
+| Unit Tests | 5,254 (100% pass) |
+| E2E Scenarios | 71 (91.5% pass) |
+| Type Coverage | 100% (mypy --strict) |
+| Requirements | 109 FRs implemented |
+| Startup | 0.586s |
 
-## Installation
+## Install
 
-### From PyPI (Recommended)
 ```bash
-pip install asciidoc-artisan
-```
-
-### From Source
-```bash
+# From source
 git clone https://github.com/webbwr/AsciiDoctorArtisan.git
 cd AsciiDoctorArtisan
 pip install -e ".[dev]"
 ```
 
-### Using Installer Scripts
-```bash
-# Linux/macOS
-./install-asciidoc-artisan.sh
+## Requirements
 
-# Windows PowerShell
-.\install-asciidoc-artisan.ps1
-```
-
-## Dependencies
-
-### Required
 - Python 3.11+
 - PySide6 6.9+
-- Pandoc (for format conversion)
-- wkhtmltopdf (for PDF export)
+- Pandoc, wkhtmltopdf
 
-### Optional
-- Git (for version control integration)
-- GitHub CLI (`gh`) for GitHub features
-- Ollama (for AI chat assistance)
-- GPU drivers (NVIDIA/AMD for hardware acceleration)
+## What's New
 
-### New in v2.1.0
-- `pygls>=2.0.0` - Python LSP server framework
-- `lsprotocol>=2025.0.0` - LSP type definitions
-
-## Upgrade Guide
-
-### From v2.0.x
-```bash
-pip install --upgrade asciidoc-artisan
-```
-
-No breaking changes. All existing functionality preserved.
-
-### From v1.x
-1. Backup your settings (`~/.config/AsciiDocArtisan/`)
-2. Uninstall old version: `pip uninstall asciidoc-artisan`
-3. Install new version: `pip install asciidoc-artisan`
-4. Settings will be migrated automatically on first run
-
-## Known Limitations
-
-- E2E test suite: 6 scenarios skipped (spell check, suite execution timing)
-- GPU detection cache: 24hr TTL (clear `~/.cache/asciidoc_artisan/gpu_detection.json` to refresh)
-- LSP server: Standalone process (not yet integrated into main app)
-
-## What's Next
-
-v2.1.x will focus on maintenance and stability:
-- Bug fixes as reported
-- Performance optimizations
-- Documentation improvements
-
-v3.0.0 (deferred) will add:
-- Plugin architecture
-- Real-time collaboration
-- Marketplace for extensions
-
-## Contributing
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
-
-Report issues: https://github.com/webbwr/AsciiDoctorArtisan/issues
-
-## License
-
-MIT License - see [LICENSE](../LICENSE) for details.
+- LSP: `python -m asciidoc_artisan.lsp`
+- ParallelBlockRenderer with ThreadPoolExecutor
+- Architecture documentation with FR mapping
 
 ---
 
-**Thank you for using AsciiDoc Artisan!**
-
-*AsciiDoc Artisan v2.1.0 - First Public Release*
+*v2.1.0 | Production Ready | MIT License*
