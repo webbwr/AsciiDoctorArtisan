@@ -6,7 +6,7 @@ specification:
   name: "AsciiDoc Artisan Functional Requirements"
   version: "2.1.0"
   status: "Public Release"
-  last_updated: "2025-12-03"
+  last_updated: "2025-12-04"
   format_version: "2.0-ai-actionable"
 
 metadata:
@@ -20,12 +20,12 @@ metadata:
   future_work: "Out of scope (plugins, collaboration deferred)"
 
 codebase_metrics:
-  total_lines: 44935
+  total_lines: 44201
   total_files: 171
   main_window_lines: 1798
 
 quality_metrics:
-  unit_tests_total: 5285
+  unit_tests_total: 5254
   e2e_tests_total: 71
   type_coverage: 100.0
   mypy_strict_errors: 0

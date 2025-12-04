@@ -53,8 +53,8 @@ New `docs/ARCHITECTURE.md` provides comprehensive system design:
 
 | Metric | Value |
 |--------|-------|
-| Codebase | 44,935 lines across 171 files |
-| Unit Tests | 5,285 passing |
+| Codebase | 44,201 lines across 171 files |
+| Unit Tests | 5,254 passing |
 | E2E Scenarios | 71 (65 passing, 91.5%) |
 | Type Coverage | 100% (mypy --strict, 0 errors) |
 | Requirements | 109 FRs, 100% implemented |

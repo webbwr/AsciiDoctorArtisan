@@ -52,8 +52,8 @@
 ## By The Numbers
 
 - 100+ doc files
-- 44,935 lines of code
-- 5,285 tests
+- 44,201 lines of code
+- 5,254 tests
 - 109 features
 
 ---

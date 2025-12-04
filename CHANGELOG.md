@@ -1,639 +1,82 @@
 # Changelog
 
-All notable changes to AsciiDoc Artisan will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
 ## [2.1.0] - 2025-12-03 - Public Release
 
-### Highlights
-**First public release** of AsciiDoc Artisan - a production-stable, feature-complete AsciiDoc editor.
+**First production-stable release**
 
 ### Added
-- **Language Server Protocol (LSP)** - Full LSP implementation for IDE integration
-  - `textDocument/completion` - Context-aware auto-complete
-  - `textDocument/publishDiagnostics` - Real-time syntax validation
-  - `textDocument/hover` - AsciiDoc element documentation
-  - `textDocument/documentSymbol` - Document outline and navigation
-  - `textDocument/definition` - Cross-reference navigation
-  - 6 provider modules, 1,359 lines, 54 tests
-  - Start with: `python -m asciidoc_artisan.lsp`
-
-- **Multi-core Rendering** - ParallelBlockRenderer with ThreadPoolExecutor
-  - 2-4x speedup on 4+ core systems
-  - Thread-local AsciiDoc instances for thread safety
-  - Block-based parallelization for independent units
-
-- **Architecture Documentation** - New `docs/ARCHITECTURE.md`
-  - Complete system design with ASCII diagrams
-  - FR-to-code mapping for all 109 requirements
-  - Threading model and security patterns
-
-### Changed
-- **Development Status** - Beta → Production/Stable in PyPI classifiers
-- **Package** - Added `lsp` subpackage to `asciidoc_artisan`
-- **Documentation** - Consolidated architecture docs, unified version numbers
+- LSP Server (completion, diagnostics, hover, symbols)
+- Multi-core rendering (2-4x speedup)
+- Architecture documentation with FR mapping
 
 ### Metrics
-- **Codebase**: 44,935 lines across 171 files
-- **Tests**: 5,285 unit + 71 E2E scenarios
-- **Type Safety**: mypy --strict, 0 errors
-- **Requirements**: 109 FRs, 100% implemented
-
-### Dependencies
-- Added: `pygls>=2.0.0`, `lsprotocol>=2025.0.0`
-
-## [2.0.9] - 2025-12-03
-
-### Added
-- LSP server implementation (merged into 2.1.0)
-- Multi-core rendering (merged into 2.1.0)
-- MA principle extractions (5 modules)
-
-## [2.0.8] - 2025-11-21
-
-### Fixed
-- E2E test fixes: User preferences 8/8 passing
-- Telemetry dialog fix in E2E fixture
-- Settings persistence race condition
-
-### Metrics
-- 65/71 E2E scenarios passing (91.5%)
-
-## [2.0.7] - 2025-11-20
-
-### Added
-- E2E test coverage: 10 BDD test suites, 71 Gherkin scenarios
-- User preferences testing (8 scenarios)
-
-## [2.0.6] - 2025-11-19
-
-### Changed
-- Dialog callbacks extracted for testability
-- +36 tests passing, 22 skipped documented
-
-## [2.0.5] - 2025-11-18
-
-### Changed
-- main_window coverage: 86% (exceeded 80% target)
-- Defensive code audit completed
-
-## [2.0.4] - 2025-11-18
-
-### Documentation
-- **Comprehensive Documentation Consolidation**
-  - Eliminated 40% documentation duplication (203 lines net reduction)
-  - Merged 4 redundant documentation indexes into single canonical source
-  - Consolidated 3 testing documentation files into unified TESTING_README.md
-  - Established clear role separation for core documentation files
-  - Updated all documentation to consistent v2.0.4 versioning
-  - Documentation quality score improved: 92/100 → 94/100
-
-- **Architecture Documentation**
-  - Complete rewrite from 536 → 950+ lines
-  - Added Functional Requirements mapping (all 107 FRs → implementing components)
-  - Documented 16 managers, 7 workers, 11 design patterns
-  - Updated from v1.5.0 (Oct 28) to v2.0.4 (Nov 18)
-
-- **Phase 4E Coverage Verification Complete**
-  - Verified 19 UI module files achieve 100% test coverage
-  - Total: 2,493 statements, 1,089 tests, 0 missing lines
-  - Zero tests added - existing v2.0.x suite already comprehensive
-  - Batch 1 (5 files): action_manager, chat_bar_widget, chat_panel_widget, file_load_manager, pandoc_result_handler
-  - Batch 2 (5 files): quick_commit_widget, scroll_manager, ui_setup_manager, github_handler, dependency_dialog
-  - Batch 3 (5 files): base_vcs_handler, ui_state_manager, autocomplete_manager, editor_state, syntax_checker_manager
-  - Batch 4 (5 files): git_handler, installation_validator_dialog, spell_check_manager, template_browser, theme_manager
-  - Documentation: docs/completed/PHASE_4E_COMPLETION.md
-
-- **Repository Maintenance Automation**
-  - Added pre-commit hook for `make clean` (runs before git push)
-  - Enhanced .editorconfig with comprehensive file type coverage (14+ types)
-  - Added "Repository Cleanup" section to contributing.md
-
-### Fixed
-- **Formatter Consolidation** - Resolved ruff/black infinite formatting loop
-  - Removed black formatter (kept ruff-format only for consistency)
-  - Root cause: Both formatters had different wrapping strategies at 88-char boundary
-  - Updated Makefile: `make format` and `make lint` now use ruff exclusively
-  - Reformatted entire codebase with ruff (78 source + 130 test files)
-  - Net reduction: -5,377 lines (removed redundant wrapping)
-
-- **Python Version Targets** - Fixed invalid py314 references
-  - Updated pyproject.toml: py314 → py311 (Python 3.14 doesn't exist yet)
-  - Aligns with project requirements (Python 3.11+, running on 3.12.3)
-
-- **Test Suite Fixes**
-  - Fixed 3 main_window test failures (tests written against old API)
-  - Updated `test_workers_initialized`: github_cli_worker → github_handler
-  - Updated theme tests: apply_dark_theme()/apply_light_theme() → apply_theme()
-  - Increased WSL2 profiler overhead threshold: 160ms → 170ms
-  - Test suite: **207/207 passing (100%)**
-
-### Changed
-- **Moved v3.0.0 Features to OUT OF SCOPE**
-  - LSP server, plugin system, real-time collaboration deferred indefinitely
-  - Focus on v2.x stability and maintenance
-  - Updated ROADMAP.md and SPECIFICATIONS_AI.md with scope metadata
-
-- Modernized all Python type annotations to Python 3.12+ syntax
-  - Migrated `typing.List` → `list`, `typing.Dict` → `dict` (87 files)
-  - Converted `typing.Optional[X]` → `X | None` (600+ usages)
-  - Updated `Generic[T]` subclassing to type parameters
-  - Removed 159 unused typing imports
-  - Net reduction: 26 lines across 78 files
-
-### Internal
-- All quality checks passing: ruff, mypy --strict (95 files, 0 errors)
-- Pre-commit hooks: all passing (no infinite loops)
-- Documentation standards: Weekly audit schedule
-
-## [2.0.0] - 2025-11-09
-
-### Added
-- **Auto-Complete System** - Intelligent AsciiDoc syntax completion
-  - Fuzzy matching with rapidfuzz for context-aware suggestions
-  - Manual trigger with Ctrl+Space, auto-trigger while typing
-  - Response time: 20-40ms (exceeds <50ms target)
-  - Configurable delay (100-1000ms, default: 300ms)
-  - Minimum characters to trigger (1-5, default: 2)
-  - Popup widget shows up to 20 suggestions
-  - Settings: Tools → Auto-Complete Settings...
-
-- **Syntax Checking System** - Real-time error detection with visual feedback
-  - Color-coded underlines (red=error, orange=warning, blue=info)
-  - Validation time: <100ms for 1000-line documents
-  - Configurable debounce delay (100-2000ms, default: 500ms)
-  - Quick fix suggestions with lightbulb UI
-  - Jump to next/previous error (F8, Shift+F8)
-  - Hover tooltips show error details
-  - Settings: Tools → Syntax Checking Settings...
-
-- **Document Templates** - Professional template library
-  - 6 built-in templates:
-    * Technical Article (article)
-    * Multi-Chapter Book (book)
-    * Unix Manual Page (manpage)
-    * Technical Report (report)
-    * Project README (readme)
-    * Simple Document (general)
-  - Variable substitution with Handlebars syntax
-  - Template browser with category filtering
-  - Variable input dialog for customization
-  - Custom template creation support
-  - Template loading: <200ms for all 6 templates
-  - Menu: File → New from Template...
-
-### Performance
-- Startup time: **0.586s** (46% faster than v1.5.0's 1.05s target!)
-- No regression in existing features
-- All v2.0.0 features meet or exceed performance targets
-
-### Testing
-- 71 comprehensive tests created (964 lines)
-- **100% pass rate** (71/71 tests passing)
-- All managers fully typed (mypy --strict compliant)
-- Total test suite: 4,092 tests across 95 files
-
-### Documentation
-- Implementation guides in docs/archive/v2.0.0/
-- V2_0_0_PROGRESS.md - Complete implementation tracking
-- Updated SPECIFICATIONS.md, ROADMAP.md, README.md
-
-### Fixed
-- **Comprehensive Codebase Cleanup** - Fixed all remaining test and code quality issues (from v1.9.1)
-  - Fixed OllamaChatWorker test pattern (removed invalid `isRunning()` call on QObject)
-  - Cleaned up 2 unused imports (QThread, is_pandoc_available)
-  - Fixed 27 tests with incorrect PANDOC_AVAILABLE mocking patterns
-  - Migrated remaining production code from PANDOC_AVAILABLE constant to is_pandoc_available() function
-  - Fixed version comparison test expectation (invalid input correctly returns -1)
-  - Updated architecture documentation to reflect lazy import function pattern
-  - All 3,638 unit tests now passing (100% pass rate)
-  - Zero security issues (no shell=True, eval/exec misuse)
-  - Zero unused imports (ruff clean)
-  - 7 commits, 8 files modified, 1 documentation file updated
-
-## [1.9.1] - 2025-11-05
-
-### Changed
-- **Claude AI Model Migration** - Migrated from Claude 3.5 to Claude 4 models
-  - Default model: `claude-sonnet-4-20250514` (was `claude-3-5-sonnet-20241022`)
-  - Fast model: `claude-haiku-4-5` (was `claude-3-5-haiku-20241022`)
-  - Updated all code, tests, and documentation (10 files)
-  - All 821+ tests passing with new model references
-
-### Added
-- **Settings Migration** - Auto-migration for deprecated Claude 3.5 model names
-  - Automatic migration on first launch with old settings
-  - Migrates `claude-3-5-sonnet-20241022` → `claude-sonnet-4-20250514`
-  - Migrates `claude-3-5-sonnet-20240620` → `claude-sonnet-4-20250514`
-  - Migrates `claude-3-5-haiku-20241022` → `claude-haiku-4-5`
-  - Migration is transparent to users - no action required
-  - 6 new tests for migration logic (all passing)
-
-### Fixed
-- **Worker Thread Cleanup** - Fixed test hangs from missing thread shutdown
-  - Added `ollama_chat_thread` shutdown in `worker_manager.shutdown()`
-  - Added `claude_thread` shutdown in `worker_manager.shutdown()`
-  - Fixed `main_window.closeEvent()` to call shutdown in test mode
-  - Added Claude API mocking in UI integration tests
-  - All 33 UI integration tests now pass (1 skipped, documented)
-  - Test suite completes in 2.69s (was hanging indefinitely)
-
-### Technical
-- Lint fixes: All type errors resolved (17 → 0)
-- Code formatting: 100% compliance (ruff, black, isort, mypy)
-- Settings: Added `_migrate_claude_model()` method with comprehensive tests
-- Tests: +6 migration tests in `tests/unit/core/test_settings.py`
-- Worker cleanup: Prevents resource leaks during test teardown
-- **Startup Optimization**: Lazy-loaded Pydantic models for 75ms faster imports
-  - Moved `GitResult`, `GitStatus`, `GitHubResult`, `ChatMessage` to lazy loading
-  - Saves 75-115ms by deferring Pydantic import until first model access
-  - Total import time: 0.730s → 0.655s (10% improvement)
-  - Added `scripts/profile_imports.py` - Import time profiling tool
-  - Added `docs/STARTUP_OPTIMIZATION_FINDINGS.md` - 11-page analysis report
-  - All 61 tests passing (35 model + 26 GitWorker tests)
-- Performance: Package import time 0.10-0.15s (11x faster than 1.05s target)
-
-## [1.9.0] - 2025-11-03
-
-### Added
-- **Enhanced Git Status Display** - Real-time Git status in status bar
-  - Shows branch name, modified/staged/untracked file counts
-  - Color-coded indicators (✓ clean, ● changes, ⚠ conflicts)
-  - Click to open detailed status dialog
-  - Updates in real-time (<2s refresh)
-  - GitStatus data model with Pydantic validation
-
-- **Git Status Dialog** - Detailed file-level Git status view
-  - Three tabs: Modified, Staged, Untracked files
-  - File path display with line counts (added/deleted)
-  - Refresh button for manual updates
-  - Keyboard shortcut: `Ctrl+Shift+G`
-  - Read-only tables (prevents accidental edits)
-
-- **Quick Commit Widget** - Fast inline commit workflow
-  - Non-modal commit message input in status bar
-  - Auto-stages all files (`git add .`)
-  - Keyboard shortcuts: `Enter` to commit, `Esc` to cancel
-  - Hidden by default, shown with `Ctrl+G`
-  - Auto-focus on message input
-  - Clears message after successful commit
-
-### Changed
-- Git workflow now keyboard-centric for power users
-- Status bar provides real-time Git feedback
-
-### Technical
-- **Tests:** 53 Git-related tests (97% core test pass rate)
-  - Git Worker Status: 8 tests (7/8 passing, 87%)
-  - Git Status Dialog: 21 tests
-  - Quick Commit Widget: 24 tests (100% passing)
-- **Files Modified:** 18 files, 1,870+ lines added
-- **Implementation:** 2 days, 18 hours actual effort
-
-## [1.8.0] - 2025-11-02
-
-### Added
-- **Find & Replace System** - Fast text search and replacement
-  - SearchEngine with regex support (`core/search_engine.py`, 420 lines)
-  - Non-modal find bar at bottom of window (`ui/find_bar_widget.py`, 380+ lines)
-  - Keyboard shortcuts: Ctrl+F (Find), Ctrl+H (Replace), F3 (Next), Shift+F3 (Previous)
-  - Live search with yellow highlighting for all matches
-  - Match counter display (e.g., "5 of 23")
-  - Collapsible replace controls with toggle button
-  - Replace All with confirmation dialog
-  - Case-sensitive and whole word search options
-  - Wrap-around navigation support
-- **Spell Checker Integration** - Real-time spell checking with suggestions
-  - SpellChecker engine with pyspellchecker (`core/spell_checker.py`, 306 lines)
-  - SpellCheckManager UI integration (`ui/spell_check_manager.py`, 368 lines)
-  - Red squiggly underlines for misspelled words
-  - Right-click context menu with up to 5 suggestions
-  - "Add to Dictionary" (persists across sessions)
-  - "Ignore Word" (session only)
-  - F7 keyboard shortcut to toggle spell checking on/off
-  - Debounced checking (500ms delay after typing stops)
-  - Multiple language support (en, es, fr, de, etc.)
-  - Custom dictionary persistence in settings
-- **F11 Theme Toggle** - Quick keyboard shortcut for dark/light mode
-  - F11 key toggles between Dark and Light themes
-  - Bidirectional toggle (Dark ↔ Light ↔ Dark)
-  - Syncs with View menu checkbox
-  - Updates all UI elements (editor, preview, chat, labels)
-  - Persists theme preference across restarts
-- **Privacy-First Telemetry System** - Optional usage analytics (opt-in only)
-  - TelemetryCollector with local-only storage (`core/telemetry_collector.py`, 464 lines)
-  - GDPR-compliant opt-in dialog (`ui/telemetry_opt_in_dialog.py`, 262 lines)
-  - Anonymous session IDs (UUIDs, no personal data)
-  - Data sanitization (removes paths, emails, IPs)
-  - 30-day retention with auto-rotation
-  - 10MB max file size with auto-cleanup
-  - Tracks: feature usage, error patterns, performance metrics, system info
-  - Does NOT track: names, emails, IPs, document content, file paths, keystrokes
-  - Three-option dialog: Accept, Decline, Remind Me Later
-  - Easy opt-out anytime in Settings
-
-### Dependencies
-- Added `pyspellchecker>=0.8.0` for spell checking functionality
-
-### Changed
-- Enhanced Settings with 6 new fields:
-  - Spell check (3 fields):
-    - `spell_check_enabled: bool` (default: True)
-    - `spell_check_language: str` (default: "en")
-    - `spell_check_custom_words: List[str]` (persistent)
-  - Telemetry (3 fields):
-    - `telemetry_enabled: bool` (default: False, opt-in only)
-    - `telemetry_session_id: Optional[str]` (anonymous UUID)
-    - `telemetry_opt_in_shown: bool` (dialog shown flag)
-- Updated keyboard shortcuts:
-  - F7: Toggle spell checking
-  - F11: Toggle dark/light theme (replaces Ctrl+D)
-  - Ctrl+F: Open find bar
-  - Ctrl+H: Open find & replace
-  - F3: Find next
-  - Shift+F3: Find previous
-- Enhanced `action_manager.py` with Qt.Key imports for function keys
-
-### Testing
-- Added 54 tests for Find & Replace system
-  - 21 tests for FindBarWidget (UI components)
-  - 33 tests for SearchEngine (core logic)
-- Spell checker core functionality verified
-  - Word checking, suggestions, dictionary management
-  - Performance: <100ms per spell check operation
-- Added 31 tests for Telemetry System
-  - Event tracking, buffering, data sanitization
-  - Privacy protections, file rotation, destruction
-  - 100% test pass rate
-
-### Documentation
-- Updated README.md with Find & Replace and Spell Check sections
-- Updated ROADMAP.md with v1.8.0 progress (3/3 tasks complete)
-- Updated CLAUDE.md with v1.8.0 feature details
-- Updated docs/user/how-to-use.md with new shortcuts and features
-- Updated CHANGELOG.md with complete v1.8.0 documentation
-- All documentation maintains Grade 5.0 reading level
-
-### Git Commits (November 2, 2025)
-- `be8768e` - SearchEngine core logic (Phase 1)
-- `fee32ef` - FindBarWidget UI (Phase 2)
-- `d99ed32` - Find/Replace integration (Phase 3)
-- `4757c91` - Replace functionality (Phase 4)
-- `8e1d95f` - Find/Replace documentation
-- `d0ff4dc` - README and ROADMAP updates
-- `0fefa20` - Spell checker implementation
-- `ee1ca6a` - Spell checker linting fixes
-- `19afce1` - Spell checker documentation
-- `276781f` - F11 keyboard shortcut for theme toggle
-- `a3d78cd` - Documentation updates for v1.8.0
-- `cf45b77` - ROADMAP and CHANGELOG updates
-- `1fe3ee0` - Privacy-First Telemetry System
-
-## [1.7.4] - 2025-11-02
-
-### Security
-- **CRITICAL FIX:** Path traversal vulnerability (Issue #8)
-  - Fixed sanitize_path() to check '..' BEFORE resolve()
-  - Added optional allowed_base parameter for whitelist validation
-  - Prevents attacks like '/tmp/../../../etc/passwd'
-
-### Fixed
-- Path sanitization logic now detects directory traversal attempts correctly
-- Added 8 comprehensive security tests (11 total path sanitization tests)
-
-### Documentation
-- Created SECURITY_AUDIT_REPORT.md (comprehensive security audit of issues #6-#10)
-- All 5 GitHub security issues verified and closed (#6, #7, #8, #9, #10)
-
-### Changed
-- sanitize_path() signature: now accepts optional allowed_base parameter
-- Enhanced test coverage for path security (100% for file_operations)
-
-## [1.7.1] - 2025-11-02
-
-### Added
-- Comprehensive Ollama integration documentation (`docs/OLLAMA_INTEGRATION.md`)
-- Complete project status report (`PROJECT_STATUS_v1.7.0.md`)
-- Enhanced requirements.txt with detailed Ollama installation instructions
-
-### Fixed
-- All 24 test failures in Ollama Chat feature test suite (100% pass rate achieved)
-- Phase 1: 8 method name mismatches between tests and implementation
-- Phase 2: 2 mock configuration issues (Mock return_value settings)
-- Phase 3: 10 missing methods in ChatManager (implemented 6 helper methods)
-- Phase 4: 4 logic/behavior test mismatches (Qt visibility inheritance)
-
-### Changed
-- Test suite now at 100% pass rate (82/82 tests passing, up from 91%)
-- Improved test coverage for all Ollama Chat components
-- Updated documentation to reflect production-ready status
-
-### Documentation
-- Created comprehensive integration guide (187 lines)
-- Created complete project status report (583 lines)
-- Updated TEST_FAILURE_ANALYSIS.md with completion status
-- Enhanced requirements.txt with platform-specific installation instructions
-
-## [1.7.0] - 2025-11-01
-
-### Added
-- **Ollama AI Chat Integration** - Interactive AI chat with 4 context modes
-  - Document Q&A mode - Ask questions about current document
-  - Syntax Help mode - AsciiDoc formatting assistance
-  - General Chat mode - General questions and conversations
-  - Editing Suggestions mode - Document improvement feedback
-- Background worker thread (`OllamaChatWorker`) for non-blocking AI processing
-- Chat UI components:
-  - `ChatBarWidget` - User input interface with model/mode selectors
-  - `ChatPanelWidget` - Message display with scrollable history
-  - `ChatManager` - Orchestration layer for bar ↔ worker ↔ panel communication
-- Persistent chat history (100 message limit, JSON serialization)
-- Cancellation support with 60-second timeout for AI operations
-- Document context injection with debouncing (2KB max)
-- Model switching (gnokit/improve-grammer, deepseek-coder, qwen3, etc.)
-
-### Changed
-- Added `ollama>=0.4.0` as production dependency
-- Enhanced settings with Ollama chat configuration options
-- Improved UI layout to accommodate chat components
-
-### Documentation
-- Added Ollama setup instructions to README.md
-- Documented 4 context modes and use cases
-- Added troubleshooting guide for common Ollama issues
-
-### Testing
-- Added 82 comprehensive tests for Ollama Chat feature
-  - 27 tests for ChatManager (orchestration)
-  - 28 tests for ChatBarWidget (UI controls)
-  - 22 tests for OllamaChatWorker (background processing)
-  - 5 integration tests (currently skipped, require live Ollama)
-
-## [1.6.0] - 2025-10-31
-
-### Added
-- **GitHub CLI Integration** - PR and Issue management
-  - Create pull requests from UI
-  - List and view PRs with filtering (Open/Closed/Merged/All)
-  - Create issues directly from application
-  - List and view issues with filtering
-  - View repository information
-- Type hints completion (mypy --strict: 0 errors, 100% coverage)
-- Async I/O with aiofiles for non-blocking file operations
-- Predictive rendering system for faster preview updates
-- Block detection optimization (10-14% performance improvement)
-
-### Changed
-- Migrated to mypy strict mode with full type coverage
-- Enhanced GitHub menu with 5 new actions
-- Improved performance for large document editing
-
-### Testing
-- Added 49 tests for GitHub CLI integration (100% pass rate)
-- Added 30 scaffolded tests for GitHub handler
-
-## [1.5.0] - 2025-10-28
-
-### Added
-- Lazy import system for heavy modules (3-5x faster startup)
-- Worker pool system with task prioritization
-- Operation cancellation support (cancel button in status bar)
-- Memory profiling and optimization tools
-
-### Changed
-- **1.05s startup time** (beats v1.6.0 target of 1.5s)
-- Main window refactored from 1,719 to 561 lines (67% reduction)
-- Test coverage increased to 60%+ (up from 34%)
-- 621+ total tests (+228 new tests since v1.4.0)
-
-### Performance
-- Startup: 3-5x faster than v1.4.0
-- Preview: Incremental rendering with block cache
-- Memory: String interning for memory reduction
-
-## [1.4.1] - 2025-10-20
-
-### Changed
-- CSS generation moved from main_window to theme_manager (63 lines reduced)
-- Main window size reduced from 1,723 to 1,614 lines
-- Further refactoring for code maintainability
-
-## [1.4.0] - 2025-10-15
-
-### Added
-- **Full GPU/NPU hardware acceleration** with automatic detection
-- GPU-accelerated preview (QWebEngineView) - 10-50x faster rendering
-- Software fallback (QTextBrowser) for systems without GPU
-- GPU detection caching (24-hour TTL) in `~/.cache/asciidoc_artisan/`
-- Document version display in status bar (auto-extracts from :version: or :revnumber:)
-- Support for NVIDIA (CUDA/OpenCL/Vulkan), AMD (ROCm/OpenCL/Vulkan), Intel (OpenCL/Vulkan), Intel NPU (OpenVINO)
-- WSLg automatic fallback if GPU initialization fails
-
-### Removed
-- Grammar checking system (v1.3.0 feature) - performance issues, user feedback
-- 2,067 lines of grammar-related code removed
-
-### Changed
-- Preview rendering now 70-90% less CPU usage with GPU acceleration
-- Automatic hardware detection - no user configuration needed
-
-## [1.3.0] - 2025-09-25
-
-### Added
-- Grammar checking system with language-tool-python
-- Real-time grammar suggestions in editor
-- Configurable grammar rules
-
-### Removed in v1.4.0
-- Grammar system removed due to performance issues and user feedback
-- Users should use external grammar tools (Grammarly, LanguageTool) via copy/paste
-
-## [1.2.0] - 2025-08-15
-
-### Added
-- **Ollama AI for document conversion** - smart format conversion using local AI
-- Automatic Pandoc fallback if Ollama unavailable
-- Status bar shows active conversion method (AI or Pandoc)
-- Model selection: gnokit/improve-grammer (recommended), llama2, mistral, codellama
-
-### Changed
-- Document conversion now AI-assisted with better quality
-- Settings UI enhanced with Ollama configuration
-
-## [1.1.0] - 2025-07-10
-
-### Changed
-- **Major refactoring**: Modularized from monolithic adp.py (1000+ lines)
-  - Phase 1: Core utilities → `core/` module
-  - Phase 2: Workers → `workers/` module
-  - Phase 3: Dialogs → `ui/dialogs.py`
-  - Phase 4: Main window → `ui/main_window.py`
-  - Phase 5: UI managers → `ui/{menu,theme,status,file,export,git,preview,action,settings,editor_state}_manager.py`
-  - Phase 6: Constants consolidated in `core/constants.py`, CSS moved to `theme_manager.py`
-
-### Performance
-- PyMuPDF integration for PDF reading (3-5x faster than pdfplumber)
-- Incremental rendering with block-based cache (LRU, 100 blocks max)
-- Performance hot path optimizations
-
-## [1.0.0] - 2025-06-01
-
-### Added
-- Initial release of AsciiDoc Artisan
-- Live preview of AsciiDoc documents
-- Dark/light theme support
-- Document conversion (DOCX, PDF, HTML, Markdown)
-- Git integration (pull, commit, push)
-- Recent files menu
-- Settings persistence (QStandardPaths)
-- Cross-platform support (Linux, Windows, macOS)
-
-### Dependencies
-- PySide6 6.9.0+ (Qt GUI framework)
-- asciidoc3 3.2.0+ (AsciiDoc to HTML)
-- pypandoc 1.13+ (document conversion)
-- pymupdf 1.23.0+ (PDF reading)
+- 44,201 lines / 171 files
+- 5,254 unit + 71 E2E tests
+- mypy --strict (0 errors)
 
 ---
 
-## Unreleased
+## [2.0.0] - 2025-11-09 - Advanced Editing
 
-### Planned for v1.7.x
-- [ ] Streaming response display for Ollama Chat (real-time updates)
-- [ ] Model switching in UI without restart
-- [ ] Chat history export (JSON, text formats)
-- [ ] Custom system prompts per context mode
-- [ ] RAG (Retrieval-Augmented Generation) for large documents
+### Added
+- Auto-complete (20-40ms, Ctrl+Space)
+- Syntax checking (real-time, quick fixes)
+- Templates (6 built-in + custom)
 
-### Planned for v1.8.0
-- [ ] Find & Replace system
-- [ ] Spell checker integration
-- [ ] Telemetry system (opt-in)
-- [ ] Worker pool migration (complete)
-- [ ] Multiple model support (simultaneous Ollama conversations)
-- [ ] Chat branching and conversation trees
+### Performance
+- Startup: 0.586s (46% faster)
 
 ---
 
-## Version Format
+## [1.9.0] - 2025-11-03 - Git UX
 
-**Version scheme**: `MAJOR.MINOR.PATCH`
+- Git status in status bar
+- Status dialog (Ctrl+Shift+G)
+- Quick commit (Ctrl+G)
 
-- **MAJOR**: Breaking changes, major feature additions
-- **MINOR**: New features, backwards-compatible
-- **PATCH**: Bug fixes, documentation updates, minor improvements
+## [1.8.0] - 2025-11-02 - Essential Features
 
-**Tag format**: `vMAJOR.MINOR.PATCH` (e.g., v1.7.1)
+- Find & Replace (Ctrl+F, Ctrl+H)
+- Spell Check (F7)
+- Theme toggle (F11)
+- Telemetry (opt-in)
+
+## [1.7.0] - 2025-11-01 - AI Chat
+
+- Ollama chat (4 modes)
+- Chat panel with history
+- Document context injection
+
+## [1.6.0] - 2025-10-31 - Type Safety
+
+- GitHub CLI (PRs, issues)
+- 100% type hints (mypy --strict)
+- Async I/O
+
+## [1.5.0] - 2025-10-28 - Performance
+
+- 1.05s startup (lazy imports)
+- Worker pool with priorities
+- 67% code reduction
+
+## [1.4.0] - 2025-10-15 - GPU
+
+- GPU acceleration (10-50x faster)
+- Auto-detection (NVIDIA/AMD/Intel)
+- 24hr detection cache
+
+## [1.2.0] - 2025-08-15 - AI
+
+- Ollama AI conversion
+- Pandoc fallback
+
+## [1.0.0] - 2025-06-01 - Initial
+
+- Live preview
+- Theme support
+- Git integration
+- Document conversion
 
 ---
 
-## Links
-
-- **Repository**: https://github.com/webbwr/AsciiDoctorArtisan
-- **Issues**: https://github.com/webbwr/AsciiDoctorArtisan/issues
-- **Documentation**: See `docs/` directory
-- **Roadmap**: See `ROADMAP.md`
+*[Full history in git log]*

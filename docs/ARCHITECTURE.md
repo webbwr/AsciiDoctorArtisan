@@ -9,14 +9,14 @@
 **MA Principle (間)** — Japanese concept of negative space. Each module focuses on one thing. Target: <400 lines per file.
 
 **Codebase Metrics** (aligned with SPECIFICATIONS_AI.md):
-- **Total:** 44,935 lines across 171 files
+- **Total:** 44,201 lines across 171 files
 - Core: 13,216 lines across 45+ files (avg ~290 lines/file)
 - Workers: 4,718 lines across 19 files (avg ~248 lines/file)
 - UI: 21,571 lines across 60+ files (avg ~360 lines/file)
 - LSP: 1,359 lines across 8 files (avg ~170 lines/file)
 
 **Quality Metrics:**
-- Unit tests: 5,285 + E2E: 71 scenarios
+- Unit tests: 5,254 + E2E: 71 scenarios
 - Type coverage: 100% (mypy --strict, 0 errors)
 - MA compliance: avg ~280 lines/file
 
