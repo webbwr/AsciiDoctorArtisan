@@ -18,6 +18,7 @@ CYAN='\033[36m'
 # Project information
 PROJECT_NAME="AsciiDocArtisan"
 PROJECT_VERSION="2.1.0"
+CLAUDE_MODEL="Opus 4.5"
 
 # MA Principle: Extract coverage detection
 get_coverage() {
@@ -289,15 +290,14 @@ build_status_display() {
 
     # Display (MA principle: focused, scannable lines)
     # Use echo -e to interpret ANSI escape sequences
-    echo -e "${DIM}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION}${RESET}"
+    echo -e "${DIM}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION} │ ${CYAN}${CLAUDE_MODEL}${RESET}"
     echo -e "${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}"
-    echo -e "${DIM}├─ Env${RESET}: Python ${PY_VER} │ venv:${VENV} │ ${ARCH} (opt:${OPT})"
-    echo -e "${DIM}├─ QA ${RESET}: mypy:${MYPY_STATUS} │ ruff:${RUFF_STATUS} │ MA:${MA_STATUS} ${MA_VIOLATIONS}"
+    echo -e "${DIM}├─ Env${RESET}: Py${PY_VER} │ venv:${VENV} │ ${ARCH}"
+    echo -e "${DIM}├─ QA ${RESET}: mypy:${MYPY_STATUS} ruff:${RUFF_STATUS} MA:${MA_STATUS}"
     # Format coverage (avoid showing "—%" when no data)
     local COV_DISPLAY="${COVERAGE}"
     [[ "$COVERAGE" != "—" ]] && COV_DISPLAY="${COVERAGE}%"
-    echo -e "${DIM}├─ TST${RESET}: ${TEST_STATS} │ Coverage:${COV_DISPLAY} │ Grade:${GRADE}"
-    echo -e "${DIM}└─ OS ${RESET}: ${OS} ${OS_VER} │ $(date +"%H:%M:%S")"
+    echo -e "${DIM}└─ TST${RESET}: ${TEST_STATS} │ Cov:${COV_DISPLAY} │ Gr:${GRADE}"
 }
 
 # ============================================================================
