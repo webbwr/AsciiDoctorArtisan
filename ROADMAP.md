@@ -66,7 +66,11 @@
 ## Future (Deferred)
 
 **v3.0.0** features deferred indefinitely:
-- LSP enhancements
+- LSP enhancements (see `.claude/plans/lsp-enhancements-plan.md`)
+  - Quick Fixes (code actions)
+  - Folding Ranges
+  - Document Formatting
+  - Semantic Tokens
 
 **Rationale:** v2.x is feature-complete for core AsciiDoc editing. Future expansion contingent on user demand.
 
