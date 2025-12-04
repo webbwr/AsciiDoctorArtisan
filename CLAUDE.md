@@ -113,3 +113,4 @@ src/asciidoc_artisan/
 ---
 
 *v2.1.0 | 44,201 lines | 5,254 tests | mypy --strict*
+- always apply MA pricipals
