@@ -268,36 +268,27 @@ get_readability_grade() {
     fi
 }
 
-# MA Principle: Extract display lines (24 lines)
+# MA Principle: Build condensed single-line status
 build_status_display() {
     # Parse all info
     local GIT_INFO=$(get_git_info)
     local PY_INFO=$(get_python_env)
-    local SYS_INFO=$(get_system_info)
 
     local GIT_BRANCH=$(echo "$GIT_INFO" | cut -d'|' -f1)
     local GIT_STATUS=$(echo "$GIT_INFO" | cut -d'|' -f2)
-    local GIT_AHEAD=$(echo "$GIT_INFO" | cut -d'|' -f3)
-    local GIT_BEHIND=$(echo "$GIT_INFO" | cut -d'|' -f4)
 
-    local PY_VER=$(echo "$PY_INFO" | cut -d'|' -f1)
-    local VENV=$(echo "$PY_INFO" | cut -d'|' -f2)
+    local PY_VER=$(echo "$PY_INFO" | cut -d'|' -f1 | cut -d. -f1-2)
 
-    local ARCH=$(echo "$SYS_INFO" | cut -d'|' -f1)
-    local OPT=$(echo "$SYS_INFO" | cut -d'|' -f2)
-    local OS=$(echo "$SYS_INFO" | cut -d'|' -f3)
-    local OS_VER=$(echo "$SYS_INFO" | cut -d'|' -f4)
-
-    # Display (MA principle: focused, scannable lines)
-    # Use echo -e to interpret ANSI escape sequences
-    echo -e "${DIM}┏━━ ${PROJECT_NAME} v${PROJECT_VERSION} │ ${CYAN}${CLAUDE_MODEL}${RESET}"
-    echo -e "${DIM}├─ Git${RESET}: ${GREEN}${GIT_BRANCH}${RESET} │ ${YELLOW}±${GIT_STATUS}${RESET} │ ↑${GIT_AHEAD} ↓${GIT_BEHIND}"
-    echo -e "${DIM}├─ Env${RESET}: Py${PY_VER} │ venv:${VENV} │ ${ARCH}"
-    echo -e "${DIM}├─ QA ${RESET}: mypy:${MYPY_STATUS} ruff:${RUFF_STATUS} MA:${MA_STATUS}"
-    # Format coverage (avoid showing "—%" when no data)
+    # Format coverage
     local COV_DISPLAY="${COVERAGE}"
     [[ "$COVERAGE" != "—" ]] && COV_DISPLAY="${COVERAGE}%"
-    echo -e "${DIM}└─ TST${RESET}: ${TEST_STATS} │ Cov:${COV_DISPLAY} │ Gr:${GRADE}"
+
+    # Extract test count only (not full stats)
+    local TEST_COUNT=$(echo "$TEST_STATS" | grep -oE '^[0-9]+' | head -1)
+    [[ -z "$TEST_COUNT" ]] && TEST_COUNT="?"
+
+    # Single line output with key metrics
+    echo -e "${PROJECT_NAME} v${PROJECT_VERSION} │ ${GREEN}${GIT_BRANCH}${RESET} ±${GIT_STATUS} │ Py${PY_VER} │ mypy:${MYPY_STATUS} ruff:${RUFF_STATUS} │ ${TEST_COUNT} tests │ ${COV_DISPLAY}"
 }
 
 # ============================================================================

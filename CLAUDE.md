@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Multi-threaded: UI main thread, Git/Pandoc/Preview on QThread workers
 - Modular: 1,798-line main_window.py (includes comprehensive docs), manager pattern for separation of concerns
 - MA Principle: Delegation pattern, <400 lines/file target (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
-- Package: `asciidoc_artisan.{core, ui, workers, lsp, conversion, git, claude}`
+- Package: `asciidoc_artisan.{core, ui, workers, lsp, claude}`
 
 **v2.1.0 Features:**
 - LSP Server: Language Server Protocol for IDE integration (completion, diagnostics, hover)
@@ -152,8 +152,7 @@ src/asciidoc_artisan/
 ├── ui/         # Qt widgets: main_window (1,798 lines), managers, dialogs
 ├── workers/    # QThread workers: git, github_cli, pandoc, preview, ollama_chat
 ├── claude/     # Claude AI: client, worker (v1.10+)
-├── conversion/ # Format conversion utilities
-└── git/        # Git integration utilities
+└── lsp/        # Language Server Protocol: server, providers (completion, diagnostics, hover)
 ```
 Entry: `src/main.py`
 
