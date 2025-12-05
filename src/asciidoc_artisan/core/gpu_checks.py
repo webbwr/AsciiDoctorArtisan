@@ -223,6 +223,43 @@ def check_wsl2_cuda() -> tuple[bool, str | None, str | None]:
     return True, gpu_name, driver_version
 
 
+def _check_npu_via_clinfo() -> tuple[bool, str | None]:
+    """Check for Intel NPU via OpenVINO/clinfo (MA: extracted helper)."""
+    try:
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
+        if result.returncode == 0 and result.stdout.strip():
+            for line in result.stdout.split("\n"):
+                if "Device Name" in line and ("NPU" in line or "Neural" in line):
+                    return True, line.split("Device Name")[-1].strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return False, None
+
+
+def _check_npu_via_cpuinfo() -> tuple[bool, str | None]:
+    """Check for Intel NPU via /proc/cpuinfo CPU model (MA: extracted helper)."""
+    import re
+
+    try:
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if "model name" in line.lower():
+                    model = line.split(":")[-1].strip()
+                    if "Intel" not in model:
+                        break
+                    # Check for 12th gen+ (Alder Lake, Raptor Lake, Meteor Lake)
+                    gen_match = re.search(r"(\d+)(?:th|st|nd|rd)\s+Gen", model)
+                    if gen_match and int(gen_match.group(1)) >= 12:
+                        return True, f"Intel NPU ({model})"
+                    # Check for Core Ultra (all have NPU)
+                    if "Core Ultra" in model:
+                        return True, f"Intel NPU ({model})"
+                    break
+    except (FileNotFoundError, PermissionError):
+        pass
+    return False, None
+
+
 def check_intel_npu() -> tuple[bool, str | None]:
     """
     Check for Intel NPU (Neural Processing Unit).
@@ -233,53 +270,18 @@ def check_intel_npu() -> tuple[bool, str | None]:
     Returns:
         Tuple of (has_npu, npu_name)
     """
-    # Check for Intel NPU via OpenVINO/clinfo
-    try:
-        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
+    # Method 1: Check via clinfo
+    found, name = _check_npu_via_clinfo()
+    if found:
+        return True, name
 
-        if result.returncode == 0 and result.stdout.strip():
-            # Look for Intel NPU device
-            for line in result.stdout.split("\n"):
-                if "Device Name" in line and ("NPU" in line or "Neural" in line):
-                    npu_name = line.split("Device Name")[-1].strip()
-                    return True, npu_name
-
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
-
-    # Check /dev/accel* devices (Intel NPU driver on native Linux)
-    accel_path = Path("/dev")
-    accel_devices = list(accel_path.glob("accel*"))
+    # Method 2: Check /dev/accel* devices (Intel NPU driver on native Linux)
+    accel_devices = list(Path("/dev").glob("accel*"))
     if accel_devices:
         return True, "Intel NPU (detected via /dev/accel)"
 
-    # Check CPU model for Intel 12th gen+ (Alder Lake and newer have NPU)
-    # This works in WSL2 where /dev/accel is not exposed
-    try:
-        with open("/proc/cpuinfo") as f:
-            cpuinfo = f.read()
-            for line in cpuinfo.split("\n"):
-                if "model name" in line.lower():
-                    model = line.split(":")[-1].strip()
-                    # Intel 12th gen (Alder Lake), 13th gen (Raptor Lake), 14th gen (Meteor Lake)
-                    # and Core Ultra have integrated NPUs
-                    if "Intel" in model:
-                        # Check for generation number
-                        import re
-
-                        gen_match = re.search(r"(\d+)(?:th|st|nd|rd)\s+Gen", model)
-                        if gen_match:
-                            gen = int(gen_match.group(1))
-                            if gen >= 12:
-                                return True, f"Intel NPU ({model})"
-                        # Check for Core Ultra (all have NPU)
-                        if "Core Ultra" in model:
-                            return True, f"Intel NPU ({model})"
-                    break
-    except (FileNotFoundError, PermissionError):
-        pass
-
-    return False, None
+    # Method 3: Check CPU model (works in WSL2)
+    return _check_npu_via_cpuinfo()
 
 
 def check_macos_gpu() -> tuple[bool, str | None, str | None]:

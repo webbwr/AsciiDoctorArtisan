@@ -26,9 +26,9 @@ class TemplateParser:
             with open(file_path, encoding="utf-8") as f:
                 return f.read()
         except FileNotFoundError:
-            raise ValueError(f"Template file not found: {file_path}")
+            raise ValueError(f"Template file not found: {file_path}") from None
         except Exception as e:
-            raise ValueError(f"Cannot read template file: {e}")
+            raise ValueError(f"Cannot read template file: {e}") from e
 
     def _split_front_matter(self, content: str) -> tuple[str, str]:
         """Split YAML front matter from template content (MA: extracted 10 lines). Returns (yaml_text, template_content). Raises ValueError if front matter format invalid."""
@@ -46,12 +46,12 @@ class TemplateParser:
         try:
             import yaml
         except ImportError:
-            raise ImportError("PyYAML is required for template parsing. Install with: pip install pyyaml")
+            raise ImportError("PyYAML is required for template parsing. Install with: pip install pyyaml") from None
 
         try:
             metadata = yaml.safe_load(yaml_text)
         except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML: {e}")
+            raise ValueError(f"Invalid YAML: {e}") from e
 
         if not isinstance(metadata, dict):
             raise ValueError("YAML front matter must be a dictionary")

@@ -387,8 +387,8 @@ class ValidationWorker(QThread):
             while len(v2_parts) < 3:
                 v2_parts.append(0)
 
-            # Compare
-            for v1, v2 in zip(v1_parts, v2_parts):
+            # Compare (strict=True safe - arrays padded to same length above)
+            for v1, v2 in zip(v1_parts, v2_parts, strict=True):
                 if v1 < v2:
                     return -1
                 elif v1 > v2:

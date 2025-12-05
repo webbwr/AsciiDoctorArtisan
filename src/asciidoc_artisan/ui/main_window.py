@@ -1094,7 +1094,7 @@ class AsciiDocEditor(QMainWindow):
     def refresh_ollama_models(self, message: str = "") -> None:
         """Refresh Ollama models in chat manager after download/delete."""
         if hasattr(self, "chat_manager") and self.chat_manager:
-            self.chat_manager._reload_models()
+            self.chat_manager._load_available_models()
         if message:
             self.show_status_message(message)
 

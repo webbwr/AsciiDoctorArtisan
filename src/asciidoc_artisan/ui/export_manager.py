@@ -293,7 +293,7 @@ class ExportManager(QObject):
             return
 
         # Update UI state
-        self.window._is_processing_pandoc = True
+        self.window.file_operations_manager._is_processing_pandoc = True
         self.window._update_ui_state()
         self.status_bar.showMessage("Converting clipboard content...")
 

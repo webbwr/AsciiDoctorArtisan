@@ -64,7 +64,7 @@ def serialize_template(template: Template) -> str:
     try:
         import yaml
     except ImportError:
-        raise ImportError("PyYAML is required for template serialization")
+        raise ImportError("PyYAML is required for template serialization") from None
 
     # Build YAML front matter
     metadata: dict[str, Any] = {

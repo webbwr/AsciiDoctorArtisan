@@ -25,7 +25,9 @@ def main_window(qapp):
     window._asciidoc_api = Mock()
     window._pandoc_worker = Mock()
     window._current_file_path = None  # Correct attribute name
-    window._is_processing_pandoc = False
+    # file_operations_manager holds reentrancy guard
+    window.file_operations_manager = Mock()
+    window.file_operations_manager._is_processing_pandoc = False
     window._update_ui_state = Mock()
     window.request_pandoc_conversion = Mock()  # Signal for Pandoc conversion
     window.request_pandoc_conversion.emit = Mock()
@@ -318,7 +320,7 @@ class TestClipboardOperations:
             with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should set processing flag and emit conversion request
-                assert main_window._is_processing_pandoc is True
+                assert main_window.file_operations_manager._is_processing_pandoc is True
 
     def test_convert_and_paste_with_no_content(self, main_window):
         from asciidoc_artisan.ui.export_manager import ExportManager
@@ -862,7 +864,7 @@ class TestClipboardMIMEDataPriority:
             with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
                 # Should use HTML, not text
-                assert main_window._is_processing_pandoc is True
+                assert main_window.file_operations_manager._is_processing_pandoc is True
 
     def test_text_content_used_when_no_html(self, main_window):
         from asciidoc_artisan.ui.export_manager import ExportManager
@@ -878,7 +880,7 @@ class TestClipboardMIMEDataPriority:
             mock_clipboard.return_value.mimeData.return_value = mock_mime
             with patch("asciidoc_artisan.core.constants.is_pandoc_available", return_value=True):
                 manager.convert_and_paste_from_clipboard()
-                assert main_window._is_processing_pandoc is True
+                assert main_window.file_operations_manager._is_processing_pandoc is True
 
     def test_empty_clipboard_shows_message(self, main_window):
         from asciidoc_artisan.ui.export_manager import ExportManager
