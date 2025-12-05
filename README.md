@@ -17,18 +17,19 @@
 **Requirements:** Python 3.11+, Pandoc, wkhtmltopdf
 
 ```bash
-# Linux/Mac
 git clone https://github.com/webbwr/AsciiDoctorArtisan.git
 cd AsciiDoctorArtisan
+
+# Linux/Mac/WSL2
 ./install-asciidoc-artisan.sh
 
-# Windows
-git clone https://github.com/webbwr/AsciiDoctorArtisan.git
-cd AsciiDoctorArtisan
-.\Install-AsciiDocArtisan.ps1
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -File install-asciidoc-artisan.ps1
 ```
 
-**Manual:** `pip install -r requirements.txt`
+**Manual:** `pip install -r requirements-prod.txt`
+
+**Full Guide:** [INSTALL.md](INSTALL.md) - Windows 11, WSL2, macOS, Linux
 
 ## Run
 

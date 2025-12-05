@@ -1,6 +1,6 @@
 # Documentation Index
 
-**v2.1.0** | Dec 4, 2025
+**v2.1.0** | Dec 5, 2025
 
 ---
 
@@ -9,6 +9,7 @@
 | Audience | Doc |
 |----------|-----|
 | Users | [README](README.md) |
+| Installation | [INSTALL](INSTALL.md) |
 | Developers | [CLAUDE.md](CLAUDE.md) |
 | Contributors | [contributing.md](docs/developer/contributing.md) |
 
@@ -19,6 +20,7 @@
 | Doc | Purpose |
 |-----|---------|
 | [README](README.md) | Quick start |
+| [INSTALL](INSTALL.md) | Full install guide (Win/WSL/Mac/Linux) |
 | [CLAUDE.md](CLAUDE.md) | Developer guide |
 | [SPECIFICATIONS](SPECIFICATIONS.md) | 109 FRs |
 | [ROADMAP](ROADMAP.md) | Project status |
@@ -63,10 +65,10 @@
 
 | Metric | Value |
 |--------|-------|
-| Doc files | 24 |
+| Doc files | 25 |
 | Code lines | 44,201 |
 | Unit tests | 5,308 |
-| E2E tests | 3 |
+| E2E tests | 71 |
 | FRs | 109 |
 
 ---
