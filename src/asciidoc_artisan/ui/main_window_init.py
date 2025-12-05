@@ -216,8 +216,9 @@ class MainWindowInitMixin:
         self._setup_quick_commit()
 
     def _finalize_initialization(self: AsciiDocEditor) -> None:
-        """Finalize initialization (telemetry, restore settings, apply theme)."""
+        """Finalize initialization (telemetry, restore settings, apply theme, UX)."""
         from asciidoc_artisan.ui.telemetry_manager import TelemetryManager
+        from asciidoc_artisan.ui.ux_manager import create_ux_manager
 
         self.telemetry_manager = TelemetryManager(self)
         self.telemetry_collector = self.telemetry_manager.initialize(getattr(self, "_app_start_time", None))
@@ -228,6 +229,10 @@ class MainWindowInitMixin:
         self._setup_workers_and_threads()
         self._update_ui_state()
         self._update_ai_backend_checkmarks()
+
+        # Initialize S-tier UX features
+        self.ux_manager = create_ux_manager(self)
+        logger.info("S-tier UX features initialized")
 
     def _initialize_asciidoc(self: AsciiDocEditor) -> Any:
         """Initialize AsciiDoc3 API."""
