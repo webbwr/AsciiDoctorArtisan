@@ -54,7 +54,7 @@ extras_require["all"] = list(set(sum(extras_require.values(), [])))
 
 setup(
     name="asciidoc-artisan",
-    version="2.0.0",
+    version="2.1.0",
     author="AsciiDoc Artisan Team",
     author_email="support@asciidoc-artisan.org",
     description="Modern, feature-rich AsciiDoc editor with live preview",

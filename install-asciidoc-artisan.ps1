@@ -25,7 +25,7 @@
 #   1 = Error (missing dependencies or failed installation)
 #
 # AUTHOR: AsciiDoc Artisan Team
-# VERSION: 1.0.0
+# VERSION: 2.1.0
 ################################################################################
 
 # Enable strict mode for better error handling

@@ -4,7 +4,7 @@
 #
 # PURPOSE:
 #   Automates complete installation of AsciiDoc Artisan with:
-#   - Python 3.14+ verification
+#   - Python 3.11+ verification
 #   - Virtual environment creation
 #   - All dependencies (Python packages + system tools)
 #   - Installation validation
@@ -15,7 +15,7 @@
 #
 # WHAT IT DOES:
 #   1. Detects OS and package manager
-#   2. Checks Python version (needs 3.14+)
+#   2. Checks Python version (needs 3.11+)
 #   3. Verifies pip is installed
 #   4. Installs system dependencies (Pandoc, Git)
 #   5. Creates virtual environment (optional)
@@ -29,7 +29,7 @@
 #   1 = Error (missing dependencies or failed installation)
 #
 # AUTHOR: AsciiDoc Artisan Team
-# VERSION: 1.2.0
+# VERSION: 2.1.0
 ################################################################################
 
 set -e  # Exit immediately if any command fails
@@ -168,7 +168,7 @@ print_info "Package manager: $PACKAGE_MANAGER"
 
 ################################################################################
 # STEP 2: CHECK PYTHON INSTALLATION
-# Finds suitable Python version (3.14+) and sets PYTHON_CMD variable
+# Finds suitable Python version (3.11+) and sets PYTHON_CMD variable
 ################################################################################
 print_header "Step 2: Checking Python Installation"
 
