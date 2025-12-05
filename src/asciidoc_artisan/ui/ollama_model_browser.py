@@ -1,13 +1,7 @@
-"""
-Ollama Model Browser - Browse and download available models.
-
-Allows users to browse the Ollama model library and download new models
-directly from the application.
-
-MA principle: ~400 lines after extracting workers to ollama_workers.py.
-"""
+"""Ollama Model Browser - Browse and download available models."""
 
 import logging
+import re
 import subprocess
 
 from PySide6.QtCore import Signal
@@ -35,15 +29,10 @@ logger = logging.getLogger(__name__)
 
 
 class OllamaModelBrowser(QDialog):
-    """
-    Dialog for browsing and downloading Ollama models.
+    """Dialog for browsing and downloading Ollama models."""
 
-    Shows available models from the Ollama library and allows
-    downloading them directly from the application.
-    """
-
-    model_downloaded = Signal(str)  # Emitted when a model is downloaded
-    model_deleted = Signal(str)  # Emitted when a model is deleted
+    model_downloaded = Signal(str)
+    model_deleted = Signal(str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -58,16 +47,14 @@ class OllamaModelBrowser(QDialog):
         """Initialize the UI."""
         self.setWindowTitle("Ollama Model Library")
         self.setMinimumSize(800, 600)
-
         layout = QVBoxLayout(self)
 
         # Search bar
         search_layout = QHBoxLayout()
-        search_label = QLabel("Search:")
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Filter models by name or description...")
         self.search_input.textChanged.connect(self._filter_models)
-        search_layout.addWidget(search_label)
+        search_layout.addWidget(QLabel("Search:"))
         search_layout.addWidget(self.search_input)
         layout.addLayout(search_layout)
 
@@ -78,14 +65,10 @@ class OllamaModelBrowser(QDialog):
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
-
-        list_label = QLabel("Available Models:")
-        left_layout.addWidget(list_label)
-
+        left_layout.addWidget(QLabel("Available Models:"))
         self.model_list = QListWidget()
         self.model_list.currentItemChanged.connect(self._on_model_selected)
         left_layout.addWidget(self.model_list)
-
         splitter.addWidget(left_widget)
 
         # Right side: Model details and actions
@@ -96,37 +79,29 @@ class OllamaModelBrowser(QDialog):
         # Model details group
         details_group = QGroupBox("Model Details")
         details_layout = QVBoxLayout()
-
         self.model_name_label = QLabel("Select a model")
         self.model_name_label.setStyleSheet("font-size: 14pt; font-weight: bold;")
         details_layout.addWidget(self.model_name_label)
-
         self.model_size_label = QLabel("")
         details_layout.addWidget(self.model_size_label)
-
         self.model_category_label = QLabel("")
         details_layout.addWidget(self.model_category_label)
-
         self.model_desc_text = QTextEdit()
         self.model_desc_text.setReadOnly(True)
         self.model_desc_text.setMaximumHeight(100)
         details_layout.addWidget(self.model_desc_text)
-
         self.status_label = QLabel("")
         self.status_label.setStyleSheet("color: gray;")
         details_layout.addWidget(self.status_label)
-
         details_group.setLayout(details_layout)
         right_layout.addWidget(details_group)
 
         # Download controls
         download_group = QGroupBox("Download")
         download_layout = QVBoxLayout()
-
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         download_layout.addWidget(self.progress_bar)
-
         self.progress_label = QLabel("")
         self.progress_label.setWordWrap(True)
         download_layout.addWidget(self.progress_label)
@@ -136,18 +111,15 @@ class OllamaModelBrowser(QDialog):
         self.download_btn.clicked.connect(self._download_model)
         self.download_btn.setEnabled(False)
         button_layout.addWidget(self.download_btn)
-
         self.delete_btn = QPushButton("Delete Model")
         self.delete_btn.clicked.connect(self._delete_model)
         self.delete_btn.setVisible(False)
         self.delete_btn.setStyleSheet("background-color: #d9534f; color: white;")
         button_layout.addWidget(self.delete_btn)
-
         self.cancel_btn = QPushButton("Cancel")
         self.cancel_btn.clicked.connect(self._cancel_download)
         self.cancel_btn.setVisible(False)
         button_layout.addWidget(self.cancel_btn)
-
         download_layout.addLayout(button_layout)
         download_group.setLayout(download_layout)
         right_layout.addWidget(download_group)
@@ -155,23 +127,17 @@ class OllamaModelBrowser(QDialog):
         # Custom model input
         custom_group = QGroupBox("Download Custom Model")
         custom_layout = QHBoxLayout()
-
         self.custom_input = QLineEdit()
         self.custom_input.setPlaceholderText("Enter model name (e.g., llama3.2:latest)")
         custom_layout.addWidget(self.custom_input)
-
         self.custom_download_btn = QPushButton("Pull")
         self.custom_download_btn.clicked.connect(self._download_custom_model)
         custom_layout.addWidget(self.custom_download_btn)
-
         custom_group.setLayout(custom_layout)
         right_layout.addWidget(custom_group)
-
         right_layout.addStretch()
-
         splitter.addWidget(right_widget)
         splitter.setSizes([350, 450])
-
         layout.addWidget(splitter)
 
         # Close button
@@ -184,17 +150,11 @@ class OllamaModelBrowser(QDialog):
 
     def _load_installed_models(self) -> None:
         """Load list of currently installed models."""
-        self.installed_models.clear()  # Clear before reloading
+        self.installed_models.clear()
         try:
-            result = subprocess.run(
-                ["ollama", "list"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 lines = result.stdout.strip().split("\n")
-                # Skip header line
                 for line in lines[1:]:
                     parts = line.split()
                     if parts:
@@ -206,26 +166,15 @@ class OllamaModelBrowser(QDialog):
     def _populate_model_list(self) -> None:
         """Populate the model list with available models."""
         self.model_list.clear()
-
         for model in AVAILABLE_MODELS:
-            name = model["name"]
-            size = model["size"]
-            category = model["category"]
-
-            # Create list item
+            name, size, category = model["name"], model["size"], model["category"]
             item = QListWidgetItem()
             is_installed = name in self.installed_models
-
-            # Format display text
             status = "✓ Installed" if is_installed else ""
-            display_text = f"{name} ({size}) [{category}] {status}"
-            item.setText(display_text)
-            item.setData(256, model)  # Store model data
-
-            # Style installed models differently
+            item.setText(f"{name} ({size}) [{category}] {status}")
+            item.setData(256, model)
             if is_installed:
                 item.setBackground(self.palette().alternateBase())
-
             self.model_list.addItem(item)
 
     def _filter_models(self, text: str) -> None:
@@ -248,19 +197,15 @@ class OllamaModelBrowser(QDialog):
         if not current:
             self.download_btn.setEnabled(False)
             return
-
         model = current.data(256)
         if not model:
             return
-
         name = model["name"]
         is_installed = name in self.installed_models
-
         self.model_name_label.setText(name)
         self.model_size_label.setText(f"Size: {model['size']}")
         self.model_category_label.setText(f"Category: {model['category']}")
         self.model_desc_text.setText(model["description"])
-
         if is_installed:
             self.status_label.setText("✓ Already installed")
             self.status_label.setStyleSheet("color: green;")
@@ -271,20 +216,13 @@ class OllamaModelBrowser(QDialog):
             self.status_label.setStyleSheet("color: gray;")
             self.download_btn.setText("Download Model")
             self.delete_btn.setVisible(False)
-
         self.download_btn.setEnabled(True)
 
     def _download_model(self) -> None:
         """Download the selected model."""
         current = self.model_list.currentItem()
-        if not current:
-            return
-
-        model = current.data(256)
-        if not model:
-            return
-
-        self._start_download(model["name"])
+        if current and (model := current.data(256)):
+            self._start_download(model["name"])
 
     def _download_custom_model(self) -> None:
         """Download a custom model by name."""
@@ -292,7 +230,6 @@ class OllamaModelBrowser(QDialog):
         if not model_name:
             QMessageBox.warning(self, "No Model Name", "Please enter a model name to download.")
             return
-
         self._start_download(model_name)
 
     def _start_download(self, model_name: str) -> None:
@@ -300,16 +237,12 @@ class OllamaModelBrowser(QDialog):
         if self.download_worker and self.download_worker.isRunning():
             QMessageBox.warning(self, "Download in Progress", "Please wait for the current download to finish.")
             return
-
-        # Update UI
         self.download_btn.setEnabled(False)
         self.custom_download_btn.setEnabled(False)
         self.cancel_btn.setVisible(True)
         self.progress_bar.setVisible(True)
-        self.progress_bar.setRange(0, 0)  # Indeterminate
+        self.progress_bar.setRange(0, 0)
         self.progress_label.setText(f"Downloading {model_name}...")
-
-        # Start download worker
         self.download_worker = ModelDownloadWorker(model_name)
         self.download_worker.progress.connect(self._on_download_progress)
         self.download_worker.finished.connect(self._on_download_finished)
@@ -318,20 +251,11 @@ class OllamaModelBrowser(QDialog):
     def _on_download_progress(self, message: str) -> None:
         """Handle download progress updates."""
         self.progress_label.setText(message)
-
-        # Try to parse percentage from message
         if "%" in message:
-            try:
-                # Extract percentage
-                import re
-
-                match = re.search(r"(\d+)%", message)
-                if match:
-                    percent = int(match.group(1))
-                    self.progress_bar.setRange(0, 100)
-                    self.progress_bar.setValue(percent)
-            except Exception:
-                pass
+            match = re.search(r"(\d+)%", message)
+            if match:
+                self.progress_bar.setRange(0, 100)
+                self.progress_bar.setValue(int(match.group(1)))
 
     def _on_download_finished(self, success: bool, message: str) -> None:
         """Handle download completion."""
@@ -339,22 +263,16 @@ class OllamaModelBrowser(QDialog):
         self.custom_download_btn.setEnabled(True)
         self.cancel_btn.setVisible(False)
         self.progress_bar.setVisible(False)
-
         if success:
             self.progress_label.setText(f"✓ {message}")
             self.progress_label.setStyleSheet("color: green;")
-
-            # Refresh installed models
             self._load_installed_models()
             self._populate_model_list()
-
-            # Emit signal
             if self.download_worker:
                 self.model_downloaded.emit(self.download_worker.model_name)
         else:
             self.progress_label.setText(f"✗ {message}")
             self.progress_label.setStyleSheet("color: red;")
-
         self.download_worker = None
 
     def _cancel_download(self) -> None:
@@ -374,8 +292,6 @@ class OllamaModelBrowser(QDialog):
         name = model["name"]
         if name not in self.installed_models:
             return
-
-        # Confirmation dialog
         reply = QMessageBox.question(
             self,
             "Delete Model",
@@ -385,14 +301,10 @@ class OllamaModelBrowser(QDialog):
         )
         if reply != QMessageBox.Yes:
             return
-
-        # Disable buttons during deletion
         self.delete_btn.setEnabled(False)
         self.download_btn.setEnabled(False)
         self.progress_label.setText(f"Deleting {name}...")
         self.progress_label.setStyleSheet("color: orange;")
-
-        # Start delete worker
         self.delete_worker = ModelDeleteWorker(name)
         self.delete_worker.finished.connect(self._on_delete_finished)
         self.delete_worker.start()
@@ -401,11 +313,9 @@ class OllamaModelBrowser(QDialog):
         """Handle model deletion completion."""
         self.delete_btn.setEnabled(True)
         self.download_btn.setEnabled(True)
-
         if success:
             self.progress_label.setText(f"✓ {message}")
             self.progress_label.setStyleSheet("color: green;")
-            # Refresh installed models and list
             if self.delete_worker:
                 self.model_deleted.emit(self.delete_worker.model_name)
             self._load_installed_models()
@@ -413,5 +323,4 @@ class OllamaModelBrowser(QDialog):
         else:
             self.progress_label.setText(f"✗ {message}")
             self.progress_label.setStyleSheet("color: red;")
-
         self.delete_worker = None

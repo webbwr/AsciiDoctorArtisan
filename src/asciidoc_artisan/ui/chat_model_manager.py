@@ -1,9 +1,4 @@
-"""
-Chat Model Manager - Model loading, validation, and event handling for AI backends.
-
-Extracted from ChatManager to reduce class size (MA principle).
-Handles model operations for both Ollama (local) and Claude (remote) backends.
-"""
+"""Chat Model Manager - Model loading and validation for Ollama/Claude backends."""
 
 import logging
 import subprocess

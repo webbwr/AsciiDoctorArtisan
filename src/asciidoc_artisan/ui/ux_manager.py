@@ -93,7 +93,7 @@ class UXManager(QObject):
                 return
             original_key_press(event)
 
-        self.editor.keyPressEvent = enhanced_key_press  # type: ignore[method-assign]
+        self.editor.keyPressEvent = enhanced_key_press
 
     def _apply_focus_styles(self) -> None:
         """Apply focus indicator styles."""

@@ -1,24 +1,4 @@
-"""
-Virtual Scrolling Preview - Optimized rendering for large documents.
-
-This module provides virtual scrolling for preview rendering:
-- Only renders visible portions of document
-- Calculates visible viewport based on scroll position
-- Adds buffering above/below viewport for smooth scrolling
-- Dramatically reduces render time for large documents
-
-Implements Phase 3.2 of Performance Optimization Plan:
-- Virtual scrolling for 10K+ line documents
-- Render only what user sees
-- 10-100x faster for large documents
-- Smooth scrolling experience
-
-Design Goals:
-- Fast initial render (only visible content)
-- Smooth scrolling (buffered content)
-- Memory efficient (don't store all HTML)
-- Works with incremental rendering
-"""
+"""Virtual Scrolling Preview - Render only visible portions for large documents."""
 
 import logging
 from dataclasses import dataclass

@@ -1,14 +1,4 @@
-"""
-Predictive Renderer - Pre-render sections during idle time to reduce latency.
-
-Implements v1.6.0 Task 3: Predictive Rendering
-- Predicts which sections user will view/edit next
-- Pre-renders during debounce periods
-- Uses idle time for background rendering
-- Heuristics based on cursor position and edit patterns
-
-Expected Impact: 30-50% reduction in perceived latency
-"""
+"""Predictive Renderer - Pre-render sections during idle time to reduce latency."""
 
 import logging
 import time
@@ -21,14 +11,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class RenderPrediction:
-    """
-    Prediction for which blocks to pre-render.
-
-    Attributes:
-        block_indices: List of block indices to pre-render (in priority order)
-        confidence: Confidence score (0.0-1.0) for this prediction
-        reason: Human-readable reason for prediction (for debugging)
-    """
+    """Prediction for which blocks to pre-render (indices, confidence, reason)."""
 
     block_indices: list[int]
     confidence: float

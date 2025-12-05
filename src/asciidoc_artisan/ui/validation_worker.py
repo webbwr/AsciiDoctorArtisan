@@ -1,9 +1,4 @@
-"""
-Validation Worker - Background thread for installation validation and updates.
-
-Extracted from installation_validator_dialog.py for MA principle compliance.
-Handles Python package and system binary validation in a background thread.
-"""
+"""Validation Worker - Background thread for installation validation and updates."""
 
 import logging
 import subprocess

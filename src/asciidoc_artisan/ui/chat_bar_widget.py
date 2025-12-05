@@ -1,22 +1,4 @@
-"""
-Chat bar widget for Ollama AI interaction.
-
-This module provides ChatBarWidget, a horizontal bar with chat input controls
-that appears above the status bar when AI mode is active.
-
-The widget includes:
-- Text input field with placeholder and Enter-to-send
-- Model selector dropdown (switch models without settings dialog)
-- Clear chat history button
-- Stop/Cancel generation button (visible during processing)
-- Context mode selector (document/syntax/general/editing)
-
-Visibility Rules:
-    - Shown when: ollama_enabled=True AND ollama_model is set
-    - Hidden when: ollama_enabled=False OR ollama_model is None
-
-Specification Reference: FR-039 to FR-044 (Ollama AI Chat)
-"""
+"""Chat bar widget for AI interaction (input, model selector, context mode)."""
 
 import logging
 
@@ -34,39 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class ChatBarWidget(QWidget):
-    """
-    Horizontal chat input bar for Ollama AI interaction.
-
-    Provides user input controls for sending chat messages, switching models,
-    selecting context modes, and managing chat state.
-
-    Signals:
-        message_sent: Emitted with (message_text, model, context_mode) when user sends
-        clear_requested: Emitted when user clicks clear history button
-        cancel_requested: Emitted when user clicks stop/cancel button
-        model_changed: Emitted with model_name when user switches models
-        context_mode_changed: Emitted with mode_name when user changes context
-
-    Attributes:
-        _input_field: QLineEdit for user message input
-        _model_selector: QComboBox for model selection
-        _context_selector: QComboBox for context mode selection
-        _send_button: QPushButton to send message
-        _clear_button: QPushButton to clear chat history
-        _scan_models_button: QPushButton to scan for available models from API
-        _cancel_button: QPushButton to cancel generation (visible during processing)
-
-    Example:
-        ```python
-        chat_bar = ChatBarWidget()
-        chat_bar.set_models(["gnokit/improve-grammer", "deepseek-coder"])
-        chat_bar.set_model("gnokit/improve-grammer")
-        chat_bar.message_sent.connect(on_message_sent)
-
-        chat_bar.show()  # When AI enabled + model set
-        chat_bar.hide()  # When AI disabled or no model
-        ```
-    """
+    """Horizontal chat input bar with model selector and context mode controls."""
 
     # Signals
     message_sent = Signal(str, str, str)  # message, model, context_mode

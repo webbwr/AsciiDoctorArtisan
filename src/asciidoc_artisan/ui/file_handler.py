@@ -1,17 +1,4 @@
-"""
-File Handler - Manage file operations.
-
-This module handles all file I/O operations for AsciiDoc Artisan:
-- Opening files (all supported formats)
-- Saving files (AsciiDoc, HTML)
-- Creating new files
-- Managing file state and unsaved changes
-- Auto-save functionality
-- Async file I/O with Qt integration (v1.7.0)
-- File watching for external changes (v1.7.0)
-
-Extracted from main_window.py to improve maintainability and testability.
-"""
+"""File Handler - Open, save, auto-save with async I/O and file watching."""
 
 import asyncio
 import logging

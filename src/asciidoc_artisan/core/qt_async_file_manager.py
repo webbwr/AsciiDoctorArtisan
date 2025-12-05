@@ -1,26 +1,4 @@
-"""
-Qt Async File Manager - Async file operations with Qt integration.
-
-Implements v1.7.0 Task 4: Enhanced Async I/O
-- Bridges asyncio and Qt event loop using qasync
-- Non-blocking file operations using async/await
-- Qt signal emission for operation completion
-- Atomic writes for data safety
-- File watcher integration
-
-This module provides async file operations for Qt applications:
-- Read/write files without blocking UI
-- Atomic saves to prevent corruption
-- File change notifications
-- Progress tracking for large files
-- Graceful error handling
-
-Design Goals:
-- No UI freezes during file I/O
-- Maintain data integrity (atomic writes)
-- Simple API for Qt applications
-- Compatible with existing code patterns
-"""
+"""Qt Async File Manager - Async file operations with Qt integration and signals."""
 
 import asyncio
 import logging
@@ -42,40 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class QtAsyncFileManager(QObject):
-    """
-    Qt-integrated async file manager.
-
-    Provides async file operations with Qt signals.
-    Uses qasync to bridge asyncio and Qt event loop.
-
-    Features:
-    - Async read/write without blocking UI
-    - Qt signal emission on completion
-    - Atomic writes (no data loss)
-    - File change monitoring
-    - Progress tracking
-    - Error handling
-
-    Signals:
-        read_complete: Emitted when file read completes (path, content)
-        write_complete: Emitted when file write completes (path)
-        operation_failed: Emitted on errors (operation, path, error)
-        file_changed_externally: Emitted when watched file changes externally
-
-    Example:
-        manager = QtAsyncFileManager()
-        manager.read_complete.connect(on_read_done)
-        manager.write_complete.connect(on_write_done)
-
-        # Read file (non-blocking)
-        asyncio.ensure_future(manager.read_file(Path("document.adoc")))
-
-        # Write file (non-blocking)
-        asyncio.ensure_future(manager.write_file(Path("output.adoc"), content))
-
-        # Watch file for changes
-        manager.watch_file(Path("document.adoc"))
-    """
+    """Qt-integrated async file manager with signals for read/write/watch operations."""
 
     # Signals
     read_complete = Signal(Path, str)  # path, content

@@ -1,85 +1,27 @@
-"""
-Action Manager - Coordinates menu actions and keyboard shortcuts.
+"""Action Manager - Coordinates menu actions and keyboard shortcuts via delegation."""
 
-Manages application menu bar by delegating to specialized components:
-- ActionFactory: QAction creation with DRY pattern (97% code reduction)
-- ActionCreators: Instantiates 50+ actions organized by menu
-- MenuBuilder: Constructs menu hierarchy (File, Edit, View, Git, Tools, Help)
+import logging
+from typing import TYPE_CHECKING, Any
 
-Architecture:
-- Thin coordination layer with delegation pattern
-- Platform-aware shortcuts (Ctrl/Cmd auto-adaptation)
-- Action state management (enabled/disabled, checked/unchecked)
-- Type-safe action declarations for IDE autocomplete
-
-Menu Structure:
-- File: New, Open, Save, Export (5 formats), Exit
-- Edit: Undo, Redo, Cut, Copy, Paste, Find/Replace
-- View: Zoom, Dark mode, Sync scroll, Maximize
-- Git: Repo, Commit, Pull, Push, GitHub submenu (5 actions)
-- Tools: AI Settings, Validation, UI toggles
-- Help: About, Service status checks
-
-Keyboard Shortcuts:
-- Standard: Ctrl+N/O/S (New/Open/Save), Ctrl+Z/Y (Undo/Redo), Ctrl+X/C/V
-- Custom: F7 (Spell check), F11 (Dark mode), Ctrl+Shift+V (Convert paste)
-
-Specifications:
-- FR-048: Platform-appropriate keyboard shortcuts
-- FR-053: Complete keyboard shortcut coverage
-
-MA Compliance: Reduced from 971→335 lines via 3 extractions + docstring condensation (65.5% reduction).
-"""
-
-# === STANDARD LIBRARY IMPORTS ===
-import logging  # For recording what the program does (debug messages)
-from typing import (  # For type hints without circular imports
-    TYPE_CHECKING,
-    Any,
-)
-
-# === QT FRAMEWORK IMPORTS ===
 from PySide6.QtCore import QThread, QTimer
-from PySide6.QtGui import (
-    QAction,  # Menu item class (represents one menu action like "New" or "Save")
-)
+from PySide6.QtGui import QAction
 
-# === LOCAL IMPORTS ===
 from asciidoc_artisan.core.constants import is_pandoc_available
 from asciidoc_artisan.ui.action_creators import ActionCreators
 from asciidoc_artisan.ui.action_factory import ActionFactory
 from asciidoc_artisan.ui.menu_builder import MenuBuilder
 
-# === TYPE CHECKING (Avoid Circular Imports) ===
-# This is a trick to avoid importing main_window at runtime (would cause circular import)
-# We only need the type for type hints, not the actual class
 if TYPE_CHECKING:  # pragma: no cover
     from asciidoc_artisan.ui.main_window import AsciiDocEditor
 
-# === LOGGING SETUP ===
-# Create a logger for this file (messages show as "action_manager: ...")
 logger = logging.getLogger(__name__)
 
 
 class ActionManager:
-    """
-    Central controller coordinating menu actions and keyboard shortcuts.
-
-    Manages 50+ QAction objects by delegating to specialized components:
-    - ActionFactory: Creates actions with DRY pattern
-    - ActionCreators: Instantiates all menu actions
-    - MenuBuilder: Constructs menu bar hierarchy
-
-    Usage: action_mgr = ActionManager(window); action_mgr.create_actions(); action_mgr.create_menus()
-    """
+    """Central controller coordinating 50+ menu actions and keyboard shortcuts."""
 
     def __init__(self, main_window: "AsciiDocEditor"):
-        """
-        Initialize ActionManager with references and helper instances.
-
-        Sets up references to main window components, creates factory/creator/builder
-        instances, and declares type hints for 50+ action variables.
-        """
+        """Initialize with references to main window and helper instances."""
         self._setup_references(main_window)
         self._declare_all_actions()
 

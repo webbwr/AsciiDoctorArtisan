@@ -211,7 +211,9 @@ class EnhancedErrorManager:
 
     def _handle_action(self, action_id: str) -> None:
         """Handle error dialog action."""
-        action_map = {
+        from collections.abc import Callable
+
+        action_map: dict[str, Callable[[], None]] = {
             "select_repo": lambda: self.editor.git_handler.select_repository(),
             "git_status": lambda: self.editor._show_git_status(),
             "help_git": lambda: self.editor.contextual_help.show_help_for_widget(),
