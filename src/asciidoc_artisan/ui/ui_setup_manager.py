@@ -119,12 +119,22 @@ class UISetupManager:
         """Setup find bar and quick commit widget."""
         # Setup find bar (hidden by default, shown with Ctrl+F)
         self.editor.find_bar = FindBarWidget(self.editor)
+        self.editor.find_bar.setAccessibleName("Find and Replace Bar")
+        self.editor.find_bar.setAccessibleDescription(
+            "Search for text in the document. "
+            "F3 for next match, Shift+F3 for previous. "
+            "Use Replace tab to find and replace text."
+        )
         main_layout.addWidget(self.editor.find_bar)
 
         # Setup quick commit widget (hidden by default, shown with Ctrl+G, v1.9.0+)
         from .quick_commit_widget import QuickCommitWidget
 
         self.editor.quick_commit_widget = QuickCommitWidget(self.editor)
+        self.editor.quick_commit_widget.setAccessibleName("Quick Commit")
+        self.editor.quick_commit_widget.setAccessibleDescription(
+            "Enter a commit message to save changes to Git. Press Enter to commit, Escape to cancel."
+        )
         main_layout.addWidget(self.editor.quick_commit_widget)
 
     def _setup_status_bar(self) -> None:
@@ -155,6 +165,12 @@ class UISetupManager:
 
         # Create text editor
         self.editor.editor = LineNumberPlainTextEdit(self.editor)
+
+        # Accessibility: Set accessible name and description for screen readers
+        self.editor.editor.setAccessibleName("AsciiDoc Editor")
+        self.editor.editor.setAccessibleDescription(
+            "Main text editor for writing AsciiDoc documents. Use Ctrl+Space for auto-complete, F8 for syntax check."
+        )
 
         # Initialize extra selection lists for combining highlights
         self.editor.editor.spell_check_selections = []
@@ -201,6 +217,12 @@ class UISetupManager:
 
         self.editor.preview = create_preview_widget(self.editor)
 
+        # Accessibility: Set accessible name and description for screen readers
+        self.editor.preview.setAccessibleName("Document Preview")
+        self.editor.preview.setAccessibleDescription(
+            "Live preview of the rendered AsciiDoc document. Updates automatically as you type."
+        )
+
         # Only QTextBrowser has setOpenExternalLinks, not QWebEngineView
         if hasattr(self.editor.preview, "setOpenExternalLinks"):
             self.editor.preview.setOpenExternalLinks(True)
@@ -233,12 +255,20 @@ class UISetupManager:
         from .chat_panel_widget import ChatPanelWidget
 
         self.editor.chat_panel = ChatPanelWidget(self.editor)
+        self.editor.chat_panel.setAccessibleName("AI Chat History")
+        self.editor.chat_panel.setAccessibleDescription(
+            "Displays conversation history with the AI assistant. Messages appear here as you chat."
+        )
         chat_layout.addWidget(self.editor.chat_panel, 1)  # Stretch to fill
 
         # Create chat bar (input controls) at bottom
         from .chat_bar_widget import ChatBarWidget
 
         self.editor.chat_bar = ChatBarWidget(self.editor)
+        self.editor.chat_bar.setAccessibleName("AI Chat Input")
+        self.editor.chat_bar.setAccessibleDescription(
+            "Type your message to the AI assistant here. Press Enter to send, Escape to cancel."
+        )
         self.editor.chat_bar.setMinimumHeight(70)  # Two rows: controls + input
         chat_layout.addWidget(self.editor.chat_bar, 0)  # No stretch
 

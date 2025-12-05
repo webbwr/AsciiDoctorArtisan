@@ -9,6 +9,45 @@ from typing import Any
 
 from PySide6.QtGui import QAction, QKeySequence
 
+# WhatsThis help text for complex features
+WHATS_THIS_HELP = {
+    "Convert && Paste": (
+        "Converts content from the clipboard (HTML, Markdown, Word) "
+        "to AsciiDoc format and pastes it into the editor. "
+        "Requires Pandoc to be installed."
+    ),
+    "&Toggle Dark Mode": (
+        "Switches between light and dark color themes. "
+        "Your preference is saved automatically. "
+        "Affects editor, preview, and chat panes."
+    ),
+    "Sync &Scrolling": (
+        "When enabled, scrolling in the editor automatically "
+        "scrolls the preview to the same position, and vice versa. "
+        "Useful for navigating long documents."
+    ),
+    "&Quick Commit...": (
+        "Opens an inline commit message input. "
+        "Type your message and press Enter to commit all staged changes. "
+        "Press Escape to cancel."
+    ),
+    "&Spell Check (F7)": (
+        "Highlights misspelled words in the editor with red underlines. "
+        "Right-click on a word to see spelling suggestions. "
+        "Supports multiple languages."
+    ),
+    "Ena&ble Syntax Checking": (
+        "Performs real-time validation of AsciiDoc syntax. "
+        "Errors appear as red squiggly lines. "
+        "Press F8 to jump to the next error."
+    ),
+    "Enable &Auto-complete": (
+        "Suggests AsciiDoc syntax as you type. "
+        "Press Ctrl+Space to trigger manually. "
+        "Suggestions include headings, attributes, and blocks."
+    ),
+}
+
 
 class ActionFactory:
     """
@@ -68,6 +107,9 @@ class ActionFactory:
         # Set status tip (shown in status bar on hover)
         action.setStatusTip(status_tip)
 
+        # Set tooltip (shown on hover) - same as status tip for consistency
+        action.setToolTip(status_tip)
+
         # Connect to handler function
         action.triggered.connect(triggered)
 
@@ -84,6 +126,10 @@ class ActionFactory:
         if checkable:
             action.setCheckable(True)
             action.setChecked(checked)
+
+        # Set WhatsThis help for complex features
+        if text in WHATS_THIS_HELP:
+            action.setWhatsThis(WHATS_THIS_HELP[text])
 
         return action
 
