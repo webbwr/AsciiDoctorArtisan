@@ -152,7 +152,7 @@ class TestUIComponents:
         assert "Linux:" in html
         assert "Windows:" in html
         assert "macOS:" in html
-        assert "telemetry.json" in html
+        assert "telemetry.toon" in html
 
     def test_explanation_mentions_gdpr(self, qapp):
         """Test explanation mentions GDPR compliance."""

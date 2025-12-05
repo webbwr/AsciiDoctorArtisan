@@ -779,7 +779,7 @@ class TestTelemetryStatusDialogEnabled:
 
         mock_file = Mock(spec=Path)
         mock_file.parent = Path("/tmp/telemetry")
-        mock_file.__str__ = Mock(return_value="/tmp/telemetry/telemetry.json")
+        mock_file.__str__ = Mock(return_value="/tmp/telemetry/telemetry.toon")
         mock_file.exists = Mock(return_value=True)
         mock_main_window.telemetry_collector.telemetry_file = mock_file
 
@@ -805,7 +805,7 @@ class TestTelemetryStatusDialogEnabled:
 
         mock_file = Mock(spec=Path)
         mock_file.parent = Path("/tmp/telemetry")
-        mock_file.__str__ = Mock(return_value="/tmp/telemetry/telemetry.json")
+        mock_file.__str__ = Mock(return_value="/tmp/telemetry/telemetry.toon")
         mock_file.exists = Mock(return_value=False)
         mock_main_window.telemetry_collector.telemetry_file = mock_file
 
@@ -881,7 +881,7 @@ class TestTelemetryOpenFileButton:
         mock_file = Mock(spec=Path)
         mock_file.exists = Mock(return_value=True)
         mock_file.parent = Path("/tmp")
-        mock_file.__str__ = Mock(return_value="/tmp/telemetry.json")
+        mock_file.__str__ = Mock(return_value="/tmp/telemetry.toon")
         mock_main_window.telemetry_collector.telemetry_file = mock_file
 
         mock_msgbox = Mock()
@@ -921,7 +921,7 @@ class TestTelemetryOpenFileButton:
         mock_file = Mock(spec=Path)
         mock_file.exists = Mock(return_value=True)
         mock_file.parent = Path("/tmp")
-        mock_file.__str__ = Mock(return_value="/tmp/telemetry.json")
+        mock_file.__str__ = Mock(return_value="/tmp/telemetry.toon")
         mock_main_window.telemetry_collector.telemetry_file = mock_file
 
         mock_msgbox = Mock()
@@ -969,7 +969,7 @@ class TestTelemetryOpenFileButton:
         mock_file = Mock(spec=Path)
         mock_file.exists = Mock(return_value=True)
         mock_file.parent = Path("/tmp")
-        mock_file.__str__ = Mock(return_value="/tmp/telemetry.json")
+        mock_file.__str__ = Mock(return_value="/tmp/telemetry.toon")
         mock_main_window.telemetry_collector.telemetry_file = mock_file
 
         mock_msgbox = Mock()
@@ -1020,7 +1020,7 @@ class TestTelemetryOpenFileButton:
         mock_file = Mock(spec=Path)
         mock_file.exists = Mock(return_value=True)
         mock_file.parent = Path("/tmp")
-        mock_file.__str__ = Mock(return_value="/tmp/telemetry.json")
+        mock_file.__str__ = Mock(return_value="/tmp/telemetry.toon")
         mock_main_window.telemetry_collector.telemetry_file = mock_file
 
         mock_msgbox = Mock()
@@ -1034,7 +1034,7 @@ class TestTelemetryOpenFileButton:
             result = Mock()
             result.returncode = 0
             if cmd[0] == "wslpath":
-                result.stdout = "C:\\tmp\\telemetry.json"
+                result.stdout = "C:\\tmp\\telemetry.toon"
             return result
 
         mock_subprocess.side_effect = subprocess_side_effect

@@ -103,7 +103,7 @@ class TestTelemetryCollectorInitialization:
 
     def test_telemetry_file_path(self, collector_enabled, temp_data_dir):
         """Test telemetry file path is correct."""
-        expected_path = temp_data_dir / "telemetry.json"
+        expected_path = temp_data_dir / "telemetry.toon"
         assert collector_enabled.telemetry_file == expected_path
 
 

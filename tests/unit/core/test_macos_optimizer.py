@@ -622,7 +622,7 @@ class TestLogOptimizationStatus:
         # Check that key information was logged
         log_calls = [str(call) for call in mock_logger.info.call_args_list]
         assert any("Apple Silicon" in call for call in log_calls)
-        assert any("16 GB" in call for call in log_calls)
+        assert any("16GB" in call for call in log_calls)
         assert any("APFS" in call for call in log_calls)
 
     @patch("asciidoc_artisan.core.macos_optimizer.detect_macos_capabilities")

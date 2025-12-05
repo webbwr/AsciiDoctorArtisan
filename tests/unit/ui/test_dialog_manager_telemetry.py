@@ -38,7 +38,7 @@ def mock_telemetry_window(qapp):
     # Telemetry collector
     window.telemetry_collector = Mock()
     window.telemetry_collector.data_dir = Path("/tmp/test_telemetry")
-    window.telemetry_collector.telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+    window.telemetry_collector.telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
     return window
 
@@ -56,7 +56,7 @@ class TestTelemetryFileOpening:
         # Setup
         mock_run.return_value = Mock(stdout="", stderr="", returncode=0)
         manager = DialogManager(mock_telemetry_window)
-        telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+        telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
         # Execute
         manager._telemetry_handler._open_telemetry_file(telemetry_file)
@@ -78,7 +78,7 @@ class TestTelemetryFileOpening:
         # Setup
         mock_run.return_value = Mock(stdout="", stderr="", returncode=0)
         manager = DialogManager(mock_telemetry_window)
-        telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+        telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
         # Execute
         manager._telemetry_handler._open_telemetry_file(telemetry_file)
@@ -107,7 +107,7 @@ class TestTelemetryFileOpening:
 
         mock_run.return_value = Mock(stdout="", stderr="", returncode=0)
         manager = DialogManager(mock_telemetry_window)
-        telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+        telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
         # Execute
         manager._telemetry_handler._open_telemetry_file(telemetry_file)
@@ -138,14 +138,14 @@ class TestTelemetryFileOpening:
         def run_side_effect(*args, **kwargs):
             cmd = args[0]
             if cmd[0] == "wslpath":
-                return Mock(stdout="C:\\\\tmp\\\\telemetry.json\\n", stderr="", returncode=0)
+                return Mock(stdout="C:\\\\tmp\\\\telemetry.toon\\n", stderr="", returncode=0)
             elif "notepad.exe" in cmd[0]:
                 return Mock(stdout="", stderr="", returncode=0)
             return Mock(stdout="", stderr="", returncode=0)
 
         mock_run.side_effect = run_side_effect
         manager = DialogManager(mock_telemetry_window)
-        telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+        telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
         # Execute
         manager._telemetry_handler._open_telemetry_file(telemetry_file)
@@ -173,7 +173,7 @@ class TestTelemetryFileOpening:
         mock_open_file.return_value = mock_file_handle
 
         manager = DialogManager(mock_telemetry_window)
-        telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+        telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
         # Execute
         manager._telemetry_handler._open_telemetry_file(telemetry_file)
@@ -190,7 +190,7 @@ class TestTelemetryFileOpening:
 
         # Setup
         manager = DialogManager(mock_telemetry_window)
-        telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+        telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
         # Execute
         manager._telemetry_handler._open_telemetry_file(telemetry_file)
@@ -209,7 +209,7 @@ class TestTelemetryFileOpening:
 
         # Setup
         manager = DialogManager(mock_telemetry_window)
-        telemetry_file = Path("/tmp/test_telemetry/telemetry.json")
+        telemetry_file = Path("/tmp/test_telemetry/telemetry.toon")
 
         # Execute
         manager._telemetry_handler._open_telemetry_file(telemetry_file)
@@ -233,7 +233,7 @@ class TestTelemetryDirectoryChange:
 
         # Setup
         manager = DialogManager(mock_telemetry_window)
-        old_file = tmp_path / "old" / "telemetry.json"
+        old_file = tmp_path / "old" / "telemetry.toon"
         old_file.parent.mkdir()
         old_file.write_text('{"test": "data"}')
 
@@ -290,7 +290,7 @@ class TestTelemetryDirectoryChange:
 
         # Setup
         manager = DialogManager(mock_telemetry_window)
-        old_file = tmp_path / "old" / "telemetry.json"
+        old_file = tmp_path / "old" / "telemetry.toon"
 
         mock_msg_box = Mock(spec=QMessageBox)
 
@@ -330,5 +330,5 @@ class TestTelemetryDirectoryChange:
 
         # Verify telemetry_collector was updated
         assert mock_telemetry_window.telemetry_collector.data_dir == new_dir
-        expected_file = new_dir / "telemetry.json"
+        expected_file = new_dir / "telemetry.toon"
         assert mock_telemetry_window.telemetry_collector.telemetry_file == expected_file

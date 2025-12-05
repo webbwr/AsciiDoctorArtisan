@@ -121,7 +121,7 @@ class TestTelemetryCollectorInitialization:
         """Test collector sets telemetry file path."""
         collector = TelemetryCollector(data_dir=tmp_path)
 
-        assert collector.telemetry_file == tmp_path / "telemetry.json"
+        assert collector.telemetry_file == tmp_path / "telemetry.toon"
 
     def test_initialization_sets_session_start_time(self, tmp_path):
         """Test collector sets session start time."""
@@ -295,7 +295,7 @@ class TestEventBufferFlush:
         assert not collector.telemetry_file.exists()
 
     def test_flush_writes_events_to_file(self, tmp_path):
-        """Test flush writes events to JSON file."""
+        """Test flush writes events to TOON file."""
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
         collector.track_event("test_event", {"key": "value"})
 
@@ -303,7 +303,10 @@ class TestEventBufferFlush:
 
         assert collector.telemetry_file.exists()
         with open(collector.telemetry_file) as f:
-            events = json.load(f)
+            from asciidoc_artisan.core import toon_utils
+
+            data = toon_utils.load(f)
+        events = data["events"]
         assert len(events) == 1
         assert events[0]["event_type"] == "test_event"
 
@@ -329,7 +332,10 @@ class TestEventBufferFlush:
         collector.flush()
 
         with open(collector.telemetry_file) as f:
-            events = json.load(f)
+            from asciidoc_artisan.core import toon_utils
+
+            data = toon_utils.load(f)
+        events = data["events"]
         assert len(events) == 2
 
     def test_flush_auto_triggers_at_buffer_size(self, tmp_path):
@@ -576,7 +582,7 @@ class TestStatistics:
         stats = collector.get_statistics()
 
         assert stats["file_size"] > 0
-        assert "telemetry.json" in stats["file_path"]
+        assert "telemetry.toon" in stats["file_path"]
 
 
 @pytest.mark.fr_073
@@ -642,10 +648,13 @@ class TestDestructor:
         del collector
 
         # Events should be flushed to file
-        telemetry_file = tmp_path / "telemetry.json"
+        telemetry_file = tmp_path / "telemetry.toon"
         assert telemetry_file.exists()
         with open(telemetry_file) as f:
-            events = json.load(f)
+            from asciidoc_artisan.core import toon_utils
+
+            data = toon_utils.load(f)
+        events = data["events"]
         assert len(events) == 1
 
     def test_destructor_handles_flush_exception(self, tmp_path):
@@ -727,7 +736,7 @@ class TestExceptionHandling:
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
         # Create corrupted JSON file
-        telemetry_file = tmp_path / "telemetry.json"
+        telemetry_file = tmp_path / "telemetry.toon"
         telemetry_file.write_text("invalid json {{{")
 
         # _load_events should return empty list on error
@@ -758,7 +767,6 @@ class TestFileRotationWithSize:
 
     def test_rotation_when_file_exceeds_max_size(self, tmp_path):
         """Test file rotation when file size exceeds max (line 267)."""
-        import json
         from datetime import timedelta
 
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
@@ -791,7 +799,7 @@ class TestFileRotationWithSize:
             )
 
         # Write events to file
-        telemetry_file = tmp_path / "telemetry.json"
+        telemetry_file = tmp_path / "telemetry.toon"
         with open(telemetry_file, "w") as f:
             json.dump(events, f)
 
@@ -804,7 +812,10 @@ class TestFileRotationWithSize:
 
         # Load rotated events
         with open(telemetry_file) as f:
-            rotated_events = json.load(f)
+            from asciidoc_artisan.core import toon_utils
+
+            data = toon_utils.load(f)
+        rotated_events = data["events"]
 
         # Should only have recent events (old events removed by rotation)
         # 25 recent events + 1 new event = 26 total

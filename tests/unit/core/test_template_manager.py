@@ -753,8 +753,8 @@ class TestRecentPersistence:
             RecentTemplatesTracker,
         )
 
-        # Create recent.json
-        recent_file = tmp_path / "recent.json"
+        # Create recent.toon
+        recent_file = tmp_path / "recent.toon"
         recent_file.write_text(json.dumps(["Template 1", "Template 2"]))
 
         # Create tracker - it loads on init
@@ -782,7 +782,7 @@ class TestRecentPersistence:
         )
 
         # Create corrupt file
-        recent_file = tmp_path / "recent.json"
+        recent_file = tmp_path / "recent.toon"
         recent_file.write_text("not json{{{")
 
         # Create tracker - should fall back to empty list
@@ -792,8 +792,7 @@ class TestRecentPersistence:
 
     def test_save_recent_to_disk(self, tmp_path):
         """Test saving recent list to disk via tracker."""
-        import json
-
+        from asciidoc_artisan.core import toon_utils
         from asciidoc_artisan.core.recent_templates_tracker import (
             RecentTemplatesTracker,
         )
@@ -803,12 +802,13 @@ class TestRecentPersistence:
         tracker.add("Template B")
 
         # Verify file was created
-        recent_file = tmp_path / "recent.json"
+        recent_file = tmp_path / "recent.toon"
         assert recent_file.exists()
 
         # Verify content (most recent first)
-        data = json.loads(recent_file.read_text())
-        assert data == ["Template B", "Template A"]
+        with open(recent_file) as f:
+            data = toon_utils.load(f)
+        assert data["recent"] == ["Template B", "Template A"]
 
 
 @pytest.mark.fr_100
@@ -1137,7 +1137,7 @@ class TestRecentSaveError:
         tracker.add("test_template")
 
         # Make directory unwritable
-        (tmp_path / "recent.json").unlink(missing_ok=True)
+        (tmp_path / "recent.toon").unlink(missing_ok=True)
         tmp_path.chmod(0o444)
 
         # Should not crash, just log error
