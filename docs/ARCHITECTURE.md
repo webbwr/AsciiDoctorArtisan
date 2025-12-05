@@ -1,349 +1,627 @@
 # AsciiDoc Artisan Architecture
 
-**Version:** 2.1.0 | **Last Updated:** 2025-12-05 | **Public Release**
+**v2.1.0** | **Dec 5, 2025** | **Public Release**
 
-> **See also:** [SPECIFICATIONS.md](../SPECIFICATIONS.md) for 109 functional requirements.
+---
 
-## Design Philosophy
+## Quick Reference
 
-**MA Principle (間)** — Japanese concept of negative space. Each module focuses on one thing. Target: <400 lines per file.
+| Metric | Value |
+|--------|-------|
+| Source files | 180 |
+| Source lines | 45,900 |
+| Unit tests | 5,122 |
+| E2E tests | 17 |
+| Type coverage | 100% (mypy --strict) |
+| Startup time | 0.27s |
 
-**Codebase Metrics:**
-- **Source:** 45,900 lines / 180 files (avg ~255 lines/file)
-- **Tests:** 5,139 (5,122 unit + 17 E2E)
-- **Type coverage:** 100% (mypy --strict)
-- **Startup:** 0.586s
+---
+
+## Design Principles
+
+**MA Principle (間)** — Each module does one thing. Target: <400 lines per file.
+
+**Handler Pattern** — UI logic lives in focused handler classes. MainWindow delegates.
+
+**Thread Safety** — Slow operations run in QThread workers. UI updates via signals.
+
+**Atomic Writes** — File saves use temp+rename. No partial writes on crash.
+
+---
 
 ## Package Structure
 
 ```
 src/asciidoc_artisan/
-├── core/           # Business logic (13,216 lines)
-│   ├── settings.py              # JSON config management
-│   ├── file_operations.py       # Atomic file I/O
-│   ├── gpu_detection.py         # Hardware acceleration
-│   ├── search_engine.py         # Find & replace
-│   ├── spell_checker.py         # Spell validation
-│   ├── syntax_checker.py        # AsciiDoc validation
-│   ├── template_*.py            # Template system
-│   └── ...                      # 45+ focused modules
-│
-├── ui/             # Qt widgets (21,571 lines)
-│   ├── main_window.py           # App controller (1,798 lines)
-│   ├── *_manager.py             # Specialized managers
-│   ├── preview_handler*.py      # Rendering system
-│   └── ...                      # 60+ widget files
-│
-├── workers/        # QThread workers (4,718 lines)
-│   ├── git_worker.py            # Git operations
-│   ├── pandoc_worker.py         # Format conversion
-│   ├── preview_worker.py        # AsciiDoc→HTML
-│   ├── parallel_block_renderer.py  # Multi-core rendering
-│   └── ...                      # 19 worker files
-│
-├── lsp/            # Language Server Protocol (1,359 lines)
-│   ├── server.py                # LSP server core
-│   ├── completion_provider.py   # Auto-complete
-│   ├── diagnostics_provider.py  # Syntax validation
-│   ├── hover_provider.py        # Documentation
-│   └── symbols_provider.py      # Document outline
-│
-├── claude/         # Claude AI integration
-│   ├── claude_client.py         # API client
-│   └── claude_worker.py         # Async worker
-│
-└── templates/      # Built-in AsciiDoc templates
+├── core/        13,085 lines   Business logic, no Qt UI
+├── ui/          22,794 lines   Qt widgets and handlers
+├── workers/      5,915 lines   QThread background workers
+├── lsp/          2,134 lines   Language Server Protocol
+├── claude/         658 lines   Claude AI integration
+└── templates/                  Built-in document templates
 ```
+
+### Component Diagram
+
+```mermaid
+graph TB
+    subgraph "UI Layer (22,794 lines)"
+        MW[MainWindow<br/>1,167 lines]
+        ED[Editor]
+        PV[Preview]
+    end
+
+    subgraph "Handler Layer"
+        FH[FileHandler]
+        GH[GitHandler]
+        PH[PreviewHandler]
+        CH[ChatManager]
+    end
+
+    subgraph "Worker Layer (5,915 lines)"
+        GW[GitWorker]
+        PW[PreviewWorker]
+        OW[OllamaChatWorker]
+        PD[PandocWorker]
+    end
+
+    subgraph "Core Layer (13,085 lines)"
+        ST[Settings]
+        FO[FileOperations]
+        SC[SyntaxChecker]
+        SE[SearchEngine]
+    end
+
+    subgraph "LSP Layer (2,134 lines)"
+        LS[Server]
+        CP[CompletionProvider]
+        DP[DiagnosticsProvider]
+    end
+
+    MW --> FH & GH & PH & CH
+    FH --> FO
+    GH --> GW
+    PH --> PW
+    CH --> OW
+    LS --> CP & DP
+    CP & DP --> SC
+```
+
+---
+
+## Core Package
+
+Business logic. No Qt dependencies except models.
+
+```
+core/
+├── settings.py           # App configuration (JSON persistence)
+├── file_operations.py    # Atomic file I/O
+├── search_engine.py      # Find & replace
+├── spell_checker.py      # Spell validation
+├── syntax_checker.py     # AsciiDoc validation
+├── template_engine.py    # Template processing
+├── gpu_detection.py      # Hardware detection
+├── secure_credentials.py # OS keyring storage
+│
+├── *_models.py           # Pydantic data models
+│   ├── git_models.py     # GitResult, GitStatus
+│   ├── chat_models.py    # ChatMessage
+│   ├── syntax_models.py  # SyntaxErrorModel, QuickFix
+│   └── completion_models.py  # CompletionItem
+│
+└── *_rules.py            # Validation rules
+    ├── syntax_error_rules.py
+    ├── warning_rules.py
+    └── info_rules.py
+```
+
+### Data Models
+
+```mermaid
+classDiagram
+    class GitResult {
+        +bool success
+        +str stdout
+        +str stderr
+        +int exit_code
+        +str user_message
+    }
+
+    class GitStatus {
+        +str branch
+        +int modified_count
+        +int staged_count
+        +int untracked_count
+        +bool is_dirty
+    }
+
+    class ChatMessage {
+        +str role
+        +str content
+        +float timestamp
+        +str model
+        +str context_mode
+    }
+
+    class SyntaxErrorModel {
+        +str code
+        +ErrorSeverity severity
+        +str message
+        +int line
+        +int column
+        +list~QuickFix~ fixes
+    }
+
+    class CompletionItem {
+        +str text
+        +CompletionKind kind
+        +str detail
+        +float score
+    }
+```
+
+---
+
+## UI Package
+
+Qt widgets and handlers. MainWindow is the coordinator.
+
+```
+ui/
+├── main_window.py        # App controller (1,167 lines)
+│
+├── *_handler.py          # Domain handlers
+│   ├── file_handler.py       # File operations
+│   ├── file_open_handler.py  # Open dialogs
+│   ├── file_save_handler.py  # Save dialogs
+│   ├── git_handler.py        # Git operations
+│   ├── github_handler.py     # GitHub CLI
+│   ├── preview_handler.py    # Preview coordination
+│   ├── preview_handler_base.py  # Preview base class
+│   ├── preview_handler_gpu.py   # GPU rendering
+│   └── search_handler.py     # Find & replace
+│
+├── *_manager.py          # Feature managers
+│   ├── chat_manager.py       # AI chat (441 lines)
+│   ├── action_manager.py     # QAction factory
+│   ├── worker_manager.py     # Worker lifecycle
+│   └── syntax_checker_manager.py  # Validation UI
+│
+├── *_widget.py           # UI components
+│   ├── chat_bar_widget.py    # Chat input
+│   ├── chat_panel_widget.py  # Chat display
+│   ├── find_bar_widget.py    # Search bar
+│   └── quick_commit_widget.py # Git commit
+│
+└── *_dialog.py           # Dialog windows
+```
+
+### Handler Hierarchy
+
+```mermaid
+classDiagram
+    class MainWindow {
+        +QPlainTextEdit editor
+        +PreviewHandler preview_handler
+        +FileHandler file_handler
+        +GitHandler git_handler
+        +ChatManager chat_manager
+    }
+
+    class FileHandler {
+        -Path current_file
+        -bool is_modified
+        +Signal file_opened
+        +Signal file_saved
+        +new_file()
+        +open_file()
+        +save_file()
+    }
+
+    class GitHandler {
+        -GitWorker worker
+        -bool is_processing
+        +commit(message)
+        +pull()
+        +push()
+    }
+
+    class PreviewHandler {
+        -PreviewWorker worker
+        +update_preview(content)
+    }
+
+    class ChatManager {
+        -OllamaChatWorker worker
+        +send_message(text)
+    }
+
+    MainWindow --> FileHandler
+    MainWindow --> GitHandler
+    MainWindow --> PreviewHandler
+    MainWindow --> ChatManager
+```
+
+---
+
+## Workers Package
+
+QThread workers for background operations.
+
+```
+workers/
+├── base_worker.py         # Shared worker logic
+├── git_worker.py          # Git commands
+├── github_cli_worker.py   # GitHub CLI
+├── pandoc_worker.py       # Format conversion
+├── preview_worker.py      # AsciiDoc rendering
+├── ollama_chat_worker.py  # AI chat
+│
+├── Rendering
+│   ├── incremental_renderer.py    # Block caching
+│   ├── parallel_block_renderer.py # Multi-core
+│   ├── predictive_renderer.py     # Prefetch
+│   ├── block_splitter.py          # Document parsing
+│   └── render_cache.py            # LRU cache
+│
+└── Helpers
+    ├── git_command_executor.py
+    ├── git_status_parser.py
+    ├── git_error_handler.py
+    └── pandoc_executor.py
+```
+
+### Worker Class Hierarchy
+
+```mermaid
+classDiagram
+    class QThread {
+        <<PySide6>>
+        +start()
+        +quit()
+    }
+
+    class BaseWorker {
+        -bool _cancelled
+        +cancel()
+        +reset_cancellation()
+        #_check_cancellation()
+        #_execute_subprocess(cmd)
+    }
+
+    class GitWorker {
+        +Signal command_complete
+        +Signal status_ready
+        +commit(message)
+        +pull()
+        +push()
+    }
+
+    class GitHubCLIWorker {
+        +Signal github_result_ready
+        +create_pr(title, body)
+        +list_prs()
+    }
+
+    class PreviewWorker {
+        +Signal render_complete
+        +Signal render_error
+        +render(content)
+    }
+
+    class OllamaChatWorker {
+        +Signal chat_response_ready
+        +Signal chat_response_chunk
+        +send_message(msg)
+    }
+
+    QThread <|-- PreviewWorker
+    QThread <|-- OllamaChatWorker
+    BaseWorker <|-- GitWorker
+    BaseWorker <|-- GitHubCLIWorker
+```
+
+---
+
+## LSP Package
+
+Language Server Protocol for editor integration.
+
+```
+lsp/
+├── server.py              # LSP server core
+├── document_state.py      # Thread-safe doc storage
+├── completion_provider.py # Auto-complete
+├── diagnostics_provider.py # Syntax errors
+├── hover_provider.py      # Documentation
+├── symbols_provider.py    # Document outline
+├── code_action_provider.py # Quick fixes
+├── folding_provider.py    # Code folding
+├── formatting_provider.py # Document format
+└── semantic_tokens_provider.py # Highlighting
+```
+
+### LSP Architecture
+
+```mermaid
+classDiagram
+    class Server {
+        +DocumentState documents
+        +start()
+        +shutdown()
+    }
+
+    class DocumentState {
+        -dict documents
+        -Lock lock
+        +get(uri)
+        +set(uri, content)
+    }
+
+    class CompletionProvider {
+        +get_completions(doc, pos)
+    }
+
+    class DiagnosticsProvider {
+        +get_diagnostics(doc)
+    }
+
+    class HoverProvider {
+        +get_hover(doc, pos)
+    }
+
+    Server --> DocumentState
+    Server --> CompletionProvider
+    Server --> DiagnosticsProvider
+    Server --> HoverProvider
+```
+
+---
 
 ## Threading Model
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Main Thread (UI)                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │ MainWindow  │  │  Editors    │  │  Preview    │          │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘          │
-│         │                │                │                  │
-│         ▼                ▼                ▼                  │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │              Signal/Slot Connections                  │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-         │                │                │
-         ▼                ▼                ▼
-┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐
-│  GitWorker  │  │PandocWorker │  │ ParallelBlockRenderer│
-│  (QThread)  │  │  (QThread)  │  │ (ThreadPoolExecutor) │
-└─────────────┘  └─────────────┘  └─────────────────────┘
+```mermaid
+graph TB
+    subgraph "Main Thread"
+        MW[MainWindow]
+        ED[Editor]
+        PV[Preview]
+        SIG[Signal/Slot Bus]
+    end
+
+    subgraph "Worker Threads"
+        GW[GitWorker]
+        PW[PreviewWorker]
+        OW[OllamaWorker]
+        PD[PandocWorker]
+    end
+
+    subgraph "Thread Pool"
+        TP[ThreadPoolExecutor]
+        W1[Block Renderer 1]
+        W2[Block Renderer 2]
+        WN[Block Renderer N]
+    end
+
+    MW & ED & PV --> SIG
+    SIG -.->|Commands| GW & PW & OW & PD
+    GW & PW & OW & PD -.->|Results| SIG
+    PW --> TP
+    TP --> W1 & W2 & WN
 ```
 
 ### Worker Pattern
 
-All workers follow this pattern:
-
 ```python
 class Worker(QThread):
     result_ready = Signal(Result)
-    error_occurred = Signal(str)
 
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
-        self._command_queue: Queue[Command] = Queue()
+        self._cancelled = False
 
-    def run(self) -> None:
-        while True:
-            cmd = self._command_queue.get()
-            if cmd is None:  # Shutdown signal
+    def run(self):
+        while not self._cancelled:
+            cmd = self._queue.get()
+            if cmd is None:
                 break
             result = self._process(cmd)
             self.result_ready.emit(result)
+
+    def cancel(self):
+        self._cancelled = True
 ```
 
-### Reentrancy Guards
-
-Prevent concurrent operations:
+### Reentrancy Guard
 
 ```python
-def start_operation(self) -> None:
+def start_operation(self):
     if self._is_processing:
         return  # Already running
     self._is_processing = True
     try:
         self.worker.start()
     finally:
-        self._is_processing = False  # Reset in signal handler
+        self._is_processing = False
 ```
 
-## Multi-Core Rendering (v2.1.0)
+---
 
-> **Related FRs:** FR-018 (Incremental Render), FR-069 (Worker Pool), FR-070 (Memory Management)
-
-### ParallelBlockRenderer
-
-Uses `ThreadPoolExecutor` for CPU-bound AsciiDoc rendering:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                  ParallelBlockRenderer                   │
-├─────────────────────────────────────────────────────────┤
-│  ThreadPoolExecutor (N workers = CPU cores)              │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
-│  │ Worker 1 │ │ Worker 2 │ │ Worker 3 │ │ Worker N │   │
-│  │  Block A │ │  Block B │ │  Block C │ │  Block N │   │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘   │
-│       │            │            │            │          │
-│       ▼            ▼            ▼            ▼          │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │         Thread-Local AsciiDoc Instances           │  │
-│  └──────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Key Features:**
-- Thread-local storage for AsciiDoc API (thread-safe)
-- Block-based parallelization (independent units)
-- 2-4x speedup on multi-core systems
-- Graceful fallback on single-core
-
-## LSP Architecture (v2.1.0)
-
-> **Related FR:** FR-109 (Language Server Protocol) — 54 tests
-
-### Server Design
-
-```
-┌──────────────────────────────────────────────────────────┐
-│                  AsciiDocLanguageServer                   │
-├──────────────────────────────────────────────────────────┤
-│  pygls LanguageServer                                     │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │                   DocumentState                     │  │
-│  │         Thread-safe document storage                │  │
-│  └────────────────────────────────────────────────────┘  │
-│                          │                                │
-│    ┌─────────────────────┼─────────────────────┐         │
-│    ▼                     ▼                     ▼         │
-│ ┌──────────┐      ┌──────────┐          ┌──────────┐    │
-│ │Completion│      │Diagnostics│         │  Hover   │    │
-│ │ Provider │      │ Provider │          │ Provider │    │
-│ └──────────┘      └──────────┘          └──────────┘    │
-│                          │                               │
-│                     ┌────┴────┐                          │
-│                     ▼         ▼                          │
-│               ┌──────────┐ ┌──────────┐                 │
-│               │ Symbols  │ │Definition│                 │
-│               │ Provider │ │ Provider │                 │
-│               └──────────┘ └──────────┘                 │
-└──────────────────────────────────────────────────────────┘
-```
-
-### Provider Modules
-
-| Provider | Function |
-|----------|----------|
-| `server.py` | Core LSP server, handler registration |
-| `completion_provider.py` | Context-aware auto-complete |
-| `diagnostics_provider.py` | Syntax validation via SyntaxChecker |
-| `hover_provider.py` | Documentation on hover |
-| `symbols_provider.py` | Document outline, go-to-definition |
-| `code_action_provider.py` | Quick fixes, lightbulb suggestions |
-| `folding_provider.py` | Code folding ranges |
-| `formatting_provider.py` | Document formatting |
-| `semantic_tokens_provider.py` | Semantic highlighting |
-
-### LSP Features
-
-- **textDocument/completion**: Syntax, attributes, xrefs, includes
-- **textDocument/publishDiagnostics**: Real-time error highlighting
-- **textDocument/hover**: AsciiDoc element documentation
-- **textDocument/documentSymbol**: Heading hierarchy, anchors
-- **textDocument/definition**: Cross-reference navigation
-- **textDocument/codeAction**: Quick fixes
-- **textDocument/foldingRange**: Block folding
-- **textDocument/formatting**: Document format
-- **textDocument/semanticTokens**: Syntax highlighting
-
-## GPU Rendering Pipeline
-
-> **Related FRs:** FR-015 (Live Preview), FR-016 (GPU Acceleration), FR-020 (Preview Themes)
-
-```
-┌─────────────┐    ┌──────────────┐    ┌───────────────┐
-│  AsciiDoc   │───▶│  HTML + CSS  │───▶│ QWebEngineView│
-│   Source    │    │   Content    │    │   (GPU)       │
-└─────────────┘    └──────────────┘    └───────────────┘
-                          │
-                   ┌──────┴───────┐
-                   ▼              ▼
-            ┌──────────┐   ┌──────────┐
-            │  NVIDIA  │   │   AMD    │
-            │  (CUDA)  │   │  (ROCm)  │
-            └──────────┘   └──────────┘
-                   │              │
-                   └──────┬───────┘
-                          ▼
-                   ┌──────────────┐
-                   │   Fallback   │
-                   │ QTextBrowser │
-                   │    (CPU)     │
-                   └──────────────┘
-```
-
-**Detection Cache:** `~/.cache/asciidoc_artisan/gpu_detection.json` (24hr TTL)
-
-## Manager Pattern (UI)
-
-MainWindow delegates to specialized managers:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                      MainWindow                          │
-│                    (1,798 lines)                         │
-├─────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │ MenuManager │  │ThemeManager │  │StatusManager│     │
-│  │  (actions)  │  │  (styling)  │  │ (status bar)│     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-│                                                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │ FileManager │  │ GitManager  │  │ExportManager│     │
-│  │  (file I/O) │  │  (version)  │  │ (formats)   │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-│                                                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │ ChatManager │  │SpellManager │  │SyntaxManager│     │
-│  │  (AI chat)  │  │ (spelling)  │  │ (validation)│     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-└─────────────────────────────────────────────────────────┘
-```
-
-## Data Flow
+## Key Workflows
 
 ### Document Edit Flow
 
-```
-User Input → QPlainTextEdit → textChanged signal
-                                    │
-                                    ▼
-                           ┌─────────────────┐
-                           │  Debounce Timer │
-                           │    (300ms)      │
-                           └────────┬────────┘
-                                    │
-           ┌────────────────────────┼────────────────────────┐
-           ▼                        ▼                        ▼
-    ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
-    │ PreviewWorker│        │ SyntaxChecker│        │  SpellChecker│
-    │   (HTML)     │        │  (Errors)    │        │  (Squiggles) │
-    └──────┬───────┘        └──────┬───────┘        └──────┬───────┘
-           │                       │                       │
-           ▼                       ▼                       ▼
-    ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
-    │ PreviewPanel │        │  Error List  │        │   Underlines │
-    │   (Render)   │        │  (Highlight) │        │   (Visual)   │
-    └──────────────┘        └──────────────┘        └──────────────┘
-```
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant E as Editor
+    participant D as Debouncer
+    participant PW as PreviewWorker
+    participant SX as SyntaxChecker
+    participant P as Preview
 
-### Git Operation Flow
+    U->>E: Type text
+    E->>D: textChanged
+    D->>D: Wait 300ms
 
-```
-User Action → GitManager → Reentrancy Check
-                                │
-                    ┌───────────┴───────────┐
-                    │     If Not Busy       │
-                    └───────────┬───────────┘
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │      GitWorker        │
-                    │    (Background)       │
-                    └───────────┬───────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │   subprocess.run()    │
-                    │   (shell=False)       │
-                    └───────────┬───────────┘
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │    result_ready       │
-                    │      Signal           │
-                    └───────────┬───────────┘
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │    UI Update          │
-                    │   (Main Thread)       │
-                    └───────────────────────┘
+    par Parallel
+        D->>PW: Render
+        PW->>P: HTML result
+    and
+        D->>SX: Validate
+        SX->>E: Error marks
+    end
 ```
 
-## Security Model
+### Git Commit Flow
 
-> **Related FRs:** FR-073 (Path Sanitization), FR-074 (Atomic Writes), FR-075 (Subprocess Safety), FR-076 (Secure Credentials), FR-077 (HTTPS)
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant GH as GitHandler
+    participant GW as GitWorker
+    participant SP as subprocess
+
+    U->>GH: Commit
+    GH->>GH: Check busy
+    alt Busy
+        GH->>U: Ignore
+    else Free
+        GH->>GW: Queue command
+        GW->>SP: git commit
+        SP-->>GW: Result
+        GW-->>GH: Signal
+        GH->>U: Status update
+    end
+```
+
+### Atomic File Save
+
+```mermaid
+sequenceDiagram
+    participant FH as FileHandler
+    participant FO as FileOperations
+    participant FS as FileSystem
+
+    FH->>FO: atomic_save_text(path, content)
+    FO->>FS: Write temp file
+    FO->>FO: Verify write
+    FO->>FS: os.replace(temp, target)
+    FO-->>FH: Success
+```
+
+### AI Chat Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant CM as ChatManager
+    participant OW as OllamaWorker
+    participant API as Ollama
+
+    U->>CM: Send message
+    CM->>OW: Queue request
+    OW->>API: POST /api/chat
+
+    loop Streaming
+        API-->>OW: Chunk
+        OW-->>CM: Signal
+        CM->>CM: Append display
+    end
+
+    OW-->>CM: Complete
+```
+
+---
+
+## State Machines
+
+### Application State
+
+```mermaid
+stateDiagram-v2
+    [*] --> Ready: Launch
+
+    Ready --> Editing: Open file
+    Editing --> Modified: Text change
+    Modified --> Editing: Save
+    Modified --> Confirm: Close
+
+    Confirm --> Editing: Cancel
+    Confirm --> Ready: Discard
+
+    Editing --> Exporting: Export
+    Exporting --> Editing: Done
+
+    Ready --> [*]: Quit
+    Editing --> [*]: Quit
+```
+
+### Git Operation State
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+
+    Idle --> Check: Request
+    Check --> Idle: Busy
+    Check --> Run: Free
+
+    Run --> Done: Success
+    Run --> Fail: Error
+    Run --> Cancel: User cancel
+
+    Done --> Idle
+    Fail --> Idle
+    Cancel --> Idle
+```
+
+### Preview State
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+
+    Idle --> Debounce: Text change
+    Debounce --> Debounce: More input
+    Debounce --> Render: Timeout
+
+    Render --> Cache: Done
+    Cache --> Display: Updated
+    Display --> Idle
+
+    Render --> Error: Failed
+    Error --> Idle
+```
+
+---
+
+## Security
 
 ### Subprocess Execution
 
 ```python
-# CORRECT: List form prevents shell injection
-subprocess.run(["git", "commit", "-m", user_message], shell=False)
+# CORRECT: List prevents injection
+subprocess.run(["git", "commit", "-m", message], shell=False)
 
-# WRONG: Shell form is vulnerable
-subprocess.run(f"git commit -m '{user_message}'", shell=True)  # NEVER
+# WRONG: Shell is vulnerable
+subprocess.run(f"git commit -m '{message}'", shell=True)  # NEVER
 ```
 
-### File Operations
+### Atomic Writes
 
 ```python
-# CORRECT: Atomic write via temp file
+# CORRECT: Temp + rename
 from asciidoc_artisan.core import atomic_save_text
 atomic_save_text(path, content)
 
-# WRONG: Direct write can corrupt on crash
-with open(path, 'w') as f:  # AVOID
-    f.write(content)
+# WRONG: Direct write corrupts on crash
+with open(path, 'w') as f:
+    f.write(content)  # AVOID
 ```
 
-### Credential Storage
+### Credentials
 
 ```python
 # CORRECT: OS keyring
@@ -351,99 +629,105 @@ from asciidoc_artisan.core import SecureCredentials
 creds = SecureCredentials()
 creds.store_api_key("claude", key)
 
-# WRONG: Plain text storage
+# WRONG: Plain text
 config["api_key"] = key  # NEVER
 ```
 
-## Performance Characteristics
+---
 
-> **Related FRs:** FR-068 (Fast Startup), FR-069 (Worker Pool), FR-071 (Async I/O), FR-072 (Optimizations)
+## Performance
 
-| Operation | Target | Implementation | FR |
-|-----------|--------|----------------|-----|
-| Preview render | <100ms | Incremental block cache | FR-018 |
-| Syntax check | <100ms | Rule-based validation | FR-086 |
-| Auto-complete | <50ms | Pre-built completion lists | FR-100 |
-| File open | <500ms | Async file loading | FR-071 |
-| Startup | <600ms | Lazy imports, deferred init | FR-068 |
-| GPU detect | <100ms | 24hr cache | FR-016 |
+| Operation | Target | Actual |
+|-----------|--------|--------|
+| Startup | <1.0s | 0.27s |
+| Preview | <200ms | <100ms |
+| Autocomplete | <50ms | 20-40ms |
+| Syntax check | <100ms | <50ms |
+| File open | <500ms | <200ms |
+
+### Multi-Core Rendering
+
+```mermaid
+graph LR
+    DOC[Document] --> SP[Splitter]
+    SP --> W1[Worker 1]
+    SP --> W2[Worker 2]
+    SP --> WN[Worker N]
+    W1 & W2 & WN --> MG[Merger]
+    MG --> OUT[HTML]
+```
+
+- Thread-local AsciiDoc instances
+- Block-based parallelization
+- 2-4x speedup on multi-core
+- Graceful single-core fallback
+
+### GPU Rendering
+
+```mermaid
+flowchart LR
+    SRC[AsciiDoc] --> HTML
+    HTML --> GPU{GPU?}
+    GPU -->|Yes| WEB[QWebEngineView]
+    GPU -->|No| TXT[QTextBrowser]
+```
+
+Detection cached 24 hours at `~/.cache/asciidoc_artisan/gpu_detection.json`
+
+---
 
 ## Extension Points
 
-### Adding a New Worker
+### Add a Worker
 
-1. Create `workers/new_worker.py`:
-```python
-class NewWorker(QThread):
-    result_ready = Signal(NewResult)
+1. Create `workers/new_worker.py`
+2. Define signals
+3. Implement `run()`
+4. Export in `workers/__init__.py`
+5. Initialize in MainWindow
+6. Connect signals
 
-    def run(self) -> None:
-        # Process in background
-        self.result_ready.emit(result)
-```
+### Add an LSP Feature
 
-2. Add to `workers/__init__.py`
-3. Connect in `MainWindow.__init__`
+1. Create `lsp/new_provider.py`
+2. Implement provider method
+3. Register handler in `server.py`
+4. Add tests
 
-### Adding an LSP Feature
+### Add a Handler
 
-1. Create provider in `lsp/new_provider.py`
-2. Register handler in `lsp/server.py`
-3. Add tests in `tests/unit/lsp/test_new_provider.py`
+1. Create `ui/new_handler.py`
+2. Implement methods
+3. Initialize in MainWindow
+4. Delegate from UI
 
-### Adding a UI Manager
+---
 
-1. Create `ui/new_manager.py`
-2. Initialize in `MainWindow.__init__`
-3. Delegate actions from MainWindow
+## FR Mapping
 
-## Testing Strategy
-
-```
-tests/
-├── unit/           # Module-level tests
-│   ├── core/       # Business logic
-│   ├── ui/         # Widget tests (with qtbot)
-│   ├── workers/    # Worker tests
-│   └── lsp/        # LSP provider tests
-│
-├── integration/    # Cross-module tests
-│
-└── e2e/            # End-to-end BDD scenarios
-    └── step_defs/  # Gherkin step definitions
-```
-
-**Coverage Targets:**
-- Core modules: 99-100%
-- Qt workers: 93-98% (threading limitations)
-- LSP providers: 98-100%
-- Overall: >96%
-
-## FR-to-Architecture Mapping
-
-| Category | FRs | Architecture Component |
-|----------|-----|------------------------|
-| Core Editing | FR-001–FR-005 | `core/`, `ui/main_window.py` |
-| File Operations | FR-006–FR-014 | `core/file_operations.py`, `workers/pandoc_worker.py` |
-| Preview | FR-015–FR-020 | `ui/preview_handler*.py`, `workers/preview_worker.py` |
-| Export | FR-021–FR-025 | `workers/pandoc_worker.py`, `core/document_converter.py` |
-| Git Integration | FR-026–FR-033 | `workers/git_worker.py`, `ui/git_*.py` |
-| GitHub CLI | FR-034–FR-038 | `workers/github_cli_worker.py` |
-| AI/Ollama | FR-039–FR-044 | `workers/ollama_*.py`, `ui/chat_*.py` |
-| Find & Replace | FR-045–FR-049 | `core/search_engine.py`, `ui/find_bar_widget.py` |
-| Spell Check | FR-050–FR-054 | `core/spell_checker.py`, `ui/spell_check_manager.py` |
-| UI/UX | FR-055–FR-067 | `ui/*_manager.py` |
-| Performance | FR-068–FR-072 | `workers/parallel_block_renderer.py`, `core/lazy_importer.py` |
-| Security | FR-073–FR-077 | `core/secure_credentials.py`, `core/file_operations.py` |
-| Auto-Complete | FR-095–FR-100 | `ui/autocomplete_*.py`, `lsp/completion_provider.py` |
-| Syntax Check | FR-086–FR-094 | `core/syntax_checker.py`, `lsp/diagnostics_provider.py` |
-| Templates | FR-101–FR-108 | `core/template_*.py`, `ui/template_browser.py` |
+| Category | FRs | Location |
+|----------|-----|----------|
+| Editor | FR-001–005 | `ui/main_window.py` |
+| Files | FR-006–014 | `core/file_operations.py`, `ui/file_handler.py` |
+| Preview | FR-015–020 | `workers/preview_worker.py`, `ui/preview_handler*.py` |
+| Export | FR-021–025 | `workers/pandoc_worker.py` |
+| Git | FR-026–033 | `workers/git_worker.py`, `ui/git_handler.py` |
+| GitHub | FR-034–038 | `workers/github_cli_worker.py` |
+| AI | FR-039–044 | `workers/ollama_chat_worker.py`, `ui/chat_manager.py` |
+| Search | FR-045–049 | `core/search_engine.py` |
+| Spell | FR-050–054 | `core/spell_checker.py` |
+| Autocomplete | FR-085–090 | `lsp/completion_provider.py` |
+| Syntax | FR-091–099 | `core/syntax_checker.py`, `lsp/diagnostics_provider.py` |
+| Templates | FR-100–107 | `core/template_engine.py` |
 | LSP | FR-109 | `lsp/*.py` |
 
 ---
 
-*AsciiDoc Artisan v2.1.0 — MA Principle Architecture*
+## Related Docs
 
-**Related Documentation:**
-- [SPECIFICATIONS.md](../SPECIFICATIONS.md) — 109 FRs with file locations
-- [ROADMAP.md](../ROADMAP.md) — Release timeline
+- [SPECIFICATIONS.md](../SPECIFICATIONS.md) — 109 FRs with schemas
+- [ROADMAP.md](../ROADMAP.md) — Version history
+
+---
+
+*v2.1.0 | 180 files | 45,900 lines | MA Principle*
