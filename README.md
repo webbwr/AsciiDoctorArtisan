@@ -11,7 +11,7 @@
 | Metric | Value |
 |--------|-------|
 | Version | 2.1.0 |
-| Code | 45,900 lines / 180 files |
+| Code | 46,244 lines / 181 files |
 | Tests | 5,139 (95% coverage) |
 | Startup | 0.27s |
 
@@ -126,4 +126,4 @@ MIT License. Free to use and modify.
 
 ---
 
-*v2.1.0 | 45,900 lines | 5,139 tests | [CHANGELOG](CHANGELOG.md)*
+*v2.1.0 | 46,244 lines | 5,139 tests | TOON format | [CHANGELOG](CHANGELOG.md)*

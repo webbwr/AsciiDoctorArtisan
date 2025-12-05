@@ -8,12 +8,13 @@
 
 | Metric | Value |
 |--------|-------|
-| Source files | 180 |
-| Source lines | 45,900 |
+| Source files | 181 |
+| Source lines | 46,244 |
 | Unit tests | 5,122 |
 | E2E tests | 17 |
 | Type coverage | 100% (mypy --strict) |
 | Startup time | 0.27s |
+| Storage format | TOON (30-60% smaller than JSON) |
 
 ---
 
@@ -95,13 +96,15 @@ Business logic. No Qt dependencies except models.
 
 ```
 core/
-├── settings.py           # App configuration (JSON persistence)
-├── file_operations.py    # Atomic file I/O
+├── settings.py           # App configuration
+├── toon_utils.py         # TOON format serialization
+├── file_operations.py    # Atomic file I/O (text, JSON, TOON)
 ├── search_engine.py      # Find & replace
 ├── spell_checker.py      # Spell validation
 ├── syntax_checker.py     # AsciiDoc validation
 ├── template_engine.py    # Template processing
 ├── gpu_detection.py      # Hardware detection
+├── gpu_cache.py          # GPU cache (TOON format)
 ├── secure_credentials.py # OS keyring storage
 │
 ├── *_models.py           # Pydantic data models
@@ -672,7 +675,7 @@ flowchart LR
     GPU -->|No| TXT[QTextBrowser]
 ```
 
-Detection cached 24 hours at `~/.cache/asciidoc_artisan/gpu_detection.json`
+Detection cached 7 days at `~/.config/AsciiDocArtisan/gpu_cache.toon`
 
 ---
 
@@ -730,4 +733,4 @@ Detection cached 24 hours at `~/.cache/asciidoc_artisan/gpu_detection.json`
 
 ---
 
-*v2.1.0 | 180 files | 45,900 lines | MA Principle*
+*v2.1.0 | 181 files | 46,244 lines | TOON format | MA Principle*

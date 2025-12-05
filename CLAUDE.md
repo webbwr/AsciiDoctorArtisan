@@ -9,7 +9,7 @@ Guidance for Claude Code working with this repository.
 | Metric | Value |
 |--------|-------|
 | Version | 2.1.0 |
-| Code | 45,900 lines / 180 files |
+| Code | 46,244 lines / 181 files |
 | Tests | 5,139 (95% coverage) |
 | Types | mypy --strict (0 errors) |
 | Startup | 0.27s |
@@ -121,6 +121,6 @@ src/asciidoc_artisan/
 
 ---
 
-*v2.1.0 | 45,900 lines | 5,139 tests | mypy --strict*
+*v2.1.0 | 46,244 lines | 5,139 tests | TOON format | mypy --strict*
 
 **Always apply MA principles: <400 lines/file, focused modules**

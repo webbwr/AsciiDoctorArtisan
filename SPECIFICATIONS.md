@@ -39,8 +39,8 @@ version: 2.1.0
 release_date: 2025-12-05
 
 codebase:
-  lines: 45900
-  files: 180
+  lines: 46244
+  files: 181
 
 testing:
   unit_tests: 5122
@@ -51,6 +51,10 @@ performance:
   startup: 0.27s
   preview: <200ms
   autocomplete: 20-40ms
+
+storage:
+  format: TOON  # 30-60% smaller than JSON
+  fallback: JSON
 ```
 
 ---
@@ -87,8 +91,9 @@ def start_operation(self) -> None:
 ### Atomic Write
 
 ```python
-from asciidoc_artisan.core.file_operations import atomic_save_text
+from asciidoc_artisan.core.file_operations import atomic_save_text, atomic_save_toon
 atomic_save_text(path, content)  # temp + rename
+atomic_save_toon(path, data)     # TOON format (30-60% smaller)
 ```
 
 ### Subprocess Safety
@@ -259,4 +264,4 @@ temp+rename ensures complete file or nothing—never partial writes.
 
 ---
 
-*v2.1.0 | 109 FRs | Dec 5, 2025*
+*v2.1.0 | 109 FRs | 46,244 lines | TOON format | Dec 5, 2025*

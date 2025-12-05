@@ -8,12 +8,13 @@
 
 | Metric | Value |
 |--------|-------|
-| Code | 45,900 lines / 180 files |
+| Code | 46,244 lines / 181 files |
 | Unit Tests | 5,122 |
 | E2E Tests | 17 |
 | Coverage | 95% |
 | Type Check | 100% (mypy --strict) |
 | Startup | 0.27s |
+| Storage | TOON format (30-60% smaller) |
 
 ---
 
@@ -31,6 +32,7 @@
 | Import | DOCX, PDF, Markdown, HTML |
 | Export | HTML, PDF, DOCX, Markdown |
 | LSP | 9 providers |
+| Storage | TOON format (auto-migrates JSON) |
 
 ---
 
@@ -38,7 +40,7 @@
 
 | Version | Date | Focus |
 |---------|------|-------|
-| v2.1.0 | Dec 5, 2025 | Public Release |
+| v2.1.0 | Dec 5, 2025 | Public Release, TOON format |
 | v2.0.9 | Dec 3, 2025 | LSP, multi-core rendering |
 | v2.0.1-8 | Nov 13-21 | Test stabilization |
 | v2.0.0 | Nov 8-9 | Autocomplete, syntax, templates |
@@ -70,6 +72,7 @@
 | Handler Pattern | UI logic in focused handlers |
 | Worker Threads | QThread for slow operations |
 | Security | shell=False, atomic writes |
+| Storage | TOON format with JSON fallback |
 
 ---
 
