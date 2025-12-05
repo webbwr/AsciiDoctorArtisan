@@ -18,7 +18,11 @@ import logging
 from lsprotocol import types as lsp
 
 from asciidoc_artisan.core.syntax_checker import SyntaxChecker
-from asciidoc_artisan.core.syntax_models import ErrorSeverity, QuickFix, SyntaxErrorModel
+from asciidoc_artisan.core.syntax_models import (
+    ErrorSeverity,
+    QuickFix,
+    SyntaxErrorModel,
+)
 
 logger = logging.getLogger(__name__)
 

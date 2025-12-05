@@ -121,7 +121,7 @@ class TelemetryDialogHandler:
 
         # Move existing telemetry file if it exists
         if telemetry_file and telemetry_file.exists():
-            new_file_path = new_dir_path / "telemetry.json"
+            new_file_path = new_dir_path / "telemetry.toon"
             import shutil
 
             shutil.copy2(telemetry_file, new_file_path)
@@ -129,7 +129,7 @@ class TelemetryDialogHandler:
 
         # Update telemetry collector
         self.editor.telemetry_collector.data_dir = new_dir_path
-        self.editor.telemetry_collector.telemetry_file = new_dir_path / "telemetry.json"
+        self.editor.telemetry_collector.telemetry_file = new_dir_path / "telemetry.toon"
 
         logger.info("Telemetry directory changed successfully")
 

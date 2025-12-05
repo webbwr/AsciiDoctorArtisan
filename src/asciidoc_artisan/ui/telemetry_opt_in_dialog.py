@@ -160,9 +160,9 @@ class TelemetryOptInDialog(QDialog):
             <h3>Where Is Data Stored?</h3>
             <p>All data is saved locally in:</p>
             <ul>
-                <li><b>Linux:</b> <code>~/.config/AsciiDocArtisan/telemetry.json</code></li>
-                <li><b>Windows:</b> <code>%APPDATA%/AsciiDocArtisan/telemetry.json</code></li>
-                <li><b>macOS:</b> <code>~/Library/Application Support/AsciiDocArtisan/telemetry.json</code></li>
+                <li><b>Linux:</b> <code>~/.config/AsciiDocArtisan/telemetry.toon</code></li>
+                <li><b>Windows:</b> <code>%APPDATA%/AsciiDocArtisan/telemetry.toon</code></li>
+                <li><b>macOS:</b> <code>~/Library/Application Support/AsciiDocArtisan/telemetry.toon</code></li>
             </ul>
             <p><small>Max size: 10MB. Auto-rotated after 30 days.</small></p>
 

@@ -149,7 +149,9 @@ def main() -> None:  # noqa: C901
     missing_optional = validator.get_missing_optional()
     if len(missing_optional) > 0:
         logger.info(f"Showing dependency information: {len(missing_optional)} optional dependencies missing")
-        from asciidoc_artisan.ui.dependency_dialog import show_dependency_summary_message
+        from asciidoc_artisan.ui.dependency_dialog import (
+            show_dependency_summary_message,
+        )
 
         show_dependency_summary_message(validator.dependencies, window)
 

@@ -3,11 +3,10 @@ Telemetry Collector - Privacy-First Usage Analytics (opt-in, local-only, NO clou
 
 Privacy: Opt-in only (disabled default), anonymous UUIDs, NO personal data/content/paths, easy opt-out.
 Collects: Feature usage (menu/dialogs), error patterns (types only), performance metrics, system info (OS/Python/GPU).
-Storage: ~/.config/AsciiDocArtisan/telemetry.json, JSON format, 10MB max (auto-rotate), 30-day retention.
+Storage: ~/.config/AsciiDocArtisan/telemetry.toon, TOON format, 10MB max (auto-rotate), 30-day retention.
 Example: collector = TelemetryCollector(); collector.track_event("menu_click", {"menu": "File", "action": "Open"}); collector.track_performance("startup_time", 1.05).
 """
 
-import json
 import logging
 import platform
 import sys
@@ -17,6 +16,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from . import toon_utils
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +75,12 @@ class TelemetryCollector:
         # Create data directory if it doesn't exist
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
-        # Telemetry file path
-        self.telemetry_file = self.data_dir / "telemetry.json"
+        # Telemetry file path (TOON format v2.1.0+)
+        self.telemetry_file = self.data_dir / "telemetry.toon"
+        self._legacy_json_file = self.data_dir / "telemetry.json"
+
+        # Migrate legacy JSON if exists
+        self._migrate_legacy_json()
 
         # Maximum file size (10MB)
         self.max_file_size = 10 * 1024 * 1024
@@ -85,6 +90,29 @@ class TelemetryCollector:
         self.buffer_size = 100  # Flush after 100 events
 
         logger.info(f"TelemetryCollector initialized (enabled={enabled}, session_id={self.session_id[:8]}...)")
+
+    def _migrate_legacy_json(self) -> None:
+        """Migrate legacy JSON telemetry to TOON format."""
+        if not self._legacy_json_file.exists():
+            return
+
+        try:
+            import json
+
+            with open(self._legacy_json_file, encoding="utf-8") as f:
+                events = json.load(f)
+
+            # Save as TOON
+            with open(self.telemetry_file, "w", encoding="utf-8") as f:
+                toon_utils.dump({"events": events}, f)
+
+            # Backup and remove legacy file
+            backup_path = self._legacy_json_file.with_suffix(".json.bak")
+            self._legacy_json_file.rename(backup_path)
+            logger.info(f"Migrated telemetry: {self._legacy_json_file} → {self.telemetry_file}")
+
+        except Exception as e:
+            logger.warning(f"Failed to migrate legacy telemetry: {e}")
 
     def track_event(self, event_type: str, data: dict[str, Any] | None = None) -> None:
         """Track telemetry event. Args: event_type (menu_click/dialog_open/etc.), data (NO personal info). Example: collector.track_event("menu_click", {"menu": "File", "action": "Open"})."""
@@ -170,9 +198,9 @@ class TelemetryCollector:
             if self._get_file_size() > self.max_file_size:
                 all_events = self._rotate_events(all_events)
 
-            # Save to file
+            # Save to file (TOON format)
             with open(self.telemetry_file, "w", encoding="utf-8") as f:
-                json.dump(all_events, f, indent=2)
+                toon_utils.dump({"events": all_events}, f)
 
             # Clear buffer
             self.event_buffer.clear()
@@ -183,14 +211,20 @@ class TelemetryCollector:
             logger.error(f"Failed to flush telemetry events: {e}")
 
     def _load_events(self) -> list[dict[str, Any]]:
-        """Load existing events from file."""
+        """Load existing events from TOON file."""
         if not self.telemetry_file.exists():
             return []
 
         try:
             with open(self.telemetry_file, encoding="utf-8") as f:
-                data: list[dict[str, Any]] = json.load(f)
-                return data
+                data = toon_utils.load(f)
+                # Handle both old format (list) and new format (dict with events key)
+                if isinstance(data, list):
+                    return data
+                elif isinstance(data, dict) and "events" in data:
+                    events: list[dict[str, Any]] = data["events"]
+                    return events
+                return []
         except Exception as e:
             logger.error(f"Failed to load telemetry events: {e}")
             return []
