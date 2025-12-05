@@ -1,48 +1,13 @@
 """
-Template manager for AsciiDoc Artisan (v2.0.0+).
+Template manager for AsciiDoc Artisan.
 
-MA principle: Reduced from 539→480→~400 lines by extracting:
-- template_serializer.py (serialization)
-- recent_templates_tracker.py (recent list tracking)
-
-This module provides template file management with CRUD operations:
+Provides template file management with CRUD operations:
 - Load templates from directories (built-in + custom)
 - Create, read, update, delete templates
 - Track recently used templates
-- Import/export templates
-
-Templates are stored as .adoc files with YAML front matter in:
-- Built-in: src/asciidoc_artisan/templates/
-- Custom: ~/.config/AsciiDocArtisan/templates/
-
-Example:
-    ```python
-    from asciidoc_artisan.core.template_manager import TemplateManager
-    from asciidoc_artisan.core.template_engine import TemplateEngine
-
-    engine = TemplateEngine()
-    manager = TemplateManager(engine)
-
-    # Load all templates
-    templates = manager.get_all_templates()
-    print(f"Found {len(templates)} templates")
-
-    # Get template by name
-    template = manager.get_template("Technical Article")
-    if template:
-        print(f"Template: {template.name}")
-        print(f"Variables: {len(template.variables)}")
-
-    # Get by category
-    articles = manager.get_templates_by_category("article")
-    print(f"Found {len(articles)} articles")
-
-    # Track recent usage
-    manager.add_to_recent("Technical Article")
-    recent = manager.get_recent_templates()
-    ```
 """
 
+import logging
 from pathlib import Path
 
 from asciidoc_artisan.core.models import Template
@@ -53,75 +18,34 @@ from asciidoc_artisan.core.template_serializer import (
     serialize_template,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class TemplateManager:
-    """
-    Manages template files with CRUD operations.
-
-    Handles:
-    - Loading templates from multiple directories
-    - Template CRUD operations (create, read, update, delete)
-    - Recent templates tracking (up to 10)
-    - Category filtering
-    - Import/export
-
-    Attributes:
-        engine: Template rendering engine
-        templates: Dictionary mapping template names to Template objects
-        recent: List of recently used template names
-        built_in_dir: Path to built-in templates
-        custom_dir: Path to custom user templates
-
-    Performance:
-        - Templates loaded on initialization
-        - <200ms to load 50 templates
-        - Recent list persisted to disk
-    """
+    """Manages template files with CRUD operations."""
 
     def __init__(self, engine: TemplateEngine) -> None:
-        """
-        Initialize template manager.
-
-        Args:
-            engine: Template rendering engine
-        """
+        """Initialize template manager."""
         self.engine = engine
         self.built_in_dir = self._get_built_in_dir()
         self.custom_dir = self._get_custom_dir()
         self.templates: dict[str, Template] = {}
 
-        # Recent templates tracker (extracted per MA principle)
         self._recent_tracker = RecentTemplatesTracker(self.custom_dir)
         self.max_recent = self._recent_tracker.max_recent
-
-        # Load templates
         self._load_templates()
 
     def _get_built_in_dir(self) -> Path:
-        """
-        Get built-in template directory.
-
-        Returns:
-            Path to src/asciidoc_artisan/templates/
-        """
-        # Get path relative to this file
+        """Get built-in template directory."""
         return Path(__file__).parent.parent / "templates"
 
     def _get_custom_dir(self) -> Path:
-        """
-        Get custom template directory.
-
-        Creates directory if it doesn't exist.
-
-        Returns:
-            Path to ~/.config/AsciiDocArtisan/templates/
-        """
+        """Get custom template directory, creating if needed."""
         try:
             from PySide6.QtCore import QStandardPaths
 
             config_dir = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
         except ImportError:
-            # Fallback if Qt not available
             config_dir = str(Path.home() / ".config" / "AsciiDocArtisan")
 
         custom_dir = Path(config_dir) / "templates"
@@ -129,15 +53,7 @@ class TemplateManager:
         return custom_dir
 
     def _load_templates(self) -> None:
-        """
-        Load all templates from directories.
-
-        Loads templates from:
-        1. Built-in directory (src/asciidoc_artisan/templates/)
-        2. Custom directory (~/.config/AsciiDocArtisan/templates/)
-
-        Custom templates with same name override built-in templates.
-        """
+        """Load all templates from built-in and custom directories."""
         self.templates = {}
 
         # Load built-in templates
@@ -147,9 +63,7 @@ class TemplateManager:
                     template = self.engine.parse_template(str(file_path))
                     self.templates[template.name] = template
                 except Exception as e:
-                    import logging
-
-                    logging.error(f"Failed to load built-in template {file_path}: {e}")
+                    logger.error(f"Failed to load built-in template {file_path}: {e}")
 
         # Load custom templates (override built-in with same name)
         if self.custom_dir.exists():
@@ -158,211 +72,67 @@ class TemplateManager:
                     template = self.engine.parse_template(str(file_path))
                     self.templates[template.name] = template
                 except Exception as e:
-                    import logging
-
-                    logging.error(f"Failed to load custom template {file_path}: {e}")
+                    logger.error(f"Failed to load custom template {file_path}: {e}")
 
     def reload_templates(self) -> None:
-        """
-        Reload all templates from disk.
-
-        Call this after adding/removing template files externally.
-
-        Example:
-            ```python
-            # After copying template file manually
-            manager.reload_templates()
-            ```
-        """
+        """Reload all templates from disk."""
         self._load_templates()
 
     def get_all_templates(self) -> list[Template]:
-        """
-        Get all available templates.
-
-        Returns:
-            List of all loaded templates
-
-        Example:
-            ```python
-            templates = manager.get_all_templates()
-            for template in templates:
-                print(f"{template.name} ({template.category})")
-            ```
-        """
+        """Get all available templates."""
         return list(self.templates.values())
 
     def get_template(self, name: str) -> Template | None:
-        """
-        Get template by name.
-
-        Args:
-            name: Template name
-
-        Returns:
-            Template object or None if not found
-
-        Example:
-            ```python
-            template = manager.get_template("Technical Article")
-            if template:
-                print(f"Found: {template.description}")
-            else:
-                print("Template not found")
-            ```
-        """
+        """Get template by name."""
         return self.templates.get(name)
 
     def get_templates_by_category(self, category: str) -> list[Template]:
-        """
-        Get templates in specific category.
-
-        Args:
-            category: Category name (article, book, report, etc.)
-
-        Returns:
-            List of templates in category
-
-        Example:
-            ```python
-            articles = manager.get_templates_by_category("article")
-            print(f"Found {len(articles)} article templates")
-            ```
-        """
+        """Get templates in specific category."""
         return [t for t in self.templates.values() if t.category == category]
 
     def get_categories(self) -> list[str]:
-        """
-        Get all template categories.
-
-        Returns:
-            Sorted list of unique categories
-
-        Example:
-            ```python
-            categories = manager.get_categories()
-            # Returns: ['article', 'book', 'report', ...]
-            ```
-        """
+        """Get all template categories."""
         return sorted({t.category for t in self.templates.values()})
 
     def create_template(self, template: Template, custom: bool = True) -> bool:
-        """
-        Create new template file.
-
-        Args:
-            template: Template to create
-            custom: If True, save to custom dir; if False, save to built-in dir
-
-        Returns:
-            True if created successfully
-
-        Example:
-            ```python
-            from asciidoc_artisan.core.models import Template, TemplateVariable
-
-            template = Template(
-                name="My Template",
-                category="article",
-                description="Custom article template",
-                variables=[
-                    TemplateVariable(name="title", required=True),
-                ],
-                content="= {{title}}\\n\\nContent here..."
-            )
-
-            if manager.create_template(template):
-                print("Template created!")
-            ```
-        """
+        """Create new template file. Returns True if successful."""
         target_dir = self.custom_dir if custom else self.built_in_dir
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate filename from template name
         filename = sanitize_template_filename(template.name) + ".adoc"
         file_path = target_dir / filename
 
-        # Check if file already exists
         if file_path.exists():
-            import logging
-
-            logging.error(f"Template file already exists: {file_path}")
+            logger.error(f"Template file already exists: {file_path}")
             return False
 
-        # Write template file
         try:
             content = serialize_template(template)
             file_path.write_text(content, encoding="utf-8")
-
-            # Add to templates dict
             template.file_path = str(file_path)
             self.templates[template.name] = template
-
             return True
         except Exception as e:
-            import logging
-
-            logging.error(f"Failed to create template: {e}")
+            logger.error(f"Failed to create template: {e}")
             return False
 
     def update_template(self, template: Template) -> bool:
-        """
-        Update existing template file.
-
-        Args:
-            template: Template with updated content
-
-        Returns:
-            True if updated successfully
-
-        Example:
-            ```python
-            template = manager.get_template("My Template")
-            if template:
-                template.description = "Updated description"
-                manager.update_template(template)
-            ```
-        """
+        """Update existing template file. Returns True if successful."""
         if not template.file_path or not Path(template.file_path).exists():
-            import logging
-
-            logging.error(f"Template file not found: {template.file_path}")
+            logger.error(f"Template file not found: {template.file_path}")
             return False
 
         try:
             content = serialize_template(template)
             Path(template.file_path).write_text(content, encoding="utf-8")
-
-            # Update in templates dict
             self.templates[template.name] = template
-
             return True
         except Exception as e:
-            import logging
-
-            logging.error(f"Failed to update template: {e}")
+            logger.error(f"Failed to update template: {e}")
             return False
 
     def delete_template(self, name: str) -> bool:
-        """
-        Delete template file.
-
-        Args:
-            name: Template name
-
-        Returns:
-            True if deleted successfully
-
-        Note:
-            Only custom templates can be deleted. Built-in templates
-            are read-only.
-
-        Example:
-            ```python
-            if manager.delete_template("My Template"):
-                print("Template deleted!")
-            ```
-        """
+        """Delete template file. Only custom templates can be deleted."""
         template = self.templates.get(name)
         if not template or not template.file_path:
             return False
@@ -371,61 +141,26 @@ class TemplateManager:
 
         # Only allow deleting custom templates
         if not str(file_path).startswith(str(self.custom_dir)):
-            import logging
-
-            logging.error(f"Cannot delete built-in template: {name}")
+            logger.error(f"Cannot delete built-in template: {name}")
             return False
 
         try:
             file_path.unlink()
             del self.templates[name]
-
-            # Remove from recent list (delegated to tracker)
             self._recent_tracker.remove(name)
-
             return True
         except Exception as e:
-            import logging
-
-            logging.error(f"Failed to delete template: {e}")
+            logger.error(f"Failed to delete template: {e}")
             return False
 
     def add_to_recent(self, template_name: str) -> None:
-        """
-        Add template to recent list.
-
-        Most recent template is first in list. List is limited to
-        max_recent items (default: 10).
-
-        Args:
-            template_name: Name of template
-
-        Example:
-            ```python
-            manager.add_to_recent("Technical Article")
-            recent = manager.get_recent_templates()
-            # Returns: [Template("Technical Article"), ...]
-            ```
-        """
+        """Add template to recent list."""
         self._recent_tracker.add(template_name)
 
     def get_recent_templates(self) -> list[Template]:
-        """
-        Get recently used templates.
-
-        Returns:
-            List of templates in recent order (most recent first)
-
-        Example:
-            ```python
-            recent = manager.get_recent_templates()
-            if recent:
-                print(f"Last used: {recent[0].name}")
-            ```
-        """
+        """Get recently used templates (most recent first)."""
         return self._recent_tracker.get_templates(self.templates)
 
-    # Backward compatibility property for direct recent list access
     @property
     def recent(self) -> list[str]:
         """Get recent template names (backward compatibility)."""
