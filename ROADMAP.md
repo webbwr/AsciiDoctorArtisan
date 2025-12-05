@@ -25,10 +25,10 @@
 | Metric | Value |
 |--------|-------|
 | Codebase | 45,677 lines / 373 files |
-| Unit Tests | 5,196 (100% pass) |
+| Unit Tests | 5,203 (100% pass) |
 | E2E Tests | 71 (100% pass) |
 | Type Coverage | 100% (mypy --strict) |
-| Startup | 0.586s |
+| Startup | 0.243s |
 
 ### Features
 - ✅ LSP Server (8 providers: completion, diagnostics, hover, symbols, code actions, folding, formatting, semantic tokens)
@@ -55,7 +55,7 @@
 
 | Metric | Current | Target |
 |--------|---------|--------|
-| Startup | 0.586s ✅ | <0.5s |
+| Startup | 0.243s ✅ | <0.5s |
 | Preview (small) | 150-200ms | 80-120ms |
 | Preview (large) | 600-750ms | 300-500ms |
 | Auto-complete | 20-40ms ✅ | <25ms |

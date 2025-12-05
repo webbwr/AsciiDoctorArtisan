@@ -13,7 +13,7 @@ Guidance for Claude Code working with this repository.
 | Codebase | 45,837 lines / 179 files |
 | Tests | 5,203 unit + 17 E2E (95% cov) |
 | Types | mypy --strict (0 errors) |
-| Startup | ~0.5s |
+| Startup | 0.243s |
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3, pypandoc, pymupdf
 
