@@ -6,7 +6,7 @@ commands in a background QThread to prevent UI blocking during GitHub API
 operations.
 
 Implements:
-- FR-TBD: GitHub CLI integration (planned for v1.6.0+)
+- FR-034 to FR-038: GitHub CLI integration
 - NFR-005: Long-running operations in background threads
 - NFR-010: Parameterized subprocess calls (no shell injection)
 

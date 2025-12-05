@@ -15,7 +15,7 @@ Thread Safety:
     All Ollama API calls run on a background thread. Results are emitted
     via Qt signals to the main UI thread for display.
 
-Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
+Specification Reference: FR-039 to FR-044 (Ollama AI Chat)
 """
 
 import logging

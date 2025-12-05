@@ -17,7 +17,7 @@ Visibility Rules:
     - Hidden when: Chat bar is hidden
     - Initially collapsed (can be toggled via UI button)
 
-Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
+Specification Reference: FR-039 to FR-044 (Ollama AI Chat)
 
 MA principle: Rendering logic extracted to ChatMessageRenderer (~100 lines saved).
 """

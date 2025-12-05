@@ -15,7 +15,7 @@ Visibility Rules:
     - Shown when: ollama_enabled=True AND ollama_model is set
     - Hidden when: ollama_enabled=False OR ollama_model is None
 
-Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
+Specification Reference: FR-039 to FR-044 (Ollama AI Chat)
 """
 
 import logging
