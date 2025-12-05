@@ -92,7 +92,7 @@ class SettingsManager:
 
     def _get_legacy_json_path(self) -> Path:
         """Get path to legacy JSON settings file for migration."""
-        return self._settings_path.parent / SETTINGS_FILENAME_JSON
+        return Path(self._settings_path.parent / SETTINGS_FILENAME_JSON)
 
     def _migrate_json_to_toon(self) -> Settings | None:
         """Migrate legacy JSON settings to TOON format. Returns Settings if migration successful, None otherwise."""

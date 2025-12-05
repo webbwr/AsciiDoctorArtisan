@@ -60,7 +60,8 @@ class RecentTemplatesTracker:
             import json
 
             with open(self._legacy_file) as f:
-                data = json.load(f)
+                raw_data = json.load(f)
+            data: list[str] = raw_data
 
             # Save as TOON
             with open(self._recent_file, "w") as f:

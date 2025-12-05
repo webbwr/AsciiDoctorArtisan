@@ -33,7 +33,9 @@ try:
     logger.debug("TOON format available (python-toon)")
 except ImportError:
     HAS_TOON = False
-    EncodeOptions = None  # type: ignore
+    EncodeOptions = None
+    toon_encode = None
+    toon_decode = None
     logger.warning("python-toon not installed, falling back to JSON")
 
 
@@ -69,10 +71,11 @@ def dumps(obj: Any, indent: int = 2) -> str:
     Returns:
         TOON-formatted string
     """
-    if HAS_TOON:
+    if HAS_TOON and toon_encode is not None and EncodeOptions is not None:
         try:
             opts = EncodeOptions(indent=indent)
-            return toon_encode(obj, opts)
+            result: str = toon_encode(obj, opts)
+            return result
         except Exception as e:
             logger.warning(f"TOON encode failed, using JSON: {e}")
             return json_utils.dumps(obj, indent=indent)

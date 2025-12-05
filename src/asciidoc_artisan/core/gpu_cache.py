@@ -9,6 +9,7 @@ v2.1.0: Uses TOON format for cache storage.
 import logging
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 
 from asciidoc_artisan.core.gpu_models import GPUCacheEntry, GPUInfo
 
@@ -25,7 +26,7 @@ class GPUDetectionCache:
     CACHE_TTL_DAYS = 7
 
     @classmethod
-    def _migrate_legacy_json(cls) -> dict | None:
+    def _migrate_legacy_json(cls) -> dict[str, Any] | None:
         """Migrate legacy JSON cache to TOON format."""
         if not cls.LEGACY_CACHE_FILE.exists():
             return None
@@ -33,7 +34,8 @@ class GPUDetectionCache:
         try:
             import json
 
-            data = json.loads(cls.LEGACY_CACHE_FILE.read_text())
+            raw_data = json.loads(cls.LEGACY_CACHE_FILE.read_text())
+            data: dict[str, Any] = raw_data
 
             # Save as TOON
             cls.CACHE_FILE.write_text(toon_utils.dumps(data))
