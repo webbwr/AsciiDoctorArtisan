@@ -8,6 +8,9 @@
 - LSP Server (completion, diagnostics, hover, symbols)
 - Multi-core rendering (2-4x speedup)
 - Architecture documentation with FR mapping
+- **TOON format** for settings (30-60% smaller than JSON)
+  - Automatic migration from JSON to TOON
+  - Human-readable, LLM-optimized format
 
 ### Metrics
 - 45,900 lines / 180 files

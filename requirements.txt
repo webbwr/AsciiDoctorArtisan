@@ -39,6 +39,11 @@ xxhash>=3.6.0
 # Native C implementation, used for settings and data persistence
 orjson>=3.11.0
 
+# TOON format (v2.1.0 - Token-Oriented Object Notation)
+# Compact settings format, 30-60% fewer tokens than JSON
+# Used for settings persistence with JSON migration support
+python-toon>=0.1.0
+
 # Qt + asyncio integration (v1.7.0 Task 4 - Enhanced Async I/O)
 qasync>=0.28.0
 

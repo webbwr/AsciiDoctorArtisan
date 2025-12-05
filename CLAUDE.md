@@ -14,9 +14,11 @@ Guidance for Claude Code working with this repository.
 | Types | mypy --strict (0 errors) |
 | Startup | 0.27s |
 
-**Stack:** PySide6 6.9+, Python 3.11+, asciidoc3, pypandoc, pymupdf
+**Stack:** PySide6 6.9+, Python 3.11+, asciidoc3, pypandoc, pymupdf, python-toon
 
 **Package:** `asciidoc_artisan.{core, ui, workers, lsp, claude}`
+
+**Settings:** TOON format (`.toon`) — auto-migrates from JSON
 
 ---
 

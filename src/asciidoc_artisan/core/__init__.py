@@ -13,8 +13,8 @@ Usage:
 
 from typing import Any
 
-from . import json_utils
-from .file_operations import atomic_save_json, atomic_save_text, sanitize_path
+from . import json_utils, toon_utils
+from .file_operations import atomic_save_json, atomic_save_text, atomic_save_toon, sanitize_path
 from .settings import Settings
 
 _CONSTANTS_CACHE: dict[str, Any] = {}
@@ -30,6 +30,7 @@ _LAZY_IMPORT_MAP = {
         "AUTO_SAVE_INTERVAL_MS",
         "COMMON_FORMATS",
         "DEFAULT_FILENAME",
+        "SETTINGS_FILENAME_JSON",
         "DIALOG_CONVERSION_ERROR",
         "DIALOG_OPEN_FILE",
         "DIALOG_SAVE_ERROR",
@@ -189,7 +190,9 @@ __all__ = [
     "sanitize_path",
     "atomic_save_text",
     "atomic_save_json",
+    "atomic_save_toon",
     "json_utils",
+    "toon_utils",
     # Async file operations
     "AsyncFileWatcher",
     "QtAsyncFileManager",
@@ -216,6 +219,7 @@ __all__ = [
     "APP_VERSION",
     "DEFAULT_FILENAME",
     "SETTINGS_FILENAME",
+    "SETTINGS_FILENAME_JSON",
     # Constants - UI
     "PREVIEW_UPDATE_INTERVAL_MS",
     "EDITOR_FONT_FAMILY",

@@ -105,13 +105,18 @@ python3 -OO src/main.py  # Fast mode
 
 ---
 
-## Settings Location
+## Settings
+
+**Format:** [TOON](https://github.com/toon-format/toon) (Token-Oriented Object Notation)
+- 30-60% smaller than JSON
+- Human-readable
+- Auto-migrates from JSON
 
 | Platform | Path |
 |----------|------|
-| Linux | `~/.config/AsciiDocArtisan/` |
-| Windows | `%APPDATA%/AsciiDocArtisan/` |
-| macOS | `~/Library/Application Support/AsciiDocArtisan/` |
+| Linux | `~/.config/AsciiDocArtisan/AsciiDocArtisan.toon` |
+| Windows | `%APPDATA%/AsciiDocArtisan/AsciiDocArtisan.toon` |
+| macOS | `~/Library/Application Support/AsciiDocArtisan/AsciiDocArtisan.toon` |
 
 ---
 

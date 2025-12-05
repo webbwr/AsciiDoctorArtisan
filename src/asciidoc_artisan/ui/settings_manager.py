@@ -18,9 +18,10 @@ from asciidoc_artisan.core import (
     APP_NAME,
     EDITOR_FONT_SIZE,
     SETTINGS_FILENAME,
+    SETTINGS_FILENAME_JSON,
     Settings,
-    atomic_save_json,
-    json_utils,
+    atomic_save_toon,
+    toon_utils,
 )
 
 logger = logging.getLogger(__name__)
@@ -89,30 +90,67 @@ class SettingsManager:
             ai_conversion_enabled=False,
         )
 
-    def load_settings(self) -> Settings:
-        """Load settings from disk. Reads JSON, deserializes to Settings object. Falls back to defaults if missing/invalid. Validates last_directory, logs errors."""
-        logger.info(f"Loading settings from: {self._settings_path}")
+    def _get_legacy_json_path(self) -> Path:
+        """Get path to legacy JSON settings file for migration."""
+        return self._settings_path.parent / SETTINGS_FILENAME_JSON
 
-        if not self._settings_path.is_file():
-            logger.info("Settings file not found, using defaults")
-            return self.create_default_settings()
+    def _migrate_json_to_toon(self) -> Settings | None:
+        """Migrate legacy JSON settings to TOON format. Returns Settings if migration successful, None otherwise."""
+        json_path = self._get_legacy_json_path()
+        if not json_path.is_file():
+            return None
 
         try:
-            # Load with fast JSON utils (3-5x faster with orjson)
-            with open(self._settings_path, encoding="utf-8") as f:
-                data = json_utils.load(f)
+            import json
+
+            logger.info(f"Migrating legacy JSON settings: {json_path}")
+            with open(json_path, encoding="utf-8") as f:
+                data = json.load(f)
 
             settings = Settings.from_dict(data)
-
-            # Validate all settings fields (logs issues and applies corrections)
             settings.validate()
 
-            logger.info("Settings loaded successfully")
-            return settings
+            # Save as TOON format
+            if atomic_save_toon(self._settings_path, settings.to_dict(), indent=2):
+                logger.info(f"Migration successful: {json_path} → {self._settings_path}")
+                # Rename old JSON file to .json.bak
+                backup_path = json_path.with_suffix(".json.bak")
+                json_path.rename(backup_path)
+                logger.info(f"Legacy settings backed up: {backup_path}")
+                return settings
 
         except Exception as e:
-            logger.error(f"Failed to load settings: {e}")
-            return self.create_default_settings()
+            logger.warning(f"JSON migration failed: {e}")
+
+        return None
+
+    def load_settings(self) -> Settings:
+        """Load settings from TOON file. Falls back to JSON migration if TOON not found. Validates all fields, logs errors."""
+        logger.info(f"Loading settings from: {self._settings_path}")
+
+        # Try TOON file first
+        if self._settings_path.is_file():
+            try:
+                with open(self._settings_path, encoding="utf-8") as f:
+                    data = toon_utils.load(f)
+
+                settings = Settings.from_dict(data)
+                settings.validate()
+
+                logger.info("Settings loaded successfully (TOON format)")
+                return settings
+
+            except Exception as e:
+                logger.error(f"Failed to load TOON settings: {e}")
+
+        # Try migrating from legacy JSON
+        migrated = self._migrate_json_to_toon()
+        if migrated:
+            return migrated
+
+        # Fall back to defaults
+        logger.info("No settings found, using defaults")
+        return self.create_default_settings()
 
     def save_settings(
         self,
@@ -168,18 +206,18 @@ class SettingsManager:
         return True
 
     def _do_deferred_save(self) -> None:
-        """Perform actual deferred save. Called by QTimer after 100ms delay, saves pending data to disk."""
+        """Perform actual deferred save. Called by QTimer after 100ms delay, saves pending data to TOON file."""
         if self._pending_save_data is None:
             return
 
-        # Save to disk
-        if atomic_save_json(
+        # Save to disk (TOON format)
+        if atomic_save_toon(
             self._settings_path,
             self._pending_save_data,
             encoding="utf-8",
             indent=2,
         ):
-            logger.info("Settings saved successfully (deferred)")
+            logger.info("Settings saved successfully (deferred, TOON format)")
         else:
             logger.error(f"Failed to save settings: {self._settings_path}")
 
@@ -225,10 +263,10 @@ class SettingsManager:
         # Validate settings before saving
         settings.validate()
 
-        # Immediate save (blocking)
+        # Immediate save (blocking, TOON format)
         settings_dict = settings.to_dict()
-        if atomic_save_json(self._settings_path, settings_dict, encoding="utf-8", indent=2):
-            logger.info("Settings saved successfully (immediate)")
+        if atomic_save_toon(self._settings_path, settings_dict, encoding="utf-8", indent=2):
+            logger.info("Settings saved successfully (immediate, TOON format)")
             return True
         else:
             logger.error(f"Failed to save settings: {self._settings_path}")

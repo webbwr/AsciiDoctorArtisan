@@ -15,9 +15,10 @@ import platform
 
 # Application Metadata
 APP_NAME = "AsciiDoc Artisan"
-APP_VERSION = "2.0.2"  # Current release version
+APP_VERSION = "2.1.0"  # Current release version
 DEFAULT_FILENAME = "untitled.adoc"
-SETTINGS_FILENAME = "AsciiDocArtisan.json"
+SETTINGS_FILENAME = "AsciiDocArtisan.toon"  # v2.1.0: TOON format (was .json)
+SETTINGS_FILENAME_JSON = "AsciiDocArtisan.json"  # Legacy JSON for migration
 
 # UI Configuration
 PREVIEW_UPDATE_INTERVAL_MS = 25  # Preview debounce delay - Maximum speed (was 50ms)

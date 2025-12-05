@@ -20,7 +20,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from . import json_utils
+from . import json_utils, toon_utils
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +183,58 @@ def atomic_save_json(file_path: Path, data: dict[str, Any], encoding: str = "utf
 
     except Exception as e:
         logger.error(f"Atomic JSON save failed for {file_path}: {e}")
+
+        # Step 3: Cleanup on failure
+        try:
+            if temp_path.exists():
+                temp_path.unlink()
+        except Exception as cleanup_error:
+            logger.warning(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
+
+        return False
+
+
+def atomic_save_toon(file_path: Path, data: dict[str, Any], encoding: str = "utf-8", indent: int = 2) -> bool:
+    """
+    Atomically save TOON data to file using temp file + rename pattern.
+
+    Implements FR-015, NFR-006, NFR-007 for TOON serialization.
+    Used primarily for settings persistence (v2.1.0+).
+
+    TOON format is 30-60% more compact than JSON while remaining human-readable.
+
+    Args:
+        file_path: Target file path
+        data: Dictionary to serialize as TOON
+        encoding: Text encoding (default: utf-8)
+        indent: TOON indentation for readability (default: 2)
+
+    Returns:
+        True if successful, False otherwise
+
+    Example:
+        >>> atomic_save_toon(Path("settings.toon"), {"theme": "dark", "font_size": 12})
+        True
+    """
+    if not file_path:
+        logger.error("atomic_save_toon: file_path is None")
+        return False
+
+    temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
+
+    try:
+        # Step 1: Write TOON to temporary file
+        with open(temp_path, "w", encoding=encoding) as f:
+            toon_utils.dump(data, f, indent=indent)
+
+        # Step 2: Atomic rename
+        temp_path.replace(file_path)
+
+        logger.debug(f"Atomic TOON save successful: {file_path}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Atomic TOON save failed for {file_path}: {e}")
 
         # Step 3: Cleanup on failure
         try:
