@@ -236,10 +236,10 @@ self.file_manager = FileManager(self)
 **Performance:**
 | Op | Target | Current |
 |----|--------|---------|
-| Startup | <0.5s | 0.586s |
-| Preview | <200ms | 150-200ms |
-| Complete | <50ms | 20-40ms |
+| Startup | <0.5s | 0.27s ✅ |
+| Preview | <200ms | 150-200ms ✅ |
+| Complete | <50ms | 20-40ms ✅ |
 
 ---
 
-*v2.1.0 | 109 FRs | MA Compliant*
+*v2.1.0 | 109 FRs | MA Compliant | Dec 5, 2025*

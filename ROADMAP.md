@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Roadmap
 
-**v2.1.0** | **Dec 4, 2025** | **Public Release** | **Maintenance Mode**
+**v2.1.0** | **Dec 5, 2025** | **Public Release** | **Maintenance Mode**
 
 ---
 
@@ -83,12 +83,21 @@ These features are explicitly not planned:
 
 ---
 
+## GitHub Status
+
+- **Open Issues:** 0
+- **Open PRs:** 0
+- **Release:** v2.1.0 (Dec 3, 2025)
+- **Dependabot:** Active (auto-merging dependency updates)
+
+---
+
 ## Test Coverage Notes
 
 - **Maximum achievable:** ~99.5% (Qt threading prevents 100%)
 - **Qt limitation:** coverage.py cannot track QThread.run()/QRunnable execution
-- **Current:** 96.4% overall, 93-100% per module
+- **Current:** 95% overall
 
 ---
 
-*v2.1.0 | Production-ready | Maintenance mode*
+*v2.1.0 | Production-ready | Maintenance mode | Dec 5, 2025*
