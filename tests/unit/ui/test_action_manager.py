@@ -73,6 +73,7 @@ def main_window(qapp):
     window._show_anthropic_status = Mock()
     window._show_telemetry_status = Mock()
     window._show_ollama_settings = Mock()
+    window._show_ollama_model_browser = Mock()
     window._show_anthropic_settings = Mock()
     window.chat_manager = Mock()
     window.chat_manager.toggle_panel_visibility = Mock()
