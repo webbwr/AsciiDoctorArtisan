@@ -345,6 +345,9 @@ class ChatManager(QObject):
     def update_settings(self, settings: Settings) -> None:
         """Update chat UI when settings change. Auto-switches backend if needed."""
         self._settings = settings
+        # Update settings reference in sub-managers (critical for object reference sync)
+        self._model_manager.update_settings(settings)
+        self._backend_controller.update_settings(settings)
 
         # Check if backend should switch based on Ollama enabled state
         from ..core import SecureCredentials
@@ -369,14 +372,16 @@ class ChatManager(QObject):
             self._switch_backend(target_backend)
         else:
             # No backend switch needed, just reload models and update UI
-            self._current_backend = settings.ai_backend
+            self._current_backend = target_backend  # Ensure backend is correct
             self._load_available_models()
 
             # Update model selector based on active backend
-            if self._current_backend == "ollama" and settings.ollama_model:
+            if target_backend == "ollama" and settings.ollama_model:
                 self._chat_bar.set_model(settings.ollama_model)
-            elif self._current_backend == "claude" and settings.claude_model:
+                logger.info(f"Updated chat model to: {settings.ollama_model}")
+            elif target_backend == "claude" and settings.claude_model:
                 self._chat_bar.set_model(settings.claude_model)
+                logger.info(f"Updated chat model to: {settings.claude_model}")
 
         # Update context mode (use new setting with fallback)
         context_mode = settings.chat_context_mode or settings.ollama_chat_context_mode

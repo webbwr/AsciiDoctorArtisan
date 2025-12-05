@@ -301,12 +301,18 @@ class ChatBarWidget(QWidget):
         Args:
             models: List of model names (e.g., ["gnokit/improve-grammer", "llama2"])
         """
-        self._model_selector.clear()
-        if models:
-            self._model_selector.addItems(models)
-            logger.debug(f"Set {len(models)} models in selector")
-        else:
-            logger.warning("No models provided to chat bar")
+        # Block signals to prevent model_changed from firing during repopulation
+        # This fixes race condition where first model overwrites user's choice
+        self._model_selector.blockSignals(True)
+        try:
+            self._model_selector.clear()
+            if models:
+                self._model_selector.addItems(models)
+                logger.debug(f"Set {len(models)} models in selector")
+            else:
+                logger.warning("No models provided to chat bar")
+        finally:
+            self._model_selector.blockSignals(False)
 
     def set_model(self, model: str) -> None:
         """

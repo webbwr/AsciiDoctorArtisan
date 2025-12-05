@@ -65,6 +65,10 @@ class ChatBackendController(QObject):
         self._get_parent = parent_getter
         self._load_models = load_models_callback
 
+    def update_settings(self, settings: "AppSettings") -> None:
+        """Update settings reference when main settings object changes."""
+        self._settings = settings
+
     def switch_backend(self, new_backend: str) -> None:
         """
         Switch to a different AI backend and update UI accordingly.

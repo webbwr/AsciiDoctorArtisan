@@ -1091,20 +1091,12 @@ class AsciiDocEditor(QMainWindow):
     # Dialog Methods (Phase 6b: Delegated to DialogManager)
     # ========================================================================
 
-    def _show_ollama_model_browser(self) -> None:
-        """Show Ollama model browser to download new models."""
-        from asciidoc_artisan.ui.ollama_model_browser import OllamaModelBrowser
-
-        browser = OllamaModelBrowser(self)
-        browser.model_downloaded.connect(self._on_ollama_model_downloaded)
-        browser.exec()
-
-    def _on_ollama_model_downloaded(self, model_name: str) -> None:
-        """Handle when a model is downloaded from the browser."""
-        # Reload chat model manager to pick up new model
+    def refresh_ollama_models(self, message: str = "") -> None:
+        """Refresh Ollama models in chat manager after download/delete."""
         if hasattr(self, "chat_manager") and self.chat_manager:
             self.chat_manager._reload_models()
-        self.show_status_message(f"Downloaded Ollama model: {model_name}")
+        if message:
+            self.show_status_message(message)
 
     def show_autocomplete_settings(self) -> None:
         """Show auto-complete settings dialog (delegates to SettingsDialogHelper)."""

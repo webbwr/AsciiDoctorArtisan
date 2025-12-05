@@ -52,6 +52,10 @@ class ChatModelManager(QObject):
         self._chat_bar = chat_bar
         self._get_current_backend = current_backend_getter
 
+    def update_settings(self, settings: "AppSettings") -> None:
+        """Update settings reference when main settings object changes."""
+        self._settings = settings
+
     def load_available_models(self) -> None:
         """
         Load available models into chat bar selector based on active backend.

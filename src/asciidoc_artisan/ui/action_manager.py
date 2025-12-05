@@ -164,7 +164,6 @@ class ActionManager:
         self.anthropic_status_act: QAction
         self.telemetry_status_act: QAction
         self.ollama_settings_act: QAction
-        self.ollama_model_browser_act: QAction
         self.anthropic_settings_act: QAction
         self.font_settings_act: QAction
         self.app_settings_act: QAction

@@ -51,6 +51,8 @@ class OllamaSettingsDialog(QDialog):
         self.models: list[str] = []
         self._init_ui()
         self._load_models()
+        # Re-evaluate enabled state after models are loaded
+        self._on_enabled_changed()
 
     def _create_model_selector(self) -> QHBoxLayout:
         """Create model selection layout."""
@@ -307,20 +309,36 @@ class OllamaSettingsDialog(QDialog):
 
         browser = OllamaModelBrowser(self)
         browser.model_downloaded.connect(self._on_model_downloaded)
+        browser.model_deleted.connect(self._on_model_deleted)
         browser.exec()
 
     def _on_model_downloaded(self, model_name: str) -> None:
         """Handle when a new model is downloaded from the browser."""
         logger.info(f"Model downloaded: {model_name}")
-        # Refresh the model list
+        self._refresh_model_list()
+        # Select the newly downloaded model
+        if model_name in self.models:
+            self.model_combo.setCurrentIndex(self.models.index(model_name))
+        # Refresh main window's chat models
+        self._notify_parent_model_change(f"Downloaded Ollama model: {model_name}")
+
+    def _on_model_deleted(self, model_name: str) -> None:
+        """Handle when a model is deleted from the browser."""
+        logger.info(f"Model deleted: {model_name}")
+        self._refresh_model_list()
+        # Refresh main window's chat models
+        self._notify_parent_model_change(f"Deleted Ollama model: {model_name}")
+
+    def _refresh_model_list(self) -> None:
+        """Refresh the model combo box."""
         self.model_combo.clear()
         self.models.clear()
         self._load_models()
 
-        # Select the newly downloaded model
-        if model_name in self.models:
-            index = self.models.index(model_name)
-            self.model_combo.setCurrentIndex(index)
+    def _notify_parent_model_change(self, message: str) -> None:
+        """Notify parent window to refresh Ollama models."""
+        if self.parent() and hasattr(self.parent(), "refresh_ollama_models"):
+            self.parent().refresh_ollama_models(message)
 
     def _update_parent_status_bar(self) -> None:
         """Update parent window's status bar with current settings."""

@@ -4,13 +4,13 @@ Ollama Model Browser - Browse and download available models.
 Allows users to browse the Ollama model library and download new models
 directly from the application.
 
-MA principle: ~400 lines after extracting model data to ollama_models_data.py.
+MA principle: ~400 lines after extracting workers to ollama_workers.py.
 """
 
 import logging
 import subprocess
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QDialog,
     QGroupBox,
@@ -29,62 +29,9 @@ from PySide6.QtWidgets import (
 )
 
 from asciidoc_artisan.ui.ollama_models_data import AVAILABLE_MODELS
+from asciidoc_artisan.ui.ollama_workers import ModelDeleteWorker, ModelDownloadWorker
 
 logger = logging.getLogger(__name__)
-
-
-class ModelDownloadWorker(QThread):
-    """Worker thread for downloading Ollama models."""
-
-    progress = Signal(str)  # Progress message
-    finished = Signal(bool, str)  # Success, message
-
-    def __init__(self, model_name: str) -> None:
-        super().__init__()
-        self.model_name = model_name
-        self._cancelled = False
-
-    def run(self) -> None:
-        """Download the model using ollama pull."""
-        try:
-            self.progress.emit(f"Starting download of {self.model_name}...")
-
-            # Run ollama pull command
-            process = subprocess.Popen(
-                ["ollama", "pull", self.model_name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-            )
-
-            # Read output line by line
-            if process.stdout:
-                for line in process.stdout:
-                    if self._cancelled:
-                        process.terminate()
-                        self.finished.emit(False, "Download cancelled")
-                        return
-                    # Parse progress from ollama output
-                    line = line.strip()
-                    if line:
-                        self.progress.emit(line)
-
-            process.wait()
-
-            if process.returncode == 0:
-                self.finished.emit(True, f"Successfully downloaded {self.model_name}")
-            else:
-                self.finished.emit(False, f"Failed to download {self.model_name}")
-
-        except FileNotFoundError:
-            self.finished.emit(False, "Ollama not installed. Please install from https://ollama.ai")
-        except Exception as e:
-            self.finished.emit(False, f"Error: {e!s}")
-
-    def cancel(self) -> None:
-        """Cancel the download."""
-        self._cancelled = True
 
 
 class OllamaModelBrowser(QDialog):
@@ -96,11 +43,13 @@ class OllamaModelBrowser(QDialog):
     """
 
     model_downloaded = Signal(str)  # Emitted when a model is downloaded
+    model_deleted = Signal(str)  # Emitted when a model is deleted
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.installed_models: set[str] = set()
         self.download_worker: ModelDownloadWorker | None = None
+        self.delete_worker: ModelDeleteWorker | None = None
         self._init_ui()
         self._load_installed_models()
         self._populate_model_list()
@@ -188,6 +137,12 @@ class OllamaModelBrowser(QDialog):
         self.download_btn.setEnabled(False)
         button_layout.addWidget(self.download_btn)
 
+        self.delete_btn = QPushButton("Delete Model")
+        self.delete_btn.clicked.connect(self._delete_model)
+        self.delete_btn.setVisible(False)
+        self.delete_btn.setStyleSheet("background-color: #d9534f; color: white;")
+        button_layout.addWidget(self.delete_btn)
+
         self.cancel_btn = QPushButton("Cancel")
         self.cancel_btn.clicked.connect(self._cancel_download)
         self.cancel_btn.setVisible(False)
@@ -229,6 +184,7 @@ class OllamaModelBrowser(QDialog):
 
     def _load_installed_models(self) -> None:
         """Load list of currently installed models."""
+        self.installed_models.clear()  # Clear before reloading
         try:
             result = subprocess.run(
                 ["ollama", "list"],
@@ -309,10 +265,12 @@ class OllamaModelBrowser(QDialog):
             self.status_label.setText("✓ Already installed")
             self.status_label.setStyleSheet("color: green;")
             self.download_btn.setText("Re-download")
+            self.delete_btn.setVisible(True)
         else:
             self.status_label.setText("Not installed")
             self.status_label.setStyleSheet("color: gray;")
             self.download_btn.setText("Download Model")
+            self.delete_btn.setVisible(False)
 
         self.download_btn.setEnabled(True)
 
@@ -404,3 +362,56 @@ class OllamaModelBrowser(QDialog):
         if self.download_worker:
             self.download_worker.cancel()
             self.progress_label.setText("Cancelling...")
+
+    def _delete_model(self) -> None:
+        """Delete the selected installed model with confirmation."""
+        current = self.model_list.currentItem()
+        if not current:
+            return
+        model = current.data(256)
+        if not model:
+            return
+        name = model["name"]
+        if name not in self.installed_models:
+            return
+
+        # Confirmation dialog
+        reply = QMessageBox.question(
+            self,
+            "Delete Model",
+            f"Are you sure you want to delete '{name}'?\n\nThis will remove the model from your system.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+
+        # Disable buttons during deletion
+        self.delete_btn.setEnabled(False)
+        self.download_btn.setEnabled(False)
+        self.progress_label.setText(f"Deleting {name}...")
+        self.progress_label.setStyleSheet("color: orange;")
+
+        # Start delete worker
+        self.delete_worker = ModelDeleteWorker(name)
+        self.delete_worker.finished.connect(self._on_delete_finished)
+        self.delete_worker.start()
+
+    def _on_delete_finished(self, success: bool, message: str) -> None:
+        """Handle model deletion completion."""
+        self.delete_btn.setEnabled(True)
+        self.download_btn.setEnabled(True)
+
+        if success:
+            self.progress_label.setText(f"✓ {message}")
+            self.progress_label.setStyleSheet("color: green;")
+            # Refresh installed models and list
+            if self.delete_worker:
+                self.model_deleted.emit(self.delete_worker.model_name)
+            self._load_installed_models()
+            self._populate_model_list()
+        else:
+            self.progress_label.setText(f"✗ {message}")
+            self.progress_label.setStyleSheet("color: red;")
+
+        self.delete_worker = None
