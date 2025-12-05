@@ -273,7 +273,7 @@ class ActionCreators:
         self.parent.validate_install_act = self.parent._create_action(
             "&Validate Installation...",
             "Check all dependencies are properly installed",
-            self.parent.window._show_installation_validator,
+            self.parent.window.dialog_manager.show_installation_validator,
         )
         self.parent.toggle_theme_act = self.parent._create_action(
             "&Toggle Theme",
@@ -311,27 +311,27 @@ class ActionCreators:
         self.parent.pandoc_status_act = self.parent._create_action(
             "Check &Pandoc Installation",
             "Verify Pandoc is installed and working (required for format conversion)",
-            self.parent.window._show_pandoc_status,
+            self.parent.window.dialog_manager.show_pandoc_status,
         )
         self.parent.pandoc_formats_act = self.parent._create_action(
             "Pandoc &Formats...",
             "View supported Pandoc conversion formats",
-            self.parent.window._show_pandoc_status,  # Same dialog shows formats
+            self.parent.window.dialog_manager.show_pandoc_status,  # Same dialog shows formats
         )
         self.parent.ollama_status_act = self.parent._create_action(
             "Check &Ollama Service",
             "Verify Ollama AI service is running (optional for AI features)",
-            self.parent.window._show_ollama_status,
+            self.parent.window.dialog_manager.show_ollama_status,
         )
         self.parent.anthropic_status_act = self.parent._create_action(
             "Check &Anthropic API",
             "Verify Anthropic Claude API is accessible",
-            self.parent.window._show_anthropic_status,
+            self.parent.window.dialog_manager.show_anthropic_status,
         )
         self.parent.telemetry_status_act = self.parent._create_action(
             "&Telemetry Status...",
             "View telemetry data collection status",
-            self.parent.window._show_telemetry_status,
+            self.parent.window.dialog_manager.show_telemetry_status,
         )
 
     def create_service_settings_actions(self) -> None:
@@ -343,17 +343,17 @@ class ActionCreators:
         self.parent.ollama_settings_act = self.parent._create_action(
             "Ollama &AI Settings...",
             "Configure Ollama AI models for document conversion",
-            self.parent.window._show_ollama_settings,
+            self.parent.window.dialog_manager.show_ollama_settings,
         )
         self.parent.ollama_model_browser_act = self.parent._create_action(
             "Browse Ollama &Models...",
             "Browse and download models from the Ollama library",
-            self.parent.window._show_ollama_model_browser,
+            self.parent.window._show_ollama_model_browser,  # Has signal connection logic
         )
         self.parent.anthropic_settings_act = self.parent._create_action(
             "&Anthropic AI Settings...",
             "Configure Anthropic Claude API settings",
-            self.parent.window._show_anthropic_settings,
+            self.parent.window.dialog_manager.show_anthropic_settings,
         )
 
     def create_ui_toggle_actions(self) -> None:
@@ -385,16 +385,16 @@ class ActionCreators:
         self.parent.font_settings_act = self.parent._create_action(
             "&Font Settings...",
             "Customize fonts for editor, preview, and chat panes",
-            self.parent.window._show_font_settings,
+            self.parent.window.dialog_manager.show_font_settings,
         )
         self.parent.app_settings_act = self.parent._create_action(
             "Application &Settings...",
             "View and edit all application settings",
-            self.parent.window._show_app_settings,
+            self.parent.window.dialog_manager.show_app_settings,
         )
 
     def create_help_actions(self) -> None:
         """Create Help menu actions (1 action)."""
         self.parent.about_act = self.parent._create_action(
-            "&About", "About AsciiDoctor Artisan", self.parent.window._show_about
+            "&About", "About AsciiDoctor Artisan", self.parent.window.dialog_manager.show_about
         )

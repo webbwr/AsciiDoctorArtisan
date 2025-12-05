@@ -66,25 +66,28 @@ def main_window(qapp):
     window.github_handler.list_issues = Mock()
     window.github_handler.get_repo_info = Mock()
 
-    # Tools actions
-    window._show_installation_validator = Mock()
-    window._show_pandoc_status = Mock()
-    window._show_ollama_status = Mock()
-    window._show_anthropic_status = Mock()
-    window._show_telemetry_status = Mock()
-    window._show_ollama_settings = Mock()
+    # Dialog manager with all dialog methods
+    window.dialog_manager = Mock()
+    window.dialog_manager.show_installation_validator = Mock()
+    window.dialog_manager.show_pandoc_status = Mock()
+    window.dialog_manager.show_ollama_status = Mock()
+    window.dialog_manager.show_anthropic_status = Mock()
+    window.dialog_manager.show_telemetry_status = Mock()
+    window.dialog_manager.show_ollama_settings = Mock()
+    window.dialog_manager.show_anthropic_settings = Mock()
+    window.dialog_manager.show_font_settings = Mock()
+    window.dialog_manager.show_app_settings = Mock()
+    window.dialog_manager.show_about = Mock()
+
+    # Tools actions (remaining methods on window)
     window._show_ollama_model_browser = Mock()
-    window._show_anthropic_settings = Mock()
     window.chat_manager = Mock()
     window.chat_manager.toggle_panel_visibility = Mock()
-    window._show_font_settings = Mock()
     window.spell_check_manager = Mock()
     window.spell_check_manager.toggle_spell_check = Mock()
     window.toggle_telemetry = Mock()
     window.show_autocomplete_settings = Mock()  # v2.0.0 auto-complete
     window.show_syntax_check_settings = Mock()  # v2.0.0 syntax checking
-    window._show_app_settings = Mock()
-    window._show_about = Mock()
 
     return window
 

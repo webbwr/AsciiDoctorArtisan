@@ -1306,34 +1306,6 @@ class AsciiDocEditor(QMainWindow):
     # Dialog Methods (Phase 6b: Delegated to DialogManager)
     # ========================================================================
 
-    def _show_installation_validator(self) -> None:
-        """Show installation validator dialog (delegates to DialogManager)."""
-        self.dialog_manager.show_installation_validator()
-
-    def _show_pandoc_status(self) -> None:
-        """Show detailed pandoc installation status (delegates to DialogManager)."""
-        self.dialog_manager.show_pandoc_status()
-
-    def _show_supported_formats(self) -> None:
-        """Show supported input and output formats (delegates to DialogManager)."""
-        self.dialog_manager.show_supported_formats()
-
-    def _show_ollama_status(self) -> None:
-        """Show Ollama service and installation status (delegates to DialogManager)."""
-        self.dialog_manager.show_ollama_status()
-
-    def _show_anthropic_status(self) -> None:
-        """Show Anthropic API key and service status (delegates to DialogManager)."""
-        self.dialog_manager.show_anthropic_status()
-
-    def _show_telemetry_status(self) -> None:
-        """Show telemetry configuration and status (delegates to DialogManager)."""
-        self.dialog_manager.show_telemetry_status()
-
-    def _show_ollama_settings(self) -> None:
-        """Show Ollama AI settings dialog (delegates to DialogManager)."""
-        self.dialog_manager.show_ollama_settings()
-
     def _show_ollama_model_browser(self) -> None:
         """Show Ollama model browser to download new models."""
         from asciidoc_artisan.ui.ollama_model_browser import OllamaModelBrowser
@@ -1348,18 +1320,6 @@ class AsciiDocEditor(QMainWindow):
         if hasattr(self, "chat_manager") and self.chat_manager:
             self.chat_manager._reload_models()
         self.show_status_message(f"Downloaded Ollama model: {model_name}")
-
-    def _show_anthropic_settings(self) -> None:
-        """Show Anthropic API key settings dialog (delegates to DialogManager)."""
-        self.dialog_manager.show_anthropic_settings()
-
-    def _show_app_settings(self) -> None:
-        """Show application settings editor dialog (delegates to DialogManager)."""
-        self.dialog_manager.show_app_settings()
-
-    def _show_font_settings(self) -> None:
-        """Show font settings dialog (delegates to DialogManager)."""
-        self.dialog_manager.show_font_settings()
 
     def show_autocomplete_settings(self) -> None:
         """Show auto-complete settings dialog (delegates to SettingsDialogHelper)."""
@@ -1376,10 +1336,6 @@ class AsciiDocEditor(QMainWindow):
     def _prompt_save_before_action(self, action: str) -> bool:
         """Prompt to save before action (delegates to DialogManager)."""
         return self.dialog_manager.prompt_save_before_action(action)
-
-    def _show_about(self) -> None:
-        """Show about dialog (delegates to DialogManager)."""
-        self.dialog_manager.show_about()
 
     def _refresh_from_settings(self) -> None:
         """Refresh application state from updated settings."""
