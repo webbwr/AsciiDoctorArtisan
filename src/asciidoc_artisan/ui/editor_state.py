@@ -54,48 +54,34 @@ class EditorState:
         self.sync_scrolling = True
 
     def zoom(self, delta: int) -> None:
-        """
-        Zoom editor and preview.
-
-        Args:
-            delta: Zoom delta (positive to zoom in, negative to zoom out)
-        """
-        # Get current font and adjust size.
+        """Zoom editor and preview by delta points."""
         font = self.editor.font()
-        # Prevent font from getting too small.
         new_size = max(MIN_FONT_SIZE, font.pointSize() + delta)
         font.setPointSize(new_size)
         self.editor.setFont(font)
 
-        # Preview zoom only works with GPU widget.
+        # Preview zoom only works with GPU-accelerated QWebEngineView
         if hasattr(self.preview, "zoomFactor") and hasattr(self.preview, "setZoomFactor"):
             current_zoom = self.preview.zoomFactor()
-            # Scale delta to zoom factor range.
             zoom_delta = 0.1 * delta
-            # Clamp zoom between 25% and 500%.
             new_zoom = max(0.25, min(5.0, current_zoom + zoom_delta))
             self.preview.setZoomFactor(new_zoom)
             logger.debug(f"Zoom changed: {delta}, new size: {new_size}, preview zoom: {new_zoom:.2f}")
         else:
-            # Software renderer cannot zoom.
             logger.debug(f"Zoom changed: {delta}, new size: {new_size} (preview zoom not supported)")
 
     def toggle_dark_mode(self) -> None:
-        """Toggle dark mode on/off - syncs View menu checkbox."""
-        # Simply flip the current dark mode state
+        """Toggle dark mode and sync View menu checkbox."""
         dark_mode = not self._settings.dark_mode
 
-        # Update View menu checkbox (dark_mode_act is still checkable)
         # Block signals to prevent recursive calls
         self.action_manager.dark_mode_act.blockSignals(True)
         self.action_manager.dark_mode_act.setChecked(dark_mode)
         self.action_manager.dark_mode_act.blockSignals(False)
 
-        # Apply the theme
         self._settings.dark_mode = dark_mode
         self.theme_manager.apply_theme()
 
-        # Clear CSS cache so preview regenerates with new theme colors
         if hasattr(self.window, "preview_handler"):
             self.window.preview_handler.clear_css_cache()
 
@@ -104,9 +90,7 @@ class EditorState:
 
     def toggle_sync_scrolling(self) -> None:
         """Toggle synchronized scrolling between editor and preview."""
-        # Get state from menu action checkbox.
         self.sync_scrolling = self.action_manager.sync_scrolling_act.isChecked()
-        # Keep main window in sync with this state.
         self.window._sync_scrolling = self.sync_scrolling
         self.status_bar.showMessage(
             f"Synchronized scrolling {'enabled' if self.sync_scrolling else 'disabled'}",
@@ -115,39 +99,19 @@ class EditorState:
         logger.info(f"Sync scrolling: {self.sync_scrolling}")
 
     def toggle_pane_maximize(self, pane: str) -> None:
-        """
-        Toggle maximize/restore for a specific pane.
-
-        Args:
-            pane: Pane to toggle ("editor" or "preview")
-        """
+        """Toggle maximize/restore for editor or preview pane."""
         if self.maximized_pane == pane:
-            # Same pane clicked again means restore.
             self.restore_panes()
-        elif self.maximized_pane is not None:
-            # Different pane already maximized so switch to this one.
-            self.maximize_pane(pane)
         else:
-            # No pane maximized yet so maximize this one.
             self.maximize_pane(pane)
 
     def maximize_pane(self, pane: str) -> None:
-        """
-        Maximize a specific pane.
-
-        MA principle: Reduced from 68→24 lines by extracting 3 helpers (65% reduction).
-
-        Args:
-            pane: Pane to maximize ("editor" or "preview")
-        """
-        # Save sizes so we can restore later
+        """Maximize editor or preview pane."""
         if self.maximized_pane is None:
             self.saved_splitter_sizes = self.splitter.sizes()
 
-        # Detect chat pane state
         has_chat, chat_visible = self._detect_chat_state()
 
-        # Maximize the requested pane
         if pane == "editor":
             self._maximize_editor(has_chat, chat_visible)
         else:
@@ -157,178 +121,100 @@ class EditorState:
         logger.debug(f"Pane maximized: {pane}, chat_visible={chat_visible}")
 
     def _detect_chat_state(self) -> tuple[bool, bool]:
-        """
-        Detect chat pane presence and visibility.
-
-        MA principle: Extracted from maximize_pane and restore_panes (4 lines).
-
-        Returns:
-            Tuple of (has_chat, chat_visible)
-        """
+        """Return (has_chat, chat_visible) tuple."""
         has_chat = len(self.splitter.sizes()) == 3
         chat_visible = has_chat and hasattr(self.window, "chat_container") and self.window.chat_container.isVisible()
         return has_chat, chat_visible
 
     def _maximize_editor(self, has_chat: bool, chat_visible: bool) -> None:
-        """
-        Maximize editor pane and update buttons.
-
-        MA principle: Extracted from maximize_pane (24 lines).
-
-        Args:
-            has_chat: Whether chat pane exists in layout
-            chat_visible: Whether chat pane is visible
-        """
-        # Set splitter sizes based on layout
+        """Maximize editor pane and update buttons."""
         if has_chat:
             if chat_visible:
-                # Preserve chat size from saved state
                 chat_size = self.saved_splitter_sizes[2] if self.saved_splitter_sizes else 200
-                # Give all space to editor except chat
                 self.splitter.setSizes([self.splitter.width() - chat_size, 0, chat_size])
             else:
-                # Chat exists but hidden so collapse both preview and chat
                 self.splitter.setSizes([self.splitter.width(), 0, 0])
         else:
-            # Two pane layout so just hide preview
             self.splitter.setSizes([self.splitter.width(), 0])
 
-        # Update editor button to show restore icon
         self.editor_max_btn.setText("⬛")
         self.editor_max_btn.setToolTip("Restore editor")
-
-        # Update preview button to allow maximize
         self.preview_max_btn.setEnabled(True)
         self.preview_max_btn.setText("⬜")
         self.preview_max_btn.setToolTip("Maximize preview")
         self.status_bar.showMessage("Editor maximized", 3000)
 
     def _maximize_preview(self, has_chat: bool, chat_visible: bool) -> None:
-        """
-        Maximize preview pane and update buttons.
-
-        MA principle: Extracted from maximize_pane (24 lines).
-
-        Args:
-            has_chat: Whether chat pane exists in layout
-            chat_visible: Whether chat pane is visible
-        """
-        # Set splitter sizes based on layout
+        """Maximize preview pane and update buttons."""
         if has_chat:
             if chat_visible:
-                # Preserve chat size from saved state
                 chat_size = self.saved_splitter_sizes[2] if self.saved_splitter_sizes else 200
-                # Give all space to preview except chat
                 self.splitter.setSizes([0, self.splitter.width() - chat_size, chat_size])
             else:
-                # Chat exists but hidden so collapse both editor and chat
                 self.splitter.setSizes([0, self.splitter.width(), 0])
         else:
-            # Two pane layout so just hide editor
             self.splitter.setSizes([0, self.splitter.width()])
 
-        # Update preview button to show restore icon
         self.preview_max_btn.setText("⬛")
         self.preview_max_btn.setToolTip("Restore preview")
-
-        # Update editor button to allow maximize
         self.editor_max_btn.setEnabled(True)
         self.editor_max_btn.setText("⬜")
         self.editor_max_btn.setToolTip("Maximize editor")
         self.status_bar.showMessage("Preview maximized", 3000)
 
     def restore_panes(self) -> None:
-        """
-        Restore panes to their previous sizes, preserving chat visibility.
-
-        MA principle: Reduced from 71→23 lines by extracting 3 helpers (68% reduction).
-        """
-        # Detect current layout configuration
+        """Restore panes to their previous sizes."""
         has_chat, chat_visible = self._detect_chat_state()
 
-        # Restore splitter sizes
         if self.saved_splitter_sizes:
             if len(self.saved_splitter_sizes) == 3:
                 self._restore_from_three_pane_sizes(has_chat, chat_visible)
             elif len(self.saved_splitter_sizes) == 2:
                 self._restore_from_two_pane_sizes(has_chat, chat_visible)
             else:
-                # Saved sizes have wrong number of items
                 self._apply_default_sizes(has_chat, chat_visible)
         else:
-            # Nothing saved so use defaults
             self._apply_default_sizes(has_chat, chat_visible)
 
-        # Reset UI state
         self._reset_maximize_buttons()
         self.maximized_pane = None
         self.status_bar.showMessage("View restored", 3000)
         logger.debug(f"Panes restored, chat_visible={chat_visible}")
 
     def _restore_from_three_pane_sizes(self, has_chat: bool, chat_visible: bool) -> None:
-        """
-        Restore from saved three-pane layout.
-
-        MA principle: Extracted from restore_panes (15 lines).
-
-        Args:
-            has_chat: Whether chat pane exists in layout
-            chat_visible: Whether chat pane is visible
-        """
-        assert self.saved_splitter_sizes is not None, "saved_splitter_sizes must not be None"
+        """Restore from saved three-pane layout."""
+        assert self.saved_splitter_sizes is not None
         total = sum(self.saved_splitter_sizes)
         if total > 0:
-            # Sizes are valid so restore them
             self.splitter.setSizes(self.saved_splitter_sizes)
         else:
-            # Saved sizes are invalid so use defaults
             width = self.splitter.width()
             if chat_visible:
-                # Split: 40% editor, 40% preview, 20% chat
                 self.splitter.setSizes([int(width * 0.4), int(width * 0.4), int(width * 0.2)])
             else:  # pragma: no cover
-                # Chat hidden so split 50/50 editor and preview
                 self.splitter.setSizes([width // 2, width // 2, 0])
 
     def _restore_from_two_pane_sizes(self, has_chat: bool, chat_visible: bool) -> None:
-        """
-        Restore from saved two-pane layout to current layout.
-
-        MA principle: Extracted from restore_panes (29 lines).
-
-        Args:
-            has_chat: Whether chat pane exists in layout
-            chat_visible: Whether chat pane is visible
-        """
-        assert self.saved_splitter_sizes is not None, "saved_splitter_sizes must not be None"
+        """Restore from saved two-pane layout to current layout."""
+        assert self.saved_splitter_sizes is not None
         total = sum(self.saved_splitter_sizes)
         if total > 0 and has_chat:
-            # Need to add chat pane to saved sizes
             if chat_visible:
                 width = self.splitter.width()
-                # Reserve 20% for chat
                 chat_size = int(width * 0.2)
                 remaining = width - chat_size
-                # Split remaining 50/50 for editor and preview
                 editor_size = int(remaining * 0.5)
                 preview_size = remaining - editor_size
                 self.splitter.setSizes([editor_size, preview_size, chat_size])
             else:  # pragma: no cover
-                # Chat hidden so just add zero for third pane
                 self.splitter.setSizes([self.saved_splitter_sizes[0], self.saved_splitter_sizes[1], 0])
         elif total > 0:
-            # No chat pane so restore two pane sizes
             self.splitter.setSizes(self.saved_splitter_sizes)
         else:  # pragma: no cover
-            # Saved sizes invalid so use defaults
             self._apply_default_sizes(has_chat, chat_visible)
 
     def _reset_maximize_buttons(self) -> None:
-        """
-        Reset maximize button states to normal.
-
-        MA principle: Extracted from restore_panes (7 lines).
-        """
+        """Reset maximize button states to normal."""
         self.editor_max_btn.setText("⬜")
         self.editor_max_btn.setToolTip("Maximize editor")
         self.editor_max_btn.setEnabled(True)
@@ -341,58 +227,39 @@ class EditorState:
         width = self.splitter.width()
         if has_chat:
             if chat_visible:
-                # Three pane: 40% editor, 40% preview, 20% chat.
                 self.splitter.setSizes([int(width * 0.4), int(width * 0.4), int(width * 0.2)])
             else:
-                # Three pane but chat hidden: 50/50 with zero for chat.
                 self.splitter.setSizes([width // 2, width // 2, 0])
         else:
-            # Two pane: 50/50 split.
             self.splitter.setSizes([width // 2, width // 2])
 
     def handle_close_event(self, event: Any) -> None:
-        """
-        Handle window close event.
-
-        Args:
-            event: Close event from Qt
-        """
-        # Ask user to save if there are unsaved changes.
+        """Handle window close event with save prompt and cleanup."""
         if not self.window.status_manager.prompt_save_before_action("closing"):
-            # User cancelled so stop closing.
             event.ignore()
             return
 
-        # Save settings now before threads shut down.
         self.window._settings_manager.save_settings_immediate(
             self._settings, self.window, self.window._current_file_path
         )
 
-        # Stop all background threads.
         logger.info("Shutting down worker threads...")
         self._shutdown_threads()
-
-        # Delete temporary files.
         self._cleanup_temp_files()
 
-        # Allow window to close.
         event.accept()
         logger.info("Application closed")
 
     def _shutdown_threads(self) -> None:
-        """Safely shut down worker threads - delegates to WorkerManager."""
-        # Delegate to WorkerManager which handles all 6 threads properly:
-        # git, github, pandoc, preview, ollama_chat, claude
+        """Safely shut down worker threads via WorkerManager."""
         if hasattr(self.window, "worker_manager") and self.window.worker_manager:
             self.window.worker_manager.shutdown()
         else:
-            # Fallback for older code paths (should not happen in v1.5.0+)
             logger.warning("WorkerManager not found, using fallback shutdown")
             self._shutdown_threads_fallback()
 
     def _shutdown_threads_fallback(self) -> None:
-        """Fallback shutdown logic for legacy compatibility."""
-        # List of threads to stop.
+        """Fallback shutdown for legacy compatibility."""
         threads = [
             ("git_thread", self.window.git_thread),
             ("pandoc_thread", self.window.pandoc_thread),
@@ -402,11 +269,8 @@ class EditorState:
         for name, thread in threads:
             if thread and thread.isRunning():
                 logger.debug(f"Stopping {name}...")
-                # Ask thread to stop.
                 thread.quit()
-                # Wait up to 1 second for clean shutdown.
                 if not thread.wait(1000):
-                    # Thread is stuck or busy.
                     logger.warning(f"{name} did not stop within timeout")
                 else:
                     logger.debug(f"{name} stopped successfully")
@@ -414,13 +278,9 @@ class EditorState:
     def _cleanup_temp_files(self) -> None:
         """Clean up temporary files."""
         try:
-            # Delete export temp files.
             if hasattr(self.window, "export_manager"):
                 self.window.export_manager.cleanup()
-
-            # Delete old temp dir for backward compatibility.
             if hasattr(self.window, "_temp_dir"):
                 self.window._temp_dir.cleanup()
         except Exception as e:
-            # Log but do not crash on cleanup failure.
             logger.warning(f"Failed to cleanup temp files: {e}")
