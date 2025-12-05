@@ -73,4 +73,4 @@ MIT License - Free to use
 
 ---
 
-*v2.1.0 | 44,201 lines | 5,308 tests | [CHANGELOG](CHANGELOG.md)*
+*v2.1.0 | 46,457 lines | 5,139 tests | [CHANGELOG](CHANGELOG.md)*

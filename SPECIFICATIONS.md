@@ -8,11 +8,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Codebase | 44,201 lines / 171 files |
-| Unit Tests | 5,196 (100% pass) |
-| E2E Tests | 3 (100% pass) |
+| Codebase | 46,457 lines / 180 files |
+| Unit Tests | 5,122 (100% pass) |
+| E2E Tests | 17 (100% pass) |
 | Type Coverage | 100% (mypy --strict) |
-| Startup | 0.586s |
+| Startup | 0.27s |
 
 ---
 
