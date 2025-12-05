@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Qt, QThread
 
-from asciidoc_artisan.claude import ClaudeWorker
 from asciidoc_artisan.workers import (
     GitHubCLIWorker,
     GitWorker,
@@ -81,7 +80,7 @@ class WorkerManager:
         self.ollama_chat_thread: QThread | None = None
         self.ollama_chat_worker: OllamaChatWorker | None = None
         self.claude_thread: QThread | None = None
-        self.claude_worker: ClaudeWorker | None = None
+        self.claude_worker: Any = None  # ClaudeWorker, lazy-loaded
 
         # Worker pool (v1.5.0)
         self.use_worker_pool = use_worker_pool
@@ -199,6 +198,8 @@ class WorkerManager:
         Note: Claude worker signals connected via main_window adapter pattern.
         """
         self.claude_thread = QThread(self.editor)
+        from asciidoc_artisan.claude import ClaudeWorker
+
         self.claude_worker = ClaudeWorker()
         self.claude_worker.moveToThread(self.claude_thread)
         self.claude_thread.finished.connect(self.claude_worker.deleteLater)

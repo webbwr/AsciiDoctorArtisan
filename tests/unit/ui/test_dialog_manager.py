@@ -1516,11 +1516,8 @@ class TestAnthropicStatusFullPath:
         mock_creds.has_anthropic_key = Mock(return_value=False)
         mock_creds_cls.return_value = mock_creds
 
-        # Mock anthropic module without __version__
-        with patch("asciidoc_artisan.ui.status_dialog_builder.anthropic") as mock_anthropic:
-            # Remove __version__ attribute to trigger AttributeError
-            del mock_anthropic.__version__
-
+        # Mock anthropic module without __version__ by using spec=[] which excludes all attributes
+        with patch.dict("sys.modules", {"anthropic": Mock(spec=[])}):
             manager = DialogManager(mock_main_window)
             manager.show_anthropic_status()
 
@@ -1529,7 +1526,7 @@ class TestAnthropicStatusFullPath:
             assert "SDK Version: Unknown" in call_args
 
     @patch("asciidoc_artisan.core.SecureCredentials")
-    @patch("asciidoc_artisan.ui.status_dialog_builder.ClaudeClient")
+    @patch("asciidoc_artisan.claude.ClaudeClient")
     def test_show_anthropic_status_with_key_and_model(self, mock_claude_client_cls, mock_creds_cls, mock_main_window):
         """Test Anthropic status when key is configured with model selected."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1561,7 +1558,7 @@ class TestAnthropicStatusFullPath:
         assert "✅ Connection test: Success" in call_args
 
     @patch("asciidoc_artisan.core.SecureCredentials")
-    @patch("asciidoc_artisan.ui.status_dialog_builder.ClaudeClient")
+    @patch("asciidoc_artisan.claude.ClaudeClient")
     def test_show_anthropic_status_with_key_no_model(self, mock_claude_client_cls, mock_creds_cls, mock_main_window):
         """Test Anthropic status when key is configured but no model selected."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager
@@ -1591,7 +1588,7 @@ class TestAnthropicStatusFullPath:
         assert "⚠️ Active backend: Ollama (local)" in call_args
 
     @patch("asciidoc_artisan.core.SecureCredentials")
-    @patch("asciidoc_artisan.ui.status_dialog_builder.ClaudeClient")
+    @patch("asciidoc_artisan.claude.ClaudeClient")
     def test_show_anthropic_status_connection_test_failure(
         self, mock_claude_client_cls, mock_creds_cls, mock_main_window
     ):
@@ -1619,7 +1616,7 @@ class TestAnthropicStatusFullPath:
         assert "Invalid API key" in call_args
 
     @patch("asciidoc_artisan.core.SecureCredentials")
-    @patch("asciidoc_artisan.ui.status_dialog_builder.ClaudeClient")
+    @patch("asciidoc_artisan.claude.ClaudeClient")
     def test_show_anthropic_status_connection_test_exception(
         self, mock_claude_client_cls, mock_creds_cls, mock_main_window
     ):
@@ -1660,9 +1657,9 @@ class TestOllamaStatusServiceDetection:
         mock_result.returncode = 0
         mock_subprocess.return_value = mock_result
 
-        with patch("asciidoc_artisan.ui.status_dialog_builder.ollama") as mock_ollama:
-            mock_ollama.list = Mock(return_value={"models": [{"name": "llama2"}]})
-
+        mock_ollama = Mock()
+        mock_ollama.list = Mock(return_value={"models": [{"name": "llama2"}]})
+        with patch.dict("sys.modules", {"ollama": mock_ollama}):
             manager = DialogManager(mock_main_window)
             manager.show_ollama_status()
 
@@ -1682,9 +1679,9 @@ class TestOllamaStatusServiceDetection:
         mock_result.returncode = 1
         mock_subprocess.return_value = mock_result
 
-        with patch("asciidoc_artisan.ui.status_dialog_builder.ollama") as mock_ollama:
-            mock_ollama.list = Mock(return_value={"models": []})
-
+        mock_ollama = Mock()
+        mock_ollama.list = Mock(return_value={"models": []})
+        with patch.dict("sys.modules", {"ollama": mock_ollama}):
             manager = DialogManager(mock_main_window)
             manager.show_ollama_status()
 
@@ -1702,9 +1699,9 @@ class TestOllamaStatusServiceDetection:
         # Mock nvidia-smi not found
         mock_subprocess.side_effect = FileNotFoundError
 
-        with patch("asciidoc_artisan.ui.status_dialog_builder.ollama") as mock_ollama:
-            mock_ollama.list = Mock(return_value={"models": []})
-
+        mock_ollama = Mock()
+        mock_ollama.list = Mock(return_value={"models": []})
+        with patch.dict("sys.modules", {"ollama": mock_ollama}):
             manager = DialogManager(mock_main_window)
             manager.show_ollama_status()
 
@@ -1724,9 +1721,9 @@ class TestOllamaStatusServiceDetection:
         # Mock nvidia-smi timeout
         mock_subprocess.side_effect = TimeoutExpired("nvidia-smi", 2)
 
-        with patch("asciidoc_artisan.ui.status_dialog_builder.ollama") as mock_ollama:
-            mock_ollama.list = Mock(return_value={"models": []})
-
+        mock_ollama = Mock()
+        mock_ollama.list = Mock(return_value={"models": []})
+        with patch.dict("sys.modules", {"ollama": mock_ollama}):
             manager = DialogManager(mock_main_window)
             manager.show_ollama_status()
 
@@ -1740,10 +1737,9 @@ class TestOllamaStatusServiceDetection:
         mock_main_window._settings.ollama_enabled = True
         mock_main_window._settings.ollama_model = "llama2"
 
-        with patch("asciidoc_artisan.ui.status_dialog_builder.ollama") as mock_ollama:
-            # Service check raises exception
-            mock_ollama.list = Mock(side_effect=Exception("Connection refused"))
-
+        mock_ollama = Mock()
+        mock_ollama.list = Mock(side_effect=Exception("Connection refused"))
+        with patch.dict("sys.modules", {"ollama": mock_ollama}):
             manager = DialogManager(mock_main_window)
             manager.show_ollama_status()
 
@@ -1753,18 +1749,35 @@ class TestOllamaStatusServiceDetection:
 
     def test_ollama_status_import_error(self, mock_main_window):
         """Test Ollama status when ollama module not installed."""
+        import builtins
+        import sys
+
+        from asciidoc_artisan.ui.dialog_manager import DialogManager
+
         mock_main_window._settings.ollama_enabled = True
         mock_main_window._settings.ollama_model = "llama2"
 
-        # Patch ollama to None to simulate ImportError
-        with patch("asciidoc_artisan.ui.status_dialog_builder.ollama", None):
-            from asciidoc_artisan.ui.dialog_manager import DialogManager
+        # Remove ollama from sys.modules if present
+        ollama_backup = sys.modules.pop("ollama", None)
 
-            manager = DialogManager(mock_main_window)
-            manager.show_ollama_status()
+        original_import = builtins.__import__
 
-            call_args = mock_main_window.status_manager.show_message.call_args[0][2]
-            assert "❌ Ollama Python library not installed" in call_args
+        def mock_import(name, *args, **kwargs):
+            if name == "ollama":
+                raise ImportError("No module named 'ollama'")
+            return original_import(name, *args, **kwargs)
+
+        try:
+            with patch.object(builtins, "__import__", mock_import):
+                manager = DialogManager(mock_main_window)
+                manager.show_ollama_status()
+
+                call_args = mock_main_window.status_manager.show_message.call_args[0][2]
+                assert "❌ Ollama Python library not installed" in call_args
+        finally:
+            # Restore ollama module if it was present
+            if ollama_backup is not None:
+                sys.modules["ollama"] = ollama_backup
 
 
 @pytest.mark.unit

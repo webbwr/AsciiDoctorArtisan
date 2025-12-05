@@ -104,7 +104,7 @@ class TestWorkerManagerInitialization:
 class TestSetupWorkersAndThreads:
     """Test worker and thread setup."""
 
-    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.claude.ClaudeWorker")
     @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
@@ -197,7 +197,7 @@ class TestSetupWorkersAndThreads:
         for thread in mock_threads:
             thread.start.assert_called_once()
 
-    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.claude.ClaudeWorker")
     @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
@@ -563,7 +563,7 @@ class TestWorkerInitializationEdgeCases:
 class TestSignalConnectionVerification:
     """Test signal connection verification."""
 
-    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.claude.ClaudeWorker")
     @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
@@ -616,7 +616,7 @@ class TestSignalConnectionVerification:
         mock_editor.request_github_command.connect.assert_called_once()
         mock_github_worker.github_result_ready.connect.assert_called_once()
 
-    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.claude.ClaudeWorker")
     @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
@@ -673,7 +673,7 @@ class TestSignalConnectionVerification:
         mock_pandoc_worker.conversion_complete.connect.assert_called_once()
         mock_pandoc_worker.conversion_error.connect.assert_called_once()
 
-    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.claude.ClaudeWorker")
     @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")
@@ -934,7 +934,7 @@ class TestWorkerStateTransitions:
         assert manager.ollama_chat_worker is None
         assert manager.claude_worker is None
 
-    @patch("asciidoc_artisan.ui.worker_manager.ClaudeWorker")
+    @patch("asciidoc_artisan.claude.ClaudeWorker")
     @patch("asciidoc_artisan.ui.worker_manager.OllamaChatWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PreviewWorker")
     @patch("asciidoc_artisan.ui.worker_manager.PandocWorker")

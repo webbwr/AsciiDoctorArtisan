@@ -11,23 +11,6 @@ from typing import TYPE_CHECKING, Any
 
 from asciidoc_artisan.core.constants import is_pandoc_available
 
-# Optional imports - may not be installed
-try:
-    import anthropic
-except ImportError:
-    anthropic = None
-
-try:
-    import ollama
-except ImportError:
-    ollama = None
-
-# Claude client (optional)
-try:
-    from asciidoc_artisan.claude import ClaudeClient
-except ImportError:
-    ClaudeClient = None
-
 if TYPE_CHECKING:
     from .main_window import AsciiDocEditor
 
@@ -175,6 +158,8 @@ class StatusDialogBuilder:
         Raises:
             Exception: If service check fails
         """
+        import ollama
+
         try:
             # List models to test connection
             models = ollama.list()
@@ -233,8 +218,6 @@ class StatusDialogBuilder:
 
         # Check service status
         try:
-            if ollama is None:
-                raise ImportError("ollama library not installed")
             status += self._check_ollama_service()
         except ImportError:
             status += self._build_ollama_import_error()
@@ -251,11 +234,12 @@ class StatusDialogBuilder:
             SDK version status string
         """
         try:
-            if anthropic:
-                sdk_version = anthropic.__version__
-                return f"SDK Version: {sdk_version}\n\n"
-            else:
-                return "SDK: Not installed\n\n"
+            import anthropic
+
+            sdk_version = anthropic.__version__
+            return f"SDK Version: {sdk_version}\n\n"
+        except ImportError:
+            return "SDK: Not installed\n\n"
         except AttributeError:
             return "SDK Version: Unknown\n\n"
 
@@ -306,8 +290,7 @@ class StatusDialogBuilder:
         """
         status = "\nTesting connection...\n"
         try:
-            if ClaudeClient is None:
-                raise ImportError("Claude client not available")
+            from asciidoc_artisan.claude import ClaudeClient
 
             client = ClaudeClient()
             result = client.test_connection()
