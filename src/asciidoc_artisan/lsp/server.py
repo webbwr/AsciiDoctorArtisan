@@ -206,8 +206,16 @@ class AsciiDocLanguageServer(LanguageServer):
         return self.symbols_provider.get_symbols(text)
 
     def _publish_diagnostics(self, uri: str, text: str) -> None:
-        """Run diagnostics and publish results."""
+        """Run diagnostics and publish results, storing fixes for code actions."""
         diagnostics = self.diagnostics_provider.get_diagnostics(text)
+
+        # Store fixes from cached errors in code_action_provider
+        self.code_action_provider.clear_cache()
+        for error in self.diagnostics_provider._errors_cache:
+            if error.fixes:
+                key = f"{error.line}:{error.column}:{error.code}"
+                self.code_action_provider.store_fixes(key, error.fixes)
+
         self.text_document_publish_diagnostics(lsp.PublishDiagnosticsParams(uri=uri, diagnostics=diagnostics))
 
     def _on_code_action(self, params: lsp.CodeActionParams) -> list[lsp.CodeAction] | None:
