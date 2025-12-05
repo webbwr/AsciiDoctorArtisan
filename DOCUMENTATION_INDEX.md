@@ -4,30 +4,18 @@
 
 ---
 
-## Quick Start
-
-| Audience | Doc |
-|----------|-----|
-| Users | [README](README.md) |
-| Installation | [INSTALL](INSTALL.md) |
-| Developers | [CLAUDE.md](CLAUDE.md) |
-| Contributors | [contributing.md](docs/developer/contributing.md) |
-
----
-
 ## Root Docs
 
 | Doc | Purpose |
 |-----|---------|
 | [README](README.md) | Quick start |
-| [INSTALL](INSTALL.md) | Full install guide (Win/WSL/Mac/Linux) |
-| [CLAUDE.md](CLAUDE.md) | Developer guide |
+| [INSTALL](INSTALL.md) | Full install guide |
+| [CLAUDE.md](CLAUDE.md) | Developer reference |
 | [SPECIFICATIONS](SPECIFICATIONS.md) | 109 FRs |
 | [ROADMAP](ROADMAP.md) | Project status |
 | [CHANGELOG](CHANGELOG.md) | Version history |
 | [FAQ](FAQ.md) | Common questions |
 | [SECURITY](SECURITY.md) | Security policy |
-| [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) | Community guidelines |
 
 ---
 
@@ -54,10 +42,9 @@
 |-----|---------|
 | [contributing](docs/developer/contributing.md) | How to contribute |
 | [testing](docs/developer/testing.md) | Test guide |
-| [ma-principle](docs/developer/ma-principle.md) | Architecture pattern |
+| [ma-principle](docs/developer/ma-principle.md) | Code organization |
 | [security-guide](docs/developer/security-guide.md) | Security practices |
 | [configuration](docs/developer/configuration.md) | Config guide |
-| [performance-profiling](docs/developer/performance-profiling.md) | Profiling |
 
 ---
 
@@ -65,12 +52,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Doc files | 25 |
-| Code lines | 44,201 |
-| Unit tests | 5,308 |
-| E2E tests | 71 |
+| Source | 45,900 lines / 180 files |
+| Unit tests | 5,122 |
+| E2E tests | 17 |
 | FRs | 109 |
 
 ---
 
-*[GitHub Issues](https://github.com/webbwr/AsciiDoctorArtisan/issues)*
+*v2.1.0 | Dec 5, 2025*
