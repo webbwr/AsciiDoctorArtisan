@@ -66,9 +66,9 @@ No, but gives 10-50x faster preview.
 
 ## Performance
 
-- Startup: 0.586s
-- Preview: <50ms (GPU)
-- Memory: ~150-220 MB
+- Startup: 0.27s
+- Preview: <200ms (GPU)
+- Memory: ~150-200 MB
 
 ## Security
 

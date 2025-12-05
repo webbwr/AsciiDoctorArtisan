@@ -8,7 +8,7 @@
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Startup | 0.586s | <1.0s ✅ |
+| Startup | 0.27s | <1.0s ✅ |
 | Preview (small) | 150-200ms | <200ms ✅ |
 | Preview (large) | 600-750ms | <500ms |
 | Auto-complete | 20-40ms | <50ms ✅ |

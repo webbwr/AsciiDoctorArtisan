@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.1.0] - 2025-12-03 - Public Release
+## [2.1.0] - 2025-12-05 - Public Release
 
 **First production-stable release**
 
@@ -10,9 +10,10 @@
 - Architecture documentation with FR mapping
 
 ### Metrics
-- 44,201 lines / 171 files
-- 5,254 unit + 3 E2E tests
+- 45,900 lines / 180 files
+- 5,122 unit + 17 E2E tests (95% coverage)
 - mypy --strict (0 errors)
+- Startup: 0.27s
 
 ---
 
@@ -24,7 +25,7 @@
 - Templates (6 built-in + custom)
 
 ### Performance
-- Startup: 0.586s (46% faster)
+- Startup: 0.27s
 
 ---
 

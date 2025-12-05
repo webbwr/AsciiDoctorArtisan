@@ -67,7 +67,7 @@ How to verify
 ```
 src/asciidoc_artisan/
 ├── core/      # Settings, file ops
-├── ui/        # Managers, dialogs
+├── ui/        # Handlers, dialogs
 ├── workers/   # Background tasks
 └── lsp/       # Language server
 ```

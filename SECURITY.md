@@ -313,8 +313,8 @@ Follow these tips to stay secure:
 ### Security Testing
 
 **Current Coverage:**
-- 5,254 unit tests (100% pass rate)
-- 3 E2E tests (100% pass rate)
+- 5,122 unit tests (100% pass rate)
+- 17 E2E tests (100% pass rate)
 - Security-specific tests: 377 tests
 - Path sanitization: 11 tests
 - Subprocess safety: Verified across all workers

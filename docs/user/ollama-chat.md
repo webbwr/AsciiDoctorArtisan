@@ -186,5 +186,4 @@ Delete this file to erase all history.
 
 ---
 
-*Last updated: 2025-11-01*
-*Version: 1.7.0*
+*v2.1.0 | Dec 5, 2025*
