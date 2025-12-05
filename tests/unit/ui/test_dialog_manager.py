@@ -1134,7 +1134,7 @@ class TestTelemetryChangeDirectoryButton:
 class TestOllamaSettingsDialog:
     """Test Ollama settings dialog."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.OllamaSettingsDialog")
+    @patch("asciidoc_artisan.ui.dialogs.OllamaSettingsDialog")
     def test_show_ollama_settings_dialog_cancelled(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
@@ -1156,7 +1156,7 @@ class TestOllamaSettingsDialog:
         # Should not save settings when cancelled
         mock_main_window._settings_manager.save_settings.assert_not_called()
 
-    @patch("asciidoc_artisan.ui.dialog_manager.OllamaSettingsDialog")
+    @patch("asciidoc_artisan.ui.dialogs.OllamaSettingsDialog")
     def test_show_ollama_settings_dialog_accepted(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
@@ -1196,7 +1196,7 @@ class TestOllamaSettingsDialog:
 class TestAnthropicSettingsDialog:
     """Test Anthropic settings dialog."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.APIKeySetupDialog")
+    @patch("asciidoc_artisan.ui.api_key_dialog.APIKeySetupDialog")
     def test_show_anthropic_settings_dialog(self, mock_dialog_cls, mock_main_window):
         from asciidoc_artisan.ui.dialog_manager import DialogManager
 
@@ -1216,7 +1216,7 @@ class TestAnthropicSettingsDialog:
 class TestAppSettingsDialog:
     """Test application settings dialog."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.SettingsEditorDialog")
+    @patch("asciidoc_artisan.ui.dialogs.SettingsEditorDialog")
     def test_show_app_settings_cancelled(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
@@ -1235,7 +1235,7 @@ class TestAppSettingsDialog:
         # Should not refresh UI when cancelled
         mock_main_window._refresh_from_settings.assert_not_called()
 
-    @patch("asciidoc_artisan.ui.dialog_manager.SettingsEditorDialog")
+    @patch("asciidoc_artisan.ui.dialogs.SettingsEditorDialog")
     def test_show_app_settings_accepted(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
@@ -1259,7 +1259,7 @@ class TestAppSettingsDialog:
 class TestFontSettingsDialog:
     """Test font settings dialog."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.FontSettingsDialog")
+    @patch("asciidoc_artisan.ui.dialogs.FontSettingsDialog")
     def test_show_font_settings_cancelled(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
@@ -1277,7 +1277,7 @@ class TestFontSettingsDialog:
         # Should not save settings when cancelled
         mock_main_window._settings_manager.save_settings.assert_not_called()
 
-    @patch("asciidoc_artisan.ui.dialog_manager.FontSettingsDialog")
+    @patch("asciidoc_artisan.ui.dialogs.FontSettingsDialog")
     def test_show_font_settings_accepted(self, mock_dialog_cls, mock_main_window):
         from PySide6.QtWidgets import QDialog
 
@@ -1784,7 +1784,7 @@ class TestOllamaStatusServiceDetection:
 class TestInstallationValidatorInvocation:
     """Test installation validator dialog invocation."""
 
-    @patch("asciidoc_artisan.ui.dialog_manager.InstallationValidatorDialog")
+    @patch("asciidoc_artisan.ui.installation_validator_dialog.InstallationValidatorDialog")
     def test_show_installation_validator(self, mock_dialog_cls, mock_main_window):
         """Test installation validator dialog execution."""
         from asciidoc_artisan.ui.dialog_manager import DialogManager

@@ -22,36 +22,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QMessageBox
 
-# Optional imports - may not be installed
-try:
-    import anthropic
-except ImportError:
-    anthropic = None
-
-try:
-    import ollama
-except ImportError:
-    ollama = None
-
-# Claude client (optional)
-try:
-    from asciidoc_artisan.claude import ClaudeClient
-except ImportError:
-    ClaudeClient = None
-
-# Application dialogs
-# Note: Previously imported locally to avoid circular imports, but moved to module
-# level to support @patch decorators in tests. Circular imports are handled via
-# lazy initialization in the dialogs themselves.
-from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
-from asciidoc_artisan.ui.dialogs import (
-    FontSettingsDialog,
-    OllamaSettingsDialog,
-    SettingsEditorDialog,
-)
-from asciidoc_artisan.ui.installation_validator_dialog import (
-    InstallationValidatorDialog,
-)
+# Lazy imports for dialogs - improves startup by ~0.4s
+# Note: Import inside methods to defer heavy dependencies (anthropic SDK = 0.32s)
 from asciidoc_artisan.ui.status_dialog_builder import StatusDialogBuilder
 from asciidoc_artisan.ui.telemetry_dialog_handler import TelemetryDialogHandler
 
@@ -79,6 +51,8 @@ class DialogManager:
 
     def show_installation_validator(self) -> None:
         """Show installation validator dialog."""
+        from asciidoc_artisan.ui.installation_validator_dialog import InstallationValidatorDialog
+
         dialog = InstallationValidatorDialog(self.editor)
         dialog.exec()
 
@@ -104,6 +78,8 @@ class DialogManager:
 
     def show_ollama_settings(self) -> None:
         """Show Ollama AI settings dialog with model selection."""
+        from asciidoc_artisan.ui.dialogs import OllamaSettingsDialog
+
         # Show dialog and wait for user response.
         dialog = OllamaSettingsDialog(self.editor._settings, self.editor)
         if dialog.exec():
@@ -133,12 +109,16 @@ class DialogManager:
 
     def show_anthropic_settings(self) -> None:
         """Show Anthropic API key configuration dialog."""
+        from asciidoc_artisan.ui.api_key_dialog import APIKeySetupDialog
+
         # Show API key configuration dialog.
         dialog = APIKeySetupDialog(self.editor)
         dialog.exec()  # Modal dialog - wait for user to close it
 
     def show_app_settings(self) -> None:
         """Show application settings editor dialog."""
+        from asciidoc_artisan.ui.dialogs import SettingsEditorDialog
+
         dialog = SettingsEditorDialog(self.editor._settings, self.editor._settings_manager, self.editor)
         if dialog.exec():
             # Settings are saved automatically in the dialog
@@ -148,6 +128,8 @@ class DialogManager:
 
     def show_font_settings(self) -> None:
         """Show font settings dialog."""
+        from asciidoc_artisan.ui.dialogs import FontSettingsDialog
+
         dialog = FontSettingsDialog(self.editor._settings, self.editor)
         if dialog.exec():
             # Get updated settings
