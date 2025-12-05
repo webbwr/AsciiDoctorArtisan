@@ -1,5 +1,10 @@
 # AsciiDoc Artisan
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-green.svg)](https://python.org)
+[![PySide6](https://img.shields.io/badge/Qt-PySide6-41CD52.svg)](https://doc.qt.io/qtforpython/)
+[![Release](https://img.shields.io/github/v/release/webbwr/AsciiDoctorArtisan)](https://github.com/webbwr/AsciiDoctorArtisan/releases)
+
 **v2.1.0** | Desktop AsciiDoc editor with live preview
 
 ## Features
