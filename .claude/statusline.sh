@@ -296,7 +296,7 @@ build_status_display() {
     fi
 
     # Single line output with key metrics
-    echo -e "${PROJECT_NAME} v${PROJECT_VERSION} │ ${GREEN}${GIT_BRANCH}${RESET} ±${GIT_STATUS}${GIT_SYNC} │ Py${PY_VER} │ mypy:${MYPY_STATUS} ruff:${RUFF_STATUS} │ ${TEST_COUNT} tests │ cov:${COV_DISPLAY}"
+    echo -e "${PROJECT_NAME} v${PROJECT_VERSION} │ ${GREEN}${GIT_BRANCH}${RESET} ±${GIT_STATUS}${GIT_SYNC} │ Py${PY_VER} │ mypy:${MYPY_STATUS} ruff:${RUFF_STATUS} │ ${TEST_COUNT} tests │ ${COV_DISPLAY}"
 }
 
 # ============================================================================

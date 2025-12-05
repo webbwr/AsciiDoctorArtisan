@@ -133,3 +133,206 @@ class TestErrorHandling:
 
         # Should not crash, may return warnings
         assert isinstance(diagnostics, list)
+
+
+class TestQuickFixes:
+    """Test quick fix functionality."""
+
+    def test_get_quick_fixes_no_cache(self, provider: AsciiDocDiagnosticsProvider) -> None:
+        """Test quick fixes returns empty when no errors cached."""
+        # Create a mock diagnostic
+        diagnostic = lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=0, character=0),
+                end=lsp.Position(line=0, character=10),
+            ),
+            message="Test error",
+            code="E001",
+        )
+
+        # No diagnostics run yet, cache is empty
+        fixes = provider.get_quick_fixes("file:///test.adoc", diagnostic)
+        assert fixes == []
+
+    def test_get_quick_fixes_no_matching_error(self, provider: AsciiDocDiagnosticsProvider) -> None:
+        """Test quick fixes returns empty when no matching error."""
+        # Run diagnostics to populate cache
+        text = "= Title\n"
+        provider.get_diagnostics(text)
+
+        # Create a diagnostic that doesn't match any cached error
+        diagnostic = lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=99, character=0),
+                end=lsp.Position(line=99, character=10),
+            ),
+            message="Non-existent error",
+            code="X999",
+        )
+
+        fixes = provider.get_quick_fixes("file:///test.adoc", diagnostic)
+        assert fixes == []
+
+    def test_find_matching_error(self, provider: AsciiDocDiagnosticsProvider) -> None:
+        """Test finding matching error in cache."""
+        from asciidoc_artisan.core.syntax_models import ErrorSeverity, SyntaxErrorModel
+
+        # Manually populate cache
+        error = SyntaxErrorModel(
+            code="E001",
+            severity=ErrorSeverity.ERROR,
+            message="Test error",
+            line=5,
+            column=0,
+            length=10,
+            fixes=[],
+        )
+        provider._errors_cache = [error]
+
+        # Create matching diagnostic
+        diagnostic = lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=5, character=0),
+                end=lsp.Position(line=5, character=10),
+            ),
+            message="Test error",
+            code="E001",
+        )
+
+        match = provider._find_matching_error(diagnostic)
+        assert match is not None
+        assert match.code == "E001"
+        assert match.line == 5
+
+    def test_find_matching_error_no_match(self, provider: AsciiDocDiagnosticsProvider) -> None:
+        """Test no match when error doesn't exist."""
+        from asciidoc_artisan.core.syntax_models import ErrorSeverity, SyntaxErrorModel
+
+        # Manually populate cache
+        error = SyntaxErrorModel(
+            code="E001",
+            severity=ErrorSeverity.ERROR,
+            message="Test error",
+            line=5,
+            column=0,
+            length=10,
+            fixes=[],
+        )
+        provider._errors_cache = [error]
+
+        # Create non-matching diagnostic (different line)
+        diagnostic = lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=10, character=0),
+                end=lsp.Position(line=10, character=10),
+            ),
+            message="Test error",
+            code="E001",
+        )
+
+        match = provider._find_matching_error(diagnostic)
+        assert match is None
+
+    def test_convert_quick_fix(self, provider: AsciiDocDiagnosticsProvider) -> None:
+        """Test converting QuickFix to LSP CodeAction."""
+        from asciidoc_artisan.core.syntax_models import QuickFix, TextEdit
+
+        diagnostic = lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=5, character=0),
+                end=lsp.Position(line=5, character=10),
+            ),
+            message="Test error",
+            code="E001",
+        )
+
+        fix = QuickFix(
+            title="Add closing delimiter",
+            edits=[
+                TextEdit(
+                    start_line=5,
+                    start_column=10,
+                    end_line=5,
+                    end_column=10,
+                    new_text="----",  # Note: str_strip_whitespace strips trailing newlines
+                )
+            ],
+        )
+
+        action = provider._convert_quick_fix("file:///test.adoc", diagnostic, fix)
+
+        assert action is not None
+        assert action.title == "Add closing delimiter"
+        assert action.kind == lsp.CodeActionKind.QuickFix
+        assert action.diagnostics == [diagnostic]
+        assert action.edit is not None
+        assert action.edit.changes is not None
+        assert "file:///test.adoc" in action.edit.changes
+
+        # Verify text edit
+        edits = action.edit.changes["file:///test.adoc"]
+        assert len(edits) == 1
+        assert edits[0].new_text == "----"
+        assert edits[0].range.start.line == 5
+        assert edits[0].range.start.character == 10
+
+    def test_get_quick_fixes_with_fixes(self, provider: AsciiDocDiagnosticsProvider) -> None:
+        """Test getting quick fixes for error with fixes."""
+        from asciidoc_artisan.core.syntax_models import (
+            ErrorSeverity,
+            QuickFix,
+            SyntaxErrorModel,
+            TextEdit,
+        )
+
+        # Create error with fixes
+        fix = QuickFix(
+            title="Fix the issue",
+            edits=[
+                TextEdit(
+                    start_line=5,
+                    start_column=0,
+                    end_line=5,
+                    end_column=5,
+                    new_text="fixed",
+                )
+            ],
+        )
+        error = SyntaxErrorModel(
+            code="E001",
+            severity=ErrorSeverity.ERROR,
+            message="Test error",
+            line=5,
+            column=0,
+            length=5,
+            fixes=[fix],
+        )
+        provider._errors_cache = [error]
+
+        # Create matching diagnostic
+        diagnostic = lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=5, character=0),
+                end=lsp.Position(line=5, character=5),
+            ),
+            message="Test error",
+            code="E001",
+        )
+
+        actions = provider.get_quick_fixes("file:///test.adoc", diagnostic)
+
+        assert len(actions) == 1
+        assert actions[0].title == "Fix the issue"
+        assert actions[0].kind == lsp.CodeActionKind.QuickFix
+
+    def test_diagnostics_cache_population(self, provider: AsciiDocDiagnosticsProvider) -> None:
+        """Test that get_diagnostics populates the cache."""
+        # Initially cache should be empty
+        assert provider._errors_cache == []
+
+        # Run diagnostics
+        text = "= Title\n\nSome content."
+        provider.get_diagnostics(text)
+
+        # Cache should be a list (may be empty for valid content)
+        assert isinstance(provider._errors_cache, list)
