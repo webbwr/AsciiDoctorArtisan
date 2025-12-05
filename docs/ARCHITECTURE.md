@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Architecture
 
-**Version:** 2.1.0 | **Last Updated:** 2025-12-03 | **Public Release**
+**Version:** 2.1.0 | **Last Updated:** 2025-12-05 | **Public Release**
 
 > **See also:** [SPECIFICATIONS.md](../SPECIFICATIONS.md) for 109 functional requirements.
 
@@ -8,17 +8,11 @@
 
 **MA Principle (間)** — Japanese concept of negative space. Each module focuses on one thing. Target: <400 lines per file.
 
-**Codebase Metrics** (aligned with SPECIFICATIONS.md):
-- **Total:** 44,201 lines across 171 files
-- Core: 13,216 lines across 45+ files (avg ~290 lines/file)
-- Workers: 4,718 lines across 19 files (avg ~248 lines/file)
-- UI: 21,571 lines across 60+ files (avg ~360 lines/file)
-- LSP: 1,359 lines across 8 files (avg ~170 lines/file)
-
-**Quality Metrics:**
-- Unit tests: 5,254 + E2E: 3 tests
-- Type coverage: 100% (mypy --strict, 0 errors)
-- MA compliance: avg ~280 lines/file
+**Codebase Metrics:**
+- **Source:** 45,900 lines / 180 files (avg ~255 lines/file)
+- **Tests:** 5,139 (5,122 unit + 17 E2E)
+- **Type coverage:** 100% (mypy --strict)
+- **Startup:** 0.586s
 
 ## Package Structure
 
@@ -185,14 +179,17 @@ Uses `ThreadPoolExecutor` for CPU-bound AsciiDoc rendering:
 
 ### Provider Modules
 
-| Provider | Lines | Function |
-|----------|-------|----------|
-| `server.py` | 258 | Core LSP server, handler registration |
-| `completion_provider.py` | 254 | Context-aware auto-complete |
-| `diagnostics_provider.py` | 148 | Syntax validation via SyntaxChecker |
-| `hover_provider.py` | 307 | Documentation on hover |
-| `symbols_provider.py` | 208 | Document outline, go-to-definition |
-| `document_state.py` | 135 | Thread-safe document storage |
+| Provider | Function |
+|----------|----------|
+| `server.py` | Core LSP server, handler registration |
+| `completion_provider.py` | Context-aware auto-complete |
+| `diagnostics_provider.py` | Syntax validation via SyntaxChecker |
+| `hover_provider.py` | Documentation on hover |
+| `symbols_provider.py` | Document outline, go-to-definition |
+| `code_action_provider.py` | Quick fixes, lightbulb suggestions |
+| `folding_provider.py` | Code folding ranges |
+| `formatting_provider.py` | Document formatting |
+| `semantic_tokens_provider.py` | Semantic highlighting |
 
 ### LSP Features
 
@@ -201,6 +198,10 @@ Uses `ThreadPoolExecutor` for CPU-bound AsciiDoc rendering:
 - **textDocument/hover**: AsciiDoc element documentation
 - **textDocument/documentSymbol**: Heading hierarchy, anchors
 - **textDocument/definition**: Cross-reference navigation
+- **textDocument/codeAction**: Quick fixes
+- **textDocument/foldingRange**: Block folding
+- **textDocument/formatting**: Document format
+- **textDocument/semanticTokens**: Syntax highlighting
 
 ## GPU Rendering Pipeline
 

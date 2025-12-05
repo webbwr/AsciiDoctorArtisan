@@ -8,11 +8,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Codebase | 46,457 lines / 180 files |
+| Source | 45,900 lines / 180 files |
 | Unit Tests | 5,122 (100% pass) |
 | E2E Tests | 17 (100% pass) |
 | Type Coverage | 100% (mypy --strict) |
-| Startup | 0.27s |
+| Startup | 0.586s |
 
 ---
 
@@ -228,7 +228,7 @@ self.file_manager = FileManager(self)
 ## Acceptance
 
 **Must Pass:**
-- 5,196 unit + 3 E2E tests (100%)
+- 5,139 tests (5,122 unit + 17 E2E)
 - mypy --strict (0 errors)
 - No shell=True
 - Atomic writes only
@@ -236,7 +236,7 @@ self.file_manager = FileManager(self)
 **Performance:**
 | Op | Target | Current |
 |----|--------|---------|
-| Startup | <0.5s | 0.27s ✅ |
+| Startup | <1.0s | 0.586s ✅ |
 | Preview | <200ms | 150-200ms ✅ |
 | Complete | <50ms | 20-40ms ✅ |
 
