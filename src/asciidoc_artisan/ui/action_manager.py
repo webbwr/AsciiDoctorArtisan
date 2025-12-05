@@ -96,6 +96,7 @@ class ActionManager:
     def _declare_tools_actions(self) -> None:
         """Declare Tools menu action type hints."""
         self.validate_install_act: QAction
+        self.performance_dashboard_act: QAction
         self.autocomplete_settings_act: QAction
         self.syntax_check_settings_act: QAction
         self.toggle_chat_pane_act: QAction

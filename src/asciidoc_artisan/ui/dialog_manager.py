@@ -59,6 +59,13 @@ class DialogManager:
         dialog = InstallationValidatorDialog(self.editor)
         dialog.exec()
 
+    def show_performance_dashboard(self) -> None:
+        """Show performance benchmarking dashboard."""
+        from asciidoc_artisan.ui.performance_dashboard import PerformanceDashboard
+
+        dialog = PerformanceDashboard(self.editor)
+        dialog.exec()
+
     def show_pandoc_status(self) -> None:
         """Show pandoc status (delegates to status_dialog_builder)."""
         self._status_builder.show_pandoc_status()

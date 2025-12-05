@@ -1,9 +1,4 @@
-"""
-Action Creators - Creates all QAction instances for menus.
-
-Extracted from ActionManager to reduce class size (MA principle).
-Contains 13 action creator methods organized by menu/feature.
-"""
+"""Action Creators - Creates all QAction instances for menus (13 methods)."""
 
 from typing import Any, Protocol
 
@@ -274,6 +269,11 @@ class ActionCreators:
             "&Validate Installation...",
             "Check all dependencies are properly installed",
             self.parent.window.dialog_manager.show_installation_validator,
+        )
+        self.parent.performance_dashboard_act = self.parent._create_action(
+            "&Performance Dashboard...",
+            "View real-time performance metrics and benchmarks",
+            self.parent.window.dialog_manager.show_performance_dashboard,
         )
         self.parent.toggle_theme_act = self.parent._create_action(
             "&Toggle Theme",

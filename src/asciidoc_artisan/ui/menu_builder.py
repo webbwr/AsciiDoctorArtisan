@@ -64,6 +64,7 @@ class ActionSource(Protocol):
 
     # Tools actions
     validate_install_act: Any
+    performance_dashboard_act: Any
     ollama_settings_act: Any
     anthropic_settings_act: Any
     app_settings_act: Any
@@ -181,6 +182,7 @@ class MenuBuilder:
         """Create and populate Tools menu with AI Settings submenu."""
         tools_menu = menubar.addMenu("&Tools")
         tools_menu.addAction(self.actions.validate_install_act)
+        tools_menu.addAction(self.actions.performance_dashboard_act)
         tools_menu.addSeparator()
         ai_settings_menu = tools_menu.addMenu("&AI Settings")
         ai_settings_menu.addAction(self.actions.ollama_settings_act)
