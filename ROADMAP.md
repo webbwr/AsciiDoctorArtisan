@@ -24,14 +24,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Codebase | 44,201 lines / 171 files |
-| Unit Tests | 5,254 (100% pass) |
-| E2E Tests | 3 (100% pass) |
+| Codebase | 45,677 lines / 373 files |
+| Unit Tests | 5,196 (100% pass) |
+| E2E Tests | 71 (100% pass) |
 | Type Coverage | 100% (mypy --strict) |
 | Startup | 0.586s |
 
 ### Features
-- ✅ LSP Server (completion, diagnostics, hover, symbols)
+- ✅ LSP Server (8 providers: completion, diagnostics, hover, symbols, code actions, folding, formatting, semantic tokens)
 - ✅ Multi-core rendering (2-4x speedup)
 - ✅ Auto-complete (<50ms, fuzzy matching)
 - ✅ Syntax Check (real-time, quick fixes)
@@ -65,14 +65,9 @@
 
 ## Future (Deferred)
 
-**v3.0.0** features deferred indefinitely:
-- LSP enhancements (see `.claude/plans/lsp-enhancements-plan.md`)
-  - Quick Fixes (code actions)
-  - Folding Ranges
-  - Document Formatting
-  - Semantic Tokens
+**v3.0.0** - No planned features. Current v2.x is feature-complete.
 
-**Rationale:** v2.x is feature-complete for core AsciiDoc editing. Future expansion contingent on user demand.
+**Rationale:** v2.x includes all planned LSP features (code actions, folding, formatting, semantic tokens). Maintenance mode only.
 
 ---
 
