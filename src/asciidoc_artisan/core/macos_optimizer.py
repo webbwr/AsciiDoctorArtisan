@@ -1,16 +1,4 @@
-"""
-macOS Optimizer - Apple Silicon & Metal Performance Optimizations.
-
-This module provides macOS-specific optimizations for:
-- Apple Silicon (M1/M2/M3) unified memory architecture
-- Metal GPU acceleration and compute shaders
-- Grand Central Dispatch (GCD) threading patterns
-- APFS file system optimizations
-- macOS native APIs and frameworks
-
-Designed by: Grandmaster Apple Engineer
-Performance target: 2-3x faster on Apple Silicon vs generic implementation
-"""
+"""macOS Optimizer - Apple Silicon & Metal Performance Optimizations."""
 
 import logging
 import os
@@ -40,18 +28,7 @@ class MacOSOptimizationInfo:
 
 
 def _run_sysctl(key: str, timeout: int = 1) -> str | None:
-    """
-    Run sysctl command and return output.
-
-    Args:
-        key: sysctl key to query (e.g., "machdep.cpu.brand_string")
-        timeout: Command timeout in seconds
-
-    Returns:
-        Command output or None if failed
-
-    MA principle: Extracted helper (8 lines).
-    """
+    """Run sysctl command and return output."""
     try:
         result = subprocess.run(["sysctl", "-n", key], capture_output=True, text=True, timeout=timeout)
         if result.returncode == 0:
@@ -62,17 +39,9 @@ def _run_sysctl(key: str, timeout: int = 1) -> str | None:
 
 
 def _detect_chip_name(info: MacOSOptimizationInfo) -> None:
-    """
-    Detect Apple Silicon chip name (M1, M2, M3, M4).
-
-    Args:
-        info: MacOSOptimizationInfo to update
-
-    MA principle: Extracted from detect_macos_capabilities (13 lines).
-    """
+    """Detect Apple Silicon chip name."""
     brand = _run_sysctl("machdep.cpu.brand_string")
     if brand:
-        # Extract M1/M2/M3/M4 from "Apple M1 Ultra" etc
         for chip in ["M4", "M3", "M2", "M1"]:
             if chip in brand:
                 info.chip_name = brand
@@ -80,32 +49,17 @@ def _detect_chip_name(info: MacOSOptimizationInfo) -> None:
 
 
 def _detect_memory_size(info: MacOSOptimizationInfo) -> None:
-    """
-    Detect unified memory size in GB.
-
-    Args:
-        info: MacOSOptimizationInfo to update
-
-    MA principle: Extracted from detect_macos_capabilities (9 lines).
-    """
+    """Detect unified memory size in GB."""
     mem_str = _run_sysctl("hw.memsize")
     if mem_str:
         try:
-            mem_bytes = int(mem_str)
-            info.unified_memory_gb = mem_bytes // (1024**3)
+            info.unified_memory_gb = int(mem_str) // (1024**3)
         except ValueError:
             pass
 
 
 def _detect_performance_cores(info: MacOSOptimizationInfo) -> None:
-    """
-    Detect performance core count.
-
-    Args:
-        info: MacOSOptimizationInfo to update
-
-    MA principle: Extracted from detect_macos_capabilities (8 lines).
-    """
+    """Detect performance core count."""
     cores_str = _run_sysctl("hw.perflevel0.physicalcpu")
     if cores_str:
         try:
@@ -115,14 +69,7 @@ def _detect_performance_cores(info: MacOSOptimizationInfo) -> None:
 
 
 def _detect_efficiency_cores(info: MacOSOptimizationInfo) -> None:
-    """
-    Detect efficiency core count.
-
-    Args:
-        info: MacOSOptimizationInfo to update
-
-    MA principle: Extracted from detect_macos_capabilities (8 lines).
-    """
+    """Detect efficiency core count."""
     cores_str = _run_sysctl("hw.perflevel1.physicalcpu")
     if cores_str:
         try:
@@ -132,14 +79,7 @@ def _detect_efficiency_cores(info: MacOSOptimizationInfo) -> None:
 
 
 def _detect_metal_and_gpu(info: MacOSOptimizationInfo) -> None:
-    """
-    Detect Metal version and GPU core count.
-
-    Args:
-        info: MacOSOptimizationInfo to update
-
-    MA principle: Extracted from detect_macos_capabilities (34 lines).
-    """
+    """Detect Metal version and GPU core count."""
     try:
         result = subprocess.run(
             ["system_profiler", "SPDisplaysDataType", "-detailLevel", "mini", "-json"],
@@ -154,14 +94,11 @@ def _detect_metal_and_gpu(info: MacOSOptimizationInfo) -> None:
                 data = json.loads(result.stdout)
                 displays = data.get("SPDisplaysDataType", [])
                 for display in displays:
-                    # Get Metal version
                     metal_info = display.get("spdisplays_mtlgpufamilymacOS", "")
                     if metal_info:
                         info.metal_version = metal_info
                         if "Metal" in metal_info:
                             info.metal_feature_set = metal_info
-
-                    # Get GPU core count
                     chip_type = display.get("sppci_model", "")
                     if "GPU" in chip_type:
                         for cores, pattern in [
@@ -183,41 +120,16 @@ def _detect_metal_and_gpu(info: MacOSOptimizationInfo) -> None:
 
 
 def _infer_neural_engine_cores(info: MacOSOptimizationInfo) -> None:
-    """
-    Infer Neural Engine core count from chip name.
-
-    Args:
-        info: MacOSOptimizationInfo to update
-
-    MA principle: Extracted from detect_macos_capabilities (22 lines).
-    Note: Apple doesn't expose direct APIs, so we infer from chip generation.
-    """
+    """Infer Neural Engine core count from chip name."""
     if not info.chip_name:
         return
-
-    # Check for Ultra/Max variants first
     is_ultra = "Ultra" in info.chip_name
-    is_max = "Max" in info.chip_name
-
-    # All Apple Silicon chips have Neural Engine
     if any(chip in info.chip_name for chip in ["M1", "M2", "M3", "M4"]):
-        if is_ultra:
-            info.neural_engine_cores = 32
-        elif is_max:
-            info.neural_engine_cores = 16
-        else:
-            info.neural_engine_cores = 16
+        info.neural_engine_cores = 32 if is_ultra else 16
 
 
 def _detect_apfs(info: MacOSOptimizationInfo) -> None:
-    """
-    Detect APFS filesystem availability.
-
-    Args:
-        info: MacOSOptimizationInfo to update
-
-    MA principle: Extracted from detect_macos_capabilities (8 lines).
-    """
+    """Detect APFS filesystem availability."""
     try:
         result = subprocess.run(["diskutil", "info", "/"], capture_output=True, text=True, timeout=1)
         if result.returncode == 0:
@@ -227,33 +139,19 @@ def _detect_apfs(info: MacOSOptimizationInfo) -> None:
 
 
 def detect_macos_capabilities() -> MacOSOptimizationInfo:
-    """
-    Detect macOS platform capabilities for optimization.
-
-    Returns comprehensive system information for Apple Silicon optimization:
-    - Chip type (M1, M2, M3, M4)
-    - Unified memory architecture
-    - Core counts (Performance/Efficiency/Neural/GPU)
-    - Metal feature set
-    - APFS availability
-
-    MA principle: Reduced from 149→35 lines by extracting 7 helper methods.
-    """
+    """Detect macOS platform capabilities for optimization."""
     info = MacOSOptimizationInfo()
 
-    # Check if running on macOS
     if platform.system() != "Darwin":
         return info
 
     info.is_macos = True
 
     try:
-        # Detect chip architecture (Apple Silicon vs Intel)
         arch = platform.machine()
         info.is_apple_silicon = arch == "arm64"
 
         if info.is_apple_silicon:
-            # Detect all Apple Silicon capabilities
             _detect_chip_name(info)
             _detect_memory_size(info)
             _detect_performance_cores(info)
@@ -261,10 +159,8 @@ def detect_macos_capabilities() -> MacOSOptimizationInfo:
             _detect_metal_and_gpu(info)
             _infer_neural_engine_cores(info)
 
-        # Check for APFS and GCD (available on all macOS)
         _detect_apfs(info)
         info.gcd_available = True
-
     except Exception as e:
         logger.debug(f"macOS capability detection error: {e}")
 
@@ -272,28 +168,19 @@ def detect_macos_capabilities() -> MacOSOptimizationInfo:
 
 
 def configure_metal_optimization() -> dict[str, str | bool]:
-    """
-    Configure Metal GPU for optimal performance on Apple Silicon.
-
-    Returns dictionary of Metal optimization settings:
-    - memory_pool_size: Unified memory allocation
-    - shader_cache_enabled: Compile shader cache
-    - async_compute: Async compute command encoding
-    - texture_compression: Use ASTC compression
-    """
+    """Configure Metal GPU for optimal performance."""
     config: dict[str, str | bool] = {
-        "memory_pool_size": "auto",  # Let Metal manage unified memory
+        "memory_pool_size": "auto",
         "shader_cache_enabled": True,
         "async_compute": True,
-        "texture_compression": "astc",  # Apple's texture compression
+        "texture_compression": "astc",
         "command_buffer_reuse": True,
-        "mtl_hud": False,  # Disable debug HUD in production
+        "mtl_hud": False,
     }
 
-    # Enable Metal debug layer only in development
     if os.getenv("METAL_DEBUG", "0") == "1":
         config["mtl_hud"] = True
-        os.environ["METAL_DEVICE_WRAPPER_TYPE"] = "1"  # Enable validation
+        os.environ["METAL_DEVICE_WRAPPER_TYPE"] = "1"
         os.environ["METAL_DEBUG_ERROR_MODE"] = "assert"
 
     logger.info(f"Metal optimization configured: {config}")
@@ -301,93 +188,56 @@ def configure_metal_optimization() -> dict[str, str | bool]:
 
 
 def optimize_unified_memory_usage() -> dict[str, int | bool | float]:
-    """
-    Optimize memory usage for Apple Silicon unified memory architecture.
-
-    Apple Silicon uses unified memory shared between CPU/GPU/Neural Engine.
-    This is 2-3x faster than discrete GPU architectures due to:
-    - Zero-copy transfers between CPU/GPU
-    - Reduced memory pressure
-    - Better cache locality
-
-    Returns optimization settings.
-    """
+    """Optimize memory usage for Apple Silicon unified memory."""
     info = detect_macos_capabilities()
 
     if not info.is_apple_silicon:
         return {}
 
-    # Calculate optimal memory allocation based on unified memory
     total_mem_mb = info.unified_memory_gb * 1024
-    app_memory_limit_mb = int(total_mem_mb * 0.5)  # Use up to 50% of RAM
-    gpu_memory_pool_mb = int(total_mem_mb * 0.25)  # 25% for GPU
+    app_memory_limit_mb = int(total_mem_mb * 0.5)
+    gpu_memory_pool_mb = int(total_mem_mb * 0.25)
 
     config = {
         "app_memory_limit_mb": app_memory_limit_mb,
         "gpu_memory_pool_mb": gpu_memory_pool_mb,
-        "use_zero_copy": True,  # Enable zero-copy between CPU/GPU
+        "use_zero_copy": True,
         "unified_memory": True,
-        "memory_pressure_threshold": 0.8,  # Trigger GC at 80%
+        "memory_pressure_threshold": 0.8,
     }
 
     logger.info(
-        f"Unified memory optimization: {info.unified_memory_gb}GB total, "
-        f"{app_memory_limit_mb}MB app limit, {gpu_memory_pool_mb}MB GPU pool"
+        f"Unified memory: {info.unified_memory_gb}GB total, {app_memory_limit_mb}MB app, {gpu_memory_pool_mb}MB GPU"
     )
-
     return config
 
 
 def get_optimal_thread_count() -> int:
-    """
-    Get optimal thread count for Apple Silicon.
-
-    Uses Grand Central Dispatch (GCD) pattern:
-    - Performance cores for compute-heavy tasks
-    - Efficiency cores for I/O and background tasks
-
-    Returns recommended thread pool size.
-    """
+    """Get optimal thread count for Apple Silicon."""
     info = detect_macos_capabilities()
 
     if not info.is_apple_silicon:
-        # Intel Mac: use standard CPU count
         import multiprocessing
 
         return multiprocessing.cpu_count()
 
-    # Apple Silicon: prioritize performance cores
-    # Use P-cores * 2 for main thread pool
-    # E-cores used automatically by macOS for background tasks
     optimal_threads = info.performance_cores * 2
-
-    logger.info(
-        f"Optimal thread count: {optimal_threads} (P-cores: {info.performance_cores}, E-cores: {info.efficiency_cores})"
-    )
-
+    logger.info(f"Optimal threads: {optimal_threads} (P: {info.performance_cores}, E: {info.efficiency_cores})")
     return optimal_threads
 
 
 def enable_apfs_optimizations() -> dict[str, bool]:
-    """
-    Enable APFS-specific file system optimizations.
-
-    APFS features:
-    - Copy-on-write (CoW) for instant file duplication
-    - Atomic safe-save built-in
-    - Cloning for fast snapshots
-    - Native encryption
-    """
+    """Enable APFS-specific file system optimizations."""
     info = detect_macos_capabilities()
 
     if not info.apfs_enabled:
         return {}
 
     config = {
-        "use_cloning": True,  # Use APFS cloning for file copies
-        "atomic_save_native": True,  # APFS has atomic writes
-        "fast_directory_sizing": True,  # APFS optimized du
-        "enable_compression": False,  # Let macOS handle compression
+        "use_cloning": True,
+        "atomic_save_native": True,
+        "fast_directory_sizing": True,
+        "enable_compression": False,
     }
 
     logger.info("APFS optimizations enabled")
@@ -408,18 +258,15 @@ def log_optimization_status() -> None:
 
     if info.is_apple_silicon:
         logger.info(f"✓ Apple Silicon: {info.chip_name}")
-        logger.info(f"  Unified Memory: {info.unified_memory_gb} GB")
-        logger.info(f"  CPU Cores: {info.performance_cores} Performance + {info.efficiency_cores} Efficiency")
-        logger.info(f"  GPU Cores: {info.gpu_cores}")
-        logger.info(f"  Neural Engine: {info.neural_engine_cores} cores")
+        logger.info(
+            f"  Memory: {info.unified_memory_gb}GB | CPU: {info.performance_cores}P+{info.efficiency_cores}E | GPU: {info.gpu_cores} | NPU: {info.neural_engine_cores}"
+        )
         logger.info(f"  Metal: {info.metal_feature_set or 'Supported'}")
     else:
         logger.info("✓ Intel Mac detected")
 
     if info.apfs_enabled:
         logger.info("✓ APFS optimizations enabled")
-
     if info.gcd_available:
         logger.info("✓ Grand Central Dispatch available")
-
     logger.info("=" * 60)
