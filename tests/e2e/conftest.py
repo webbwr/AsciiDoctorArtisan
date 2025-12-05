@@ -233,5 +233,4 @@ Thank you for reading.
 """
 
 
-# pytest-bdd hooks for Gherkin integration
-pytest_plugins = ["pytest_bdd"]
+# pytest-bdd plugin registered in root conftest.py

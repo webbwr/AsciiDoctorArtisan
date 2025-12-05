@@ -11,7 +11,7 @@ Guidance for Claude Code working with this repository.
 | Version | 2.1.0 (Dec 4, 2025) |
 | Status | Public Release |
 | Codebase | 44,201 lines / 171 files |
-| Tests | 5,254 unit + 71 E2E |
+| Tests | 5,308 unit + 71 E2E |
 | Types | mypy --strict (0 errors) |
 | Startup | 0.586s |
 
@@ -111,5 +111,5 @@ src/asciidoc_artisan/
 
 ---
 
-*v2.1.0 | 44,201 lines | 5,254 tests | mypy --strict*
+*v2.1.0 | 44,201 lines | 5,308 tests | mypy --strict*
 - always apply MA pricipals

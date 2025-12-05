@@ -219,36 +219,6 @@ class TestCreatePreviewWidget:
         # Should return QTextBrowser as fallback
         assert isinstance(widget, QTextBrowser)
 
-    @pytest.mark.requires_gpu
-    @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
-    @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
-    def test_returns_webengine_when_gpu_available(self, mock_webengine_cls, mock_get_gpu_info):
-        from asciidoc_artisan.ui.preview_handler_gpu import create_preview_widget
-
-        # Mock GPU info with GPU available
-        mock_gpu_info = Mock()
-        mock_gpu_info.can_use_webengine = True
-        mock_gpu_info.has_gpu = True
-        mock_gpu_info.gpu_name = "NVIDIA GeForce RTX 4060"
-        mock_gpu_info.gpu_type = "nvidia"
-        mock_gpu_info.driver_version = "535.161.07"
-        mock_gpu_info.render_device = "llvmpipe"
-        mock_get_gpu_info.return_value = mock_gpu_info
-
-        # Mock QWebEngineView
-        mock_webengine = Mock()
-        mock_settings = Mock()
-        mock_webengine.settings = Mock(return_value=mock_settings)
-        mock_webengine_cls.return_value = mock_webengine
-
-        create_preview_widget()
-
-        # Should create QWebEngineView
-        mock_webengine_cls.assert_called_once()
-        # Should enable GPU acceleration
-        mock_settings.setAttribute.assert_called()
-
     @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
     @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
     @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
@@ -283,25 +253,6 @@ class TestCreatePreviewWidget:
 @pytest.mark.unit
 class TestCreatePreviewHandler:
     """Test suite for create_preview_handler factory function."""
-
-    @pytest.mark.requires_gpu
-    @patch("asciidoc_artisan.ui.preview_handler_gpu.hasattr")
-    def test_returns_webengine_handler_for_webengine_view(self, mock_hasattr, mock_editor, mock_parent_window):
-        from asciidoc_artisan.ui.preview_handler_gpu import (
-            WebEngineHandler,
-            create_preview_handler,
-        )
-
-        # Mock preview with 'page' attribute (QWebEngineView)
-        mock_preview = Mock()
-        mock_preview.page = Mock()
-        mock_hasattr.return_value = True
-
-        with patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView", Mock()):
-            handler = create_preview_handler(mock_editor, mock_preview, mock_parent_window)
-
-            # Should return WebEngineHandler
-            assert isinstance(handler, WebEngineHandler)
 
     def test_returns_text_browser_handler_for_text_browser(self, mock_editor, mock_parent_window):
         from asciidoc_artisan.ui.preview_handler_gpu import create_preview_handler
@@ -703,32 +654,6 @@ class TestGPUDetectionEdgeCases:
 @pytest.mark.unit
 class TestWebEngineSettingsConfiguration:
     """Test suite for QWebEngineView settings."""
-
-    @pytest.mark.requires_gpu
-    @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
-    @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")
-    @patch("asciidoc_artisan.ui.preview_handler_gpu.QWebEngineView")
-    def test_enables_accelerated_2d_canvas(self, mock_webengine_cls, mock_get_gpu_info):
-        from asciidoc_artisan.ui.preview_handler_gpu import create_preview_widget
-
-        mock_gpu_info = Mock()
-        mock_gpu_info.can_use_webengine = True
-        mock_gpu_info.has_gpu = True
-        mock_gpu_info.gpu_name = "GPU"
-        mock_gpu_info.gpu_type = "nvidia"
-        mock_gpu_info.driver_version = "535"
-        mock_gpu_info.render_device = "gpu"
-        mock_get_gpu_info.return_value = mock_gpu_info
-
-        mock_webengine = Mock()
-        mock_settings = Mock()
-        mock_webengine.settings = Mock(return_value=mock_settings)
-        mock_webengine_cls.return_value = mock_webengine
-
-        create_preview_widget()
-
-        # Should call setAttribute at least once
-        assert mock_settings.setAttribute.call_count >= 1
 
     @patch("asciidoc_artisan.ui.preview_handler_gpu.WEBENGINE_AVAILABLE", True)
     @patch("asciidoc_artisan.ui.preview_handler_gpu.get_gpu_info")

@@ -174,14 +174,66 @@ def check_wslg_environment() -> bool:
     return bool(wsl_distro or wsl_interop or wayland_display)
 
 
+def check_wsl2_cuda() -> tuple[bool, str | None, str | None]:
+    """
+    Check for WSL2 CUDA GPU support (DirectX 12 passthrough).
+
+    WSL2 uses DirectX 12 GPU passthrough with CUDA libraries in /usr/lib/wsl/lib.
+    This doesn't require /dev/dri devices like native Linux.
+
+    Returns:
+        Tuple of (has_cuda, gpu_name, driver_version)
+    """
+    # Check for WSL2 environment
+    if not check_wslg_environment():
+        return False, None, None
+
+    # Check for WSL2 CUDA libraries
+    wsl_lib_path = Path("/usr/lib/wsl/lib")
+    if not wsl_lib_path.exists():
+        return False, None, None
+
+    # Look for CUDA library
+    cuda_libs = list(wsl_lib_path.glob("libcuda.so*"))
+    if not cuda_libs:
+        return False, None, None
+
+    # CUDA libraries found - try to get GPU info via Windows host
+    gpu_name = "NVIDIA GPU (WSL2 DirectX passthrough)"
+    driver_version = None
+
+    # Try nvidia-smi.exe (Windows host)
+    try:
+        result = subprocess.run(
+            ["/mnt/c/Windows/System32/nvidia-smi.exe", "--query-gpu=name,driver_version", "--format=csv,noheader"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            parts = result.stdout.strip().split(",")
+            gpu_name = parts[0].strip() if len(parts) > 0 else gpu_name
+            driver_version = parts[1].strip() if len(parts) > 1 else None
+
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    logger.info(f"WSL2 CUDA GPU detected: {gpu_name}")
+    return True, gpu_name, driver_version
+
+
 def check_intel_npu() -> tuple[bool, str | None]:
     """
     Check for Intel NPU (Neural Processing Unit).
 
+    Intel 12th gen (Alder Lake) and newer CPUs have integrated NPUs.
+    WSL2 may not expose /dev/accel but the NPU is still present on host.
+
     Returns:
         Tuple of (has_npu, npu_name)
     """
-    # Check for Intel NPU via OpenVINO
+    # Check for Intel NPU via OpenVINO/clinfo
     try:
         result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
 
@@ -195,11 +247,37 @@ def check_intel_npu() -> tuple[bool, str | None]:
     except (FileNotFoundError, subprocess.TimeoutExpired):
         pass
 
-    # Check /dev/accel* devices (Intel NPU driver)
+    # Check /dev/accel* devices (Intel NPU driver on native Linux)
     accel_path = Path("/dev")
     accel_devices = list(accel_path.glob("accel*"))
     if accel_devices:
         return True, "Intel NPU (detected via /dev/accel)"
+
+    # Check CPU model for Intel 12th gen+ (Alder Lake and newer have NPU)
+    # This works in WSL2 where /dev/accel is not exposed
+    try:
+        with open("/proc/cpuinfo") as f:
+            cpuinfo = f.read()
+            for line in cpuinfo.split("\n"):
+                if "model name" in line.lower():
+                    model = line.split(":")[-1].strip()
+                    # Intel 12th gen (Alder Lake), 13th gen (Raptor Lake), 14th gen (Meteor Lake)
+                    # and Core Ultra have integrated NPUs
+                    if "Intel" in model:
+                        # Check for generation number
+                        import re
+
+                        gen_match = re.search(r"(\d+)(?:th|st|nd|rd)\s+Gen", model)
+                        if gen_match:
+                            gen = int(gen_match.group(1))
+                            if gen >= 12:
+                                return True, f"Intel NPU ({model})"
+                        # Check for Core Ultra (all have NPU)
+                        if "Core Ultra" in model:
+                            return True, f"Intel NPU ({model})"
+                    break
+    except (FileNotFoundError, PermissionError):
+        pass
 
     return False, None
 

@@ -9,15 +9,21 @@ This package provides a full LSP server for AsciiDoc documents:
 - Hover: Documentation on hover
 - Go-to-definition: Navigate to anchors and includes
 - Document symbols: Outline view
-- Formatting: Document formatting (future)
+- Code actions: Quick fixes for diagnostics
+- Folding: Collapsible regions (sections, blocks, comments)
+- Formatting: Document formatting (trailing whitespace, spacing)
+- Semantic tokens: Syntax highlighting
 
 Architecture:
     AsciiDocLanguageServer (server.py) - Core LSP server with pygls
-    ├── CompletionProvider (completion_provider.py) - Auto-complete logic
-    ├── DiagnosticsProvider (diagnostics_provider.py) - Syntax validation
-    ├── HoverProvider (hover_provider.py) - Hover documentation
-    ├── DefinitionProvider (definition_provider.py) - Go-to-definition
-    └── DocumentSymbolProvider (symbols_provider.py) - Document outline
+    ├── CompletionProvider - Auto-complete logic
+    ├── DiagnosticsProvider - Syntax validation
+    ├── HoverProvider - Hover documentation
+    ├── SymbolsProvider - Document outline + go-to-definition
+    ├── CodeActionProvider - Quick fixes
+    ├── FoldingProvider - Collapsible regions
+    ├── FormattingProvider - Document formatting
+    └── SemanticTokensProvider - Syntax highlighting
 
 Example usage:
     # Start as standalone server
@@ -29,8 +35,16 @@ Example usage:
     server.start_io()
 """
 
+from asciidoc_artisan.lsp.code_action_provider import AsciiDocCodeActionProvider
+from asciidoc_artisan.lsp.folding_provider import AsciiDocFoldingProvider
+from asciidoc_artisan.lsp.formatting_provider import AsciiDocFormattingProvider
+from asciidoc_artisan.lsp.semantic_tokens_provider import AsciiDocSemanticTokensProvider
 from asciidoc_artisan.lsp.server import AsciiDocLanguageServer
 
 __all__ = [
     "AsciiDocLanguageServer",
+    "AsciiDocCodeActionProvider",
+    "AsciiDocFoldingProvider",
+    "AsciiDocFormattingProvider",
+    "AsciiDocSemanticTokensProvider",
 ]

@@ -97,23 +97,45 @@ def _setup_gpu_acceleration() -> None:
             logger.info("macOS detected - using native Metal GPU acceleration")
     else:
         # Linux/Windows: Enable GPU acceleration
-        # Tell Qt to use desktop OpenGL (the graphics API for 3D acceleration)
-        os.environ.setdefault("QT_OPENGL", "desktop")
+        # Detect WSL2 environment (uses DirectX passthrough, not native OpenGL)
+        is_wsl2 = os.environ.get("WSL_DISTRO_NAME") is not None
 
-        # Configure X11 OpenGL integration (Linux/WSL specific)
-        os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
+        if is_wsl2:
+            # WSL2 uses DirectX passthrough via d3d12 - doesn't support desktop OpenGL
+            # Use EGL/ANGLE instead of desktop GL
+            os.environ.setdefault("QT_OPENGL", "angle")
 
-        # Pass special flags to Chromium (the web engine used for preview)
-        # These flags enable various GPU acceleration features
-        os.environ.setdefault(
-            "QTWEBENGINE_CHROMIUM_FLAGS",
-            "--enable-gpu-rasterization "  # Use GPU to draw shapes/text
-            "--enable-zero-copy "  # Share memory between GPU and CPU (faster)
-            "--enable-hardware-overlays "  # Use GPU for video playback
-            "--enable-features=VaapiVideoDecoder,VaapiVideoEncoder "  # Hardware video
-            "--use-gl=desktop "  # Use desktop OpenGL
-            "--disable-gpu-driver-bug-workarounds",  # Assume modern drivers
-        )
+            # Configure for EGL (WSL2 uses D3D12 backend)
+            os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
+
+            # Chromium flags for WSL2 - use ANGLE (GL over DirectX)
+            os.environ.setdefault(
+                "QTWEBENGINE_CHROMIUM_FLAGS",
+                "--enable-gpu-rasterization "
+                "--enable-zero-copy "
+                "--enable-hardware-overlays "
+                "--use-gl=angle "  # Use ANGLE (GL over DirectX) for WSL2
+                "--use-angle=d3d11 "  # DirectX 11 backend for ANGLE
+                "--disable-gpu-driver-bug-workarounds",
+            )
+            logger.info("WSL2 detected - using ANGLE GL backend via DirectX")
+        else:
+            # Native Linux: Use desktop OpenGL
+            os.environ.setdefault("QT_OPENGL", "desktop")
+
+            # Configure X11 OpenGL integration
+            os.environ.setdefault("QT_XCB_GL_INTEGRATION", "xcb_egl")
+
+            # Chromium flags for native Linux
+            os.environ.setdefault(
+                "QTWEBENGINE_CHROMIUM_FLAGS",
+                "--enable-gpu-rasterization "
+                "--enable-zero-copy "
+                "--enable-hardware-overlays "
+                "--enable-features=VaapiVideoDecoder,VaapiVideoEncoder "
+                "--use-gl=desktop "
+                "--disable-gpu-driver-bug-workarounds",
+            )
 
         # === OPTIONAL: NPU (Neural Processing Unit) ACCELERATION ===
         # Some modern CPUs (Intel 11th gen+) have built-in AI chips called NPUs

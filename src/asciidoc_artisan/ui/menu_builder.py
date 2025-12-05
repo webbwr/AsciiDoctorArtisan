@@ -184,6 +184,7 @@ class MenuBuilder:
         tools_menu.addSeparator()
         ai_settings_menu = tools_menu.addMenu("&AI Settings")
         ai_settings_menu.addAction(self.actions.ollama_settings_act)
+        ai_settings_menu.addAction(self.actions.ollama_model_browser_act)
         ai_settings_menu.addAction(self.actions.anthropic_settings_act)
         tools_menu.addAction(self.actions.app_settings_act)
         tools_menu.addAction(self.actions.autocomplete_settings_act)

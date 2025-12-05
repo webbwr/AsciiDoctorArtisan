@@ -9,7 +9,7 @@
 | Metric | Value |
 |--------|-------|
 | Codebase | 44,201 lines / 171 files |
-| Unit Tests | 5,254 (100% pass) |
+| Unit Tests | 5,196 (100% pass) |
 | E2E Tests | 3 (100% pass) |
 | Type Coverage | 100% (mypy --strict) |
 | Startup | 0.586s |
@@ -221,14 +221,14 @@ self.file_manager = FileManager(self)
 | FR | Feature | Notes |
 |----|---------|-------|
 | 108 | MA | <400 lines |
-| 109 | LSP | 54 tests |
+| 109 | LSP | 108 tests |
 
 ---
 
 ## Acceptance
 
 **Must Pass:**
-- 5,254 unit + 3 E2E tests (100%)
+- 5,196 unit + 3 E2E tests (100%)
 - mypy --strict (0 errors)
 - No shell=True
 - Atomic writes only

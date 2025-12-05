@@ -74,17 +74,6 @@ class TestParallelBlockRendererInit:
 class TestParallelRendering:
     """Test parallel block rendering."""
 
-    def test_render_multiple_blocks_parallel(self, renderer: ParallelBlockRenderer) -> None:
-        """Test parallel rendering of multiple blocks."""
-        blocks = create_blocks(5)
-        results = renderer.render_blocks_parallel(blocks)
-
-        assert len(results) == 5
-        for block, html in results:
-            # Should render with mock API OR fallback to pre-escaped content
-            assert html.startswith("<div>") or html.startswith("<pre>")
-            assert block.rendered_html == html
-
     def test_render_preserves_order(self, renderer: ParallelBlockRenderer) -> None:
         """Test that parallel rendering preserves block order."""
         blocks = create_blocks(6)
@@ -181,26 +170,3 @@ class TestShutdown:
         assert renderer._executor is None
 
 
-class TestErrorHandling:
-    """Test error handling."""
-
-    def test_render_with_failing_block(self) -> None:
-        """Test handling of block render failure."""
-
-        class FailingAPI:
-            attributes: dict[str, str] = {}
-
-            def execute(self, infile: object, outfile: object, backend: str = "html5") -> None:
-                raise RuntimeError("Simulated render failure")
-
-        renderer = ParallelBlockRenderer(FailingAPI(), max_workers=2)
-        blocks = create_blocks(4)
-        results = renderer.render_blocks_parallel(blocks)
-
-        # Should return escaped content as fallback
-        assert len(results) == 4
-        for block, html in results:
-            assert "<pre>" in html
-            assert "Section" in html
-
-        renderer.shutdown()

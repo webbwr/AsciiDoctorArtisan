@@ -731,6 +731,81 @@ class TestCheckWSLgEnvironment:
         assert check_wslg_environment() is False
 
 
+class TestCheckWsl2Cuda:
+    """Test check_wsl2_cuda() function."""
+
+    def test_wsl2_cuda_not_in_wsl(self, mocker):
+        """Test returns False when not in WSL environment."""
+        from asciidoc_artisan.core.gpu_checks import check_wsl2_cuda
+
+        mocker.patch("asciidoc_artisan.core.gpu_checks.check_wslg_environment", return_value=False)
+        has_cuda, gpu_name, driver = check_wsl2_cuda()
+        assert has_cuda is False
+        assert gpu_name is None
+        assert driver is None
+
+    def test_wsl2_cuda_no_wsl_lib(self, mocker):
+        """Test returns False when /usr/lib/wsl/lib doesn't exist."""
+        from asciidoc_artisan.core.gpu_checks import check_wsl2_cuda
+
+        mocker.patch("asciidoc_artisan.core.gpu_checks.check_wslg_environment", return_value=True)
+        mocker.patch("asciidoc_artisan.core.gpu_checks.Path.exists", return_value=False)
+        has_cuda, gpu_name, driver = check_wsl2_cuda()
+        assert has_cuda is False
+
+    def test_wsl2_cuda_no_cuda_libs(self, mocker):
+        """Test returns False when no CUDA libraries found."""
+        from asciidoc_artisan.core.gpu_checks import check_wsl2_cuda
+
+        mocker.patch("asciidoc_artisan.core.gpu_checks.check_wslg_environment", return_value=True)
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
+        mock_wsl_lib = MagicMock()
+        mock_path.return_value = mock_wsl_lib
+        mock_wsl_lib.exists.return_value = True
+        mock_wsl_lib.glob.return_value = []  # No CUDA libs
+        has_cuda, gpu_name, driver = check_wsl2_cuda()
+        assert has_cuda is False
+
+    def test_wsl2_cuda_detected_with_nvidia_smi(self, mocker):
+        """Test CUDA detected with nvidia-smi.exe on Windows host."""
+        from asciidoc_artisan.core.gpu_checks import check_wsl2_cuda
+
+        mocker.patch("asciidoc_artisan.core.gpu_checks.check_wslg_environment", return_value=True)
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
+        mock_wsl_lib = MagicMock()
+        mock_path.return_value = mock_wsl_lib
+        mock_wsl_lib.exists.return_value = True
+        mock_wsl_lib.glob.return_value = [Path("/usr/lib/wsl/lib/libcuda.so")]
+
+        mock_run = mocker.patch("asciidoc_artisan.core.gpu_checks.subprocess.run")
+        mock_run.return_value = MagicMock(returncode=0, stdout="NVIDIA GeForce RTX 4060, 581.80\n")
+
+        has_cuda, gpu_name, driver = check_wsl2_cuda()
+        assert has_cuda is True
+        assert gpu_name == "NVIDIA GeForce RTX 4060"
+        assert driver == "581.80"
+
+    def test_wsl2_cuda_detected_without_nvidia_smi(self, mocker):
+        """Test CUDA detected but nvidia-smi.exe not available."""
+        from asciidoc_artisan.core.gpu_checks import check_wsl2_cuda
+
+        mocker.patch("asciidoc_artisan.core.gpu_checks.check_wslg_environment", return_value=True)
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
+        mock_wsl_lib = MagicMock()
+        mock_path.return_value = mock_wsl_lib
+        mock_wsl_lib.exists.return_value = True
+        mock_wsl_lib.glob.return_value = [Path("/usr/lib/wsl/lib/libcuda.so")]
+
+        mock_run = mocker.patch("asciidoc_artisan.core.gpu_checks.subprocess.run")
+        mock_run.side_effect = FileNotFoundError("nvidia-smi.exe not found")
+
+        has_cuda, gpu_name, driver = check_wsl2_cuda()
+        assert has_cuda is True
+        assert "NVIDIA GPU" in gpu_name
+        assert "WSL2" in gpu_name
+        assert driver is None
+
+
 class TestCheckIntelNPU:
     """Test check_intel_npu() function."""
 
@@ -758,7 +833,7 @@ class TestCheckIntelNPU:
         assert "Intel NPU" in npu_name
 
     def test_no_npu_detected(self, mocker):
-        """Test no NPU detected."""
+        """Test no NPU detected (no clinfo, no /dev/accel, no Intel 12+ CPU)."""
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = FileNotFoundError("clinfo not found")
 
@@ -767,9 +842,48 @@ class TestCheckIntelNPU:
         mock_path.return_value = mock_accel
         mock_accel.glob.return_value = []
 
+        # Mock /proc/cpuinfo to return an older CPU (no NPU)
+        mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: Intel(R) Core(TM) i7-8700 CPU\n"))
+
         has_npu, npu_name = check_intel_npu()
         assert has_npu is False
         assert npu_name is None
+
+    def test_intel_npu_via_cpuinfo_12th_gen(self, mocker):
+        """Test Intel NPU detected via /proc/cpuinfo for 12th gen+."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_run.side_effect = FileNotFoundError("clinfo not found")
+
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
+        mock_accel = MagicMock()
+        mock_path.return_value = mock_accel
+        mock_accel.glob.return_value = []
+
+        # Mock /proc/cpuinfo with 13th gen Intel CPU
+        mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: 13th Gen Intel(R) Core(TM) i7-13700H\n"))
+
+        has_npu, npu_name = check_intel_npu()
+        assert has_npu is True
+        assert "Intel NPU" in npu_name
+        assert "13th Gen" in npu_name
+
+    def test_intel_npu_via_cpuinfo_core_ultra(self, mocker):
+        """Test Intel NPU detected via /proc/cpuinfo for Core Ultra."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_run.side_effect = FileNotFoundError("clinfo not found")
+
+        mock_path = mocker.patch("asciidoc_artisan.core.gpu_checks.Path")
+        mock_accel = MagicMock()
+        mock_path.return_value = mock_accel
+        mock_accel.glob.return_value = []
+
+        # Mock /proc/cpuinfo with Core Ultra CPU
+        mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: Intel(R) Core Ultra 7 155H\n"))
+
+        has_npu, npu_name = check_intel_npu()
+        assert has_npu is True
+        assert "Intel NPU" in npu_name
+        assert "Core Ultra" in npu_name
 
 
 class TestDetectComputeCapabilities:
@@ -849,18 +963,54 @@ class TestDetectGPU:
     """Test detect_gpu() function."""
 
     def test_detect_gpu_no_dri(self, mocker):
-        """Test GPU detection when /dev/dri not found."""
+        """Test GPU detection when /dev/dri not found and no WSL2 CUDA."""
         # Mock platform to test Linux code path
         mocker.patch("asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux")
         mocker.patch(
             "asciidoc_artisan.core.gpu_detection.check_dri_devices",
             return_value=(False, None),
         )
+        # Also mock WSL2 CUDA fallback to return False
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.check_wsl2_cuda",
+            return_value=(False, None, None),
+        )
 
         gpu_info = detect_gpu()
         assert gpu_info.has_gpu is False
         assert gpu_info.can_use_webengine is False
         assert "dri not found" in gpu_info.reason.lower()
+
+    def test_detect_gpu_wsl2_cuda_fallback(self, mocker):
+        """Test GPU detection falls back to WSL2 CUDA when /dev/dri not found."""
+        # Mock platform to test Linux code path
+        mocker.patch("asciidoc_artisan.core.gpu_detection.platform.system", return_value="Linux")
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.check_dri_devices",
+            return_value=(False, None),
+        )
+        # Mock WSL2 CUDA as available
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.check_wsl2_cuda",
+            return_value=(True, "NVIDIA RTX 4060", "581.80"),
+        )
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.check_intel_npu",
+            return_value=(False, None),
+        )
+        mocker.patch(
+            "asciidoc_artisan.core.gpu_detection.detect_compute_capabilities",
+            return_value=["cuda"],
+        )
+
+        gpu_info = detect_gpu()
+        assert gpu_info.has_gpu is True
+        assert gpu_info.gpu_type == "nvidia"
+        assert gpu_info.gpu_name == "NVIDIA RTX 4060"
+        assert gpu_info.driver_version == "581.80"
+        assert gpu_info.render_device == "WSL2 DirectX 12"
+        assert gpu_info.can_use_webengine is True
+        assert "WSL2" in gpu_info.reason
 
     def test_detect_gpu_software_renderer(self, mocker):
         """Test GPU detection with software renderer."""

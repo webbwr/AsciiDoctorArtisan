@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -61,6 +62,12 @@ class OllamaSettingsDialog(QDialog):
         self.model_combo.setToolTip("Select which AI model to use for conversions")
         self.model_combo.currentIndexChanged.connect(self._on_model_changed)
         model_layout.addWidget(self.model_combo)
+
+        # Browse Models button
+        self.browse_btn = QPushButton("Browse All Models...")
+        self.browse_btn.setToolTip("Browse and download models from Ollama library")
+        self.browse_btn.clicked.connect(self._open_model_browser)
+        model_layout.addWidget(self.browse_btn)
 
         return model_layout
 
@@ -293,6 +300,27 @@ class OllamaSettingsDialog(QDialog):
         """Handle model selection change."""
         # Update parent window's status bar immediately
         self._update_parent_status_bar()
+
+    def _open_model_browser(self) -> None:
+        """Open the Ollama model browser dialog."""
+        from asciidoc_artisan.ui.ollama_model_browser import OllamaModelBrowser
+
+        browser = OllamaModelBrowser(self)
+        browser.model_downloaded.connect(self._on_model_downloaded)
+        browser.exec()
+
+    def _on_model_downloaded(self, model_name: str) -> None:
+        """Handle when a new model is downloaded from the browser."""
+        logger.info(f"Model downloaded: {model_name}")
+        # Refresh the model list
+        self.model_combo.clear()
+        self.models.clear()
+        self._load_models()
+
+        # Select the newly downloaded model
+        if model_name in self.models:
+            index = self.models.index(model_name)
+            self.model_combo.setCurrentIndex(index)
 
     def _update_parent_status_bar(self) -> None:
         """Update parent window's status bar with current settings."""

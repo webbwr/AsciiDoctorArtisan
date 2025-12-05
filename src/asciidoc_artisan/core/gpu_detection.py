@@ -31,6 +31,7 @@ from asciidoc_artisan.core.gpu_checks import (
     check_metal_availability,
     check_nvidia_gpu,
     check_opengl_renderer,
+    check_wsl2_cuda,
     check_wslg_environment,
 )
 from asciidoc_artisan.core.gpu_models import GPUCacheEntry, GPUInfo
@@ -48,6 +49,7 @@ __all__ = [
     "check_intel_gpu",
     "check_opengl_renderer",
     "check_wslg_environment",
+    "check_wsl2_cuda",
     "check_intel_npu",
     "check_macos_gpu",
     "check_apple_neural_engine",
@@ -156,10 +158,33 @@ def _detect_macos_gpu() -> GPUInfo:
 
 
 def _detect_linux_windows_gpu() -> GPUInfo:
-    """Detect GPU on Linux/Windows (DRI devices)."""
-    # Check for DRI devices
+    """Detect GPU on Linux/Windows (DRI devices or WSL2 CUDA)."""
+    # Check for DRI devices (native Linux GPU passthrough)
     has_dri, render_device = check_dri_devices()
+
     if not has_dri:
+        # Fallback: Check for WSL2 CUDA (DirectX 12 passthrough)
+        has_wsl2_cuda, wsl2_gpu_name, wsl2_driver = check_wsl2_cuda()
+
+        if has_wsl2_cuda:
+            logger.info("WSL2 CUDA GPU detected (DirectX 12 passthrough)")
+            has_npu, npu_name = check_intel_npu()
+            compute_capabilities = detect_compute_capabilities()
+
+            return GPUInfo(
+                has_gpu=True,
+                gpu_type="nvidia",
+                gpu_name=wsl2_gpu_name,
+                driver_version=wsl2_driver,
+                render_device="WSL2 DirectX 12",
+                can_use_webengine=True,
+                reason=f"Hardware acceleration available: {wsl2_gpu_name} (WSL2)",
+                has_npu=has_npu,
+                npu_type="intel_npu" if has_npu else None,
+                npu_name=npu_name,
+                compute_capabilities=compute_capabilities,
+            )
+
         return GPUInfo(
             has_gpu=False,
             can_use_webengine=False,

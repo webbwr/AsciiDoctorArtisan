@@ -1334,6 +1334,21 @@ class AsciiDocEditor(QMainWindow):
         """Show Ollama AI settings dialog (delegates to DialogManager)."""
         self.dialog_manager.show_ollama_settings()
 
+    def _show_ollama_model_browser(self) -> None:
+        """Show Ollama model browser to download new models."""
+        from asciidoc_artisan.ui.ollama_model_browser import OllamaModelBrowser
+
+        browser = OllamaModelBrowser(self)
+        browser.model_downloaded.connect(self._on_ollama_model_downloaded)
+        browser.exec()
+
+    def _on_ollama_model_downloaded(self, model_name: str) -> None:
+        """Handle when a model is downloaded from the browser."""
+        # Reload chat model manager to pick up new model
+        if hasattr(self, "chat_manager") and self.chat_manager:
+            self.chat_manager._reload_models()
+        self.show_status_message(f"Downloaded Ollama model: {model_name}")
+
     def _show_anthropic_settings(self) -> None:
         """Show Anthropic API key settings dialog (delegates to DialogManager)."""
         self.dialog_manager.show_anthropic_settings()

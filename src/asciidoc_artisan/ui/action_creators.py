@@ -345,6 +345,11 @@ class ActionCreators:
             "Configure Ollama AI models for document conversion",
             self.parent.window._show_ollama_settings,
         )
+        self.parent.ollama_model_browser_act = self.parent._create_action(
+            "Browse Ollama &Models...",
+            "Browse and download models from the Ollama library",
+            self.parent.window._show_ollama_model_browser,
+        )
         self.parent.anthropic_settings_act = self.parent._create_action(
             "&Anthropic AI Settings...",
             "Configure Anthropic Claude API settings",

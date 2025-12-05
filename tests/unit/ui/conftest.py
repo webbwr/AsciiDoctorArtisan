@@ -17,6 +17,23 @@ import pytest
 from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
 
 
+# ============================================================================
+# Global QMessageBox Mock - MUST BE APPLIED BEFORE ANY TESTS RUN
+# ============================================================================
+# This prevents blocking dialog calls during Qt event processing (cleanup).
+# Using module-level patch instead of fixture because fixtures get undone
+# before cleanup_widget_references runs.
+
+
+def _noop_exec(self):
+    """No-op replacement for QMessageBox.exec() to prevent blocking."""
+    return None
+
+
+# Apply permanent patch at module import time
+QMessageBox.exec = _noop_exec
+
+
 @pytest.fixture(autouse=True)
 def cleanup_qt_modal_dialogs(qtbot):
     """

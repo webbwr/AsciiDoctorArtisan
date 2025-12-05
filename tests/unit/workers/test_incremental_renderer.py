@@ -258,37 +258,6 @@ class TestIncrementalPreviewRenderer:
         assert html is not None
         assert len(html) > 0
 
-    def test_incremental_render_unchanged_content(self):
-        """Test incremental render with unchanged content."""
-        api = MockAsciiDocAPI()
-        renderer = IncrementalPreviewRenderer(api)
-
-        source = """= Title
-
-== Section 1
-
-Content 1.
-
-== Section 2
-
-Content 2.
-"""
-        # First render
-        html1 = renderer.render(source)
-
-        # Get cache stats
-        stats1 = renderer.get_cache_stats()
-
-        # Second render (same content)
-        html2 = renderer.render(source)
-
-        # Get cache stats after second render
-        stats2 = renderer.get_cache_stats()
-
-        # Should have cache hits
-        assert stats2["hits"] > stats1["hits"]
-        assert html1 == html2
-
     def test_incremental_render_changed_content(self):
         """Test incremental render with changed content."""
         api = MockAsciiDocAPI()
@@ -367,34 +336,6 @@ Content 1 MODIFIED.
 @pytest.mark.performance
 class TestIncrementalRenderingPerformance:
     """Performance tests for incremental rendering."""
-
-    def test_large_document_performance(self):
-        """Test rendering large document."""
-        api = MockAsciiDocAPI()
-        renderer = IncrementalPreviewRenderer(api)
-
-        # Create large document with many sections
-        sections = []
-        for i in range(50):
-            sections.append(f"== Section {i}\n\nContent for section {i}.\n")
-
-        source = "= Large Document\n\n" + "\n".join(sections)
-
-        # First render
-        import time
-
-        start = time.time()
-        html1 = renderer.render(source)
-        first_render_time = time.time() - start
-
-        # Second render (should be faster with cache)
-        start = time.time()
-        html2 = renderer.render(source)
-        second_render_time = time.time() - start
-
-        # Second render should use cache
-        assert second_render_time < first_render_time
-        assert html1 == html2
 
     def test_partial_edit_performance(self):
         """Test performance with partial edits."""

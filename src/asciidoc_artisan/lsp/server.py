@@ -1,7 +1,7 @@
 """
 AsciiDoc Language Server - Core LSP implementation using pygls.
 
-MA principle: ~200 lines focused on server lifecycle and feature registration.
+MA principle: ~250 lines focused on server lifecycle and feature registration.
 
 This module provides the main Language Server Protocol server for AsciiDoc.
 Uses pygls for the heavy lifting, delegates to feature providers for logic.
@@ -12,6 +12,10 @@ Features:
 - textDocument/hover: Documentation on hover
 - textDocument/definition: Go-to-definition
 - textDocument/documentSymbol: Document outline
+- textDocument/codeAction: Quick fixes
+- textDocument/foldingRange: Collapsible regions
+- textDocument/formatting: Document formatting
+- textDocument/semanticTokens: Syntax highlighting
 
 Example:
     # Standalone server
@@ -27,10 +31,14 @@ import logging
 from lsprotocol import types as lsp
 from pygls.lsp.server import LanguageServer
 
+from asciidoc_artisan.lsp.code_action_provider import AsciiDocCodeActionProvider
 from asciidoc_artisan.lsp.completion_provider import AsciiDocCompletionProvider
 from asciidoc_artisan.lsp.diagnostics_provider import AsciiDocDiagnosticsProvider
 from asciidoc_artisan.lsp.document_state import DocumentState
+from asciidoc_artisan.lsp.folding_provider import AsciiDocFoldingProvider
+from asciidoc_artisan.lsp.formatting_provider import AsciiDocFormattingProvider
 from asciidoc_artisan.lsp.hover_provider import AsciiDocHoverProvider
+from asciidoc_artisan.lsp.semantic_tokens_provider import AsciiDocSemanticTokensProvider
 from asciidoc_artisan.lsp.symbols_provider import AsciiDocSymbolsProvider
 
 logger = logging.getLogger(__name__)
@@ -46,17 +54,14 @@ class AsciiDocLanguageServer(LanguageServer):
     - Hover documentation
     - Go-to-definition for anchors and includes
     - Document outline (symbols)
+    - Code actions (quick fixes)
+    - Folding ranges (collapsible regions)
+    - Document formatting
+    - Semantic tokens (syntax highlighting)
 
     Thread Safety:
         Uses pygls's built-in threading model - all feature handlers
         run on a separate thread pool.
-
-    Attributes:
-        document_state: Manages document content and state
-        completion_provider: Handles completion requests
-        diagnostics_provider: Handles diagnostics
-        hover_provider: Handles hover requests
-        symbols_provider: Handles document symbol requests
     """
 
     SERVER_NAME = "asciidoc-artisan-lsp"
@@ -74,6 +79,10 @@ class AsciiDocLanguageServer(LanguageServer):
         self.diagnostics_provider = AsciiDocDiagnosticsProvider()
         self.hover_provider = AsciiDocHoverProvider()
         self.symbols_provider = AsciiDocSymbolsProvider()
+        self.code_action_provider = AsciiDocCodeActionProvider()
+        self.folding_provider = AsciiDocFoldingProvider()
+        self.formatting_provider = AsciiDocFormattingProvider()
+        self.semantic_tokens_provider = AsciiDocSemanticTokensProvider()
 
         # Register handlers
         self._register_handlers()
@@ -93,6 +102,10 @@ class AsciiDocLanguageServer(LanguageServer):
         self.feature(lsp.TEXT_DOCUMENT_HOVER)(self._on_hover)
         self.feature(lsp.TEXT_DOCUMENT_DEFINITION)(self._on_definition)
         self.feature(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)(self._on_document_symbol)
+        self.feature(lsp.TEXT_DOCUMENT_CODE_ACTION)(self._on_code_action)
+        self.feature(lsp.TEXT_DOCUMENT_FOLDING_RANGE)(self._on_folding_range)
+        self.feature(lsp.TEXT_DOCUMENT_FORMATTING)(self._on_formatting)
+        self.feature(lsp.TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL)(self._on_semantic_tokens)
 
     def _on_did_open(self, params: lsp.DidOpenTextDocumentParams) -> None:
         """Handle document open - store content and run initial diagnostics."""
@@ -197,6 +210,35 @@ class AsciiDocLanguageServer(LanguageServer):
         diagnostics = self.diagnostics_provider.get_diagnostics(text)
         self.text_document_publish_diagnostics(lsp.PublishDiagnosticsParams(uri=uri, diagnostics=diagnostics))
 
+    def _on_code_action(self, params: lsp.CodeActionParams) -> list[lsp.CodeAction] | None:
+        """Handle code action request (quick fixes)."""
+        uri = params.text_document.uri
+        return self.code_action_provider.get_code_actions(uri, params.range, params.context)
+
+    def _on_folding_range(self, params: lsp.FoldingRangeParams) -> list[lsp.FoldingRange] | None:
+        """Handle folding range request."""
+        uri = params.text_document.uri
+        text = self.document_state.get_document(uri)
+        if not text:
+            return None
+        return self.folding_provider.get_folding_ranges(text)
+
+    def _on_formatting(self, params: lsp.DocumentFormattingParams) -> list[lsp.TextEdit] | None:
+        """Handle document formatting request."""
+        uri = params.text_document.uri
+        text = self.document_state.get_document(uri)
+        if not text:
+            return None
+        return self.formatting_provider.format_document(text, params.options)
+
+    def _on_semantic_tokens(self, params: lsp.SemanticTokensParams) -> lsp.SemanticTokens | None:
+        """Handle semantic tokens request."""
+        uri = params.text_document.uri
+        text = self.document_state.get_document(uri)
+        if not text:
+            return None
+        return self.semantic_tokens_provider.get_tokens(text)
+
     def get_capabilities(self) -> lsp.ServerCapabilities:
         """Return server capabilities for initialization."""
         return lsp.ServerCapabilities(
@@ -212,6 +254,15 @@ class AsciiDocLanguageServer(LanguageServer):
             hover_provider=lsp.HoverOptions(),
             definition_provider=lsp.DefinitionOptions(),
             document_symbol_provider=lsp.DocumentSymbolOptions(),
+            code_action_provider=lsp.CodeActionOptions(
+                code_action_kinds=[lsp.CodeActionKind.QuickFix],
+            ),
+            folding_range_provider=lsp.FoldingRangeOptions(),
+            document_formatting_provider=lsp.DocumentFormattingOptions(),
+            semantic_tokens_provider=lsp.SemanticTokensOptions(
+                legend=self.semantic_tokens_provider.get_legend(),
+                full=True,
+            ),
         )
 
 

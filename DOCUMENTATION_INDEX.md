@@ -65,7 +65,7 @@
 |--------|-------|
 | Doc files | 24 |
 | Code lines | 44,201 |
-| Unit tests | 5,254 |
+| Unit tests | 5,308 |
 | E2E tests | 3 |
 | FRs | 109 |
 

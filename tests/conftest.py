@@ -10,6 +10,9 @@ Performance Optimizations:
 - Performance metrics tracking
 """
 
+# Plugin registration must be at root conftest level
+pytest_plugins = ["pytest_bdd"]
+
 import os
 import time
 from pathlib import Path
@@ -19,6 +22,14 @@ import pytest
 
 # Set Qt to use offscreen platform for headless testing
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
+
+def pytest_collection_modifyitems(config, items):
+    """Auto-skip tests marked with requires_gpu when GPU unavailable."""
+    skip_gpu = pytest.mark.skip(reason="requires_gpu: QWebEngine not available in test environment")
+    for item in items:
+        if "requires_gpu" in item.keywords:
+            item.add_marker(skip_gpu)
 
 # Disable keyring to prevent macOS Security.framework issues
 os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"
