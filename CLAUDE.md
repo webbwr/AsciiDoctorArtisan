@@ -8,12 +8,12 @@ Guidance for Claude Code working with this repository.
 
 | Metric | Value |
 |--------|-------|
-| Version | 2.1.0 (Dec 4, 2025) |
+| Version | 2.1.0 (Dec 5, 2025) |
 | Status | Public Release |
-| Codebase | 45,677 lines / 373 files |
-| Tests | 5,196 unit + 71 E2E |
+| Codebase | 45,365 lines / 180 files |
+| Tests | 5,196 unit + 17 E2E |
 | Types | mypy --strict (0 errors) |
-| Startup | 0.586s |
+| Startup | ~0.5s |
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3, pypandoc, pymupdf
 
@@ -61,7 +61,7 @@ src/asciidoc_artisan/
 ```
 
 **Patterns:**
-- Manager Pattern: UI split into {menu,theme,status,file,git,export}_manager
+- Manager Pattern: UI split into {menu,theme,status,file,git,export,telemetry,chat_worker_router}_manager
 - Worker Threads: QThread for slow ops, signal/slot communication
 - Reentrancy Guards: `_is_processing_*` flags prevent concurrent ops
 - GPU Detection: Auto CPU fallback, 24hr cache
@@ -86,8 +86,8 @@ src/asciidoc_artisan/
 | Purpose | Files |
 |---------|-------|
 | Entry | `src/main.py` |
-| Controller | `ui/main_window.py` (1,798 lines) |
-| Managers | `ui/{menu,theme,status,file,git,export}_manager.py` |
+| Controller | `ui/main_window.py` (1,183 lines) |
+| Managers | `ui/{menu,theme,status,file,git,export,telemetry,chat_worker_router}_manager.py` |
 | Workers | `workers/{git,pandoc,preview,ollama_chat}_worker.py` |
 | AI | `claude/{claude_client,claude_worker}.py` |
 | LSP | `lsp/{server,providers/*}.py` |
@@ -111,5 +111,5 @@ src/asciidoc_artisan/
 
 ---
 
-*v2.1.0 | 44,201 lines | 5,308 tests | mypy --strict*
-- always apply MA pricipals
+*v2.1.0 | 45,365 lines | 5,196 tests | mypy --strict*
+- always apply MA principles

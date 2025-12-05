@@ -276,6 +276,8 @@ build_status_display() {
 
     local GIT_BRANCH=$(echo "$GIT_INFO" | cut -d'|' -f1)
     local GIT_STATUS=$(echo "$GIT_INFO" | cut -d'|' -f2)
+    local GIT_AHEAD=$(echo "$GIT_INFO" | cut -d'|' -f3)
+    local GIT_BEHIND=$(echo "$GIT_INFO" | cut -d'|' -f4)
 
     local PY_VER=$(echo "$PY_INFO" | cut -d'|' -f1 | cut -d. -f1-2)
 
@@ -287,8 +289,14 @@ build_status_display() {
     local TEST_COUNT=$(echo "$TEST_STATS" | grep -oE '^[0-9]+' | head -1)
     [[ -z "$TEST_COUNT" ]] && TEST_COUNT="?"
 
+    # Format git sync status (push/pull)
+    local GIT_SYNC=""
+    if [[ "$GIT_AHEAD" != "0" ]] || [[ "$GIT_BEHIND" != "0" ]]; then
+        GIT_SYNC=" ↑${GIT_AHEAD}↓${GIT_BEHIND}"
+    fi
+
     # Single line output with key metrics
-    echo -e "${PROJECT_NAME} v${PROJECT_VERSION} │ ${GREEN}${GIT_BRANCH}${RESET} ±${GIT_STATUS} │ Py${PY_VER} │ mypy:${MYPY_STATUS} ruff:${RUFF_STATUS} │ ${TEST_COUNT} tests │ ${COV_DISPLAY}"
+    echo -e "${PROJECT_NAME} v${PROJECT_VERSION} │ ${GREEN}${GIT_BRANCH}${RESET} ±${GIT_STATUS}${GIT_SYNC} │ Py${PY_VER} │ mypy:${MYPY_STATUS} ruff:${RUFF_STATUS} │ ${TEST_COUNT} tests │ cov:${COV_DISPLAY}"
 }
 
 # ============================================================================

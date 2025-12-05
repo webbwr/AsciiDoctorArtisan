@@ -204,7 +204,7 @@ class TestClaudeResultHandling:
         mock_result.success = False
         mock_result.error = "API key invalid"
 
-        window._adapt_claude_response_to_chat_message(mock_result)
+        window.chat_worker_router.adapt_claude_response(mock_result)
 
         # Should handle error
         window.chat_manager.handle_error.assert_called_once_with("API key invalid")
@@ -223,7 +223,7 @@ class TestClaudeResultHandling:
         mock_result.model = "claude-sonnet-4"
         mock_result.tokens_used = 150
 
-        window._adapt_claude_response_to_chat_message(mock_result)
+        window.chat_worker_router.adapt_claude_response(mock_result)
 
         # Should forward to chat manager
         assert window.chat_manager.handle_response_ready.called
@@ -287,14 +287,14 @@ class TestTelemetryOptInDialog:
             mock_dialog_class.return_value = mock_dialog
             mock_dialog_class.Result = mock_dialog.Result
 
-            window._show_telemetry_opt_in_dialog()
+            window.telemetry_manager._show_opt_in_dialog()
 
             # Verify settings updated
             assert window._settings.telemetry_enabled is True
             assert window._settings.telemetry_opt_in_shown is True
             assert window._settings.telemetry_session_id is not None
-            assert window.telemetry_collector is not None
-            assert window.telemetry_collector.enabled is True
+            assert window.telemetry_manager.collector is not None
+            assert window.telemetry_manager.collector.enabled is True
 
     def test_telemetry_opt_in_declined(self, mock_workers, qapp):
         """Test user declines telemetry."""
@@ -313,13 +313,13 @@ class TestTelemetryOptInDialog:
             mock_dialog_class.return_value = mock_dialog
             mock_dialog_class.Result = mock_dialog.Result
 
-            window._show_telemetry_opt_in_dialog()
+            window.telemetry_manager._show_opt_in_dialog()
 
             # Verify settings updated
             assert window._settings.telemetry_enabled is False
             assert window._settings.telemetry_opt_in_shown is True
-            assert window.telemetry_collector is not None
-            assert window.telemetry_collector.enabled is False
+            assert window.telemetry_manager.collector is not None
+            assert window.telemetry_manager.collector.enabled is False
 
     def test_telemetry_opt_in_deferred(self, mock_workers, qapp):
         """Test user defers telemetry decision."""
@@ -338,12 +338,12 @@ class TestTelemetryOptInDialog:
             mock_dialog_class.return_value = mock_dialog
             mock_dialog_class.Result = mock_dialog.Result
 
-            window._show_telemetry_opt_in_dialog()
+            window.telemetry_manager._show_opt_in_dialog()
 
             # Verify opt-in not marked as shown (will show again)
             assert window._settings.telemetry_opt_in_shown is False
-            assert window.telemetry_collector is not None
-            assert window.telemetry_collector.enabled is False
+            assert window.telemetry_manager.collector is not None
+            assert window.telemetry_manager.collector.enabled is False
 
 
 @pytest.mark.unit

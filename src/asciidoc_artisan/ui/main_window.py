@@ -429,8 +429,7 @@ class AsciiDocEditor(QMainWindow):
         # Update spell check menu text to show initial state
         self.spell_check_manager._update_menu_text()
 
-        # Update telemetry menu text to show initial state
-        self._update_telemetry_menu_text()
+        # Update telemetry menu text to show initial state (deferred until telemetry_manager exists)
 
         # Export System
         self.export_manager = ExportManager(self)
@@ -447,6 +446,11 @@ class AsciiDocEditor(QMainWindow):
         # Chat System (v1.7.0)
         self.chat_manager = ChatManager(self.chat_bar, self.chat_panel, self._settings, parent=self)
 
+        # Chat Worker Router (MA extraction)
+        from asciidoc_artisan.ui.chat_worker_router import ChatWorkerRouter
+
+        self.chat_worker_router = ChatWorkerRouter(self)
+
         # Find & Search System (v1.8.0)
         self._setup_find_system()
 
@@ -460,7 +464,12 @@ class AsciiDocEditor(QMainWindow):
         MA principle: Extracted from __init__ (11 lines).
         """
         # Telemetry System (v1.8.0)
-        self._setup_telemetry()
+        from asciidoc_artisan.ui.telemetry_manager import TelemetryManager
+
+        self.telemetry_manager = TelemetryManager(self)
+        self.telemetry_collector = self.telemetry_manager.initialize(getattr(self, "_app_start_time", None))
+        # Update telemetry menu text now that manager exists
+        self.telemetry_manager._update_menu_text()
 
         # Restore UI settings and apply theme
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
@@ -592,121 +601,10 @@ class AsciiDocEditor(QMainWindow):
 
         logger.info("Quick Commit system initialized")
 
-    def _setup_telemetry(self) -> None:
-        """Initialize Telemetry System (v1.8.0).
-
-        Privacy-first telemetry with:
-        - Opt-in only (disabled by default)
-        - Local storage only (NO cloud upload)
-        - Anonymous session IDs
-        - GDPR compliance
-        - Easy opt-out anytime
-        """
-        import time
-        import uuid
-
-        from asciidoc_artisan.core import TelemetryCollector
-
-        # Show opt-in dialog on first launch (if not already shown)
-        if not self._settings.telemetry_opt_in_shown:
-            # Delay dialog to allow UI to fully initialize
-            QTimer.singleShot(1000, lambda: self._show_telemetry_opt_in_dialog())
-            return
-
-        # Initialize telemetry if enabled
-        if self._settings.telemetry_enabled:
-            # Generate session ID if not exists
-            if not self._settings.telemetry_session_id:
-                self._settings.telemetry_session_id = str(uuid.uuid4())
-                self._settings_manager.save_settings(self._settings, self)
-
-            # Initialize collector
-            self.telemetry_collector = TelemetryCollector(enabled=True, session_id=self._settings.telemetry_session_id)
-
-            # Track startup
-            startup_time = time.time() - getattr(self, "_app_start_time", time.time())
-            self.telemetry_collector.track_startup(startup_time)
-
-            logger.info(f"TelemetryCollector initialized (session: {self._settings.telemetry_session_id[:8]}...)")
-        else:
-            # Telemetry disabled - create inactive collector
-            self.telemetry_collector = TelemetryCollector(enabled=False)
-            logger.info("TelemetryCollector disabled (opt-in not accepted)")
-
-    def _show_telemetry_opt_in_dialog(self) -> None:
-        """Show telemetry opt-in dialog (first launch only)."""
-        import uuid
-
-        from asciidoc_artisan.core import TelemetryCollector
-        from asciidoc_artisan.ui.telemetry_opt_in_dialog import TelemetryOptInDialog
-
-        dialog = TelemetryOptInDialog(self)
-        result = dialog.exec()
-
-        if result == TelemetryOptInDialog.Result.ACCEPTED:
-            # User accepted - enable telemetry
-            self._settings.telemetry_enabled = True
-            self._settings.telemetry_session_id = str(uuid.uuid4())
-            self._settings.telemetry_opt_in_shown = True
-            self._settings_manager.save_settings(self._settings, self)
-
-            # Initialize collector
-            self.telemetry_collector = TelemetryCollector(enabled=True, session_id=self._settings.telemetry_session_id)
-
-            logger.info("User accepted telemetry (first launch)")
-
-        elif result == TelemetryOptInDialog.Result.DECLINED:
-            # User declined - keep telemetry disabled
-            self._settings.telemetry_enabled = False
-            self._settings.telemetry_opt_in_shown = True
-            self._settings_manager.save_settings(self._settings, self)
-
-            # Create inactive collector
-            self.telemetry_collector = TelemetryCollector(enabled=False)
-
-            logger.info("User declined telemetry (first launch)")
-
-        else:
-            # User wants to decide later - don't mark as shown
-            # Dialog will show again on next launch
-            self.telemetry_collector = TelemetryCollector(enabled=False)
-            logger.info("User deferred telemetry decision (first launch)")
-
     def toggle_telemetry(self) -> None:
-        """Toggle telemetry on/off."""
-        from asciidoc_artisan.core import TelemetryCollector
-
-        # Toggle the setting
-        self._settings.telemetry_enabled = not self._settings.telemetry_enabled
-
-        # Update menu item text to show current state
-        self._update_telemetry_menu_text()
-
-        if self._settings.telemetry_enabled:
-            # Generate session ID if not exists
-            if not self._settings.telemetry_session_id:
-                import uuid
-
-                self._settings.telemetry_session_id = str(uuid.uuid4())
-
-            # Reinitialize collector with new enabled state
-            self.telemetry_collector = TelemetryCollector(enabled=True, session_id=self._settings.telemetry_session_id)
-            self.status_manager.show_message("info", "Telemetry", "Telemetry enabled")
-            logger.info("Telemetry enabled by user")
-        else:
-            # Disable telemetry
-            self.telemetry_collector = TelemetryCollector(enabled=False)
-            self.status_manager.show_message("info", "Telemetry", "Telemetry disabled")
-            logger.info("Telemetry disabled by user")
-
-        # Save settings
-        self._settings_manager.save_settings(self._settings, self)
-
-    def _update_telemetry_menu_text(self) -> None:
-        """Update the toggle telemetry menu item text to show current state with checkmark."""
-        if hasattr(self, "action_manager") and hasattr(self.action_manager, "toggle_telemetry_act"):
-            text = "✓ &Telemetry" if self._settings.telemetry_enabled else "&Telemetry"
-            self.action_manager.toggle_telemetry_act.setText(text)
+        """Toggle telemetry on/off (delegates to TelemetryManager)."""
+        self.telemetry_manager.toggle()
+        self.telemetry_collector = self.telemetry_manager.collector
 
     def _setup_autocomplete(self) -> None:
         """Initialize Auto-Complete System (v2.0.0).
@@ -799,7 +697,7 @@ class AsciiDocEditor(QMainWindow):
 
         # === Chat System Signal Connections (v1.7.0, v1.10.0) ===
         # Connect ChatManager to both workers via router
-        self.chat_manager.message_sent_to_worker.connect(self._route_chat_message_to_worker)
+        self.chat_manager.message_sent_to_worker.connect(self.chat_worker_router.route_message)
         self.chat_manager.status_message.connect(self.status_manager.show_status)
         self.chat_manager.settings_changed.connect(lambda: self._settings_manager.save_settings(self._settings, self))
 
@@ -810,7 +708,7 @@ class AsciiDocEditor(QMainWindow):
         self.ollama_chat_worker.operation_cancelled.connect(self.chat_manager.handle_operation_cancelled)
 
         # Connect ClaudeWorker responses back to ChatManager (via adapters)
-        self.claude_worker.response_ready.connect(self._adapt_claude_response_to_chat_message)
+        self.claude_worker.response_ready.connect(self.chat_worker_router.adapt_claude_response)
         self.claude_worker.error_occurred.connect(self.chat_manager.handle_error)
 
         # Connect chat bar cancel button to worker cancellation
@@ -1131,120 +1029,7 @@ class AsciiDocEditor(QMainWindow):
         if isinstance(result, GitHubResult):
             self.github_handler.handle_github_result(result)
 
-    @Slot(str, str, str, list, object)
-    def _route_chat_message_to_worker(
-        self,
-        message: str,
-        model: str,
-        context_mode: str,
-        history: list[Any],
-        document_content: Any,
-    ) -> None:
-        """
-        Route chat message to appropriate AI worker based on active backend.
-
-        Args:
-            message: User message text
-            model: Selected model name
-            context_mode: Context mode (document, syntax, general, editing)
-            history: Chat history (list of ChatMessage objects)
-            document_content: Current document content (optional)
-        """
-        backend = self._settings.ai_backend
-        logger.info(f"Routing message to {backend} backend (model: {model})")
-
-        if backend == "ollama":
-            # Route to Ollama worker
-            self.ollama_chat_worker.send_message(message, model, context_mode, history, document_content)
-        elif backend == "claude":
-            # Route to Claude worker with context-appropriate system prompt
-            system_prompt = self._build_claude_system_prompt(context_mode, model)
-
-            # Convert ChatMessage history to ClaudeMessage format
-            from asciidoc_artisan.claude import ClaudeMessage
-
-            claude_history = []
-            for msg in history:
-                if hasattr(msg, "role") and hasattr(msg, "content"):
-                    claude_history.append(ClaudeMessage(role=msg.role, content=msg.content))
-
-            # Build full message with document context if needed
-            full_message = message
-            if context_mode in ("document", "editing") and document_content:
-                full_message = f"Document content:\n```\n{document_content}\n```\n\nUser question: {message}"
-
-            # Send to Claude worker
-            self.claude_worker.send_message(
-                message=full_message,
-                system=system_prompt,
-                conversation_history=claude_history,
-            )
-        else:
-            logger.error(f"Unknown AI backend: {backend}")
-            self.status_manager.show_status(f"Error: Unknown AI backend '{backend}'")
-
-    def _build_claude_system_prompt(self, context_mode: str, model: str) -> str:
-        """
-        Build system prompt for Claude based on context mode.
-
-        Args:
-            context_mode: Context mode (document, syntax, general, editing)
-            model: Selected Claude model
-
-        Returns:
-            System prompt string
-        """
-        if context_mode == "document":
-            return (
-                "You are an expert assistant helping with AsciiDoc document questions. "
-                "Analyze the provided document content and answer questions about it. "
-                "Be concise and accurate."
-            )
-        elif context_mode == "syntax":
-            return (
-                "You are an AsciiDoc syntax expert. Help users with AsciiDoc formatting, "
-                "markup, and best practices. Provide clear examples when helpful."
-            )
-        elif context_mode == "editing":
-            return (
-                "You are a document editing assistant for AsciiDoc content. Provide "
-                "suggestions to improve the document's clarity, structure, and quality. "
-                "Focus on content, not just formatting."
-            )
-        else:  # general
-            return "You are a helpful AI assistant. Answer questions clearly and concisely."
-
-    @Slot(object)
-    def _adapt_claude_response_to_chat_message(self, claude_result: object) -> None:
-        """
-        Adapt ClaudeResult to ChatMessage and pass to ChatManager.
-
-        Args:
-            claude_result: ClaudeResult object from ClaudeWorker
-        """
-        import time
-
-        from asciidoc_artisan.core.models import ChatMessage
-
-        # Check if result is successful
-        if not claude_result.success:
-            # Handle error
-            error_msg = claude_result.error or "Unknown error"
-            self.chat_manager.handle_error(error_msg)
-            return
-
-        # Convert ClaudeResult to ChatMessage
-        chat_message = ChatMessage(
-            role="assistant",
-            content=claude_result.content,
-            timestamp=int(time.time()),
-            model=claude_result.model,
-            context_mode=self._settings.chat_context_mode,
-        )
-
-        # Pass to ChatManager
-        self.chat_manager.handle_response_ready(chat_message)
-        logger.info(f"Claude response adapted and forwarded to ChatManager ({claude_result.tokens_used} tokens used)")
+    # Chat routing delegated to ChatWorkerRouter (MA extraction)
 
     @Slot(str, str)
     def _handle_pandoc_result(self, result: str, context: str) -> None:
