@@ -10,10 +10,10 @@ Guidance for Claude Code working with this repository.
 |--------|-------|
 | Version | 2.1.0 (Dec 5, 2025) |
 | Status | Public Release |
-| Codebase | 45,837 lines / 179 files |
-| Tests | 5,203 unit + 17 E2E (95% cov) |
+| Codebase | 46,457 lines / 180 files |
+| Tests | 5,122 unit + 17 E2E (95% cov) |
 | Types | mypy --strict (0 errors) |
-| Startup | 0.243s |
+| Startup | 0.27s |
 
 **Stack:** PySide6 6.9+, Python 3.11+, asciidoc3, pypandoc, pymupdf
 
@@ -86,7 +86,7 @@ src/asciidoc_artisan/
 | Purpose | Files |
 |---------|-------|
 | Entry | `src/main.py` |
-| Controller | `ui/main_window.py` (1,181 lines) |
+| Controller | `ui/main_window.py` (1,167 lines) |
 | Managers | `ui/{menu,theme,status,file,git,export,telemetry,chat_worker_router}_manager.py` |
 | Workers | `workers/{git,pandoc,preview,ollama_chat}_worker.py` |
 | AI | `claude/{claude_client,claude_worker}.py` |
@@ -111,5 +111,5 @@ src/asciidoc_artisan/
 
 ---
 
-*v2.1.0 | 45,365 lines | 5,196 tests | mypy --strict*
+*v2.1.0 | 46,457 lines | 5,139 tests | mypy --strict*
 - always apply MA principles
