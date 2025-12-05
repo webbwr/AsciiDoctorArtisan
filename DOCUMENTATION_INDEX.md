@@ -24,6 +24,8 @@
 | Doc | Purpose |
 |-----|---------|
 | [ARCHITECTURE](docs/ARCHITECTURE.md) | System design |
+| [SCHEMAS](docs/SCHEMAS.md) | Pydantic models |
+| [SIGNALS](docs/SIGNALS.md) | Qt signal contracts |
 | [RELEASE_NOTES_v2.1.0](docs/RELEASE_NOTES_v2.1.0.md) | Release notes |
 
 ### docs/user/
