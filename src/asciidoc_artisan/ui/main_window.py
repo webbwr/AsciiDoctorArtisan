@@ -160,9 +160,6 @@ from asciidoc_artisan.ui.editor_state import (  # Tracks editor state (cursor, u
 )
 from asciidoc_artisan.ui.export_manager import ExportManager  # Exports to PDF/DOCX/HTML
 from asciidoc_artisan.ui.file_handler import FileHandler  # Opens/saves files
-from asciidoc_artisan.ui.file_load_manager import (  # Loads files with progress
-    FileLoadManager,
-)
 from asciidoc_artisan.ui.file_operations_manager import (  # File I/O coordinator
     FileOperationsManager,
 )
@@ -197,7 +194,6 @@ from asciidoc_artisan.ui.template_browser import (  # Template browsing dialog (
 )
 from asciidoc_artisan.ui.theme_manager import ThemeManager  # Dark/light mode switcher
 from asciidoc_artisan.ui.ui_setup_manager import UISetupManager  # Sets up UI widgets
-from asciidoc_artisan.ui.ui_state_manager import UIStateManager  # Tracks UI state
 from asciidoc_artisan.ui.worker_manager import (  # Manages background threads
     WorkerManager,
 )
@@ -295,9 +291,8 @@ class AsciiDocEditor(QMainWindow):
         """
         Initialize UI state and coordination managers.
 
-        MA principle: Extracted from __init__ (4 lines).
+        MA principle: Extracted from __init__ (3 lines).
         """
-        self.ui_state_manager = UIStateManager(self)
         self.dialog_manager = DialogManager(self)
         self.scroll_manager = ScrollManager(self)
 
@@ -305,9 +300,8 @@ class AsciiDocEditor(QMainWindow):
         """
         Initialize file and operations managers.
 
-        MA principle: Extracted from __init__ (4 lines).
+        MA principle: Extracted from __init__ (3 lines).
         """
-        self.file_load_manager = FileLoadManager(self)
         self.file_operations_manager = FileOperationsManager(self)
         self.pandoc_result_handler = PandocResultHandler(self)
 
@@ -321,7 +315,7 @@ class AsciiDocEditor(QMainWindow):
         logger.info(f"ResourceMonitor initialized (psutil available: {self.resource_monitor.is_available()})")
 
         self.large_file_handler = LargeFileHandler()
-        self.large_file_handler.progress_update.connect(self.file_load_manager.on_file_load_progress)
+        self.large_file_handler.progress_update.connect(self.dialog_manager.on_file_load_progress)
 
     def _init_worker_management(self) -> None:
         """
@@ -807,8 +801,8 @@ class AsciiDocEditor(QMainWindow):
         self.file_operations_manager.open_file()
 
     def _load_content_into_editor(self, content: str, file_path: Path) -> None:
-        """Load content into editor (delegates to FileLoadManager)."""
-        self.file_load_manager.load_content_into_editor(content, file_path)
+        """Load content into editor (delegates to DialogManager)."""
+        self.dialog_manager.load_content_into_editor(content, file_path)
 
     @Slot()
     def save_file(self, save_as: bool = False) -> bool:
@@ -831,8 +825,8 @@ class AsciiDocEditor(QMainWindow):
 
     @Slot(int, str)
     def _on_file_load_progress(self, percentage: int, message: str) -> None:
-        """Handle file loading progress (delegates to FileLoadManager)."""
-        self.file_load_manager.on_file_load_progress(percentage, message)
+        """Handle file loading progress (delegates to DialogManager)."""
+        self.dialog_manager.on_file_load_progress(percentage, message)
 
     @Slot()
     def update_preview(self) -> None:
@@ -1062,12 +1056,12 @@ class AsciiDocEditor(QMainWindow):
         self.search_handler.apply_combined_selections()
 
     def _update_ui_state(self) -> None:
-        """Update UI element states (delegates to UIStateManager)."""
-        self.ui_state_manager.update_ui_state()
+        """Update UI element states (delegates to ActionManager)."""
+        self.action_manager.update_ui_state()
 
     def _update_ai_status_bar(self) -> None:
-        """Update AI model name in status bar (delegates to UIStateManager)."""
-        self.ui_state_manager.update_ai_status_bar()
+        """Update AI model name in status bar (delegates to ActionManager)."""
+        self.action_manager.update_ai_status_bar()
 
     def _update_ai_backend_checkmarks(self) -> None:
         """Update checkmarks on AI backend menu items based on active backend."""
@@ -1084,8 +1078,8 @@ class AsciiDocEditor(QMainWindow):
         logger.debug(f"Updated AI backend checkmarks: ollama={is_ollama}, claude={is_claude}")
 
     def _check_pandoc_availability(self, context: str) -> bool:
-        """Check if Pandoc is available (delegates to UIStateManager)."""
-        return self.ui_state_manager.check_pandoc_availability(context)
+        """Check if Pandoc is available (delegates to ActionManager)."""
+        return self.action_manager.check_pandoc_availability(context)
 
     # ========================================================================
     # Dialog Methods (Phase 6b: Delegated to DialogManager)

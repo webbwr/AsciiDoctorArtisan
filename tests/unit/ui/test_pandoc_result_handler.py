@@ -29,8 +29,8 @@ def mock_editor(qapp):
     editor.export_manager.pending_export_format = None
 
     # File load manager
-    editor.file_load_manager = Mock()
-    editor.file_load_manager.load_content_into_editor = Mock()
+    editor.dialog_manager = Mock()
+    editor.dialog_manager.load_content_into_editor = Mock()
 
     # Editor and preview widgets
     editor.editor = Mock()
@@ -341,7 +341,7 @@ class TestFileLoadRequest:
         handler._handle_file_load_request(result, pending_path, context)
 
         # Should load content into editor
-        mock_editor.file_load_manager.load_content_into_editor.assert_called_once_with(result, pending_path)
+        mock_editor.dialog_manager.load_content_into_editor.assert_called_once_with(result, pending_path)
 
     def test_schedules_preview_update(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
@@ -632,7 +632,7 @@ class TestFileLoadRequestDetails:
         # Should schedule preview update with 100ms delay
         mock_qtimer.singleShot.assert_called_once_with(100, mock_editor.update_preview)
 
-    def test_file_load_manager_called_before_preview_update(self, mock_editor):
+    def test_dialog_manager_called_before_preview_update(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
 
         handler = PandocResultHandler(mock_editor)
@@ -642,7 +642,7 @@ class TestFileLoadRequestDetails:
         handler._handle_file_load_request(result, pending_path, "importing")
 
         # File load manager should be called
-        mock_editor.file_load_manager.load_content_into_editor.assert_called_once_with(result, pending_path)
+        mock_editor.dialog_manager.load_content_into_editor.assert_called_once_with(result, pending_path)
 
     def test_context_logged_successfully(self, mock_editor):
         from asciidoc_artisan.ui.pandoc_result_handler import PandocResultHandler
@@ -663,7 +663,7 @@ class TestFileLoadRequestDetails:
             handler._handle_file_load_request(f"= Document {i}", Path(f"/tmp/doc{i}.docx"), f"importing doc{i}")
 
         # Should call load_content_into_editor 3 times
-        assert mock_editor.file_load_manager.load_content_into_editor.call_count == 3
+        assert mock_editor.dialog_manager.load_content_into_editor.call_count == 3
 
 
 @pytest.mark.unit

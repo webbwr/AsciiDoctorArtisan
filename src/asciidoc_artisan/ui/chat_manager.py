@@ -10,7 +10,7 @@ import subprocess
 from collections.abc import Callable
 from typing import Any, cast
 
-from PySide6.QtCore import QObject, QTimer, Signal
+from PySide6.QtCore import QObject, Signal
 
 from ..core.models import ChatMessage
 from ..core.settings import Settings
@@ -51,11 +51,6 @@ class ChatManager(QObject):
         self._is_processing = False
         self._chat_history: list[ChatMessage] = []  # Internal history cache for testing
         self._current_backend: str = settings.ai_backend  # "ollama" or "claude"
-
-        # Document content debouncing (500ms delay)
-        self._debounce_timer = QTimer()
-        self._debounce_timer.setSingleShot(True)
-        self._debounce_timer.setInterval(500)
 
         # Model management (MA principle extraction)
         self._model_manager = ChatModelManager(
@@ -393,23 +388,13 @@ class ChatManager(QObject):
         logger.info(f"Chat settings updated (backend: {self._current_backend})")
 
     def toggle_panel_visibility(self) -> None:
-        """Toggle chat pane visibility (for toolbar button)."""
+        """Toggle chat pane visibility (delegates to ChatBackendController)."""
+        self._backend_controller.toggle_panel_visibility()
+        # Emit status message for UI feedback
         parent = self.parent()
-        if not parent or not hasattr(parent, "chat_container"):
-            return
-
-        current = parent.chat_container.isVisible()
-        new_visible = not current
-
-        # Update both new and deprecated settings
-        self._settings.ai_chat_enabled = new_visible
-        self._settings.ollama_chat_enabled = new_visible
-        self._backend_controller.update_visibility()
-        self.settings_changed.emit()
-
-        state = "shown" if new_visible else "hidden"
-        self.status_message.emit(f"Chat pane {state}")
-        logger.info(f"Chat pane visibility toggled: {new_visible}")
+        if parent and hasattr(parent, "chat_container"):
+            state = "shown" if parent.chat_container.isVisible() else "hidden"
+            self.status_message.emit(f"Chat pane {state}")
 
     def export_chat_history(self) -> str:
         """

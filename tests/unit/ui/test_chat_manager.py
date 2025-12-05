@@ -85,14 +85,6 @@ class TestChatManagerInitialization:
         mock_chat_bar.context_mode_changed.connect.assert_called_once()
         mock_chat_bar.scan_models_requested.connect.assert_called_once()
 
-    def test_initialization_creates_debounce_timer(self, mock_chat_bar, mock_chat_panel, mock_settings):
-        """Test initialization creates debounce timer."""
-        manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
-
-        assert manager._debounce_timer is not None
-        assert manager._debounce_timer.interval() == 500
-        assert manager._debounce_timer.isSingleShot()
-
     def test_initialization_not_processing_initially(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test manager is not processing initially."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)

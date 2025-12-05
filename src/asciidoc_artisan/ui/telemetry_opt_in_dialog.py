@@ -32,6 +32,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
+from asciidoc_artisan.ui.dialog_factory import ButtonStyle, StyledButtonFactory
+
 logger = logging.getLogger(__name__)
 
 
@@ -174,81 +176,34 @@ class TelemetryOptInDialog(QDialog):
             """
 
     def _create_accept_button(self) -> QPushButton:
-        """
-        Create accept telemetry button with green styling.
+        """Create accept telemetry button with green styling.
 
         Returns:
-            Styled QPushButton for accepting telemetry
-
-        MA principle: Extracted from _setup_ui (17 lines).
+            Styled QPushButton for accepting telemetry (uses StyledButtonFactory)
         """
-        accept_btn = QPushButton("✓ Enable Telemetry")
-        accept_btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                padding: 10px 20px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-            """
-        )
-        accept_btn.clicked.connect(self._accept_telemetry)
-        return accept_btn
+        btn = StyledButtonFactory.create_success_button("Enable Telemetry")
+        btn.clicked.connect(self._accept_telemetry)
+        return btn
 
     def _create_decline_button(self) -> QPushButton:
-        """
-        Create decline telemetry button with red styling.
+        """Create decline telemetry button with red styling.
 
         Returns:
-            Styled QPushButton for declining telemetry
-
-        MA principle: Extracted from _setup_ui (17 lines).
+            Styled QPushButton for declining telemetry (uses StyledButtonFactory)
         """
-        decline_btn = QPushButton("✗ No Thanks")
-        decline_btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #dc3545;
-                color: white;
-                padding: 10px 20px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #c82333;
-            }
-            """
-        )
-        decline_btn.clicked.connect(self._decline_telemetry)
-        return decline_btn
+        btn = StyledButtonFactory.create_danger_button("No Thanks")
+        btn.clicked.connect(self._decline_telemetry)
+        return btn
 
     def _create_remind_button(self) -> QPushButton:
-        """
-        Create remind later button with neutral styling.
+        """Create remind later button with neutral styling.
 
         Returns:
-            Styled QPushButton for reminding later
-
-        MA principle: Extracted from _setup_ui (16 lines).
+            Styled QPushButton for reminding later (uses StyledButtonFactory)
         """
-        remind_btn = QPushButton("⏰ Remind Me Later")
-        remind_btn.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #5a6268;
-            }
-            """
-        )
-        remind_btn.clicked.connect(self._remind_later)
-        return remind_btn
+        btn = StyledButtonFactory.create_button("Remind Me Later", ButtonStyle.SECONDARY, icon="⏰")
+        btn.clicked.connect(self._remind_later)
+        return btn
 
     def _create_privacy_note(self) -> QLabel:
         """

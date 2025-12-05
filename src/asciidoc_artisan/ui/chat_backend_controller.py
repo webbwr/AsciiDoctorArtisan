@@ -271,3 +271,25 @@ class ChatBackendController(QObject):
 
         self.visibility_changed.emit(chat_visible, chat_visible)
         logger.info(f"Chat pane visibility set: {chat_visible}")
+
+    def toggle_panel_visibility(self) -> None:
+        """
+        Toggle chat pane visibility (for toolbar button).
+
+        MA principle: Moved from ChatManager to consolidate visibility logic.
+        """
+        parent = self._get_parent()
+        if not parent or not hasattr(parent, "chat_container"):
+            return
+
+        current = parent.chat_container.isVisible()
+        new_visible = not current
+
+        # Update both new and deprecated settings
+        self._settings.ai_chat_enabled = new_visible
+        self._settings.ollama_chat_enabled = new_visible
+        self.update_visibility()
+        self.settings_changed.emit()
+
+        state = "shown" if new_visible else "hidden"
+        logger.info(f"Chat pane visibility toggled: {new_visible} ({state})")

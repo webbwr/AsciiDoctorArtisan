@@ -44,7 +44,7 @@ class PandocResultHandler:
             pending_path: Path to the file being loaded
             context: Context description
         """
-        self.editor.file_load_manager.load_content_into_editor(result, pending_path)
+        self.editor.dialog_manager.load_content_into_editor(result, pending_path)
         logger.info(f"Successfully converted {context}")
         QTimer.singleShot(100, self.editor.update_preview)
 

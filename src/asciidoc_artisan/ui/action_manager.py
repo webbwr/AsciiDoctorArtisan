@@ -39,11 +39,13 @@ from typing import (  # For type hints without circular imports
 )
 
 # === QT FRAMEWORK IMPORTS ===
+from PySide6.QtCore import QThread, QTimer
 from PySide6.QtGui import (
     QAction,  # Menu item class (represents one menu action like "New" or "Save")
 )
 
 # === LOCAL IMPORTS ===
+from asciidoc_artisan.core.constants import is_pandoc_available
 from asciidoc_artisan.ui.action_creators import ActionCreators
 from asciidoc_artisan.ui.action_factory import ActionFactory
 from asciidoc_artisan.ui.menu_builder import MenuBuilder
@@ -338,3 +340,76 @@ class ActionManager:
         self._create_tools_menu(menubar)
         self._create_help_menu(menubar)
         logger.debug("Menus created successfully")
+
+    # === UI STATE MANAGEMENT (merged from UIStateManager) ===
+
+    def update_ui_state(self) -> None:
+        """Update UI element states based on current processing state.
+
+        Enables/disables actions based on:
+        - Pandoc processing state
+        - Git processing state
+        - Git repository availability
+        - Pandoc availability
+
+        MA principle: Merged from UIStateManager for consolidated action management.
+        """
+        # Ensure this runs on the main thread (Qt requirement for UI updates)
+        if QThread.currentThread() != self.window.thread():  # pragma: no cover
+            QTimer.singleShot(0, self.update_ui_state)
+            return
+
+        # Save/Save As actions - disabled during Pandoc processing
+        is_processing_pandoc = self.window.file_operations_manager._is_processing_pandoc
+        self.save_act.setEnabled(not is_processing_pandoc)
+        self.save_as_act.setEnabled(not is_processing_pandoc)
+
+        # Export actions - disabled during Pandoc processing
+        export_enabled = not is_processing_pandoc
+        self.save_as_adoc_act.setEnabled(export_enabled)
+        self.save_as_md_act.setEnabled(export_enabled and is_pandoc_available())
+        self.save_as_docx_act.setEnabled(export_enabled and is_pandoc_available())
+        self.save_as_html_act.setEnabled(export_enabled)
+        self.save_as_pdf_act.setEnabled(export_enabled and is_pandoc_available())
+
+        # Git actions - disabled during Git processing or if no repo
+        git_ready = bool(self._settings.git_repo_path) and not self.window._is_processing_git
+        self.git_commit_act.setEnabled(git_ready)
+        self.git_pull_act.setEnabled(git_ready)
+        self.git_push_act.setEnabled(git_ready)
+
+        # Convert and paste - requires Pandoc and not processing
+        self.convert_paste_act.setEnabled(is_pandoc_available() and not is_processing_pandoc)
+
+        # Update AI status bar
+        self.update_ai_status_bar()
+
+    def update_ai_status_bar(self) -> None:
+        """Update AI model name in status bar based on settings."""
+        if self._settings.ollama_enabled and self._settings.ollama_model:
+            # Show selected Ollama model
+            self.window.status_manager.set_ai_model(self._settings.ollama_model)
+        else:
+            # Show Pandoc as fallback conversion method
+            self.window.status_manager.set_ai_model("Pandoc")
+
+    def check_pandoc_availability(self, context: str) -> bool:
+        """Check if Pandoc is available for document conversion.
+
+        Args:
+            context: Context string describing the operation requiring Pandoc
+
+        Returns:
+            True if Pandoc is available, False otherwise (shows error dialog)
+        """
+        if not is_pandoc_available():
+            self.window.status_manager.show_message(
+                "critical",
+                "Pandoc Not Available",
+                f"{context} requires Pandoc and pypandoc.\n"
+                "Please install them first:\n\n"
+                "1. Install pandoc from https://pandoc.org\n"
+                "2. Run: pip install pypandoc",
+            )
+            return False
+        return True

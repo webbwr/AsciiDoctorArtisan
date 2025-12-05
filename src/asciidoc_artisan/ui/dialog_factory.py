@@ -7,12 +7,14 @@ eliminating ~180 lines of duplicate button/layout creation code across:
 - github_dialogs.py
 - installation_validator_dialog.py
 - settings_dialog_helper.py
+- telemetry_opt_in_dialog.py
 
 Author: AsciiDoc Artisan Team
-Version: 2.0.9
+Version: 2.1.0
 """
 
 from collections.abc import Callable
+from enum import Enum, auto
 from typing import TypeVar
 
 from PySide6.QtWidgets import (
@@ -25,6 +27,113 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from asciidoc_artisan.ui.style_constants import Colors, Fonts, Spacing
+
+
+class ButtonStyle(Enum):
+    """Predefined button styles for consistent UI.
+
+    Styles follow Bootstrap-inspired color conventions:
+    - SUCCESS: Green, for positive actions (accept, confirm, save)
+    - DANGER: Red, for destructive/negative actions (delete, decline, cancel)
+    - WARNING: Yellow/Orange, for caution actions
+    - PRIMARY: Blue, for primary actions
+    - SECONDARY: Gray, for neutral/secondary actions
+    """
+
+    SUCCESS = auto()  # Green - positive actions
+    DANGER = auto()  # Red - destructive/negative actions
+    WARNING = auto()  # Yellow/Orange - caution
+    PRIMARY = auto()  # Blue - primary actions
+    SECONDARY = auto()  # Gray - neutral actions
+
+
+class StyledButtonFactory:
+    """Factory for creating consistently styled QPushButtons.
+
+    MA principle: Centralizes button styling to eliminate duplicate CSS across dialogs.
+    Saves ~50 lines per dialog that uses styled buttons.
+
+    Example:
+        >>> btn = StyledButtonFactory.create_button("Save", ButtonStyle.SUCCESS)
+        >>> btn = StyledButtonFactory.create_button("Delete", ButtonStyle.DANGER, icon="🗑️")
+    """
+
+    # Color palette (uses style_constants for consistency)
+    _COLORS = {
+        ButtonStyle.SUCCESS: (Colors.SUCCESS, Colors.SUCCESS_HOVER),
+        ButtonStyle.DANGER: (Colors.DANGER, Colors.DANGER_HOVER),
+        ButtonStyle.WARNING: (Colors.WARNING, Colors.WARNING_HOVER),
+        ButtonStyle.PRIMARY: (Colors.PRIMARY, Colors.PRIMARY_HOVER),
+        ButtonStyle.SECONDARY: (Colors.SECONDARY, Colors.SECONDARY_HOVER),
+    }
+
+    # Text colors (white for most, dark for warning)
+    _TEXT_COLORS = {
+        ButtonStyle.SUCCESS: Colors.TEXT_LIGHT,
+        ButtonStyle.DANGER: Colors.TEXT_LIGHT,
+        ButtonStyle.WARNING: Colors.WARNING_TEXT,
+        ButtonStyle.PRIMARY: Colors.TEXT_LIGHT,
+        ButtonStyle.SECONDARY: Colors.TEXT_LIGHT,
+    }
+
+    @classmethod
+    def create_button(
+        cls,
+        text: str,
+        style: ButtonStyle,
+        icon: str = "",
+        bold: bool = True,
+        padding: str = "10px 20px",
+    ) -> QPushButton:
+        """Create a styled QPushButton.
+
+        Args:
+            text: Button label text
+            style: ButtonStyle enum value
+            icon: Optional icon prefix (emoji or text)
+            bold: Whether text should be bold (default: True)
+            padding: CSS padding value (default: "10px 20px")
+
+        Returns:
+            Styled QPushButton ready to use
+        """
+        label = f"{icon} {text}" if icon else text
+        button = QPushButton(label.strip())
+
+        normal_color, hover_color = cls._COLORS[style]
+        text_color = cls._TEXT_COLORS[style]
+        font_weight = "bold" if bold else "normal"
+
+        button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {normal_color};
+                color: {text_color};
+                padding: {padding};
+                font-weight: {font_weight};
+            }}
+            QPushButton:hover {{
+                background-color: {hover_color};
+            }}
+        """)
+
+        return button
+
+    @classmethod
+    def create_success_button(cls, text: str, icon: str = "✓") -> QPushButton:
+        """Create a green success button (convenience method)."""
+        return cls.create_button(text, ButtonStyle.SUCCESS, icon)
+
+    @classmethod
+    def create_danger_button(cls, text: str, icon: str = "✗") -> QPushButton:
+        """Create a red danger button (convenience method)."""
+        return cls.create_button(text, ButtonStyle.DANGER, icon)
+
+    @classmethod
+    def create_secondary_button(cls, text: str, icon: str = "") -> QPushButton:
+        """Create a gray secondary button (convenience method)."""
+        return cls.create_button(text, ButtonStyle.SECONDARY, icon, bold=False)
 
 # Type variable for dialog type hints
 T = TypeVar("T", bound=QDialog)
@@ -189,7 +298,7 @@ class DialogFactory:
             QLabel with gray, small font styling
         """
         label = QLabel(help_text)
-        label.setStyleSheet("color: gray; font-size: 10px;")
+        label.setStyleSheet(Fonts.STYLE_MUTED)
         label.setWordWrap(True)
         return label
 
@@ -201,7 +310,131 @@ class DialogFactory:
             QLabel with styled required field note
         """
         label = QLabel("* Required field")
-        label.setStyleSheet("QLabel { color: gray; font-size: 9pt; }")
+        label.setStyleSheet(f"QLabel {{ {Fonts.STYLE_REQUIRED} }}")
+        return label
+
+
+# === BASE SETTINGS DIALOG ===
+
+
+class BaseSettingsDialog(QDialog):
+    """Base class for settings dialogs with common structure.
+
+    MA principle: Eliminates duplicate code across settings dialogs.
+    Provides consistent structure:
+    - Window title and minimum width
+    - Optional header section
+    - Settings content (implemented by subclass)
+    - OK/Cancel buttons
+
+    Subclasses should override:
+    - _get_title(): Return window title
+    - _get_header_text(): Return (title, description) tuple or None
+    - _create_content(layout): Add settings widgets to layout
+
+    Example:
+        class MySettingsDialog(BaseSettingsDialog):
+            def _get_title(self) -> str:
+                return "My Settings"
+
+            def _get_header_text(self) -> tuple[str, str] | None:
+                return ("Configure Settings", "Adjust these options to customize behavior.")
+
+            def _create_content(self, layout: QVBoxLayout) -> None:
+                layout.addWidget(self.my_checkbox)
+    """
+
+    def __init__(self, parent: QWidget | None = None, min_width: int = 500) -> None:
+        """Initialize base settings dialog.
+
+        Args:
+            parent: Parent widget (optional)
+            min_width: Minimum dialog width (default: 500)
+        """
+        super().__init__(parent)
+        self._min_width = min_width
+        self._init_base_ui()
+
+    def _get_title(self) -> str:
+        """Return window title. Override in subclass."""
+        return "Settings"
+
+    def _get_header_text(self) -> tuple[str, str] | None:
+        """Return header (title, description) tuple or None to skip header.
+
+        Override in subclass to customize header.
+        """
+        return None
+
+    def _create_content(self, layout: QVBoxLayout) -> None:
+        """Add settings widgets to layout. Override in subclass."""
+        pass
+
+    def _init_base_ui(self) -> None:
+        """Initialize the common UI structure."""
+        self.setWindowTitle(self._get_title())
+        self.setMinimumWidth(self._min_width)
+
+        layout = QVBoxLayout(self)
+
+        # Optional header section
+        header = self._get_header_text()
+        if header:
+            self._add_header(layout, header[0], header[1])
+
+        # Subclass content
+        self._create_content(layout)
+
+        # Dialog buttons
+        layout.addLayout(DialogFactory.create_ok_cancel_layout(self))
+
+    def _add_header(self, layout: QVBoxLayout, title: str, description: str) -> None:
+        """Add styled header section to layout."""
+        header_label = QLabel(title)
+        header_label.setStyleSheet(f"QLabel {{ {Fonts.STYLE_HEADER} }}")
+        layout.addWidget(header_label)
+
+        if description:
+            info_label = QLabel(description)
+            info_label.setWordWrap(True)
+            info_label.setStyleSheet(f"QLabel {{ {Fonts.STYLE_INFO} }}")
+            layout.addWidget(info_label)
+
+    def create_info_label(self, text: str) -> QLabel:
+        """Create an info/help label with standard styling.
+
+        Args:
+            text: Information text to display
+
+        Returns:
+            Styled QLabel
+        """
+        label = QLabel(text)
+        label.setWordWrap(True)
+        label.setStyleSheet(f"QLabel {{ {Fonts.STYLE_INFO} }}")
+        return label
+
+    def create_status_label(
+        self, text: str, status: str = "normal"
+    ) -> QLabel:
+        """Create a status label with color based on status.
+
+        Args:
+            text: Status text to display
+            status: One of "success", "warning", "error", "normal"
+
+        Returns:
+            Styled QLabel
+        """
+        label = QLabel(text)
+        colors = {
+            "success": Colors.SUCCESS,
+            "warning": Colors.WARNING,
+            "error": Colors.DANGER,
+            "normal": Colors.TEXT_MUTED,
+        }
+        color = colors.get(status, Colors.TEXT_MUTED)
+        label.setStyleSheet(f"QLabel {{ color: {color}; font-size: 10pt; }}")
         return label
 
 

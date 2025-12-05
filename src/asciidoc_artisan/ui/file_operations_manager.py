@@ -269,7 +269,7 @@ class FileOperationsManager:
             return self._save_as_html(file_path, content)
 
         # For other formats, check Pandoc availability
-        if not self.editor.ui_state_manager.check_pandoc_availability(f"Save as {format_type.upper()}"):
+        if not self.editor.action_manager.check_pandoc_availability(f"Save as {format_type.upper()}"):
             return False
 
         # Determine source format and create temp file

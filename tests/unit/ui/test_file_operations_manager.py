@@ -51,11 +51,11 @@ def mock_editor(qapp):
     editor.export_manager.pending_export_path = None
     editor.export_manager.pending_export_format = None
 
-    editor.file_load_manager = Mock()
-    editor.file_load_manager.load_content_into_editor = Mock()
+    editor.dialog_manager = Mock()
+    editor.dialog_manager.load_content_into_editor = Mock()
 
-    editor.ui_state_manager = Mock()
-    editor.ui_state_manager.check_pandoc_availability = Mock(return_value=True)
+    editor.action_manager = Mock()
+    editor.action_manager.check_pandoc_availability = Mock(return_value=True)
 
     editor.large_file_handler = Mock()
     editor.large_file_handler.load_file_optimized = Mock(return_value=(True, "= Test\n\nContent", None))
@@ -164,7 +164,7 @@ class TestOpenFile:
         manager.open_file()
 
         # Should not attempt to load any file
-        mock_editor.file_load_manager.load_content_into_editor.assert_not_called()
+        mock_editor.dialog_manager.load_content_into_editor.assert_not_called()
 
     @patch("asciidoc_artisan.ui.file_open_handler.QFileDialog.getOpenFileName")
     def test_open_pdf_calls_pdf_extraction(self, mock_dialog, mock_editor, tmp_path):
@@ -449,7 +449,7 @@ class TestPDFExtraction:
             manager._open_handler.open_pdf_with_extraction(pdf_file)
 
             # Should load extracted content into editor
-            mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
+            mock_editor.dialog_manager.load_content_into_editor.assert_called_once()
 
 
 @pytest.mark.fr_006
@@ -479,7 +479,7 @@ class TestPandocConversion:
         manager._open_handler.open_with_pandoc_conversion(docx_file, ".docx")
 
         # Should check Pandoc availability
-        mock_editor.ui_state_manager.check_pandoc_availability.assert_called_once()
+        mock_editor.action_manager.check_pandoc_availability.assert_called_once()
 
     def test_pandoc_conversion_sets_processing_flag(self, mock_editor, tmp_path):
         from asciidoc_artisan.ui.file_operations_manager import FileOperationsManager
@@ -763,14 +763,14 @@ class TestPandocAvailability:
         manager = FileOperationsManager(mock_editor)
         target_file = tmp_path / "output.docx"
 
-        # Set ui_state_manager.check_pandoc_availability to return False
-        mock_editor.ui_state_manager.check_pandoc_availability.return_value = False
+        # Set action_manager.check_pandoc_availability to return False
+        mock_editor.action_manager.check_pandoc_availability.return_value = False
 
         result = manager.save_as_format_internal(target_file, "docx")
 
         # Should return False without attempting conversion
         assert result is False
-        mock_editor.ui_state_manager.check_pandoc_availability.assert_called_once()
+        mock_editor.action_manager.check_pandoc_availability.assert_called_once()
 
 
 @pytest.mark.fr_007
@@ -1014,7 +1014,7 @@ class TestFileOperationsCoverageEdgeCases:
         file_path = tmp_path / "test.docx"
 
         # Mock check_pandoc_availability to return False
-        mock_editor.ui_state_manager.check_pandoc_availability = Mock(return_value=False)
+        mock_editor.action_manager.check_pandoc_availability = Mock(return_value=False)
 
         manager._open_handler.open_with_pandoc_conversion(file_path, ".docx")
 
@@ -1057,8 +1057,8 @@ class TestFileOperationsCoverageEdgeCases:
             manager._open_handler.open_native_file(file_path)
 
             # Should load content into editor
-            mock_editor.file_load_manager.load_content_into_editor.assert_called_once()
-            loaded_content = mock_editor.file_load_manager.load_content_into_editor.call_args[0][0]
+            mock_editor.dialog_manager.load_content_into_editor.assert_called_once()
+            loaded_content = mock_editor.dialog_manager.load_content_into_editor.call_args[0][0]
             assert loaded_content == content
 
     def test_determine_format_from_docx_filter(self, mock_editor, tmp_path):

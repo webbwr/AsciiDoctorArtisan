@@ -138,7 +138,7 @@ class FileOpenHandler:
             return
 
         # Load extracted content into editor
-        self.mgr.editor.file_load_manager.load_content_into_editor(asciidoc_text, file_path)
+        self.mgr.editor.dialog_manager.load_content_into_editor(asciidoc_text, file_path)
         self.mgr.editor.status_bar.showMessage(f"PDF imported successfully: {file_path.name}", 5000)
 
     def open_with_pandoc_conversion(self, file_path: Path, suffix: str) -> None:
@@ -151,7 +151,7 @@ class FileOpenHandler:
 
         MA principle: Extracted from FileOperationsManager (55 lines).
         """
-        if not self.mgr.editor.ui_state_manager.check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
+        if not self.mgr.editor.action_manager.check_pandoc_availability(f"Opening {suffix.upper()[1:]}"):
             return
 
         format_map = {
@@ -222,4 +222,4 @@ class FileOpenHandler:
         else:
             content = file_path.read_text(encoding="utf-8")
 
-        self.mgr.editor.file_load_manager.load_content_into_editor(content, file_path)
+        self.mgr.editor.dialog_manager.load_content_into_editor(content, file_path)
