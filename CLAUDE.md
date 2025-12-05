@@ -8,10 +8,9 @@ Guidance for Claude Code working with this repository.
 
 | Metric | Value |
 |--------|-------|
-| Version | 2.1.0 (Dec 5, 2025) |
-| Status | Public Release |
-| Codebase | 46,457 lines / 180 files |
-| Tests | 5,122 unit + 17 E2E (95% cov) |
+| Version | 2.1.0 |
+| Code | 45,900 lines / 180 files |
+| Tests | 5,139 (95% coverage) |
 | Types | mypy --strict (0 errors) |
 | Startup | 0.27s |
 
@@ -19,17 +18,21 @@ Guidance for Claude Code working with this repository.
 
 **Package:** `asciidoc_artisan.{core, ui, workers, lsp, claude}`
 
+---
+
 ## Critical Patterns
 
-**Must follow — bugs result from violations:**
+Violations cause bugs. Follow exactly.
 
-| ❌ Anti-Pattern | ✅ Correct |
-|----------------|-----------|
-| Missing reentrancy guard | `if self._is_processing: return` before async ops |
-| UI updates from threads | Use signals: `result_ready.emit(data)` |
+| Anti-Pattern | Correct |
+|--------------|---------|
+| Missing reentrancy guard | `if self._is_processing: return` |
+| UI updates from threads | `result_ready.emit(data)` |
 | `shell=True` subprocess | Always `shell=False`, list args |
 | Direct file writes | `atomic_save_text(path, content)` |
-| Logic in main_window.py | Delegate to managers |
+| Logic in main_window.py | Delegate to handlers |
+
+---
 
 ## Commands
 
@@ -49,37 +52,26 @@ make lint                   # ruff, mypy --strict
 
 **System deps:** `sudo apt install pandoc wkhtmltopdf gh`
 
+---
+
 ## Architecture
 
 ```
 src/asciidoc_artisan/
-├── core/       # Settings, file ops, GPU, search, spell
-├── ui/         # main_window, managers, dialogs
-├── workers/    # QThread: git, pandoc, preview, ollama
-├── claude/     # AI client/worker
-└── lsp/        # Language Server Protocol
+├── core/        13,085 lines   Business logic
+├── ui/          22,794 lines   Qt widgets, handlers
+├── workers/      5,915 lines   QThread workers
+├── lsp/          2,134 lines   Language Server
+└── claude/         658 lines   Claude AI
 ```
 
 **Patterns:**
-- Manager Pattern: UI split into {menu,theme,status,file,git,export,telemetry,chat_worker_router}_manager
-- Worker Threads: QThread for slow ops, signal/slot communication
-- Reentrancy Guards: `_is_processing_*` flags prevent concurrent ops
-- GPU Detection: Auto CPU fallback, 24hr cache
+- Handler Pattern: `ui/*_handler.py` for domain logic
+- Worker Threads: QThread for slow ops, signal/slot
+- Reentrancy Guards: `_is_processing` flags
+- Atomic Writes: temp file + rename
 
-**Settings paths:**
-- Linux: `~/.config/AsciiDocArtisan/AsciiDocArtisan.json`
-- macOS: `~/Library/Application Support/AsciiDocArtisan/`
-- Windows: `%APPDATA%/AsciiDocArtisan/`
-
-## Testing
-
-**Markers:**
-- `@pytest.mark.requires_gpu` — Qt WebEngine + GPU
-- `@pytest.mark.live_api` — Requires Ollama service
-
-**Qt dialog testing:** Use `MockParentWidget` from `tests/unit/ui/conftest.py`
-
-**Coverage limits:** Qt threading prevents 100% — max ~99% achievable
+---
 
 ## Key Files
 
@@ -87,18 +79,34 @@ src/asciidoc_artisan/
 |---------|-------|
 | Entry | `src/main.py` |
 | Controller | `ui/main_window.py` (1,167 lines) |
-| Managers | `ui/{menu,theme,status,file,git,export,telemetry,chat_worker_router}_manager.py` |
+| Handlers | `ui/{file,git,github,preview,search}_handler.py` |
 | Workers | `workers/{git,pandoc,preview,ollama_chat}_worker.py` |
 | AI | `claude/{claude_client,claude_worker}.py` |
-| LSP | `lsp/{server,providers/*}.py` |
+| LSP | `lsp/{server,*_provider}.py` |
+
+---
+
+## Testing
+
+**Markers:**
+- `@pytest.mark.requires_gpu` — Qt WebEngine + GPU
+- `@pytest.mark.live_api` — Requires Ollama
+
+**Qt testing:** Use `MockParentWidget` from `tests/unit/ui/conftest.py`
+
+**Coverage:** Max ~99% (Qt threading limits)
+
+---
 
 ## Docs
 
 | Doc | Purpose |
 |-----|---------|
-| SPECIFICATIONS.md | 109 FRs with file locations |
-| docs/ARCHITECTURE.md | System design, FR mapping |
+| SPECIFICATIONS.md | 109 FRs, code-gen schemas |
+| docs/ARCHITECTURE.md | UML diagrams, patterns |
 | ROADMAP.md | Version history |
+
+---
 
 ## Troubleshooting
 
@@ -111,5 +119,6 @@ src/asciidoc_artisan/
 
 ---
 
-*v2.1.0 | 46,457 lines | 5,139 tests | mypy --strict*
-- always apply MA principles
+*v2.1.0 | 45,900 lines | 5,139 tests | mypy --strict*
+
+**Always apply MA principles: <400 lines/file, focused modules**

@@ -1,6 +1,36 @@
 # AsciiDoc Artisan Roadmap
 
-**v2.1.0** | **Dec 5, 2025** | **Public Release** | **Maintenance Mode**
+**v2.1.0** | **Dec 5, 2025** | **Public Release**
+
+---
+
+## Current State
+
+| Metric | Value |
+|--------|-------|
+| Code | 45,900 lines / 180 files |
+| Unit Tests | 5,122 |
+| E2E Tests | 17 |
+| Coverage | 95% |
+| Type Check | 100% (mypy --strict) |
+| Startup | 0.27s |
+
+---
+
+## Features
+
+| Category | Features |
+|----------|----------|
+| Editor | Live preview, GPU accelerated |
+| Editing | Auto-complete, syntax check, spell check |
+| Templates | 6 built-in + custom |
+| Search | Find/replace with regex |
+| Git | Commit, push, pull, status |
+| GitHub | PRs, issues via CLI |
+| AI | Ollama chat, Claude |
+| Import | DOCX, PDF, Markdown, HTML |
+| Export | HTML, PDF, DOCX, Markdown |
+| LSP | 9 providers |
 
 ---
 
@@ -8,95 +38,70 @@
 
 | Version | Date | Focus |
 |---------|------|-------|
-| v1.5.0 | Oct 2025 | Performance (worker pool) |
-| v1.6.0 | Oct 2025 | Type Safety (100% hints, GitHub CLI) |
-| v1.7.0 | Nov 2025 | AI Chat (Ollama, 4 modes) |
+| v2.1.0 | Dec 5, 2025 | Public Release |
+| v2.0.9 | Dec 3, 2025 | LSP, multi-core rendering |
+| v2.0.1-8 | Nov 13-21 | Test stabilization |
+| v2.0.0 | Nov 8-9 | Autocomplete, syntax, templates |
+| v1.9.0 | Nov 2025 | Git UX improvements |
 | v1.8.0 | Nov 2025 | Find/Replace, Spell Check |
-| v1.9.0 | Nov 2025 | Git UX (status dialog, quick commit) |
-| v2.0.0 | Nov 8-9 | Advanced Editing (autocomplete, syntax, templates) |
-| v2.0.1-8 | Nov 13-21 | Test stabilization, coverage |
-| v2.0.9 | Dec 3 | LSP, multi-core rendering |
-| v2.1.0 | Dec 5 | **Public Release** |
+| v1.7.0 | Nov 2025 | AI Chat (Ollama) |
+| v1.6.0 | Oct 2025 | Type Safety, GitHub CLI |
+| v1.5.0 | Oct 2025 | Performance (worker pool) |
 
 ---
 
-## Current State (v2.1.0)
+## Performance
 
-| Metric | Value |
-|--------|-------|
-| Source | 45,900 lines / 180 files |
-| Unit Tests | 5,122 (100% pass) |
-| E2E Tests | 17 (100% pass) |
-| Type Coverage | 100% (mypy --strict) |
-| Startup | 0.586s |
-
-### Features
-- ✅ LSP Server (9 providers)
-- ✅ Multi-core rendering (2-4x speedup)
-- ✅ Auto-complete (<50ms, fuzzy)
-- ✅ Syntax Check (real-time, quick fixes)
-- ✅ Templates (6 built-in + custom)
-- ✅ AI Chat (Ollama, Claude)
-- ✅ Find/Replace (regex)
-- ✅ Spell Check (multi-lang)
-- ✅ Git + GitHub CLI
-- ✅ GPU rendering (10-50x faster)
-
-### Architecture
-- Manager Pattern: UI split into specialized managers
-- Worker Threads: QThread for Git/Pandoc/Preview
-- MA Principle: <400 lines/file, focused modules
-- Security: shell=False, atomic writes, path sanitization
+| Operation | Target | Actual |
+|-----------|--------|--------|
+| Startup | <1.0s | 0.27s |
+| Preview (small) | <200ms | 150ms |
+| Preview (large) | <500ms | 400ms |
+| Auto-complete | <50ms | 20-40ms |
+| Syntax check | <100ms | <50ms |
 
 ---
 
-## Performance Budget
+## Architecture
 
-| Metric | Current | Target |
-|--------|---------|--------|
-| Startup | 0.586s ✅ | <1.0s |
-| Preview (small) | 150-200ms ✅ | <200ms |
-| Preview (large) | 600-750ms | 300-500ms |
-| Auto-complete | 20-40ms ✅ | <50ms |
-| Syntax Check | <100ms ✅ | <100ms |
+| Principle | Implementation |
+|-----------|----------------|
+| MA Principle | <400 lines/file |
+| Handler Pattern | UI logic in focused handlers |
+| Worker Threads | QThread for slow operations |
+| Security | shell=False, atomic writes |
 
 ---
 
-## Future (Deferred)
+## Future
 
-**v3.0.0** - No planned features. Current v2.x is feature-complete.
+**v3.0.0** — No planned features. v2.x is feature-complete.
 
-**Rationale:** v2.x includes all planned LSP features (code actions, folding, formatting, semantic tokens). Maintenance mode only.
+**Maintenance mode:** Bug fixes only.
 
 ---
 
 ## Out of Scope
 
-These features are explicitly not planned:
+Not planned:
 - Plugin architecture
 - Plugin marketplace
 - Collaborative editing
 - Cloud sync
 
-**Rationale:** AsciiDoc Artisan is a focused local-first editor. These features add complexity without serving the core use case.
-
----
-
-## GitHub Status
-
-- **Open Issues:** 0
-- **Open PRs:** 0
-- **Release:** v2.1.0 (Dec 5, 2025)
-- **Dependabot:** Active
+**Rationale:** Local-first editor. These add complexity without serving core use case.
 
 ---
 
 ## Test Coverage Notes
 
-- **Maximum achievable:** ~99.5% (Qt threading prevents 100%)
-- **Qt limitation:** coverage.py cannot track QThread.run()/QRunnable execution
-- **Current:** 95% overall
+| Limit | Reason |
+|-------|--------|
+| Max 99% | Qt threading prevents 100% |
+| Current | 95% overall |
+
+coverage.py cannot track QThread.run() execution.
 
 ---
 
-*v2.1.0 | Production-ready | Maintenance mode | Dec 5, 2025*
+*v2.1.0 | Production-ready | Maintenance mode*
