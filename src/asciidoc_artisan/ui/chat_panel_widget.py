@@ -18,6 +18,8 @@ Visibility Rules:
     - Initially collapsed (can be toggled via UI button)
 
 Specification Reference: Lines 228-329 (Ollama AI Chat Rules)
+
+MA principle: Rendering logic extracted to ChatMessageRenderer (~100 lines saved).
 """
 
 import logging
@@ -33,6 +35,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.models import ChatMessage
+from .chat_message_renderer import ChatMessageRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +78,7 @@ class ChatPanelWidget(QWidget):
         self._messages: list[ChatMessage] = []
         self._auto_scroll = True
         self._dark_mode = False  # Track current theme
+        self._renderer = ChatMessageRenderer(dark_mode=self._dark_mode)
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -93,25 +97,8 @@ class ChatPanelWidget(QWidget):
         self._show_empty_state()
 
     def _show_empty_state(self) -> None:
-        """Show placeholder when chat is empty."""
-        empty_html = """
-        <div style='text-align: center; padding: 40px; color: #888;'>
-            <p style='font-size: 14px; margin-bottom: 10px;'>
-                <b>AI Chat Ready</b>
-            </p>
-            <p style='font-size: 12px;'>
-                Ask a question in the chat bar below to start a conversation.
-            </p>
-            <p style='font-size: 11px; margin-top: 20px;'>
-                Context modes:<br>
-                • <b>Document Q&A</b>: Questions about current document<br>
-                • <b>Syntax Help</b>: AsciiDoc formatting help<br>
-                • <b>General Chat</b>: General questions<br>
-                • <b>Editing Suggestions</b>: Get editing feedback
-            </p>
-        </div>
-        """
-        self._text_display.setHtml(empty_html)
+        """Show placeholder when chat is empty (delegates to renderer)."""
+        self._text_display.setHtml(self._renderer.render_empty_state())
 
     def set_dark_mode(self, enabled: bool) -> None:
         """
@@ -121,33 +108,13 @@ class ChatPanelWidget(QWidget):
             enabled: True for dark mode, False for light mode
         """
         self._dark_mode = enabled
+        self._renderer.set_dark_mode(enabled)
         # Refresh all messages with new theme
         self.refresh_display()
 
     def _get_colors(self) -> dict[str, str]:
-        """Get theme-aware colors for message styling."""
-        if self._dark_mode:
-            return {
-                "user_bg": "#1e3a5f",
-                "user_border": "#4a90e2",
-                "user_text": "#ffffff",
-                "user_meta": "#aaaaaa",
-                "ai_bg": "#1e4d2b",
-                "ai_border": "#5cb85c",
-                "ai_text": "#ffffff",
-                "ai_meta": "#aaaaaa",
-            }
-        else:
-            return {
-                "user_bg": "#e3f2fd",
-                "user_border": "#2196f3",
-                "user_text": "#000000",
-                "user_meta": "#666666",
-                "ai_bg": "#f5f5f5",
-                "ai_border": "#4caf50",
-                "ai_text": "#000000",
-                "ai_meta": "#666666",
-            }
+        """Get theme-aware colors for message styling (delegates to renderer)."""
+        return self._renderer.get_colors()
 
     def add_user_message(
         self,
@@ -248,77 +215,16 @@ class ChatPanelWidget(QWidget):
             self._scroll_to_bottom()
 
     def _format_message_metadata(self, message: ChatMessage) -> tuple[str, str]:
-        """Format timestamp and context mode display for message."""
-        time_str = time.strftime("%H:%M:%S", time.localtime(message.timestamp))
-
-        # Format context mode badge with user-friendly labels
-        # Dictionary.get() returns emoji version if mode is known,
-        # otherwise returns raw mode name as fallback (for future modes)
-        mode_display = {
-            "document": "📄 Doc",  # Document Q&A mode
-            "syntax": "📝 Syntax",  # AsciiDoc syntax help
-            "general": "💬 Chat",  # General conversation
-            "editing": "✏️ Edit",  # Editing suggestions
-        }.get(message.context_mode, message.context_mode)  # Fallback: use raw name if unknown
-
-        return time_str, mode_display
+        """Format timestamp and context mode display (delegates to renderer)."""
+        return self._renderer.format_metadata(message)
 
     def _create_message_html(self, message: ChatMessage, time_str: str, mode_display: str) -> str:
-        """Create HTML for message based on role."""
-        colors = self._get_colors()
-
-        if message.role == "user":
-            return f"""
-            <div style='margin: 10px; padding: 10px; background-color: {colors["user_bg"]};
-                        border-left: 4px solid {colors["user_border"]}; border-radius: 4px;'>
-                <div style='font-size: 10px; color: {colors["user_meta"]}; margin-bottom: 5px;'>
-                    <b>You</b> • {time_str} • {mode_display}
-                </div>
-                <div style='font-size: 12px; color: {colors["user_text"]};'>
-                    {self._escape_html(message.content)}
-                </div>
-            </div>
-            """
-        else:
-            return f"""
-            <div style='margin: 10px; padding: 10px; background-color: {colors["ai_bg"]};
-                        border-left: 4px solid {colors["ai_border"]}; border-radius: 4px;'>
-                <div style='font-size: 10px; color: {colors["ai_meta"]}; margin-bottom: 5px;'>
-                    <b>AI ({message.model})</b> • {time_str} • {mode_display}
-                </div>
-                <div style='font-size: 12px; color: {colors["ai_text"]}; white-space: pre-wrap;'>
-                    {self._escape_html(message.content)}
-                </div>
-            </div>
-            """
+        """Create HTML for message based on role (delegates to renderer)."""
+        return self._renderer.render_message(message, time_str, mode_display)
 
     def _escape_html(self, text: str) -> str:
-        """
-        Escape HTML special characters in message text.
-
-        WHY THIS EXISTS:
-        If AI response contains "<script>alert('hack')</script>", we need to
-        display it as text, not execute it as code. This prevents XSS (Cross-Site
-        Scripting) attacks where malicious code could run in the preview pane.
-
-        SECURITY NOTE:
-        Always escape user input and AI responses before displaying in HTML.
-        Order matters: & must be replaced first (otherwise we'd double-escape).
-
-        Args:
-            text: Raw message text (possibly containing HTML-like text)
-
-        Returns:
-            HTML-safe text ready for display
-        """
-        return (
-            text.replace("&", "&amp;")  # Must be first! (& -> &amp;)
-            .replace("<", "&lt;")  # < -> &lt; (prevents tags)
-            .replace(">", "&gt;")  # > -> &gt;
-            .replace('"', "&quot;")  # " -> &quot; (prevents attribute injection)
-            .replace("'", "&#39;")  # ' -> &#39;
-            .replace("\n", "<br>")  # Convert newlines to line breaks
-        )
+        """Escape HTML special characters (delegates to renderer)."""
+        return ChatMessageRenderer.escape_html(text)
 
     def _scroll_to_bottom(self) -> None:
         """Scroll to the bottom of the chat display."""

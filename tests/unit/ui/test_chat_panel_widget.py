@@ -262,7 +262,7 @@ class TestThemeSwitching:
     def test_get_colors_dark_mode(self, qapp):
         """Test get_colors returns dark mode colors."""
         widget = ChatPanelWidget()
-        widget._dark_mode = True
+        widget.set_dark_mode(True)  # Use public API to sync renderer
 
         colors = widget._get_colors()
 
@@ -274,7 +274,7 @@ class TestThemeSwitching:
     def test_get_colors_light_mode(self, qapp):
         """Test get_colors returns light mode colors."""
         widget = ChatPanelWidget()
-        widget._dark_mode = False
+        widget.set_dark_mode(False)  # Use public API to sync renderer
 
         colors = widget._get_colors()
 
