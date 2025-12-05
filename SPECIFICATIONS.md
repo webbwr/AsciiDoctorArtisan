@@ -539,4 +539,667 @@ temp+rename pattern ensures complete file or nothing. Never partial writes on cr
 
 ---
 
-*v2.1.0 | 109 FRs | 46,244 lines | Specification-Driven | Dec 5, 2025*
+## [SPEC] UI Layout
+
+```yaml
+# AI: Generate main window layout using this structure
+
+MainWindow:
+  class: AsciiDocEditor
+  base: QMainWindow
+  file: ui/main_window.py
+  min_size: [1024, 768]
+
+  layout:
+    central_widget: QSplitter(horizontal)
+    children:
+      - editor_pane:
+          widget: QPlainTextEdit
+          features: [line_numbers, syntax_highlight, auto_indent]
+          min_width: 300
+
+      - preview_pane:
+          widget: QWebEngineView | QTextBrowser
+          gpu_accelerated: true
+          min_width: 300
+
+      - chat_pane:
+          widget: ChatPanelWidget
+          collapsible: true
+          default_visible: true
+          min_width: 200
+
+  splitter_ratios: [40, 40, 20]  # editor, preview, chat
+```
+
+---
+
+## [SPEC] Widget Templates
+
+### Editor Widget
+
+```python
+# TEMPLATE: Editor with line numbers
+# File: ui/main_window.py (editor section)
+
+from PySide6.QtWidgets import QPlainTextEdit, QWidget
+from PySide6.QtCore import Qt, QRect
+from PySide6.QtGui import QFont, QPainter, QColor
+
+
+class LineNumberArea(QWidget):
+    """Line number gutter for editor."""
+
+    def __init__(self, editor: "CodeEditor") -> None:
+        super().__init__(editor)
+        self.editor = editor
+
+    def sizeHint(self) -> QSize:
+        return QSize(self.editor.line_number_area_width(), 0)
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        self.editor.line_number_area_paint_event(event)
+
+
+class CodeEditor(QPlainTextEdit):
+    """Editor with line numbers and syntax highlighting."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.line_number_area = LineNumberArea(self)
+
+        # Connect signals
+        self.blockCountChanged.connect(self._update_line_number_width)
+        self.updateRequest.connect(self._update_line_number_area)
+
+        # Initial setup
+        self._update_line_number_width(0)
+        self.setFont(QFont("Courier New", 12))
+```
+
+### Chat Panel Widget
+
+```python
+# TEMPLATE: Chat panel with input and history
+# File: ui/chat_panel_widget.py
+
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextBrowser, QLineEdit, QComboBox
+from PySide6.QtCore import Signal
+
+
+class ChatPanelWidget(QWidget):
+    """AI chat panel with history and context modes."""
+
+    message_submitted = Signal(str)
+    context_mode_changed = Signal(str)
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._setup_ui()
+
+    def _setup_ui(self) -> None:
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(4)
+
+        # Context mode selector
+        self.context_combo = QComboBox()
+        self.context_combo.addItems(["Document", "Syntax", "General", "Editing"])
+        self.context_combo.currentTextChanged.connect(self._on_context_changed)
+        layout.addWidget(self.context_combo)
+
+        # Chat history
+        self.history = QTextBrowser()
+        self.history.setOpenExternalLinks(True)
+        layout.addWidget(self.history, stretch=1)
+
+        # Input field
+        self.input_field = QLineEdit()
+        self.input_field.setPlaceholderText("Ask AI...")
+        self.input_field.returnPressed.connect(self._on_submit)
+        layout.addWidget(self.input_field)
+```
+
+### Find Bar Widget
+
+```python
+# TEMPLATE: Find/replace bar
+# File: ui/find_bar_widget.py
+
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QPushButton, QCheckBox
+from PySide6.QtCore import Signal
+
+
+class FindBarWidget(QWidget):
+    """Find and replace bar."""
+
+    find_requested = Signal(str, bool, bool)  # text, case_sensitive, regex
+    replace_requested = Signal(str, str)
+    closed = Signal()
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._setup_ui()
+
+    def _setup_ui(self) -> None:
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(4, 4, 4, 4)
+
+        # Find field
+        self.find_field = QLineEdit()
+        self.find_field.setPlaceholderText("Find...")
+        self.find_field.returnPressed.connect(self._on_find)
+        layout.addWidget(self.find_field)
+
+        # Replace field
+        self.replace_field = QLineEdit()
+        self.replace_field.setPlaceholderText("Replace...")
+        layout.addWidget(self.replace_field)
+
+        # Options
+        self.case_checkbox = QCheckBox("Case")
+        self.regex_checkbox = QCheckBox("Regex")
+        layout.addWidget(self.case_checkbox)
+        layout.addWidget(self.regex_checkbox)
+
+        # Buttons
+        self.find_btn = QPushButton("Find")
+        self.replace_btn = QPushButton("Replace")
+        self.replace_all_btn = QPushButton("All")
+        self.close_btn = QPushButton("×")
+        layout.addWidget(self.find_btn)
+        layout.addWidget(self.replace_btn)
+        layout.addWidget(self.replace_all_btn)
+        layout.addWidget(self.close_btn)
+```
+
+---
+
+## [SPEC] Dialog Templates
+
+```python
+# TEMPLATE: Standard dialog pattern
+# File: ui/{name}_dialog.py
+
+from PySide6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QDialogButtonBox
+)
+from PySide6.QtCore import Qt
+
+
+class {Name}Dialog(QDialog):
+    """Dialog for {description}."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("{Title}")
+        self.setModal(True)
+        self.setMinimumWidth(400)
+        self._setup_ui()
+
+    def _setup_ui(self) -> None:
+        layout = QVBoxLayout(self)
+
+        # Content area
+        self.content_layout = QVBoxLayout()
+        layout.addLayout(self.content_layout)
+
+        # Button box
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok |
+            QDialogButtonBox.StandardButton.Cancel
+        )
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        layout.addWidget(self.button_box)
+
+    def get_result(self) -> dict:
+        """Override to return dialog result."""
+        return {}
+```
+
+```yaml
+# Dialog specifications
+
+dialogs:
+  SettingsDialog:
+    file: ui/settings_dialog.py
+    tabs: [General, Editor, AI, Privacy]
+    size: [600, 500]
+
+  TemplateDialog:
+    file: ui/template_dialog.py
+    features: [template_list, preview, variables]
+    size: [700, 500]
+
+  AboutDialog:
+    file: ui/about_dialog.py
+    content: [logo, version, credits, license]
+    size: [400, 300]
+
+  ExportDialog:
+    file: ui/export_dialog.py
+    formats: [HTML, PDF, DOCX, Markdown]
+    options: [output_path, open_after]
+
+  GitCommitDialog:
+    file: ui/git_commit_dialog.py
+    fields: [message, staged_files, diff_preview]
+    buttons: [Commit, Cancel]
+```
+
+---
+
+## [SPEC] Menu Structure
+
+```yaml
+# AI: Generate menus using this structure
+
+menus:
+  File:
+    items:
+      - {label: "New", shortcut: "Ctrl+N", action: new_file}
+      - {label: "Open...", shortcut: "Ctrl+O", action: open_file}
+      - {label: "Open Recent", submenu: recent_files}
+      - {type: separator}
+      - {label: "Save", shortcut: "Ctrl+S", action: save_file}
+      - {label: "Save As...", shortcut: "Ctrl+Shift+S", action: save_as}
+      - {type: separator}
+      - {label: "Import", submenu: import_menu}
+      - {label: "Export", submenu: export_menu}
+      - {type: separator}
+      - {label: "Exit", shortcut: "Ctrl+Q", action: close}
+
+  Edit:
+    items:
+      - {label: "Undo", shortcut: "Ctrl+Z", action: undo}
+      - {label: "Redo", shortcut: "Ctrl+Y", action: redo}
+      - {type: separator}
+      - {label: "Cut", shortcut: "Ctrl+X", action: cut}
+      - {label: "Copy", shortcut: "Ctrl+C", action: copy}
+      - {label: "Paste", shortcut: "Ctrl+V", action: paste}
+      - {type: separator}
+      - {label: "Find...", shortcut: "Ctrl+F", action: show_find}
+      - {label: "Replace...", shortcut: "Ctrl+H", action: show_replace}
+      - {label: "Go to Line...", shortcut: "Ctrl+G", action: goto_line}
+
+  View:
+    items:
+      - {label: "Dark Mode", shortcut: "F11", action: toggle_theme, checkable: true}
+      - {label: "Preview Panel", action: toggle_preview, checkable: true}
+      - {label: "Chat Panel", action: toggle_chat, checkable: true}
+      - {type: separator}
+      - {label: "Zoom In", shortcut: "Ctrl++", action: zoom_in}
+      - {label: "Zoom Out", shortcut: "Ctrl+-", action: zoom_out}
+      - {label: "Reset Zoom", shortcut: "Ctrl+0", action: zoom_reset}
+
+  Tools:
+    items:
+      - {label: "Spell Check", shortcut: "F7", action: spell_check}
+      - {label: "Syntax Check", shortcut: "F8", action: syntax_check}
+      - {type: separator}
+      - {label: "Templates...", action: show_templates}
+      - {label: "Settings...", action: show_settings}
+
+  Git:
+    items:
+      - {label: "Quick Commit...", shortcut: "Ctrl+Shift+G", action: quick_commit}
+      - {label: "Pull", action: git_pull}
+      - {label: "Push", action: git_push}
+      - {type: separator}
+      - {label: "Status", action: git_status}
+      - {label: "Log", action: git_log}
+
+  GitHub:
+    items:
+      - {label: "Create PR...", action: github_create_pr}
+      - {label: "List PRs", action: github_list_prs}
+      - {type: separator}
+      - {label: "Create Issue...", action: github_create_issue}
+      - {label: "List Issues", action: github_list_issues}
+
+  Help:
+    items:
+      - {label: "User Guide", action: show_help}
+      - {label: "Keyboard Shortcuts", action: show_shortcuts}
+      - {type: separator}
+      - {label: "About", action: show_about}
+```
+
+---
+
+## [SPEC] Keyboard Shortcuts
+
+```yaml
+# Complete keyboard shortcut reference
+
+shortcuts:
+  # File operations
+  file:
+    Ctrl+N: new_file
+    Ctrl+O: open_file
+    Ctrl+S: save_file
+    Ctrl+Shift+S: save_as
+    Ctrl+W: close_file
+    Ctrl+Q: quit
+
+  # Edit operations
+  edit:
+    Ctrl+Z: undo
+    Ctrl+Y: redo
+    Ctrl+Shift+Z: redo  # Alternative
+    Ctrl+X: cut
+    Ctrl+C: copy
+    Ctrl+V: paste
+    Ctrl+A: select_all
+    Ctrl+D: duplicate_line
+
+  # Find/Replace
+  search:
+    Ctrl+F: show_find
+    Ctrl+H: show_replace
+    F3: find_next
+    Shift+F3: find_previous
+    Ctrl+G: goto_line
+    Escape: close_find_bar
+
+  # View
+  view:
+    F11: toggle_dark_mode
+    Ctrl+Plus: zoom_in
+    Ctrl+Minus: zoom_out
+    Ctrl+0: zoom_reset
+    Ctrl+B: toggle_preview
+    Ctrl+Shift+C: toggle_chat
+
+  # Tools
+  tools:
+    F7: spell_check
+    F8: syntax_check
+    Ctrl+Space: autocomplete
+    Ctrl+Shift+T: insert_template
+
+  # Git
+  git:
+    Ctrl+Shift+G: quick_commit
+    Ctrl+Shift+P: git_pull
+    Ctrl+Shift+U: git_push
+
+  # Editor
+  editor:
+    Tab: indent
+    Shift+Tab: unindent
+    Ctrl+/: toggle_comment
+    Ctrl+Enter: insert_line_below
+    Ctrl+Shift+Enter: insert_line_above
+```
+
+---
+
+## [SPEC] Theme System
+
+```yaml
+# Theme specification
+
+themes:
+  dark:
+    name: "Dark"
+    colors:
+      background: "#1e1e1e"
+      foreground: "#d4d4d4"
+      selection: "#264f78"
+      line_highlight: "#2d2d2d"
+      gutter_bg: "#252526"
+      gutter_fg: "#858585"
+
+    syntax:
+      keyword: "#569cd6"
+      string: "#ce9178"
+      comment: "#6a9955"
+      number: "#b5cea8"
+      heading: "#4ec9b0"
+      link: "#3794ff"
+      bold: "#d4d4d4"
+      italic: "#9cdcfe"
+
+  light:
+    name: "Light"
+    colors:
+      background: "#ffffff"
+      foreground: "#333333"
+      selection: "#add6ff"
+      line_highlight: "#f3f3f3"
+      gutter_bg: "#f5f5f5"
+      gutter_fg: "#999999"
+
+    syntax:
+      keyword: "#0000ff"
+      string: "#a31515"
+      comment: "#008000"
+      number: "#098658"
+      heading: "#267f99"
+      link: "#0066cc"
+      bold: "#333333"
+      italic: "#333333"
+```
+
+```python
+# TEMPLATE: Theme manager
+# File: ui/theme_manager.py
+
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QPalette, QColor
+
+
+class ThemeManager:
+    """Manages application themes."""
+
+    DARK_STYLESHEET = '''
+        QMainWindow { background-color: #1e1e1e; }
+        QPlainTextEdit { background-color: #1e1e1e; color: #d4d4d4; }
+        QTextBrowser { background-color: #252526; color: #d4d4d4; }
+        QMenuBar { background-color: #333333; color: #d4d4d4; }
+        QMenu { background-color: #252526; color: #d4d4d4; }
+        QStatusBar { background-color: #007acc; color: white; }
+    '''
+
+    LIGHT_STYLESHEET = '''
+        QMainWindow { background-color: #ffffff; }
+        QPlainTextEdit { background-color: #ffffff; color: #333333; }
+        QTextBrowser { background-color: #f5f5f5; color: #333333; }
+    '''
+
+    def __init__(self, app: QApplication) -> None:
+        self.app = app
+        self.dark_mode = True
+
+    def apply_theme(self, dark: bool) -> None:
+        """Apply theme to application."""
+        self.dark_mode = dark
+        stylesheet = self.DARK_STYLESHEET if dark else self.LIGHT_STYLESHEET
+        self.app.setStyleSheet(stylesheet)
+```
+
+---
+
+## [SPEC] Status Bar
+
+```yaml
+# Status bar specification
+
+status_bar:
+  sections:
+    - name: message
+      stretch: 1
+      default: "Ready"
+
+    - name: position
+      width: 120
+      format: "Ln {line}, Col {col}"
+
+    - name: encoding
+      width: 80
+      default: "UTF-8"
+
+    - name: git_branch
+      width: 100
+      icon: "branch"
+      format: "{branch}"
+
+    - name: git_status
+      width: 60
+      format: "M:{modified} S:{staged}"
+
+  messages:
+    file_saved: "Saved: {filename}"
+    file_opened: "Opened: {filename}"
+    git_commit: "Committed: {short_hash}"
+    export_complete: "Exported to {format}: {path}"
+    error: "Error: {message}"
+
+  duration: 5000  # ms for temporary messages
+```
+
+---
+
+## [SPEC] User Flows
+
+```yaml
+# Key user interaction flows
+
+flows:
+  open_file:
+    steps:
+      1: {action: "Ctrl+O or File > Open", ui: show_file_dialog}
+      2: {action: "Select file", ui: file_dialog}
+      3: {action: "Click Open", result: file_loaded}
+      4: {feedback: status_bar, message: "Opened: {filename}"}
+      5: {update: [editor_content, preview, window_title]}
+
+  save_file:
+    steps:
+      1: {action: "Ctrl+S or File > Save", check: has_path}
+      2a: {if: has_path, action: atomic_save}
+      2b: {if: no_path, action: show_save_dialog}
+      3: {feedback: status_bar, message: "Saved: {filename}"}
+      4: {update: [modified_flag, window_title]}
+
+  git_commit:
+    steps:
+      1: {action: "Ctrl+Shift+G", ui: show_quick_commit}
+      2: {display: [staged_files, diff_preview]}
+      3: {input: commit_message}
+      4: {action: "Click Commit", start: git_worker}
+      5: {feedback: status_bar, message: "Committed: {hash}"}
+      6: {update: git_status}
+
+  ai_chat:
+    steps:
+      1: {action: "Type in chat input", input: message}
+      2: {action: "Press Enter", start: ollama_worker}
+      3: {feedback: chat_history, streaming: true}
+      4: {complete: append_response}
+
+  find_replace:
+    steps:
+      1: {action: "Ctrl+F", ui: show_find_bar}
+      2: {input: search_text}
+      3: {action: "Press Enter or F3", highlight: matches}
+      4: {optional: "Ctrl+H", input: replace_text}
+      5: {action: "Replace or Replace All", update: editor}
+      6: {action: "Escape", ui: hide_find_bar}
+```
+
+---
+
+## [SPEC] Feedback Patterns
+
+```yaml
+# User feedback specifications
+
+feedback:
+  status_bar:
+    success:
+      duration: 5000
+      style: "background-color: #28a745; color: white;"
+    error:
+      duration: 10000
+      style: "background-color: #dc3545; color: white;"
+    info:
+      duration: 3000
+      style: "background-color: #007bff; color: white;"
+
+  notifications:
+    toast:
+      position: bottom_right
+      duration: 3000
+      max_visible: 3
+
+  progress:
+    indeterminate:
+      widget: QProgressBar
+      style: "indeterminate"
+    determinate:
+      widget: QProgressBar
+      range: [0, 100]
+
+  dialogs:
+    error:
+      icon: QMessageBox.Critical
+      buttons: [Ok]
+    warning:
+      icon: QMessageBox.Warning
+      buttons: [Ok, Cancel]
+    question:
+      icon: QMessageBox.Question
+      buttons: [Yes, No, Cancel]
+    info:
+      icon: QMessageBox.Information
+      buttons: [Ok]
+
+  editor:
+    syntax_error:
+      underline: wavy_red
+      tooltip: error_message
+      gutter: error_icon
+    warning:
+      underline: wavy_yellow
+      tooltip: warning_message
+      gutter: warning_icon
+    spell_error:
+      underline: dotted_blue
+      context_menu: suggestions
+```
+
+---
+
+## [SPEC] Accessibility
+
+```yaml
+# Accessibility requirements
+
+accessibility:
+  keyboard:
+    - "All features accessible via keyboard"
+    - "Tab order follows visual layout"
+    - "Focus indicators visible"
+
+  screen_reader:
+    - "All widgets have accessible names"
+    - "Status changes announced"
+    - "Dialog content readable"
+
+  contrast:
+    minimum_ratio: 4.5
+    large_text_ratio: 3.0
+
+  font_scaling:
+    min_size: 8
+    max_size: 72
+    step: 2
+```
+
+---
+
+*v2.1.0 | 109 FRs | 46,244 lines | UI/UX Spec | Dec 5, 2025*
