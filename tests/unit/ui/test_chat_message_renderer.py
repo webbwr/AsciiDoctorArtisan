@@ -5,7 +5,6 @@ Tests HTML rendering for chat messages with theme support.
 Extracted as part of MA principle compliance (chat_panel_widget.py split).
 """
 
-import pytest
 import time
 
 from asciidoc_artisan.core.models import ChatMessage

@@ -25,7 +25,6 @@ Example:
 from dataclasses import dataclass
 from typing import NamedTuple
 
-
 # === SEMANTIC COLORS (Bootstrap-inspired) ===
 
 

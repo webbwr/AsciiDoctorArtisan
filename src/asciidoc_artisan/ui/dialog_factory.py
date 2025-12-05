@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from asciidoc_artisan.ui.style_constants import Colors, Fonts, Spacing
+from asciidoc_artisan.ui.style_constants import Colors, Fonts
 
 
 class ButtonStyle(Enum):
@@ -134,6 +134,7 @@ class StyledButtonFactory:
     def create_secondary_button(cls, text: str, icon: str = "") -> QPushButton:
         """Create a gray secondary button (convenience method)."""
         return cls.create_button(text, ButtonStyle.SECONDARY, icon, bold=False)
+
 
 # Type variable for dialog type hints
 T = TypeVar("T", bound=QDialog)
@@ -414,9 +415,7 @@ class BaseSettingsDialog(QDialog):
         label.setStyleSheet(f"QLabel {{ {Fonts.STYLE_INFO} }}")
         return label
 
-    def create_status_label(
-        self, text: str, status: str = "normal"
-    ) -> QLabel:
+    def create_status_label(self, text: str, status: str = "normal") -> QLabel:
         """Create a status label with color based on status.
 
         Args:
