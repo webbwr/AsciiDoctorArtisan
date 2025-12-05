@@ -8,7 +8,6 @@ Tests cover:
 """
 
 import pytest
-from lsprotocol import types as lsp
 
 from asciidoc_artisan.lsp.semantic_tokens_provider import (
     TOKEN_MODIFIERS,

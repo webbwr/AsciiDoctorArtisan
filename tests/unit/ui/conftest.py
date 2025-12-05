@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
 
-
 # ============================================================================
 # Global QMessageBox Mock - MUST BE APPLIED BEFORE ANY TESTS RUN
 # ============================================================================

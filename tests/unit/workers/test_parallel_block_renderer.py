@@ -168,5 +168,3 @@ class TestShutdown:
         """Test shutdown when executor was never created."""
         renderer.shutdown()
         assert renderer._executor is None
-
-

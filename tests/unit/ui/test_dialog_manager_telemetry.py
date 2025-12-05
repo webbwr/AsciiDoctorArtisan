@@ -243,12 +243,10 @@ class TestTelemetryDirectoryChange:
         mock_msg_box.done = Mock()
 
         # Mock the internal methods for directory selection, confirmation, and show_telemetry_status
-        with patch.object(
-            manager._telemetry_handler, "_select_telemetry_directory", return_value=new_dir
-        ), patch.object(
-            manager._telemetry_handler, "_confirm_directory_change", return_value=True
-        ), patch.object(
-            manager._telemetry_handler, "show_telemetry_status"
+        with (
+            patch.object(manager._telemetry_handler, "_select_telemetry_directory", return_value=new_dir),
+            patch.object(manager._telemetry_handler, "_confirm_directory_change", return_value=True),
+            patch.object(manager._telemetry_handler, "show_telemetry_status"),
         ):
             # Execute
             manager._telemetry_handler._change_telemetry_directory(old_file, tmp_path / "old", mock_msg_box)
@@ -272,12 +270,10 @@ class TestTelemetryDirectoryChange:
         mock_msg_box.done = Mock()
 
         # Mock the internal methods for directory selection, confirmation, and show_telemetry_status
-        with patch.object(
-            manager._telemetry_handler, "_select_telemetry_directory", return_value=new_dir
-        ), patch.object(
-            manager._telemetry_handler, "_confirm_directory_change", return_value=True
-        ), patch.object(
-            manager._telemetry_handler, "show_telemetry_status"
+        with (
+            patch.object(manager._telemetry_handler, "_select_telemetry_directory", return_value=new_dir),
+            patch.object(manager._telemetry_handler, "_confirm_directory_change", return_value=True),
+            patch.object(manager._telemetry_handler, "show_telemetry_status"),
         ):
             # Execute - no existing file
             manager._telemetry_handler._change_telemetry_directory(None, tmp_path / "old", mock_msg_box)
@@ -300,10 +296,9 @@ class TestTelemetryDirectoryChange:
 
         # Execute with invalid path that will trigger an error
         invalid_dir = Path("/invalid/readonly/path/that/cannot/be/created")
-        with patch.object(
-            manager._telemetry_handler, "_select_telemetry_directory", return_value=invalid_dir
-        ), patch.object(
-            manager._telemetry_handler, "_confirm_directory_change", return_value=True
+        with (
+            patch.object(manager._telemetry_handler, "_select_telemetry_directory", return_value=invalid_dir),
+            patch.object(manager._telemetry_handler, "_confirm_directory_change", return_value=True),
         ):
             manager._telemetry_handler._change_telemetry_directory(old_file, tmp_path / "old", mock_msg_box)
 
@@ -325,12 +320,10 @@ class TestTelemetryDirectoryChange:
         mock_msg_box.done = Mock()
 
         # Mock the internal methods for directory selection, confirmation, and show_telemetry_status
-        with patch.object(
-            manager._telemetry_handler, "_select_telemetry_directory", return_value=new_dir
-        ), patch.object(
-            manager._telemetry_handler, "_confirm_directory_change", return_value=True
-        ), patch.object(
-            manager._telemetry_handler, "show_telemetry_status"
+        with (
+            patch.object(manager._telemetry_handler, "_select_telemetry_directory", return_value=new_dir),
+            patch.object(manager._telemetry_handler, "_confirm_directory_change", return_value=True),
+            patch.object(manager._telemetry_handler, "show_telemetry_status"),
         ):
             # Execute
             manager._telemetry_handler._change_telemetry_directory(None, tmp_path / "old", mock_msg_box)

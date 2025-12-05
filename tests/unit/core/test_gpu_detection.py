@@ -843,7 +843,7 @@ class TestCheckIntelNPU:
         mock_accel.glob.return_value = []
 
         # Mock /proc/cpuinfo to return an older CPU (no NPU)
-        mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: Intel(R) Core(TM) i7-8700 CPU\n"))
+        mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: Intel(R) Core(TM) i7-8700 CPU\n"))
 
         has_npu, npu_name = check_intel_npu()
         assert has_npu is False
@@ -860,7 +860,9 @@ class TestCheckIntelNPU:
         mock_accel.glob.return_value = []
 
         # Mock /proc/cpuinfo with 13th gen Intel CPU
-        mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: 13th Gen Intel(R) Core(TM) i7-13700H\n"))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data="model name\t: 13th Gen Intel(R) Core(TM) i7-13700H\n")
+        )
 
         has_npu, npu_name = check_intel_npu()
         assert has_npu is True
@@ -878,7 +880,7 @@ class TestCheckIntelNPU:
         mock_accel.glob.return_value = []
 
         # Mock /proc/cpuinfo with Core Ultra CPU
-        mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: Intel(R) Core Ultra 7 155H\n"))
+        mocker.patch("builtins.open", mocker.mock_open(read_data="model name\t: Intel(R) Core Ultra 7 155H\n"))
 
         has_npu, npu_name = check_intel_npu()
         assert has_npu is True
