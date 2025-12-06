@@ -80,6 +80,81 @@ def _setup_gpu_acceleration() -> None:
         logger.info("GPU/NPU acceleration configured")
 
 
+def _detect_hardware() -> None:
+    """Detect and log GPU/NPU hardware at startup."""
+    from asciidoc_artisan.core.hardware_detection import HardwareDetector
+
+    caps = HardwareDetector.detect_all()
+
+    # Log GPU detection results
+    if caps.has_gpu:
+        for gpu in caps.gpus:
+            memory_info = f" ({gpu.memory_mb}MB)" if gpu.memory_mb else ""
+            # Model already includes vendor for NVIDIA, avoid duplication
+            if gpu.vendor in gpu.model:
+                logger.info(f"GPU detected: {gpu.model}{memory_info}")
+            else:
+                logger.info(f"GPU detected: {gpu.vendor} {gpu.model}{memory_info}")
+    else:
+        logger.info("No GPU detected - using CPU rendering")
+
+    # Log NPU detection results
+    if caps.has_npu and caps.npu:
+        tops_info = f" ({caps.npu.tops} TOPS)" if caps.npu.tops else ""
+        # Model already includes vendor for Intel, avoid duplication
+        if caps.npu.vendor in caps.npu.model:
+            logger.info(f"NPU detected: {caps.npu.model}{tops_info}")
+        else:
+            logger.info(f"NPU detected: {caps.npu.vendor} {caps.npu.model}{tops_info}")
+    else:
+        logger.info("No NPU detected")
+
+    # Log system resources
+    logger.info(f"System: {caps.cpu_cores} CPU cores, {caps.system_ram_gb}GB RAM")
+
+
+def _detect_ai_backends() -> None:
+    """Detect and log available AI backends at startup."""
+    import subprocess
+
+    # Check Ollama
+    try:
+        result = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            lines = result.stdout.strip().split("\n")
+            # Skip header line
+            models = [line.split()[0] for line in lines[1:] if line.strip()]
+            if models:
+                logger.info(f"Ollama AI: {len(models)} model(s) available - {', '.join(models)}")
+            else:
+                logger.info("Ollama AI: Running but no models installed")
+        else:
+            logger.info("Ollama AI: Not running")
+    except FileNotFoundError:
+        logger.info("Ollama AI: Not installed")
+    except subprocess.TimeoutExpired:
+        logger.info("Ollama AI: Timeout checking status")
+    except Exception as e:
+        logger.debug(f"Ollama AI check failed: {e}")
+
+    # Check Claude API key
+    try:
+        from asciidoc_artisan.core.secure_credentials import SecureCredentials
+
+        creds = SecureCredentials()
+        if creds.has_key("anthropic_api_key"):
+            logger.info("Claude AI: API key configured")
+        else:
+            logger.info("Claude AI: No API key (set via Settings > AI)")
+    except Exception:
+        logger.info("Claude AI: Not configured")
+
+
 def _create_app() -> Any:
     """Create the QApplication instance."""
     from PySide6.QtWidgets import QApplication
@@ -111,6 +186,12 @@ def main() -> None:  # noqa: C901
 
     # GPU setup must happen before Qt import
     _setup_gpu_acceleration()
+
+    # Detect and log GPU/NPU hardware
+    _detect_hardware()
+
+    # Detect and log AI backends
+    _detect_ai_backends()
 
     # Validate dependencies
     from asciidoc_artisan.core import validate_dependencies

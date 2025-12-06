@@ -173,7 +173,12 @@ class HardwareDetector:
     def _detect_intel_amd_npu() -> NPUInfo | None:
         """Detect Intel or AMD NPU via lscpu.
 
-        MA principle: Extracted helper (27 lines) - focused Intel/AMD detection.
+        MA principle: Extracted helper - focused Intel/AMD detection.
+
+        Detects:
+        - Intel Core Ultra (Meteor Lake) - dedicated NPU (10-16 TOPS)
+        - Intel 11th-14th Gen - Intel GNA (Gaussian Neural Accelerator)
+        - AMD Ryzen AI (7040/8040 series) - dedicated NPU (16-50 TOPS)
 
         Returns:
             NPUInfo if NPU detected, None otherwise
@@ -193,6 +198,24 @@ class HardwareDetector:
                     vendor="Intel",
                     model="Intel AI Boost",
                     tops=10,  # Core Ultra NPUs typically 10-16 TOPS
+                )
+
+            # Intel 11th-14th Gen has GNA (Gaussian Neural Accelerator)
+            # GNA 2.0: 11th Gen, GNA 3.0: 12th-14th Gen
+            if "11th gen intel" in cpu_info or "12th gen intel" in cpu_info:
+                logger.info("Detected Intel GNA 2.0/3.0 (11th-12th Gen)")
+                return NPUInfo(
+                    vendor="Intel",
+                    model="Intel GNA 3.0",
+                    tops=1,  # GNA is lower performance than dedicated NPU
+                )
+
+            if "13th gen intel" in cpu_info or "14th gen intel" in cpu_info:
+                logger.info("Detected Intel GNA 3.0 (13th-14th Gen)")
+                return NPUInfo(
+                    vendor="Intel",
+                    model="Intel GNA 3.0",
+                    tops=1,  # GNA provides ~1 TOPS for low-power AI inference
                 )
 
             # AMD Ryzen AI has built-in NPU (7040/8040 series)
