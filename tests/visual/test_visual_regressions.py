@@ -7,7 +7,6 @@ Note: These tests require a display (or Xvfb for headless).
 """
 
 import pytest
-from pathlib import Path
 
 # Mark all tests in this module as visual regression tests
 pytestmark = [pytest.mark.visual, pytest.mark.requires_gpu]
@@ -90,9 +89,7 @@ class TestTemplateRendering:
             description="Test template",
             author="Test",
             version="1.0",
-            variables=[
-                TemplateVariable(name="title", description="Title", default="Test")
-            ],
+            variables=[TemplateVariable(name="title", description="Title", default="Test")],
             content="= {{title}}\n\nContent here.",
         )
 

@@ -21,16 +21,17 @@ class TestImportBenchmarks:
 
     def test_core_imports(self, benchmark):
         """Benchmark core module imports."""
+
         def import_core():
             # Force fresh import
-            import importlib
             import sys
 
-            modules_to_remove = [k for k in sys.modules.keys() if k.startswith('asciidoc_artisan.core')]
+            modules_to_remove = [k for k in sys.modules.keys() if k.startswith("asciidoc_artisan.core")]
             for mod in modules_to_remove:
                 del sys.modules[mod]
 
             from asciidoc_artisan import core
+
             return core
 
         # Warm up
@@ -42,8 +43,10 @@ class TestImportBenchmarks:
 
     def test_settings_import(self, benchmark):
         """Benchmark Settings class import and instantiation."""
+
         def create_settings():
             from asciidoc_artisan.core import Settings
+
             return Settings()
 
         result = benchmark(create_settings)
@@ -172,6 +175,6 @@ class TestGPUDetectionBenchmarks:
         def lookup():
             return GPUDetectionCache.load()
 
-        result = benchmark(lookup)
-        # May be None if no cache exists
+        benchmark(lookup)
+        # May be None if no cache exists, just verify benchmark ran
         assert True
