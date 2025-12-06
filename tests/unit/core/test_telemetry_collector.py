@@ -12,9 +12,8 @@ Tests privacy-first telemetry collection including:
 - Data clearing (opt-out)
 """
 
-import json
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -452,7 +451,7 @@ class TestFileRotation:
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
         # Create recent event (today)
-        recent_timestamp = datetime.utcnow().isoformat() + "Z"
+        recent_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         events = [
             {
                 "event_type": "recent",
@@ -471,7 +470,7 @@ class TestFileRotation:
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
         # Create old event (31 days ago)
-        old_date = datetime.utcnow() - timedelta(days=31)
+        old_date = datetime.now(timezone.utc) - timedelta(days=31)
         old_timestamp = old_date.isoformat() + "Z"
         events = [
             {
@@ -772,8 +771,8 @@ class TestFileRotationWithSize:
         collector = TelemetryCollector(enabled=True, data_dir=tmp_path)
 
         # Create file with mix of old and recent events
-        old_date = datetime.utcnow() - timedelta(days=31)
-        recent_date = datetime.utcnow()
+        old_date = datetime.now(timezone.utc) - timedelta(days=31)
+        recent_date = datetime.now(timezone.utc)
 
         events = []
         # Add 25 old events (will be removed by rotation)
@@ -781,7 +780,7 @@ class TestFileRotationWithSize:
             events.append(
                 {
                     "event_type": f"old_event_{i}",
-                    "timestamp": old_date.isoformat() + "Z",
+                    "timestamp": old_date.isoformat().replace("+00:00", "Z"),
                     "session_id": "test",
                     "data": {"value": i * 100},
                 }
@@ -792,16 +791,18 @@ class TestFileRotationWithSize:
             events.append(
                 {
                     "event_type": f"recent_event_{i}",
-                    "timestamp": recent_date.isoformat() + "Z",
+                    "timestamp": recent_date.isoformat().replace("+00:00", "Z"),
                     "session_id": "test",
                     "data": {"value": i * 100},
                 }
             )
 
-        # Write events to file
+        # Write events to file in TOON format
         telemetry_file = tmp_path / "telemetry.toon"
         with open(telemetry_file, "w") as f:
-            json.dump(events, f)
+            from asciidoc_artisan.core import toon_utils
+
+            toon_utils.dump({"events": events}, f)
 
         # Set very small max file size to trigger rotation on next flush
         collector.max_file_size = 100

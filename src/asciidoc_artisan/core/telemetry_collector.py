@@ -13,7 +13,7 @@ import sys
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -125,7 +125,7 @@ class TelemetryCollector:
         # Create event
         event = TelemetryEvent(
             event_type=event_type,
-            timestamp=datetime.utcnow().isoformat() + "Z",
+            timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             session_id=self.session_id,
             data=sanitized_data,
         )
