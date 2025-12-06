@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for Claude Code working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Overview
 
@@ -9,7 +9,7 @@ Guidance for Claude Code working with this repository.
 | Metric | Value |
 |--------|-------|
 | Version | 2.1.0 |
-| Code | 46,244 lines / 181 files |
+| Code | 46,457 lines / 180 files |
 | Tests | 5,628 (95% coverage) |
 | Types | mypy --strict (0 errors) |
 | Startup | 0.27s |
@@ -45,7 +45,9 @@ python3 src/main.py         # Normal
 
 # Test
 make test                   # All + coverage
+make test-fast              # Unit tests only (no slow)
 pytest tests/unit/MODULE/   # Single module
+ASCIIDOC_ARTISAN_NO_WEBENGINE=1 pytest tests/path/to/test.py -v  # Single test (WSL2)
 
 # Quality
 make format                 # ruff-format, isort
@@ -53,6 +55,8 @@ make lint                   # ruff, mypy --strict
 ```
 
 **System deps:** `sudo apt install pandoc wkhtmltopdf gh`
+
+**WSL2 note:** Set `ASCIIDOC_ARTISAN_NO_WEBENGINE=1` to skip Qt WebEngine tests
 
 ---
 
@@ -121,6 +125,6 @@ src/asciidoc_artisan/
 
 ---
 
-*v2.1.0 | 46,244 lines | 5,628 tests | TOON format | mypy --strict*
+*v2.1.0 | 46,457 lines | 5,628 tests | TOON format | mypy --strict*
 
 **Always apply MA principles: <400 lines/file, focused modules**
