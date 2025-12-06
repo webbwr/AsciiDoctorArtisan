@@ -35,7 +35,7 @@
 
 ### Metrics
 - 46,457 lines / 180 files
-- 5,122 unit + 17 E2E tests (95% coverage)
+- 5,628 unit + 17 E2E tests (95% coverage)
 - mypy --strict (0 errors)
 - Startup: 0.27s
 - Core imports: 90ms

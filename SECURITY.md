@@ -89,7 +89,7 @@
 
 | Metric | Value |
 |--------|-------|
-| Unit tests | 5,122 |
+| Unit tests | 5,628 |
 | E2E tests | 17 |
 | Integration tests | 17 |
 | Security tests | 377 |

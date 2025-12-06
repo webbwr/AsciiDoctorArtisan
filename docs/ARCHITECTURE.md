@@ -10,7 +10,7 @@
 |--------|-------|
 | Source files | 180 |
 | Source lines | 46,457 |
-| Unit tests | 5,122 |
+| Unit tests | 5,628 |
 | E2E tests | 17 |
 | Integration tests | 17 |
 | Test coverage | 98% |

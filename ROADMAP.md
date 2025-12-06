@@ -9,7 +9,7 @@
 | Metric | Value |
 |--------|-------|
 | Code | 46,457 lines / 180 files |
-| Unit Tests | 5,122 |
+| Unit Tests | 5,628 |
 | E2E Tests | 17 |
 | Integration Tests | 17 |
 | Coverage | 98% |

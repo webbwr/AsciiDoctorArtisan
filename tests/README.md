@@ -1,6 +1,6 @@
 # Tests
 
-**v2.1.0** | 5,122 unit + 17 E2E + 17 integration tests
+**v2.1.0** | 5,628 unit + 17 E2E + 17 integration tests
 
 ## Structure
 

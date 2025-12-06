@@ -498,7 +498,7 @@ FR-042:
 # All must pass before merge
 
 # Tests
-make test                        # 5,139 tests must pass
+make test                        # 5,628 tests must pass
 pytest --cov=src --cov-fail-under=90
 
 # Type safety
