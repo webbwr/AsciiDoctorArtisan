@@ -1,6 +1,6 @@
 # Tests
 
-**v2.1.0** | 5,254 unit tests + 3 E2E tests
+**v2.1.0** | 5,122 unit + 17 E2E + 17 integration tests
 
 ## Structure
 
@@ -33,7 +33,7 @@ make test                    # Generates htmlcov/
 open htmlcov/index.html      # View report
 ```
 
-**Current:** 96.4% coverage
+**Current:** 98% coverage
 
 ## Writing Tests
 

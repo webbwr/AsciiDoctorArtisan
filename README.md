@@ -3,7 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-green.svg)](https://python.org)
 [![PySide6](https://img.shields.io/badge/Qt-PySide6-41CD52.svg)](https://doc.qt.io/qtforpython/)
-[![Tests](https://img.shields.io/badge/Tests-5,139_passing-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-5,156_passing-success.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-98%25-brightgreen.svg)](tests/)
 [![Type Check](https://img.shields.io/badge/mypy-strict-blue.svg)](https://mypy-lang.org/)
 
 **Desktop AsciiDoc editor with live preview**
@@ -11,8 +12,8 @@
 | Metric | Value |
 |--------|-------|
 | Version | 2.1.0 |
-| Code | 46,244 lines / 181 files |
-| Tests | 5,139 (95% coverage) |
+| Code | 46,457 lines / 180 files |
+| Tests | 5,156 (98% coverage) |
 | Startup | 0.27s |
 
 ---
@@ -24,7 +25,7 @@
 | Live Preview | GPU accelerated (10-50x faster) |
 | Auto-Complete | Fuzzy matching, <50ms |
 | Syntax Check | Real-time, quick fixes |
-| Templates | 6 built-in + custom |
+| Templates | 9 built-in + custom |
 | Find/Replace | Regex support |
 | Spell Check | 4 languages |
 | Git | Commit, push, pull |
@@ -126,4 +127,4 @@ MIT License. Free to use and modify.
 
 ---
 
-*v2.1.0 | 46,244 lines | 5,139 tests | TOON format | [CHANGELOG](CHANGELOG.md)*
+*v2.1.0 | 46,457 lines | 5,156 tests | 98% coverage | [CHANGELOG](CHANGELOG.md)*
