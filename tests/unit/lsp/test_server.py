@@ -7,16 +7,16 @@ We test providers and constants individually.
 import pytest
 from lsprotocol import types as lsp
 
-from asciidoc_artisan.lsp.server import AsciiDocLanguageServer
-from asciidoc_artisan.lsp.document_state import DocumentState
+from asciidoc_artisan.lsp.code_action_provider import AsciiDocCodeActionProvider
 from asciidoc_artisan.lsp.completion_provider import AsciiDocCompletionProvider
 from asciidoc_artisan.lsp.diagnostics_provider import AsciiDocDiagnosticsProvider
-from asciidoc_artisan.lsp.hover_provider import AsciiDocHoverProvider
-from asciidoc_artisan.lsp.symbols_provider import AsciiDocSymbolsProvider
+from asciidoc_artisan.lsp.document_state import DocumentState
 from asciidoc_artisan.lsp.folding_provider import AsciiDocFoldingProvider
 from asciidoc_artisan.lsp.formatting_provider import AsciiDocFormattingProvider
+from asciidoc_artisan.lsp.hover_provider import AsciiDocHoverProvider
 from asciidoc_artisan.lsp.semantic_tokens_provider import AsciiDocSemanticTokensProvider
-from asciidoc_artisan.lsp.code_action_provider import AsciiDocCodeActionProvider
+from asciidoc_artisan.lsp.server import AsciiDocLanguageServer
+from asciidoc_artisan.lsp.symbols_provider import AsciiDocSymbolsProvider
 
 
 @pytest.mark.fr_108
