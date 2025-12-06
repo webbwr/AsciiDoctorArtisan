@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AsciiDoc Artisan
+GenericName=AsciiDoc Editor
+Comment=Modern AsciiDoc editor with live preview and AI assistance
+Exec=asciidoc-artisan %F
+Icon=asciidoc-artisan
+Terminal=false
+Categories=Office;TextEditor;Documentation;
+Keywords=asciidoc;editor;documentation;markup;preview;
+MimeType=text/x-asciidoc;text/plain;
+StartupWMClass=AsciiDocArtisan
+StartupNotify=true
