@@ -166,9 +166,16 @@ class WorkerManager:
         self.preview_worker.moveToThread(self.preview_thread)
 
         # Connect signals BEFORE starting thread
-        self.editor.request_preview_render.connect(self.preview_worker.render_preview)
-        self.preview_worker.render_complete.connect(self.editor._handle_preview_complete)
-        self.preview_worker.render_error.connect(self.editor._handle_preview_error)
+        # Use Qt.QueuedConnection for cross-thread signals to prevent race conditions
+        from PySide6.QtCore import Qt
+
+        self.editor.request_preview_render.connect(
+            self.preview_worker.render_preview, Qt.ConnectionType.QueuedConnection
+        )
+        self.preview_worker.render_complete.connect(
+            self.editor._handle_preview_complete, Qt.ConnectionType.QueuedConnection
+        )
+        self.preview_worker.render_error.connect(self.editor._handle_preview_error, Qt.ConnectionType.QueuedConnection)
         self.preview_thread.finished.connect(self.preview_worker.deleteLater)
 
         # Initialize AsciiDoc API on worker thread after thread starts

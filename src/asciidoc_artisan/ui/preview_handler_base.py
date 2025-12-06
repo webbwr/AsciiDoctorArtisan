@@ -257,7 +257,8 @@ class PreviewHandlerBase(QObject):
             error: Error message
         """
         error_html = self._css_manager.build_error_html(error)
-        self.preview.setHtml(error_html)
+        # Use subclass method for thread-safe setHtml
+        self._set_preview_html(error_html)
         self.preview_error.emit(error)
 
     # === CSS DELEGATION METHODS (backward compatibility) ===
@@ -348,7 +349,8 @@ class PreviewHandlerBase(QObject):
     def clear_preview(self) -> None:
         """Clear preview content with security headers."""
         clear_html = self._css_manager.build_clear_html()
-        self.preview.setHtml(clear_html)
+        # Use subclass method for thread-safe setHtml
+        self._set_preview_html(clear_html)
         logger.debug("Preview cleared")
 
     def get_preview_html(self) -> str:

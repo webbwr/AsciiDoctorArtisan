@@ -298,7 +298,10 @@ class MainWindowInitMixin:
     def _setup_syntax_checker(self: AsciiDocEditor) -> None:
         """Initialize Syntax Checking System."""
         from asciidoc_artisan.core.syntax_checker import SyntaxChecker
-        from asciidoc_artisan.ui.settings_dialog_helper import SettingsContext, SettingsDialogHelper
+        from asciidoc_artisan.ui.settings_dialog_helper import (
+            SettingsContext,
+            SettingsDialogHelper,
+        )
         from asciidoc_artisan.ui.syntax_checker_manager import SyntaxCheckerManager
 
         checker = SyntaxChecker()

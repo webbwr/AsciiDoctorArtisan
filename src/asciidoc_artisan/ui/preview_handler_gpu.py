@@ -16,6 +16,7 @@ Factory function create_preview_handler() simplifies usage in main_window.py.
 """
 
 import logging
+import os
 from typing import Any
 
 from PySide6.QtCore import QUrl
@@ -162,12 +163,19 @@ def create_preview_widget(parent: QWidget | None = None) -> QWidget:
     - QWebEngineView if GPU available (hardware-accelerated)
     - QTextBrowser if GPU unavailable (software fallback)
 
+    Set ASCIIDOC_ARTISAN_NO_WEBENGINE=1 to force QTextBrowser (workaround for WSL2 crashes).
+
     Args:
         parent: Parent widget
 
     Returns:
         QWebEngineView if GPU available, QTextBrowser otherwise
     """
+    # Environment variable to force fallback (workaround for WSL2 WebEngine crashes)
+    if os.environ.get("ASCIIDOC_ARTISAN_NO_WEBENGINE"):
+        logger.info("ASCIIDOC_ARTISAN_NO_WEBENGINE set, using QTextBrowser (forced fallback)")
+        return QTextBrowser(parent)
+
     if not WEBENGINE_AVAILABLE:
         logger.info("QWebEngineView not available, using QTextBrowser")
         return QTextBrowser(parent)

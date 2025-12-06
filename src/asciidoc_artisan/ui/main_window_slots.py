@@ -15,7 +15,12 @@ from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Slot
 
-from asciidoc_artisan.core import APP_NAME, DEFAULT_FILENAME, GitResult, atomic_save_text
+from asciidoc_artisan.core import (
+    APP_NAME,
+    DEFAULT_FILENAME,
+    GitResult,
+    atomic_save_text,
+)
 
 if TYPE_CHECKING:
     from asciidoc_artisan.ui.main_window import AsciiDocEditor

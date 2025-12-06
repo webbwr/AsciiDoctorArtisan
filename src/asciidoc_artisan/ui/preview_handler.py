@@ -18,6 +18,7 @@ Extracted from monolithic main_window.py to improve maintainability.
 import logging
 from typing import Any
 
+from PySide6.QtCore import Q_ARG, QCoreApplication, QMetaObject, Qt, QThread
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser
 
 from asciidoc_artisan.ui.preview_handler_base import PreviewHandlerBase
@@ -56,13 +57,28 @@ class PreviewHandler(PreviewHandlerBase):
 
     def _set_preview_html(self, html: str) -> None:
         """
-        Set HTML in QTextBrowser widget.
+        Set HTML in QTextBrowser widget with thread-safety.
+
+        Uses QMetaObject.invokeMethod to ensure the call is made on
+        the main thread, preventing race conditions with QTextDocument.
 
         Args:
             html: Styled HTML content to display
         """
-        # QTextBrowser uses simple setHtml (no base URL needed)
-        self.preview.setHtml(html)
+        # Check if we're on the main thread
+        app = QCoreApplication.instance()
+        if app is not None and QThread.currentThread() == app.thread():
+            # Already on main thread - call directly (synchronous, good for tests)
+            self.preview.setHtml(html)
+        else:
+            # Cross-thread call - use invokeMethod for thread safety
+            # Prevents race condition with QTextDocument (especially in WSL2/qasync)
+            QMetaObject.invokeMethod(
+                self.preview,
+                "setHtml",
+                Qt.ConnectionType.QueuedConnection,
+                Q_ARG(str, html),
+            )
 
     def _scroll_preview_to_percentage(self, percentage: float) -> None:
         """

@@ -168,20 +168,18 @@ def main() -> None:  # noqa: C901
         window.dialog_manager._apply_font_settings()
         logger.info("Font settings applied on startup")
 
-    # Trigger initial preview when worker is ready
-    if hasattr(window, "preview_worker") and window.preview_worker:
+    # Trigger initial preview after event loop starts (deferred to prevent race condition)
+    # QTextBrowser has thread-safety issues if accessed before event loop is ready
+    from PySide6.QtCore import QTimer
 
-        def trigger_initial_preview() -> None:
-            window.update_preview()
-            if profiler:
-                profiler.take_snapshot("after_initial_preview")
-            logger.info("Initial preview rendered after worker ready")
-
-        window.preview_worker.ready.connect(trigger_initial_preview)
-    else:
+    def trigger_initial_preview() -> None:
         window.update_preview()
         if profiler:
             profiler.take_snapshot("after_initial_preview")
+        logger.info("Initial preview rendered")
+
+    # Use singleShot timer to ensure execution after event loop is fully initialized
+    QTimer.singleShot(100, trigger_initial_preview)
 
     # Run event loop with async support
     try:
