@@ -83,3 +83,4 @@ output/
 
 # Readability reports (generated)
 docs/READABILITY_REPORT_*.md
+.claude-metrics
