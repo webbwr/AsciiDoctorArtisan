@@ -79,7 +79,7 @@ class TestHistoryPersistence:
         assert panel1.get_message_count() == 2
 
         # Save history
-        manager1._save_chat_history()
+        manager1._history_manager.save_history()
 
         # Verify saved to settings
         assert len(settings.ollama_chat_history) == 2
@@ -132,7 +132,7 @@ class TestHistoryPersistence:
             panel.add_message(msg)
 
         # Save history
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
         # Should only keep last 5
         assert len(settings.ollama_chat_history) <= 5
@@ -184,7 +184,7 @@ class TestHistoryPersistence:
         panel.add_message(ai_msg)
 
         # Save
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
         # Verify both saved
         assert len(settings.ollama_chat_history) == 2
@@ -208,7 +208,7 @@ class TestHistoryPersistence:
         panel.add_message(msg)
 
         # Save
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
         # Timestamp should be in settings (as float)
         assert len(settings.ollama_chat_history) == 1
@@ -232,7 +232,7 @@ class TestHistoryPersistence:
         panel.add_message(msg)
 
         # Save
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
         # Context mode should be preserved
         assert settings.ollama_chat_history[0]["context_mode"] == "editing"
@@ -253,7 +253,7 @@ class TestHistoryPersistence:
         panel.add_message(msg)
 
         # Save
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
         # Model should be preserved
         assert settings.ollama_chat_history[0]["model"] == "llama2"
@@ -303,12 +303,12 @@ class TestClearHistory:
         panel.add_message(msg)
 
         # Save
-        manager._save_chat_history()
+        manager._history_manager.save_history()
         assert len(settings.ollama_chat_history) > 0
 
         # Clear and save again
         panel.clear_messages()
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
         # Settings should be empty
         assert len(settings.ollama_chat_history) == 0

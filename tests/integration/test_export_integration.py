@@ -1,19 +1,31 @@
 """Integration tests for ExportManager - Document export workflows."""
 
+import os
 import tempfile
 from unittest.mock import Mock
 
 import pytest
 
+# Force software rendering for WSL2 compatibility
+os.environ.setdefault("ASCIIDOC_ARTISAN_NO_WEBENGINE", "1")
+
+from PySide6.QtWidgets import QMainWindow, QTextEdit
+
 
 @pytest.fixture
-def export_manager():
+def export_manager(qtbot):
     """Create ExportManager with mocked dependencies."""
+    from asciidoc_artisan.core import Settings
     from asciidoc_artisan.ui.export_manager import ExportManager
+    from asciidoc_artisan.ui.settings_manager import SettingsManager
 
-    mock_editor = Mock()
-    mock_editor.editor = Mock()
-    mock_editor.editor.toPlainText.return_value = """= Test Document
+    # Create a real QMainWindow as the parent (required for QObject inheritance)
+    mock_window = QMainWindow()
+    qtbot.addWidget(mock_window)
+
+    # Create a real QTextEdit for the editor
+    editor = QTextEdit()
+    editor.setPlainText("""= Test Document
 :author: Test Author
 
 == Introduction
@@ -27,14 +39,21 @@ This is test content for export.
 def hello():
     return "Hello World"
 ----
-"""
-    mock_editor._settings = Mock()
-    mock_editor._settings.last_directory = tempfile.gettempdir()
-    mock_editor.status_manager = Mock()
-    mock_editor.dialog_manager = Mock()
+""")
+    qtbot.addWidget(editor)
 
-    manager = ExportManager(mock_editor)
-    return manager, mock_editor
+    # Set up mock attributes on the window
+    mock_window.editor = editor
+    mock_window.status_bar = Mock()
+    mock_window.status_manager = Mock()
+    mock_window._settings = Settings()
+    mock_window._settings.last_directory = tempfile.gettempdir()
+    mock_window._settings_manager = Mock(spec=SettingsManager)
+    mock_window._asciidoc_api = Mock()
+    mock_window.dialog_manager = Mock()
+
+    manager = ExportManager(mock_window)
+    return manager, mock_window
 
 
 @pytest.mark.integration
@@ -43,20 +62,21 @@ class TestExportManagerIntegration:
 
     def test_export_manager_initialization(self, export_manager):
         """Integration: ExportManager initializes with all dependencies."""
-        manager, editor = export_manager
+        manager, window = export_manager
         assert manager is not None
-        assert manager.editor == editor
+        assert manager.window == window
+        assert manager.editor == window.editor
 
     def test_html_export_workflow(self, export_manager, tmp_path):
         """Integration: Export document as HTML."""
-        manager, editor = export_manager
+        manager, window = export_manager
 
         # Verify export manager has content to work with
         assert tmp_path.exists()
-        assert editor.editor.toPlainText()
+        assert window.editor.toPlainText()
 
-        # Test HTML generation capability
-        assert hasattr(manager, "_generate_html") or hasattr(manager, "export_html")
+        # Test HTML generation capability (using actual method names)
+        assert hasattr(manager, "_export_html") or hasattr(manager, "save_file_as_format")
 
     def test_clipboard_helper_integration(self, export_manager):
         """Integration: ClipboardHelper works with ExportManager."""
