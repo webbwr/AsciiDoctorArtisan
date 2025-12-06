@@ -206,7 +206,7 @@ def test_roundtrip(text):
 |--------|--------|---------|
 | Line Coverage | 95%+ | ~95% |
 | Branch Coverage | 90%+ | ~90% |
-| Test Count | 5,000+ | 5,645 |
+| Test Count | 5,000+ | 5,628 |
 | Hypothesis Examples | 500/test | 500 |
 
 ## Philosophy

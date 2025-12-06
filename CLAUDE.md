@@ -10,7 +10,7 @@ Guidance for Claude Code working with this repository.
 |--------|-------|
 | Version | 2.1.0 |
 | Code | 46,244 lines / 181 files |
-| Tests | 5,645 (95% coverage) |
+| Tests | 5,628 (95% coverage) |
 | Types | mypy --strict (0 errors) |
 | Startup | 0.27s |
 
