@@ -1,8 +1,12 @@
 """E2E Tests for AI Chat workflows (Ollama and Claude backends)."""
 
+import os
 from unittest.mock import Mock, patch
 
 import pytest
+
+# Force software rendering for WSL2 compatibility
+os.environ.setdefault("ASCIIDOC_ARTISAN_NO_WEBENGINE", "1")
 
 from asciidoc_artisan.ui.main_window import AsciiDocEditor
 

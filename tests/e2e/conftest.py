@@ -4,6 +4,11 @@ E2E Test Configuration and Fixtures
 Provides shared fixtures for end-to-end integration tests using pytest-bdd.
 """
 
+import os
+
+# Force software rendering for WSL2 compatibility (must be before Qt imports)
+os.environ.setdefault("ASCIIDOC_ARTISAN_NO_WEBENGINE", "1")
+
 from pathlib import Path
 from typing import Generator
 

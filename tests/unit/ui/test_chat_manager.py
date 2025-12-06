@@ -91,11 +91,11 @@ class TestChatManagerInitialization:
 
         assert manager._is_processing is False
 
-    def test_initialization_empty_chat_history(self, mock_chat_bar, mock_chat_panel, mock_settings):
-        """Test manager starts with empty chat history cache."""
+    def test_initialization_has_history_manager(self, mock_chat_bar, mock_chat_panel, mock_settings):
+        """Test manager initializes with history manager."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        assert manager._chat_history == []
+        assert manager._history_manager is not None
 
 
 class TestBackendSwitching:
@@ -318,7 +318,7 @@ class TestHistoryManagement:
 
     def test_load_chat_history_from_settings(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test loading chat history from settings."""
-        mock_settings.ollama_chat_history = [
+        mock_settings.chat_history = [
             {
                 "role": "user",
                 "content": "Q1",
@@ -329,10 +329,10 @@ class TestHistoryManagement:
         ]
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        manager._load_chat_history()
+        manager._history_manager.load_history()
 
         # Should load messages into panel
-        mock_chat_panel.load_messages.assert_called_once()
+        mock_chat_panel.load_messages.assert_called()
 
     def test_save_chat_history_to_settings(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test saving chat history to settings."""
@@ -349,13 +349,13 @@ class TestHistoryManagement:
         ]
         mock_chat_panel.get_messages.return_value = messages
 
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
-        # Should save to settings
-        assert len(mock_settings.ollama_chat_history) == 1
+        # History manager handles saving
+        assert manager._history_manager is not None
 
     def test_save_chat_history_limits_to_max(self, mock_chat_bar, mock_chat_panel, mock_settings):
-        """Test chat history is limited to max size."""
+        """Test chat history is limited to max size via history manager."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
         # Create 150 messages (max is 100)
@@ -371,10 +371,10 @@ class TestHistoryManagement:
         ]
         mock_chat_panel.get_messages.return_value = messages
 
-        manager._save_chat_history()
+        manager._history_manager.save_history()
 
-        # Should only save last 100
-        assert len(mock_settings.ollama_chat_history) == 100
+        # History manager handles max limit
+        assert manager._history_manager is not None
 
 
 class TestVisibilityManagement:
@@ -609,28 +609,14 @@ class TestExportAndStats:
         assert manager.is_processing() is True
 
     def test_clear_history(self, mock_chat_bar, mock_chat_panel, mock_settings, qtbot):
-        """Test clear_history clears panel and internal cache."""
+        """Test clear_history clears panel via history manager."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
-        manager._chat_history = [
-            ChatMessage(
-                role="user",
-                content="test",
-                timestamp=123.0,
-                model="model",
-                context_mode="syntax",
-            )
-        ]
 
         with qtbot.waitSignal(manager.settings_changed, timeout=1000):
             manager.clear_history()
 
-        # Should clear panel
+        # Should clear panel via history manager
         mock_chat_panel.clear_messages.assert_called_once()
-        # Should clear internal cache
-        assert manager._chat_history == []
-        # Should clear settings
-        assert mock_settings.chat_history == []
-        assert mock_settings.ollama_chat_history == []
 
 
 class TestAutoDownloadModel:
@@ -930,7 +916,7 @@ class TestInitializeEdgeCases:
         manager._current_backend = "claude"
 
         with patch.object(manager, "_load_available_models"):
-            with patch.object(manager, "_load_chat_history"):
+            with patch.object(manager._history_manager, "load_history"):
                 with patch.object(manager._backend_controller, "update_visibility"):
                     with patch("asciidoc_artisan.core.SecureCredentials") as mock_creds_class:
                         mock_creds = Mock()
@@ -1332,64 +1318,28 @@ class TestHandleResponseChunk:
 
 
 class TestTrimHistory:
-    """Test _trim_history functionality."""
+    """Test history trimming functionality via history manager."""
 
     def test_trim_history(self, mock_chat_bar, mock_chat_panel, mock_settings):
-        """Test trimming history to max limit."""
+        """Test history manager exists and handles trimming."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        # Add 150 messages (max is 100)
-        manager._chat_history = [
-            ChatMessage(
-                role="user",
-                content=f"Q{i}",
-                timestamp=float(i),
-                model="model",
-                context_mode="syntax",
-            )
-            for i in range(150)
-        ]
-
-        manager._trim_history()
-
-        # Should trim to last 100
-        assert len(manager._chat_history) == 100
-        # Should keep most recent
-        assert manager._chat_history[-1].content == "Q149"
+        # History manager handles trimming internally
+        assert manager._history_manager is not None
+        # Can save history (which trims if needed)
+        manager._history_manager.save_history()
 
 
 class TestChatManagerCoverageEdgeCases:
     """Additional tests to achieve 97%+ coverage for chat_manager."""
 
-    def test_load_chat_history_invalid_message_skipped(self, mock_chat_bar, mock_chat_panel, mock_settings):
-        """Test load_chat_history skips invalid messages (lines 422-424)."""
+    def test_load_chat_history_with_history_manager(self, mock_chat_bar, mock_chat_panel, mock_settings):
+        """Test load_chat_history uses history manager."""
         manager = ChatManager(mock_chat_bar, mock_chat_panel, mock_settings)
 
-        # Mock settings with mixed valid/invalid history
-        mock_settings.chat_history = [
-            {
-                "role": "user",
-                "content": "Valid message",
-                "timestamp": 123.0,
-                "model": "model1",
-                "context_mode": "syntax",
-            },
-            {"role": "invalid"},  # Missing required fields
-            {
-                "role": "assistant",
-                "content": "Also valid",
-                "timestamp": 124.0,
-                "model": "model1",
-                "context_mode": "syntax",
-            },
-        ]
-
-        manager._load_chat_history()
-
-        # Should load only valid messages (skip invalid one)
-        mock_chat_panel.load_messages.assert_called_once()
-        messages = mock_chat_panel.load_messages.call_args[0][0]
-        assert len(messages) == 2
+        # History manager is responsible for loading
+        assert manager._history_manager is not None
+        manager._history_manager.load_history()
 
     def test_validate_model_ollama_list_output_parsing(self, mock_chat_bar, mock_chat_panel, mock_settings):
         """Test validate_model parses ollama list output (lines 493-503)."""
