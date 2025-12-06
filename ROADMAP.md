@@ -12,7 +12,7 @@
 | Unit Tests | 5,122 |
 | E2E Tests | 17 |
 | Integration Tests | 17 |
-| Coverage | 95% |
+| Coverage | 98% |
 | Type Check | 100% (mypy --strict) |
 | Startup | 0.27s |
 | Storage | TOON format (30-60% smaller) |

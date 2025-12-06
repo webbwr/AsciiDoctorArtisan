@@ -91,8 +91,9 @@
 |--------|-------|
 | Unit tests | 5,122 |
 | E2E tests | 17 |
+| Integration tests | 17 |
 | Security tests | 377 |
-| Coverage | 95% |
+| Coverage | 98% |
 
 ---
 
