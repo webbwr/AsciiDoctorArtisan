@@ -1,23 +1,41 @@
 """
 Pytest configuration and fixtures for AsciiDoc Artisan tests.
 
-TEST GOAL: Find as many code bugs and issues as possible.
-
-This file configures pytest to work properly with:
-- macOS keyring access (completely disabled via environment variable)
-- Qt application initialization
-- Test isolation
-- Thread leak detection
-- Memory usage tracking
-- Enhanced assertion introspection
-- No multiprocessing (to prevent macOS Security.framework crashes)
+# =============================================================================
+# TEST STRATEGY: Total Coverage with Bug-Finding Focus
+# =============================================================================
+#
+# PRINCIPAL GOAL: Bug and issue-free code
+#
+# Tests exist to FIND BUGS, not to pass. A passing test suite with bugs
+# in production is a failure of our testing strategy.
+#
+# KEY PRINCIPLES:
+#   1. COVERAGE: Every line of code and UI path must be tested
+#   2. FIND BUGS: Tests should actively seek bugs, not just verify happy paths
+#   3. FAIL LOUDLY: When something is wrong, tests must fail immediately
+#   4. EDGE CASES: All boundary conditions and error paths must be tested
+#   5. SECURITY FIRST: Security tests run first and must never be skipped
+#
+# This file provides:
+#   - Bug-finding fixtures (memory tracker, strict mocks, boundary testers)
+#   - Thread leak detection
+#   - Automatic test ordering (security first)
+#   - Property-based testing configuration (Hypothesis)
+#   - Qt test infrastructure
+#   - Isolation guarantees between tests
+#
+# =============================================================================
 """
 
 import gc
 import os
+import random
+import string
 import sys
 import threading
 import tracemalloc
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -295,3 +313,268 @@ try:
 
 except ImportError:
     pass  # Hypothesis not installed
+
+
+# =============================================================================
+# BUG-FINDING FIXTURES - Edge Cases and Boundary Testing
+# =============================================================================
+
+
+@pytest.fixture
+def edge_case_strings():
+    """
+    Provide edge case strings for testing text handling.
+
+    These strings are designed to find bugs in string processing:
+    - Empty strings
+    - Very long strings
+    - Unicode edge cases
+    - Special characters
+    - Null bytes
+    - Whitespace variations
+    """
+    return {
+        "empty": "",
+        "whitespace_only": "   \t\n\r  ",
+        "single_char": "x",
+        "very_long": "x" * 100000,
+        "unicode_basic": "Hello 世界 🌍 مرحبا",
+        "unicode_rtl": "مرحبا بالعالم",
+        "unicode_emoji": "👨‍👩‍👧‍👦 🏳️‍🌈 🇺🇸",
+        "unicode_zalgo": "H̸̡̪̯ͨ͊̽̅̾e̴̡̦̝̱̚ comes",
+        "null_byte": "hello\x00world",
+        "control_chars": "line1\x00\x01\x02\x03line2",
+        "newlines_mixed": "line1\nline2\r\nline3\rline4",
+        "tabs_spaces": "\t  \t  \t",
+        "backslashes": "path\\to\\file",
+        "quotes_mixed": "say \"hello\" and 'goodbye'",
+        "html_injection": "<script>alert('xss')</script>",
+        "sql_injection": "'; DROP TABLE users; --",
+        "path_traversal": "../../../etc/passwd",
+        "format_string": "%s%s%s%n",
+        "max_unicode": "\U0010ffff",
+        "surrogate_pair": "\ud83d\ude00",
+        "bom": "\ufeffHello",
+        "zero_width": "Hello\u200bWorld",
+    }
+
+
+@pytest.fixture
+def edge_case_numbers():
+    """
+    Provide edge case numbers for testing numeric handling.
+
+    These numbers are designed to find bugs in numeric processing:
+    - Boundary values
+    - Special float values
+    - Large numbers
+    - Precision edge cases
+    """
+    return {
+        "zero": 0,
+        "negative_zero": -0.0,
+        "one": 1,
+        "negative_one": -1,
+        "max_int": sys.maxsize,
+        "min_int": -sys.maxsize - 1,
+        "max_float": float("inf"),
+        "min_float": float("-inf"),
+        "nan": float("nan"),
+        "epsilon": sys.float_info.epsilon,
+        "very_small": 1e-308,
+        "very_large": 1e308,
+        "negative_very_small": -1e-308,
+        "precision_test": 0.1 + 0.2,  # Famous floating point issue
+    }
+
+
+@pytest.fixture
+def random_fuzzer():
+    """
+    Generate random data for fuzz testing.
+
+    Usage:
+        def test_handles_random_input(random_fuzzer):
+            for _ in range(100):
+                random_string = random_fuzzer.string(max_length=1000)
+                result = my_function(random_string)
+                assert result is not None  # Or other invariant
+    """
+
+    class RandomFuzzer:
+        def string(self, max_length: int = 100, min_length: int = 0) -> str:
+            """Generate random string with various character types."""
+            length = random.randint(min_length, max_length)
+            charset = string.printable + "世界🌍مرحبا"
+            return "".join(random.choice(charset) for _ in range(length))
+
+        def bytes(self, max_length: int = 100, min_length: int = 0) -> bytes:
+            """Generate random bytes."""
+            length = random.randint(min_length, max_length)
+            return bytes(random.randint(0, 255) for _ in range(length))
+
+        def integer(self, min_val: int = -1000000, max_val: int = 1000000) -> int:
+            """Generate random integer."""
+            return random.randint(min_val, max_val)
+
+        def float(self, min_val: float = -1e10, max_val: float = 1e10) -> float:
+            """Generate random float, occasionally including special values."""
+            if random.random() < 0.1:
+                return random.choice([float("inf"), float("-inf"), float("nan"), 0.0, -0.0])
+            return random.uniform(min_val, max_val)
+
+        def list(self, generator: Any, max_length: int = 100) -> list:
+            """Generate random list using provided generator."""
+            length = random.randint(0, max_length)
+            return [generator() for _ in range(length)]
+
+    return RandomFuzzer()
+
+
+@pytest.fixture
+def assert_no_exception():
+    """
+    Context manager to assert that NO exception is raised.
+
+    Usage:
+        def test_no_crash(assert_no_exception):
+            with assert_no_exception():
+                risky_function()
+    """
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _assert_no_exception():
+        try:
+            yield
+        except Exception as e:
+            pytest.fail(f"Unexpected exception raised: {type(e).__name__}: {e}")
+
+    return _assert_no_exception
+
+
+@pytest.fixture
+def assert_raises_within():
+    """
+    Assert that an exception is raised within a timeout.
+
+    Usage:
+        def test_timeout(assert_raises_within):
+            with assert_raises_within(TimeoutError, timeout=5):
+                blocking_function()
+    """
+    import signal
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _assert_raises_within(expected_exception: type, timeout: int = 5):
+        def handler(signum, frame):
+            raise TimeoutError(f"Operation did not complete within {timeout}s")
+
+        old_handler = signal.signal(signal.SIGALRM, handler)
+        signal.alarm(timeout)
+
+        try:
+            with pytest.raises(expected_exception):
+                yield
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
+
+    return _assert_raises_within
+
+
+@pytest.fixture
+def ui_event_simulator(qapp):
+    """
+    Simulate UI events for testing Qt widgets.
+
+    Usage:
+        def test_button_click(ui_event_simulator, my_widget):
+            ui_event_simulator.click(my_widget.button)
+            assert my_widget.was_clicked
+    """
+    from PySide6.QtCore import QEvent, QPoint, Qt
+    from PySide6.QtGui import QMouseEvent
+    from PySide6.QtWidgets import QApplication
+
+    class UIEventSimulator:
+        def click(self, widget, button=Qt.MouseButton.LeftButton):
+            """Simulate mouse click on widget."""
+            pos = widget.rect().center()
+            press = QMouseEvent(
+                QEvent.Type.MouseButtonPress,
+                QPoint(pos.x(), pos.y()),
+                button,
+                button,
+                Qt.KeyboardModifier.NoModifier,
+            )
+            release = QMouseEvent(
+                QEvent.Type.MouseButtonRelease,
+                QPoint(pos.x(), pos.y()),
+                button,
+                button,
+                Qt.KeyboardModifier.NoModifier,
+            )
+            QApplication.sendEvent(widget, press)
+            QApplication.sendEvent(widget, release)
+            QApplication.processEvents()
+
+        def double_click(self, widget, button=Qt.MouseButton.LeftButton):
+            """Simulate double-click on widget."""
+            pos = widget.rect().center()
+            event = QMouseEvent(
+                QEvent.Type.MouseButtonDblClick,
+                QPoint(pos.x(), pos.y()),
+                button,
+                button,
+                Qt.KeyboardModifier.NoModifier,
+            )
+            QApplication.sendEvent(widget, event)
+            QApplication.processEvents()
+
+        def type_text(self, widget, text: str):
+            """Simulate typing text into widget."""
+            from PySide6.QtGui import QKeyEvent
+
+            for char in text:
+                press = QKeyEvent(QEvent.Type.KeyPress, 0, Qt.KeyboardModifier.NoModifier, char)
+                release = QKeyEvent(QEvent.Type.KeyRelease, 0, Qt.KeyboardModifier.NoModifier, char)
+                QApplication.sendEvent(widget, press)
+                QApplication.sendEvent(widget, release)
+            QApplication.processEvents()
+
+        def process_events(self):
+            """Process all pending Qt events."""
+            QApplication.processEvents()
+
+    return UIEventSimulator()
+
+
+# =============================================================================
+# TEST RESULT TRACKING
+# =============================================================================
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    """
+    Add custom summary to test output emphasizing bug-finding goal.
+    """
+    terminalreporter.write_sep("=", "TEST STRATEGY SUMMARY")
+    terminalreporter.write_line("")
+    terminalreporter.write_line("GOAL: Bug and issue-free code")
+    terminalreporter.write_line("")
+
+    stats = terminalreporter.stats
+    passed = len(stats.get("passed", []))
+    failed = len(stats.get("failed", []))
+    errors = len(stats.get("error", []))
+
+    if failed > 0 or errors > 0:
+        terminalreporter.write_line(f"BUGS FOUND: {failed + errors} test(s) identified issues!")
+        terminalreporter.write_line("Action: Fix all failing tests before merging.")
+    else:
+        terminalreporter.write_line(f"All {passed} tests passed - no bugs detected in tested paths.")
+        terminalreporter.write_line("Reminder: Passing tests don't guarantee bug-free code.")
+        terminalreporter.write_line("Ensure coverage is comprehensive.")
+    terminalreporter.write_line("")
