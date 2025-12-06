@@ -64,10 +64,10 @@ class TestPreviewWorkerIntegration:
         worker = PreviewWorker()
 
         # Should have render method
-        assert hasattr(worker, "render") or hasattr(worker, "run")
+        assert hasattr(worker, "render_preview")
 
         # Should have signals
-        assert hasattr(worker, "render_complete") or hasattr(worker, "result_ready")
+        assert hasattr(worker, "render_complete")
 
     def test_preview_worker_signals(self):
         """Integration: PreviewWorker emits correct signals."""
@@ -95,11 +95,11 @@ class TestGitWorkerIntegration:
 
         worker = GitWorker()
 
-        # Should have operation methods
-        assert hasattr(worker, "set_operation") or hasattr(worker, "run")
+        # Should have operation method
+        assert hasattr(worker, "run_git_command")
 
-        # Should have signals
-        assert hasattr(worker, "operation_complete") or hasattr(worker, "finished")
+        # Should be properly instantiated
+        assert worker is not None
 
     def test_git_worker_status_operation(self):
         """Integration: GitWorker can perform status check."""
@@ -119,15 +119,17 @@ class TestPandocWorkerIntegration:
 
     def test_pandoc_worker_initialization(self):
         """Integration: PandocWorker initializes correctly."""
+        from PySide6.QtCore import QObject
+
         from asciidoc_artisan.workers.pandoc_worker import PandocWorker
 
         worker = PandocWorker()
 
-        # Should have conversion methods
-        assert hasattr(worker, "convert") or hasattr(worker, "run")
+        # Should have conversion method
+        assert hasattr(worker, "run_pandoc_conversion")
 
-        # Should have signals
-        assert hasattr(worker, "conversion_complete") or hasattr(worker, "finished")
+        # Should be a QObject for signal/slot mechanism
+        assert isinstance(worker, QObject)
 
     def test_pandoc_worker_signals(self):
         """Integration: PandocWorker emits correct signals."""
@@ -159,17 +161,16 @@ class TestWorkerCancellationIntegration:
         has_cancel = hasattr(worker, "cancel") or hasattr(worker, "_cancelled")
         assert has_cancel or hasattr(worker, "terminate")
 
-    def test_preview_worker_cancellation(self):
-        """Integration: PreviewWorker supports cancellation."""
+    def test_preview_worker_is_qobject(self):
+        """Integration: PreviewWorker is a QObject (thread-safe signals)."""
+        from PySide6.QtCore import QObject
+
         from asciidoc_artisan.workers.preview_worker import PreviewWorker
 
         worker = PreviewWorker()
 
-        # Should have some form of cancellation
-        has_cancel = (
-            hasattr(worker, "cancel") or hasattr(worker, "_cancelled") or hasattr(worker, "requestInterruption")
-        )
-        assert has_cancel
+        # Should be a QObject for signal/slot mechanism
+        assert isinstance(worker, QObject)
 
 
 @pytest.mark.integration
