@@ -147,7 +147,7 @@ def _detect_ai_backends() -> None:
         from asciidoc_artisan.core.secure_credentials import SecureCredentials
 
         creds = SecureCredentials()
-        if creds.has_key("anthropic_api_key"):
+        if creds.has_anthropic_key():
             logger.info("Claude AI: API key configured")
         else:
             logger.info("Claude AI: No API key (set via Settings > AI)")
