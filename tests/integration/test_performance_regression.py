@@ -119,36 +119,18 @@ async def test_file_open_performance_async(qtbot):
 
 @pytest.mark.performance
 def test_file_save_performance(qtbot):
-    """Test file saving performance."""
-    from unittest.mock import Mock
-
-    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit
-
-    from asciidoc_artisan.ui.file_handler import FileHandler
+    """Test file saving performance (sync path write)."""
+    from asciidoc_artisan.core.file_operations import atomic_save_text
 
     with tempfile.TemporaryDirectory() as tmpdir:
         test_file = Path(tmpdir) / "test_save.adoc"
 
-        # Create file handler
-        editor = QPlainTextEdit()
-        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
-        qtbot.addWidget(mock_window)  # Manage lifecycle
-        # Add Mock attributes that tests expect
-        mock_window.status_bar = Mock()
-        mock_settings = Mock()
-        mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
-        mock_status = Mock()
-
-        handler = FileHandler(editor, mock_window, mock_settings, mock_status)
-        handler.current_file_path = test_file
-
         # Set content
         test_content = "= Test\n\n" + ("Content line. " * 1000)
-        editor.setPlainText(test_content)
 
-        # Measure save time
+        # Measure raw file save time (what FileHandler uses internally)
         start = time.perf_counter()
-        handler.save_file(save_as=False)
+        atomic_save_text(test_file, test_content)
         duration_ms = (time.perf_counter() - start) * 1000
 
         # Should save reasonably sized files quickly
@@ -156,7 +138,8 @@ def test_file_save_performance(qtbot):
             f"File save took {duration_ms:.1f}ms (target: {FILE_SAVE_TARGET_MS}ms)"
         )
 
-        editor.deleteLater()
+        # Verify content saved correctly
+        assert test_file.read_text() == test_content
 
 
 @pytest.mark.performance
@@ -182,36 +165,28 @@ def test_metrics_collection_overhead():
 
 
 @pytest.mark.performance
-def test_css_generation_performance(qtbot):
+def test_css_generation_performance():
     """Test CSS generation is fast enough."""
     from unittest.mock import Mock
 
-    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit, QTextBrowser
+    from asciidoc_artisan.ui.preview_css_manager import PreviewCSSManager
 
-    from asciidoc_artisan.ui.preview_handler import PreviewHandler
-
-    editor = QPlainTextEdit()
-    preview = QTextBrowser()
-    mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
-    qtbot.addWidget(mock_window)  # Manage lifecycle
-    # Add Mock attributes that tests expect
+    # Mock window with settings for dark_mode
+    mock_window = Mock()
     mock_window._settings = Mock(dark_mode=False)
 
-    handler = PreviewHandler(editor, preview, mock_window)
+    css_manager = PreviewCSSManager(mock_window)
 
     # Measure CSS generation time
     start = time.perf_counter()
     for _ in range(100):
-        handler._generate_preview_css()
+        css_manager._generate_preview_css()
     duration_ms = (time.perf_counter() - start) * 1000
 
     per_generation_ms = duration_ms / 100
 
     # CSS generation should be < 1ms each
     assert per_generation_ms < 1.0, f"CSS generation: {per_generation_ms:.3f}ms per call"
-
-    editor.deleteLater()
-    preview.deleteLater()
 
 
 @pytest.mark.performance

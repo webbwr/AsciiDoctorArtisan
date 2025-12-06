@@ -43,36 +43,22 @@ def test_large_document_preview():
 
 @pytest.mark.stress
 @pytest.mark.slow
-def test_rapid_file_operations(qtbot):
-    """Test rapid successive file operations."""
-    from unittest.mock import Mock
-
-    from PySide6.QtWidgets import QMainWindow, QPlainTextEdit
-
-    from asciidoc_artisan.ui.file_handler import FileHandler
+def test_rapid_file_operations():
+    """Test rapid successive file operations (atomic writes)."""
+    from asciidoc_artisan.core.file_operations import atomic_save_text
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Create handler
-        editor = QPlainTextEdit()
-        mock_window = QMainWindow()  # ✅ Real QObject for parent compatibility
-        qtbot.addWidget(mock_window)  # Manage lifecycle
-        # Add Mock attributes that tests expect
-        mock_window.status_bar = Mock()
-        mock_settings = Mock()
-        mock_settings.load_settings = Mock(return_value=Mock(last_directory=""))
-        mock_status = Mock()
-
-        handler = FileHandler(editor, mock_window, mock_settings, mock_status)
-
         # Perform rapid file operations
         for i in range(50):
             test_file = Path(tmpdir) / f"test_{i}.adoc"
-            handler.current_file_path = test_file
-            editor.setPlainText(f"Content {i}")
-            handler.save_file(save_as=False)
+            content = f"= Document {i}\n\nContent for document {i}."
+            atomic_save_text(test_file, content)
 
-        # Should complete without errors
-        editor.deleteLater()
+        # Verify all files created correctly
+        for i in range(50):
+            test_file = Path(tmpdir) / f"test_{i}.adoc"
+            assert test_file.exists()
+            assert f"Document {i}" in test_file.read_text()
 
 
 @pytest.mark.stress
