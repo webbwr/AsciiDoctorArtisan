@@ -8,9 +8,10 @@
 
 | Metric | Value |
 |--------|-------|
-| Code | 46,244 lines / 181 files |
+| Code | 46,457 lines / 180 files |
 | Unit Tests | 5,122 |
 | E2E Tests | 17 |
+| Integration Tests | 17 |
 | Coverage | 95% |
 | Type Check | 100% (mypy --strict) |
 | Startup | 0.27s |
@@ -24,7 +25,7 @@
 |----------|----------|
 | Editor | Live preview, GPU accelerated |
 | Editing | Auto-complete, syntax check, spell check |
-| Templates | 6 built-in + custom |
+| Templates | 9 built-in + custom |
 | Search | Find/replace with regex |
 | Git | Commit, push, pull, status |
 | GitHub | PRs, issues via CLI |
@@ -33,6 +34,7 @@
 | Export | HTML, PDF, DOCX, Markdown |
 | LSP | 9 providers |
 | Storage | TOON format (auto-migrates JSON) |
+| Build | PyInstaller desktop installer |
 
 ---
 

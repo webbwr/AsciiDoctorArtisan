@@ -32,12 +32,13 @@ version: 2.1.0
 release_date: 2025-12-05
 
 codebase:
-  lines: 46244
-  files: 181
+  lines: 46457
+  files: 180
 
 testing:
   unit_tests: 5122
   e2e_tests: 17
+  integration_tests: 17
   coverage: 95%
 
 performance:
