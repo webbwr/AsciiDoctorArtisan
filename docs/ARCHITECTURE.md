@@ -8,10 +8,12 @@
 
 | Metric | Value |
 |--------|-------|
-| Source files | 181 |
-| Source lines | 46,244 |
+| Source files | 180 |
+| Source lines | 46,457 |
 | Unit tests | 5,122 |
 | E2E tests | 17 |
+| Integration tests | 17 |
+| Test coverage | 98% |
 | Type coverage | 100% (mypy --strict) |
 | Startup time | 0.27s |
 | Storage format | TOON (30-60% smaller than JSON) |
@@ -733,4 +735,4 @@ Detection cached 7 days at `~/.config/AsciiDocArtisan/gpu_cache.toon`
 
 ---
 
-*v2.1.0 | 181 files | 46,244 lines | TOON format | MA Principle*
+*v2.1.0 | 180 files | 46,457 lines | 98% coverage | TOON format | MA Principle*
