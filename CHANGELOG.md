@@ -24,7 +24,7 @@
 ### Testing
 - Integration tests for export, settings, worker coordination
 - E2E workflow tests (file operations, settings, search, export)
-- 98% core test coverage
+- 95% test coverage
 - All 109 Functional Requirements mapped to tests
 
 ### Documentation

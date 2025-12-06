@@ -4,7 +4,7 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-green.svg)](https://python.org)
 [![PySide6](https://img.shields.io/badge/Qt-PySide6-41CD52.svg)](https://doc.qt.io/qtforpython/)
 [![Tests](https://img.shields.io/badge/Tests-5,628_passing-success.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/Coverage-98%25-brightgreen.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)](tests/)
 [![Type Check](https://img.shields.io/badge/mypy-strict-blue.svg)](https://mypy-lang.org/)
 
 **Desktop AsciiDoc editor with live preview**
@@ -13,7 +13,7 @@
 |--------|-------|
 | Version | 2.1.0 |
 | Code | 46,457 lines / 180 files |
-| Tests | 5,628 (98% coverage) |
+| Tests | 5,628 (95% coverage) |
 | Startup | 0.27s |
 
 ---
@@ -127,4 +127,4 @@ MIT License. Free to use and modify.
 
 ---
 
-*v2.1.0 | 46,457 lines | 5,628 tests | 98% coverage | [CHANGELOG](CHANGELOG.md)*
+*v2.1.0 | 46,457 lines | 5,628 tests | 95% coverage | [CHANGELOG](CHANGELOG.md)*

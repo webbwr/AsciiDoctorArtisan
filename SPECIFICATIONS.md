@@ -36,10 +36,10 @@ codebase:
   files: 180
 
 testing:
-  unit_tests: 5122
+  unit_tests: 5628
   e2e_tests: 17
   integration_tests: 17
-  coverage: 98%
+  coverage: 95%
 
 performance:
   startup_target: "<1.0s"
