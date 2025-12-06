@@ -231,6 +231,45 @@ mypy --strict src/
 
 ---
 
+## Desktop Installer (PyInstaller)
+
+Build standalone executables for distribution:
+
+### Prerequisites
+
+```bash
+pip install pyinstaller
+```
+
+### Build
+
+```bash
+# Linux/macOS/Windows
+pyinstaller asciidoc_artisan.spec
+```
+
+Output: `dist/AsciiDocArtisan/`
+
+### Linux Desktop Integration
+
+```bash
+# Copy .desktop file
+cp assets/asciidoc-artisan.desktop ~/.local/share/applications/
+
+# Update desktop database
+update-desktop-database ~/.local/share/applications/
+```
+
+### macOS App Bundle
+
+Build creates `dist/AsciiDocArtisan.app` - drag to Applications folder.
+
+### Windows
+
+Build creates `dist/AsciiDocArtisan/AsciiDocArtisan.exe` - create shortcut as needed.
+
+---
+
 ## Uninstall
 
 ```bash
