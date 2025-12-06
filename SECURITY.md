@@ -93,7 +93,7 @@
 | E2E tests | 17 |
 | Integration tests | 17 |
 | Security tests | 377 |
-| Coverage | 98% |
+| Coverage | 95% |
 
 ---
 

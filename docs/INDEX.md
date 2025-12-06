@@ -73,7 +73,7 @@
 | Unit tests | 5,628 |
 | E2E tests | 17 |
 | Integration tests | 17 |
-| Coverage | 98% |
+| Coverage | 95% |
 | Type check | 100% (mypy --strict) |
 
 ---
