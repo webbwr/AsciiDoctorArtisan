@@ -1,0 +1,16 @@
+include LICENSE
+include README.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include requirements.txt
+include pyproject.toml
+
+recursive-include src/asciidoc_artisan/templates *.adoc
+recursive-include src/asciidoc_artisan/resources *.png *.ico *.json
+
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude .git*
+global-exclude .mypy_cache
+global-exclude .pytest_cache
+global-exclude *.egg-info
