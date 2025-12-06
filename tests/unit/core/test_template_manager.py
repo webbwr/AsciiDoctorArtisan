@@ -54,8 +54,8 @@ class TestTemplateManagerInitialization:
         """Test manager loads built-in templates on init."""
         templates = manager.get_all_templates()
 
-        # Should load the 6 built-in templates we created
-        assert len(templates) == 6
+        # Should load the 9 built-in templates
+        assert len(templates) == 9
 
         # Verify expected templates exist
         template_names = [t.name for t in templates]
@@ -65,6 +65,9 @@ class TestTemplateManagerInitialization:
         assert "Technical Report" in template_names
         assert "README" in template_names
         assert "Simple Document" in template_names
+        assert "Tutorial Guide" in template_names
+        assert "API Documentation" in template_names
+        assert "Meeting Notes" in template_names
 
     def test_template_categories(self, manager):
         """Test templates are categorized correctly."""
@@ -433,8 +436,8 @@ class TestEdgeCases:
         """Test correct number of templates loaded."""
         templates = manager.get_all_templates()
 
-        # Should have exactly 6 built-in templates
-        assert len(templates) == 6
+        # Should have exactly 9 built-in templates
+        assert len(templates) == 9
 
 
 @pytest.mark.fr_100
