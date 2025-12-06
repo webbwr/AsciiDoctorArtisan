@@ -34,7 +34,7 @@ def check_nvidia_gpu() -> tuple[bool, str | None, str | None]:
             ["nvidia-smi", "--query-gpu=name,driver_version", "--format=csv,noheader"],
             capture_output=True,
             text=True,
-            timeout=1,
+            timeout=0.5,
         )
         if result.returncode == 0 and result.stdout.strip():
             parts = result.stdout.strip().split(",")
@@ -53,7 +53,7 @@ def check_amd_gpu() -> tuple[bool, str | None]:
             ["rocm-smi", "--showproductname"],
             capture_output=True,
             text=True,
-            timeout=1,
+            timeout=0.5,
         )
         if result.returncode == 0 and result.stdout.strip():
             for line in result.stdout.split("\n"):
@@ -68,7 +68,7 @@ def check_amd_gpu() -> tuple[bool, str | None]:
 def check_intel_gpu() -> tuple[bool, str | None]:
     """Check for Intel GPU. Returns (has_intel, gpu_name)."""
     try:
-        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=0.5)
         if result.returncode == 0 and result.stdout.strip():
             for line in result.stdout.split("\n"):
                 if "Device Name" in line and "Intel" in line:
@@ -81,7 +81,7 @@ def check_intel_gpu() -> tuple[bool, str | None]:
 def check_opengl_renderer() -> tuple[bool, str | None]:
     """Check OpenGL renderer. Returns (is_hardware, renderer_name)."""
     try:
-        result = subprocess.run(["glxinfo"], capture_output=True, text=True, timeout=1)
+        result = subprocess.run(["glxinfo"], capture_output=True, text=True, timeout=0.5)
         if result.returncode == 0:
             for line in result.stdout.split("\n"):
                 if "OpenGL renderer" in line:
@@ -139,7 +139,7 @@ def check_wsl2_cuda() -> tuple[bool, str | None, str | None]:
 def _check_npu_via_clinfo() -> tuple[bool, str | None]:
     """Check for Intel NPU via clinfo."""
     try:
-        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=1)
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=0.5)
         if result.returncode == 0 and result.stdout.strip():
             for line in result.stdout.split("\n"):
                 if "Device Name" in line and ("NPU" in line or "Neural" in line):
@@ -209,7 +209,7 @@ def check_macos_gpu() -> tuple[bool, str | None, str | None]:
             ["sysctl", "-n", "machdep.cpu.brand_string"],
             capture_output=True,
             text=True,
-            timeout=1,
+            timeout=0.5,
         )
         if result.returncode == 0 and result.stdout.strip():
             cpu_brand = result.stdout.strip()
@@ -228,7 +228,7 @@ def check_apple_neural_engine() -> tuple[bool, str | None]:
             ["sysctl", "-n", "machdep.cpu.brand_string"],
             capture_output=True,
             text=True,
-            timeout=1,
+            timeout=0.5,
         )
         if result.returncode == 0 and result.stdout.strip():
             cpu_brand = result.stdout.strip()
@@ -244,7 +244,7 @@ def check_apple_neural_engine() -> tuple[bool, str | None]:
 def check_compute_command(command: list[str], required_output: str | None = None) -> bool:
     """Check if compute framework command is available."""
     try:
-        result = subprocess.run(command, capture_output=True, text=True, timeout=1)
+        result = subprocess.run(command, capture_output=True, text=True, timeout=0.5)
         if result.returncode != 0:
             return False
         if required_output and required_output not in result.stdout:
@@ -263,7 +263,7 @@ def check_metal_availability() -> bool:
             ["system_profiler", "SPDisplaysDataType"],
             capture_output=True,
             text=True,
-            timeout=1,
+            timeout=0.5,
         )
         return result.returncode == 0 and "Metal" in result.stdout
     except (FileNotFoundError, subprocess.TimeoutExpired):

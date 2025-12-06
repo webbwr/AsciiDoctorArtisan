@@ -73,7 +73,10 @@ Repository = "https://github.com/webbwr/AsciiDoctorArtisan"
 Issues = "https://github.com/webbwr/AsciiDoctorArtisan/issues"
 
 [project.scripts]
-asciidoc-artisan = "adp_windows:main"
+asciidoc-artisan = "main:main"
+
+[project.gui-scripts]
+asciidoc-artisan-gui = "main:main"
 
 [tool.black]
 line-length = 88

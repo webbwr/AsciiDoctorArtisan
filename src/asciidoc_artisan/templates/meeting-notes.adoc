@@ -1,0 +1,120 @@
+---
+name: Meeting Notes
+category: business
+description: Meeting notes with attendees, agenda, and action items
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: title
+    description: Meeting title
+    required: true
+  - name: date
+    description: Meeting date
+    default: "{{today}}"
+  - name: time
+    description: Meeting time
+    default: "10:00 AM"
+  - name: location
+    description: Meeting location
+    default: "Conference Room A / Zoom"
+---
+= {{title}}
+:icons: font
+:toc:
+
+== Meeting Details
+
+[cols="1,3"]
+|===
+|*Date* |{{date}}
+|*Time* |{{time}}
+|*Location* |{{location}}
+|*Organizer* |
+|===
+
+== Attendees
+
+[cols="2,1"]
+|===
+|Name |Status
+
+|Attendee 1
+|Present
+
+|Attendee 2
+|Present
+
+|Attendee 3
+|Absent
+|===
+
+== Agenda
+
+. Topic 1 (15 min)
+. Topic 2 (20 min)
+. Topic 3 (10 min)
+. Open discussion (15 min)
+
+== Discussion Notes
+
+=== Topic 1
+
+Key points discussed:
+
+* Point 1
+* Point 2
+* Point 3
+
+=== Topic 2
+
+Key points discussed:
+
+* Point 1
+* Point 2
+
+=== Topic 3
+
+Key points discussed:
+
+* Point 1
+* Point 2
+
+== Decisions Made
+
+[cols="1,2,1"]
+|===
+|# |Decision |Owner
+
+|1
+|Decision description
+|Owner name
+
+|2
+|Decision description
+|Owner name
+|===
+
+== Action Items
+
+[cols="1,2,1,1"]
+|===
+|# |Action Item |Owner |Due Date
+
+|1
+|Action description
+|Owner
+|Date
+
+|2
+|Action description
+|Owner
+|Date
+|===
+
+== Next Meeting
+
+*Date:* +
+*Time:* +
+*Topics:*
+
+* Topic for next meeting

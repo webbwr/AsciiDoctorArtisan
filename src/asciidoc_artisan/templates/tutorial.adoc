@@ -1,0 +1,111 @@
+---
+name: Tutorial Guide
+category: tutorial
+description: Step-by-step tutorial with prerequisites and examples
+author: AsciiDoc Artisan
+version: "1.0"
+variables:
+  - name: title
+    description: Tutorial title
+    required: true
+  - name: author
+    description: Author name
+    default: "{{user.name}}"
+  - name: level
+    description: Difficulty level
+    default: "Beginner"
+  - name: duration
+    description: Estimated time to complete
+    default: "30 minutes"
+---
+= {{title}}
+{{author}}
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: pygments
+:experimental:
+
+== Overview
+
+*Level:* {{level}} +
+*Duration:* {{duration}}
+
+This tutorial will guide you through...
+
+=== What You'll Learn
+
+* Learning objective 1
+* Learning objective 2
+* Learning objective 3
+
+=== Prerequisites
+
+Before starting this tutorial, ensure you have:
+
+* [ ] Prerequisite 1
+* [ ] Prerequisite 2
+* [ ] Prerequisite 3
+
+== Step 1: Getting Started
+
+Start by...
+
+[source,bash]
+----
+# Example command
+echo "Hello Tutorial"
+----
+
+== Step 2: Core Concepts
+
+Next, we'll explore...
+
+[TIP]
+====
+This is a helpful tip for this step.
+====
+
+== Step 3: Hands-On Practice
+
+Now let's practice what we learned.
+
+[source,python]
+----
+# Example code
+def main():
+    print("Tutorial example")
+----
+
+== Step 4: Advanced Topics
+
+For more advanced usage...
+
+[NOTE]
+====
+This section is optional but recommended.
+====
+
+== Troubleshooting
+
+Common issues and solutions:
+
+Problem 1::
+Description and solution.
+
+Problem 2::
+Description and solution.
+
+== Summary
+
+In this tutorial, you learned:
+
+* Key takeaway 1
+* Key takeaway 2
+* Key takeaway 3
+
+== Next Steps
+
+* Continue with advanced tutorial
+* Explore related topics
+* Practice with exercises
