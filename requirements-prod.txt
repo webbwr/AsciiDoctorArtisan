@@ -77,7 +77,7 @@ qasync==0.28.0
 aiofiles==25.1.0
 
 # Data validation and settings (v1.7.0+ - type safety)
-pydantic==2.10.5
+pydantic==2.12.5
 
 # Keyring backend for WSL2/Linux without native keyring
 keyrings.alt==5.0.2
