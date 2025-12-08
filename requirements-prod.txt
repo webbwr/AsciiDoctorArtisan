@@ -64,7 +64,7 @@ rapidfuzz==3.14.3
 xxhash==3.5.0
 
 # Fast JSON serialization (v1.9.1+ - settings persistence)
-orjson==3.11.4
+orjson==3.11.5
 
 # TOON format (v2.1.0+ - compact settings format)
 # Token-Oriented Object Notation for settings persistence
