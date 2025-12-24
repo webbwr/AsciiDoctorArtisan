@@ -77,6 +77,7 @@ class ActionSource(Protocol):
     toggle_theme_act: Any
 
     # Help actions
+    welcome_guide_act: Any
     about_act: Any
     anthropic_status_act: Any
     ollama_status_act: Any
@@ -199,6 +200,7 @@ class MenuBuilder:
     def create_help_menu(self, menubar: Any) -> None:
         """Create and populate Help menu."""
         help_menu = menubar.addMenu("&Help")
+        help_menu.addAction(self.actions.welcome_guide_act)
         help_menu.addAction(self.actions.about_act)
         help_menu.addSeparator()
         help_menu.addAction(self.actions.anthropic_status_act)

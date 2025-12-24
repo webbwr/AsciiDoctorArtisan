@@ -216,13 +216,18 @@ class MainWindowInitMixin:
         self._setup_quick_commit()
 
     def _finalize_initialization(self: AsciiDocEditor) -> None:
-        """Finalize initialization (telemetry, restore settings, apply theme, UX)."""
+        """Finalize initialization (telemetry, welcome, restore settings, apply theme, UX)."""
         from asciidoc_artisan.ui.telemetry_manager import TelemetryManager
         from asciidoc_artisan.ui.ux_manager import create_ux_manager
+        from asciidoc_artisan.ui.welcome_manager import WelcomeManager
 
         self.telemetry_manager = TelemetryManager(self)
         self.telemetry_collector = self.telemetry_manager.initialize(getattr(self, "_app_start_time", None))
         self.telemetry_manager._update_menu_text()
+
+        # First-run welcome dialog (TASK-119)
+        self.welcome_manager = WelcomeManager(self)
+        self.welcome_manager.initialize()
 
         self._settings_manager.restore_ui_settings(self, self.splitter, self._settings)
         self.theme_manager.apply_theme()

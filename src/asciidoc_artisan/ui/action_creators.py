@@ -390,7 +390,15 @@ class ActionCreators:
         )
 
     def create_help_actions(self) -> None:
-        """Create Help menu actions (1 action)."""
+        """Create Help menu actions (2 actions)."""
+        self.parent.welcome_guide_act = self.parent._create_action(
+            "&Welcome Guide", "Show welcome guide with features and shortcuts", self._show_welcome_guide
+        )
         self.parent.about_act = self.parent._create_action(
             "&About", "About AsciiDoctor Artisan", self.parent.window.dialog_manager.show_about
         )
+
+    def _show_welcome_guide(self) -> None:
+        """Show welcome guide dialog (Help > Welcome Guide)."""
+        if hasattr(self.parent.window, "welcome_manager"):
+            self.parent.window.welcome_manager.show_welcome_guide()

@@ -80,6 +80,9 @@ class Settings:
     telemetry_session_id: str | None = None  # Anonymous UUID, generated on first enable
     telemetry_opt_in_shown: bool = False  # Whether opt-in dialog has been shown
 
+    # First-run experience settings (v2.1.0)
+    welcome_shown: bool = False  # Whether welcome dialog has been shown on first run
+
     def to_dict(self) -> dict[str, Any]:
         """Convert settings to dictionary for JSON serialization. Returns dict suitable for json.dumps()."""
         return asdict(self)
@@ -285,6 +288,10 @@ class Settings:
         self._validate_string("telemetry_session_id", "", issues, optional=True)
         self._validate_bool("telemetry_opt_in_shown", False, issues)
 
+    def _validate_first_run_settings(self, issues: list[str]) -> None:
+        """Validate first-run experience settings. MA principle: Extracted (1 call)."""
+        self._validate_bool("welcome_shown", False, issues)
+
     def _log_validation_results(self, issues: list[str]) -> None:
         """Log validation results. MA principle: Extracted (6 lines)."""
         import logging
@@ -313,6 +320,7 @@ class Settings:
         self._validate_syntax_check_settings(issues)
         self._validate_template_settings(issues)
         self._validate_telemetry_settings(issues)
+        self._validate_first_run_settings(issues)
 
         # Log results
         self._log_validation_results(issues)

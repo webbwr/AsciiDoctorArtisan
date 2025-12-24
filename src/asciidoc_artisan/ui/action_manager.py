@@ -115,6 +115,7 @@ class ActionManager:
 
     def _declare_help_actions(self) -> None:
         """Declare Help menu action type hints."""
+        self.welcome_guide_act: QAction
         self.about_act: QAction
 
     def _declare_all_actions(self) -> None:

@@ -128,3 +128,10 @@ src/asciidoc_artisan/
 *v2.1.0 | 46,457 lines | 5,628 tests | TOON format | mypy --strict*
 
 **Always apply MA principles: <400 lines/file, focused modules**
+
+-----
+# Spec-Driven Development Project
+Project: SPECIFICATIONS.md
+Created: 2025-12-24
+Generated using cc-sdd workflow
+-----
