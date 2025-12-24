@@ -1,6 +1,6 @@
 # AsciiDoc Artisan Architecture
 
-**v2.1.0** | **Dec 5, 2025** | **Public Release**
+**v2.1.0** | **2025-12-24** | **Public Release**
 
 ---
 

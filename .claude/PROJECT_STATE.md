@@ -220,8 +220,9 @@ All 10 LSP tasks verified as fully implemented:
 
 ### TASK-119: First-Run Experience ✅
 - **Status**: IMPLEMENTED (v2.1.0)
-- **Files**: `welcome_dialog.py`, `welcome_manager.py`
+- **Files**: `welcome_dialog.py`, `welcome_manager.py`, `button_factory.py`
 - **Features**: Welcome dialog on first launch, key features overview, keyboard shortcuts, sample document option, "Don't show again" checkbox, Help > Welcome Guide menu access
+- **Fix (2025-12-24)**: Added missing `create_primary_button` method to `StyledButtonFactory` to fix mypy error
 
 ---
 

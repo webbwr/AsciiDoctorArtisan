@@ -113,6 +113,11 @@ class StyledButtonFactory:
         return cls.create_button(text, ButtonStyle.DANGER, icon)
 
     @classmethod
+    def create_primary_button(cls, text: str, icon: str = "") -> QPushButton:
+        """Create a blue primary button (convenience method)."""
+        return cls.create_button(text, ButtonStyle.PRIMARY, icon)
+
+    @classmethod
     def create_secondary_button(cls, text: str, icon: str = "") -> QPushButton:
         """Create a gray secondary button (convenience method)."""
         return cls.create_button(text, ButtonStyle.SECONDARY, icon, bold=False)
