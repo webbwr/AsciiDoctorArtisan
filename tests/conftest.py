@@ -117,6 +117,42 @@ The end.
 
 
 @pytest.fixture(autouse=True)
+def prevent_dialog_blocking(monkeypatch):
+    """
+    Prevent modal dialogs from blocking tests.
+
+    Multi-layer defense:
+    1. Patches TelemetryManager.initialize to skip telemetry dialog
+    2. Patches WelcomeManager.initialize to skip welcome dialog
+    3. Patches QDialog.exec() to return Rejected as fallback
+
+    The actual dialog functionality is tested via dedicated unit tests that
+    explicitly control dialog behavior with mocks.
+    """
+    from PySide6.QtWidgets import QDialog
+
+    # Layer 1: Prevent telemetry dialog by skipping initialize
+    def noop_telemetry_init(self, app_start_time=None):
+        """No-op telemetry initialization for tests."""
+        return None
+
+    # Layer 2: Prevent welcome dialog by skipping initialize
+    def noop_welcome_init(self):
+        """No-op welcome initialization for tests."""
+        pass
+
+    # Layer 3: Fallback - make any dialog.exec() return immediately
+    def patched_exec(self):
+        """Return Rejected immediately to prevent blocking."""
+        return QDialog.DialogCode.Rejected
+
+    # Apply patches
+    monkeypatch.setattr("asciidoc_artisan.ui.telemetry_manager.TelemetryManager.initialize", noop_telemetry_init)
+    monkeypatch.setattr("asciidoc_artisan.ui.welcome_manager.WelcomeManager.initialize", noop_welcome_init)
+    monkeypatch.setattr(QDialog, "exec", patched_exec)
+
+
+@pytest.fixture(autouse=True)
 def performance_tracker(request):
     """
     Automatically track performance metrics for each test.

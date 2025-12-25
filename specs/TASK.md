@@ -46,10 +46,10 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Initialize project directory structure, setup.py/pyproject.toml, and Makefile
 
 **Acceptance Criteria**:
-- [ ] Directory structure matches design (src/asciidoc_artisan/{core,ui,workers,lsp,claude})
-- [ ] pyproject.toml with dependencies (PySide6>=6.9, asciidoc3, python-toon)
-- [ ] Makefile with targets: run, test, lint, format, install
-- [ ] .gitignore includes: __pycache__, .pytest_cache, .mypy_cache, *.pyc
+- [x] Directory structure matches design (src/asciidoc_artisan/{core,ui,workers,lsp,claude})
+- [x] pyproject.toml with dependencies (PySide6>=6.9, asciidoc3, python-toon)
+- [x] Makefile with targets: run, test, lint, format, install
+- [x] .gitignore includes: __pycache__, .pytest_cache, .mypy_cache, *.pyc
 
 **Implementation Notes**:
 - Use pyproject.toml for modern Python packaging
@@ -69,12 +69,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Implement Settings class with TOON format storage and auto-migration from JSON
 
 **Acceptance Criteria**:
-- [ ] Settings class with get(key, default), set(key, value) methods
-- [ ] setting_changed = Signal(str, object) for observers
-- [ ] load_settings() reads from ~/.config/asciidoc-artisan/settings.toon
-- [ ] save_settings() writes atomically with temp+rename
-- [ ] migrate_from_json() auto-converts legacy .json files to .toon
-- [ ] Default settings provided if file doesn't exist
+- [x] Settings class with get(key, default), set(key, value) methods
+- [x] setting_changed = Signal(str, object) for observers
+- [x] load_settings() reads from ~/.config/asciidoc-artisan/settings.toon
+- [x] save_settings() writes atomically with temp+rename
+- [x] migrate_from_json() auto-converts legacy .json files to .toon
+- [x] Default settings provided if file doesn't exist
 
 **Implementation Notes**:
 - Use QObject as base for signals
@@ -95,11 +95,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Wrap python-toon library with project-specific utilities
 
 **Acceptance Criteria**:
-- [ ] dump(data, file, indent=2) function
-- [ ] load(file) function returning dict
-- [ ] dumps(data, indent=2) function returning string
-- [ ] loads(content) function parsing TOON string
-- [ ] Error handling with informative messages
+- [x] dump(data, file, indent=2) function
+- [x] load(file) function returning dict
+- [x] dumps(data, indent=2) function returning string
+- [x] loads(content) function parsing TOON string
+- [x] Error handling with informative messages
 
 **Implementation Notes**:
 - Import from python-toon library
@@ -119,12 +119,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Implement safe file I/O with atomic write pattern
 
 **Acceptance Criteria**:
-- [ ] atomic_save_text(file_path, content, encoding="utf-8") -> bool
-- [ ] atomic_save_toon(file_path, data, indent=2) -> bool
-- [ ] read_text_file(file_path) -> tuple[str, str] (content, encoding)
-- [ ] detect_encoding(file_path) -> str (supports UTF-8, UTF-16, Latin-1, ASCII)
-- [ ] All writes use temp+rename pattern (.tmp suffix)
-- [ ] Cleanup temp files on failure
+- [x] atomic_save_text(file_path, content, encoding="utf-8") -> bool
+- [x] atomic_save_toon(file_path, data, indent=2) -> bool
+- [x] read_text_file(file_path) -> tuple[str, str] (content, encoding)
+- [x] detect_encoding(file_path) -> str (supports UTF-8, UTF-16, Latin-1, ASCII)
+- [x] All writes use temp+rename pattern (.tmp suffix)
+- [x] Cleanup temp files on failure
 
 **Implementation Notes**:
 - Use Path.replace() for atomic rename
@@ -145,11 +145,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Define Pydantic models for document state and metadata
 
 **Acceptance Criteria**:
-- [ ] DocumentModel dataclass with: path, content, encoding, modified, line_count, word_count
-- [ ] SyntaxErrorModel dataclass with: line, column, code, message, severity
-- [ ] GitResult dataclass with: command, returncode, stdout, stderr, duration_ms
-- [ ] CompletionItem dataclass with: label, insert_text, kind, documentation, detail
-- [ ] All models have type annotations and validators
+- [x] DocumentModel dataclass with: path, content, encoding, modified, line_count, word_count
+- [x] SyntaxErrorModel dataclass with: line, column, code, message, severity
+- [x] GitResult dataclass with: command, returncode, stdout, stderr, duration_ms
+- [x] CompletionItem dataclass with: label, insert_text, kind, documentation, detail
+- [x] All models have type annotations and validators
 
 **Implementation Notes**:
 - Use @dataclass from dataclasses module
@@ -169,12 +169,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Wrapper for asciidoc3 library with theme support
 
 **Acceptance Criteria**:
-- [ ] convert_to_html(content, theme="dark") -> str
-- [ ] apply_theme_css(html, theme) -> str (inject CSS)
-- [ ] extract_syntax_errors(content) -> list[SyntaxErrorModel]
-- [ ] Themes supported: dark, light
-- [ ] Error handling for invalid AsciiDoc syntax
-- [ ] Performance: <200ms for 10,000 lines
+- [x] convert_to_html(content, theme="dark") -> str
+- [x] apply_theme_css(html, theme) -> str (inject CSS)
+- [x] extract_syntax_errors(content) -> list[SyntaxErrorModel]
+- [x] Themes supported: dark, light
+- [x] Error handling for invalid AsciiDoc syntax
+- [x] Performance: <200ms for 10,000 lines
 
 **Implementation Notes**:
 - Use asciidoc3 API for rendering
@@ -194,12 +194,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Base class for all QThread workers with queue and cancellation
 
 **Acceptance Criteria**:
-- [ ] BaseWorker(QThread) with signals: result_ready, error_occurred, progress_changed
-- [ ] queue_request(item) method adds to internal queue
-- [ ] cancel() method sets cancellation flag
-- [ ] run() method processes queue in loop
-- [ ] _process(item) abstract method for subclasses
-- [ ] Graceful shutdown on cancellation
+- [x] BaseWorker(QThread) with signals: result_ready, error_occurred, progress_changed
+- [x] queue_request(item) method adds to internal queue
+- [x] cancel() method sets cancellation flag
+- [x] run() method processes queue in loop
+- [x] _process(item) abstract method for subclasses
+- [x] Graceful shutdown on cancellation
 
 **Implementation Notes**:
 - Use QThread as base class
@@ -220,13 +220,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Application entry point with optimized startup sequence
 
 **Acceptance Criteria**:
-- [ ] main() function returns exit code
-- [ ] QApplication initialization
-- [ ] Settings loaded asynchronously
-- [ ] Main window shown within 100ms (Phase 1)
-- [ ] Workers started in Phase 3 (QTimer.singleShot)
-- [ ] LSP server started in Phase 4 (QTimer.singleShot)
-- [ ] Startup time measured and logged
+- [x] main() function returns exit code
+- [x] QApplication initialization
+- [x] Settings loaded asynchronously
+- [x] Main window shown within 100ms (Phase 1)
+- [x] Workers started in Phase 3 (QTimer.singleShot)
+- [x] LSP server started in Phase 4 (QTimer.singleShot)
+- [x] Startup time measured and logged
 
 **Implementation Notes**:
 - Use QTimer for deferred initialization
@@ -248,11 +248,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Manage application themes (dark/light mode)
 
 **Acceptance Criteria**:
-- [ ] ThemeManager class with apply_theme(dark: bool) method
-- [ ] DARK_STYLESHEET and LIGHT_STYLESHEET constants
-- [ ] Applies to QMainWindow, QPlainTextEdit, QTextBrowser, QMenuBar, QStatusBar
-- [ ] Theme change completes within 100ms
-- [ ] Current theme persisted in settings
+- [x] ThemeManager class with apply_theme(dark: bool) method
+- [x] DARK_STYLESHEET and LIGHT_STYLESHEET constants
+- [x] Applies to QMainWindow, QPlainTextEdit, QTextBrowser, QMenuBar, QStatusBar
+- [x] Theme change completes within 100ms
+- [x] Current theme persisted in settings
 
 **Implementation Notes**:
 - Use QApplication.setStyleSheet() for global styling
@@ -272,12 +272,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Line number gutter widget for editor
 
 **Acceptance Criteria**:
-- [ ] LineNumberArea(QWidget) class
-- [ ] Displays line numbers aligned right
-- [ ] Width adjusts automatically based on line count
-- [ ] Current line highlighted with distinct background
-- [ ] Updates in real-time on text changes
-- [ ] Gutter color follows theme
+- [x] LineNumberArea(QWidget) class
+- [x] Displays line numbers aligned right
+- [x] Width adjusts automatically based on line count
+- [x] Current line highlighted with distinct background
+- [x] Updates in real-time on text changes
+- [x] Gutter color follows theme
 
 **Implementation Notes**:
 - Connect to editor.blockCountChanged and editor.updateRequest signals
@@ -298,12 +298,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Track and persist recently opened files
 
 **Acceptance Criteria**:
-- [ ] add_recent_file(path: Path) method
-- [ ] get_recent_files() -> list[Path] (max 10)
-- [ ] Duplicates removed (most recent kept)
-- [ ] Non-existent files purged on load
-- [ ] Stored in ~/.config/asciidoc-artisan/recent_files.toon
-- [ ] Atomic saves with temp+rename
+- [x] add_recent_file(path: Path) method
+- [x] get_recent_files() -> list[Path] (max 10)
+- [x] Duplicates removed (most recent kept)
+- [x] Non-existent files purged on load
+- [x] Stored in ~/.config/asciidoc-artisan/recent_files.toon
+- [x] Atomic saves with temp+rename
 
 **Implementation Notes**:
 - Use TOON format: `files: ["/path1", "/path2"]`
@@ -323,10 +323,10 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Data models for Git operations
 
 **Acceptance Criteria**:
-- [ ] GitResult dataclass: command, returncode, stdout, stderr, duration_ms
-- [ ] GitCommand dataclass: command, args, cwd
-- [ ] success property returns returncode == 0
-- [ ] All fields typed and validated
+- [x] GitResult dataclass: command, returncode, stdout, stderr, duration_ms
+- [x] GitCommand dataclass: command, args, cwd
+- [x] success property returns returncode == 0
+- [x] All fields typed and validated
 
 **Implementation Notes**:
 - Use @dataclass decorator
@@ -346,13 +346,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: AI chat panel with context mode selector and history
 
 **Acceptance Criteria**:
-- [ ] ChatPanelWidget(QWidget) class
-- [ ] Context mode selector (QComboBox): Document, Syntax, General, Editing
-- [ ] Chat history (QTextBrowser) with Markdown rendering
-- [ ] Input field (QLineEdit) with placeholder "Ask AI..."
-- [ ] message_submitted = Signal(str)
-- [ ] context_mode_changed = Signal(str)
-- [ ] Minimum width: 200 pixels
+- [x] ChatPanelWidget(QWidget) class
+- [x] Context mode selector (QComboBox): Document, Syntax, General, Editing
+- [x] Chat history (QTextBrowser) with Markdown rendering
+- [x] Input field (QLineEdit) with placeholder "Ask AI..."
+- [x] message_submitted = Signal(str)
+- [x] context_mode_changed = Signal(str)
+- [x] Minimum width: 200 pixels
 
 **Implementation Notes**:
 - Use QVBoxLayout with spacing=4, margins=4
@@ -373,13 +373,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Find and replace bar with regex support
 
 **Acceptance Criteria**:
-- [ ] FindBarWidget(QWidget) class
-- [ ] Find field and Replace field (QLineEdit)
-- [ ] Case checkbox and Regex checkbox
-- [ ] Buttons: Find, Replace, Replace All, Close
-- [ ] find_requested = Signal(str, bool, bool) (text, case_sensitive, regex)
-- [ ] replace_requested = Signal(str, str) (find_text, replace_text)
-- [ ] closed = Signal()
+- [x] FindBarWidget(QWidget) class
+- [x] Find field and Replace field (QLineEdit)
+- [x] Case checkbox and Regex checkbox
+- [x] Buttons: Find, Replace, Replace All, Close
+- [x] find_requested = Signal(str, bool, bool) (text, case_sensitive, regex)
+- [x] replace_requested = Signal(str, str) (find_text, replace_text)
+- [x] closed = Signal()
 
 **Implementation Notes**:
 - Use QHBoxLayout with compact spacing
@@ -400,13 +400,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Export options dialog for multi-format export
 
 **Acceptance Criteria**:
-- [ ] ExportDialog(QDialog) class
-- [ ] Format selector: HTML, PDF, DOCX, Markdown, LaTeX
-- [ ] Output path field with Browse button
-- [ ] "Open after export" checkbox
-- [ ] "Include TOC" checkbox
-- [ ] OK/Cancel buttons (QDialogButtonBox)
-- [ ] get_result() returns export options dict
+- [x] ExportDialog(QDialog) class
+- [x] Format selector: HTML, PDF, DOCX, Markdown, LaTeX
+- [x] Output path field with Browse button
+- [x] "Open after export" checkbox
+- [x] "Include TOC" checkbox
+- [x] OK/Cancel buttons (QDialogButtonBox)
+- [x] get_result() returns export options dict
 
 **Implementation Notes**:
 - Use QVBoxLayout
@@ -427,16 +427,16 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Tabbed settings dialog for application preferences
 
 **Acceptance Criteria**:
-- [ ] SettingsDialog(QDialog) class with QTabWidget
-- [ ] Tabs: General, Editor, AI, Preview, Git, Privacy
-- [ ] General: theme, language, startup options
-- [ ] Editor: font family, font size, tab width, line wrap
-- [ ] AI: Ollama host, model, temperature, context mode
-- [ ] Preview: debounce delay, GPU enabled, theme
-- [ ] Git: auto-stage, commit template
-- [ ] Privacy: telemetry, crash reports
-- [ ] Apply/OK/Cancel buttons
-- [ ] Size: 600x500 pixels
+- [x] SettingsDialog(QDialog) class with QTabWidget
+- [x] Tabs: General, Editor, AI, Preview, Git, Privacy
+- [x] General: theme, language, startup options
+- [x] Editor: font family, font size, tab width, line wrap
+- [x] AI: Ollama host, model, temperature, context mode
+- [x] Preview: debounce delay, GPU enabled, theme
+- [x] Git: auto-stage, commit template
+- [x] Privacy: telemetry, crash reports
+- [x] Apply/OK/Cancel buttons
+- [x] Size: 600x500 pixels
 
 **Implementation Notes**:
 - Use QTabWidget for tabs
@@ -457,14 +457,14 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Quick commit dialog with staged files and diff preview
 
 **Acceptance Criteria**:
-- [ ] GitCommitDialog(QDialog) class
-- [ ] Commit message field (QTextEdit) with validation
-- [ ] Staged files list (QListWidget)
-- [ ] Diff preview (QTextBrowser) with syntax highlighting
-- [ ] Auto-stage current file checkbox
-- [ ] Commit/Cancel buttons
-- [ ] Validates commit message non-empty
-- [ ] Shows "Auto-staged: {filename}" if applicable
+- [x] GitCommitDialog(QDialog) class
+- [x] Commit message field (QTextEdit) with validation
+- [x] Staged files list (QListWidget)
+- [x] Diff preview (QTextBrowser) with syntax highlighting
+- [x] Auto-stage current file checkbox
+- [x] Commit/Cancel buttons
+- [x] Validates commit message non-empty
+- [x] Shows "Auto-staged: {filename}" if applicable
 
 **Implementation Notes**:
 - Use QSplitter for resizable sections
@@ -485,13 +485,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: About dialog with version info and credits
 
 **Acceptance Criteria**:
-- [ ] AboutDialog(QDialog) class
-- [ ] Application logo/icon
-- [ ] Version number from __version__
-- [ ] Credits: contributors, libraries used
-- [ ] License: GPL v3 (link to full text)
-- [ ] Size: 400x300 pixels
-- [ ] Close button
+- [x] AboutDialog(QDialog) class
+- [x] Application logo/icon
+- [x] Version number from __version__
+- [x] Credits: contributors, libraries used
+- [x] License: GPL v3 (link to full text)
+- [x] Size: 400x300 pixels
+- [x] Close button
 
 **Implementation Notes**:
 - Use QVBoxLayout
@@ -512,12 +512,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Status bar with message, position, encoding, Git status
 
 **Acceptance Criteria**:
-- [ ] Sections: message (stretch), position (120px), encoding (80px), git_branch (100px), git_status (60px)
-- [ ] Position format: "Ln {line}, Col {col}"
-- [ ] Git branch format: "📌 {branch}"
-- [ ] Git status format: "M:{modified} S:{staged}"
-- [ ] Messages auto-clear after 5 seconds
-- [ ] Error messages styled with red background
+- [x] Sections: message (stretch), position (120px), encoding (80px), git_branch (100px), git_status (60px)
+- [x] Position format: "Ln {line}, Col {col}"
+- [x] Git branch format: "📌 {branch}"
+- [x] Git status format: "M:{modified} S:{staged}"
+- [x] Messages auto-clear after 5 seconds
+- [x] Error messages styled with red background
 
 **Implementation Notes**:
 - Use QStatusBar with QLabel widgets
@@ -538,11 +538,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Application icon, toolbar icons, and Qt resource file
 
 **Acceptance Criteria**:
-- [ ] Application icon (512x512, 256x256, 128x128, 64x64, 32x32, 16x16)
-- [ ] Toolbar icons for common actions (Open, Save, Undo, Redo, etc.)
-- [ ] resources.qrc Qt resource file
-- [ ] Compiled resources.py with rcc
-- [ ] Icons accessible via :/icons/name.png
+- [x] Application icon (512x512, 256x256, 128x128, 64x64, 32x32, 16x16)
+- [x] Toolbar icons for common actions (Open, Save, Undo, Redo, etc.)
+- [x] resources.qrc Qt resource file
+- [x] Compiled resources.py with rcc
+- [x] Icons accessible via :/icons/name.png
 
 **Implementation Notes**:
 - Use SVG icons for scalability
@@ -569,15 +569,15 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Main application window with layout and menu structure
 
 **Acceptance Criteria**:
-- [ ] AsciiDocEditor(QMainWindow) class
-- [ ] Central widget: QSplitter(horizontal) with 3 panels
-- [ ] Editor pane: QPlainTextEdit with LineNumberArea
-- [ ] Preview pane placeholder (QWidget)
-- [ ] Chat pane placeholder (QWidget)
-- [ ] Splitter ratios: [40, 40, 20] (editor, preview, chat)
-- [ ] Minimum size: 1024x768 pixels
-- [ ] Window title format: "{filename} - AsciiDoc Artisan"
-- [ ] Status bar initialized
+- [x] AsciiDocEditor(QMainWindow) class
+- [x] Central widget: QSplitter(horizontal) with 3 panels
+- [x] Editor pane: QPlainTextEdit with LineNumberArea
+- [x] Preview pane placeholder (QWidget)
+- [x] Chat pane placeholder (QWidget)
+- [x] Splitter ratios: [40, 40, 20] (editor, preview, chat)
+- [x] Minimum size: 1024x768 pixels
+- [x] Window title format: "{filename} - AsciiDoc Artisan"
+- [x] Status bar initialized
 
 **Implementation Notes**:
 - MA principle: keep main_window.py <400 lines
@@ -598,14 +598,14 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Complete menu structure with shortcuts
 
 **Acceptance Criteria**:
-- [ ] File menu: New, Open, Recent, Save, Save As, Import, Export, Exit
-- [ ] Edit menu: Undo, Redo, Cut, Copy, Paste, Find, Replace, Go to Line
-- [ ] View menu: Dark Mode, Preview Panel, Chat Panel, Zoom In/Out/Reset
-- [ ] Tools menu: Spell Check, Syntax Check, Templates, Settings
-- [ ] Git menu: Quick Commit, Pull, Push, Status, Log
-- [ ] GitHub menu: Create PR, List PRs, Create Issue, List Issues
-- [ ] Help menu: User Guide, Keyboard Shortcuts, About
-- [ ] All shortcuts documented in SPEC Keyboard Shortcuts
+- [x] File menu: New, Open, Recent, Save, Save As, Import, Export, Exit
+- [x] Edit menu: Undo, Redo, Cut, Copy, Paste, Find, Replace, Go to Line
+- [x] View menu: Dark Mode, Preview Panel, Chat Panel, Zoom In/Out/Reset
+- [x] Tools menu: Spell Check, Syntax Check, Templates, Settings
+- [x] Git menu: Quick Commit, Pull, Push, Status, Log
+- [x] GitHub menu: Create PR, List PRs, Create Issue, List Issues
+- [x] Help menu: User Guide, Keyboard Shortcuts, About
+- [x] All shortcuts documented in SPEC Keyboard Shortcuts
 
 **Implementation Notes**:
 - Use QAction for menu items
@@ -626,13 +626,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: File operations handler (open, save, new, recent files)
 
 **Acceptance Criteria**:
-- [ ] FileHandler(QObject) class with reentrancy guard
-- [ ] Signals: file_opened(Path), file_saved(Path), file_modified(bool), encoding_changed(str), error_occurred(str)
-- [ ] Methods: open_file(), save_file(), save_as(), new_file()
-- [ ] add_recent_file(path), load_recent_files()
-- [ ] Auto-save timer with configurable interval (default 300s)
-- [ ] Encoding detection (UTF-8, UTF-16, Latin-1, ASCII)
-- [ ] Close warning dialog if document modified
+- [x] FileHandler(QObject) class with reentrancy guard
+- [x] Signals: file_opened(Path), file_saved(Path), file_modified(bool), encoding_changed(str), error_occurred(str)
+- [x] Methods: open_file(), save_file(), save_as(), new_file()
+- [x] add_recent_file(path), load_recent_files()
+- [x] Auto-save timer with configurable interval (default 300s)
+- [x] Encoding detection (UTF-8, UTF-16, Latin-1, ASCII)
+- [x] Close warning dialog if document modified
 
 **Implementation Notes**:
 - Use QFileDialog for open/save dialogs
@@ -653,13 +653,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: AsciiDoc syntax highlighter for editor
 
 **Acceptance Criteria**:
-- [ ] AsciiDocHighlighter(QSyntaxHighlighter) class
-- [ ] Highlights: headings (= to ======), bold (*text*), italic (_text_)
-- [ ] Code blocks (```), lists (*, -, .), links, images
-- [ ] Attributes (:name:), cross-refs (<<anchor>>)
-- [ ] Comments (//), block delimiters (====, ----)
-- [ ] Colors follow active theme (dark/light)
-- [ ] Highlighting applied within 100ms of file load
+- [x] AsciiDocHighlighter(QSyntaxHighlighter) class
+- [x] Highlights: headings (= to ======), bold (*text*), italic (_text_)
+- [x] Code blocks (```), lists (*, -, .), links, images
+- [x] Attributes (:name:), cross-refs (<<anchor>>)
+- [x] Comments (//), block delimiters (====, ----)
+- [x] Colors follow active theme (dark/light)
+- [x] Highlighting applied within 100ms of file load
 
 **Implementation Notes**:
 - Use QRegularExpression for pattern matching
@@ -680,12 +680,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Auto-indentation for lists and blocks
 
 **Acceptance Criteria**:
-- [ ] Detects list items (*, -, ., 1.)
-- [ ] Detects block delimiters (====, ----)
-- [ ] Auto-indents new line to match previous line level
-- [ ] Supports nested lists up to 6 levels
-- [ ] Respects tab vs. space configuration (settings)
-- [ ] Completes within 20ms of Enter key press
+- [x] Detects list items (*, -, ., 1.)
+- [x] Detects block delimiters (====, ----)
+- [x] Auto-indents new line to match previous line level
+- [x] Supports nested lists up to 6 levels
+- [x] Respects tab vs. space configuration (settings)
+- [x] Completes within 20ms of Enter key press
 
 **Implementation Notes**:
 - Connect to editor.textChanged signal
@@ -706,11 +706,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Wire undo/redo actions to editor
 
 **Acceptance Criteria**:
-- [ ] Undo action (Ctrl+Z) calls editor.undo()
-- [ ] Redo action (Ctrl+Y, Ctrl+Shift+Z) calls editor.redo()
-- [ ] Undo stack maintains minimum 100 operations
-- [ ] Actions disabled when stack empty
-- [ ] Operations complete within 50ms
+- [x] Undo action (Ctrl+Z) calls editor.undo()
+- [x] Redo action (Ctrl+Y, Ctrl+Shift+Z) calls editor.redo()
+- [x] Undo stack maintains minimum 100 operations
+- [x] Actions disabled when stack empty
+- [x] Operations complete within 50ms
 
 **Implementation Notes**:
 - QPlainTextEdit has built-in undo/redo
@@ -731,11 +731,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Wire clipboard actions to editor
 
 **Acceptance Criteria**:
-- [ ] Cut action (Ctrl+X) calls editor.cut()
-- [ ] Copy action (Ctrl+C) calls editor.copy()
-- [ ] Paste action (Ctrl+V) calls editor.paste()
-- [ ] Select All action (Ctrl+A) calls editor.selectAll()
-- [ ] Actions work with system clipboard
+- [x] Cut action (Ctrl+X) calls editor.cut()
+- [x] Copy action (Ctrl+C) calls editor.copy()
+- [x] Paste action (Ctrl+V) calls editor.paste()
+- [x] Select All action (Ctrl+A) calls editor.selectAll()
+- [x] Actions work with system clipboard
 
 **Implementation Notes**:
 - QPlainTextEdit has built-in clipboard support
@@ -755,11 +755,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Apply font settings to editor
 
 **Acceptance Criteria**:
-- [ ] Load editor_font_family and editor_font_size from settings
-- [ ] Apply to editor with QFont
-- [ ] Default: Courier New, 12pt
-- [ ] Font changes applied immediately without restart
-- [ ] Connect to settings.setting_changed signal
+- [x] Load editor_font_family and editor_font_size from settings
+- [x] Apply to editor with QFont
+- [x] Default: Courier New, 12pt
+- [x] Font changes applied immediately without restart
+- [x] Connect to settings.setting_changed signal
 
 **Implementation Notes**:
 - Use QFont(family, size) and editor.setFont()
@@ -779,11 +779,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Track document modified state and update window title
 
 **Acceptance Criteria**:
-- [ ] Modified flag set on text changes
-- [ ] Modified flag cleared on successful save
-- [ ] Window title format: "*{filename} - AsciiDoc Artisan" (modified)
-- [ ] Window title format: "{filename} - AsciiDoc Artisan" (unmodified)
-- [ ] file_modified signal emitted on flag change
+- [x] Modified flag set on text changes
+- [x] Modified flag cleared on successful save
+- [x] Window title format: "*{filename} - AsciiDoc Artisan" (modified)
+- [x] Window title format: "{filename} - AsciiDoc Artisan" (unmodified)
+- [x] file_modified signal emitted on flag change
 
 **Implementation Notes**:
 - Connect to editor.textChanged signal
@@ -803,12 +803,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Warn user before closing modified document
 
 **Acceptance Criteria**:
-- [ ] Dialog shown on closeEvent if document modified
-- [ ] Buttons: Save, Discard, Cancel
-- [ ] Save button saves file and closes
-- [ ] Discard button closes without saving
-- [ ] Cancel button cancels close
-- [ ] Default button: Save
+- [x] Dialog shown on closeEvent if document modified
+- [x] Buttons: Save, Discard, Cancel
+- [x] Save button saves file and closes
+- [x] Discard button closes without saving
+- [x] Cancel button cancels close
+- [x] Default button: Save
 
 **Implementation Notes**:
 - Override closeEvent(event) in main window
@@ -828,12 +828,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Detect file encoding and allow user selection
 
 **Acceptance Criteria**:
-- [ ] detect_encoding() supports UTF-8, UTF-16LE, UTF-16BE, Latin-1, ASCII
-- [ ] BOM detection for UTF-16
-- [ ] Defaults to UTF-8 if detection fails
-- [ ] Encoding displayed in status bar
-- [ ] Status bar menu for encoding selection
-- [ ] Reload file with selected encoding
+- [x] detect_encoding() supports UTF-8, UTF-16LE, UTF-16BE, Latin-1, ASCII
+- [x] BOM detection for UTF-16
+- [x] Defaults to UTF-8 if detection fails
+- [x] Encoding displayed in status bar
+- [x] Status bar menu for encoding selection
+- [x] Reload file with selected encoding
 
 **Implementation Notes**:
 - Use chardet library or manual BOM detection
@@ -854,13 +854,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Comprehensive error handling for file operations
 
 **Acceptance Criteria**:
-- [ ] FileNotFoundError → "File not found: {path}"
-- [ ] PermissionError → "Permission denied: {path}"
-- [ ] IsADirectoryError → "Path is a directory: {path}"
-- [ ] OSError → "OS error: {message}"
-- [ ] Error dialog shows file path and OS error code
-- [ ] Operation rolled back (no partial writes)
-- [ ] User returned to previous state
+- [x] FileNotFoundError → "File not found: {path}"
+- [x] PermissionError → "Permission denied: {path}"
+- [x] IsADirectoryError → "Path is a directory: {path}"
+- [x] OSError → "OS error: {message}"
+- [x] Error dialog shows file path and OS error code
+- [x] Operation rolled back (no partial writes)
+- [x] User returned to previous state
 
 **Implementation Notes**:
 - Try/except blocks around all file I/O
@@ -881,13 +881,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Populate and handle Recent Files menu
 
 **Acceptance Criteria**:
-- [ ] Recent Files submenu dynamically populated
-- [ ] Shows 10 most recent files
-- [ ] Reverse chronological order
-- [ ] Format: "{filename} - {truncated_path}"
-- [ ] Empty state: "No recent files" (disabled)
-- [ ] Click opens file
-- [ ] Non-existent files removed from list with error dialog
+- [x] Recent Files submenu dynamically populated
+- [x] Shows 10 most recent files
+- [x] Reverse chronological order
+- [x] Format: "{filename} - {truncated_path}"
+- [x] Empty state: "No recent files" (disabled)
+- [x] Click opens file
+- [x] Non-existent files removed from list with error dialog
 
 **Implementation Notes**:
 - Clear menu and rebuild on update
@@ -908,12 +908,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Auto-save timer for documents
 
 **Acceptance Criteria**:
-- [ ] setup_autosave(interval) method
-- [ ] Default interval: 300 seconds (5 minutes)
-- [ ] Timer resets on manual save
-- [ ] Only saves if document modified and path exists
-- [ ] Silent operation (no status bar message)
-- [ ] Configurable in settings
+- [x] setup_autosave(interval) method
+- [x] Default interval: 300 seconds (5 minutes)
+- [x] Timer resets on manual save
+- [x] Only saves if document modified and path exists
+- [x] Silent operation (no status bar message)
+- [x] Configurable in settings
 
 **Implementation Notes**:
 - Use QTimer with timeout signal
@@ -934,12 +934,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Create new untitled document
 
 **Acceptance Criteria**:
-- [ ] new_file() method
-- [ ] Prompts to save if current document modified
-- [ ] New document titled "Untitled-{N}.adoc"
-- [ ] Clears editor content
-- [ ] Clears undo/redo history
-- [ ] Sets modified flag to False
+- [x] new_file() method
+- [x] Prompts to save if current document modified
+- [x] New document titled "Untitled-{N}.adoc"
+- [x] Clears editor content
+- [x] Clears undo/redo history
+- [x] Sets modified flag to False
 
 **Implementation Notes**:
 - Increment counter for each new file
@@ -960,13 +960,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Implement save and save as operations
 
 **Acceptance Criteria**:
-- [ ] save_file() saves to existing path or shows save dialog
-- [ ] save_as() always shows save dialog
-- [ ] Uses atomic_save_text() for integrity
-- [ ] Save completes within 200ms for files <1MB
-- [ ] Status bar shows "Saved: {filename}"
-- [ ] Updates window title with new filename (save_as)
-- [ ] Clears modified flag on success
+- [x] save_file() saves to existing path or shows save dialog
+- [x] save_as() always shows save dialog
+- [x] Uses atomic_save_text() for integrity
+- [x] Save completes within 200ms for files <1MB
+- [x] Status bar shows "Saved: {filename}"
+- [x] Updates window title with new filename (save_as)
+- [x] Clears modified flag on success
 
 **Implementation Notes**:
 - Reentrancy guard: check _is_processing flag
@@ -987,13 +987,13 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Implement file open operation
 
 **Acceptance Criteria**:
-- [ ] open_file() shows QFileDialog
-- [ ] Filters: .adoc, .asciidoc, .asc, .txt, *.*
-- [ ] Remembers last opened directory
-- [ ] Supports multi-file selection (future)
-- [ ] Files up to 10MB loaded within 500ms
-- [ ] UTF-8 encoding detection automatic
-- [ ] Prompts to save if current document modified
+- [x] open_file() shows QFileDialog
+- [x] Filters: .adoc, .asciidoc, .asc, .txt, *.*
+- [x] Remembers last opened directory
+- [x] Supports multi-file selection (future)
+- [x] Files up to 10MB loaded within 500ms
+- [x] UTF-8 encoding detection automatic
+- [x] Prompts to save if current document modified
 
 **Implementation Notes**:
 - QFileDialog.getOpenFileName()
@@ -1015,14 +1015,14 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Save/restore window state (geometry, splitter, open files)
 
 **Acceptance Criteria**:
-- [ ] save_state() on closeEvent
-- [ ] load_state() on startup
-- [ ] Saves window geometry (position, size)
-- [ ] Saves splitter positions
-- [ ] Saves open file paths
-- [ ] Restoration completes within 500ms
-- [ ] Graceful fallback if state file corrupted
-- [ ] Default state for first launch
+- [x] save_state() on closeEvent
+- [x] load_state() on startup
+- [x] Saves window geometry (position, size)
+- [x] Saves splitter positions
+- [x] Saves open file paths
+- [x] Restoration completes within 500ms
+- [x] Graceful fallback if state file corrupted
+- [x] Default state for first launch
 
 **Implementation Notes**:
 - Store in ~/.config/asciidoc-artisan/editor_state.toon
@@ -1603,12 +1603,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Commit history viewer
 
 **Acceptance Criteria**:
-- [ ] GitLogViewer(QWidget) class
-- [ ] Shows last 50 commits
-- [ ] Columns: Hash, Author, Date, Message
-- [ ] Paginated (50 commits per page)
-- [ ] Click commit shows full diff
-- [ ] Next/Previous page buttons
+- [x] GitLogViewer(QWidget) class
+- [x] Shows last 50 commits
+- [x] Columns: Hash, Author, Date, Message
+- [x] Paginated (50 commits per page)
+- [x] Click commit shows full diff
+- [x] Next/Previous page buttons
 
 **Implementation Notes**:
 - Execute git log --oneline -n 50 --skip {offset}
@@ -1629,12 +1629,12 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Side-by-side diff viewer
 
 **Acceptance Criteria**:
-- [ ] GitDiffDialog(QDialog) class
-- [ ] Side-by-side layout with old/new versions
-- [ ] Color-coded: green (additions), red (deletions), yellow (changes)
-- [ ] Context lines: 3 before/after
-- [ ] Syntax highlighting for code
-- [ ] Close button
+- [x] GitDiffDialog(QDialog) class
+- [x] Side-by-side layout with old/new versions
+- [x] Color-coded: green (additions), red (deletions), yellow (changes)
+- [x] Context lines: 3 before/after
+- [x] Syntax highlighting for code
+- [x] Close button
 
 **Implementation Notes**:
 - Execute git diff {file}
@@ -1971,11 +1971,11 @@ This document breaks down the AsciiDoc Artisan project into 120 atomic, implemen
 **Description**: Configurable AI temperature parameter
 
 **Acceptance Criteria**:
-- [ ] Temperature slider in Settings > AI tab
-- [ ] Range: 0.0 to 2.0
-- [ ] Default: 0.7
-- [ ] Takes effect on next message submission
-- [ ] Tooltip explains temperature effect
+- [x] Temperature slider in Settings > AI tab
+- [x] Range: 0.0 to 2.0
+- [x] Default: 0.7
+- [x] Takes effect on next message submission
+- [x] Tooltip explains temperature effect
 
 **Implementation Notes**:
 - QSlider with range 0-200, divide by 100 for value

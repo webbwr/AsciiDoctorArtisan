@@ -26,7 +26,6 @@ Tests cover:
 Consolidated: November 2, 2025 (Phase 3 Task 3.1)
 """
 
-import json
 import subprocess
 import sys
 from datetime import datetime, timedelta
@@ -35,6 +34,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from asciidoc_artisan.core import toon_utils
 from asciidoc_artisan.core.gpu_detection import (
     GPUCacheEntry,
     GPUDetectionCache,
@@ -62,7 +62,7 @@ from asciidoc_artisan.core.gpu_detection import (
 @pytest.fixture
 def mock_cache_file(tmp_path, monkeypatch):
     """Use temporary cache file for testing."""
-    cache_file = tmp_path / "gpu_cache.json"
+    cache_file = tmp_path / "gpu_cache.toon"
     monkeypatch.setattr(GPUDetectionCache, "CACHE_FILE", cache_file)
     return cache_file
 
@@ -254,12 +254,12 @@ class TestGPUDetectionCache:
 
     def test_load_valid_cache(self, tmp_path):
         """Test loading valid cache file."""
-        cache_file = tmp_path / "gpu_cache.json"
+        cache_file = tmp_path / "gpu_cache.toon"
         gpu_info = GPUInfo(has_gpu=True, gpu_type="nvidia", gpu_name="Test GPU")
         entry = GPUCacheEntry.from_gpu_info(gpu_info, "1.5.0")
 
         cache_file.write_text(
-            json.dumps(
+            toon_utils.dumps(
                 {
                     "timestamp": entry.timestamp,
                     "gpu_info": entry.gpu_info,
@@ -276,11 +276,11 @@ class TestGPUDetectionCache:
 
     def test_load_expired_cache(self, tmp_path):
         """Test loading expired cache returns None."""
-        cache_file = tmp_path / "gpu_cache.json"
+        cache_file = tmp_path / "gpu_cache.toon"
         old_timestamp = (datetime.now() - timedelta(days=10)).isoformat()
 
         cache_file.write_text(
-            json.dumps(
+            toon_utils.dumps(
                 {
                     "timestamp": old_timestamp,
                     "gpu_info": {"has_gpu": False},
@@ -295,8 +295,8 @@ class TestGPUDetectionCache:
 
     def test_load_corrupted_cache(self, tmp_path):
         """Test loading corrupted cache file returns None."""
-        cache_file = tmp_path / "gpu_cache.json"
-        cache_file.write_text("{ invalid json }")
+        cache_file = tmp_path / "gpu_cache.toon"
+        cache_file.write_text("{ invalid toon }")
 
         with patch.object(GPUDetectionCache, "CACHE_FILE", cache_file):
             loaded = GPUDetectionCache.load()
@@ -304,7 +304,7 @@ class TestGPUDetectionCache:
 
     def test_save_cache(self, tmp_path):
         """Test saving GPU info to cache."""
-        cache_file = tmp_path / "gpu_cache.json"
+        cache_file = tmp_path / "gpu_cache.toon"
         cache_file.parent.mkdir(parents=True, exist_ok=True)
 
         gpu_info = GPUInfo(has_gpu=True, gpu_type="intel", compute_capabilities=["opencl"])
@@ -313,14 +313,14 @@ class TestGPUDetectionCache:
             GPUDetectionCache.save(gpu_info, version="1.5.0")
 
             assert cache_file.exists()
-            data = json.loads(cache_file.read_text())
+            data = toon_utils.loads(cache_file.read_text())
             assert data["gpu_info"]["has_gpu"] is True
             assert data["gpu_info"]["gpu_type"] == "intel"
             assert data["version"] == "1.5.0"
 
     def test_save_cache_creates_directory(self, tmp_path):
         """Test that save creates cache directory if it doesn't exist."""
-        cache_file = tmp_path / "new_dir" / "gpu_cache.json"
+        cache_file = tmp_path / "new_dir" / "gpu_cache.toon"
         gpu_info = GPUInfo(has_gpu=False)
 
         with patch.object(GPUDetectionCache, "CACHE_FILE", cache_file):
@@ -331,7 +331,7 @@ class TestGPUDetectionCache:
 
     def test_save_cache_overwrites_existing(self, tmp_path):
         """Test that save overwrites existing cache file."""
-        cache_file = tmp_path / "gpu_cache.json"
+        cache_file = tmp_path / "gpu_cache.toon"
         cache_file.write_text("old content")
 
         gpu_info = GPUInfo(has_gpu=True, gpu_type="amd")
@@ -339,13 +339,13 @@ class TestGPUDetectionCache:
         with patch.object(GPUDetectionCache, "CACHE_FILE", cache_file):
             GPUDetectionCache.save(gpu_info, version="2.0.0")
 
-            data = json.loads(cache_file.read_text())
+            data = toon_utils.loads(cache_file.read_text())
             assert data["version"] == "2.0.0"
             assert "old content" not in cache_file.read_text()
 
     def test_round_trip_cache(self, tmp_path):
         """Test saving and loading cache (round trip)."""
-        cache_file = tmp_path / "gpu_cache.json"
+        cache_file = tmp_path / "gpu_cache.toon"
 
         original = GPUInfo(
             has_gpu=True,
@@ -386,10 +386,10 @@ class TestGPUDetectionCache:
             assert result is False
 
     def test_cache_format(self, mock_cache_file, sample_gpu_info):
-        """Test cache file has correct JSON format."""
+        """Test cache file has correct TOON format."""
         GPUDetectionCache.save(sample_gpu_info, "1.4.1")
 
-        data = json.loads(mock_cache_file.read_text())
+        data = toon_utils.loads(mock_cache_file.read_text())
 
         assert "timestamp" in data
         assert "gpu_info" in data
@@ -444,10 +444,10 @@ class TestGPUDetectionCache:
         GPUDetectionCache.save(sample_gpu_info, "1.4.1")
 
         # Manually modify timestamp to be exactly at TTL boundary
-        data = json.loads(mock_cache_file.read_text())
+        data = toon_utils.loads(mock_cache_file.read_text())
         boundary_time = datetime.now() - timedelta(days=7, seconds=-1)
         data["timestamp"] = boundary_time.isoformat()
-        mock_cache_file.write_text(json.dumps(data))
+        mock_cache_file.write_text(toon_utils.dumps(data))
 
         # Should still be valid (less than 7 days)
         loaded = GPUDetectionCache.load()
@@ -456,7 +456,7 @@ class TestGPUDetectionCache:
         # Modify to be just over TTL
         over_time = datetime.now() - timedelta(days=7, seconds=1)
         data["timestamp"] = over_time.isoformat()
-        mock_cache_file.write_text(json.dumps(data))
+        mock_cache_file.write_text(toon_utils.dumps(data))
 
         # Should be expired
         loaded = GPUDetectionCache.load()
@@ -468,7 +468,7 @@ class TestCacheClear:
 
     def test_clear_existing_cache(self, tmp_path):
         """Test clearing existing cache file."""
-        cache_file = tmp_path / "gpu_cache.json"
+        cache_file = tmp_path / "gpu_cache.toon"
         cache_file.write_text("{}")
 
         with patch.object(GPUDetectionCache, "CACHE_FILE", cache_file):

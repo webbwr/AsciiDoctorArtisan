@@ -507,7 +507,8 @@ class TestAsciiDocRenderingErrors:
         window._asciidoc_api = mock_api
 
         # Test rendering with failing API
-        with patch("asciidoc_artisan.ui.main_window.logger") as mock_logger:
+        # The method is in main_window_slots.py, so patch the correct logger
+        with patch("asciidoc_artisan.ui.main_window_slots.logger") as mock_logger:
             result = window._convert_asciidoc_to_html_body("test content")
 
             # Should return error message with red styling
